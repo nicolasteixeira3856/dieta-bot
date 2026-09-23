@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    env_file: ../.env
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    env_file: ../.env
+    depends_on:
+      - api
+    restart: unless-stopped
+    profiles: ["named-tunnel"]

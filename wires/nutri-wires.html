@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wires · MVP semana 1</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #12151a;
+    --phone: #0e1114;
+    --surf: #171b20;
+    --surf2: #1e242b;
+    --line: #2a3139;
+    --text: #f3f5f7;
+    --muted: #8b939c;
+    --dim: #5c6570;
+    --gold: #e8b86d;
+    --gold-dim: rgba(232,184,109,.14);
+    --good: #7dda9a;
+    --good-dim: rgba(125,218,154,.12);
+    --bad: #e07a6a;
+    --bad-dim: rgba(224,122,106,.12);
+    --blue: #8bb8d8;
+    --warn: #e8b86d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: "SF Pro Text", "Inter", ui-sans-serif, system-ui, sans-serif; }
+  body { min-height: 100vh; }
+
+  .page {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    gap: 28px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
+  }
+  @media (max-width: 1100px) {
+    .page { grid-template-columns: 1fr; }
+    .side, .notes { position: static; }
+  }
+
+  .brand { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+  h1 { font-size: 22px; font-weight: 560; letter-spacing: -.02em; line-height: 1.2; }
+  .lede { color: var(--muted); font-size: 13px; line-height: 1.45; margin-top: 8px; }
+
+  .nav { margin-top: 28px; display: flex; flex-direction: column; gap: 4px; }
+  .nav button {
+    text-align: left; background: transparent; border: 0; color: var(--muted);
+    padding: 9px 10px; border-radius: 10px; cursor: pointer; font-size: 13px;
+  }
+  .nav button:hover { background: var(--surf); color: var(--text); }
+  .nav button.on { background: var(--surf2); color: var(--text); }
+  .nav .k { display: block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 14px 10px 4px; }
+  .sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0 10px; }
+  .sub button {
+    background: var(--surf); border: 1px solid var(--line); color: var(--muted);
+    font-size: 11px; padding: 5px 8px; border-radius: 999px; cursor: pointer;
+  }
+  .sub button.on { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+  .stage { display: flex; flex-direction: column; align-items: center; }
+  .phone {
+    width: 390px; height: 844px; background: var(--phone);
+    border-radius: 42px; border: 1px solid #2c333c;
+    box-shadow: 0 0 0 8px #16191e, 0 40px 80px rgba(0,0,0,.45);
+    overflow: hidden; position: relative;
+  }
+  .notch {
+    height: 54px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 10px; font-size: 12px; color: var(--text); font-weight: 600;
+  }
+  .screen { height: calc(844px - 54px - 20px); overflow: auto; padding: 6px 20px 28px; }
+  .screen::-webkit-scrollbar { width: 0; }
+
+  .h-kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+  .h1 { font-size: 28px; font-weight: 590; letter-spacing: -.03em; line-height: 1.15; margin: 6px 0 8px; }
+  .subcopy { color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+  .chips { display: flex; flex-direction: column; gap: 8px; margin: 22px 0 18px; }
+  .chip, .card-opt, .btn, .field, .seg, .mini {
+    border-radius: 14px; border: 1px solid var(--line); background: var(--surf);
+  }
+  .chip {
+    padding: 12px 14px; color: var(--text); font-size: 14px; cursor: pointer; text-align: left;
+  }
+  .chip.on { border-color: var(--gold); background: var(--gold-dim); }
+  .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .field {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; font-size: 28px; font-weight: 560; letter-spacing: -.03em;
+  }
+  .field span { font-size: 14px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+  .field input {
+    background: transparent; border: 0; color: var(--text); font-size: 28px; font-weight: 560;
+    width: 140px; outline: none; font-family: inherit; letter-spacing: -.03em;
+  }
+  .fine { color: var(--dim); font-size: 12px; line-height: 1.4; margin-top: 14px; }
+  .btn {
+    width: 100%; padding: 15px; text-align: center; font-size: 15px; font-weight: 600;
+    background: var(--text); color: #111; border: 0; cursor: pointer; margin-top: 18px;
+  }
+  .btn.ghost { background: var(--surf2); color: var(--text); border: 1px solid var(--line); }
+  .btn.good { background: var(--good); color: #0b140f; }
+  .btn.sm { padding: 10px 12px; font-size: 13px; margin-top: 0; width: auto; }
+  .row { display: flex; gap: 8px; }
+  .row .btn { flex: 1; }
+
+  .card-opt { padding: 14px; cursor: pointer; margin-bottom: 8px; }
+  .card-opt.on { border-color: var(--gold); background: var(--gold-dim); }
+  .card-opt b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .card-opt p { color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .pct-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .pct-row input {
+    width: 64px; background: var(--phone); border: 1px solid var(--line); color: var(--text);
+    font-size: 18px; padding: 8px 10px; border-radius: 10px; font-family: inherit; outline: none;
+  }
+  .preview { margin-top: 8px; font-size: 12px; color: var(--gold); }
+  .amber { color: var(--gold); font-size: 12px; margin-top: 8px; line-height: 1.35; }
+
+  .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  .top .date { font-size: 13px; color: var(--muted); }
+  .teto-btn { background: none; border: 0; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  .saldo .big { font-size: 34px; font-weight: 590; letter-spacing: -.04em; }
+  .saldo .big em { font-style: normal; color: var(--muted); font-weight: 500; font-size: 20px; }
+  .macros { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .bar { height: 6px; background: #232a31; border-radius: 99px; margin: 12px 0 16px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
+
+  .hero {
+    background: var(--surf); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .hero .tag { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .hero h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .hero p { font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .hero .cta { margin-top: 12px; }
+
+  .composer {
+    display: flex; gap: 8px; align-items: center; background: var(--surf);
+    border: 1px solid var(--line); border-radius: 16px; padding: 8px 8px 8px 14px; margin: 12px 0;
+  }
+  .composer span { flex: 1; color: var(--dim); font-size: 13px; }
+  .cam {
+    width: 36px; height: 36px; border-radius: 10px; background: var(--surf2);
+    display: grid; place-items: center; font-size: 16px;
+  }
+  .fav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .pill {
+    background: var(--surf2); border: 1px solid var(--line); color: var(--text);
+    font-size: 12px; padding: 7px 10px; border-radius: 999px; cursor: pointer;
+  }
+
+  .tl { margin-top: 8px; }
+  .tl-row {
+    display: flex; justify-content: space-between; padding: 8px 0;
+    border-bottom: 1px solid #1c2228; font-size: 13px; color: var(--muted);
+  }
+  .tl-row b { color: var(--text); font-weight: 500; }
+  .ok { color: var(--good); }
+  .now { color: var(--gold); }
+  .off { color: var(--dim); }
+  .foot { margin-top: 16px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .link { color: var(--blue); cursor: pointer; }
+
+  .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; }
+  .sheet {
+    width: 100%; background: #14181d; border-top-left-radius: 22px; border-top-right-radius: 22px;
+    padding: 10px 20px 28px; border-top: 1px solid var(--line); max-height: 78%; overflow: auto;
+  }
+  .handle { width: 40px; height: 4px; background: #3a424c; border-radius: 99px; margin: 4px auto 12px; }
+  .kcal { font-size: 32px; font-weight: 590; letter-spacing: -.04em; }
+  .conf { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 99px; margin-top: 6px; }
+  .conf.alto { background: var(--good-dim); color: var(--good); }
+  .conf.medio { background: var(--gold-dim); color: var(--gold); }
+  .conf.baixo { background: var(--bad-dim); color: var(--bad); }
+  .ask { background: var(--surf2); border-radius: 14px; padding: 12px; margin: 12px 0; }
+  .ask .q { font-size: 13px; line-height: 1.4; margin-bottom: 10px; }
+  .chip-line { font-size: 12px; color: var(--muted); margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+  .assume { background: var(--gold-dim); border: 1px solid rgba(232,184,109,.28); border-radius: 14px; padding: 12px; margin-top: 12px; }
+  .assume p { font-size: 13px; line-height: 1.45; }
+  .push {
+    margin: 80px 18px 0; background: #1a1f25; border: 1px solid var(--line);
+    border-radius: 20px; padding: 12px 14px; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  .push .app { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  .push h4 { font-size: 14px; margin: 6px 0 4px; }
+  .push p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  .notes h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+  .notes p, .notes li { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .notes ul { padding-left: 16px; margin: 8px 0 16px; }
+  .tagv, .tagh { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 99px; margin-right: 6px; }
+  .tagv { background: var(--good-dim); color: var(--good); }
+  .tagh { background: var(--gold-dim); color: var(--gold); }
+  .legend { font-size: 12px; color: var(--dim); margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <aside class="side">
+    <div class="brand">MVP · semana 1</div>
+    <h1>Wires do app</h1>
+    <p class="lede">Protótipo clicável. Copy fechado nas 8 decisões. Sem stack, sem API.</p>
+    <nav class="nav">
+      <div class="k">Onboarding</div>
+      <button data-go="o1" class="on">O1 · Teto</button>
+      <button data-go="o2">O2 · Treino no saldo</button>
+      <div class="k">App</div>
+      <button data-go="home">T0 · Home</button>
+      <div class="sub" id="home-states">
+        <button data-hs="manha" class="on">dia 1</button>
+        <button data-hs="tarde">16:22</button>
+        <button data-hs="treino">18:10</button>
+        <button data-hs="dia3">dia 3</button>
+        <button data-hs="fds">sáb</button>
+      </div>
+      <button data-go="t1">T1 · Registrar</button>
+      <button data-go="t2">T2 · Confirmação</button>
+      <div class="sub" id="t2-states">
+        <button data-ts="a" class="on">café d1</button>
+        <button data-ts="b">PF</button>
+        <button data-ts="c">assumir</button>
+        <button data-ts="e">atalho</button>
+        <button data-ts="d">estouro</button>
+      </div>
+      <button data-go="t3">T3 · Encaixe</button>
+      <div class="sub" id="t3-states">
+        <button data-es="quero" class="on">quero</button>
+        <button data-es="tenho">tenho</button>
+        <button data-es="ideia">sem ideia</button>
+      </div>
+      <button data-go="set">Settings · 2 regras</button>
+      <button data-go="push">Push 16:30</button>
+    </nav>
+  </aside>
+
+  <main class="stage">
+    <div class="phone" id="phone">
+      <div class="notch"><span>09:41</span><span>⬤⬤⬤</span></div>
+      <div class="screen" id="screen"></div>
+    </div>
+  </main>
+
+  <aside class="notes" id="notes"></aside>
+</div>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+let go = 'o1';
+let hs = 'manha';
+let ts = 'a';
+let es = 'quero';
+let tetoMode = 1;
+let eat = 'zero';
+let pct = 50;
+let excecao = false;
+
+const notes = {
+  o1: { t:'O1 · Teto', body:`<span class="tagh">hipótese de UX</span> 2 telas, decisão 1B.<br><br>
+    <ul>
+      <li>Número é do usuário. IA não calcula teto.</li>
+      <li>Cutover do dono: campo já vem 2000. Outro usuário: vazio + placeholder.</li>
+      <li>Chip 2 libera combo util/fds sem quebrar a decisão 4A (4A é nudge, não teto).</li>
+    </ul>`},
+  o2: { t:'O2 · Treino no saldo', body:`<span class="tagv">validado</span> 0% é o seu modo hoje.<br><span class="tagh">hipótese</span> % digitável, decisão 2B, sem cap.<br><br>
+    Preview usa 480 só como exemplo. Crédito de verdade só depois de anotar o treino na Home.`},
+  home: { t:'T0 · Home', body:`<span class="tagh">hipótese</span> superfície híbrida + Home limpa no dia 1 (UX 1B).<br><br>
+    Dia 1 = zero chips. Dia 3 = chip só da janela atual, depois de perguntar 1 vez no 2º log. Orçamento da janta não depende de chip.`},
+  t1: { t:'T1 · Registrar', body:`<span class="tagv">validado</span> texto solto ou foto, sem grama obrigatória.<br><br>Sheet sobre a Home. Foto + texto no mesmo envio.`},
+  t2: { t:'T2 · Confirmação', body:`<span class="tagv">validado</span> card curto, ≈, 1 pergunta se confiança ≠ alto.<br><span class="tagh">hipótese</span> chip de assunção e proposta no rodapé, decisão 3A.`},
+  t3: { t:'T3 · Encaixe', body:`<span class="tagv">validado no Nutri</span> 3 modos.<br><span class="tagh">hipótese</span> [Vou nesse] = registrar, sem redigitar. Sem ideia nunca oferece o prato que explode o teto.`},
+  set: { t:'Settings', body:`Teto e eat-back na cara. 2 taps a partir do número no topo da Home. Proteína, janelas e assumidos são links — fora do onboarding.`},
+  push: { t:'Push 16:30', body:`2C + UX 2B. Corpo abre T3. Ação <b>já comi</b> abre T1 da janela, campo vazio. Sábado: sem push.`}
+};
+
+function render() {
+  $$('.nav > button').forEach(b => b.classList.toggle('on', b.dataset.go === go));
+  $$('#home-states button').forEach(b => b.classList.toggle('on', b.dataset.hs === hs));
+  $$('#t2-states button').forEach(b => b.classList.toggle('on', b.dataset.ts === ts));
+  $$('#t3-states button').forEach(b => b.classList.toggle('on', b.dataset.es === es));
+  $('#screen').innerHTML = screens[go]();
+  const n = notes[go];
+  $('#notes').innerHTML = `<h2>${n.t}</h2><p>${n.body}</p><p class="legend">Clique nos chips e cards dentro do telefone. Continuar / Entrar / teto ▾ navegam.</p>`;
+}
+
+const screens = {
+  o1() {
+    const m = tetoMode;
+    return `
+      <div class="h-kicker">Primeiro open</div>
+      <div class="h1">Qual é o teto de kcal?</div>
+      <p class="subcopy">Você manda no número.</p>
+      <div class="chips">
+        <button class="chip ${m===1?'on':''}" onclick="tetoMode=1;render()">Mesmo todos os dias</button>
+        <button class="chip ${m===2?'on':''}" onclick="tetoMode=2;render()">Seg–sex / sáb–dom</button>
+        <button class="chip ${m===3?'on':''}" onclick="tetoMode=3;render()">Cada dia diferente</button>
+      </div>
+      ${m===1?`
+        <div class="label">Teto</div>
+        <div class="field"><input value="2000" inputmode="numeric"> <span>kcal/dia</span></div>
+      `:m===2?`
+        <div class="label">Seg–sex</div>
+        <div class="field"><input value="2000" inputmode="numeric"> <span>kcal</span></div>
+        <div class="label" style="margin-top:12px">Sáb–dom</div>
+        <div class="field"><input value="2300" inputmode="numeric"> <span>kcal</span></div>
+      `:`
+        <div class="label">Cada dia</div>
+        <div class="fav" style="margin-top:8px">
+          ${['S','T','Q','Q','S','S','D'].map(d=>`<span class="pill">${d} 2000</span>`).join('')}
+        </div>
+      `}
+      <p class="fine">Dá pra mudar depois em 2 toques. Isso não é cálculo de nutricionista.</p>
+      <button class="btn" onclick="go='o2';render()">Continuar</button>
+    `;
+  },
+  o2() {
+    const p = pct;
+    return `
+      <div class="h-kicker">Primeiro open</div>
+      <div class="h1">Quando você treina, o teto sobe?</div>
+      <div style="height:14px"></div>
+      <div class="card-opt ${eat==='zero'?'on':''}" onclick="eat='zero';render()">
+        <b>Não entra · 0%</b>
+        <p>Treino 1000 e o teto continua o mesmo.</p>
+      </div>
+      <div class="card-opt ${eat==='parcial'?'on':''}" onclick="eat='parcial';render()">
+        <b>Entra um pouco</b>
+        <p>Você escolhe a %.</p>
+        ${eat==='parcial'?`
+          <div class="pct-row"><input type="number" min="1" max="100" value="${p}" oninput="pct=Math.min(100,Math.max(1,+this.value||50));render()"> <span style="color:var(--muted);font-size:13px">% que entra</span></div>
+          <div class="preview">Preview: treino 480 → teto +${Math.round(480*p/100)} · hoje ${2000+Math.round(480*p/100)}</div>
+        `:''}
+      </div>
+      <div class="card-opt ${eat==='full'?'on':''}" onclick="eat='full';render()">
+        <b>Entra tudo · 100%</b>
+        <p>Treino 480 → teto +480.</p>
+        <div class="amber">Pulseira costuma superestimar. O número que você digitar entra inteiro.</div>
+      </div>
+      <p class="fine">Não é recomendação clínica. É regra sua.</p>
+      <button class="btn" onclick="go='home';hs='manha';render()">Entrar no app</button>
+    `;
+  },
+  home() {
+    if (hs==='manha') return homeManha();
+    if (hs==='tarde') return homeTarde();
+    if (hs==='treino') return homeTreino();
+    if (hs==='dia3') return homeDia3();
+    return homeFds();
+  },
+  t1() { return sheet(t1Body()); },
+  t2() {
+    if (ts==='a') return sheet(t2a());
+    if (ts==='b') return sheet(t2b());
+    if (ts==='c') return sheet(t2c());
+    if (ts==='e') return sheet(t2e());
+    return sheet(t2d());
+  },
+  t3() { return sheet(t3Body()); },
+  set() { return settings(); },
+  push() { return push(); }
+};
+
+function homeManha(){
+  return `
+    ${topbar('Qua 23 set','Teto 2000 ▾')}
+    <div class="saldo">
+      <div class="big">0 <em>/ 2000 kcal</em></div>
+      <div class="macros">P 0 / 170 g</div>
+      <div class="bar"><i style="width:2%"></i></div>
+    </div>
+    <div class="hero">
+      <div class="tag">Próxima</div>
+      <h3>Café · ~09:30</h3>
+      <p>Ainda sem atalho. Escreve ou manda foto — do jeito que você fala.</p>
+      <button class="btn cta" onclick="go='t3';es='ideia';render()">O que cabe agora</button>
+    </div>
+    ${composer()}
+    ${tl([
+      ['Café','pendente','now'],['Lanche manhã','pendente',''],['Almoço','pendente',''],
+      ['Lanche tarde','pendente',''],['Janta','pendente',''],['Ceia','pendente','']
+    ])}
+    <div class="foot"><span>Treino hoje</span><span class="link">anotar kcal</span></div>
+  `;
+}
+function homeTarde(){
+  return `
+    ${topbar('Qua 23 set','Teto 2000 ▾')}
+    <div class="saldo">
+      <div class="big">1.067 <em>/ 2.000 kcal</em></div>
+      <div class="macros">P 61 / 170 g</div>
+      <div class="bar"><i style="width:53%"></i></div>
+    </div>
+    <div class="hero">
+      <div class="tag">Lanche tarde · agora</div>
+      <h3>O que você lanchar define a janta</h3>
+      <p>Se lanchar ~230 (banana+whey), janta fica 455 kcal / 49 P.<br>
+      Se pular o lanche, janta fica 685 kcal / 77 P.<br>
+      Ceia já reservada ~250.</p>
+      <button class="btn cta" onclick="go='t3';es='ideia';render()">O que cabe agora</button>
+    </div>
+    ${composer()}
+    ${tl([
+      ['Café','ok','ok'],['Lanche manhã','ok','ok'],['Almoço','ok','ok'],
+      ['Lanche tarde','agora','now'],['Janta','pendente',''],['Ceia','reservada','']
+    ])}
+    <div class="foot"><span>Treino hoje · ainda não entrou</span><span class="link">anotar kcal</span></div>
+  `;
+}
+function homeTreino(){
+  return `
+    ${topbar('Qua 23 set','Teto efetivo 2.240 ▾')}
+    <div class="saldo">
+      <div class="big">1.297 <em>/ 2.240 kcal</em></div>
+      <div class="macros">P 89 / 170 g</div>
+      <div class="bar"><i style="width:58%"></i></div>
+    </div>
+    <p class="fine" style="margin:0 0 12px">Treino 480 · entra 50% · +240 · <span class="link" onclick="go='set';render()">regra</span></p>
+    <div class="hero">
+      <div class="tag">Janta · ~19:30</div>
+      <h3>Orçamento 695 kcal / 49 P</h3>
+      <p>Ceia reservada ~250. Se a política fosse 0%, a janta seria 455.</p>
+      <button class="btn cta" onclick="go='t3';es='quero';render()">O que cabe agora</button>
+    </div>
+    ${composer()}
+    ${tl([
+      ['Café','ok','ok'],['Lanche manhã','ok','ok'],['Almoço','ok','ok'],
+      ['Lanche tarde','ok','ok'],['Janta','agora','now'],['Ceia','reservada','']
+    ])}
+  `;
+}
+function homeDia3(){
+  return `
+    ${topbar('Sex 25 set','Teto 2000 ▾')}
+    <div class="saldo">
+      <div class="big">0 <em>/ 2000 kcal</em></div>
+      <div class="macros">P 0 / 170 g</div>
+      <div class="bar"><i style="width:2%"></i></div>
+    </div>
+    <div class="hero">
+      <div class="tag">Próxima</div>
+      <h3>Café · ~09:30</h3>
+      <p>Atalho desta janela. Campo continua o herói.</p>
+      <button class="btn cta" onclick="go='t3';es='ideia';render()">O que cabe agora</button>
+    </div>
+    ${composer()}
+    <div class="fav"><span class="pill" onclick="go='t2';ts='a';render()">café de sempre</span></div>
+    ${tl([
+      ['Café','pendente','now'],['Lanche manhã','pendente',''],['Almoço','pendente',''],
+      ['Lanche tarde','pendente',''],['Janta','pendente',''],['Ceia','pendente','']
+    ])}
+    <div class="foot"><span>Treino hoje</span><span class="link">anotar kcal</span></div>
+  `;
+}
+function homeFds(){
+  return `
+    ${topbar('Sáb 26 set','Teto 2000 ▾')}
+    <div class="saldo">
+      <div class="big">1.120 <em>/ 2.000 kcal</em></div>
+      <div class="macros">P 58 / 170 g</div>
+      <div class="bar"><i style="width:56%"></i></div>
+    </div>
+    <div class="hero">
+      <div class="tag">Janta · agora</div>
+      <h3>Orçamento 630 kcal / 80 P</h3>
+      <p>Ceia não reservada — você costuma pular no sábado.</p>
+      <button class="btn cta" onclick="go='t3';es='quero';render()">O que cabe agora</button>
+    </div>
+    ${composer()}
+    ${tl([
+      ['Café','ok','ok'],['Almoço','ok','ok'],['Janta','agora','now'],['Ceia','off','off']
+    ])}
+    <p class="fine">Sem push de lanche no sábado. Home ainda mostra o orçamento se você abrir.</p>
+  `;
+}
+
+function topbar(date, teto){
+  return `<div class="top"><div class="date">${date}</div><button class="teto-btn" onclick="go='set';render()">${teto}</button></div>`;
+}
+function composer(){
+  return `<div class="composer" onclick="go='t1';render()"><span>O que você comeu, ou uma foto</span><div class="cam">◉</div></div>`;
+}
+function favs(){
+  return `<div class="fav"><span class="pill" onclick="go='t2';ts='a';render()">café de sempre</span><span class="pill">mamão</span><span class="pill" onclick="go='t2';ts='b';render()">PF</span><span class="pill">whey+leite</span></div>`;
+}
+function tl(rows){
+  return `<div class="tl">${rows.map(([a,b,c])=>`<div class="tl-row"><b>${a}</b><span class="${c}">${b}</span></div>`).join('')}</div>`;
+}
+function sheet(inner){
+  return `<div class="sheet-bg"><div class="sheet"><div class="handle"></div>${inner}</div></div>`;
+}
+
+function t1Body(){
+  return `
+    <div class="h-kicker">Registrar</div>
+    <div class="composer" style="margin-top:10px"><span>2 pães, manteiga, ovo, café com leite…</span><div class="cam">◉</div></div>
+    <p class="label">Ou anotar</p>
+    <div class="fav"><span class="pill">pulei de propósito</span><span class="pill">treino 480</span></div>
+    <button class="btn" onclick="go='t2';ts='a';render()">Registrar</button>
+  `;
+}
+function t2a(){
+  return `
+    <div class="h-kicker">Café · 09:12 · dia 1</div>
+    <div class="kcal">≈ 385 kcal</div>
+    <div class="macros">P 18 · C 32 · G 20</div>
+    <span class="conf medio">confiança médio</span>
+    <div class="ask">
+      <div class="q">1 pergunta · Foram 2 pães ou 1?</div>
+      <div class="row"><button class="btn sm ghost">2 pães</button><button class="btn sm ghost">1 pão</button><button class="btn sm ghost">pular</button></div>
+    </div>
+    <p class="fine">Saldo 1615 / 2000 · P 18 / 160–180<br>Sem atalho ainda. Janta ainda folgada.</p>
+    <button class="btn" onclick="go='home';hs='manha';render()">Confirmar</button>
+  `;
+}
+function t2b(){
+  return `
+    <div class="h-kicker">Almoço · 12:35</div>
+    <div class="kcal">≈ 610 kcal</div>
+    <div class="macros">P 42 · C 68 · G 16</div>
+    <span class="conf medio">confiança médio</span>
+    <div class="ask">
+      <div class="q">1 pergunta · O bife era ~100 g (mão) ou ~150 g (maior que a palma)?</div>
+      <div class="row"><button class="btn sm ghost">~100 g</button><button class="btn sm ghost">~150 g</button><button class="btn sm ghost">pular</button></div>
+    </div>
+    <p class="fine">Saldo 935 / 2000 · P 61 / 160–180<br>Se lanchar ~230 agora, janta fica ≈ 455 kcal / 49 P</p>
+    <button class="btn" onclick="go='home';hs='tarde';render()">Confirmar</button>
+  `;
+}
+function t2c(){
+  return `
+    <div class="h-kicker">Registrado</div>
+    <div class="assume">
+      <p>Nas últimas 4 vezes o leite foi semidesnatado. Assumir leite = semidesnatado quando você só disser leite?</p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn sm" onclick="go='home';hs='manha';render()">Assumir</button>
+        <button class="btn sm ghost" onclick="go='home';hs='manha';render()">Não</button>
+      </div>
+      <p class="fine" style="margin-top:10px">Se um dia mudar, é só falar integral ou desnatado.</p>
+    </div>
+  `;
+}
+function t2e(){
+  return `
+    <div class="h-kicker">Registrado · 2º café</div>
+    <div class="assume">
+      <p>Repetiu o café. Quer um atalho “café de sempre” na Home?</p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn sm" onclick="go='home';hs='dia3';render()">Criar atalho</button>
+        <button class="btn sm ghost" onclick="go='home';hs='manha';render()">Não</button>
+      </div>
+      <p class="fine" style="margin-top:10px">Atalho é o prato inteiro. Leite semidesnatado é assunção — outra pergunta, outro dia.</p>
+    </div>
+  `;
+}
+function t2d(){
+  return `
+    <div class="h-kicker">Janta · 21:48</div>
+    <div class="kcal">≈ 820 kcal</div>
+    <div class="macros">P 38 · C 62 · G 38</div>
+    <span class="conf baixo">confiança baixo</span>
+    <div class="ask">
+      <div class="q">1 pergunta · Tinha batata ou só o pão?</div>
+      <div class="row"><button class="btn sm ghost">batata</button><button class="btn sm ghost">só pão</button></div>
+    </div>
+    <p class="fine">Dia projetado 2117 / 2000 · P 159 / 160–180<br>Ceia: cabe whey na água (~120), não leite.<br>Sem moral. O estouro foi a janela.</p>
+    <button class="btn" onclick="go='home';hs='fds';render()">Confirmar</button>
+  `;
+}
+function t3Body(){
+  const head = `
+    <div class="h-kicker">O que cabe agora</div>
+    <p class="subcopy" style="margin-bottom:12px">Janta · teto 455 kcal · faltam 49 g P</p>
+    <div class="fav">
+      <span class="pill ${es==='quero'?'on':''}" onclick="es='quero';render()" style="${es==='quero'?'border-color:var(--gold);color:var(--gold)':''}">Quero</span>
+      <span class="pill ${es==='tenho'?'on':''}" onclick="es='tenho';render()" style="${es==='tenho'?'border-color:var(--gold);color:var(--gold)':''}">Tenho</span>
+      <span class="pill ${es==='ideia'?'on':''}" onclick="es='ideia';render()" style="${es==='ideia'?'border-color:var(--gold);color:var(--gold)':''}">Sem ideia</span>
+    </div>`;
+  if (es==='quero') return head + `
+    <div class="composer"><span>quero hambúrguer caseiro</span></div>
+    <div class="hero">
+      <h3>Hambúrguer caseiro · cabe em 455</h3>
+      <p>1 pão + 90 g patinho + 1 fatia queijo + salada sem maionese<br>≈430 kcal · P46 C28 G16 · cabe<br>Não cabe: 2 hambúrgueres, bacon, maionese, refri.</p>
+      <div class="row cta"><button class="btn sm good">Vou nesse</button><button class="btn sm ghost">outra coisa</button></div>
+    </div>`;
+  if (es==='tenho') return head + `
+    <div class="composer"><span>pão sírio, frango, molho, milho, queijo</span></div>
+    <div class="hero">
+      <h3>Pizza air fryer · teto 455</h3>
+      <p>pão sírio 60 g · frango 120 g · molho 40 g · milho 30 g · queijo 25 g<br>≈440 kcal · P52 · cabe<br>Confiança médio · queijo fatiado ou ralado?</p>
+      <div class="row cta"><button class="btn sm ghost">fatiado</button><button class="btn sm ghost">ralado</button></div>
+      <button class="btn good">Cozinhar isso</button>
+    </div>`;
+  return head + `
+    <div class="hero">
+      <div class="tag">Limpa · 12 min</div>
+      <h3>2 ovos + 80 g frango + salada</h3>
+      <p>≈380 kcal · P48 · cabe</p>
+      <button class="btn sm good" style="margin-top:10px">Vou na limpa</button>
+    </div>
+    <div class="hero">
+      <div class="tag">Gostosa · 12 min</div>
+      <h3>Pão sírio + 100 g frango + 20 g queijo</h3>
+      <p>≈430 kcal · P44 · cabe</p>
+      <button class="btn sm" style="margin-top:10px">Vou na gostosa</button>
+    </div>
+    <p class="fine">Não sugiro o hambúrguer de sábado (~820).</p>`;
+}
+function settings(){
+  return `
+    <div class="h-kicker">Atalho do teto ▾</div>
+    <div class="h1">Regras do dia</div>
+    <div class="hero" style="margin-top:16px">
+      <div class="tag">Teto</div>
+      <h3>mesmo todos os dias</h3>
+      <div class="field" style="margin:10px 0;font-size:24px">2000 <span>kcal</span></div>
+      <span class="link">editar combinação</span>
+    </div>
+    <div class="hero">
+      <div class="tag">Hoje é exceção</div>
+      ${excecao?`
+        <p>Teto de qua 23 set</p>
+        <div class="field" style="margin:10px 0;font-size:24px">2500 <span>kcal</span></div>
+        <p class="fine">Vale até 00:00 America/São_Paulo. A combinação da semana não muda.</p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn sm" onclick="excecao=true;go='home';hs='manha';render()">Definir</button>
+          <button class="btn sm ghost" onclick="excecao=false;render()">Cancelar</button>
+        </div>
+      `:`
+        <p>Usar outro teto só hoje. Some à meia-noite. Não mexe na semana.</p>
+        <span class="link" onclick="excecao=true;render()">usar outro teto só hoje</span>
+      `}
+    </div>
+    <div class="hero">
+      <div class="tag">Treino no saldo</div>
+      <h3>agora: não entra</h3>
+      <div class="fav" style="margin-top:10px">
+        <span class="pill" style="border-color:var(--gold);color:var(--gold)">Não entra</span>
+        <span class="pill">Um pouco</span>
+        <span class="pill">Tudo</span>
+      </div>
+      <p class="fine">Manda o número do treino na Home. Até lá o lanche conta no teto cheio.</p>
+    </div>
+    <p class="fine"><span class="link">Proteína</span> · <span class="link">Janelas e horários</span> · <span class="link">Assumidos (0)</span></p>
+    <button class="btn ghost" onclick="go='home';render()">Voltar pra Home</button>
+  `;
+}
+function push(){
+  return `
+    <div class="push">
+      <div class="app"><span>APP</span><span>agora</span></div>
+      <h4>Lanche das 16h</h4>
+      <p>Cabe agora, se quiser preservar a janta:<br>
+      limpa 200 kcal / 28P — banana + whey<br>
+      gostosa 280 / 18P — pão + queijo + café<br>
+      Acima disso a janta vira ovo.</p>
+    </div>
+    <div style="padding:16px 22px 0">
+      <p class="fine">Corpo da notificação abre T3. Ação extra abre T1.</p>
+      <button class="btn" onclick="go='t3';es='ideia';render()">Abrir encaixe</button>
+      <button class="btn ghost" onclick="go='t1';render()">Já comi</button>
+    </div>
+  `;
+}
+
+$$('.nav > button').forEach(b => b.onclick = () => { go = b.dataset.go; render(); });
+$$('#home-states button').forEach(b => b.onclick = () => { go='home'; hs=b.dataset.hs; render(); });
+$$('#t2-states button').forEach(b => b.onclick = () => { go='t2'; ts=b.dataset.ts; render(); });
+$$('#t3-states button').forEach(b => b.onclick = () => { go='t3'; es=b.dataset.es; render(); });
+render();
+</script>
+</body>
+</html>

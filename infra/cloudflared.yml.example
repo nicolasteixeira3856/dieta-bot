@@ -1,0 +1,8 @@
+# Named tunnel. Goal 4 copia para ~/.cloudflared/config.yml
+# https://developers.cloudflare.com/tunnel/get-started/
+tunnel: REPLACE_TUNNEL_ID
+credentials-file: /home/REPLACE_USER/.cloudflared/REPLACE_TUNNEL_ID.json
+ingress:
+  - hostname: api.seudominio.com
+    service: http://127.0.0.1:8080
+  - service: http_status:404
