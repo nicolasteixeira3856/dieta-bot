@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { TextInput } from "react-native-paper";
 
@@ -66,7 +66,9 @@ export function Folhas(props: Props) {
 function Registro(props: Props) {
   return (
     <View style={estilos.col} accessibilityLabel="registrar">
-      <Text style={estilos.kicker}>REGISTRAR</Text>
+      <Pressable onPress={() => Keyboard.dismiss()} accessibilityLabel="REGISTRAR">
+        <Text style={estilos.kicker}>REGISTRAR</Text>
+      </Pressable>
       <TextInput
         mode="outlined"
         value={props.texto}
