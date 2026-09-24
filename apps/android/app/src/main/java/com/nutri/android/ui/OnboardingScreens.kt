@@ -2,7 +2,6 @@ package com.nutri.android.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,9 +26,17 @@ fun TelaTeto(ui: DiaUi, vm: DiaViewModel) {
     ) {
         Text("Qual é o teto de kcal?", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
         Text("Você manda no número.", color = Muted)
-        ModoChip("Mesmo todos os dias", ui.modoTeto == "mesmo", Modifier.testTag("modo-mesmo")) { vm.modoTeto("mesmo") }
-        ModoChip("Seg–sex / sáb–dom", ui.modoTeto == "util", Modifier.testTag("modo-util")) { vm.modoTeto("util") }
-        ModoChip("Cada dia diferente", ui.modoTeto == "sete", Modifier.testTag("modo-sete")) { vm.modoTeto("sete") }
+        GrupoEscolha(
+            opcoes = listOf(
+                "Mesmo todos os dias" to (ui.modoTeto == "mesmo"),
+                "Seg–sex / sáb–dom" to (ui.modoTeto == "util"),
+                "Cada dia diferente" to (ui.modoTeto == "sete"),
+            ),
+            onEscolha = { indice ->
+                vm.modoTeto(when (indice) { 1 -> "util"; 2 -> "sete"; else -> "mesmo" })
+            },
+            modifier = Modifier.testTag("o1-modos"),
+        )
         when (ui.modoTeto) {
             "util" -> {
                 CampoNumero("Seg–sex", ui.campoUtil, onChange = vm::campoUtil)
@@ -58,8 +65,26 @@ fun TelaEat(ui: DiaUi, vm: DiaViewModel) {
     ) {
         Text("PRIMEIRO OPEN", color = Gold, fontSize = 11.sp)
         Text("Quando você treina, o teto sobe?", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
-        EatCard("Não entra · 0%", "Treino 1000 e o teto continua o mesmo.", ui.eat == "zero", Modifier.testTag("eat-0")) { vm.eat("zero") }
-        EatCard("Entra um pouco", "Você escolhe a %.", ui.eat == "parcial", Modifier.testTag("eat-parcial")) { vm.eat("parcial") }
+        GrupoEscolha(
+            opcoes = listOf(
+                "Não entra · 0%" to (ui.eat == "zero"),
+                "Entra um pouco" to (ui.eat == "parcial"),
+                "Entra tudo · 100%" to (ui.eat == "cem"),
+            ),
+            onEscolha = { indice ->
+                vm.eat(when (indice) { 0 -> "zero"; 2 -> "cem"; else -> "parcial" })
+            },
+            modifier = Modifier.testTag("o2-eat"),
+        )
+        Text(
+            when (ui.eat) {
+                "zero" -> "Treino 1000 e o teto continua o mesmo."
+                "cem" -> "Treino 480 → teto +480."
+                else -> "Você escolhe a %."
+            },
+            color = Muted,
+            fontSize = 13.sp,
+        )
         if (ui.eat == "parcial") {
             CampoNumero("% que entra", ui.pct, suffix = "%", onChange = vm::pct)
             Text(
@@ -68,31 +93,8 @@ fun TelaEat(ui: DiaUi, vm: DiaViewModel) {
                 fontSize = 13.sp,
             )
         }
-        EatCard("Entra tudo · 100%", "Treino 480 → teto +480.", ui.eat == "cem", Modifier.testTag("eat-100")) { vm.eat("cem") }
         Text("estimativa, não consulta", color = Dim, fontSize = 12.sp)
         NutriCta("Entrar no app", Modifier.testTag("o2-entrar")) { vm.entrar() }
-    }
-}
-
-@Composable
-private fun ModoChip(texto: String, on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    androidx.compose.material3.TextButton(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth().cardBorda(),
-    ) {
-        Text(texto, color = if (on) Gold else TextMain)
-    }
-}
-
-@Composable
-private fun EatCard(titulo: String, corpo: String, on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Column(modifier.fillMaxWidth().cardBorda().padding(14.dp)) {
-        androidx.compose.material3.TextButton(onClick = onClick) {
-            Column {
-                Text(titulo, color = if (on) Gold else TextMain)
-                Text(corpo, color = Muted, fontSize = 13.sp)
-            }
-        }
     }
 }
 

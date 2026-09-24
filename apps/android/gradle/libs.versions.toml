@@ -1,7 +1,8 @@
 [versions]
 agp = "9.4.1"
 kotlin = "2.2.20"
-composeBom = "2026.01.01"
+composeBom = "2026.09.00"
+material3 = "1.5.0-alpha29"
 hilt = "2.56.2"
 hiltNav = "1.2.0"
 navigation = "2.8.9"
@@ -24,7 +25,8 @@ compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeB
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
-compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+compose-material3-android = { module = "androidx.compose.material3:material3-android", version.ref = "material3" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }

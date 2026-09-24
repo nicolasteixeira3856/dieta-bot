@@ -5,12 +5,13 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -62,7 +63,11 @@ private fun FolhaRegistro(ui: DiaUi, vm: DiaViewModel) {
             onClick = { picker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) },
             modifier = Modifier.testTag("t1-foto"),
         ) { Text(if (ui.fotoB64 == null) "Foto" else "Foto pronta", color = Gold) }
-        NutriCta(if (ui.carregando) "…" else "Registrar", Modifier.testTag("t1-registrar")) { vm.registrar() }
+        if (ui.carregando) {
+            IndicadorEspera(Modifier.testTag("t1-registrar"))
+        } else {
+            NutriCta("Registrar", Modifier.testTag("t1-registrar")) { vm.registrar() }
+        }
     }
 }
 
@@ -101,11 +106,17 @@ private fun FolhaEncaixe(ui: DiaUi, vm: DiaViewModel) {
     Column(Modifier.padding(20.dp).testTag("t3-encaixe"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("O QUE CABE AGORA", color = Gold, fontSize = 11.sp)
         Text("${tituloJanela(ui.janela)} · teto ${ui.orcamento} kcal", color = TextMain)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Modo("Quero", ui.modoEncaixe == "quero", Modifier.testTag("modo-quero")) { vm.modoEncaixe("quero") }
-            Modo("Tenho", ui.modoEncaixe == "tenho", Modifier.testTag("modo-tenho")) { vm.modoEncaixe("tenho") }
-            Modo("Sem ideia", ui.modoEncaixe == "ideia", Modifier.testTag("modo-ideia")) { vm.modoEncaixe("ideia") }
-        }
+        GrupoEscolha(
+            opcoes = listOf(
+                "Quero" to (ui.modoEncaixe == "quero"),
+                "Tenho" to (ui.modoEncaixe == "tenho"),
+                "Sem ideia" to (ui.modoEncaixe == "ideia"),
+            ),
+            onEscolha = { indice ->
+                vm.modoEncaixe(when (indice) { 1 -> "tenho"; 2 -> "ideia"; else -> "quero" })
+            },
+            modifier = Modifier.testTag("t3-modos"),
+        )
         if (ui.modoEncaixe != "ideia") {
             OutlinedTextField(
                 value = ui.encaixeTexto,
@@ -114,7 +125,11 @@ private fun FolhaEncaixe(ui: DiaUi, vm: DiaViewModel) {
                 placeholder = { Text(if (ui.modoEncaixe == "quero") "quero hambúrguer caseiro" else "pão, frango, queijo", color = Dim) },
             )
         }
-        NutriCta(if (ui.carregando) "…" else "Encaixar", Modifier.testTag("t3-enviar")) { vm.pedirEncaixe() }
+        if (ui.carregando) {
+            IndicadorEspera(Modifier.testTag("t3-enviar"))
+        } else {
+            NutriCta("Encaixar", Modifier.testTag("t3-enviar")) { vm.pedirEncaixe() }
+        }
         val fit = ui.encaixe
         if (fit != null) {
             val pratos = if (fit.opcoes.isNotEmpty()) fit.opcoes else listOf(fit.prato).filter { it.nome.isNotBlank() }
@@ -134,9 +149,8 @@ private fun FolhaEncaixe(ui: DiaUi, vm: DiaViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun Modo(texto: String, on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = modifier) {
-        Text(texto, color = if (on) Gold else Muted)
-    }
+private fun IndicadorEspera(modifier: Modifier = Modifier) {
+    LoadingIndicator(modifier = modifier, color = Gold)
 }
