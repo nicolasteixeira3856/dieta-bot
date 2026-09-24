@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +34,7 @@ fun FolhaAtual(ui: DiaUi, vm: DiaViewModel) {
         sheetState = state,
         containerColor = Surf,
         shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Handle) },
     ) {
         when (sheet) {
             Folha.T1 -> FolhaRegistro(ui, vm)

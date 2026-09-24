@@ -35,6 +35,7 @@ val Good = Color(0xFF7DDA9A)
 val Bad = Color(0xFFE07A6A)
 val CtaBg = Color(0xFFF3F5F7)
 val CtaText = Color(0xFF111111)
+val Handle = Color(0xFF3A424C)
 
 private val scheme = darkColorScheme(
     background = Bg,
@@ -47,6 +48,7 @@ private val scheme = darkColorScheme(
     onSecondary = CtaText,
     onBackground = TextMain,
     onSurface = TextMain,
+    onSurfaceVariant = Handle,
     outline = Line,
     error = Bad,
     onError = TextMain,
