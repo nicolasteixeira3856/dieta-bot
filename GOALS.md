@@ -1,3 +1,6 @@
+Comparação Flutter vs RN ENCERRADA. Stack viva = apps/android + server.
+GOAL 1–8 viram histórico. Não reabrir.
+
 # GOALS.md
 
 Rodar UM por vez. Critério de done no final de cada bloco.
