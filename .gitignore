@@ -16,3 +16,7 @@ server/.venv/
 .cloudflared/*.json
 *.apk
 *.aab
+node_modules/
+android/local.properties
+*.jks
+apps/rn/.expo/

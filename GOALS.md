@@ -66,3 +66,31 @@ Registre (não execute) a migração: docs/MIGRACAO-VPS.md.
 ## NÃO FAZER
 Hetzner hoje, Firebase, Gemini, chave no APK, computer-use no roteador,
 git push --force, TDEE, cap +300.
+
+## GOAL 5 — ajeitar monorepo (este)
+
+GOAL 1–4 ficam como histórico. Não reabrir.
+
+Arquivar o app Flutter em `legacy/flutter/`. `apps/android/` e `apps/rn/` nascem vazias. `server/` intacto. Constituição de um agente.
+
+DONE quando o Flutter rastreado está só em `legacy/flutter/`, as duas pastas de client têm só `.gitkeep`, `AGENTS.md` é de um agente, e o commit local existe.
+
+## GOAL 6 — install check Windows
+
+Conferir no Windows o que o client precisa para compilar: JDK, Android SDK, emulador, Node e Expo. Sem criar app. Sem editar `server/`.
+
+## GOAL 7 — apps/android
+
+Client nativo em `apps/android/`: Kotlin + Compose + Material 3 Expressive. Uma pasta. Sem editar `server/` nem `apps/rn/`.
+
+## GOAL 8 — apps/rn
+
+Client em `apps/rn/`: Expo SDK 57 + TS + Expo Router + NativeWind v4 + React Native Reusables. Uma pasta. Sem editar `server/` nem `apps/android/`.
+
+## Critério de vitória da comparação
+
+Os dois clients (`apps/android` e `apps/rn`):
+
+- Visual no emulador igual ao wire (tokens, não "parecido").
+- User registra a refeição em <15s.
+- TDD das fórmulas verde.

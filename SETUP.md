@@ -66,7 +66,7 @@ Named tunnel (estável, o que vale pra APK):
 1. dash.cloudflare.com → Zero Trust → Networks → Tunnels → Create → Cloudflared
 2. Token no .env: TUNNEL_TOKEN=eyJ...
 3. docker compose -f server/docker-compose.yml --profile named-tunnel up -d
-4. Public Hostname → http://127.0.0.1:8080
+4. Public Hostname num domínio que já está na sua conta Cloudflare. O serviço, neste compose, é http://api:8080 (não 127.0.0.1: o túnel roda noutro container).
 5. API_PUBLIC_URL=https://seu-hostname e rebuild do app
 
 Luz caiu = API caiu. É o preço de R$ 0.

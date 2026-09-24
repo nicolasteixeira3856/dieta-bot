@@ -71,7 +71,7 @@
     height: 54px; display: flex; align-items: flex-end; justify-content: space-between;
     padding: 0 28px 10px; font-size: 12px; color: var(--text); font-weight: 600;
   }
-  .screen { height: calc(844px - 54px - 20px); overflow: auto; padding: 6px 20px 28px; }
+  .screen { height: calc(844px - 54px - 20px); overflow: auto; padding: 6px 20px 28px; background: var(--bg); }
   .screen::-webkit-scrollbar { width: 0; }
 
   .h-kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
@@ -80,8 +80,10 @@
 
   .chips { display: flex; flex-direction: column; gap: 8px; margin: 22px 0 18px; }
   .chip, .card-opt, .btn, .field, .seg, .mini {
-    border-radius: 14px; border: 1px solid var(--line); background: var(--surf);
+    border: 1px solid var(--line); background: var(--surf);
   }
+  .chip, .card-opt { border-radius: 18px; }
+  .field, .seg, .mini { border-radius: 16px; }
   .chip {
     padding: 12px 14px; color: var(--text); font-size: 14px; cursor: pointer; text-align: left;
   }
@@ -92,6 +94,7 @@
     padding: 14px 16px; font-size: 28px; font-weight: 560; letter-spacing: -.03em;
   }
   .field span { font-size: 14px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+  .field, .field input, .saldo .big, .kcal { font-variant-numeric: tabular-nums; }
   .field input {
     background: transparent; border: 0; color: var(--text); font-size: 28px; font-weight: 560;
     width: 140px; outline: none; font-family: inherit; letter-spacing: -.03em;
@@ -99,8 +102,10 @@
   .fine { color: var(--dim); font-size: 12px; line-height: 1.4; margin-top: 14px; }
   .btn {
     width: 100%; padding: 15px; text-align: center; font-size: 15px; font-weight: 600;
-    background: var(--text); color: #111; border: 0; cursor: pointer; margin-top: 18px;
+    background: var(--text); color: #111; border: 0; border-radius: 999px; cursor: pointer; margin-top: 18px;
+    transition: transform 200ms cubic-bezier(.33, 1, .68, 1);
   }
+  .btn:active { transform: scale(.97); }
   .btn.ghost { background: var(--surf2); color: var(--text); border: 1px solid var(--line); }
   .btn.good { background: var(--good); color: #0b140f; }
   .btn.sm { padding: 10px 12px; font-size: 13px; margin-top: 0; width: auto; }
@@ -166,7 +171,7 @@
 
   .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; }
   .sheet {
-    width: 100%; background: #14181d; border-top-left-radius: 22px; border-top-right-radius: 22px;
+    width: 100%; background: var(--surf); border-top-left-radius: 22px; border-top-right-radius: 22px;
     padding: 10px 20px 28px; border-top: 1px solid var(--line); max-height: 78%; overflow: auto;
   }
   .handle { width: 40px; height: 4px; background: #3a424c; border-radius: 99px; margin: 4px auto 12px; }

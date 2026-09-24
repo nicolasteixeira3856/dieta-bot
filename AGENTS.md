@@ -1,36 +1,53 @@
 # Nutri — constituição do repo
 
-App Flutter de encaixe alimentar. IA no servidor. Número + tom seco. Sem coach.
+Um agente. Job: encaixar a próxima refeição no saldo do dia, sobretudo a janta.
 
-## Stack
-- Flutter: flutter_bloc (Cubit), go_router, get_it, result_dart
-- Camadas oficiais: View → Cubit → Repository → Service
-- API: FastAPI, gpt-6-luna, reasoning.effort=none
-- Sem Firebase, sem Gemini, sem TDEE, sem cap de eat-back, sem chave no APK
+Número + tom seco. Sem coach.
 
-## Produto congelado
-- Home híbrida, chat é sheet
-- Onboarding 2 telas: teto + eat-back
-- Eat-back: 0% | % digitável default 50 | 100%. SEM cap
-- Home dia 1: zero chips. Chip nasce no 2º log da janela, pergunta 1x, dá pra remover
-- 1 pergunta se confiança ≠ alto
-- Fds: cobra só almoço + janta + fechamento
-- Treino digitado. Sem número no dia, crédito = 0
-- Foto no T1. Foto sobe, estima, apaga no server
-- Disclaimer: estimativa, não consulta
+## Produto
+
+- chat é sheet, não home.
+- home dia 1 zero chips.
+- chip no 2º log estável da mesma janela, pergunta 1x, removível.
+- onboarding 2 telas: teto + eat-back.
+- Eat-back: 0% | % digitável default 50 | 100%. SEM cap.
+- treino digitado. sem número no dia, crédito = 0.
+- 1 pergunta se confiança ≠ alto.
+- foto T1 desde o dia 1. ≤1280 JPEG 70 no client. sobe, estima, apaga no server.
+- Fds: cobra só almoço + janta + fechamento.
+- disclaimer estimativa, não consulta.
+
+## Fórmulas
+
+Timezone: America/Sao_Paulo.
+
+- teto_efetivo = teto_base + credito
+- credito = 0 se política 0 OU se treino do dia não informado
+- credito = treino_kcal * pct/100 se parcial; = treino_kcal se 100%
+- orçamento_janela = max(0, teto_efetivo − comido − reserva_próximas)
 
 ## LLM
-LLM_MODEL=gpt-6-luna
-LLM_EFFORT=none
-Lê .env. Nunca printa OPENAI_API_KEY. Nunca commita .env.
-Flutter leva só API_PUBLIC_URL + INVITE_CODE.
 
-## Infra S0
-Torre em casa + Cloudflare Tunnel. Sem porta no roteador.
-Migração VPS: docs/MIGRACAO-VPS.md — não executar agora.
+LLM só no server: gpt-6-luna, reasoning.effort=none.
+O client leva só API_PUBLIC_URL + INVITE_CODE. Com header X-Invite.
+Há zero chave OpenAI no APK/bundle.
+O server lê .env. Nunca printar OPENAI_API_KEY. Nunca commitar .env.
+
+## Stacks do monorepo
+
+- server/ FastAPI intacto
+- legacy/flutter/ arquivo e baseline de regra
+- apps/android/ Kotlin + Compose + Material 3 Expressive
+- apps/rn/ Expo SDK 57 + TS + Expo Router + NativeWind v4 + React Native Reusables
 
 ## Como trabalhar
-Siga GOALS.md um bloco por vez.
-Não invente tela, lib ou regra fora do AGENTS.md / GOALS.md.
-Não use computer-use em painel de cloud/roteador.
-Teste antes de marcar done.
+
+1 /goal = 1 pasta, e não editar duas stacks no mesmo goal, e não editar server/ num goal de client.
+A validação visual no emulador Android via adb obrigatória para marcar UI DONE.
+E toda decisão técnica ou de negócio vira ADR em docs/decisions/.
+Não usar computer-use em painel de cloud/roteador.
+Testar antes de marcar done.
+
+## NÃO FAZER
+
+Firebase, Gemini, TDEE, cap de eat-back, Health/Xiaomi, chave no client, VPS, porta no roteador, iOS neste experimento, tela fora de O1 O2 T0 T1 T2 T3.
