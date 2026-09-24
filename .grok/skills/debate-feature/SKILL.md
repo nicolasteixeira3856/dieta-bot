@@ -1,6 +1,6 @@
 ---
 name: debate-feature
-description: Atalho antigo para debater feature do Nutri. Use quando pedirem /debate-feature. O procedimento é o da skill nutri-feature.
+description: Atalho aposentado. Não despacha time. Um agente segue AGENTS.md.
 ---
 
-Siga `.agents/skills/nutri-feature/SKILL.md`.
+Aposentado. Não despache outro agente. Siga AGENTS.md. Decisão fechada vira ADR em docs/decisions/.
