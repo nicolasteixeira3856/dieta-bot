@@ -7,8 +7,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:nutri/app/nutri_theme.dart';
 import 'package:nutri/data/foto_picker.dart';
 import 'package:nutri/main.dart';
+import 'package:nutri/view/registro_sheet.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -165,6 +167,76 @@ void main() {
     expect(find.textContaining('1 pergunta'), findsNothing);
   });
 
+  testWidgets('tema do wire, saldo tabular, sheet e zero chip no dia 1', (
+    tester,
+  ) async {
+    await _preparar(tester);
+    _expectTema(tester);
+    _expectGold(tester, 'Mesmo todos os dias');
+
+    await tester.tap(find.text('Continuar'));
+    await tester.pumpAndSettle();
+    _expectTema(tester);
+    _expectGold(tester, 'Não entra · 0%');
+    expect(find.text('Entra um pouco'), findsOneWidget);
+    expect(find.text('Entra tudo · 100%'), findsOneWidget);
+
+    await tester.tap(find.text('Entrar no app'));
+    await tester.pumpAndSettle();
+    _expectTema(tester);
+    final saldo = tester.widget<Text>(find.byKey(const Key('saldo')));
+    expect(
+      saldo.style?.fontFeatures,
+      contains(const FontFeature.tabularFigures()),
+    );
+    expect(find.text('0 / 2000 kcal'), findsOneWidget);
+    expect(find.text('O que cabe agora'), findsOneWidget);
+    expect(find.byKey(const Key('campo-refeicao')), findsOneWidget);
+    _expectZeroChips(tester);
+    expect(find.byType(NavigationRail), findsNothing);
+
+    await tester.tap(find.byKey(const Key('campo-refeicao')));
+    await tester.pumpAndSettle();
+    expect(find.byType(RegistroSheet), findsOneWidget);
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(getIt<GoRouter>().state.uri.path, '/');
+    _expectTema(tester);
+  });
+
+  testWidgets('390, 320 e a home larga não estouram nem viram trilho', (
+    tester,
+  ) async {
+    final overflows = <String>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = (details) {
+      final text = '${details.exceptionAsString()}\n$details';
+      if (text.contains('RenderFlex overflowed') ||
+          text.contains('A RenderFlex overflowed')) {
+        overflows.add(text);
+      }
+      previous?.call(details);
+    };
+    addTearDown(() {
+      FlutterError.onError = previous;
+    });
+
+    for (final size in const [Size(390, 844), Size(320, 640)]) {
+      overflows.clear();
+      await _percorrer(tester, size);
+      expect(overflows, isEmpty, reason: '${size.width}x${size.height}');
+      expect(tester.takeException(), isNull);
+    }
+
+    overflows.clear();
+    await _percorrer(tester, const Size(1280, 800));
+    expect(find.byType(NavigationRail), findsNothing);
+    expect(find.byType(NutriColumn), findsWidgets);
+    expect(find.byType(RegistroSheet), findsOneWidget);
+    expect(getIt<GoRouter>().state.uri.path, '/');
+    expect(overflows, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
   test('fontes novas não carregam chave da OpenAI', () {
     final lib = Directory('lib');
     expect(lib.existsSync(), isTrue);
@@ -177,6 +249,93 @@ void main() {
       expect(texto.contains('sk-'), isFalse, reason: entidade.path);
     }
   });
+}
+
+void _expectTema(WidgetTester tester) {
+  final theme = Theme.of(tester.element(find.byType(Scaffold).first));
+  expect(theme.scaffoldBackgroundColor, nutriBg);
+  expect(theme.colorScheme.primary, nutriGold);
+  expect(theme.colorScheme.surface, nutriSurface);
+  expect(theme.colorScheme.onSurface, nutriText);
+  expect(theme.colorScheme.outline, nutriLine);
+  expect(theme.colorScheme.error, nutriError);
+  expect(theme.colorScheme.secondary, nutriOk);
+  expect(theme.extension<NutriTokens>()?.muted, nutriMuted);
+  expect(theme.colorScheme.primary, isNot(const Color(0xFF1F6B4A)));
+}
+
+void _expectGold(WidgetTester tester, String label) {
+  final decoration =
+      tester
+              .widget<AnimatedContainer>(
+                find.ancestor(
+                  of: find.text(label),
+                  matching: find.byType(AnimatedContainer),
+                ),
+              )
+              .decoration!
+          as BoxDecoration;
+  expect((decoration.border! as Border).top.color, nutriGold);
+}
+
+void _expectZeroChips(WidgetTester tester) {
+  expect(find.byType(Chip), findsNothing);
+  expect(find.byType(ChoiceChip), findsNothing);
+  expect(find.byType(FilterChip), findsNothing);
+  expect(find.byType(ActionChip), findsNothing);
+  expect(find.byType(InputChip), findsNothing);
+}
+
+Future<void> _rolarAte(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    80,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _percorrer(WidgetTester tester, Size size) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  await setupDependencies();
+  await tester.pumpWidget(const NutriApp());
+  await tester.pumpAndSettle();
+  _expectTema(tester);
+
+  await _rolarAte(tester, find.text('Continuar'));
+  await tester.tap(find.text('Continuar'));
+  await tester.pumpAndSettle();
+  await _rolarAte(tester, find.text('Entra um pouco'));
+  await tester.tap(find.text('Entra um pouco'));
+  await tester.pumpAndSettle();
+  expect(find.text('50'), findsWidgets);
+  expect(find.textContaining('+300'), findsNothing);
+
+  await _rolarAte(tester, find.text('Entrar no app'));
+  await tester.tap(find.text('Entrar no app'));
+  await tester.pumpAndSettle();
+  expect(find.text('0 / 2000 kcal'), findsOneWidget);
+  expect(find.text('O que cabe agora'), findsOneWidget);
+  expect(find.byKey(const Key('proxima-janela')), findsOneWidget);
+  _expectZeroChips(tester);
+  expect(find.byType(NavigationRail), findsNothing);
+
+  final saldo = tester.widget<Text>(find.byKey(const Key('saldo')));
+  expect(
+    saldo.style?.fontFeatures,
+    contains(const FontFeature.tabularFigures()),
+  );
+
+  await _rolarAte(tester, find.byKey(const Key('campo-refeicao')));
+  await tester.tap(find.byKey(const Key('campo-refeicao')));
+  await tester.pumpAndSettle();
+  expect(find.byType(BottomSheet), findsOneWidget);
+  expect(getIt<GoRouter>().state.uri.path, '/');
 }
 
 Future<void> _preparar(

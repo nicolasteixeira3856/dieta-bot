@@ -11,8 +11,16 @@ class EstimateService {
 
   final http.Client _client;
 
-  static const baseUrl = String.fromEnvironment('API_PUBLIC_URL');
-  static const inviteCode = String.fromEnvironment('INVITE_CODE');
+  /// Sentinel do teste de fluxo quando o binário não recebe --dart-define.
+  /// Um define explícito substitui os dois.
+  static const baseUrl = String.fromEnvironment(
+    'API_PUBLIC_URL',
+    defaultValue: 'http://127.0.0.1:9',
+  );
+  static const inviteCode = String.fromEnvironment(
+    'INVITE_CODE',
+    defaultValue: 'convite-teste',
+  );
 
   Future<Estimate> estimar({
     required String texto,

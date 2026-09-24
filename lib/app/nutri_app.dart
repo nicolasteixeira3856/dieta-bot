@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:nutri/app/dependencies.dart';
+import 'package:nutri/app/nutri_theme.dart';
 import 'package:nutri/cubit/perfil_cubit.dart';
 
 class NutriApp extends StatelessWidget {
@@ -15,10 +16,7 @@ class NutriApp extends StatelessWidget {
       child: MaterialApp.router(
         title: 'Nutri',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1F6B4A)),
-          useMaterial3: true,
-        ),
+        theme: nutriTheme(),
         routerConfig: getIt<GoRouter>(),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:nutri/app/nutri_theme.dart';
 import 'package:nutri/cubit/perfil_cubit.dart';
 
 class OnboardingTetoPage extends StatelessWidget {
@@ -14,79 +15,60 @@ class OnboardingTetoPage extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<PerfilCubit, PerfilState>(
           builder: (context, state) {
-            return ListView(
-              padding: const EdgeInsets.all(24),
+            final cubit = context.read<PerfilCubit>();
+            return NutriColumn(
               children: [
-                const Text('Primeiro open'),
-                const SizedBox(height: 8),
+                nutriKicker('Primeiro open'),
+                const SizedBox(height: 6),
                 Text(
                   'Qual é o teto de kcal?',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
-                const Text('Você manda no número.'),
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _ModoChip(
-                      label: 'Mesmo todos os dias',
-                      selecionado: state.modo == ModoTeto.mesmo,
-                      onTap: () =>
-                          context.read<PerfilCubit>().modo(ModoTeto.mesmo),
-                    ),
-                    _ModoChip(
-                      label: 'Seg–sex / sáb–dom',
-                      selecionado: state.modo == ModoTeto.utilFds,
-                      onTap: () =>
-                          context.read<PerfilCubit>().modo(ModoTeto.utilFds),
-                    ),
-                    _ModoChip(
-                      label: 'Cada dia diferente',
-                      selecionado: state.modo == ModoTeto.seteDias,
-                      onTap: () =>
-                          context.read<PerfilCubit>().modo(ModoTeto.seteDias),
-                    ),
-                  ],
+                Text(
+                  'Você manda no número.',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 20),
-                _CamposTeto(state: state),
-                const SizedBox(height: 16),
+                const SizedBox(height: 22),
+                NutriOption(
+                  selected: state.modo == ModoTeto.mesmo,
+                  onTap: () => cubit.modo(ModoTeto.mesmo),
+                  child: const Text('Mesmo todos os dias'),
+                ),
+                const SizedBox(height: 8),
+                NutriOption(
+                  selected: state.modo == ModoTeto.utilFds,
+                  onTap: () => cubit.modo(ModoTeto.utilFds),
+                  child: const Text('Seg–sex / sáb–dom'),
+                ),
+                const SizedBox(height: 8),
+                NutriOption(
+                  selected: state.modo == ModoTeto.seteDias,
+                  onTap: () => cubit.modo(ModoTeto.seteDias),
+                  child: const Text('Cada dia diferente'),
+                ),
+                const SizedBox(height: 18),
+                AnimatedSwitcher(
+                  duration: nutriMotion,
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeOutCubic,
+                  child: KeyedSubtree(
+                    key: ValueKey(state.modo),
+                    child: _CamposTeto(state: state),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 const Text(
                   'Dá pra mudar depois em 2 toques. Isso não é cálculo de nutricionista.',
+                  style: TextStyle(color: nutriDim, fontSize: 12, height: 1.4),
                 ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => context.go('/onboarding/treino'),
-                  child: const Text('Continuar'),
-                ),
+                const SizedBox(height: 18),
+                nutriCta('Continuar', () => context.go('/onboarding/treino')),
               ],
             );
           },
         ),
       ),
-    );
-  }
-}
-
-class _ModoChip extends StatelessWidget {
-  const _ModoChip({
-    required this.label,
-    required this.selecionado,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selecionado;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selecionado,
-      onSelected: (_) => onTap(),
     );
   }
 }
@@ -129,13 +111,34 @@ class _CamposTeto extends StatelessWidget {
       ModoTeto.seteDias => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Cada dia'),
+          const Text(
+            'Cada dia',
+            style: TextStyle(color: nutriMuted, fontSize: 12),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (var i = 0; i < 7; i++) Text('${_dias[i]} ${state.dias[i]}'),
+              for (var i = 0; i < 7; i++)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: nutriSurf2,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: nutriLine),
+                  ),
+                  child: Text(
+                    '${_dias[i]} ${state.dias[i]}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
             ],
           ),
         ],
@@ -190,26 +193,28 @@ class _NumeroState extends State<_Numero> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label),
+        Text(
+          widget.label,
+          style: const TextStyle(color: nutriMuted, fontSize: 12),
+        ),
         const SizedBox(height: 6),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (texto) {
-                  final kcal = int.tryParse(texto);
-                  if (kcal != null) {
-                    widget.onChanged(kcal);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(widget.sufixo),
-          ],
+        TextField(
+          controller: _controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.6,
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
+          decoration: InputDecoration(suffixText: widget.sufixo),
+          onChanged: (texto) {
+            final kcal = int.tryParse(texto);
+            if (kcal != null) {
+              widget.onChanged(kcal);
+            }
+          },
         ),
       ],
     );

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:nutri/app/nutri_theme.dart';
 import 'package:nutri/cubit/perfil_cubit.dart';
 
 /// Preview do wire: treino de exemplo 480 kcal. O percentual digitado entra inteiro,
@@ -41,135 +42,146 @@ class _OnboardingTreinoPageState extends State<OnboardingTreinoPage> {
           builder: (context, state) {
             final cubit = context.read<PerfilCubit>();
             final credito = creditoPreview(state.percentual);
-            return ListView(
-              padding: const EdgeInsets.all(24),
+            return NutriColumn(
               children: [
-                const Text('Primeiro open'),
-                const SizedBox(height: 8),
+                nutriKicker('Primeiro open'),
+                const SizedBox(height: 6),
                 Text(
                   'Quando você treina, o teto sobe?',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                const SizedBox(height: 20),
-                _Opcao(
-                  selecionada: state.politica == PoliticaEatBack.zero,
+                const SizedBox(height: 18),
+                NutriOption(
+                  selected: state.politica == PoliticaEatBack.zero,
                   onTap: () => cubit.politica(PoliticaEatBack.zero),
-                  titulo: 'Não entra · 0%',
-                  detalhe: 'Treino 1000 e o teto continua o mesmo.',
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Não entra · 0%',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Treino 1000 e o teto continua o mesmo.',
+                        style: TextStyle(color: nutriMuted, fontSize: 13),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                _Opcao(
-                  selecionada: state.politica == PoliticaEatBack.parcial,
+                const SizedBox(height: 8),
+                NutriOption(
+                  selected: state.politica == PoliticaEatBack.parcial,
                   onTap: () => cubit.politica(PoliticaEatBack.parcial),
-                  titulo: 'Entra um pouco',
-                  detalhe: 'Você escolhe a %.',
-                  extra: state.politica == PoliticaEatBack.parcial
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Entra um pouco',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Você escolhe a %.',
+                        style: TextStyle(color: nutriMuted, fontSize: 13),
+                      ),
+                      if (state.politica == PoliticaEatBack.parcial) ...[
+                        const SizedBox(height: 10),
+                        Row(
                           children: [
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 88,
-                                  child: TextField(
-                                    key: const Key('percentual-eatback'),
-                                    controller: _percentual,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    onChanged: (texto) {
-                                      final valor = int.tryParse(texto);
-                                      if (valor != null) {
-                                        cubit.percentual(valor);
-                                      }
-                                    },
+                            SizedBox(
+                              width: 88,
+                              child: TextField(
+                                key: const Key('percentual-eatback'),
+                                controller: _percentual,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontFeatures: [FontFeature.tabularFigures()],
+                                ),
+                                decoration: const InputDecoration(
+                                  filled: true,
+                                  fillColor: nutriBg,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Text('% que entra'),
-                              ],
+                                onChanged: (texto) {
+                                  final valor = int.tryParse(texto);
+                                  if (valor != null) {
+                                    cubit.percentual(valor);
+                                  }
+                                },
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Preview: treino 480 → teto +$credito · hoje ${state.kcalMesmo + credito}',
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                '% que entra',
+                                style: TextStyle(
+                                  color: nutriMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
                           ],
-                        )
-                      : null,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Preview: treino 480 → teto +$credito · hoje ${state.kcalMesmo + credito}',
+                          style: const TextStyle(
+                            color: nutriGold,
+                            fontSize: 12,
+                            height: 1.35,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                _Opcao(
-                  selecionada: state.politica == PoliticaEatBack.cem,
+                const SizedBox(height: 8),
+                NutriOption(
+                  selected: state.politica == PoliticaEatBack.cem,
                   onTap: () => cubit.politica(PoliticaEatBack.cem),
-                  titulo: 'Entra tudo · 100%',
-                  detalhe: 'Treino 480 → teto +480.',
-                  extra: const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: Text(
-                      'Pulseira costuma superestimar. O número que você digitar entra inteiro.',
-                    ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Entra tudo · 100%',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Treino 480 → teto +480.',
+                        style: TextStyle(color: nutriMuted, fontSize: 13),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Pulseira costuma superestimar. O número que você digitar entra inteiro.',
+                        style: TextStyle(
+                          color: nutriGold,
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Não é recomendação clínica. É regra sua.'),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => context.go('/'),
-                  child: const Text('Entrar no app'),
+                const Text(
+                  'Não é recomendação clínica. É regra sua.',
+                  style: TextStyle(color: nutriDim, fontSize: 12, height: 1.4),
                 ),
+                const SizedBox(height: 18),
+                nutriCta('Entrar no app', () => context.go('/')),
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _Opcao extends StatelessWidget {
-  const _Opcao({
-    required this.selecionada,
-    required this.onTap,
-    required this.titulo,
-    required this.detalhe,
-    this.extra,
-  });
-
-  final bool selecionada;
-  final VoidCallback onTap;
-  final String titulo;
-  final String detalhe;
-  final Widget? extra;
-
-  @override
-  Widget build(BuildContext context) {
-    final cor = selecionada
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.outline;
-    return Material(
-      color: selecionada
-          ? Theme.of(context).colorScheme.primaryContainer
-          : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: cor),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text(detalhe),
-              ?extra,
-            ],
-          ),
         ),
       ),
     );
