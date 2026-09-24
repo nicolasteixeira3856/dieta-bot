@@ -20,7 +20,7 @@ O client mora em `apps/android/`. Namespace `com.nutri.android`. minSdk 26. targ
 
 ## URL
 
-`API_PUBLIC_URL` e `INVITE_CODE` entram no `BuildConfig` a partir de `apps/android/local.properties`, se existirem. Sem essas chaves, o default é o de `.env.example`: `http://127.0.0.1:8080` e `troca-isto`. O header é `X-Invite`. O `.env` não é lido. No emulador, `127.0.0.1` é o aparelho. Nesta máquina `GET http://127.0.0.1:8080/health` não conectou, então o card T2 mostra confiança baixa e a pergunta "descreve em 1 linha". Não foi inventado kcal de refeição.
+`API_PUBLIC_URL` e `INVITE_CODE` entram no `BuildConfig` a partir de `apps/android/local.properties`, se existirem. Sem essas chaves, o default é o de `.env.example`: `http://127.0.0.1:8080` e `troca-isto`. O header é `X-Invite`. O `.env` não é lido pelo client. No emulador, `127.0.0.1` é o aparelho, então o host entra com `adb reverse tcp:8080 tcp:8080`. O servidor local foi subido com `INVITE_CODE=troca-isto` já no processo, para o dotenv não trocar o convite e a chave não ser impressa. O card T2 do texto "2 paes, ovo, cafe com leite" mostrou 430 kcal, P, cabe, e uma pergunta porque a confiança não era alta. O toque em Registrar até o número na tela levou 8,2 s.
 
 ## Persistência
 
