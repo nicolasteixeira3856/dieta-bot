@@ -154,15 +154,15 @@ Nenhum.
 
 ## Como chamar o emulador
 
-```
-adb exec-out screencap -p > docs/qa/<tela>.png
-```
+No PowerShell, `>` grava o PNG como UTF-16 (o arquivo começa com `FF FE` e não abre). O nome do arquivo não pode levar `<` nem `>`: o `cmd` trata isso como redirecionamento e responde que não achou o arquivo.
 
-No PowerShell, `>` grava o PNG como texto UTF-16. Para o arquivo sair binário:
+Na raiz do repo, com o emulador em `device`:
 
 ```
-cmd /c "adb exec-out screencap -p > docs\qa\<tela>.png"
+cmd /c "adb exec-out screencap -p > docs\qa\screencap-check.png"
 ```
+
+Provado em 2026-09-24: `docs/qa/screencap-check.png`, PNG `1080x2400`, tela inicial do emulador. Troque `screencap-check` pelo nome da tela.
 
 ## Clients
 

@@ -1,7 +1,7 @@
 [versions]
 agp = "9.4.1"
 kotlin = "2.2.20"
-composeBom = "2026.09.00"
+composeBom = "2026.01.01"
 hilt = "2.56.2"
 hiltNav = "1.2.0"
 navigation = "2.8.9"
