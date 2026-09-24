@@ -1,23 +1,36 @@
 package com.nutri.android.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupMenuState
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -40,18 +53,51 @@ val Handle = Color(0xFF3A424C)
 private val scheme = darkColorScheme(
     background = Bg,
     surface = Surf,
-    surfaceContainer = Surf2,
+    surfaceVariant = Surf2,
+    surfaceContainerLowest = Bg,
+    surfaceContainerLow = Panel,
+    surfaceContainer = Surf,
     surfaceContainerHigh = Surf2,
+    surfaceContainerHighest = Surf2,
+    surfaceBright = Surf2,
+    surfaceDim = Bg,
     primary = CtaBg,
     onPrimary = CtaText,
+    primaryContainer = Surf,
+    onPrimaryContainer = TextMain,
     secondary = Gold,
     onSecondary = CtaText,
+    secondaryContainer = Color(0x33E8B86D),
+    onSecondaryContainer = Gold,
+    tertiary = Good,
+    onTertiary = Bg,
+    tertiaryContainer = Surf,
+    onTertiaryContainer = Good,
     onBackground = TextMain,
     onSurface = TextMain,
     onSurfaceVariant = Handle,
     outline = Line,
+    outlineVariant = Line,
     error = Bad,
     onError = TextMain,
+    errorContainer = Surf,
+    onErrorContainer = Bad,
+    surfaceTint = Color.Transparent,
+    inverseSurface = TextMain,
+    inverseOnSurface = Bg,
+    inversePrimary = Gold,
+    scrim = Bg,
+)
+
+private val formas = Shapes(
+    extraSmall = RoundedCornerShape(14.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(14.dp),
+    large = RoundedCornerShape(14.dp),
+    extraLarge = RoundedCornerShape(22.dp),
+    largeIncreased = RoundedCornerShape(14.dp),
+    extraLargeIncreased = RoundedCornerShape(22.dp),
+    extraExtraLarge = RoundedCornerShape(22.dp),
 )
 
 private val tipo = Typography(
@@ -63,10 +109,70 @@ private val tipo = Typography(
     labelSmall = TextStyle(color = Gold, fontSize = 11.sp, fontWeight = FontWeight.W600, letterSpacing = 1.sp),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NutriTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = scheme, typography = tipo, content = content)
+    MaterialExpressiveTheme(
+        colorScheme = scheme,
+        motionScheme = MotionScheme.expressive(),
+        shapes = formas,
+        typography = tipo,
+        content = content,
+    )
+}
+
+@Composable
+fun GrupoEscolha(
+    opcoes: List<Pair<String, Boolean>>,
+    onEscolha: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ButtonGroup(
+        overflowIndicator = {},
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        opcoes.forEachIndexed { index, (rotulo, marcado) ->
+            val toque = MutableInteractionSource()
+            val item = Modifier.weight(1f).animateWidth(toque).heightIn(min = 48.dp)
+            customItem(
+                buttonGroupContent = {
+                    ToggleButton(
+                        checked = marcado,
+                        onCheckedChange = { ligado -> if (ligado) onEscolha(index) },
+                        modifier = item,
+                        interactionSource = toque,
+                        colors = ToggleButtonDefaults.colors(
+                            containerColor = Surf2,
+                            contentColor = TextMain,
+                            checkedContainerColor = Gold,
+                            checkedContentColor = CtaText,
+                        ),
+                        border = if (marcado) null else BorderStroke(1.dp, Line),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            rotulo,
+                            color = if (marcado) CtaText else TextMain,
+                            fontSize = 12.sp,
+                            lineHeight = 14.sp,
+                            textAlign = TextAlign.Center,
+                            maxLines = 3,
+                        )
+                    }
+                },
+                menuContent = { estado: ButtonGroupMenuState ->
+                    DropdownMenuItem(
+                        text = { Text(rotulo) },
+                        onClick = {
+                            onEscolha(index)
+                            estado.dismiss()
+                        },
+                    )
+                },
+            )
+        }
+    }
 }
 
 @Composable

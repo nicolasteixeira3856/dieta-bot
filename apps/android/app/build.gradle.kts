@@ -19,7 +19,7 @@ val inviteCode = local.getProperty("INVITE_CODE") ?: "troca-isto"
 
 android {
     namespace = "com.nutri.android"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.nutri.android"
@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material3.android)
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
