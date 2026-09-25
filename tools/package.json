@@ -1,0 +1,8 @@
+{
+  "name": "dieta-bot-tools",
+  "private": true,
+  "description": "Wire PNG export for Visual QA",
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}
