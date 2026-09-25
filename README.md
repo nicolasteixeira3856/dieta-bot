@@ -2,47 +2,49 @@
 
 App Android para encaixar a próxima refeição no saldo do dia, sobretudo a janta.
 
-Registra em linguagem natural + foto. Devolve kcal, P e se cabe. Não é diário de busca. Não é nutricionista. Não calcula TDEE. Estimativa, não consulta.
+Android app that fits the next meal into today's remaining budget, dinner first.
+
+Log in natural language + photo. Returns kcal, P, and whether it fits. Not a food-search diary. Not a dietitian. Does not compute TDEE. Estimate, not advice.
 
 ## Stack
 
-| Camada | O quê |
+| Layer | What |
 |---|---|
 | Client | `apps/android/` — Kotlin, Jetpack Compose, Material 3 Expressive |
 | API | `server/` — FastAPI, `gpt-6-luna`, `reasoning.effort=none` |
-| Infra | Torre em casa + Cloudflare Tunnel. Sem VPS. Sem porta no roteador |
+| Infra | Home tower + Cloudflare Tunnel. No VPS. No router port |
 
-Arquitetura do client: `ui` / `domain` / `data`. UDF. ViewModel + `StateFlow`. Hilt. Fórmulas em domain puro.
+Client architecture: `ui` / `domain` / `data`. UDF. ViewModel + `StateFlow`. Hilt. Formulas in pure domain.
 
-## O que o app faz
+## What the app does
 
-1. O1 — teto (mesmo todos os dias / útil-fds / 7 dias)
-2. O2 — eat-back (0% / % digitável / 100%, sem cap)
-3. T0 — Home: saldo, próxima janela, composer texto+foto, CTA “o que cabe agora”
-4. T1 — sheet registra
-5. T2 — card curto
-6. T3 — sheet encaixa no orçamento (`POST /v1/fit`)
+1. O1 — ceiling (same every day / weekday-weekend / 7 days)
+2. O2 — eat-back (0% / typed % / 100%, no cap)
+3. T0 — Home: remaining, next window, text+photo composer, CTA “o que cabe agora”
+4. T1 — log sheet
+5. T2 — short card
+6. T3 — fit sheet (`POST /v1/fit`)
 
-Home no dia 1 não tem chip. Chip nasce no 2º log estável da janela.
+Home on day 1 has no chip. A chip appears on the 2nd stable log of the window.
 
-## Pastas
+## Folders
 
 ```
 apps/android/     client
 server/           API
-docs/             contrato, ADRs, tokens, QA
+docs/             contract, ADRs, tokens, QA
 wires/            nutri-wires.html
-.grok/skills/     skills do agente
+.grok/skills/     agent skills
 ```
 
-Flutter e React Native saíram do tree. Estão no histórico git.
+Flutter and React Native left the tree. They live in git history.
 
-## Rodar (Windows)
+## Run (Windows)
 
-Emulador aberto (`adb devices` mostra device).
+Emulator open (`adb devices` shows a device).
 
 ```powershell
-# API (na torre)
+# API (on the tower)
 cd server
 docker compose up -d
 
@@ -52,15 +54,15 @@ cd apps\android
 .\gradlew.bat :app:installDebug
 ```
 
-Client usa `API_PUBLIC_URL` + `INVITE_CODE`. Header `X-Invite`. Nunca `OPENAI_API_KEY` no APK. `.env` não entra no git.
+The client uses `API_PUBLIC_URL` + `INVITE_CODE`. Header `X-Invite`. Never `OPENAI_API_KEY` in the APK. `.env` does not go in git.
 
 ## Tokens
 
-`docs/tokens.md`. Fundo `#0b0d10`, acento `#e8b86d`, CTA `#f3f5f7` / `#111`. Sem roxo Material default. Sem dynamic color.
+`docs/tokens.md`. Background `#0b0d10`, accent `#e8b86d`, CTA `#f3f5f7` / `#111`. No default Material purple. No dynamic color.
 
-## Agente
+## Agent
 
-Constituição: `AGENTS.md`.
-1 `/goal` = 1 pasta.
-UI DONE = screenshot no emulador vs wire.
-Decisão = ADR em `docs/decisions/`.
+Constitution: `AGENTS.md`.
+1 `/goal` = 1 folder.
+UI DONE = emulator screenshot vs wire.
+Decision = ADR in `docs/decisions/`.

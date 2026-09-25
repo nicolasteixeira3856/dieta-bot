@@ -9,60 +9,65 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.nutri.android.ui.Bg
-import com.nutri.android.ui.DiaViewModel
-import com.nutri.android.ui.Etapa
-import com.nutri.android.ui.FolhaAtual
+import com.nutri.android.ui.CeilingScreen
+import com.nutri.android.ui.CurrentSheet
+import com.nutri.android.ui.DayViewModel
+import com.nutri.android.ui.EatScreen
+import com.nutri.android.ui.HomeScreen
+import com.nutri.android.ui.LocalPalette
 import com.nutri.android.ui.NutriTheme
-import com.nutri.android.ui.TelaEat
-import com.nutri.android.ui.TelaHome
-import com.nutri.android.ui.TelaTeto
+import com.nutri.android.ui.SplashScreen
+import com.nutri.android.ui.Stage
+import com.nutri.android.ui.T2Screen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
-@Serializable data object RotaTeto
-@Serializable data object RotaEat
-@Serializable data object RotaHome
+@Serializable data object RouteSplash
+@Serializable data object RouteCeiling
+@Serializable data object RouteEat
+@Serializable data object RouteHome
+@Serializable data object RouteT2
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val tela = intent?.getStringExtra("nutri_tela")
+        val screen = intent?.getStringExtra("nutri_tela")
         setContent {
             NutriTheme {
-                App(tela)
+                App(screen)
             }
         }
     }
 }
 
 @Composable
-private fun App(telaCaptura: String?) {
-    val vm: DiaViewModel = hiltViewModel()
-    val ui by vm.ui.collectAsState()
+private fun App(captureScreen: String?) {
+    val vm: DayViewModel = hiltViewModel()
+    val ui by vm.ui.collectAsStateWithLifecycle()
     val nav = rememberNavController()
-    LaunchedEffect(telaCaptura) {
-        if (!telaCaptura.isNullOrBlank()) vm.abrirCaptura(telaCaptura)
+    LaunchedEffect(captureScreen) {
+        if (!captureScreen.isNullOrBlank()) vm.openCapture(captureScreen)
     }
-    LaunchedEffect(ui.pronto, ui.etapa) {
-        if (!ui.pronto) return@LaunchedEffect
-        val rota = when (ui.etapa) {
-            Etapa.O1 -> RotaTeto
-            Etapa.O2 -> RotaEat
-            Etapa.HOME -> RotaHome
+    LaunchedEffect(ui.stage) {
+        val route = when (ui.stage) {
+            Stage.SPLASH -> RouteSplash
+            Stage.O1 -> RouteCeiling
+            Stage.O2 -> RouteEat
+            Stage.HOME -> RouteHome
+            Stage.T2 -> RouteT2
         }
-        nav.navigate(rota) {
+        nav.navigate(route) {
             popUpTo(nav.graph.id) { inclusive = true }
             launchSingleTop = true
         }
@@ -70,15 +75,51 @@ private fun App(telaCaptura: String?) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Bg)
+            .background(LocalPalette.current.bg)
             .semantics { testTagsAsResourceId = true },
     ) {
-        NavHost(navController = nav, startDestination = RotaTeto, modifier = Modifier.fillMaxSize()) {
-            composable<RotaTeto> { TelaTeto(ui, vm) }
-            composable<RotaEat> { TelaEat(ui, vm) }
-            composable<RotaHome> {
-                TelaHome(ui, vm)
-                FolhaAtual(ui, vm)
+        NavHost(navController = nav, startDestination = RouteSplash, modifier = Modifier.fillMaxSize()) {
+            composable<RouteSplash> { SplashScreen(ui, onDone = vm::leaveSplash) }
+            composable<RouteCeiling> {
+                CeilingScreen(
+                    ui = ui,
+                    onMode = vm::ceilingMode,
+                    onSame = vm::sameField,
+                    onWeekday = vm::weekdayField,
+                    onWeekend = vm::weekendField,
+                    onDay = vm::dayField,
+                    onContinue = vm::continueO1,
+                )
+            }
+            composable<RouteEat> {
+                EatScreen(ui, onEat = vm::eat, onPct = vm::pct, onStart = vm::enter)
+            }
+            composable<RouteHome> {
+                HomeScreen(
+                    ui = ui,
+                    onLog = vm::openLog,
+                    onFit = vm::openFit,
+                    onRemoveChip = { vm.removeChip(ui.chips.firstOrNull()?.window ?: ui.window) },
+                )
+                CurrentSheet(
+                    ui = ui,
+                    onClose = vm::close,
+                    onText = vm::text,
+                    onPhoto = vm::photo,
+                    onSubmit = vm::submitLog,
+                    onMode = vm::fitMode,
+                    onFitText = vm::fitText,
+                    onFit = vm::requestFit,
+                    onAlreadyAte = vm::alreadyAte,
+                )
+            }
+            composable<RouteT2> {
+                T2Screen(
+                    ui = ui,
+                    onAnswer = vm::t2Answer,
+                    onConfirm = vm::confirm,
+                    onUndo = vm::undo,
+                )
             }
         }
     }

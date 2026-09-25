@@ -1,20 +1,20 @@
 ---
 name: dieta-bot-android-feature
-description: Implementa feature no client Android Nutri. Use quando o pedido for tela, regra, API client ou persistência do dia. Pasta apps/android.
+description: Implement a feature in the Nutri Android client. Use when the request is a screen, a rule, an API client, or day persistence. Folder apps/android.
 ---
 
 # dieta-bot-android-feature
 
-Pasta: `apps/android/`. Não editar `server/` neste fluxo.
+Folder: `apps/android/`. Do not edit `server/` in this flow.
 
-Ordem:
-1. Teste da regra em `domain/` (TDD).
+Order:
+1. Domain rule test (TDD).
 2. Repository / DataStore.
 3. ViewModel + UiState.
 4. Composable.
-5. `.\gradlew.bat test` e `compileDebugKotlin`.
-6. Screenshot no emulador se mudou UI.
+5. `.\gradlew.bat test` and `compileDebugKotlin`.
+6. Emulator screenshot if UI changed.
 
-Paridade: foto ≤1280 JPEG 70, header `X-Invite`, timeout 20s, home dia 1 sem chip.
+Parity: photo ≤1280 JPEG 70, header `X-Invite`, timeout 20s, home day 1 no chip.
 
-Não restaurar Flutter/RN. Não Room neste corte (DataStore/JSON).
+Do not restore Flutter/RN. No Room in this cut (DataStore/JSON).

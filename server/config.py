@@ -1,4 +1,4 @@
-"""Configuração lida do .env na raiz do repo. A chave não é impressa."""
+"""Settings from the repo-root .env. The key is never printed."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 MODEL = "gpt-6-luna"
 TIMEOUT_SECONDS = 20.0
-PERGUNTA_FALHA = "descreve em 1 linha"
+FALLBACK_QUESTION = "descreve em 1 linha"
 
 _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
 

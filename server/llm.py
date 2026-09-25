@@ -1,4 +1,4 @@
-"""Cliente do modelo. A foto entra na chamada e não fica retida."""
+"""Model client. The photo enters the call and is not retained."""
 
 from __future__ import annotations
 
@@ -11,23 +11,23 @@ from openai import OpenAI
 from config import MODEL, TIMEOUT_SECONDS
 
 _ESTIMATE_INSTRUCTIONS = (
-    "Estime a refeição. Responda só um objeto JSON com as chaves "
-    "kcal, p, c, g, confianca, pergunta, itens. "
-    "kcal, p, c e g são números. p é proteína em gramas, c carboidrato, g gordura. "
-    "confianca é alto, medio ou baixa. "
-    "Se confianca for alto, pergunta é null. Senão, uma pergunta curta. "
-    "itens é uma lista de objetos {nome, g, kcal}. "
-    "Estimativa, não consulta."
+    "Estimate the meal. Reply with one JSON object only, keys "
+    "kcal, p, c, g, confidence, question, items. "
+    "kcal, p, c and g are numbers. p is protein grams, c carbohydrate, g fat. "
+    "confidence is high, medium or low. "
+    "If confidence is high, question is null. Otherwise one short question. "
+    "items is a list of objects {name, g, kcal}. "
+    "Estimate, not advice."
 )
 
 _FIT_INSTRUCTIONS = (
-    "Monte prato dentro do orcamento_kcal. p é meta de proteína, não teto. "
-    "Responda só um objeto JSON com prato, pergunta e opcoes. "
-    "prato tem nome, porcoes (lista de {nome, quantidade}), kcal e p. "
-    "pergunta é uma única string. "
-    "Se mode for surprise, opcoes é uma lista com exatamente 2 pratos nesse formato. "
-    "Senão opcoes é null. "
-    "Não é consulta."
+    "Build a plate inside budget_kcal. p is a protein target, not a ceiling. "
+    "Reply with one JSON object only, keys dish, question and options. "
+    "dish has name, portions (list of {name, quantity}), kcal and p. "
+    "question is a single string. "
+    "If mode is surprise, options is a list of exactly 2 dishes in that shape. "
+    "Otherwise options is null. "
+    "Not advice."
 )
 
 
@@ -75,7 +75,7 @@ class LlmClient:
             )
         image_b64 = None
         if self._openai is None:
-            raise RuntimeError("llm indisponivel")
+            raise RuntimeError("llm unavailable")
         try:
             response = self._openai.responses.create(
                 model=MODEL,
@@ -91,7 +91,7 @@ class LlmClient:
             content.clear()
         text = response.output_text
         if not text.strip():
-            raise ValueError("resposta vazia")
+            raise ValueError("empty response")
         return _parse_json_object(text)
 
 
@@ -105,8 +105,8 @@ def _parse_json_object(text: str) -> dict[str, Any]:
     start = raw.find("{")
     end = raw.rfind("}")
     if start < 0 or end <= start:
-        raise ValueError("sem json")
+        raise ValueError("no json")
     data = json.loads(raw[start : end + 1])
     if not isinstance(data, dict):
-        raise ValueError("json nao objeto")
+        raise ValueError("json not an object")
     return data

@@ -8,118 +8,118 @@ import org.junit.Test
 
 class BudgetCalculatorTest {
     private val calc = BudgetCalculator()
-    private val segunda = LocalDate.of(2026, 9, 21)
-    private val sexta = LocalDate.of(2026, 9, 25)
-    private val sabado = LocalDate.of(2026, 9, 26)
-    private val domingo = LocalDate.of(2026, 9, 27)
-    private val quarta = LocalDate.of(2026, 9, 23)
+    private val monday = LocalDate.of(2026, 9, 21)
+    private val friday = LocalDate.of(2026, 9, 25)
+    private val saturday = LocalDate.of(2026, 9, 26)
+    private val sunday = LocalDate.of(2026, 9, 27)
+    private val wednesday = LocalDate.of(2026, 9, 23)
 
     @Test
-    fun `politica 0 com treino 1000 credita 0`() {
-        val r = calc.calcular(
-            EntradaOrcamento(
-                data = quarta,
-                perfil = TetoMesmoTodosOsDias(2000),
-                politica = PoliticaCredito.ZERO,
-                treinoKcal = 1000,
+    fun `policy 0 with workout 1000 credits 0`() {
+        val r = calc.calculate(
+            BudgetInput(
+                date = wednesday,
+                profile = SameEveryDayCeiling(2000),
+                policy = CreditPolicy.ZERO,
+                workoutKcal = 1000,
             ),
         )
-        assertThat(r.creditoTreino).isEqualTo(0)
-        assertThat(r.tetoEfetivo).isEqualTo(2000)
+        assertThat(r.credit).isEqualTo(0)
+        assertThat(r.effectiveCeiling).isEqualTo(2000)
     }
 
     @Test
-    fun `treino ausente com politica 100 credita 0`() {
-        val r = calc.calcular(
-            EntradaOrcamento(
-                data = quarta,
-                perfil = TetoMesmoTodosOsDias(2000),
-                politica = PoliticaCredito.CEM,
-                treinoKcal = null,
+    fun `missing workout with policy 100 credits 0`() {
+        val r = calc.calculate(
+            BudgetInput(
+                date = wednesday,
+                profile = SameEveryDayCeiling(2000),
+                policy = CreditPolicy.FULL,
+                workoutKcal = null,
             ),
         )
-        assertThat(r.creditoTreino).isEqualTo(0)
-        assertThat(r.tetoEfetivo).isEqualTo(2000)
+        assertThat(r.credit).isEqualTo(0)
+        assertThat(r.effectiveCeiling).isEqualTo(2000)
     }
 
     @Test
-    fun `politica 50 com treino 480 credita 240`() {
-        val r = calc.calcular(
-            EntradaOrcamento(
-                data = quarta,
-                perfil = TetoMesmoTodosOsDias(2000),
-                politica = PoliticaCredito.PARCIAL,
-                percentual = 50,
-                treinoKcal = 480,
+    fun `policy 50 with workout 480 credits 240`() {
+        val r = calc.calculate(
+            BudgetInput(
+                date = wednesday,
+                profile = SameEveryDayCeiling(2000),
+                policy = CreditPolicy.PARTIAL,
+                percent = 50,
+                workoutKcal = 480,
             ),
         )
-        assertThat(r.creditoTreino).isEqualTo(240)
-        assertThat(r.tetoEfetivo).isEqualTo(2240)
+        assertThat(r.credit).isEqualTo(240)
+        assertThat(r.effectiveCeiling).isEqualTo(2240)
     }
 
     @Test
-    fun `politica 100 com treino 480 credita 480`() {
-        val r = calc.calcular(
-            EntradaOrcamento(
-                data = quarta,
-                perfil = TetoMesmoTodosOsDias(2000),
-                politica = PoliticaCredito.CEM,
-                treinoKcal = 480,
+    fun `policy 100 with workout 480 credits 480`() {
+        val r = calc.calculate(
+            BudgetInput(
+                date = wednesday,
+                profile = SameEveryDayCeiling(2000),
+                policy = CreditPolicy.FULL,
+                workoutKcal = 480,
             ),
         )
-        assertThat(r.creditoTreino).isEqualTo(480)
-        assertThat(r.tetoEfetivo).isEqualTo(2480)
+        assertThat(r.credit).isEqualTo(480)
+        assertThat(r.effectiveCeiling).isEqualTo(2480)
     }
 
     @Test
-    fun `sem cap treino 2000 a 100 por cento soma 2000 no teto`() {
-        val r = calc.calcular(
-            EntradaOrcamento(
-                data = quarta,
-                perfil = TetoMesmoTodosOsDias(2000),
-                politica = PoliticaCredito.CEM,
-                treinoKcal = 2000,
+    fun `no cap workout 2000 at 100 percent adds 2000 to ceiling`() {
+        val r = calc.calculate(
+            BudgetInput(
+                date = wednesday,
+                profile = SameEveryDayCeiling(2000),
+                policy = CreditPolicy.FULL,
+                workoutKcal = 2000,
             ),
         )
-        assertThat(r.creditoTreino).isEqualTo(2000)
-        assertThat(r.tetoEfetivo).isEqualTo(4000)
+        assertThat(r.credit).isEqualTo(2000)
+        assertThat(r.effectiveCeiling).isEqualTo(4000)
     }
 
     @Test
-    fun `orcamento janela nunca negativo`() {
-        val r = calc.calcular(
-            EntradaOrcamento(
-                data = quarta,
-                perfil = TetoMesmoTodosOsDias(2000),
-                politica = PoliticaCredito.ZERO,
-                treinoKcal = 1000,
-                consumido = 1500,
-                reservaProximas = 700,
+    fun `window budget never negative`() {
+        val r = calc.calculate(
+            BudgetInput(
+                date = wednesday,
+                profile = SameEveryDayCeiling(2000),
+                policy = CreditPolicy.ZERO,
+                workoutKcal = 1000,
+                eaten = 1500,
+                reservedUpcoming = 700,
             ),
         )
-        assertThat(r.orcamentoJanela).isEqualTo(0)
-        assertThat(r.orcamentoJanela).isAtLeast(0)
+        assertThat(r.windowBudget).isEqualTo(0)
+        assertThat(r.windowBudget).isAtLeast(0)
     }
 
     @Test
-    fun `teto base difere entre mesmo todos os dias util fds e 7 dias`() {
-        assertThat(segunda.dayOfWeek).isEqualTo(DayOfWeek.MONDAY)
-        assertThat(sabado.dayOfWeek).isEqualTo(DayOfWeek.SATURDAY)
-        assertThat(domingo.dayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
+    fun `base ceiling differs across same every day weekday weekend and 7 days`() {
+        assertThat(monday.dayOfWeek).isEqualTo(DayOfWeek.MONDAY)
+        assertThat(saturday.dayOfWeek).isEqualTo(DayOfWeek.SATURDAY)
+        assertThat(sunday.dayOfWeek).isEqualTo(DayOfWeek.SUNDAY)
 
-        val mesmo = TetoMesmoTodosOsDias(2000)
-        assertThat(mesmo.tetoNaData(quarta)).isEqualTo(2000)
-        assertThat(mesmo.tetoNaData(domingo)).isEqualTo(2000)
+        val same = SameEveryDayCeiling(2000)
+        assertThat(same.ceilingOn(wednesday)).isEqualTo(2000)
+        assertThat(same.ceilingOn(sunday)).isEqualTo(2000)
 
-        val util = TetoUtilFds(util = 2000, fds = 2300)
-        assertThat(util.tetoNaData(segunda)).isEqualTo(2000)
-        assertThat(util.tetoNaData(sexta)).isEqualTo(2000)
-        assertThat(util.tetoNaData(sabado)).isEqualTo(2300)
-        assertThat(util.tetoNaData(domingo)).isEqualTo(2300)
-        assertThat(util.tetoNaData(segunda)).isNotEqualTo(util.tetoNaData(sabado))
+        val weekdayWeekend = WeekdayWeekendCeiling(weekday = 2000, weekend = 2300)
+        assertThat(weekdayWeekend.ceilingOn(monday)).isEqualTo(2000)
+        assertThat(weekdayWeekend.ceilingOn(friday)).isEqualTo(2000)
+        assertThat(weekdayWeekend.ceilingOn(saturday)).isEqualTo(2300)
+        assertThat(weekdayWeekend.ceilingOn(sunday)).isEqualTo(2300)
+        assertThat(weekdayWeekend.ceilingOn(monday)).isNotEqualTo(weekdayWeekend.ceilingOn(saturday))
 
-        val sete = TetoSeteDias(1900, 2100, 1800, 2400, 2000, 2600, 1700)
-        val dias = listOf(
+        val seven = SevenDayCeiling(1900, 2100, 1800, 2400, 2000, 2600, 1700)
+        val days = listOf(
             LocalDate.of(2026, 9, 21),
             LocalDate.of(2026, 9, 22),
             LocalDate.of(2026, 9, 23),
@@ -128,17 +128,17 @@ class BudgetCalculatorTest {
             LocalDate.of(2026, 9, 26),
             LocalDate.of(2026, 9, 27),
         )
-        val tetos = dias.map { sete.tetoNaData(it) }
-        assertThat(tetos).containsExactly(1900, 2100, 1800, 2400, 2000, 2600, 1700).inOrder()
-        assertThat(tetos.toSet()).hasSize(7)
+        val ceilings = days.map { seven.ceilingOn(it) }
+        assertThat(ceilings).containsExactly(1900, 2100, 1800, 2400, 2000, 2600, 1700).inOrder()
+        assertThat(ceilings.toSet()).hasSize(7)
     }
 
     @Test
-    fun `data America Sao Paulo muda o weekday perto da meia noite UTC`() {
+    fun `America Sao Paulo date shifts weekday near UTC midnight`() {
         val instant = Instant.parse("2026-09-27T02:30:00Z")
-        val data = SaoPaulo.data(instant)
-        assertThat(data).isEqualTo(LocalDate.of(2026, 9, 26))
-        val teto = TetoUtilFds(util = 2000, fds = 2300).tetoNaData(data)
-        assertThat(teto).isEqualTo(2300)
+        val date = SaoPaulo.date(instant)
+        assertThat(date).isEqualTo(LocalDate.of(2026, 9, 26))
+        val ceiling = WeekdayWeekendCeiling(weekday = 2000, weekend = 2300).ceilingOn(date)
+        assertThat(ceiling).isEqualTo(2300)
     }
 }

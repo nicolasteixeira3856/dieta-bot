@@ -3,18 +3,18 @@ package com.nutri.android.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ButtonGroupMenuState
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
@@ -24,7 +24,10 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,160 +37,273 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-val Bg = Color(0xFF0B0D10)
-val Panel = Color(0xFF12151A)
-val Phone = Color(0xFF0E1114)
-val Surf = Color(0xFF171B20)
-val Surf2 = Color(0xFF1E242B)
-val Line = Color(0xFF2A3139)
-val TextMain = Color(0xFFF3F5F7)
-val Muted = Color(0xFF8B939C)
-val Dim = Color(0xFF5C6570)
-val Gold = Color(0xFFE8B86D)
-val Good = Color(0xFF7DDA9A)
-val Bad = Color(0xFFE07A6A)
-val CtaBg = Color(0xFFF3F5F7)
-val CtaText = Color(0xFF111111)
-val Handle = Color(0xFF3A424C)
-
-private val scheme = darkColorScheme(
-    background = Bg,
-    surface = Surf,
-    surfaceVariant = Surf2,
-    surfaceContainerLowest = Bg,
-    surfaceContainerLow = Panel,
-    surfaceContainer = Surf,
-    surfaceContainerHigh = Surf2,
-    surfaceContainerHighest = Surf2,
-    surfaceBright = Surf2,
-    surfaceDim = Bg,
-    primary = CtaBg,
-    onPrimary = CtaText,
-    primaryContainer = Surf,
-    onPrimaryContainer = TextMain,
-    secondary = Gold,
-    onSecondary = CtaText,
-    secondaryContainer = Color(0x33E8B86D),
-    onSecondaryContainer = Gold,
-    tertiary = Good,
-    onTertiary = Bg,
-    tertiaryContainer = Surf,
-    onTertiaryContainer = Good,
-    onBackground = TextMain,
-    onSurface = TextMain,
-    onSurfaceVariant = Handle,
-    outline = Line,
-    outlineVariant = Line,
-    error = Bad,
-    onError = TextMain,
-    errorContainer = Surf,
-    onErrorContainer = Bad,
-    surfaceTint = Color.Transparent,
-    inverseSurface = TextMain,
-    inverseOnSurface = Bg,
-    inversePrimary = Gold,
-    scrim = Bg,
+data class Palette(
+    val bg: Color,
+    val panel: Color,
+    val phone: Color,
+    val surf: Color,
+    val surf2: Color,
+    val line: Color,
+    val text: Color,
+    val muted: Color,
+    val dim: Color,
+    val gold: Color,
+    val good: Color,
+    val bad: Color,
+    val ctaBg: Color,
+    val ctaText: Color,
+    val handle: Color,
 )
 
-private val formas = Shapes(
-    extraSmall = RoundedCornerShape(14.dp),
-    small = RoundedCornerShape(14.dp),
-    medium = RoundedCornerShape(14.dp),
-    large = RoundedCornerShape(14.dp),
-    extraLarge = RoundedCornerShape(22.dp),
-    largeIncreased = RoundedCornerShape(14.dp),
-    extraLargeIncreased = RoundedCornerShape(22.dp),
-    extraExtraLarge = RoundedCornerShape(22.dp),
+val darkPalette = Palette(
+    bg = Color(NutriHex.darkBg),
+    panel = Color(NutriHex.darkPanel),
+    phone = Color(NutriHex.darkPhone),
+    surf = Color(NutriHex.darkSurf),
+    surf2 = Color(NutriHex.darkSurf2),
+    line = Color(NutriHex.darkLine),
+    text = Color(NutriHex.darkText),
+    muted = Color(NutriHex.darkMuted),
+    dim = Color(NutriHex.darkDim),
+    gold = Color(NutriHex.darkGold),
+    good = Color(NutriHex.darkGood),
+    bad = Color(NutriHex.darkBad),
+    ctaBg = Color(NutriHex.darkCtaBg),
+    ctaText = Color(NutriHex.darkCtaText),
+    handle = Color(0xFF3A424C),
 )
 
-private val tipo = Typography(
-    headlineLarge = TextStyle(color = TextMain, fontSize = 34.sp, fontWeight = FontWeight(590), letterSpacing = (-0.8).sp),
-    headlineMedium = TextStyle(color = TextMain, fontSize = 28.sp, fontWeight = FontWeight(560)),
-    titleLarge = TextStyle(color = TextMain, fontSize = 20.sp, fontWeight = FontWeight.W600),
-    bodyLarge = TextStyle(color = TextMain, fontSize = 16.sp),
-    bodyMedium = TextStyle(color = Muted, fontSize = 13.sp),
-    labelSmall = TextStyle(color = Gold, fontSize = 11.sp, fontWeight = FontWeight.W600, letterSpacing = 1.sp),
+val lightPalette = Palette(
+    bg = Color(NutriHex.lightBg),
+    panel = Color(NutriHex.lightPanel),
+    phone = Color(NutriHex.lightPhone),
+    surf = Color(NutriHex.lightSurf),
+    surf2 = Color(NutriHex.lightSurf2),
+    line = Color(NutriHex.lightLine),
+    text = Color(NutriHex.lightText),
+    muted = Color(NutriHex.lightMuted),
+    dim = Color(NutriHex.lightDim),
+    gold = Color(NutriHex.lightGold),
+    good = Color(NutriHex.lightGood),
+    bad = Color(NutriHex.lightBad),
+    ctaBg = Color(NutriHex.lightCtaBg),
+    ctaText = Color(NutriHex.lightCtaText),
+    handle = Color(0xFFC8C4BC),
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun NutriTheme(content: @Composable () -> Unit) {
-    MaterialExpressiveTheme(
-        colorScheme = scheme,
-        motionScheme = MotionScheme.expressive(),
-        shapes = formas,
-        typography = tipo,
-        content = content,
+val LocalPalette = staticCompositionLocalOf { darkPalette }
+
+private val shapes = Shapes(
+    extraSmall = RoundedCornerShape(NutriMeasure.cardDp.dp),
+    small = RoundedCornerShape(NutriMeasure.cardDp.dp),
+    medium = RoundedCornerShape(NutriMeasure.cardDp.dp),
+    large = RoundedCornerShape(NutriMeasure.cardDp.dp),
+    extraLarge = RoundedCornerShape(NutriMeasure.sheetTopDp.dp),
+    largeIncreased = RoundedCornerShape(NutriMeasure.cardDp.dp),
+    extraLargeIncreased = RoundedCornerShape(NutriMeasure.sheetTopDp.dp),
+    extraExtraLarge = RoundedCornerShape(NutriMeasure.sheetTopDp.dp),
+)
+
+private fun scheme(p: Palette, dark: Boolean): ColorScheme {
+    val base = if (dark) darkColorScheme() else lightColorScheme()
+    return base.copy(
+        background = p.bg,
+        surface = p.surf,
+        surfaceVariant = p.surf2,
+        surfaceContainerLowest = p.bg,
+        surfaceContainerLow = p.panel,
+        surfaceContainer = p.surf,
+        surfaceContainerHigh = p.surf2,
+        surfaceContainerHighest = p.surf2,
+        surfaceBright = p.surf2,
+        surfaceDim = p.bg,
+        primary = p.ctaBg,
+        onPrimary = p.ctaText,
+        primaryContainer = p.surf,
+        onPrimaryContainer = p.text,
+        secondary = p.gold,
+        onSecondary = p.ctaText,
+        secondaryContainer = p.gold.copy(alpha = 0.16f),
+        onSecondaryContainer = p.gold,
+        tertiary = p.good,
+        onTertiary = p.bg,
+        tertiaryContainer = p.surf,
+        onTertiaryContainer = p.good,
+        onBackground = p.text,
+        onSurface = p.text,
+        onSurfaceVariant = p.handle,
+        outline = p.line,
+        outlineVariant = p.line,
+        error = p.bad,
+        onError = p.text,
+        errorContainer = p.surf,
+        onErrorContainer = p.bad,
+        surfaceTint = Color.Transparent,
+        inverseSurface = p.text,
+        inverseOnSurface = p.bg,
+        inversePrimary = p.gold,
+        scrim = p.bg,
     )
 }
 
+private fun type(p: Palette) = Typography(
+    headlineLarge = TextStyle(
+        color = p.text,
+        fontSize = NutriMeasure.remainingPt.sp,
+        fontWeight = FontWeight(590),
+        letterSpacing = (-0.8).sp,
+    ),
+    headlineMedium = TextStyle(
+        color = p.text,
+        fontSize = NutriMeasure.fieldPt.sp,
+        fontWeight = FontWeight(560),
+    ),
+    titleLarge = TextStyle(color = p.text, fontSize = 22.sp, fontWeight = FontWeight(590)),
+    bodyLarge = TextStyle(color = p.text, fontSize = 16.sp),
+    bodyMedium = TextStyle(color = p.muted, fontSize = 13.sp),
+    labelSmall = TextStyle(color = p.gold, fontSize = 11.sp, fontWeight = FontWeight.W600, letterSpacing = 0.8.sp),
+)
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun GrupoEscolha(
-    opcoes: List<Pair<String, Boolean>>,
-    onEscolha: (Int) -> Unit,
+fun NutriTheme(content: @Composable () -> Unit) {
+    val dark = isSystemInDarkTheme()
+    val palette = if (dark) darkPalette else lightPalette
+    CompositionLocalProvider(LocalPalette provides palette) {
+        MaterialExpressiveTheme(
+            colorScheme = scheme(palette, dark),
+            motionScheme = MotionScheme.expressive(),
+            shapes = shapes,
+            typography = type(palette),
+            content = content,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun NutriGroup(
+    options: List<String>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    stacked: Boolean = false,
 ) {
-    ButtonGroup(
-        overflowIndicator = {},
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        opcoes.forEachIndexed { index, (rotulo, marcado) ->
-            val toque = MutableInteractionSource()
-            val item = Modifier.weight(1f).animateWidth(toque).heightIn(min = 48.dp)
-            customItem(
-                buttonGroupContent = {
-                    ToggleButton(
-                        checked = marcado,
-                        onCheckedChange = { ligado -> if (ligado) onEscolha(index) },
-                        modifier = item,
-                        interactionSource = toque,
-                        colors = ToggleButtonDefaults.colors(
-                            containerColor = Surf2,
-                            contentColor = TextMain,
-                            checkedContainerColor = Gold,
-                            checkedContentColor = CtaText,
-                        ),
-                        border = if (marcado) null else BorderStroke(1.dp, Line),
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
-                    ) {
-                        Text(
-                            rotulo,
-                            color = if (marcado) CtaText else TextMain,
-                            fontSize = 12.sp,
-                            lineHeight = 14.sp,
-                            textAlign = TextAlign.Center,
-                            maxLines = 3,
-                        )
-                    }
-                },
-                menuContent = { estado: ButtonGroupMenuState ->
-                    DropdownMenuItem(
-                        text = { Text(rotulo) },
-                        onClick = {
-                            onEscolha(index)
-                            estado.dismiss()
+    val p = LocalPalette.current
+    val colors = ToggleButtonDefaults.colors(
+        containerColor = Color.Transparent,
+        contentColor = p.muted,
+        checkedContainerColor = p.gold.copy(alpha = 0.16f),
+        checkedContentColor = p.gold,
+    )
+    if (stacked) {
+        Column(
+            modifier
+                .fillMaxWidth()
+                .background(p.surf, RoundedCornerShape(20.dp))
+                .border(1.dp, p.line, RoundedCornerShape(20.dp))
+                .padding(3.dp),
+        ) {
+            options.forEachIndexed { i, label ->
+                ButtonGroup(
+                    overflowIndicator = { },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    val itemMod = with(this) { Modifier.weight(1f) }
+                    customItem(
+                        buttonGroupContent = {
+                            ToggleButton(
+                                checked = selected == i,
+                                onCheckedChange = { onSelect(i) },
+                                modifier = itemMod,
+                                colors = colors,
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 13.dp),
+                            ) {
+                                Text(
+                                    label,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Start,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight(560),
+                                    color = if (selected == i) p.gold else p.muted,
+                                )
+                            }
                         },
+                        menuContent = { },
                     )
-                },
-            )
+                }
+            }
+        }
+    } else {
+        ButtonGroup(
+            overflowIndicator = { },
+            modifier = modifier
+                .fillMaxWidth()
+                .background(p.surf, RoundedCornerShape(18.dp))
+                .border(1.dp, p.line, RoundedCornerShape(18.dp))
+                .padding(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            options.forEachIndexed { i, label ->
+                val itemMod = with(this) { Modifier.weight(1f) }
+                customItem(
+                    buttonGroupContent = {
+                        ToggleButton(
+                            checked = selected == i,
+                            onCheckedChange = { onSelect(i) },
+                            modifier = itemMod,
+                            colors = colors,
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 11.dp),
+                        ) {
+                            Text(
+                                label,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight(560),
+                                color = if (selected == i) p.gold else p.muted,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    },
+                    menuContent = { },
+                )
+            }
         }
     }
 }
 
 @Composable
-fun NutriCta(texto: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun NutriCta(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val p = LocalPalette.current
     Button(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(52.dp),
-        shape = RoundedCornerShape(999.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = CtaBg, contentColor = CtaText),
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = p.ctaBg, contentColor = p.ctaText),
         contentPadding = PaddingValues(horizontal = 16.dp),
     ) {
-        Text(texto, color = CtaText, fontWeight = FontWeight.W600)
+        Text(text, color = p.ctaText, fontWeight = FontWeight.W600, fontSize = 15.sp)
     }
 }
 
-fun Modifier.cardBorda(): Modifier = this
-    .background(Surf, RoundedCornerShape(14.dp))
-    .border(1.dp, Line, RoundedCornerShape(14.dp))
+@Composable
+fun NutriCtaGhost(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val p = LocalPalette.current
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth().height(52.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = p.text),
+        border = BorderStroke(1.dp, p.line),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+    ) {
+        Text(text, color = p.text, fontWeight = FontWeight.W600, fontSize = 15.sp)
+    }
+}
+
+@Composable
+fun Modifier.cardBorder(): Modifier {
+    val p = LocalPalette.current
+    return this
+        .background(p.surf, RoundedCornerShape(NutriMeasure.cardDp.dp))
+        .border(1.dp, p.line, RoundedCornerShape(NutriMeasure.cardDp.dp))
+}

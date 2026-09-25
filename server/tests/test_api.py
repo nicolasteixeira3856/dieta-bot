@@ -1,4 +1,4 @@
-"""Rotas reais via ASGI. O stub troca só o transporte HTTP do modelo."""
+"""Real routes via ASGI. The stub only swaps the model's HTTP transport."""
 
 from __future__ import annotations
 
@@ -16,11 +16,11 @@ import httpx
 import httpx2
 
 import main
-from config import PERGUNTA_FALHA
+from config import FALLBACK_QUESTION
 
 INVITE = "convite-teste"
-CHAVE_FALSA = "sk-test-sentinel-not-a-real-key"
-CAFE = "2 paes, ovo, cafe com leite"
+FAKE_KEY = "sk-test-sentinel-not-a-real-key"
+MEAL = "2 paes, ovo, cafe com leite"
 
 
 class ApiTests(unittest.IsolatedAsyncioTestCase):
@@ -31,258 +31,258 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         for app in self._apps:
             app.state.llm.close()
 
-    async def test_health_repete_ok_e_modelo_sem_chave(self) -> None:
-        app = self._app(_recusa)
-        async with _cliente(app) as cliente:
-            primeira_resp = await cliente.get("/health")
-            segunda_resp = await cliente.get("/health")
-        primeira = primeira_resp.json()
-        segunda = segunda_resp.json()
-        self.assertEqual(primeira_resp.text, '{"ok": true, "model": "gpt-6-luna"}')
-        self.assertEqual(segunda_resp.text, primeira_resp.text)
-        self.assertEqual(primeira, {"ok": True, "model": "gpt-6-luna"})
-        self.assertEqual(segunda, primeira)
-        self.assertNotIn(CHAVE_FALSA, primeira_resp.text)
+    async def test_health_repeats_ok_and_model_without_key(self) -> None:
+        app = self._app(_refuses)
+        async with _client(app) as client:
+            first_resp = await client.get("/health")
+            second_resp = await client.get("/health")
+        first = first_resp.json()
+        second = second_resp.json()
+        self.assertEqual(first_resp.text, '{"ok": true, "model": "gpt-6-luna"}')
+        self.assertEqual(second_resp.text, first_resp.text)
+        self.assertEqual(first, {"ok": True, "model": "gpt-6-luna"})
+        self.assertEqual(second, first)
+        self.assertNotIn(FAKE_KEY, first_resp.text)
 
-    async def test_estimate_devolve_o_payload_do_modelo(self) -> None:
+    async def test_estimate_returns_the_model_payload(self) -> None:
         payload = {
             "kcal": 517,
             "p": 19,
             "c": 63,
             "g": 14,
-            "confianca": "medio",
-            "pergunta": "os paes eram franceses?",
-            "itens": [{"nome": "pao", "g": 100, "kcal": 270}],
+            "confidence": "medium",
+            "question": "os paes eram franceses?",
+            "items": [{"name": "pao", "g": 100, "kcal": 270}],
         }
-        capturado: list[httpx2.Request] = []
-        app = self._app(_responde(payload, capturado))
-        async with _cliente(app) as cliente:
-            resposta = await cliente.post(
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds(payload, captured))
+        async with _client(app) as client:
+            response = await client.post(
                 "/v1/estimate",
                 headers={"X-Invite": INVITE},
-                json={"text": CAFE, "image_b64": None},
+                json={"text": MEAL, "image_b64": None},
             )
-        self.assertEqual(resposta.status_code, 200)
-        corpo = resposta.json()
-        self.assertEqual(corpo["kcal"], payload["kcal"])
-        self.assertEqual(corpo["p"], payload["p"])
-        self.assertEqual(corpo["c"], payload["c"])
-        self.assertEqual(corpo["g"], payload["g"])
-        self.assertEqual(corpo["confianca"], payload["confianca"])
-        self.assertEqual(corpo["pergunta"], payload["pergunta"])
-        self.assertEqual(corpo["itens"], payload["itens"])
-        self.assertEqual(corpo["model"], "gpt-6-luna")
-        self.assertEqual(len(capturado), 1)
-        pedido = json.loads(capturado[0].content)
-        self.assertEqual(pedido["model"], "gpt-6-luna")
-        self.assertNotEqual(pedido["model"], "gpt-nao-usar")
-        self.assertEqual(pedido["reasoning"]["effort"], "none")
-        self.assertIn(CAFE, capturado[0].content.decode())
-        timeout = capturado[0].extensions["timeout"]
-        for parte in ("connect", "read", "write", "pool"):
-            self.assertEqual(timeout[parte], 20, msg=str(timeout))
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["kcal"], payload["kcal"])
+        self.assertEqual(body["p"], payload["p"])
+        self.assertEqual(body["c"], payload["c"])
+        self.assertEqual(body["g"], payload["g"])
+        self.assertEqual(body["confidence"], payload["confidence"])
+        self.assertEqual(body["question"], payload["question"])
+        self.assertEqual(body["items"], payload["items"])
+        self.assertEqual(body["model"], "gpt-6-luna")
+        self.assertEqual(len(captured), 1)
+        request = json.loads(captured[0].content)
+        self.assertEqual(request["model"], "gpt-6-luna")
+        self.assertNotEqual(request["model"], "gpt-nao-usar")
+        self.assertEqual(request["reasoning"]["effort"], "none")
+        self.assertIn(MEAL, captured[0].content.decode())
+        timeout = captured[0].extensions["timeout"]
+        for part in ("connect", "read", "write", "pool"):
+            self.assertEqual(timeout[part], 20, msg=str(timeout))
 
-    async def test_pergunta_so_quando_confianca_nao_e_alto(self) -> None:
-        alto = {
+    async def test_question_only_when_confidence_is_not_high(self) -> None:
+        high = {
             "kcal": 410,
             "p": 18,
             "c": 44,
             "g": 11,
-            "confianca": "alto",
-            "pergunta": "nao deve sair",
-            "itens": [],
+            "confidence": "high",
+            "question": "nao deve sair",
+            "items": [],
         }
-        app = self._app(_responde(alto, []))
-        async with _cliente(app) as cliente:
-            corpo = (
-                await cliente.post(
+        app = self._app(_responds(high, []))
+        async with _client(app) as client:
+            body = (
+                await client.post(
                     "/v1/estimate",
                     headers={"X-Invite": INVITE},
-                    json={"text": CAFE},
+                    json={"text": MEAL},
                 )
             ).json()
-        self.assertEqual(corpo["confianca"], "alto")
-        self.assertNotIn("pergunta", corpo)
+        self.assertEqual(body["confidence"], "high")
+        self.assertNotIn("question", body)
 
-    async def test_timeout_e_erro_de_transporte_viram_pergunta_fixa(self) -> None:
-        for erro in (
+    async def test_timeout_and_transport_error_become_fixed_question(self) -> None:
+        for err in (
             httpx2.TimeoutException("timeout"),
             httpx2.ConnectError("conexao"),
         ):
-            with self.subTest(erro=type(erro).__name__):
-                app = self._app(_estoura(erro))
-                async with _cliente(app) as cliente:
-                    resposta = await cliente.post(
+            with self.subTest(err=type(err).__name__):
+                app = self._app(_explodes(err))
+                async with _client(app) as client:
+                    response = await client.post(
                         "/v1/estimate",
                         headers={"X-Invite": INVITE},
-                        json={"text": CAFE},
+                        json={"text": MEAL},
                     )
-                corpo = resposta.json()
-                self.assertEqual(resposta.status_code, 200)
-                self.assertEqual(corpo["confianca"], "baixa")
-                self.assertEqual(corpo["pergunta"], PERGUNTA_FALHA)
-                self.assertEqual(corpo["pergunta"], "descreve em 1 linha")
+                body = response.json()
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(body["confidence"], "low")
+                self.assertEqual(body["question"], FALLBACK_QUESTION)
+                self.assertEqual(body["question"], "descreve em 1 linha")
 
-    async def test_foto_entra_na_chamada_e_nao_fica_em_disco_nem_log(self) -> None:
-        sentinela = "IMAGEM-SENTINELA-NAO-PERSISTIR-7f3a"
+    async def test_photo_enters_the_call_and_does_not_stay_on_disk_or_log(self) -> None:
+        sentinel = "IMAGEM-SENTINELA-NAO-PERSISTIR-7f3a"
         payload = {
             "kcal": 220,
             "p": 8,
             "c": 20,
             "g": 9,
-            "confianca": "medio",
-            "pergunta": "era uma foto de pao?",
-            "itens": [{"nome": "pao", "g": 50, "kcal": 130}],
+            "confidence": "medium",
+            "question": "era uma foto de pao?",
+            "items": [{"name": "pao", "g": 50, "kcal": 130}],
         }
-        capturado: list[httpx2.Request] = []
-        coletor = _Coletor()
-        logging.getLogger().addHandler(coletor)
+        captured: list[httpx2.Request] = []
+        collector = _Collector()
+        logging.getLogger().addHandler(collector)
         try:
-            app = self._app(_responde(payload, capturado))
-            async with _cliente(app) as cliente:
-                resposta = await cliente.post(
+            app = self._app(_responds(payload, captured))
+            async with _client(app) as client:
+                response = await client.post(
                     "/v1/estimate",
                     headers={"X-Invite": INVITE},
-                    json={"text": CAFE, "image_b64": sentinela},
+                    json={"text": MEAL, "image_b64": sentinel},
                 )
         finally:
-            logging.getLogger().removeHandler(coletor)
-        self.assertEqual(resposta.status_code, 200)
-        self.assertIn(sentinela, capturado[0].content.decode())
-        self.assertNotIn(sentinela, resposta.text)
-        self.assertNotIn(CHAVE_FALSA, resposta.text)
-        for linha in coletor.linhas:
-            self.assertNotIn(sentinela, linha)
-            self.assertNotIn(CHAVE_FALSA, linha)
-        _assert_fora_do_disco(sentinela)
+            logging.getLogger().removeHandler(collector)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(sentinel, captured[0].content.decode())
+        self.assertNotIn(sentinel, response.text)
+        self.assertNotIn(FAKE_KEY, response.text)
+        for line in collector.lines:
+            self.assertNotIn(sentinel, line)
+            self.assertNotIn(FAKE_KEY, line)
+        _assert_not_on_disk(sentinel)
 
-    async def test_convite_ausente_ou_errado_rejeita_sem_chamar_modelo(self) -> None:
-        for cabecalhos in ({}, {"X-Invite": "errado"}):
-            with self.subTest(cabecalhos=cabecalhos):
-                capturado: list[httpx2.Request] = []
-                app = self._app(_responde({"kcal": 1}, capturado))
-                async with _cliente(app) as cliente:
-                    resposta = await cliente.post(
+    async def test_missing_or_wrong_invite_rejects_without_calling_the_model(self) -> None:
+        for headers in ({}, {"X-Invite": "errado"}):
+            with self.subTest(headers=headers):
+                captured: list[httpx2.Request] = []
+                app = self._app(_responds({"kcal": 1}, captured))
+                async with _client(app) as client:
+                    response = await client.post(
                         "/v1/estimate",
-                        headers=cabecalhos,
-                        json={"text": CAFE},
+                        headers=headers,
+                        json={"text": MEAL},
                     )
-                self.assertEqual(resposta.status_code, 401)
-                self.assertEqual(capturado, [])
+                self.assertEqual(response.status_code, 401)
+                self.assertEqual(captured, [])
 
-    async def test_fit_surprise_tem_duas_opcoes_e_uma_pergunta(self) -> None:
+    async def test_fit_surprise_has_two_options_and_one_question(self) -> None:
         payload = {
-            "pergunta": "qual dos dois?",
-            "opcoes": [
+            "question": "qual dos dois?",
+            "options": [
                 {
-                    "nome": "pao com ovo",
-                    "porcoes": [{"nome": "pao", "quantidade": "1 unidade"}],
+                    "name": "pao com ovo",
+                    "portions": [{"name": "pao", "quantity": "1 unidade"}],
                     "kcal": 280,
                     "p": 14,
                 },
                 {
-                    "nome": "iogurte",
-                    "porcoes": [{"nome": "iogurte", "quantidade": "1 pote"}],
+                    "name": "iogurte",
+                    "portions": [{"name": "iogurte", "quantity": "1 pote"}],
                     "kcal": 150,
                     "p": 12,
                 },
             ],
         }
-        app = self._app(_responde(payload, []))
-        async with _cliente(app) as cliente:
-            corpo = (
-                await cliente.post(
+        app = self._app(_responds(payload, []))
+        async with _client(app) as client:
+            body = (
+                await client.post(
                     "/v1/fit",
                     headers={"X-Invite": INVITE},
                     json={
                         "mode": "surprise",
                         "text": "algo rapido",
-                        "itens_disponiveis": ["ovo", "pao"],
-                        "orcamento": {"kcal": 455, "p": 49},
+                        "available_items": ["ovo", "pao"],
+                        "budget": {"kcal": 455, "p": 49},
                         "image_b64": None,
                     },
                 )
             ).json()
-        self.assertEqual(len(corpo["opcoes"]), 2)
-        self.assertEqual(corpo["pergunta"], payload["pergunta"])
-        self.assertIsInstance(corpo["pergunta"], str)
-        self.assertNotIn("perguntas", corpo)
-        self.assertEqual(corpo["opcoes"][0]["porcoes"], payload["opcoes"][0]["porcoes"])
-        self.assertEqual(corpo["opcoes"][1]["porcoes"], payload["opcoes"][1]["porcoes"])
-        self.assertTrue(corpo["cabe"])
-        self.assertIn("nome", corpo["prato"])
-        self.assertIn("porcoes", corpo["prato"])
+        self.assertEqual(len(body["options"]), 2)
+        self.assertEqual(body["question"], payload["question"])
+        self.assertIsInstance(body["question"], str)
+        self.assertNotIn("perguntas", body)
+        self.assertEqual(body["options"][0]["portions"], payload["options"][0]["portions"])
+        self.assertEqual(body["options"][1]["portions"], payload["options"][1]["portions"])
+        self.assertTrue(body["fits"])
+        self.assertIn("name", body["dish"])
+        self.assertIn("portions", body["dish"])
 
-    async def test_prato_acima_do_orcamento_nao_cabe(self) -> None:
+    async def test_dish_above_budget_does_not_fit(self) -> None:
         payload = {
-            "pergunta": "aceita um prato menor?",
-            "prato": {
-                "nome": "hamburguer",
-                "porcoes": [{"nome": "pao", "quantidade": "1 unidade"}],
+            "question": "aceita um prato menor?",
+            "dish": {
+                "name": "hamburguer",
+                "portions": [{"name": "pao", "quantity": "1 unidade"}],
                 "kcal": 900,
                 "p": 35,
             },
         }
-        app = self._app(_responde(payload, []))
-        async with _cliente(app) as cliente:
-            corpo = (
-                await cliente.post(
+        app = self._app(_responds(payload, []))
+        async with _client(app) as client:
+            body = (
+                await client.post(
                     "/v1/fit",
                     headers={"X-Invite": INVITE},
                     json={
                         "mode": "want",
                         "text": "quero hamburguer",
-                        "itens_disponiveis": [],
-                        "orcamento": {"kcal": 100, "p": 20},
+                        "available_items": [],
+                        "budget": {"kcal": 100, "p": 20},
                     },
                 )
             ).json()
-        self.assertEqual(corpo["prato"]["kcal"], 900)
-        self.assertFalse(corpo["cabe"])
-        self.assertEqual(corpo["pergunta"], payload["pergunta"])
-        self.assertNotIn("opcoes", corpo)
+        self.assertEqual(body["dish"]["kcal"], 900)
+        self.assertFalse(body["fits"])
+        self.assertEqual(body["question"], payload["question"])
+        self.assertNotIn("options", body)
 
-    async def test_opcao_surprise_acima_do_orcamento_nao_cabe(self) -> None:
+    async def test_surprise_option_above_budget_does_not_fit(self) -> None:
         payload = {
-            "pergunta": "fico com o menor?",
-            "opcoes": [
+            "question": "fico com o menor?",
+            "options": [
                 {
-                    "nome": "grande",
-                    "porcoes": [{"nome": "pao", "quantidade": "2 unidades"}],
+                    "name": "grande",
+                    "portions": [{"name": "pao", "quantity": "2 unidades"}],
                     "kcal": 800,
                     "p": 30,
                 },
                 {
-                    "nome": "pequeno",
-                    "porcoes": [{"nome": "ovo", "quantidade": "1 unidade"}],
+                    "name": "pequeno",
+                    "portions": [{"name": "ovo", "quantity": "1 unidade"}],
                     "kcal": 90,
                     "p": 7,
                 },
             ],
         }
-        app = self._app(_responde(payload, []))
-        async with _cliente(app) as cliente:
-            corpo = (
-                await cliente.post(
+        app = self._app(_responds(payload, []))
+        async with _client(app) as client:
+            body = (
+                await client.post(
                     "/v1/fit",
                     headers={"X-Invite": INVITE},
                     json={
                         "mode": "surprise",
                         "text": "algo leve",
-                        "itens_disponiveis": [],
-                        "orcamento": {"kcal": 455, "p": 49},
+                        "available_items": [],
+                        "budget": {"kcal": 455, "p": 49},
                     },
                 )
             ).json()
-        self.assertEqual(len(corpo["opcoes"]), 2)
-        self.assertEqual(corpo["pergunta"], payload["pergunta"])
-        acima = [opcao for opcao in corpo["opcoes"] if opcao["kcal"] > 455]
-        dentro = [opcao for opcao in corpo["opcoes"] if opcao["kcal"] <= 455]
-        self.assertEqual(len(acima), 1)
-        self.assertFalse(acima[0]["cabe"])
-        self.assertTrue(dentro[0]["cabe"])
-        self.assertLessEqual(corpo["prato"]["kcal"], 455)
-        self.assertTrue(corpo["cabe"])
+        self.assertEqual(len(body["options"]), 2)
+        self.assertEqual(body["question"], payload["question"])
+        over = [option for option in body["options"] if option["kcal"] > 455]
+        inside = [option for option in body["options"] if option["kcal"] <= 455]
+        self.assertEqual(len(over), 1)
+        self.assertFalse(over[0]["fits"])
+        self.assertTrue(inside[0]["fits"])
+        self.assertLessEqual(body["dish"]["kcal"], 455)
+        self.assertTrue(body["fits"])
 
     def _app(self, handler) -> object:
         app = main.create_app(transport=httpx2.MockTransport(handler))
@@ -290,14 +290,14 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         return app
 
 
-def _cliente(app: object) -> httpx.AsyncClient:
+def _client(app: object) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),
         base_url="http://test",
     )
 
 
-def _envelope(texto: str) -> dict:
+def _envelope(text: str) -> dict:
     return {
         "id": "resp_test",
         "object": "response",
@@ -313,16 +313,16 @@ def _envelope(texto: str) -> dict:
                 "role": "assistant",
                 "status": "completed",
                 "content": [
-                    {"type": "output_text", "text": texto, "annotations": []},
+                    {"type": "output_text", "text": text, "annotations": []},
                 ],
             }
         ],
     }
 
 
-def _responde(payload: dict, capturado: list[httpx2.Request]):
+def _responds(payload: dict, captured: list[httpx2.Request]):
     def handler(request: httpx2.Request) -> httpx2.Response:
-        capturado.append(request)
+        captured.append(request)
         return httpx2.Response(
             200,
             json=_envelope(json.dumps(payload, ensure_ascii=False)),
@@ -331,43 +331,43 @@ def _responde(payload: dict, capturado: list[httpx2.Request]):
     return handler
 
 
-def _estoura(erro: Exception):
+def _explodes(err: Exception):
     def handler(request: httpx2.Request) -> httpx2.Response:
-        raise erro
+        raise err
 
     return handler
 
 
-def _recusa(request: httpx2.Request) -> httpx2.Response:
-    raise AssertionError("health nao chama o modelo")
+def _refuses(request: httpx2.Request) -> httpx2.Response:
+    raise AssertionError("health does not call the model")
 
 
-class _Coletor(logging.Handler):
+class _Collector(logging.Handler):
     def __init__(self) -> None:
         super().__init__()
-        self.linhas: list[str] = []
+        self.lines: list[str] = []
 
     def emit(self, record: logging.LogRecord) -> None:
-        self.linhas.append(record.getMessage())
+        self.lines.append(record.getMessage())
 
 
-def _assert_fora_do_disco(sentinela: str) -> None:
-    blob = sentinela.encode()
-    raiz = Path(__file__).resolve().parents[1]
-    for caminho in _arquivos_do_servidor(raiz):
-        if blob in caminho.read_bytes():
-            raise AssertionError(f"foto persistida em {caminho.name}")
+def _assert_not_on_disk(sentinel: str) -> None:
+    blob = sentinel.encode()
+    root = Path(__file__).resolve().parents[1]
+    for path in _server_files(root):
+        if blob in path.read_bytes():
+            raise AssertionError(f"photo persisted in {path.name}")
 
 
-def _arquivos_do_servidor(diretorio: Path):
-    ignorar = {"tests", ".venv", "__pycache__"}
-    for caminho in diretorio.iterdir():
-        if caminho.name in ignorar:
+def _server_files(directory: Path):
+    skip = {"tests", ".venv", "__pycache__"}
+    for path in directory.iterdir():
+        if path.name in skip:
             continue
-        if caminho.is_dir():
-            yield from _arquivos_do_servidor(caminho)
-        elif caminho.is_file():
-            yield caminho
+        if path.is_dir():
+            yield from _server_files(path)
+        elif path.is_file():
+            yield path
 
 
 if __name__ == "__main__":
