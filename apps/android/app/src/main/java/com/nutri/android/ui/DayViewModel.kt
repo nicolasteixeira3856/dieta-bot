@@ -3,13 +3,13 @@ package com.nutri.android.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nutri.android.data.BudgetIn
-import com.nutri.android.data.DayStore
+import com.nutri.android.data.DayRepository
+import com.nutri.android.data.DaySnapshot
 import com.nutri.android.data.EstimateGate
 import com.nutri.android.data.EstimateIn
 import com.nutri.android.data.FitIn
+import com.nutri.android.data.InstantClock
 import com.nutri.android.data.PhotoCompressor
-import com.nutri.android.data.SavedDay
-import com.nutri.android.data.SavedLog
 import com.nutri.android.domain.BudgetCalculator
 import com.nutri.android.domain.BudgetInput
 import com.nutri.android.domain.CreditPolicy
@@ -34,20 +34,21 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class DayViewModel @Inject constructor(
-    private val store: DayStore,
+    private val days: DayRepository,
     private val gate: EstimateGate,
     private val photos: PhotoCompressor,
+    private val clock: InstantClock,
 ) : ViewModel() {
     private val calc = BudgetCalculator()
     private val _ui = MutableStateFlow(DayUi())
     val ui: StateFlow<DayUi> = _ui
-    private var saved = SavedDay()
+    private var snapshot = DaySnapshot()
     private var captureMode: String? = null
 
     init {
         viewModelScope.launch {
-            store.flow.collect { day ->
-                saved = day
+            days.observeToday().collect { day ->
+                snapshot = day
                 if (captureMode == null) publish(day, _ui.value)
             }
         }
@@ -74,11 +75,17 @@ class DayViewModel @Inject constructor(
         viewModelScope.launch {
             val today = today()
             val base = _ui.value
-            val next = draft(base).copy(
+            days.saveProfile(
+                ceilingMode = base.ceilingMode,
+                kcalSame = base.sameField.toIntOrNull() ?: 2000,
+                kcalWeekday = base.weekdayField.toIntOrNull() ?: 2000,
+                kcalWeekend = base.weekendField.toIntOrNull() ?: 2300,
+                kcalDays = base.dayFields.map { it.toIntOrNull() ?: 2000 },
+                eat = base.eat,
+                pct = base.pct.toIntOrNull() ?: 50,
                 onboardingDone = true,
-                firstDay = saved.firstDay.ifBlank { today.toString() },
+                firstDay = snapshot.firstDay.ifBlank { today.toString() },
             )
-            store.save(next)
             _ui.update { it.copy(stage = Stage.HOME, sheet = null) }
         }
     }
@@ -95,7 +102,7 @@ class DayViewModel @Inject constructor(
         if (now.text.isBlank() && now.photoB64 == null) return
         viewModelScope.launch {
             _ui.update { it.copy(loading = true) }
-            val hour = java.time.ZonedDateTime.now(SaoPaulo.zone)
+            val hour = clock.now().atZone(SaoPaulo.zone)
             val window = windowAtHour(hour.hour)
             val out = gate.estimate(
                 EstimateIn(
@@ -129,14 +136,13 @@ class DayViewModel @Inject constructor(
         val now = _ui.value
         val est = now.estimate ?: return
         viewModelScope.launch {
-            val log = SavedLog(
+            days.addLog(
                 window = now.window,
                 text = now.text,
                 kcal = est.kcal.toInt(),
                 p = est.p.toInt(),
                 stable = true,
             )
-            store.save(draft(now).copy(logs = saved.logs + log))
             _ui.update { it.copy(stage = Stage.HOME, sheet = null, text = "", estimate = null, t2Question = null) }
         }
     }
@@ -212,14 +218,13 @@ class DayViewModel @Inject constructor(
 
     fun saveWorkout() {
         viewModelScope.launch {
-            val n = _ui.value.workout.toIntOrNull()
-            store.save(draft(_ui.value).copy(workoutKcal = n))
+            days.setWorkout(_ui.value.workout.toIntOrNull())
         }
     }
 
     fun removeChip(window: String) {
         viewModelScope.launch {
-            store.save(draft(_ui.value).copy(removed = (saved.removed + window).distinct()))
+            days.removeChip(window)
             if (captureMode != null) _ui.update { it.copy(chipLabel = null, chipNote = null) }
         }
     }
@@ -227,7 +232,7 @@ class DayViewModel @Inject constructor(
     fun leaveSplash() {
         if (captureMode != null) return
         _ui.update {
-            it.copy(stage = if (saved.onboardingDone) Stage.HOME else Stage.O1)
+            it.copy(stage = if (snapshot.onboardingDone) Stage.HOME else Stage.O1)
         }
     }
 
@@ -236,11 +241,11 @@ class DayViewModel @Inject constructor(
         _ui.value = captureState(screen)
     }
 
-    private fun publish(day: SavedDay, current: DayUi) {
-        val today = today()
+    private fun publish(day: DaySnapshot, current: DayUi) {
+        val today = day.date.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it) } ?: today()
         val first = day.firstDay.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it) } ?: today
         val appDay = ChronoUnit.DAYS.between(first, today).toInt() + 1
-        val hour = java.time.ZonedDateTime.now(SaoPaulo.zone).hour
+        val hour = clock.now().atZone(SaoPaulo.zone).hour
         val window = windowAtHour(hour)
         val profile = profileOf(day)
         val policy = when (day.eat) {
@@ -263,8 +268,8 @@ class DayViewModel @Inject constructor(
             appDay = appDay,
             currentWindow = window,
             logs = day.logs.map { StableLog(it.window, it.stable) },
-            removed = day.removed.toSet(),
-            asked = day.asked.toSet(),
+            removed = day.removedWindows.toSet(),
+            asked = day.askedWindows.toSet(),
         )
         val weekend = today.dayOfWeek == DayOfWeek.SATURDAY || today.dayOfWeek == DayOfWeek.SUNDAY
         val stage = when {
@@ -312,22 +317,7 @@ class DayViewModel @Inject constructor(
         }
     }
 
-    private fun draft(ui: DayUi): SavedDay {
-        return saved.copy(
-            ceilingMode = ui.ceilingMode,
-            kcalSame = ui.sameField.toIntOrNull() ?: 2000,
-            kcalWeekday = ui.weekdayField.toIntOrNull() ?: 2000,
-            kcalWeekend = ui.weekendField.toIntOrNull() ?: 2300,
-            kcalDays = ui.dayFields.map { it.toIntOrNull() ?: 2000 },
-            eat = ui.eat,
-            pct = ui.pct.toIntOrNull() ?: 50,
-            workoutKcal = ui.workout.toIntOrNull() ?: saved.workoutKcal,
-            firstDay = saved.firstDay,
-            onboardingDone = saved.onboardingDone,
-        )
-    }
-
-    private fun profileOf(day: SavedDay) = when (day.ceilingMode) {
+    private fun profileOf(day: DaySnapshot) = when (day.ceilingMode) {
         "weekdayWeekend" -> WeekdayWeekendCeiling(day.kcalWeekday, day.kcalWeekend)
         "seven" -> {
             val d = day.kcalDays.let { if (it.size == 7) it else List(7) { 2000 } }
@@ -336,5 +326,5 @@ class DayViewModel @Inject constructor(
         else -> SameEveryDayCeiling(day.kcalSame)
     }
 
-    private fun today(): LocalDate = SaoPaulo.date(java.time.Instant.now())
+    private fun today(): LocalDate = SaoPaulo.date(clock.now())
 }

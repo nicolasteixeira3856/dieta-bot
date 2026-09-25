@@ -56,6 +56,13 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -80,6 +87,9 @@ dependencies {
     implementation(libs.retrofit.serialization)
     implementation(libs.coroutines)
     implementation(libs.datastore)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)
@@ -88,6 +98,9 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.okhttp)
     testImplementation(libs.serialization.json)
+    testImplementation(libs.room.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }
 
 kapt {

@@ -54,6 +54,7 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   material3 1.5.0-alpha29 (or newer 1.5 alpha) on top of the stable BOM
   Official architecture: ui / domain / data
   UDF, ViewModel + UiState, Hilt, collectAsStateWithLifecycle
+  Room 2.6.x for profile + day + meal_log. No DataStore for day state.
 - server/ — FastAPI, untouched contract: GET /health, POST /v1/estimate, POST /v1/fit
 
 Dead: legacy/flutter, apps/rn. Git history keeps them. Do not restore.
