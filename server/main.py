@@ -1,4 +1,4 @@
-"""API HTTP. uvicorn main:app na porta 8080."""
+"""HTTP API. uvicorn main:app on port 8080."""
 
 from __future__ import annotations
 
@@ -15,26 +15,26 @@ from pydantic import BaseModel, Field
 
 from config import MODEL, load_settings
 from llm import LlmClient
-from shaping import falha_estimate, falha_fit, montar_estimate, montar_fit
+from shaping import fail_estimate, fail_fit, shape_estimate, shape_fit
 
 _LOG = logging.getLogger("nutri")
 _LOG_READY = False
 
 
 class AssumptionIn(BaseModel):
-    alimento: str
-    modificador: str
+    food: str
+    modifier: str
 
 
 class EstimateIn(BaseModel):
     text: str
     local_time: str | None = None
-    janela: str | None = None
+    window: str | None = None
     image_b64: str | None = None
     assumptions: list[AssumptionIn] | None = None
 
 
-class OrcamentoIn(BaseModel):
+class BudgetIn(BaseModel):
     kcal: float
     p: float
 
@@ -42,8 +42,8 @@ class OrcamentoIn(BaseModel):
 class FitIn(BaseModel):
     mode: str
     text: str = ""
-    itens_disponiveis: list[Any] = Field(default_factory=list)
-    orcamento: OrcamentoIn
+    available_items: list[Any] = Field(default_factory=list)
+    budget: BudgetIn
     image_b64: str | None = None
 
 
@@ -71,15 +71,15 @@ def create_app(transport: httpx2.BaseTransport | None = None) -> FastAPI:
         body: EstimateIn,
         x_invite: str | None = Header(default=None, alias="X-Invite"),
     ) -> dict[str, Any]:
-        _exigir_convite(x_invite, app.state.invite_code)
+        _require_invite(x_invite, app.state.invite_code)
         image = body.image_b64
         body.image_b64 = None
         try:
-            payload = llm.estimate_json(user_text=_texto_estimate(body), image_b64=image)
-            return montar_estimate(payload)
+            payload = llm.estimate_json(user_text=_estimate_text(body), image_b64=image)
+            return shape_estimate(payload)
         except Exception as exc:
-            _LOG.warning("estimate falhou: %s", type(exc).__name__)
-            return falha_estimate()
+            _LOG.warning("estimate failed: %s", type(exc).__name__)
+            return fail_estimate()
         finally:
             image = None
 
@@ -88,51 +88,51 @@ def create_app(transport: httpx2.BaseTransport | None = None) -> FastAPI:
         body: FitIn,
         x_invite: str | None = Header(default=None, alias="X-Invite"),
     ) -> dict[str, Any]:
-        _exigir_convite(x_invite, app.state.invite_code)
+        _require_invite(x_invite, app.state.invite_code)
         image = body.image_b64
         body.image_b64 = None
         try:
-            payload = llm.fit_json(user_text=_texto_fit(body), image_b64=image)
-            return montar_fit(payload, orcamento_kcal=body.orcamento.kcal, mode=body.mode)
+            payload = llm.fit_json(user_text=_fit_text(body), image_b64=image)
+            return shape_fit(payload, budget_kcal=body.budget.kcal, mode=body.mode)
         except Exception as exc:
-            _LOG.warning("fit falhou: %s", type(exc).__name__)
-            return falha_fit(body.mode)
+            _LOG.warning("fit failed: %s", type(exc).__name__)
+            return fail_fit(body.mode)
         finally:
             image = None
 
     return app
 
 
-def _exigir_convite(recebido: str | None, esperado: str) -> None:
-    if not recebido or not esperado or len(recebido) != len(esperado):
+def _require_invite(received: str | None, expected: str) -> None:
+    if not received or not expected or len(received) != len(expected):
         raise HTTPException(status_code=401, detail="unauthorized")
-    if not secrets.compare_digest(recebido, esperado):
+    if not secrets.compare_digest(received, expected):
         raise HTTPException(status_code=401, detail="unauthorized")
 
 
-def _texto_estimate(body: EstimateIn) -> str:
-    linhas = [f"refeicao: {body.text}"]
-    if body.janela:
-        linhas.append(f"janela: {body.janela}")
+def _estimate_text(body: EstimateIn) -> str:
+    lines = [f"meal: {body.text}"]
+    if body.window:
+        lines.append(f"window: {body.window}")
     if body.local_time:
-        linhas.append(f"local_time: {body.local_time}")
+        lines.append(f"local_time: {body.local_time}")
     if body.assumptions:
-        linhas.append(
+        lines.append(
             "assumptions: "
-            + ", ".join(f"{item.alimento}={item.modificador}" for item in body.assumptions)
+            + ", ".join(f"{item.food}={item.modifier}" for item in body.assumptions)
         )
-    return "\n".join(linhas)
+    return "\n".join(lines)
 
 
-def _texto_fit(body: FitIn) -> str:
-    itens = ", ".join(str(item) for item in body.itens_disponiveis)
+def _fit_text(body: FitIn) -> str:
+    items = ", ".join(str(item) for item in body.available_items)
     return "\n".join(
         [
             f"mode: {body.mode}",
             f"text: {body.text}",
-            f"itens_disponiveis: {itens}",
-            f"orcamento_kcal: {body.orcamento.kcal}",
-            f"orcamento_p: {body.orcamento.p}",
+            f"available_items: {items}",
+            f"budget_kcal: {body.budget.kcal}",
+            f"budget_p: {body.budget.p}",
         ]
     )
 
@@ -143,23 +143,23 @@ def _configure_logging() -> None:
         return
     _LOG_READY = True
 
-    class _RedigeChave(logging.Filter):
+    class _RedactKey(logging.Filter):
         def filter(self, record: logging.LogRecord) -> bool:
-            chave = os.environ.get("OPENAI_API_KEY", "")
-            if not chave:
+            key = os.environ.get("OPENAI_API_KEY", "")
+            if not key:
                 return True
             try:
-                mensagem = record.getMessage()
+                message = record.getMessage()
             except Exception:
                 return True
-            if chave in mensagem:
-                record.msg = mensagem.replace(chave, "[redacted]")
+            if key in message:
+                record.msg = message.replace(key, "[redacted]")
                 record.args = ()
             return True
 
-    logging.getLogger().addFilter(_RedigeChave())
-    for nome in ("openai", "httpx", "httpx2", "httpcore", "httpcore2"):
-        logging.getLogger(nome).setLevel(logging.CRITICAL)
+    logging.getLogger().addFilter(_RedactKey())
+    for name in ("openai", "httpx", "httpx2", "httpcore", "httpcore2"):
+        logging.getLogger(name).setLevel(logging.CRITICAL)
 
 
 app = create_app()
