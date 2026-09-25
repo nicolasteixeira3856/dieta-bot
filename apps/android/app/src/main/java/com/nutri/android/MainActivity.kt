@@ -109,14 +109,17 @@ private fun App(captureScreen: String?) {
                     onSubmit = vm::submitLog,
                     onMode = vm::fitMode,
                     onFitText = vm::fitText,
-                    onFit = vm::requestFit,
+                    onFit = vm::t3Primary,
                     onAlreadyAte = vm::alreadyAte,
+                    onSelectDish = vm::selectFitDish,
                 )
             }
             composable<RouteT2> {
                 T2Screen(
                     ui = ui,
-                    onAnswer = vm::t2Answer,
+                    onYes = vm::t2Yes,
+                    onRevise = vm::t2Revise,
+                    onDiscard = vm::t2Discard,
                     onConfirm = vm::confirm,
                     onUndo = vm::undo,
                 )

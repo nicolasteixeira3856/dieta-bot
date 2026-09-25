@@ -123,6 +123,24 @@ fun HomeScreen(
                 Text("▣", color = p.muted, fontSize = 14.sp)
             }
         }
+        if (ui.logs.isNotEmpty()) {
+            Column(
+                Modifier
+                    .padding(top = 14.dp)
+                    .fillMaxWidth()
+                    .testTag("home-logs"),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ui.logs.forEachIndexed { i, log ->
+                    Text(
+                        log.line,
+                        color = p.muted,
+                        fontSize = 13.sp,
+                        modifier = Modifier.testTag("home-log-$i"),
+                    )
+                }
+            }
+        }
         NutriCta("o que cabe agora", Modifier.padding(top = 12.dp).testTag("home-cta"), onFit)
         Text(
             "Estimativa, não consulta.",

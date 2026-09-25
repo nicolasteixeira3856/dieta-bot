@@ -20,7 +20,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,6 +46,7 @@ fun CurrentSheet(
     onFitText: (String) -> Unit,
     onFit: () -> Unit,
     onAlreadyAte: () -> Unit,
+    onSelectDish: (Int) -> Unit,
 ) {
     val sheet = ui.sheet ?: return
     val p = LocalPalette.current
@@ -65,7 +68,7 @@ fun CurrentSheet(
     ) {
         when (sheet) {
             SheetKind.T1 -> LogSheet(ui, onText, onPhoto, onSubmit)
-            SheetKind.T3 -> FitSheet(ui, onMode, onFitText, onFit, onAlreadyAte)
+            SheetKind.T3 -> FitSheet(ui, onMode, onFitText, onFit, onAlreadyAte, onSelectDish)
         }
     }
 }
@@ -128,6 +131,7 @@ private fun FitSheet(
     onFitText: (String) -> Unit,
     onFit: () -> Unit,
     onAlreadyAte: () -> Unit,
+    onSelectDish: (Int) -> Unit,
 ) {
     val p = LocalPalette.current
     val sel = when (ui.fitMode) {
@@ -152,45 +156,43 @@ private fun FitSheet(
                 lines = 1,
             )
         }
-        if (ui.fitMode == "idea" && ui.fit != null) {
-            val dishes = ui.fit.options.ifEmpty { listOf(ui.fit.dish).filter { it.name.isNotBlank() } }
-            dishes.forEachIndexed { i, dish ->
+        if (ui.fit != null) {
+            val headline = ui.t3Headline
+            if (ui.fitMode != "idea" && headline != null) {
+                Text(
+                    headline,
+                    color = if (headline.startsWith("Cabe")) p.good else p.bad,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W600,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                val sub = ui.t3Sub
+                if (sub != null) {
+                    Text(sub, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+            ui.fitDishes.forEachIndexed { i, dish ->
+                val selected = ui.selectedFitIndex == i
+                val selectable = dish.fits && dish.kcal.toInt() > 0
                 Column(
                     Modifier
                         .padding(top = 12.dp)
                         .fillMaxWidth()
-                        .cardBorder()
-                        .padding(14.dp),
+                        .background(p.surf, RoundedCornerShape(NutriMeasure.cardDp.dp))
+                        .border(
+                            1.dp,
+                            if (selected) p.gold else p.line,
+                            RoundedCornerShape(NutriMeasure.cardDp.dp),
+                        )
+                        .clickable(enabled = selectable) { onSelectDish(i) }
+                        .padding(14.dp)
+                        .testTag("t3-dish-$i"),
                 ) {
                     val line = "${dish.name} · ${dish.kcal.toInt()} kcal · ${dish.p.toInt()} g P"
-                    Text(line, color = if (i == 0) p.good else p.text, fontSize = 14.sp)
-                    Text("preserva a janta", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-                }
-            }
-        } else if (ui.t3Headline != null || ui.fit != null) {
-            Column(
-                Modifier
-                    .padding(top = 12.dp)
-                    .fillMaxWidth()
-                    .cardBorder()
-                    .padding(14.dp),
-            ) {
-                val headline = ui.t3Headline
-                if (headline != null) {
-                    Text(
-                        headline,
-                        color = if (headline.startsWith("Cabe")) p.good else p.bad,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.W600,
-                    )
-                }
-                val line = ui.t3Line
-                if (line != null) {
-                    Text(line, color = p.text, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
-                }
-                val sub = ui.t3Sub
-                if (sub != null) {
-                    Text(sub, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                    Text(line, color = if (selected && selectable) p.good else p.text, fontSize = 14.sp)
+                    if (ui.fitMode == "idea") {
+                        Text("preserva a janta", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                    }
                 }
             }
         }
@@ -200,12 +202,18 @@ private fun FitSheet(
                 Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
             }
         } else {
-            val cta = ui.t3Cta
             NutriCta(
-                cta,
+                ui.t3Cta,
                 Modifier.padding(top = 18.dp).testTag("t3-send"),
-                if (ui.fitMode == "idea" && ui.fit != null) onAlreadyAte else onFit,
+                onFit,
             )
+            if (ui.fit != null) {
+                NutriCtaGhost(
+                    "Já comi",
+                    Modifier.padding(top = 12.dp).testTag("t3-already"),
+                    onAlreadyAte,
+                )
+            }
         }
     }
 }
