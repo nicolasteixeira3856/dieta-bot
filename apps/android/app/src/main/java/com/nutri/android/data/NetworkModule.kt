@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RedeModule {
+object NetworkModule {
     @Provides
     @Singleton
     fun client(): OkHttpClient = OkHttpClient.Builder()

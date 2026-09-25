@@ -9,49 +9,49 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.Request
 import org.junit.Test
 
-class RedeTest {
+class NetworkTest {
     @Test
-    fun `header X-Invite vai na request`() {
+    fun `header X-Invite is sent on the request`() {
         val interceptor = InviteInterceptor("troca-isto")
         val chain = mockk<okhttp3.Interceptor.Chain>()
         val original = Request.Builder().url("http://127.0.0.1:8080/health").build()
-        var enviado: Request? = null
+        var sent: Request? = null
         io.mockk.every { chain.request() } returns original
         io.mockk.every { chain.proceed(any()) } answers {
-            enviado = firstArg()
+            sent = firstArg()
             mockk(relaxed = true)
         }
         interceptor.intercept(chain)
-        assertThat(enviado!!.header("X-Invite")).isEqualTo("troca-isto")
+        assertThat(sent!!.header("X-Invite")).isEqualTo("troca-isto")
     }
 
     @Test
-    fun `falha de rede vira confianca baixa e a pergunta de uma linha`() = runTest {
+    fun `network failure becomes low confidence and the one-line question`() = runTest {
         val api = mockk<NutriApi>()
         coEvery { api.estimate(any()) } throws java.io.IOException("down")
         val gate = EstimateGate(api)
         flow {
             emit(
-                gate.estimar(
-                    EstimateIn(local_time = "2026-09-24T09:00:00-03:00", janela = "cafe", text = "pao"),
+                gate.estimate(
+                    EstimateIn(local_time = "2026-09-24T09:00:00-03:00", window = "breakfast", text = "pao"),
                 ),
             )
         }.test {
             val item = awaitItem()
-            assertThat(item.confianca).isEqualTo("baixa")
-            assertThat(item.pergunta).isEqualTo("descreve em 1 linha")
+            assertThat(item.confidence).isEqualTo("low")
+            assertThat(item.question).isEqualTo("descreve em 1 linha")
             awaitComplete()
         }
     }
 
     @Test
-    fun `confianca alta omite a pergunta`() = runTest {
+    fun `high confidence omits the question`() = runTest {
         val api = mockk<NutriApi>()
-        coEvery { api.estimate(any()) } returns EstimateOut(kcal = 385.0, p = 18.0, confianca = "alto", pergunta = "sumir")
-        val out = EstimateGate(api).estimar(
-            EstimateIn(local_time = "2026-09-24T09:00:00-03:00", janela = "cafe", text = "pao"),
+        coEvery { api.estimate(any()) } returns EstimateOut(kcal = 385.0, p = 18.0, confidence = "high", question = "sumir")
+        val out = EstimateGate(api).estimate(
+            EstimateIn(local_time = "2026-09-24T09:00:00-03:00", window = "breakfast", text = "pao"),
         )
-        assertThat(out.pergunta).isNull()
+        assertThat(out.question).isNull()
         assertThat(out.kcal).isEqualTo(385.0)
     }
 }

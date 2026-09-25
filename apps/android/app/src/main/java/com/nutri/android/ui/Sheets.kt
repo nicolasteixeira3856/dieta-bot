@@ -3,154 +3,245 @@ package com.nutri.android.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nutri.android.domain.tituloJanela
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FolhaAtual(ui: DiaUi, vm: DiaViewModel) {
+fun CurrentSheet(
+    ui: DayUi,
+    onClose: () -> Unit,
+    onText: (String) -> Unit,
+    onPhoto: (android.net.Uri) -> Unit,
+    onSubmit: () -> Unit,
+    onMode: (String) -> Unit,
+    onFitText: (String) -> Unit,
+    onFit: () -> Unit,
+    onAlreadyAte: () -> Unit,
+) {
     val sheet = ui.sheet ?: return
+    val p = LocalPalette.current
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
-        onDismissRequest = { vm.fechar() },
+        onDismissRequest = onClose,
         sheetState = state,
-        containerColor = Surf,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Handle) },
+        containerColor = p.panel,
+        scrimColor = Color.Black.copy(alpha = 0.46f),
+        shape = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp),
+        dragHandle = {
+            Box(
+                Modifier
+                    .padding(top = 10.dp, bottom = 14.dp)
+                    .size(width = 36.dp, height = 4.dp)
+                    .background(p.line, RoundedCornerShape(99.dp)),
+            )
+        },
     ) {
         when (sheet) {
-            Folha.T1 -> FolhaRegistro(ui, vm)
-            Folha.T2 -> FolhaConfirma(ui, vm)
-            Folha.T3 -> FolhaEncaixe(ui, vm)
+            SheetKind.T1 -> LogSheet(ui, onText, onPhoto, onSubmit)
+            SheetKind.T3 -> FitSheet(ui, onMode, onFitText, onFit, onAlreadyAte)
         }
     }
 }
 
 @Composable
-private fun FolhaRegistro(ui: DiaUi, vm: DiaViewModel) {
+private fun LogSheet(
+    ui: DayUi,
+    onText: (String) -> Unit,
+    onPhoto: (android.net.Uri) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    val p = LocalPalette.current
     val picker = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
-        if (uri != null) vm.foto(uri)
+        if (uri != null) onPhoto(uri)
     }
-    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("REGISTRAR", color = Gold, fontSize = 11.sp)
-        OutlinedTextField(
-            value = ui.texto,
-            onValueChange = vm::texto,
-            modifier = Modifier.fillMaxWidth().testTag("t1-texto"),
-            placeholder = { Text("2 paes, ovo, cafe com leite", color = Dim) },
-            textStyle = androidx.compose.ui.text.TextStyle(color = TextMain, fontSize = 18.sp),
+    Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 22.dp)) {
+        Text("Registrar", color = p.text, fontSize = 18.sp, fontWeight = FontWeight(590))
+        TextBox(
+            value = ui.text,
+            onChange = onText,
+            placeholder = "2 pães, ovo, café com leite",
+            modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t1-texto"),
         )
-        TextButton(
-            onClick = { picker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) },
-            modifier = Modifier.testTag("t1-foto"),
-        ) { Text(if (ui.fotoB64 == null) "Foto" else "Foto pronta", color = Gold) }
-        if (ui.carregando) {
-            IndicadorEspera(Modifier.testTag("t1-registrar"))
+        if (ui.loading) {
+            Column(
+                Modifier.fillMaxWidth().padding(top = 18.dp).testTag("t1-load"),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                WaitIndicator(Modifier.testTag("t1-registrar"))
+                Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            }
         } else {
-            NutriCta("Registrar", Modifier.testTag("t1-registrar")) { vm.registrar() }
+            Row(
+                Modifier.padding(top = 12.dp).testTag("t1-foto").clickable {
+                    picker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+                },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
+                    Modifier
+                        .size(56.dp)
+                        .background(p.surf2, RoundedCornerShape(14.dp))
+                        .border(1.dp, p.line, RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("foto", color = p.muted, fontSize = 12.sp)
+                }
+                Text("JPEG 70 · ≤1280", color = p.dim, fontSize = 12.sp)
+            }
         }
+        NutriCta("Enviar", Modifier.padding(top = 18.dp).testTag("t1-enviar"), onSubmit)
     }
 }
 
 @Composable
-private fun FolhaConfirma(ui: DiaUi, vm: DiaViewModel) {
-    val est = ui.estimativa
-    Column(Modifier.padding(20.dp).testTag("t2-card"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(tituloJanela(ui.janela), color = Gold, fontSize = 11.sp)
-        Text("≈ ${est?.kcal?.toInt() ?: 0} kcal", color = TextMain, fontSize = 32.sp, fontWeight = FontWeight(590))
-        Text("P ${est?.p?.toInt() ?: 0} · C ${est?.c?.toInt() ?: 0} · G ${est?.g?.toInt() ?: 0}", color = Muted)
-        Text("confiança ${est?.confianca ?: "baixa"}", color = if (est?.confianca == "alto") Good else Gold)
-        val kcal = est?.kcal?.toInt() ?: 0
-        val saldo = (ui.tetoEfetivo - ui.comido - kcal).coerceAtLeast(0)
-        val semResposta = est == null || (est.confianca == "baixa" && kcal == 0)
-        val cabe = !semResposta && kcal <= ui.orcamento
-        Text(
-            when {
-                semResposta -> "sem resposta"
-                cabe -> "cabe"
-                else -> "não cabe"
-            },
-            color = if (cabe) Good else Bad,
-            modifier = Modifier.testTag("t2-cabe"),
-        )
-        if (est?.confianca != "alto") {
-            Text(est?.pergunta ?: "descreve em 1 linha", color = TextMain, modifier = Modifier.testTag("t2-pergunta"))
-        }
-        Text("Saldo $saldo / ${ui.tetoEfetivo}", color = Muted)
-        Text("estimativa, não consulta", color = Dim, fontSize = 12.sp)
-        NutriCta("Confirmar", Modifier.testTag("t2-confirmar")) { vm.confirmar() }
+private fun FitSheet(
+    ui: DayUi,
+    onMode: (String) -> Unit,
+    onFitText: (String) -> Unit,
+    onFit: () -> Unit,
+    onAlreadyAte: () -> Unit,
+) {
+    val p = LocalPalette.current
+    val sel = when (ui.fitMode) {
+        "have" -> 1
+        "idea" -> 2
+        else -> 0
     }
-}
-
-@Composable
-private fun FolhaEncaixe(ui: DiaUi, vm: DiaViewModel) {
-    Column(Modifier.padding(20.dp).testTag("t3-encaixe"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("O QUE CABE AGORA", color = Gold, fontSize = 11.sp)
-        Text("${tituloJanela(ui.janela)} · teto ${ui.orcamento} kcal", color = TextMain)
-        GrupoEscolha(
-            opcoes = listOf(
-                "Quero" to (ui.modoEncaixe == "quero"),
-                "Tenho" to (ui.modoEncaixe == "tenho"),
-                "Sem ideia" to (ui.modoEncaixe == "ideia"),
-            ),
-            onEscolha = { indice ->
-                vm.modoEncaixe(when (indice) { 1 -> "tenho"; 2 -> "ideia"; else -> "quero" })
-            },
-            modifier = Modifier.testTag("t3-modos"),
+    Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 22.dp).testTag("t3-encaixe")) {
+        Text("O que cabe agora", color = p.text, fontSize = 18.sp, fontWeight = FontWeight(590))
+        NutriGroup(
+            options = listOf("Quero", "Tenho", "Sem ideia"),
+            selected = sel,
+            onSelect = { onMode(when (it) { 1 -> "have"; 2 -> "idea"; else -> "want" }) },
+            modifier = Modifier.padding(top = 12.dp).testTag("t3-modos"),
         )
-        if (ui.modoEncaixe != "ideia") {
-            OutlinedTextField(
-                value = ui.encaixeTexto,
-                onValueChange = vm::encaixeTexto,
-                modifier = Modifier.fillMaxWidth().testTag("t3-texto"),
-                placeholder = { Text(if (ui.modoEncaixe == "quero") "quero hambúrguer caseiro" else "pão, frango, queijo", color = Dim) },
+        if (ui.fitMode != "idea") {
+            TextBox(
+                value = ui.fitText,
+                onChange = onFitText,
+                placeholder = if (ui.fitMode == "want") "lasanha" else "ovo, arroz, alface",
+                modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t3-texto"),
+                lines = 1,
             )
         }
-        if (ui.carregando) {
-            IndicadorEspera(Modifier.testTag("t3-enviar"))
-        } else {
-            NutriCta("Encaixar", Modifier.testTag("t3-enviar")) { vm.pedirEncaixe() }
-        }
-        val fit = ui.encaixe
-        if (fit != null) {
-            val pratos = if (fit.opcoes.isNotEmpty()) fit.opcoes else listOf(fit.prato).filter { it.nome.isNotBlank() }
-            if (pratos.isEmpty()) {
-                Text("não cabe", color = Bad)
-            }
-            pratos.forEach { prato ->
-                Column(Modifier.fillMaxWidth().cardBorda().padding(12.dp)) {
-                    Text(prato.nome.ifBlank { "prato" }, color = TextMain, fontWeight = FontWeight.W600)
-                    Text("${prato.kcal.toInt()} kcal · P ${prato.p.toInt()} · cabe", color = Good)
-                    prato.porcoes.forEach { p -> Text("${p.quantidade} ${p.nome}", color = Muted, fontSize = 13.sp) }
+        if (ui.fitMode == "idea" && ui.fit != null) {
+            val dishes = ui.fit.options.ifEmpty { listOf(ui.fit.dish).filter { it.name.isNotBlank() } }
+            dishes.forEachIndexed { i, dish ->
+                Column(
+                    Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                        .cardBorder()
+                        .padding(14.dp),
+                ) {
+                    val line = "${dish.name} · ${dish.kcal.toInt()} kcal · ${dish.p.toInt()} g P"
+                    Text(line, color = if (i == 0) p.good else p.text, fontSize = 14.sp)
+                    Text("preserva a janta", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                 }
             }
-            if (fit.pergunta.isNotBlank()) Text(fit.pergunta, color = TextMain)
-            Text("estimativa, não consulta", color = Dim, fontSize = 12.sp)
+        } else if (ui.t3Headline != null || ui.fit != null) {
+            Column(
+                Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .cardBorder()
+                    .padding(14.dp),
+            ) {
+                val headline = ui.t3Headline
+                if (headline != null) {
+                    Text(
+                        headline,
+                        color = if (headline.startsWith("Cabe")) p.good else p.bad,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W600,
+                    )
+                }
+                val line = ui.t3Line
+                if (line != null) {
+                    Text(line, color = p.text, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
+                }
+                val sub = ui.t3Sub
+                if (sub != null) {
+                    Text(sub, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        }
+        if (ui.loading) {
+            Column(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                WaitIndicator(Modifier.testTag("t3-enviar"))
+                Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+        } else {
+            val cta = ui.t3Cta
+            NutriCta(
+                cta,
+                Modifier.padding(top = 18.dp).testTag("t3-enviar"),
+                if (ui.fitMode == "idea" && ui.fit != null) onAlreadyAte else onFit,
+            )
         }
     }
+}
+
+@Composable
+fun TextBox(
+    value: String,
+    onChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    lines: Int = 2,
+) {
+    val p = LocalPalette.current
+    BasicTextField(
+        value = value,
+        onValueChange = onChange,
+        modifier = modifier,
+        textStyle = TextStyle(color = p.text, fontSize = 16.sp, lineHeight = 22.sp),
+        decorationBox = { inner ->
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height((lines * 28).dp.coerceAtLeast(48.dp))
+                    .background(p.surf, RoundedCornerShape(16.dp))
+                    .border(1.dp, p.line, RoundedCornerShape(16.dp))
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
+            ) {
+                if (value.isEmpty()) Text(placeholder, color = p.muted, fontSize = 16.sp)
+                inner()
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun IndicadorEspera(modifier: Modifier = Modifier) {
-    LoadingIndicator(modifier = modifier, color = Gold)
+fun WaitIndicator(modifier: Modifier = Modifier) {
+    LoadingIndicator(modifier = modifier.size(28.dp), color = LocalPalette.current.gold)
 }

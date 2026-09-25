@@ -1,6 +1,7 @@
 package com.nutri.android.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,16 +11,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,92 +27,108 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nutri.android.domain.tituloJanela
 
 @Composable
-fun TelaHome(ui: DiaUi, vm: DiaViewModel) {
-    val frac = if (ui.tetoEfetivo == 0) 0f else (ui.comido.toFloat() / ui.tetoEfetivo).coerceIn(0.02f, 1f)
+fun HomeScreen(
+    ui: DayUi,
+    onLog: () -> Unit,
+    onFit: () -> Unit,
+    onRemoveChip: () -> Unit,
+) {
+    val p = LocalPalette.current
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        Modifier
+            .fillMaxSize()
+            .background(p.bg)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 22.dp),
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(ui.dataCurta, color = Muted, fontSize = 13.sp)
-            Text("Teto ${ui.tetoEfetivo}", color = TextMain, fontWeight = FontWeight.W600, fontSize = 14.sp)
-        }
+        Text(ui.shortDate, color = p.dim, fontSize = 12.sp)
         Text(
-            "${ui.comido}  / ${ui.tetoEfetivo} kcal",
-            modifier = Modifier.testTag("saldo"),
-            color = TextMain,
-            fontSize = 34.sp,
+            formatRemaining(ui.remaining),
+            modifier = Modifier.padding(top = 12.dp).testTag("saldo"),
+            color = p.text,
+            fontSize = NutriMeasure.remainingPt.sp,
             fontWeight = FontWeight(590),
+            letterSpacing = (-1.4).sp,
+            lineHeight = 36.sp,
         )
-        Text("P ${ui.proteina} / 170 g", color = Muted, fontSize = 13.sp)
-        Box(
-            Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(99.dp)).background(Line),
+        Text(ui.remainingLabel, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 2.dp))
+        Column(
+            Modifier
+                .padding(top = 18.dp)
+                .fillMaxWidth()
+                .background(p.surf2, RoundedCornerShape(20.dp))
+                .padding(16.dp)
+                .testTag("proxima-janela"),
         ) {
-            Box(Modifier.fillMaxHeight().fillMaxWidth(frac).background(Gold))
+            Text("PRÓXIMA", color = p.dim, fontSize = 10.sp, letterSpacing = 0.8.sp, fontWeight = FontWeight.W600)
+            Text(ui.nextTitle, color = p.text, fontSize = 16.sp, fontWeight = FontWeight(560), modifier = Modifier.padding(top = 6.dp))
+            Text(ui.nextDetail, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+            Box(
+                Modifier
+                    .padding(top = 10.dp)
+                    .fillMaxWidth()
+                    .height(NutriMeasure.barDp.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(p.line),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(ui.bar.coerceIn(0f, 1f))
+                        .background(p.gold),
+                )
+            }
         }
-        Column(Modifier.fillMaxWidth().cardBorda().padding(16.dp).testTag("proxima-janela")) {
-            Text("PRÓXIMA", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.W600)
-            Text("${tituloJanela(ui.janela)}", color = TextMain, fontSize = 20.sp, fontWeight = FontWeight.W600)
-            Text("Orçamento ${ui.orcamento} kcal", color = TextMain, fontSize = 16.sp)
-            Text("Ainda sem atalho. Escreve ou manda foto.", color = Muted, fontSize = 13.sp)
-            NutriCta("O que cabe agora", Modifier.testTag("home-cta").padding(top = 8.dp)) { vm.abrirEncaixe() }
+        if (ui.appDay > 1 && ui.chipLabel != null) {
+            Row(
+                Modifier
+                    .padding(top = 18.dp)
+                    .background(p.surf2, RoundedCornerShape(NutriMeasure.cardDp.dp))
+                    .border(1.dp, p.line, RoundedCornerShape(NutriMeasure.cardDp.dp))
+                    .padding(start = 12.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
+                    .testTag("chip"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(ui.chipLabel, color = p.text, fontSize = 13.sp)
+                Text("×", color = p.dim, fontSize = 16.sp, modifier = Modifier.clickable(onClick = onRemoveChip).testTag("chip-remover"))
+            }
+            if (ui.chipNote != null) {
+                Text(ui.chipNote, color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            }
         }
         Row(
-            Modifier.fillMaxWidth().cardBorda().clickable { vm.abrirRegistro() }.padding(14.dp).testTag("home-composer"),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            Modifier
+                .padding(top = 18.dp)
+                .fillMaxWidth()
+                .background(p.surf, RoundedCornerShape(18.dp))
+                .border(1.dp, p.line, RoundedCornerShape(18.dp))
+                .clickable(onClick = onLog)
+                .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
+                .testTag("home-composer"),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("O que você comeu, ou uma foto", color = Muted)
-            Text("◉", color = Gold)
-        }
-        if (ui.diaApp > 1) {
-            ui.chips.forEach { chip ->
-                Column(Modifier.fillMaxWidth().cardBorda().padding(12.dp).testTag("chip-${chip.janela}")) {
-                    Text(tituloJanela(chip.janela), color = Gold)
-                    if (chip.pergunta) {
-                        Text("Quer um atalho desta janela?", color = TextMain)
-                        Row {
-                            TextButton(onClick = { vm.responderChip(chip.janela, true) }) { Text("Criar", color = Gold) }
-                            TextButton(onClick = { vm.responderChip(chip.janela, false) }) { Text("Não", color = Muted) }
-                        }
-                    }
-                    TextButton(onClick = { vm.removerChip(chip.janela) }, Modifier.testTag("chip-remover")) {
-                        Text("Remover", color = Bad)
-                    }
-                }
+            Text("o que comeu", color = p.muted, fontSize = 14.sp, modifier = Modifier.weight(1f))
+            Box(
+                Modifier
+                    .size(36.dp)
+                    .background(p.surf2, RoundedCornerShape(12.dp))
+                    .border(1.dp, p.line, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("▣", color = p.muted, fontSize = 14.sp)
             }
         }
-        listOf("cafe", "lanche_manha", "almoco", "lanche_tarde", "janta", "ceia").forEach { id ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(tituloJanela(id), color = if (id == ui.janela) TextMain else Muted)
-                Text(if (id == ui.janela) "agora" else "pendente", color = if (id == ui.janela) Gold else Dim, fontSize = 12.sp)
-            }
-        }
-        Text(if (ui.treino.isBlank()) "Treino hoje" else "Treino ${ui.treino} kcal", color = Muted, fontSize = 13.sp)
-        OutlinedTreino(ui.treino, vm::treino)
-        TextButton(onClick = { vm.gravarTreino() }, Modifier.testTag("gravar-treino")) { Text("anotar kcal", color = Gold) }
-        Text("estimativa, não consulta", color = Dim, fontSize = 12.sp, modifier = Modifier.testTag("disclaimer"))
+        NutriCta("o que cabe agora", Modifier.padding(top = 12.dp).testTag("home-cta"), onFit)
+        Text(
+            "Estimativa, não consulta.",
+            color = p.dim,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(top = 12.dp).testTag("disclaimer"),
+        )
     }
-}
-
-@Composable
-private fun OutlinedTreino(valor: String, onChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onChange,
-        modifier = Modifier.fillMaxWidth().testTag("treino"),
-        label = { Text("treino kcal") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Gold,
-            unfocusedBorderColor = Line,
-            focusedTextColor = TextMain,
-            unfocusedTextColor = TextMain,
-            cursorColor = Gold,
-        ),
-    )
 }

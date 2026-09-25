@@ -1,25 +1,25 @@
 package com.nutri.android.domain
 
-data class LogEstavel(val janela: String, val estavel: Boolean)
+data class StableLog(val window: String, val stable: Boolean)
 
-data class Chip(val janela: String, val pergunta: Boolean)
+data class Chip(val window: String, val question: Boolean)
 
 /**
- * Chip nasce no 2º log estável da mesma janela.
- * Pergunta uma vez. Dá para remover.
- * Dia 1 do app não mostra chip.
+ * Chip appears on the 2nd stable log of the same window.
+ * Asked once. Removable.
+ * App day 1 shows no chip.
  */
-fun chipDaJanela(
-    diaApp: Int,
-    janelaAtual: String,
-    logs: List<LogEstavel>,
-    removidas: Set<String>,
-    perguntadas: Set<String>,
+fun chipForWindow(
+    appDay: Int,
+    currentWindow: String,
+    logs: List<StableLog>,
+    removed: Set<String>,
+    asked: Set<String>,
 ): Chip? {
-    if (diaApp <= 1) return null
-    val contagem = logs.filter { it.estavel }.groupingBy { it.janela }.eachCount()
-    val candidatas = contagem.filter { (janela, n) -> n >= 2 && janela !in removidas }.keys
-    if (candidatas.isEmpty()) return null
-    val janela = if (janelaAtual in candidatas) janelaAtual else candidatas.first()
-    return Chip(janela = janela, pergunta = janela !in perguntadas)
+    if (appDay <= 1) return null
+    val counts = logs.filter { it.stable }.groupingBy { it.window }.eachCount()
+    val candidates = counts.filter { (window, n) -> n >= 2 && window !in removed }.keys
+    if (candidates.isEmpty()) return null
+    val window = if (currentWindow in candidates) currentWindow else candidates.first()
+    return Chip(window = window, question = window !in asked)
 }

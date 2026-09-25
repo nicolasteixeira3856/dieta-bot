@@ -5,86 +5,86 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** Teto do dia e orçamento da janela. Dado puro, sem Android e sem rede. */
+/** Day ceiling and window budget. Pure data, no Android, no network. */
 object SaoPaulo {
-    val zona: ZoneId = ZoneId.of("America/Sao_Paulo")
+    val zone: ZoneId = ZoneId.of("America/Sao_Paulo")
 
-    fun data(instant: Instant): LocalDate = instant.atZone(zona).toLocalDate()
+    fun date(instant: Instant): LocalDate = instant.atZone(zone).toLocalDate()
 }
 
-sealed interface TetoPerfil {
-    fun tetoNaData(data: LocalDate): Int
+sealed interface CeilingProfile {
+    fun ceilingOn(date: LocalDate): Int
 }
 
-data class TetoMesmoTodosOsDias(val kcal: Int) : TetoPerfil {
-    override fun tetoNaData(data: LocalDate): Int = kcal
+data class SameEveryDayCeiling(val kcal: Int) : CeilingProfile {
+    override fun ceilingOn(date: LocalDate): Int = kcal
 }
 
-data class TetoUtilFds(val util: Int, val fds: Int) : TetoPerfil {
-    override fun tetoNaData(data: LocalDate): Int {
-        val fim = data.dayOfWeek == DayOfWeek.SATURDAY || data.dayOfWeek == DayOfWeek.SUNDAY
-        return if (fim) fds else util
+data class WeekdayWeekendCeiling(val weekday: Int, val weekend: Int) : CeilingProfile {
+    override fun ceilingOn(date: LocalDate): Int {
+        val isWeekend = date.dayOfWeek == DayOfWeek.SATURDAY || date.dayOfWeek == DayOfWeek.SUNDAY
+        return if (isWeekend) weekend else weekday
     }
 }
 
-data class TetoSeteDias(
-    val segunda: Int,
-    val terca: Int,
-    val quarta: Int,
-    val quinta: Int,
-    val sexta: Int,
-    val sabado: Int,
-    val domingo: Int,
-) : TetoPerfil {
-    override fun tetoNaData(data: LocalDate): Int = when (data.dayOfWeek) {
-        DayOfWeek.MONDAY -> segunda
-        DayOfWeek.TUESDAY -> terca
-        DayOfWeek.WEDNESDAY -> quarta
-        DayOfWeek.THURSDAY -> quinta
-        DayOfWeek.FRIDAY -> sexta
-        DayOfWeek.SATURDAY -> sabado
-        DayOfWeek.SUNDAY -> domingo
+data class SevenDayCeiling(
+    val monday: Int,
+    val tuesday: Int,
+    val wednesday: Int,
+    val thursday: Int,
+    val friday: Int,
+    val saturday: Int,
+    val sunday: Int,
+) : CeilingProfile {
+    override fun ceilingOn(date: LocalDate): Int = when (date.dayOfWeek) {
+        DayOfWeek.MONDAY -> monday
+        DayOfWeek.TUESDAY -> tuesday
+        DayOfWeek.WEDNESDAY -> wednesday
+        DayOfWeek.THURSDAY -> thursday
+        DayOfWeek.FRIDAY -> friday
+        DayOfWeek.SATURDAY -> saturday
+        DayOfWeek.SUNDAY -> sunday
     }
 }
 
-enum class PoliticaCredito { ZERO, PARCIAL, CEM }
+enum class CreditPolicy { ZERO, PARTIAL, FULL }
 
-data class EntradaOrcamento(
-    val data: LocalDate,
-    val perfil: TetoPerfil,
-    val politica: PoliticaCredito,
-    val percentual: Int? = null,
-    val treinoKcal: Int? = null,
-    val consumido: Int = 0,
-    val reservaProximas: Int = 0,
+data class BudgetInput(
+    val date: LocalDate,
+    val profile: CeilingProfile,
+    val policy: CreditPolicy,
+    val percent: Int? = null,
+    val workoutKcal: Int? = null,
+    val eaten: Int = 0,
+    val reservedUpcoming: Int = 0,
 )
 
-data class ResultadoOrcamento(
-    val tetoBase: Int,
-    val creditoTreino: Int,
-    val tetoEfetivo: Int,
-    val orcamentoJanela: Int,
+data class BudgetResult(
+    val baseCeiling: Int,
+    val credit: Int,
+    val effectiveCeiling: Int,
+    val windowBudget: Int,
 )
 
 class BudgetCalculator {
-    fun calcular(entrada: EntradaOrcamento): ResultadoOrcamento {
-        val tetoBase = entrada.perfil.tetoNaData(entrada.data)
-        val credito = creditoTreino(entrada.politica, entrada.percentual, entrada.treinoKcal)
-        val tetoEfetivo = tetoBase + credito
-        val bruto = tetoEfetivo - entrada.consumido - entrada.reservaProximas
-        return ResultadoOrcamento(
-            tetoBase = tetoBase,
-            creditoTreino = credito,
-            tetoEfetivo = tetoEfetivo,
-            orcamentoJanela = maxOf(0, bruto),
+    fun calculate(input: BudgetInput): BudgetResult {
+        val baseCeiling = input.profile.ceilingOn(input.date)
+        val credit = workoutCredit(input.policy, input.percent, input.workoutKcal)
+        val effectiveCeiling = baseCeiling + credit
+        val raw = effectiveCeiling - input.eaten - input.reservedUpcoming
+        return BudgetResult(
+            baseCeiling = baseCeiling,
+            credit = credit,
+            effectiveCeiling = effectiveCeiling,
+            windowBudget = maxOf(0, raw),
         )
     }
 }
 
-/** Política 0, ou treino do dia ainda não informado, zera o crédito. Sem cap. */
-fun creditoTreino(politica: PoliticaCredito, percentual: Int?, treinoKcal: Int?): Int {
-    if (politica == PoliticaCredito.ZERO || treinoKcal == null) return 0
-    if (politica == PoliticaCredito.CEM) return treinoKcal
-    val pct = percentual ?: error("percentual")
-    return treinoKcal * pct / 100
+/** Policy 0, or workout kcal for the day missing, zeros credit. No cap. */
+fun workoutCredit(policy: CreditPolicy, percent: Int?, workoutKcal: Int?): Int {
+    if (policy == CreditPolicy.ZERO || workoutKcal == null) return 0
+    if (policy == CreditPolicy.FULL) return workoutKcal
+    val pct = percent ?: error("percent")
+    return workoutKcal * pct / 100
 }

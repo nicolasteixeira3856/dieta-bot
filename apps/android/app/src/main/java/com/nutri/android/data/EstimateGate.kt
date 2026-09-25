@@ -1,39 +1,39 @@
 package com.nutri.android.data
 
-import com.nutri.android.domain.PratoOferta
-import com.nutri.android.domain.ofertasQueCabem
+import com.nutri.android.domain.DishOffer
+import com.nutri.android.domain.dishesThatFit
 
-const val PERGUNTA_FALHA = "descreve em 1 linha"
+const val FALLBACK_QUESTION = "descreve em 1 linha"
 
 class EstimateGate(private val api: NutriApi) {
-    suspend fun estimar(body: EstimateIn): EstimateOut {
+    suspend fun estimate(body: EstimateIn): EstimateOut {
         return try {
             val out = api.estimate(body)
-            if (out.confianca == "alto") out.copy(pergunta = null) else {
-                out.copy(pergunta = out.pergunta?.takeIf { it.isNotBlank() } ?: PERGUNTA_FALHA)
+            if (out.confidence == "high") out.copy(question = null) else {
+                out.copy(question = out.question?.takeIf { it.isNotBlank() } ?: FALLBACK_QUESTION)
             }
         } catch (_: Exception) {
-            EstimateOut(confianca = "baixa", pergunta = PERGUNTA_FALHA)
+            EstimateOut(confidence = "low", question = FALLBACK_QUESTION)
         }
     }
 
-    suspend fun encaixar(body: FitIn): FitOut {
+    suspend fun fit(body: FitIn): FitOut {
         return try {
             val out = api.fit(body)
-            val cabem = ofertasQueCabem(
-                pratos = (out.opcoes + out.prato).map { PratoOferta(it.nome, it.kcal) },
-                orcamentoKcal = body.orcamento.kcal,
-            ).map { it.nome }.toSet()
-            val opcoes = out.opcoes.filter { it.nome in cabem }
-            val prato = if (out.prato.nome in cabem) out.prato else PratoOut()
+            val namesThatFit = dishesThatFit(
+                dishes = (out.options + out.dish).map { DishOffer(it.name, it.kcal) },
+                budgetKcal = body.budget.kcal,
+            ).map { it.name }.toSet()
+            val options = out.options.filter { it.name in namesThatFit }
+            val dish = if (out.dish.name in namesThatFit) out.dish else DishOut()
             out.copy(
-                prato = prato,
-                opcoes = opcoes,
-                cabe = prato.nome.isNotBlank() || opcoes.isNotEmpty(),
-                pergunta = out.pergunta.ifBlank { PERGUNTA_FALHA },
+                dish = dish,
+                options = options,
+                fits = dish.name.isNotBlank() || options.isNotEmpty(),
+                question = out.question.ifBlank { FALLBACK_QUESTION },
             )
         } catch (_: Exception) {
-            FitOut(cabe = false, pergunta = PERGUNTA_FALHA)
+            FitOut(fits = false, question = FALLBACK_QUESTION)
         }
     }
 }
