@@ -15,10 +15,13 @@ serialization = "1.7.3"
 converter = "1.0.0"
 coroutines = "1.9.0"
 datastore = "1.1.1"
+room = "2.6.1"
 junit = "4.13.2"
 truth = "1.4.4"
 mockk = "1.13.13"
 turbine = "1.2.0"
+robolectric = "4.14.1"
+androidxTestCore = "1.6.1"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -41,11 +44,17 @@ retrofit-serialization = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 junit = { module = "junit:junit", version.ref = "junit" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
