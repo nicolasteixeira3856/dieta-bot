@@ -8,7 +8,7 @@ Source identifiers in `apps/android/` and `server/` are English. User-facing cop
 
 Intent extra `nutri_tela` kept as the QA capture key so existing `adb` seeds still work.
 
-DataStore day JSON uses the new English property names. `ignoreUnknownKeys` is on; an old local day is dropped, not migrated.
+DataStore file and preference keys renamed: `nutri_dia` → `nutri_day`, `dia` → `day`. An old local day is dropped, not migrated (`ignoreUnknownKeys`).
 
 ## Glossary
 
@@ -59,6 +59,8 @@ alimento → food
 modificador → modifier
 
 Kept: kcal, p, c, g, text, mode, local_time, image_b64, model, ok.
+
+Local keys renamed: DataStore `nutri_dia` → `nutri_day`, preference `dia` → `day`. Intent extra `nutri_tela` kept.
 
 HTTP paths unchanged: `/health`, `/v1/estimate`, `/v1/fit`. Header `X-Invite` unchanged.
 

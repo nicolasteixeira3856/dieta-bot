@@ -1,26 +1,39 @@
 # Tokens
 
-Do wire (`wires/nutri-wires.html`). Sem paleta inventada.
+Two themes. Follow the system. No dynamic color.
 
-- bg `#0b0d10`
-- panel `#12151a`
-- phone `#0e1114`
-- surf `#171b20`
-- surf2 `#1e242b`
-- line `#2a3139`
-- text `#f3f5f7`
-- muted `#8b939c`
-- dim `#5c6570`
-- gold `#e8b86d`
-- gold-dim `rgba(232,184,109,.14)`
-- good `#7dda9a`
-- bad `#e07a6a`
-- blue `#8bb8d8` (só dado, não chrome)
-- saldo 34pt weight 590
-- campo teto 28pt
-- CTA sólido `#f3f5f7` texto `#111`
-- sheet radius 22 no topo
-- chip/card radius 14
-- barra 6px gold
+## Dark
+bg #0b0d10
+panel #12151a
+phone #0e1114
+surf #171b20
+surf2 #1e242b
+line #2a3139
+text #f3f5f7
+muted #8b939c
+dim #5c6570
+gold #e8b86d
+good #7dda9a
+bad #e07a6a
+CTA #f3f5f7 on #111111
 
-Sem roxo Material default. Sem scaffold azul. Sem coach copy.
+## Light
+bg #f4f3f0
+panel #eceae6
+phone #f7f6f3
+surf #ffffff
+surf2 #e8e6e2
+line #d5d2cc
+text #14161a
+muted #5c636b
+dim #8b939c
+gold #b8873d
+good #1f8a4c
+bad #c14d40
+CTA #111111 on #f3f5f7
+
+remaining 34pt weight 590
+field 28pt
+sheet top radius 22
+card/chip 14
+bar 6px gold
