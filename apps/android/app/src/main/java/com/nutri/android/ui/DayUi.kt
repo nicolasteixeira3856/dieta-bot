@@ -8,6 +8,16 @@ import com.nutri.android.domain.Chip
 enum class Stage { SPLASH, O1, O2, HOME, T2 }
 enum class SheetKind { T1, T3 }
 
+data class HomeLogLine(
+    val window: String,
+    val title: String,
+    val kcal: Int,
+    val p: Int,
+    val text: String = "",
+) {
+    val line: String get() = "$title · $kcal kcal · $p g P"
+}
+
 data class DayUi(
     val ready: Boolean = true,
     val stage: Stage = Stage.SPLASH,
@@ -48,10 +58,14 @@ data class DayUi(
     val t2Range: String? = null,
     val t2Question: String? = null,
     val t2Answer: Int = 0,
+    val t2ConfirmEnabled: Boolean = true,
     val t3Headline: String? = null,
     val t3Line: String? = null,
     val t3Sub: String? = null,
     val t3Cta: String = "Encaixar",
+    val fitDishes: List<DishOut> = emptyList(),
+    val selectedFitIndex: Int? = null,
+    val logs: List<HomeLogLine> = emptyList(),
     val weekend: Boolean = false,
 )
 
@@ -134,45 +148,52 @@ fun captureState(id: String): DayUi = when (id) {
         t2Range = "~380–480 kcal",
         t2Question = "Pão era francês?",
         t2Answer = 0,
+        t2ConfirmEnabled = false,
         estimate = EstimateOut(kcal = 0.0, p = 0.0, confidence = "low", question = "Pão era francês?"),
         windowBudget = 1840,
     )
-    "t3quero" -> homeDinner().copy(
-        sheet = SheetKind.T3,
-        fitMode = "want",
-        fitText = "lasanha",
-        t3Headline = "Inteira não cabe.",
-        t3Line = "1/2 lasanha + salada · 480 kcal · 28 g P",
-        t3Sub = "sobra 40 pra um café",
-        t3Cta = "Encaixar 480",
-        fit = FitOut(
-            fits = false,
-            dish = DishOut(name = "1/2 lasanha + salada", kcal = 480.0, p = 28.0, fits = false),
-        ),
-    )
-    "t3tenho" -> homeDinner().copy(
-        sheet = SheetKind.T3,
-        fitMode = "have",
-        fitText = "ovo, arroz, alface",
-        t3Headline = "Cabe.",
-        t3Line = "omelete 3 ovos + arroz 180 g + folha · 520 kcal · 32 g P",
-        t3Cta = "Encaixar 520",
-        fit = FitOut(
-            fits = true,
-            dish = DishOut(name = "omelete 3 ovos + arroz 180 g + folha", kcal = 520.0, p = 32.0, fits = true),
-        ),
-    )
-    "t3ideia" -> homeDinner().copy(
-        sheet = SheetKind.T3,
-        fitMode = "idea",
-        t3Cta = "Já comi",
-        fit = FitOut(
-            fits = true,
-            options = listOf(
-                DishOut(name = "omelete 3 ovos", kcal = 420.0, p = 30.0, fits = true),
-                DishOut(name = "sopa + pão", kcal = 380.0, p = 18.0, fits = true),
-            ),
-        ),
-    )
+    "t3quero" -> {
+        val dish = DishOut(name = "1/2 lasanha + salada", kcal = 480.0, p = 28.0, fits = false)
+        homeDinner().copy(
+            sheet = SheetKind.T3,
+            fitMode = "want",
+            fitText = "lasanha",
+            t3Headline = "Inteira não cabe.",
+            t3Line = "1/2 lasanha + salada · 480 kcal · 28 g P",
+            t3Sub = "sobra 40 pra um café",
+            t3Cta = "Vou nesse",
+            fit = FitOut(fits = false, dish = dish),
+            fitDishes = listOf(dish),
+            selectedFitIndex = null,
+        )
+    }
+    "t3tenho" -> {
+        val dish = DishOut(name = "omelete 3 ovos + arroz 180 g + folha", kcal = 520.0, p = 32.0, fits = true)
+        homeDinner().copy(
+            sheet = SheetKind.T3,
+            fitMode = "have",
+            fitText = "ovo, arroz, alface",
+            t3Headline = "Cabe.",
+            t3Line = "omelete 3 ovos + arroz 180 g + folha · 520 kcal · 32 g P",
+            t3Cta = "Vou nesse",
+            fit = FitOut(fits = true, dish = dish),
+            fitDishes = listOf(dish),
+            selectedFitIndex = 0,
+        )
+    }
+    "t3ideia" -> {
+        val options = listOf(
+            DishOut(name = "omelete 3 ovos", kcal = 420.0, p = 30.0, fits = true),
+            DishOut(name = "sopa + pão", kcal = 380.0, p = 18.0, fits = true),
+        )
+        homeDinner().copy(
+            sheet = SheetKind.T3,
+            fitMode = "idea",
+            t3Cta = "Vou nesse",
+            fit = FitOut(fits = true, options = options),
+            fitDishes = options,
+            selectedFitIndex = 0,
+        )
+    }
     else -> DayUi(stage = Stage.O1, capture = true)
 }

@@ -20,12 +20,14 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun T2Screen(
     ui: DayUi,
-    onAnswer: (Int) -> Unit,
+    onYes: () -> Unit,
+    onRevise: () -> Unit,
+    onDiscard: () -> Unit,
     onConfirm: () -> Unit,
     onUndo: () -> Unit,
 ) {
     val p = LocalPalette.current
-    val low = ui.t2Question != null || ui.estimate?.confidence == "low"
+    val low = ui.t2Question != null || ui.estimate?.confidence != "high"
     val kcal = ui.estimate?.kcal?.toInt() ?: 0
     val proteinG = ui.estimate?.p?.toInt() ?: 0
     val leftover = (ui.windowBudget - kcal).coerceAtLeast(0)
@@ -48,12 +50,27 @@ fun T2Screen(
             ) {
                 Text(ui.t2Name, color = p.text, fontSize = 16.sp, fontWeight = FontWeight(560))
                 if (low) {
-                    Text(ui.t2Range ?: "", color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+                    if (kcal > 0) {
+                        Text(
+                            "${formatRemaining(kcal)} kcal · $proteinG g P",
+                            color = p.muted,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 6.dp).testTag("t2-kcal"),
+                        )
+                    } else if (!ui.t2Range.isNullOrBlank()) {
+                        Text(ui.t2Range, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+                    }
                     Text(ui.t2Question ?: "descreve em 1 linha", color = p.text, modifier = Modifier.padding(top = 18.dp).testTag("t2-question"))
                     NutriGroup(
                         options = listOf("Sim", "Forma", "Esquece"),
                         selected = ui.t2Answer,
-                        onSelect = onAnswer,
+                        onSelect = { i ->
+                            when (i) {
+                                1 -> onRevise()
+                                2 -> onDiscard()
+                                else -> onYes()
+                            }
+                        },
                         modifier = Modifier.padding(top = 12.dp).testTag("t2-options"),
                     )
                 } else {
@@ -78,7 +95,8 @@ fun T2Screen(
             NutriCta(
                 if (low) "Confirmar" else "Ok",
                 Modifier.testTag("t2-confirm"),
-                onConfirm,
+                enabled = ui.t2ConfirmEnabled,
+                onClick = onConfirm,
             )
             if (!low) {
                 NutriCtaGhost("Desfazer", Modifier.padding(top = 12.dp).testTag("t2-undo"), onUndo)

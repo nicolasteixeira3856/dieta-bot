@@ -272,10 +272,16 @@ fun NutriGroup(
 }
 
 @Composable
-fun NutriCta(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun NutriCta(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
     val p = LocalPalette.current
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(18.dp),
         colors = ButtonDefaults.buttonColors(containerColor = p.ctaBg, contentColor = p.ctaText),

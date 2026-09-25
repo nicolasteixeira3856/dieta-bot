@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.nutri.android.data.BudgetIn
 import com.nutri.android.data.DayRepository
 import com.nutri.android.data.DaySnapshot
+import com.nutri.android.data.DishOut
 import com.nutri.android.data.EstimateGate
 import com.nutri.android.data.EstimateIn
 import com.nutri.android.data.FitIn
+import com.nutri.android.data.FitOut
 import com.nutri.android.data.InstantClock
 import com.nutri.android.data.PhotoCompressor
 import com.nutri.android.domain.BudgetCalculator
@@ -113,6 +115,7 @@ class DayViewModel @Inject constructor(
                 ),
             )
             val low = out.confidence != "high"
+            val kcal = out.kcal.toInt()
             _ui.update {
                 it.copy(
                     loading = false,
@@ -125,35 +128,60 @@ class DayViewModel @Inject constructor(
                     t2Name = now.text.replace(",", " +").ifBlank { "refeição" },
                     t2Range = null,
                     t2Question = if (low) out.question else null,
+                    t2Answer = 0,
+                    t2ConfirmEnabled = !(low && kcal <= 0),
                 )
             }
         }
     }
 
-    fun t2Answer(i: Int) = _ui.update { it.copy(t2Answer = i) }
+    fun t2Yes() {
+        _ui.update { it.copy(t2Answer = 0) }
+        persistEstimate()
+    }
 
-    fun confirm() {
-        val now = _ui.value
-        val est = now.estimate ?: return
-        viewModelScope.launch {
-            days.addLog(
-                window = now.window,
-                text = now.text,
-                kcal = est.kcal.toInt(),
-                p = est.p.toInt(),
-                stable = true,
+    fun t2Revise() {
+        _ui.update {
+            it.copy(
+                t2Answer = 1,
+                stage = Stage.HOME,
+                sheet = SheetKind.T1,
+                estimate = null,
+                t2Question = null,
             )
-            _ui.update { it.copy(stage = Stage.HOME, sheet = null, text = "", estimate = null, t2Question = null) }
         }
     }
 
-    fun undo() = _ui.update { it.copy(stage = Stage.HOME, sheet = SheetKind.T1, estimate = null) }
+    fun t2Discard() {
+        _ui.update {
+            it.copy(
+                t2Answer = 2,
+                stage = Stage.HOME,
+                sheet = null,
+                text = "",
+                estimate = null,
+                t2Question = null,
+            )
+        }
+    }
+
+    fun confirm() {
+        val now = _ui.value
+        val low = now.estimate?.confidence != "high" || now.t2Question != null
+        if (low) t2Yes() else persistEstimate()
+    }
+
+    fun undo() = _ui.update {
+        it.copy(stage = Stage.HOME, sheet = SheetKind.T1, estimate = null, t2Question = null)
+    }
 
     fun openFit() = _ui.update {
         it.copy(
             stage = Stage.HOME,
             sheet = SheetKind.T3,
             fit = null,
+            fitDishes = emptyList(),
+            selectedFitIndex = null,
             t3Headline = null,
             t3Line = null,
             t3Sub = null,
@@ -165,10 +193,12 @@ class DayViewModel @Inject constructor(
         it.copy(
             fitMode = mode,
             fit = null,
+            fitDishes = emptyList(),
+            selectedFitIndex = null,
             t3Headline = null,
             t3Line = null,
             t3Sub = null,
-            t3Cta = if (mode == "idea") "Já comi" else "Encaixar",
+            t3Cta = "Encaixar",
         )
     }
 
@@ -176,7 +206,7 @@ class DayViewModel @Inject constructor(
 
     fun requestFit() {
         val now = _ui.value
-        if (now.fitMode == "idea" && now.fit != null) return
+        if (now.fit != null) return
         viewModelScope.launch {
             _ui.update { it.copy(loading = true) }
             val mode = when (now.fitMode) {
@@ -189,7 +219,7 @@ class DayViewModel @Inject constructor(
             } else {
                 emptyList()
             }
-            val out = gate.fit(
+            val raw = gate.fit(
                 FitIn(
                     mode = mode,
                     text = now.fitText,
@@ -197,20 +227,60 @@ class DayViewModel @Inject constructor(
                     budget = BudgetIn(now.windowBudget.toDouble(), (170 - now.protein).coerceAtLeast(0).toDouble()),
                 ),
             )
-            val dish = out.dish.takeIf { it.name.isNotBlank() } ?: out.options.firstOrNull()
+            val out = raw.copy(
+                dish = if (raw.dish.name.isNotBlank()) raw.dish.copy(fits = true) else raw.dish,
+                options = raw.options.map { it.copy(fits = true) },
+            )
+            val dishes = fitCards(out)
+            val firstFit = dishes.indexOfFirst { it.fits && it.kcal.toInt() > 0 }
             _ui.update {
                 it.copy(
                     loading = false,
                     fit = out,
+                    fitDishes = dishes,
+                    selectedFitIndex = firstFit.takeIf { idx -> idx >= 0 },
                     t3Headline = if (out.fits) "Cabe." else "Inteira não cabe.",
-                    t3Line = dish?.let { d -> "${d.name} · ${d.kcal.toInt()} kcal · ${d.p.toInt()} g P" },
-                    t3Cta = if (it.fitMode == "idea") "Já comi" else "Encaixar ${dish?.kcal?.toInt() ?: ""}".trim(),
+                    t3Line = dishes.firstOrNull()?.let { d -> "${d.name} · ${d.kcal.toInt()} kcal · ${d.p.toInt()} g P" },
+                    t3Cta = "Vou nesse",
                 )
             }
         }
     }
 
-    fun alreadyAte() = _ui.update { it.copy(sheet = SheetKind.T1, fit = null) }
+    fun t3Primary() {
+        if (_ui.value.fit == null) requestFit() else commitFit()
+    }
+
+    fun selectFitDish(index: Int) {
+        val dish = _ui.value.fitDishes.getOrNull(index) ?: return
+        if (!dish.fits || dish.kcal.toInt() <= 0) return
+        _ui.update { it.copy(selectedFitIndex = index) }
+    }
+
+    fun commitFit() {
+        val now = _ui.value
+        if (now.fit == null) return
+        val index = now.selectedFitIndex ?: return
+        val dish = now.fitDishes.getOrNull(index) ?: return
+        val kcal = dish.kcal.toInt()
+        if (!dish.fits || kcal <= 0) return
+        viewModelScope.launch {
+            days.addLog(
+                window = now.window,
+                text = dish.name,
+                kcal = kcal,
+                p = dish.p.toInt(),
+                stable = true,
+            )
+            _ui.update { clearFit(it).copy(sheet = null) }
+        }
+    }
+
+    fun alreadyAte() {
+        _ui.update {
+            clearFit(it).copy(sheet = SheetKind.T1, text = "", photoB64 = null)
+        }
+    }
 
     fun close() = _ui.update { it.copy(sheet = null) }
 
@@ -313,9 +383,56 @@ class DayViewModel @Inject constructor(
                     null
                 },
                 weekend = weekend,
+                logs = day.logs.map { log ->
+                    HomeLogLine(
+                        window = log.window,
+                        title = windowTitle(log.window),
+                        kcal = log.kcal,
+                        p = log.p,
+                        text = log.text,
+                    )
+                },
             )
         }
     }
+
+    private fun persistEstimate() {
+        val now = _ui.value
+        val est = now.estimate ?: return
+        val kcal = est.kcal.toInt()
+        if (kcal <= 0) return
+        viewModelScope.launch {
+            days.addLog(
+                window = now.window,
+                text = now.text.ifBlank { now.t2Name },
+                kcal = kcal,
+                p = est.p.toInt(),
+                stable = true,
+            )
+            _ui.update {
+                it.copy(
+                    stage = Stage.HOME,
+                    sheet = null,
+                    text = "",
+                    estimate = null,
+                    t2Question = null,
+                    t2Range = null,
+                    photoB64 = null,
+                )
+            }
+        }
+    }
+
+    private fun clearFit(ui: DayUi) = ui.copy(
+        fit = null,
+        fitDishes = emptyList(),
+        selectedFitIndex = null,
+        t3Headline = null,
+        t3Line = null,
+        t3Sub = null,
+        t3Cta = "Encaixar",
+        fitText = "",
+    )
 
     private fun profileOf(day: DaySnapshot) = when (day.ceilingMode) {
         "weekdayWeekend" -> WeekdayWeekendCeiling(day.kcalWeekday, day.kcalWeekend)
@@ -327,4 +444,17 @@ class DayViewModel @Inject constructor(
     }
 
     private fun today(): LocalDate = SaoPaulo.date(clock.now())
+}
+
+internal fun fitCards(out: FitOut): List<DishOut> {
+    val seen = linkedSetOf<String>()
+    val cards = mutableListOf<DishOut>()
+    fun add(dish: DishOut, selectable: Boolean) {
+        if (dish.name.isBlank()) return
+        if (!seen.add(dish.name)) return
+        cards += if (selectable && !dish.fits) dish.copy(fits = true) else dish
+    }
+    if (out.dish.name.isNotBlank()) add(out.dish, selectable = out.dish.fits)
+    out.options.filter { it.fits }.forEach { add(it, selectable = true) }
+    return cards
 }

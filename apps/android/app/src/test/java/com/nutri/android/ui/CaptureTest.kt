@@ -45,4 +45,20 @@ class CaptureTest {
         assertThat(captureState("t3tenho").fitMode).isEqualTo("have")
         assertThat(captureState("t3ideia").fitMode).isEqualTo("idea")
     }
+
+    @Test
+    fun t0Day1HasNoHomeLogs() {
+        val ui = captureState("t0")
+        assertThat(ui.logs).isEmpty()
+        assertThat(ui.appDay).isEqualTo(1)
+        assertThat(ui.chips).isEmpty()
+    }
+
+    @Test
+    fun afterFitCtaIsVouNesse() {
+        assertThat(captureState("t3ideia").t3Cta).isEqualTo("Vou nesse")
+        assertThat(captureState("t3tenho").t3Cta).isEqualTo("Vou nesse")
+        assertThat(captureState("t3quero").selectedFitIndex).isNull()
+        assertThat(captureState("t2q").t2ConfirmEnabled).isFalse()
+    }
 }
