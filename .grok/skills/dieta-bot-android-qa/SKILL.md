@@ -1,18 +1,18 @@
 ---
 name: dieta-bot-android-qa
-description: Valida entrega Nutri. Use antes de marcar /goal DONE, depois de UI, ou quando o dono colar log.
+description: Validate a Nutri delivery. Use before marking /goal DONE, after UI, or when the owner pastes a log.
 ---
 
 # dieta-bot-android-qa
 
 Checklist:
-- `.\gradlew.bat test` verde
-- `.\gradlew.bat :app:compileDebugKotlin` verde
-- `adb devices` tem emulador
-- screenshots em `docs/qa/` das telas tocadas
-- tokens vs `docs/tokens.md` (sem roxo default)
-- home dia 1 sem chip
-- nenhuma OPENAI_API_KEY no source
-- ADR se houve decisão
+- `.\gradlew.bat test` green
+- `.\gradlew.bat :app:compileDebugKotlin` green
+- `adb devices` has an emulator
+- screenshots in `docs/qa/android/current/{dark|light}/` of the screens touched
+- tokens vs `docs/tokens.md` (no default purple)
+- home day 1 no chip
+- no OPENAI_API_KEY in source
+- ADR if there was a decision
 
-Sem screenshot de UI nova, não é DONE.
+Without a screenshot of new UI, it is not DONE.
