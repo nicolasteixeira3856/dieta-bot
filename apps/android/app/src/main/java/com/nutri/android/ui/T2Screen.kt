@@ -49,12 +49,12 @@ fun T2Screen(
                 Text(ui.t2Name, color = p.text, fontSize = 16.sp, fontWeight = FontWeight(560))
                 if (low) {
                     Text(ui.t2Range ?: "", color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
-                    Text(ui.t2Question ?: "descreve em 1 linha", color = p.text, modifier = Modifier.padding(top = 18.dp).testTag("t2-pergunta"))
+                    Text(ui.t2Question ?: "descreve em 1 linha", color = p.text, modifier = Modifier.padding(top = 18.dp).testTag("t2-question"))
                     NutriGroup(
                         options = listOf("Sim", "Forma", "Esquece"),
                         selected = ui.t2Answer,
                         onSelect = onAnswer,
-                        modifier = Modifier.padding(top = 12.dp).testTag("t2-opcoes"),
+                        modifier = Modifier.padding(top = 12.dp).testTag("t2-options"),
                     )
                 } else {
                     Text(
@@ -69,7 +69,7 @@ fun T2Screen(
                         "Cabe. Sobra ${formatRemaining(leftover)} pra janta.",
                         color = p.good,
                         fontSize = 14.sp,
-                        modifier = Modifier.padding(top = 12.dp).testTag("t2-cabe"),
+                        modifier = Modifier.padding(top = 12.dp).testTag("t2-fits"),
                     )
                 }
             }
@@ -77,11 +77,11 @@ fun T2Screen(
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
             NutriCta(
                 if (low) "Confirmar" else "Ok",
-                Modifier.testTag("t2-confirmar"),
+                Modifier.testTag("t2-confirm"),
                 onConfirm,
             )
             if (!low) {
-                NutriCtaGhost("Desfazer", Modifier.padding(top = 12.dp).testTag("t2-desfazer"), onUndo)
+                NutriCtaGhost("Desfazer", Modifier.padding(top = 12.dp).testTag("t2-undo"), onUndo)
             }
         }
     }

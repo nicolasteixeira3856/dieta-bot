@@ -65,7 +65,7 @@ fun CeilingScreen(
                 selected = mode,
                 onSelect = { onMode(when (it) { 1 -> "weekdayWeekend"; 2 -> "seven"; else -> "same" }) },
                 stacked = true,
-                modifier = Modifier.padding(top = 18.dp).testTag("o1-modos"),
+                modifier = Modifier.padding(top = 18.dp).testTag("o1-modes"),
             )
             when (ui.ceilingMode) {
                 "weekdayWeekend" -> {
@@ -96,7 +96,7 @@ fun CeilingScreen(
                 }
             }
         }
-        NutriCta("Continuar", Modifier.align(Alignment.BottomCenter).testTag("o1-continuar"), onContinue)
+        NutriCta("Continuar", Modifier.align(Alignment.BottomCenter).testTag("o1-continue"), onContinue)
     }
 }
 
@@ -142,7 +142,7 @@ fun EatScreen(ui: DayUi, onEat: (String) -> Unit, onPct: (String) -> Unit, onSta
                 else -> Text("crédito sempre 0", color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 12.dp))
             }
         }
-        NutriCta("Começar", Modifier.align(Alignment.BottomCenter).testTag("o2-entrar"), onStart)
+        NutriCta("Começar", Modifier.align(Alignment.BottomCenter).testTag("o2-start"), onStart)
     }
 }
 
@@ -174,7 +174,7 @@ fun NumberField(
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("campo-numero"),
+            modifier = Modifier.fillMaxWidth().testTag("number-field"),
             decorationBox = { inner ->
                 Box(
                     Modifier

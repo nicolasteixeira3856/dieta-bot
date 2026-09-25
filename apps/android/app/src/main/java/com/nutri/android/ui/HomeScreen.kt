@@ -48,7 +48,7 @@ fun HomeScreen(
         Text(ui.shortDate, color = p.dim, fontSize = 12.sp)
         Text(
             formatRemaining(ui.remaining),
-            modifier = Modifier.padding(top = 12.dp).testTag("saldo"),
+            modifier = Modifier.padding(top = 12.dp).testTag("remaining"),
             color = p.text,
             fontSize = NutriMeasure.remainingPt.sp,
             fontWeight = FontWeight(590),
@@ -62,7 +62,7 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .background(p.surf2, RoundedCornerShape(20.dp))
                 .padding(16.dp)
-                .testTag("proxima-janela"),
+                .testTag("next-window"),
         ) {
             Text("PRÓXIMA", color = p.dim, fontSize = 10.sp, letterSpacing = 0.8.sp, fontWeight = FontWeight.W600)
             Text(ui.nextTitle, color = p.text, fontSize = 16.sp, fontWeight = FontWeight(560), modifier = Modifier.padding(top = 6.dp))
@@ -95,7 +95,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(ui.chipLabel, color = p.text, fontSize = 13.sp)
-                Text("×", color = p.dim, fontSize = 16.sp, modifier = Modifier.clickable(onClick = onRemoveChip).testTag("chip-remover"))
+                Text("×", color = p.dim, fontSize = 16.sp, modifier = Modifier.clickable(onClick = onRemoveChip).testTag("chip-remove"))
             }
             if (ui.chipNote != null) {
                 Text(ui.chipNote, color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))

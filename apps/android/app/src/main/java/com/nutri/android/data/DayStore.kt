@@ -13,7 +13,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private val Context.dayStore by preferencesDataStore("nutri_dia")
+const val DAY_STORE_NAME = "nutri_day"
+const val DAY_PREF_KEY = "day"
+
+private val Context.dayStore by preferencesDataStore(DAY_STORE_NAME)
 
 @Serializable
 data class SavedLog(
@@ -45,7 +48,7 @@ data class SavedDay(
 class DayStore @Inject constructor(@ApplicationContext context: Context) {
     private val json = Json { ignoreUnknownKeys = true }
     private val data = context.dayStore
-    private val key = stringPreferencesKey("dia")
+    private val key = stringPreferencesKey(DAY_PREF_KEY)
 
     val flow: Flow<SavedDay> = data.data.map { prefs ->
         prefs[key]?.let { runCatching { json.decodeFromString<SavedDay>(it) }.getOrNull() } ?: SavedDay()

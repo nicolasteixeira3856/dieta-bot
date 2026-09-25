@@ -87,19 +87,19 @@ private fun LogSheet(
             value = ui.text,
             onChange = onText,
             placeholder = "2 pães, ovo, café com leite",
-            modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t1-texto"),
+            modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t1-text"),
         )
         if (ui.loading) {
             Column(
                 Modifier.fillMaxWidth().padding(top = 18.dp).testTag("t1-load"),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                WaitIndicator(Modifier.testTag("t1-registrar"))
+                WaitIndicator(Modifier.testTag("t1-submit"))
                 Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
             }
         } else {
             Row(
-                Modifier.padding(top = 12.dp).testTag("t1-foto").clickable {
+                Modifier.padding(top = 12.dp).testTag("t1-photo").clickable {
                     picker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
                 },
                 verticalAlignment = Alignment.CenterVertically,
@@ -117,7 +117,7 @@ private fun LogSheet(
                 Text("JPEG 70 · ≤1280", color = p.dim, fontSize = 12.sp)
             }
         }
-        NutriCta("Enviar", Modifier.padding(top = 18.dp).testTag("t1-enviar"), onSubmit)
+        NutriCta("Enviar", Modifier.padding(top = 18.dp).testTag("t1-send"), onSubmit)
     }
 }
 
@@ -135,20 +135,20 @@ private fun FitSheet(
         "idea" -> 2
         else -> 0
     }
-    Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 22.dp).testTag("t3-encaixe")) {
+    Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 22.dp).testTag("t3-fit")) {
         Text("O que cabe agora", color = p.text, fontSize = 18.sp, fontWeight = FontWeight(590))
         NutriGroup(
             options = listOf("Quero", "Tenho", "Sem ideia"),
             selected = sel,
             onSelect = { onMode(when (it) { 1 -> "have"; 2 -> "idea"; else -> "want" }) },
-            modifier = Modifier.padding(top = 12.dp).testTag("t3-modos"),
+            modifier = Modifier.padding(top = 12.dp).testTag("t3-modes"),
         )
         if (ui.fitMode != "idea") {
             TextBox(
                 value = ui.fitText,
                 onChange = onFitText,
                 placeholder = if (ui.fitMode == "want") "lasanha" else "ovo, arroz, alface",
-                modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t3-texto"),
+                modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t3-text"),
                 lines = 1,
             )
         }
@@ -196,14 +196,14 @@ private fun FitSheet(
         }
         if (ui.loading) {
             Column(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                WaitIndicator(Modifier.testTag("t3-enviar"))
+                WaitIndicator(Modifier.testTag("t3-send"))
                 Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
             }
         } else {
             val cta = ui.t3Cta
             NutriCta(
                 cta,
-                Modifier.padding(top = 18.dp).testTag("t3-enviar"),
+                Modifier.padding(top = 18.dp).testTag("t3-send"),
                 if (ui.fitMode == "idea" && ui.fit != null) onAlreadyAte else onFit,
             )
         }

@@ -11,6 +11,14 @@ import org.junit.Test
 
 class NetworkTest {
     @Test
+    fun `day store keys are English`() {
+        assertThat(DAY_STORE_NAME).isEqualTo("nutri_day")
+        assertThat(DAY_PREF_KEY).isEqualTo("day")
+        assertThat(DAY_STORE_NAME).doesNotContain("dia")
+        assertThat(DAY_PREF_KEY).isNotEqualTo("dia")
+    }
+
+    @Test
     fun `header X-Invite is sent on the request`() {
         val interceptor = InviteInterceptor("troca-isto")
         val chain = mockk<okhttp3.Interceptor.Chain>()
