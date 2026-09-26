@@ -121,9 +121,11 @@ Retired: nutri-*, dieta-bot-android-decisao, dieta-bot-android-lembrar.
 
 ## How to work
 
-1 /goal = 1 folder. Do not edit server/ in a client goal (except the english-rename goal already done).
+Implementation follows `docs/sdd/README.md`. Matrix: `docs/README.md`.
+Planning is documentation only. Code starts only after an explicit approval that names the plan file.
+`/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.
+New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/decisions/`.
 UI DONE = gold PNG comparison above. No screenshot, UI is not done.
-Every product or tech decision becomes an ADR in docs/decisions/.
 Test before marking done.
 
 ## Do not
