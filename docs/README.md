@@ -8,15 +8,15 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
-| [produto](produto/README.md) | produto | — | não | histórico em [decisions/](decisions/) | nenhum | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | não | histórico em [decisions/](decisions/) | nenhum | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | nenhum | `server/tests/` |
+| [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A1–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1–S3](server/plans/) aguardando aprovação | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
-## ADRs vigentes (histórico)
+## ADRs vigentes
 
-Fonte atual: [`decisions/`](decisions/). Novos ADRs: `docs/<contexto>/adrs/`.
+Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 | ADR | Contexto dono | Título |
 |---|---|---|
@@ -29,13 +29,32 @@ Fonte atual: [`decisions/`](decisions/). Novos ADRs: `docs/<contexto>/adrs/`.
 | [008](decisions/008-visual-qa.md) | android | visual QA |
 | [009](decisions/009-visual-match.md) | android | visual match |
 | [010](decisions/010-room.md) | android | Room |
-| [011](decisions/011-t2-t3-actions.md) | android | T2/T3 actions |
+| [011](decisions/011-t2-t3-actions.md) | android | T2/T3 actions (vale até A5) |
+| [012](produto/adrs/ADR-012-chat-home-perfil.md) | produto | Chat tela, Home painel, perfil nomeado |
+
+## Planos aguardando aprovação
+
+Ordem de `/goal` depois da frase de aprovação:
+
+1. [S1 timeout + cap 16 MB](server/plans/s1-timeout-photo-cap.md)
+2. [S2 POST /v1/chat](server/plans/s2-v1-chat.md)
+3. [S3 compact digest](server/plans/s3-compact.md)
+4. [A1 Room v2](android/plans/a1-room-v2.md)
+5. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
+6. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
+7. [A4 Home painel](android/plans/a4-home-painel.md)
+8. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
+9. [A6 foto](android/plans/a6-foto.md)
+10. [A7 push](android/plans/a7-push.md)
+11. [A8 memória](android/plans/a8-memoria.md)
+
+Nenhum plano aprovado. Sem código desta refatoração.
 
 ## Outros docs
 
 | Arquivo | Papel |
 |---|---|
-| [api-contract.md](api-contract.md) | contrato HTTP vigente até existir spec em `server/specifications/` |
+| [api-contract.md](api-contract.md) | contrato HTTP vigente até S2 atualizar |
 | [tokens.md](tokens.md) | tokens visuais |
 | [TEAM.md](TEAM.md) | time |
 | [HERMES.md](HERMES.md) | troca de modelo no agente de código |
