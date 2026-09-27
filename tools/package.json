@@ -4,9 +4,11 @@
   "description": "Visual QA export tools for Google Stitch and wireframes",
   "scripts": {
     "export:stitch": "node export-stitch.mjs",
-    "check:stitch": "node check-stitch.mjs"
+    "check:stitch": "node check-stitch.mjs",
+    "diff:gold": "node diff-gold.mjs"
   },
   "dependencies": {
-    "playwright": "^1.55.0"
+    "playwright": "^1.55.0",
+    "pngjs": "^7.0.0"
   }
 }

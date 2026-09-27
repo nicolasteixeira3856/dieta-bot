@@ -8,6 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDark = path.join(root, "docs", "qa", "stitch", "dark");
 const outLight = path.join(root, "docs", "qa", "stitch", "light");
 
+const MIN_WIDTH = 780; // 390 dp @ 2x
 let failed = false;
 
 function checkDir(dir, screens, theme) {
@@ -29,7 +30,19 @@ function checkDir(dir, screens, theme) {
         console.error(`  ✗ Empty file: ${theme}/${name}.png`);
         failed = true;
       } else {
-        console.log(`  ✓ ${theme}/${name}.png (${(stats.size / 1024).toFixed(1)} KB)`);
+        // PNG IHDR: width at byte 16, height at byte 20.
+        const head = Buffer.alloc(24);
+        const fd = fs.openSync(file, "r");
+        fs.readSync(fd, head, 0, 24, 0);
+        fs.closeSync(fd);
+        const width = head.readUInt32BE(16);
+        const height = head.readUInt32BE(20);
+        if (width < MIN_WIDTH) {
+          console.error(`  ✗ Thumbnail: ${theme}/${name}.png is ${width}x${height} (min width ${MIN_WIDTH})`);
+          failed = true;
+        } else {
+          console.log(`  ✓ ${theme}/${name}.png ${width}x${height} (${(stats.size / 1024).toFixed(1)} KB)`);
+        }
       }
     }
   }

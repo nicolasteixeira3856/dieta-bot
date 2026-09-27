@@ -52,6 +52,11 @@ export const LIGHT_SCREENS = {
   push: "038a997a4f2247c9a12da72aea01f73c"
 };
 
+// Bare lh3 URLs serve a 226px thumbnail. "=s0" requests the original size.
+function fullSize(url) {
+  return url.replace(/=[^/]*$/, "") + "=s0";
+}
+
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
@@ -95,7 +100,7 @@ export async function exportStitch() {
       throw new Error(`Dark screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
     }
     const dest = path.join(outDark, `${name}.png`);
-    await downloadFile(screen.screenshot.downloadUrl, dest);
+    await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
     console.log(`  ✓ dark/${name}.png (${id})`);
   }
 
@@ -106,7 +111,7 @@ export async function exportStitch() {
       throw new Error(`Light screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
     }
     const dest = path.join(outLight, `${name}.png`);
-    await downloadFile(screen.screenshot.downloadUrl, dest);
+    await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
     console.log(`  ✓ light/${name}.png (${id})`);
   }
 
