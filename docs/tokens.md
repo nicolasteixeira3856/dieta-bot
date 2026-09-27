@@ -15,6 +15,9 @@ dim #5c6570
 gold #e8b86d
 good #7dda9a
 bad #e07a6a
+protein #4ec994
+carbs #e58e42
+fat #e8b86d
 CTA #f3f5f7 on #111111
 
 ## Light
@@ -30,6 +33,9 @@ dim #8b939c
 gold #b8873d
 good #1f8a4c
 bad #c14d40
+protein #1b7a4b
+carbs #c2651e
+fat #b8873d
 CTA #111111 on #f3f5f7
 
 remaining 34pt weight 590

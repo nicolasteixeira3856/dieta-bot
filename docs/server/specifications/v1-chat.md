@@ -2,7 +2,7 @@
 
 ## Estado
 
-Contrato vigente: GET /health, POST /v1/estimate, POST /v1/fit. Timeout 20s. Sem /v1/chat. Sem digest. Foto sem cap de bytes.
+Contrato vigente: GET /health, POST /v1/estimate, POST /v1/fit. Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64). Sem /v1/chat. Sem digest.
 
 ## Contexto e objetivo
 
@@ -100,7 +100,7 @@ messages[].role: `user` | `assistant`. Sem system.
 
 ## Planos relacionados
 
-- [S1](../plans/s1-timeout-photo-cap.md)
+- [S1](../plans/completed/s1-timeout-photo-cap.md)
 - [S2](../plans/s2-v1-chat.md)
 - [S3](../plans/s3-compact.md)
 

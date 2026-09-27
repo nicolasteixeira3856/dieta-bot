@@ -15,7 +15,7 @@ Client nativo. Compose, Room, navegacao, foto, push.
 - Kotlin + Jetpack Compose + Material 3 Expressive.
 - Camada ui / domain / data. Hilt, Navigation Compose, Retrofit, Room.
 - Home, onboarding, sheets, foto. DataStore so como import legado.
-- Visual QA: `docs/qa/android/current/{dark,light}/` vs gold em `docs/qa/wire/`.
+- Visual QA: `docs/qa/android/current/{dark,light}/` vs gold em `docs/qa/stitch/{dark,light}/` (Stitch `Nutri`).
 
 ## Fora de escopo
 
@@ -31,7 +31,7 @@ Client nativo. Compose, Room, navegacao, foto, push.
 
 ## Cobertura documental atual
 
-Sem specifications/ neste contexto. Telas descritas por AGENTS.md + wires + ADR 010/011.
+Sem specifications/ neste contexto. Telas descritas por ADR-012 + Stitch (`docs/qa/stitch/`).
 
 ## Como usar esta documentacao
 

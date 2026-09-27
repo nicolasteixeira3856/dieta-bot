@@ -4,7 +4,7 @@
 - Data: 25/09/2026
 - Contexto proprietario: `server`
 - Codigo afetado: `server/`
-- Pre-requisitos: [s1-timeout-photo-cap.md](s1-timeout-photo-cap.md)
+- Pre-requisitos: [s1-timeout-photo-cap.md](completed/s1-timeout-photo-cap.md)
 
 ## Gate de autorizacao
 

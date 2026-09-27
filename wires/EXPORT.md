@@ -1,4 +1,7 @@
-# Export gold PNGs
+# Export gold PNGs (Legacy Wires)
+
+> [!NOTE]
+> Os wireframes em `wires/` são mantidos apenas para criação inicial de layouts. O **Padrão Ouro de Implementação** oficial do Nutri agora é o Google Stitch (`node tools/export-stitch.mjs` exportando para `docs/qa/stitch/{dark,light}/`).
 
 Wire: wires/nutri-wires-expressive.html
 

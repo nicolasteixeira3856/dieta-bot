@@ -9,7 +9,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 MODEL = "gpt-6-luna"
-TIMEOUT_SECONDS = 20.0
+TIMEOUT_SECONDS = 60.0
+PHOTO_MAX_BYTES = 16 * 1024 * 1024
+PHOTO_MAX_B64_CHARS = 22_400_000
 FALLBACK_QUESTION = "descreve em 1 linha"
 
 _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"

@@ -33,8 +33,9 @@ Home on day 1 has no chip. A chip appears on the 2nd stable log of the window.
 apps/android/     client
 server/           API
 docs/             contract, ADRs, tokens, QA
-wires/            nutri-wires.html
-.grok/skills/     agent skills
+.stitch/          Google Stitch Design System (Nutri)
+wires/            wireframes (layout creation only)
+.agents/skills/   agent skills
 ```
 
 Flutter and React Native left the tree. They live in git history.
@@ -64,5 +65,5 @@ The client uses `API_PUBLIC_URL` + `INVITE_CODE`. Header `X-Invite`. Never `OPEN
 
 Constitution: `AGENTS.md`.
 1 `/goal` = 1 folder.
-UI DONE = emulator screenshot vs wire.
+UI DONE = emulator screenshot vs Stitch gold PNG (`docs/qa/stitch/{dark,light}/`).
 Decision = ADR in `docs/decisions/`.

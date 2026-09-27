@@ -1,7 +1,11 @@
 {
   "name": "dieta-bot-tools",
   "private": true,
-  "description": "Wire PNG export for Visual QA",
+  "description": "Visual QA export tools for Google Stitch and wireframes",
+  "scripts": {
+    "export:stitch": "node export-stitch.mjs",
+    "check:stitch": "node check-stitch.mjs"
+  },
   "dependencies": {
     "playwright": "^1.55.0"
   }

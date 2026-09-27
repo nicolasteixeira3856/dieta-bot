@@ -16,7 +16,7 @@ import httpx
 import httpx2
 
 import main
-from config import FALLBACK_QUESTION
+from config import FALLBACK_QUESTION, TIMEOUT_SECONDS
 
 INVITE = "convite-teste"
 FAKE_KEY = "sk-test-sentinel-not-a-real-key"
@@ -79,8 +79,10 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(request["reasoning"]["effort"], "none")
         self.assertIn(MEAL, captured[0].content.decode())
         timeout = captured[0].extensions["timeout"]
+        self.assertEqual(TIMEOUT_SECONDS, 60.0)
         for part in ("connect", "read", "write", "pool"):
-            self.assertEqual(timeout[part], 20, msg=str(timeout))
+            self.assertEqual(timeout[part], TIMEOUT_SECONDS, msg=str(timeout))
+            self.assertEqual(timeout[part], 60, msg=str(timeout))
 
     async def test_question_only_when_confidence_is_not_high(self) -> None:
         high = {
@@ -122,6 +124,30 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(body["confidence"], "low")
                 self.assertEqual(body["question"], FALLBACK_QUESTION)
                 self.assertEqual(body["question"], "descreve em 1 linha")
+
+    async def test_fit_timeout_and_transport_error_become_fixed_question(self) -> None:
+        for err in (
+            httpx2.TimeoutException("timeout"),
+            httpx2.ConnectError("conexao"),
+        ):
+            with self.subTest(err=type(err).__name__):
+                app = self._app(_explodes(err))
+                async with _client(app) as client:
+                    response = await client.post(
+                        "/v1/fit",
+                        headers={"X-Invite": INVITE},
+                        json={
+                            "mode": "want",
+                            "text": MEAL,
+                            "available_items": [],
+                            "budget": {"kcal": 455, "p": 49},
+                        },
+                    )
+                body = response.json()
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(body["question"], FALLBACK_QUESTION)
+                self.assertEqual(body["question"], "descreve em 1 linha")
+                self.assertFalse(body["fits"])
 
     async def test_photo_enters_the_call_and_does_not_stay_on_disk_or_log(self) -> None:
         sentinel = "IMAGEM-SENTINELA-NAO-PERSISTIR-7f3a"

@@ -45,4 +45,4 @@ IN
 OUT: dish with portions, fits true/false, 1 question, 2 options in surprise mode.
 Never offer a dish that blows the ceiling.
 
-Timeout 20s. Photo is not persisted.
+Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.

@@ -24,19 +24,19 @@ Comportamento visivel do Nutri: job, telas, copy, onboarding, slots, o que entra
 ## Fronteiras e dependencias
 
 - Constituicao vigente: [`AGENTS.md`](../../AGENTS.md).
-- Visual: [`docs/tokens.md`](../tokens.md), [`wires/nutri-wires-expressive.html`](../../wires/nutri-wires-expressive.html), gold em `docs/qa/wire/`.
+- Visual: [`docs/tokens.md`](../tokens.md), Google Stitch (`docs/qa/stitch/{dark,light}/`), wires apenas como referência de criação de layout.
 - Nao duplicar contrato HTTP nem schema. Link.
 
 ## Cobertura documental atual
 
-Fonte hoje: AGENTS.md, tokens, wires, gold PNGs. Sem especificacao viva. Sem plano ativo. Sem ADR local.
+Fonte hoje: AGENTS.md, tokens, Stitch gold PNGs (`docs/qa/stitch/`). Sem especificacao viva. Sem plano ativo. Sem ADR local.
 
 ## Como usar esta documentacao
 
 Segue [docs/sdd/README.md](../sdd/README.md).
 
 1. AGENTS.md
-2. docs/tokens.md e os wires
+2. docs/tokens.md e o Design System Stitch (`.stitch/DESIGN.md`)
 3. este README
 4. [matriz](../README.md)
 

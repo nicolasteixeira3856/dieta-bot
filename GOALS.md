@@ -94,6 +94,6 @@ Client em `apps/rn/`: Expo SDK 57 + TS + Expo Router + NativeWind v4 + React Nat
 
 Os dois clients (`apps/android` e `apps/rn`):
 
-- Visual no emulador igual ao wire (tokens, não "parecido").
+- Visual no emulador igual ao Stitch gold (tokens, não "parecido").
 - User registra a refeição em <15s.
 - TDD das fórmulas verde.

@@ -13,7 +13,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from config import MODEL, load_settings
+from config import MODEL, PHOTO_MAX_B64_CHARS, load_settings
 from llm import LlmClient
 from shaping import fail_estimate, fail_fit, shape_estimate, shape_fit
 
@@ -47,6 +47,14 @@ class FitIn(BaseModel):
     image_b64: str | None = None
 
 
+def reject_photo(image_b64: str | None) -> str | None:
+    if image_b64 is None:
+        return None
+    if len(image_b64) > PHOTO_MAX_B64_CHARS:
+        return "too_large"
+    return None
+
+
 def create_app(transport: httpx2.BaseTransport | None = None) -> FastAPI:
     _configure_logging()
     settings = load_settings()
@@ -75,11 +83,14 @@ def create_app(transport: httpx2.BaseTransport | None = None) -> FastAPI:
         image = body.image_b64
         body.image_b64 = None
         try:
-            payload = llm.estimate_json(user_text=_estimate_text(body), image_b64=image)
-            return shape_estimate(payload)
-        except Exception as exc:
-            _LOG.warning("estimate failed: %s", type(exc).__name__)
-            return fail_estimate()
+            if reject_photo(image) == "too_large":
+                raise HTTPException(status_code=413, detail="photo_too_large")
+            try:
+                payload = llm.estimate_json(user_text=_estimate_text(body), image_b64=image)
+                return shape_estimate(payload)
+            except Exception as exc:
+                _LOG.warning("estimate failed: %s", type(exc).__name__)
+                return fail_estimate()
         finally:
             image = None
 
@@ -92,11 +103,14 @@ def create_app(transport: httpx2.BaseTransport | None = None) -> FastAPI:
         image = body.image_b64
         body.image_b64 = None
         try:
-            payload = llm.fit_json(user_text=_fit_text(body), image_b64=image)
-            return shape_fit(payload, budget_kcal=body.budget.kcal, mode=body.mode)
-        except Exception as exc:
-            _LOG.warning("fit failed: %s", type(exc).__name__)
-            return fail_fit(body.mode)
+            if reject_photo(image) == "too_large":
+                raise HTTPException(status_code=413, detail="photo_too_large")
+            try:
+                payload = llm.fit_json(user_text=_fit_text(body), image_b64=image)
+                return shape_fit(payload, budget_kcal=body.budget.kcal, mode=body.mode)
+            except Exception as exc:
+                _LOG.warning("fit failed: %s", type(exc).__name__)
+                return fail_fit(body.mode)
         finally:
             image = None
 

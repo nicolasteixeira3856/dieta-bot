@@ -1,6 +1,6 @@
 # Plano — S1 timeout 60s + cap 16MB
 
-- Estado: Aguardando aprovacao
+- Estado: Concluido
 - Data: 25/09/2026
 - Contexto proprietario: `server`
 - Codigo afetado: `server/`
@@ -20,8 +20,8 @@ estimate e fit sobrevivem. Timeout passa a 60s. Foto acima do cap e recusada com
 
 ## Fontes de verdade
 
-- [v1-chat.md](../specifications/v1-chat.md) regras 8-10
-- [api-contract.md](../../api-contract.md)
+- [v1-chat.md](../../specifications/v1-chat.md) regras 8-10
+- [api-contract.md](../../../api-contract.md)
 
 ## Escopo de implementacao
 
@@ -63,6 +63,16 @@ estimate e fit sobrevivem. Timeout passa a 60s. Foto acima do cap e recusada com
 2. Teste 413 com `image_b64` de len > `PHOTO_MAX_B64_CHARS` (string fake)
 3. Teste `/v1/estimate` texto "2 paes" ainda 200
 4. `TIMEOUT_SECONDS == 60`
+
+## Validacao executada
+
+1. `python -m unittest tests.test_api tests.test_photo_cap` (cwd `server/`) — 15 tests OK, duas vezes. pytest nao esta no `.venv`.
+2. POST `/v1/estimate` e `/v1/fit` com `image_b64` de len > `PHOTO_MAX_B64_CHARS` → 413 `photo_too_large`, transport fake nao chamado.
+3. POST `/v1/estimate` texto "2 paes" → 200 com kcal.
+4. `TIMEOUT_SECONDS == 60.0`; timeout connect/read/write/pool = 60.
+5. GET `/health` em :8080 duas vezes: `{"ok": true, "model": "gpt-6-luna"}`.
+
+Sem validacao manual pendente.
 
 ## Fora de escopo
 

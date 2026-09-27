@@ -10,7 +10,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A1–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1–S3](server/plans/) aguardando aprovação | `server/tests/` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1](server/plans/completed/s1-timeout-photo-cap.md) concluído; [S2–S3](server/plans/) aguardando aprovação | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -36,19 +36,20 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [S1 timeout + cap 16 MB](server/plans/s1-timeout-photo-cap.md)
-2. [S2 POST /v1/chat](server/plans/s2-v1-chat.md)
-3. [S3 compact digest](server/plans/s3-compact.md)
-4. [A1 Room v2](android/plans/a1-room-v2.md)
-5. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
-6. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
-7. [A4 Home painel](android/plans/a4-home-painel.md)
-8. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
-9. [A6 foto](android/plans/a6-foto.md)
-10. [A7 push](android/plans/a7-push.md)
-11. [A8 memória](android/plans/a8-memoria.md)
+1. [S2 POST /v1/chat](server/plans/s2-v1-chat.md)
+2. [S3 compact digest](server/plans/s3-compact.md)
+3. [A1 Room v2](android/plans/a1-room-v2.md)
+4. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
+5. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
+6. [A4 Home painel](android/plans/a4-home-painel.md)
+7. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
+8. [A6 foto](android/plans/a6-foto.md)
+9. [A7 push](android/plans/a7-push.md)
+10. [A8 memória](android/plans/a8-memoria.md)
 
-Nenhum plano aprovado. Sem código desta refatoração.
+## Planos concluídos
+
+1. [S1 timeout + cap 16 MB](server/plans/completed/s1-timeout-photo-cap.md)
 
 ## Outros docs
 
@@ -59,10 +60,9 @@ Nenhum plano aprovado. Sem código desta refatoração.
 | [TEAM.md](TEAM.md) | time |
 | [HERMES.md](HERMES.md) | troca de modelo no agente de código |
 | [MIGRACAO-VPS.md](MIGRACAO-VPS.md) | migração futura; não executar |
-| [SETUP-WINDOWS.md](SETUP-WINDOWS.md) | toolchain Windows |
-| [qa/](qa/) | gold + capturas |
-| [`../GOALS.md`](../GOALS.md) | G1–G8 histórico. Trabalho novo = plano SDD, depois `/goal` |
-| [`../wires/`](../wires/) | wires |
+| [qa/](qa/) | Stitch gold (`stitch/{dark,light}/`) + capturas (`android/current/`) |
+| [`../.stitch/`](../.stitch/) | Design System oficial Google Stitch (`Nutri`) |
+| [`../wires/`](../wires/) | wires preliminares (criação de layout apenas) |
 
 ## Como começar uma entrega
 
