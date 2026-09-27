@@ -72,6 +72,16 @@ class PromptBuilderTest {
     }
 
     @Test
+    fun `wipe marker restarts the prompt, thread before it is not sent`() {
+        val before = msgs(4)
+        val wiped = ChatMessageEntity(id = 5, date = "2026-09-25", role = "wiped", createdAtEpochMs = 1_005)
+        val after = msgs(2, from = 1_005).map { it.copy(id = it.id + 5) }
+        val turn = PromptBuilder.build(HomeFixtures.home0, before + wiped + after, emptyList(), "oi", now)
+        assertThat(turn.body.messages.map { it.text }).containsExactly("m1", "m2").inOrder()
+        assertThat(turn.body.messages.map { it.role }).doesNotContain("wiped")
+    }
+
+    @Test
     fun `text is capped at 1000 chars`() {
         val body = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x".repeat(1500), now).body
         assertThat(body.text).hasLength(1000)

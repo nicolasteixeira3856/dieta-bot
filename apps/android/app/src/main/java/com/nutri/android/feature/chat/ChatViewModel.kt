@@ -183,7 +183,9 @@ class ChatViewModel @Inject constructor(
         val sorted = all.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
         val items = mutableListOf<ChatItem>()
         var lastDate: String? = null
-        for (m in sorted) {
+        // The wipe marker only cuts the prompt; it is never drawn.
+        val visible = sorted.filter { it.role != DayRepository.ROLE_WIPED }
+        for (m in visible) {
             if (m.date != lastDate) {
                 items += ChatItem.DateSeparator(dateLabel(LocalDate.parse(m.date), today))
                 lastDate = m.date
@@ -217,7 +219,7 @@ class ChatViewModel @Inject constructor(
             }
         }
         val todayIso = today.toString()
-        val emptyDay = sorted.none { it.date == todayIso } && l.pending == null
+        val emptyDay = visible.none { it.date == todayIso } && l.pending == null
         if (emptyDay) {
             if (lastDate != todayIso) items += ChatItem.DateSeparator(dateLabel(today, today))
             items += ChatItem.Greeting(timeOf((l.openedAt ?: now).toEpochMilli()))
@@ -267,7 +269,8 @@ class ChatViewModel @Inject constructor(
     private fun timeOf(epochMs: Long) = Instant.ofEpochMilli(epochMs).atZone(SaoPaulo.zone).format(TIME)
 
     companion object {
-        private val RECEIPTS = setOf("logged", "skipped")
+        /** Rows that close the last estimate: its actions go away. A wipe closes it too. */
+        private val RECEIPTS = setOf("logged", "skipped", DayRepository.ROLE_WIPED)
         private val TIME = DateTimeFormatter.ofPattern("HH:mm")
         private val DAY = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
 

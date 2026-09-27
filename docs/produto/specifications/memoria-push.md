@@ -2,7 +2,7 @@
 
 ## Estado
 
-Sem memória. Foto T1 ≤1280 JPEG 70. Sem push. Sem Config. `DayEntity.workoutKcal` existe sem UI.
+Sem memória. Foto T1 ≤1280 JPEG 70. Sem push. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto.
 
 ## Contexto e objetivo
 
@@ -37,7 +37,7 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 2. Campo “treino hoje” kcal. Null = crédito 0. Some no rollover SP.
 3. Política eat-back 0% / % / 100%.
 4. Alvos P/C/G editáveis.
-5. Mudou teto: diálogo “apaga os logs de hoje?”. Default sim. Confirmar → `wipeToday` (meal_log + skip + digest de hoje). Chat UI fica. Prompt do dia recomeça.
+5. Mudou teto: diálogo “Reiniciar registros de hoje?”. Default sim. Confirmar → `wipeToday` (meal_log + skip + digest de hoje). Cancelar → teto não é salvo. Chat UI fica. Prompt do dia recomeça: `wipeToday` grava em `chat_message` um marcador `wiped` (nunca desenhado, nunca enviado) e o prompt só leva raw depois dele.
 6. Mudou só nome/hora: relabela. Não apaga logs.
 7. Back → Home.
 
@@ -60,7 +60,7 @@ Comportamento: `produto`. Client: `android`.
 
 ## Planos relacionados
 
-- `docs/android/plans/a3-config-wipe-treino.md`
+- [A3 (Concluído)](../../android/plans/completed/a3-config-wipe-treino.md)
 - `docs/android/plans/a6-foto.md`
 - `docs/android/plans/a7-push.md`
 - `docs/android/plans/a8-memoria.md`

@@ -16,6 +16,10 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import com.google.common.truth.Truth.assertWithMessage
 import com.nutri.android.core.database.DaySnapshot
+import com.nutri.android.core.database.MealSlot
+import com.nutri.android.feature.config.ConfigActions
+import com.nutri.android.feature.config.ConfigMapper
+import com.nutri.android.feature.config.ConfigScreen
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.NutriTheme
 import com.nutri.android.feature.chat.ChatFixtures
@@ -145,6 +149,22 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
 
+    /** cfg gold is a full-page capture (936 dp dark, 930 dp light) with the info note near the end. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h936dp-xhdpi")
+    fun cfg_dark() = check("cfg", dark = true, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { Cfg() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
+    fun cfg_light() = check("cfg", dark = false, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { Cfg() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun wipe_dark() = check("wipe", dark = true) { Cfg(wipe = true) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun wipe_light() = check("wipe", dark = false) { Cfg(wipe = true) }
+
+    @Composable private fun Cfg(wipe: Boolean = false) =
+        ConfigScreen(ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(wipeConfirm = wipe), ConfigActions())
+
     @Composable private fun Chat(ui: ChatUiState) =
         ChatScreen(ui, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {})
 
@@ -160,7 +180,14 @@ class StitchGoldTest {
     @Composable private fun O4() = MacrosScreen(GOLD_STATE, {}, {}, {}, {}, {})
 
     /** [navDp] = 0 for bottom sheets: they draw under the nav bar and pad themselves. */
-    private fun check(id: String, dark: Boolean, fullPage: Boolean = false, navDp: Int = NAV_DP, screen: @Composable () -> Unit) {
+    private fun check(
+        id: String,
+        dark: Boolean,
+        fullPage: Boolean = false,
+        navDp: Int = NAV_DP,
+        footerDp: Int = if (fullPage) FOOTER_DP else IGNORE_BOTTOM_DP,
+        screen: @Composable () -> Unit,
+    ) {
         compose.setContent {
             NutriTheme(darkTheme = dark) {
                 Box(Modifier.fillMaxSize().background(LocalPalette.current.phone)) {
@@ -179,7 +206,7 @@ class StitchGoldTest {
         val raw = diff(app, gold, top)
         val appBlur = blur(app)
         val goldBlur = blur(gold)
-        val blurred = diff(appBlur, goldBlur, top, fullPage)
+        val blurred = diff(appBlur, goldBlur, top, footerDp)
         val inkRatio = ink(appBlur, 0).toDouble() / ink(goldBlur, top).coerceAtLeast(1)
         save(blurred.mask, File(DIFF_OUT, "$theme-$id.png"))
         println("GOLD_DIFF $theme/$id blurred ${"%.2f".format(blurred.percent)}% raw ${"%.2f".format(raw.percent)}% ink ${"%.2f".format(inkRatio)}")
@@ -191,13 +218,13 @@ class StitchGoldTest {
     private class Diff(val percent: Double, val mask: Bitmap)
 
     /** Share of compared pixels whose max channel delta exceeds [CHANNEL_TOLERANCE]. */
-    private fun diff(app: Bitmap, gold: Bitmap, goldTop: Int, fullPage: Boolean = false): Diff {
+    private fun diff(app: Bitmap, gold: Bitmap, goldTop: Int, footerDp: Int = IGNORE_BOTTOM_DP): Diff {
         val w = minOf(app.width, gold.width)
         val h = minOf(app.height, gold.height - goldTop)
         val from = STATUS_DP * 2
         // Full-page golds: the fixed FAB/CTA sits at the page bottom without Android nav insets,
         // so the footer is left out (same as tools/diff-gold.mjs).
-        val to = h - (if (fullPage) FOOTER_DP else IGNORE_BOTTOM_DP) * 2
+        val to = h - footerDp * 2
         val mask = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         var differ = 0
         var total = 0
@@ -325,6 +352,16 @@ class StitchGoldTest {
         private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")
         private val DIFF_OUT = File("build/outputs/stitch-gold/diff")
+
+        /** State drawn in the cfg gold: 2000 kcal same, 0% eat-back, 150/200/67, 4 slots, no workout. */
+        val CFG_DAY = HomeFixtures.day().copy(
+            slots = listOf(
+                MealSlot(1, "Café da manhã", 7 * 60 + 30),
+                MealSlot(2, "Almoço", 12 * 60 + 30),
+                MealSlot(3, "Lanche da tarde", 16 * 60),
+                MealSlot(4, "Jantar", 20 * 60),
+            ),
+        )
 
         val GOLD_STATE = OnboardingUiState(
             sex = "male",

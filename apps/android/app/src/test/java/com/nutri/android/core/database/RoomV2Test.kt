@@ -115,7 +115,9 @@ class RoomV2Test {
         assertThat(snap.logs).isEmpty()
         assertThat(snap.skippedSlotIds).isEmpty()
         assertThat(repo.digestsToday()).isEmpty()
-        assertThat(repo.observeMessages().first().map { it.text }).containsExactly("2 ovos")
+        val messages = repo.observeMessages().first()
+        assertThat(messages.filter { it.role == "user" }.map { it.text }).containsExactly("2 ovos")
+        assertThat(messages.map { it.role }).containsExactly("user", DayRepository.ROLE_WIPED).inOrder()
         assertThat(snap.kcalSame).isEqualTo(1900)
         assertThat(snap.sex).isEqualTo("male")
         assertThat(snap.slots.map { it.name }).containsExactly("Janta")
@@ -177,6 +179,32 @@ class RoomV2Test {
         repo.upsertDigest("c")
         val digests = repo.digestsToday()
         assertThat(digests.map { it.seq to it.text }).containsExactly(1 to "c", 2 to "b").inOrder()
+    }
+
+    @Test
+    fun changeCeiling_storesCeilingAndWipesOnlyToday() = runBlocking<Unit> {
+        val repo = repository()
+        repo.saveProfile("same", 1900, 2000, 2300, List(7) { 1900 }, "full", 50, true, "2026-03-14", proteinTargetG = 140)
+        clock.instant = DAY_D.minusSeconds(86_400)
+        repo.addLog("", "ontem", 700, 30, true)
+        clock.instant = DAY_D
+        repo.addLog("", "hoje", 500, 20, true)
+        repo.setWorkout(250)
+        repo.insertMessage("user", "2 ovos")
+
+        repo.changeCeiling("weekdayWeekend", 1900, 1800, 2200, List(7) { 1900 })
+
+        val snap = repo.observeToday().first()
+        assertThat(snap.ceilingMode).isEqualTo("weekdayWeekend")
+        assertThat(snap.kcalWeekday).isEqualTo(1800)
+        assertThat(snap.kcalWeekend).isEqualTo(2200)
+        assertThat(snap.logs).isEmpty()
+        assertThat(snap.eat).isEqualTo("full")
+        assertThat(snap.proteinTargetG).isEqualTo(140)
+        assertThat(snap.onboardingDone).isTrue()
+        assertThat(snap.workoutKcal).isEqualTo(250)
+        assertThat(db.mealLogDao().getByDate("2026-03-14").map { it.text }).containsExactly("ontem")
+        assertThat(repo.observeMessages().first().map { it.role }).containsExactly("user", DayRepository.ROLE_WIPED).inOrder()
     }
 
     @Test

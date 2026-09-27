@@ -141,17 +141,73 @@ class DayRepository @Inject constructor(
         }
     }
 
-    /** Keeps chat_message, profile, slots and workoutKcal. */
+    /**
+     * Keeps chat_message, profile, slots and workoutKcal. Adds a [ROLE_WIPED] marker: the thread
+     * stays on screen, today's prompt restarts after it.
+     */
     suspend fun wipeToday() {
         importOnce()
-        val date = todayIso()
+        withContext(Dispatchers.IO) {
+            db.withTransaction { wipeTodayRows() }
+        }
+    }
+
+    /** Config: a new ceiling restarts today (spec memoria-push, Config rule 5). One transaction. */
+    suspend fun changeCeiling(
+        ceilingMode: String,
+        kcalSame: Int,
+        kcalWeekday: Int,
+        kcalWeekend: Int,
+        kcalDays: List<Int>,
+    ) {
+        importOnce()
+        val days = (kcalDays + List(7) { 2000 }).take(7)
         withContext(Dispatchers.IO) {
             db.withTransaction {
-                db.mealLogDao().deleteByDate(date)
-                db.slotSkipDao().deleteByDate(date)
-                db.dayDigestDao().deleteByDate(date)
+                updateProfile {
+                    it.copy(
+                        ceilingMode = ceilingMode,
+                        kcalSame = kcalSame,
+                        kcalWeekday = kcalWeekday,
+                        kcalWeekend = kcalWeekend,
+                        kcalDays = days,
+                    )
+                }
+                wipeTodayRows()
             }
         }
+    }
+
+    suspend fun saveEatBack(eat: String, pct: Int) {
+        importOnce()
+        withContext(Dispatchers.IO) {
+            db.withTransaction { updateProfile { it.copy(eat = eat, pct = pct) } }
+        }
+    }
+
+    suspend fun saveMacroTargets(proteinG: Int, carbG: Int, fatG: Int) {
+        importOnce()
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                updateProfile { it.copy(proteinTargetG = proteinG, carbTargetG = carbG, fatTargetG = fatG) }
+            }
+        }
+    }
+
+    private suspend fun updateProfile(transform: (ProfileEntity) -> ProfileEntity) {
+        val current = db.profileDao().get() ?: ProfileEntity()
+        db.profileDao().upsert(transform(current).copy(id = 1))
+    }
+
+    private suspend fun wipeTodayRows() {
+        val now = clock.now()
+        val date = SaoPaulo.date(now).toString()
+        db.mealLogDao().deleteByDate(date)
+        db.slotSkipDao().deleteByDate(date)
+        db.dayDigestDao().deleteByDate(date)
+        db.chatMessageDao().insert(
+            ChatMessageEntity(date = date, role = ROLE_WIPED, createdAtEpochMs = now.toEpochMilli()),
+        )
     }
 
     /**
@@ -384,7 +440,10 @@ class DayRepository @Inject constructor(
         )
     }
 
-    private companion object {
-        const val MESSAGE_DAYS = 60
+    companion object {
+        private const val MESSAGE_DAYS = 60
+
+        /** chat_message role written by [wipeToday]. Never rendered, never sent. */
+        const val ROLE_WIPED = "wiped"
     }
 }

@@ -1,0 +1,209 @@
+package com.nutri.android.feature.config
+
+import android.app.Application
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.google.common.truth.Truth.assertThat
+import com.nutri.android.core.database.DayRepository
+import com.nutri.android.core.database.InstantClock
+import com.nutri.android.core.database.MealSlot
+import com.nutri.android.core.database.NutriDatabase
+import java.io.File
+import java.time.Instant
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class, sdk = [34])
+class ConfigViewModelTest {
+    private lateinit var db: NutriDatabase
+    private lateinit var storeScope: CoroutineScope
+    private lateinit var store: DataStore<Preferences>
+    private lateinit var repo: DayRepository
+    private lateinit var vm: ConfigViewModel
+    private val clock = MutableClock(Instant.parse("2026-09-25T18:00:00-03:00"))
+
+    @Before
+    fun setUp() = runBlocking<Unit> {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        val context = ApplicationProvider.getApplicationContext<Application>()
+        db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java).allowMainThreadQueries().build()
+        storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        val file = File(context.cacheDir, "cfg_${System.nanoTime()}.preferences_pb")
+        store = PreferenceDataStoreFactory.create(scope = storeScope, produceFile = { file })
+        repo = DayRepository(db, clock, store)
+        repo.saveProfile("same", 2000, 2000, 2300, List(7) { 2000 }, "partial", 50, true, "2026-09-25")
+        repo.saveSlots(
+            listOf(
+                MealSlot(name = "Café da manhã", minutesFromMidnight = 450),
+                MealSlot(name = "Almoço", minutesFromMidnight = 750),
+                MealSlot(name = "Jantar", minutesFromMidnight = 1200),
+            ),
+        )
+        val cafe = repo.observeToday().first().slots.first().id
+        repo.addLog("", "2 ovos", 380, 22, true, slotId = cafe)
+        repo.insertMessage("user", "2 ovos")
+        vm = ConfigViewModel(repo, clock)
+        awaitUi { it.loaded }
+    }
+
+    @After
+    fun tearDown() {
+        db.close()
+        storeScope.cancel()
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun rows_showStoredProfile() {
+        val ui = vm.uiState.value
+        assertThat(ui.ceilingValue).isEqualTo("2000 kcal")
+        assertThat(ui.ceilingDetail).isEqualTo("Mesmo valor todos os dias")
+        assertThat(ui.eatBackValue).isEqualTo("50%")
+        assertThat(ui.macrosValue).isEqualTo("150g · 200g · 67g")
+        assertThat(ui.slots.map { it.name to it.time })
+            .containsExactly("Café da manhã" to "07:30", "Almoço" to "12:30", "Jantar" to "20:00").inOrder()
+        assertThat(ui.workoutValue).isEqualTo(ConfigMapper.NO_WORKOUT)
+        assertThat(ui.creditKcal).isEqualTo(0)
+    }
+
+    @Test
+    fun ceilingChange_asksFirst_confirmWipesTodayKeepsChatAndProfile() = runBlocking<Unit> {
+        vm.open(ConfigEditor.CEILING)
+        vm.setSame("1800")
+        vm.save()
+        assertThat(vm.uiState.value.wipeConfirm).isTrue()
+        assertThat(vm.uiState.value.editor).isNull()
+        // Nothing stored until confirmed.
+        assertThat(repo.observeToday().first().kcalSame).isEqualTo(2000)
+        assertThat(repo.observeToday().first().logs).hasSize(1)
+
+        vm.confirmWipe()
+        awaitUi { it.ceilingValue == "1800 kcal" && !it.wipeConfirm }
+
+        val day = repo.observeToday().first()
+        assertThat(day.kcalSame).isEqualTo(1800)
+        assertThat(day.logs).isEmpty()
+        assertThat(day.slots).hasSize(3)
+        assertThat(day.eat).isEqualTo("partial")
+        assertThat(repo.observeMessages().first().filter { it.role == "user" }.map { it.text }).containsExactly("2 ovos")
+    }
+
+    @Test
+    fun ceilingChange_cancelDoesNotSaveCeiling() = runBlocking<Unit> {
+        vm.open(ConfigEditor.CEILING)
+        vm.setCeilingMode("weekdayWeekend")
+        vm.setWeekday("1700")
+        vm.save()
+        assertThat(vm.uiState.value.wipeConfirm).isTrue()
+
+        vm.cancelWipe()
+
+        assertThat(vm.uiState.value.wipeConfirm).isFalse()
+        val day = repo.observeToday().first()
+        assertThat(day.ceilingMode).isEqualTo("same")
+        assertThat(day.kcalWeekday).isEqualTo(2000)
+        assertThat(day.logs).hasSize(1)
+        assertThat(repo.observeMessages().first().map { it.role }).doesNotContain(DayRepository.ROLE_WIPED)
+    }
+
+    @Test
+    fun sameCeiling_savesWithoutDialog() = runBlocking<Unit> {
+        vm.open(ConfigEditor.CEILING)
+        vm.save()
+        assertThat(vm.uiState.value.wipeConfirm).isFalse()
+        assertThat(vm.uiState.value.editor).isNull()
+        assertThat(repo.observeToday().first().logs).hasSize(1)
+    }
+
+    @Test
+    fun slotTimeAndName_relabelWithoutWipe() = runBlocking<Unit> {
+        val before = repo.observeToday().first().slots.map { it.id }
+        vm.open(ConfigEditor.SLOTS)
+        vm.setSlotTime(0, 8 * 60)
+        vm.setSlotName(0, "Desjejum")
+        vm.save()
+        assertThat(vm.uiState.value.wipeConfirm).isFalse()
+        awaitUi { it.slots.first().time == "08:00" }
+
+        val day = repo.observeToday().first()
+        assertThat(day.slots.map { it.id }).isEqualTo(before)
+        assertThat(day.slots.first().name).isEqualTo("Desjejum")
+        assertThat(day.logs.single().slotId).isEqualTo(before.first())
+        assertThat(repo.observeMessages().first().map { it.role }).doesNotContain(DayRepository.ROLE_WIPED)
+    }
+
+    @Test
+    fun slotsNeedANameEach() {
+        vm.open(ConfigEditor.SLOTS)
+        vm.setSlotCount(4)
+        assertThat(vm.uiState.value.canSave).isFalse()
+        vm.setSlotName(3, "Ceia")
+        assertThat(vm.uiState.value.canSave).isTrue()
+    }
+
+    @Test
+    fun workout_emptyIsNullAndCreditZero_numberGivesCredit() = runBlocking<Unit> {
+        vm.open(ConfigEditor.WORKOUT)
+        vm.setWorkout("400")
+        vm.save()
+        awaitUi { it.workoutValue == "400 kcal" }
+        assertThat(vm.uiState.value.creditKcal).isEqualTo(200)
+        assertThat(repo.observeToday().first().workoutKcal).isEqualTo(400)
+
+        vm.open(ConfigEditor.WORKOUT)
+        assertThat(vm.uiState.value.draft.workoutField).isEqualTo("400")
+        vm.setWorkout("")
+        vm.save()
+        awaitUi { it.workoutValue == ConfigMapper.NO_WORKOUT }
+        assertThat(vm.uiState.value.creditKcal).isEqualTo(0)
+        assertThat(repo.observeToday().first().workoutKcal).isNull()
+    }
+
+    @Test
+    fun workout_rolloverSaoPauloStartsEmpty() = runBlocking<Unit> {
+        repo.setWorkout(500)
+        clock.instant = Instant.parse("2026-09-26T00:05:00-03:00")
+        val next = repo.observeToday().first()
+        assertThat(next.workoutKcal).isNull()
+    }
+
+    @Test
+    fun eatBackAndMacros_saveWithoutWipe() = runBlocking<Unit> {
+        vm.open(ConfigEditor.EAT_BACK)
+        vm.setEat("full")
+        vm.save()
+        vm.open(ConfigEditor.MACROS)
+        vm.setProtein("160")
+        vm.save()
+        awaitUi { it.eatBackValue == "100%" && it.macrosValue.startsWith("160g") }
+        assertThat(repo.observeToday().first().logs).hasSize(1)
+    }
+
+    private suspend fun awaitUi(predicate: (ConfigUiState) -> Boolean) {
+        withTimeout(5_000) { vm.uiState.first(predicate) }
+    }
+
+    private class MutableClock(var instant: Instant) : InstantClock {
+        override fun now(): Instant = instant
+    }
+}

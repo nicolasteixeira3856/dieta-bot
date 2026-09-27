@@ -258,7 +258,7 @@ private class UnitSuffix(private val unit: String, private val style: SpanStyle)
 }
 
 @Composable
-private fun ModeGroup(mode: String, onMode: (String) -> Unit) {
+internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1") {
     val p = LocalPalette.current
     val items = listOf(
         Triple("same", "Mesma meta todos os dias", "Um valor fixo para a semana inteira."),
@@ -271,7 +271,7 @@ private fun ModeGroup(mode: String, onMode: (String) -> Unit) {
             .clip(RoundedCornerShape(16.dp))
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(16.dp))
-            .testTag("o1-modes"),
+            .testTag("$tag-modes"),
     ) {
         items.forEachIndexed { i, (value, title, body) ->
             val selected = mode == value
@@ -282,7 +282,7 @@ private fun ModeGroup(mode: String, onMode: (String) -> Unit) {
                     .background(if (selected) p.cardSel else p.card)
                     .clickable { onMode(value) }
                     .padding(horizontal = 16.dp, vertical = 16.dp)
-                    .testTag("o1-mode-$value"),
+                    .testTag("$tag-mode-$value"),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
@@ -296,7 +296,7 @@ private fun ModeGroup(mode: String, onMode: (String) -> Unit) {
 }
 
 @Composable
-private fun KcalField(
+internal fun KcalField(
     value: String,
     onChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -420,7 +420,7 @@ fun EatScreen(
 }
 
 @Composable
-private fun EatCard(
+internal fun EatCard(
     selected: Boolean,
     title: String,
     body: String,
@@ -477,7 +477,7 @@ private fun EatCard(
 }
 
 @Composable
-private fun PctField(value: String, onChange: (String) -> Unit) {
+internal fun PctField(value: String, onChange: (String) -> Unit, tag: String = "o2-pct") {
     val p = LocalPalette.current
     BasicTextField(
         value = value,
@@ -486,7 +486,7 @@ private fun PctField(value: String, onChange: (String) -> Unit) {
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         textStyle = TextStyle(fontFamily = Jakarta, fontSize = 22.sp, fontWeight = FontWeight.W700, color = p.text),
         cursorBrush = SolidColor(p.gold),
-        modifier = Modifier.padding(top = 12.dp).testTag("o2-pct"),
+        modifier = Modifier.padding(top = 12.dp).testTag(tag),
         decorationBox = { inner ->
             Row(
                 Modifier
@@ -560,7 +560,7 @@ fun SlotsScreen(
 }
 
 @Composable
-private fun CountStepper(count: Int, onCount: (Int) -> Unit) {
+internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3") {
     val p = LocalPalette.current
     Row(
         Modifier
@@ -569,7 +569,7 @@ private fun CountStepper(count: Int, onCount: (Int) -> Unit) {
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(16.dp))
             .padding(4.dp)
-            .testTag("o3-count"),
+            .testTag("$tag-count"),
     ) {
         (SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS).forEach { n ->
             val selected = n == count
@@ -580,7 +580,7 @@ private fun CountStepper(count: Int, onCount: (Int) -> Unit) {
                     .clip(InnerShape)
                     .background(if (selected) p.segSel else p.card)
                     .clickable { onCount(n) }
-                    .testTag("o3-count-$n"),
+                    .testTag("$tag-count-$n"),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -594,7 +594,7 @@ private fun CountStepper(count: Int, onCount: (Int) -> Unit) {
 }
 
 @Composable
-private fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPickTime: () -> Unit) {
+internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPickTime: () -> Unit, tag: String = "o3") {
     val p = LocalPalette.current
     val field = RoundedCornerShape(12.dp)
     Column(
@@ -604,7 +604,7 @@ private fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPi
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(16.dp))
             .padding(14.dp)
-            .testTag("o3-slot-$index"),
+            .testTag("$tag-slot-$index"),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -614,7 +614,7 @@ private fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPi
                 singleLine = true,
                 textStyle = NutriType.bodyMd.copy(color = p.text),
                 cursorBrush = SolidColor(p.gold),
-                modifier = Modifier.weight(1f).testTag("o3-name-$index"),
+                modifier = Modifier.weight(1f).testTag("$tag-name-$index"),
                 decorationBox = { inner ->
                     Row(
                         Modifier
@@ -644,7 +644,7 @@ private fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPi
                     .border(1.dp, p.line, field)
                     .clickable(onClick = onPickTime)
                     .padding(horizontal = 12.dp)
-                    .testTag("o3-time-$index"),
+                    .testTag("$tag-time-$index"),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -665,7 +665,7 @@ private fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPi
                         .border(1.dp, p.line, CircleShape)
                         .clickable { onName(name) }
                         .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .testTag("o3-chip-$index-$j"),
+                        .testTag("$tag-chip-$index-$j"),
                 )
             }
         }
@@ -682,7 +682,7 @@ private fun bandIcon(minutes: Int): ImageVector = when (SlotSuggestions.bandOf(m
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SlotTimeDialog(minutes: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
+internal fun SlotTimeDialog(minutes: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
     val p = LocalPalette.current
     val state = rememberTimePickerState(initialHour = minutes / 60, initialMinute = minutes % 60, is24Hour = true)
     AlertDialog(
@@ -824,7 +824,7 @@ private fun barShape(i: Int) = when (i) {
 }
 
 @Composable
-private fun MacroCard(
+internal fun MacroCard(
     name: String,
     detail: String,
     value: String,

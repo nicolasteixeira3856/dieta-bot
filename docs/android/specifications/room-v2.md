@@ -26,7 +26,7 @@ Telas, push, foto, `/v1/chat`, arquivo de memória.
 6. `day_digest` PK (`date`,`seq`). seq 1 ou 2. 3º bloco substitui seq=1; blocos seguintes substituem sempre o mais antigo.
 7. `day.workoutKcal` intacto.
 8. TMB Mifflin-St Jeor. Macros 30/40/30.
-9. `wipeToday`: DELETE meal_log, slot_skip, day_digest WHERE date. Preserva chat_message, profile, slots, workoutKcal.
+9. `wipeToday`: DELETE meal_log, slot_skip, day_digest WHERE date. Preserva chat_message, profile, slots, workoutKcal. Insere em chat_message um marcador `role = "wiped"` (A3): o prompt do dia recomeça depois dele. `changeCeiling` = teto novo + wipe na mesma transação.
 10. Snapshot do prompt: date, tetoEfetivo, eaten*, remaining, slots[{name,minutes,status,lines}], workoutKcal.
 
 ## Estados e falhas

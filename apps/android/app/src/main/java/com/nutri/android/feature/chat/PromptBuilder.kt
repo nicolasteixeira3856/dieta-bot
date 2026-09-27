@@ -2,6 +2,7 @@ package com.nutri.android.feature.chat
 
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayDigestEntity
+import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.metaOn
 import com.nutri.android.core.network.ChatDay
@@ -61,11 +62,15 @@ object PromptBuilder {
     /** compact=true request: only the raw block to summarise (spec rule 9). */
     fun compact(turn: Turn): ChatIn = turn.body.copy(compact = true, text = "")
 
-    /** Raw user/assistant messages of today newer than the latest digest. Receipts are UI only. */
+    /**
+     * Raw user/assistant messages of today newer than the latest digest and the latest wipe
+     * (Config ceiling change: the thread stays on screen, the prompt restarts). Receipts are UI only.
+     */
     fun rawSinceDigest(todayMessages: List<ChatMessageEntity>, digests: List<DayDigestEntity>): List<ChatMessageEntity> {
+        val wiped = todayMessages.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
         val cut = digests.maxOfOrNull { it.createdAtEpochMs } ?: Long.MIN_VALUE
         return todayMessages
-            .filter { it.role in ROLES && it.createdAtEpochMs > cut }
+            .filter { it.role in ROLES && it.createdAtEpochMs > cut && (wiped == null || it.id > wiped) }
             .sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
     }
 

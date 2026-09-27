@@ -42,7 +42,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-App no ar: splash, O1, O2, T0, T1 sheet, T2, T3. Chat-como-tela e Config ainda nao tem spec neste contexto.
+App no ar: splash, O1, O2, T0, T1 sheet, T2, T3. Chat ([chat](specifications/chat.md)) e Config ([memoria-push](specifications/memoria-push.md)) no ar.
 
 ## Indice
 

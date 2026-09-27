@@ -44,7 +44,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Client vivo. Room v1: profile, day, meal_log. T1/T3 sheet, T2 rota cheia. Sem tela Chat, sem Config, sem push.
+Client vivo. Room v1: profile, day, meal_log. T1/T3 sheet, T2 rota cheia. Chat (A5) e Config com wipe e treino do dia (A3). Sem push.
 
 ## Indice
 
@@ -65,7 +65,7 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 - [A2 Onboarding perfil (Concluído)](plans/completed/a2-onboarding-perfil.md) (splash + O1..O4 Stitch, gate visual)
 - [A4 Home painel (Concluído)](plans/completed/a4-home-painel.md) (home1 canônica; home0/homeX com conflito de gold)
 - [A5 Chat (Concluído)](plans/completed/a5-chat.md) (chat0..chatG Stitch)
-- [A3 Config + wipe + treino](plans/a3-config-wipe-treino.md) (cfg, wipe Stitch)
+- [A3 Config + wipe + treino (Concluído)](plans/completed/a3-config-wipe-treino.md) (cfg, wipe Stitch)
 - [A8 memoria](plans/a8-memoria.md)
 - [A6 foto](plans/a6-foto.md)
 - [A7 push](plans/a7-push.md)

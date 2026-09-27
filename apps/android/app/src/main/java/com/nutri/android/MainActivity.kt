@@ -35,7 +35,9 @@ import com.nutri.android.feature.splash.SplashScreen
 import com.nutri.android.feature.splash.SplashViewModel
 import com.nutri.android.feature.chat.ChatScreen
 import com.nutri.android.feature.chat.ChatViewModel
-import com.nutri.android.feature.stub.ConfigStubScreen
+import com.nutri.android.feature.config.ConfigActions
+import com.nutri.android.feature.config.ConfigScreen
+import com.nutri.android.feature.config.ConfigViewModel
 import com.nutri.android.feature.t2.T2Screen
 import com.nutri.android.feature.t2.T2ViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -197,7 +199,35 @@ private fun App(captureScreen: String?) {
                     onSkipCancel = vm::cancelSkip,
                 )
             }
-            composable<RouteConfig> { ConfigStubScreen(onBack = { nav.popBackStack() }) }
+            composable<RouteConfig> {
+                val vm: ConfigViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                val actions = remember(vm) {
+                    ConfigActions(
+                        onBack = { nav.popBackStack() },
+                        onOpen = vm::open,
+                        onClose = vm::close,
+                        onSave = vm::save,
+                        onConfirmWipe = vm::confirmWipe,
+                        onCancelWipe = vm::cancelWipe,
+                        onCeilingMode = vm::setCeilingMode,
+                        onSame = vm::setSame,
+                        onWeekday = vm::setWeekday,
+                        onWeekend = vm::setWeekend,
+                        onDay = vm::setDay,
+                        onEat = vm::setEat,
+                        onPct = vm::setPct,
+                        onProtein = vm::setProtein,
+                        onCarb = vm::setCarb,
+                        onFat = vm::setFat,
+                        onSlotCount = vm::setSlotCount,
+                        onSlotName = vm::setSlotName,
+                        onSlotTime = vm::setSlotTime,
+                        onWorkout = vm::setWorkout,
+                    )
+                }
+                ConfigScreen(ui, actions)
+            }
             composable<RouteT2> {
                 val vm: T2ViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
