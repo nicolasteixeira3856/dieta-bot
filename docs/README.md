@@ -9,7 +9,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2](android/plans/completed/) concluídos; [A3–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2, A4](android/plans/completed/) concluídos; [A3, A5–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1, S4, S2](server/plans/completed/) concluídos; [S3](server/plans/) aguardando aprovação | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
@@ -36,13 +36,12 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [A4 Home painel](android/plans/a4-home-painel.md)
-2. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
-3. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
-4. [S3 compact digest](server/plans/s3-compact.md)
-5. [A8 memória](android/plans/a8-memoria.md)
-6. [A6 foto](android/plans/a6-foto.md)
-7. [A7 push](android/plans/a7-push.md)
+1. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
+2. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
+3. [S3 compact digest](server/plans/s3-compact.md)
+4. [A8 memória](android/plans/a8-memoria.md)
+5. [A6 foto](android/plans/a6-foto.md)
+6. [A7 push](android/plans/a7-push.md)
 
 ## Planos concluídos
 
@@ -54,6 +53,7 @@ Ordem de `/goal` depois da frase de aprovação:
 6. [A0 Roborazzi setup (regressão visual)](android/plans/completed/a0-roborazzi-setup.md)
 7. [A1 Room v2](android/plans/completed/a1-room-v2.md)
 8. [A2 Onboarding perfil](android/plans/completed/a2-onboarding-perfil.md)
+9. [A4 Home painel](android/plans/completed/a4-home-painel.md)
 
 ## Outros docs
 

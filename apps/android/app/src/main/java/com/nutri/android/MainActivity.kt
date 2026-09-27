@@ -24,10 +24,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.NutriTheme
-import com.nutri.android.feature.home.HomeCurrentSheet
-import com.nutri.android.feature.home.HomeNavEvent
-import com.nutri.android.feature.home.HomeScreen
-import com.nutri.android.feature.home.HomeViewModel
+import com.nutri.android.feature.home.HomePanelScreen
+import com.nutri.android.feature.home.HomePanelViewModel
 import com.nutri.android.feature.onboarding.CeilingScreen
 import com.nutri.android.feature.onboarding.EatScreen
 import com.nutri.android.feature.onboarding.MacrosScreen
@@ -35,6 +33,8 @@ import com.nutri.android.feature.onboarding.OnboardingViewModel
 import com.nutri.android.feature.onboarding.SlotsScreen
 import com.nutri.android.feature.splash.SplashScreen
 import com.nutri.android.feature.splash.SplashViewModel
+import com.nutri.android.feature.stub.ChatStubScreen
+import com.nutri.android.feature.stub.ConfigStubScreen
 import com.nutri.android.feature.t2.T2Screen
 import com.nutri.android.feature.t2.T2ViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,6 +47,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteSlots
 @Serializable data object RouteMacros
 @Serializable data object RouteHome
+@Serializable data object RouteChat
+@Serializable data object RouteConfig
 @Serializable data object RouteT2
 
 @AndroidEntryPoint
@@ -75,7 +77,7 @@ private fun App(captureScreen: String?) {
     val startDestination: Any = when (captureScreen) {
         "o1", "o2", "o3", "o4" -> RouteOnboarding
         "t2", "t2q" -> RouteT2
-        "t0", "t0d2", "t0fds", "t1", "t1load", "t3quero", "t3tenho", "t3ideia" -> RouteHome
+        "home0", "home1", "homeX" -> RouteHome
         else -> RouteSplash
     }
 
@@ -166,41 +168,17 @@ private fun App(captureScreen: String?) {
                 }
             }
             composable<RouteHome> {
-                val vm: HomeViewModel = hiltViewModel()
+                val vm: HomePanelViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
-
-                LaunchedEffect(Unit) {
-                    vm.navEvents.collect { event ->
-                        when (event) {
-                            is HomeNavEvent.NavigateToT2 -> {
-                                nav.navigate(RouteT2)
-                            }
-                        }
-                    }
-                }
-
-                HomeScreen(
+                HomePanelScreen(
                     ui = ui,
-                    onLog = vm::openLog,
-                    onFit = vm::openFit,
-                    onRemoveChip = {
-                        val chip = ui.chips.firstOrNull()?.window ?: ui.window
-                        vm.removeChip(chip)
-                    },
-                )
-                HomeCurrentSheet(
-                    ui = ui,
-                    onClose = vm::closeSheet,
-                    onText = vm::setLogText,
-                    onPhoto = vm::setPhoto,
-                    onSubmit = vm::submitLog,
-                    onMode = vm::setFitMode,
-                    onFitText = vm::setFitText,
-                    onFit = vm::primaryFitAction,
-                    onAlreadyAte = vm::alreadyAte,
-                    onSelectDish = vm::selectFitDish,
+                    onSkip = vm::skip,
+                    onConfig = { nav.navigate(RouteConfig) },
+                    onChat = { nav.navigate(RouteChat) },
                 )
             }
+            composable<RouteChat> { ChatStubScreen(onBack = { nav.popBackStack() }) }
+            composable<RouteConfig> { ConfigStubScreen(onBack = { nav.popBackStack() }) }
             composable<RouteT2> {
                 val vm: T2ViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()

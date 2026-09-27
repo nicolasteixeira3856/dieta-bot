@@ -55,6 +55,8 @@ data class Palette(
     val segSel: Color = text,
     val onSegSel: Color = ctaText,
     val isDark: Boolean = true,
+    /** Text on the gold FAB. */
+    val onGold: Color = ctaText,
 )
 
 val darkPalette = Palette(
@@ -102,6 +104,7 @@ val lightPalette = Palette(
     segSel = Color(NutriHex.lightSurf),
     onSegSel = Color(NutriHex.lightText),
     isDark = false,
+    onGold = Color(NutriHex.lightSurf),
 )
 
 val LocalPalette = staticCompositionLocalOf { darkPalette }

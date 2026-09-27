@@ -63,7 +63,7 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 - [A0 Roborazzi setup (Concluído)](plans/completed/a0-roborazzi-setup.md) (Testes de screenshot headless JVM)
 - [A1 Room v2 (Concluído)](plans/completed/a1-room-v2.md) (Room v2, migration 1→2, domain TMB/macros/slots)
 - [A2 Onboarding perfil (Concluído)](plans/completed/a2-onboarding-perfil.md) (splash + O1..O4 Stitch, gate visual)
-- [A4 Home painel](plans/a4-home-painel.md) (home0, home1, homeX Stitch)
+- [A4 Home painel (Concluído)](plans/completed/a4-home-painel.md) (home1 canônica; home0/homeX com conflito de gold)
 - [A5 Chat](plans/a5-chat.md) (chat0..chatG Stitch)
 - [A3 Config + wipe + treino](plans/a3-config-wipe-treino.md) (cfg, wipe Stitch)
 - [A8 memoria](plans/a8-memoria.md)

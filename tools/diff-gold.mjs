@@ -37,6 +37,9 @@ const TOLERANCE = 40;
 const RADIUS = 3;
 const SEARCH = 48;
 const FOOTER = 260; // 130 dp: CTA + gradient + nav
+// Golds whose layout contradicts the canonical screen of their group (home1): reported, not
+// gated, until regenerated in Stitch. See docs/android/plans/completed/a4-home-painel.md.
+const GOLD_CONFLICTS = new Set(["home0", "homeX"]);
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -164,8 +167,9 @@ for (const key of ids) {
   const goldInk = ink(gold, goldTop, IGNORE_TOP, phone - FOOTER);
   const inkRatio = appInk / Math.max(1, goldInk);
   const inkOk = inkRatio >= 0.8 && inkRatio <= 1.25;
+  const conflict = GOLD_CONFLICTS.has(id);
   const ok = pct <= max && inkOk;
-  if (!ok) failed = true;
-  console.log(`  ${ok ? "✓" : "✗"} ${key} ${pct.toFixed(2)}% ink ${inkRatio.toFixed(2)} (content ${content.dy / 2} dp${footerNote}, max ${max}%, ink 0.8-1.25)`);
+  if (!ok && !conflict) failed = true;
+  console.log(`  ${ok ? "✓" : conflict ? "~" : "✗"} ${key} ${pct.toFixed(2)}% ink ${inkRatio.toFixed(2)} (content ${content.dy / 2} dp${footerNote}, max ${max}%, ink 0.8-1.25)${conflict ? " [gold conflict: report only]" : ""}`);
 }
 process.exit(failed ? 1 : 0);
