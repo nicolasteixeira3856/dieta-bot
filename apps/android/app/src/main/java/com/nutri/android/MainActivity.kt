@@ -18,16 +18,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.nutri.android.ui.CeilingScreen
-import com.nutri.android.ui.CurrentSheet
-import com.nutri.android.ui.DayViewModel
-import com.nutri.android.ui.EatScreen
-import com.nutri.android.ui.HomeScreen
-import com.nutri.android.ui.LocalPalette
-import com.nutri.android.ui.NutriTheme
-import com.nutri.android.ui.SplashScreen
-import com.nutri.android.ui.Stage
-import com.nutri.android.ui.T2Screen
+import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.designsystem.NutriTheme
+import com.nutri.android.feature.home.HomeCurrentSheet
+import com.nutri.android.feature.home.HomeNavEvent
+import com.nutri.android.feature.home.HomeScreen
+import com.nutri.android.feature.home.HomeViewModel
+import com.nutri.android.feature.onboarding.CeilingScreen
+import com.nutri.android.feature.onboarding.EatScreen
+import com.nutri.android.feature.onboarding.OnboardingViewModel
+import com.nutri.android.feature.splash.SplashScreen
+import com.nutri.android.feature.splash.SplashViewModel
+import com.nutri.android.feature.t2.T2Screen
+import com.nutri.android.feature.t2.T2ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
@@ -53,75 +56,117 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun App(captureScreen: String?) {
-    val vm: DayViewModel = hiltViewModel()
-    val ui by vm.ui.collectAsStateWithLifecycle()
     val nav = rememberNavController()
-    LaunchedEffect(captureScreen) {
-        if (!captureScreen.isNullOrBlank()) vm.openCapture(captureScreen)
+    val startDestination: Any = when (captureScreen) {
+        "o1" -> RouteCeiling
+        "o2" -> RouteEat
+        "t2", "t2q" -> RouteT2
+        "t0", "t0d2", "t0fds", "t1", "t1load", "t3quero", "t3tenho", "t3ideia" -> RouteHome
+        else -> RouteSplash
     }
-    LaunchedEffect(ui.stage) {
-        val route = when (ui.stage) {
-            Stage.SPLASH -> RouteSplash
-            Stage.O1 -> RouteCeiling
-            Stage.O2 -> RouteEat
-            Stage.HOME -> RouteHome
-            Stage.T2 -> RouteT2
-        }
-        nav.navigate(route) {
-            popUpTo(nav.graph.id) { inclusive = true }
-            launchSingleTop = true
-        }
-    }
+
     Box(
         Modifier
             .fillMaxSize()
             .background(LocalPalette.current.bg)
             .semantics { testTagsAsResourceId = true },
     ) {
-        NavHost(navController = nav, startDestination = RouteSplash, modifier = Modifier.fillMaxSize()) {
-            composable<RouteSplash> { SplashScreen(ui, onDone = vm::leaveSplash) }
+        NavHost(
+            navController = nav,
+            startDestination = startDestination,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            composable<RouteSplash> {
+                val vm: SplashViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                val isCapture = captureScreen == "splash"
+                SplashScreen(
+                    capture = isCapture,
+                    onDone = {
+                        val destination: Any = if (ui.onboardingDone) RouteHome else RouteCeiling
+                        nav.navigate(destination) {
+                            popUpTo<RouteSplash> { inclusive = true }
+                        }
+                    },
+                )
+            }
             composable<RouteCeiling> {
+                val vm: OnboardingViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
                 CeilingScreen(
                     ui = ui,
-                    onMode = vm::ceilingMode,
-                    onSame = vm::sameField,
-                    onWeekday = vm::weekdayField,
-                    onWeekend = vm::weekendField,
-                    onDay = vm::dayField,
-                    onContinue = vm::continueO1,
+                    onMode = vm::setCeilingMode,
+                    onSame = vm::setSameField,
+                    onWeekday = vm::setWeekdayField,
+                    onWeekend = vm::setWeekendField,
+                    onDay = vm::setDayField,
+                    onContinue = {
+                        nav.navigate(RouteEat)
+                    },
                 )
             }
             composable<RouteEat> {
-                EatScreen(ui, onEat = vm::eat, onPct = vm::pct, onStart = vm::enter)
+                val vm: OnboardingViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                EatScreen(
+                    ui = ui,
+                    onEat = vm::setEat,
+                    onPct = vm::setPct,
+                    onStart = {
+                        vm.completeOnboarding {
+                            nav.navigate(RouteHome) {
+                                popUpTo<RouteCeiling> { inclusive = true }
+                            }
+                        }
+                    },
+                )
             }
             composable<RouteHome> {
+                val vm: HomeViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+
+                LaunchedEffect(Unit) {
+                    vm.navEvents.collect { event ->
+                        when (event) {
+                            is HomeNavEvent.NavigateToT2 -> {
+                                nav.navigate(RouteT2)
+                            }
+                        }
+                    }
+                }
+
                 HomeScreen(
                     ui = ui,
                     onLog = vm::openLog,
                     onFit = vm::openFit,
-                    onRemoveChip = { vm.removeChip(ui.chips.firstOrNull()?.window ?: ui.window) },
+                    onRemoveChip = {
+                        val chip = ui.chips.firstOrNull()?.window ?: ui.window
+                        vm.removeChip(chip)
+                    },
                 )
-                CurrentSheet(
+                HomeCurrentSheet(
                     ui = ui,
-                    onClose = vm::close,
-                    onText = vm::text,
-                    onPhoto = vm::photo,
+                    onClose = vm::closeSheet,
+                    onText = vm::setLogText,
+                    onPhoto = vm::setPhoto,
                     onSubmit = vm::submitLog,
-                    onMode = vm::fitMode,
-                    onFitText = vm::fitText,
-                    onFit = vm::t3Primary,
+                    onMode = vm::setFitMode,
+                    onFitText = vm::setFitText,
+                    onFit = vm::primaryFitAction,
                     onAlreadyAte = vm::alreadyAte,
                     onSelectDish = vm::selectFitDish,
                 )
             }
             composable<RouteT2> {
+                val vm: T2ViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
                 T2Screen(
                     ui = ui,
-                    onYes = vm::t2Yes,
-                    onRevise = vm::t2Revise,
-                    onDiscard = vm::t2Discard,
-                    onConfirm = vm::confirm,
-                    onUndo = vm::undo,
+                    onYes = { vm.onYes { nav.popBackStack() } },
+                    onRevise = { vm.onRevise { nav.popBackStack() } },
+                    onDiscard = { vm.onDiscard { nav.popBackStack() } },
+                    onConfirm = { vm.confirm { nav.popBackStack() } },
+                    onUndo = { nav.popBackStack() },
                 )
             }
         }

@@ -4,7 +4,7 @@
 - Data: 26/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/`
-- Pré-requisitos: `a0-tokens-expressive.md`
+- Pré-requisitos: [a0-tokens-expressive.md](completed/a0-tokens-expressive.md)
 
 ## Gate de autorização
 

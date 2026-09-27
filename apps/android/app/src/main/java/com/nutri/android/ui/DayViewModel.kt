@@ -2,16 +2,16 @@ package com.nutri.android.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nutri.android.data.BudgetIn
-import com.nutri.android.data.DayRepository
-import com.nutri.android.data.DaySnapshot
-import com.nutri.android.data.DishOut
-import com.nutri.android.data.EstimateGate
-import com.nutri.android.data.EstimateIn
-import com.nutri.android.data.FitIn
-import com.nutri.android.data.FitOut
-import com.nutri.android.data.InstantClock
-import com.nutri.android.data.PhotoCompressor
+import com.nutri.android.core.database.DayRepository
+import com.nutri.android.core.database.DaySnapshot
+import com.nutri.android.core.database.InstantClock
+import com.nutri.android.core.network.BudgetIn
+import com.nutri.android.core.network.DishOut
+import com.nutri.android.core.network.EstimateGate
+import com.nutri.android.core.network.EstimateIn
+import com.nutri.android.core.network.FitIn
+import com.nutri.android.core.network.FitOut
+import com.nutri.android.core.network.PhotoCompressor
 import com.nutri.android.domain.BudgetCalculator
 import com.nutri.android.domain.BudgetInput
 import com.nutri.android.domain.CreditPolicy

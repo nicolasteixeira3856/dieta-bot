@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
 
@@ -73,6 +74,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.material3.android)
     debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
@@ -89,7 +91,7 @@ dependencies {
     implementation(libs.datastore)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)
@@ -101,6 +103,7 @@ dependencies {
     testImplementation(libs.room.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.compose.ui.test.junit4)
 }
 
 kapt {

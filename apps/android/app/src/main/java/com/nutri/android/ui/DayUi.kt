@@ -1,8 +1,8 @@
 package com.nutri.android.ui
 
-import com.nutri.android.data.DishOut
-import com.nutri.android.data.EstimateOut
-import com.nutri.android.data.FitOut
+import com.nutri.android.core.network.DishOut
+import com.nutri.android.core.network.EstimateOut
+import com.nutri.android.core.network.FitOut
 import com.nutri.android.domain.Chip
 
 enum class Stage { SPLASH, O1, O2, HOME, T2 }

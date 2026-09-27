@@ -1,0 +1,219 @@
+package com.nutri.android.feature.home
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.designsystem.NutriCta
+import com.nutri.android.core.designsystem.NutriCtaGhost
+import com.nutri.android.core.designsystem.NutriGroup
+import com.nutri.android.core.designsystem.NutriMeasure
+import com.nutri.android.core.designsystem.TextBox
+import com.nutri.android.core.designsystem.WaitIndicator
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeCurrentSheet(
+    ui: HomeUiState,
+    onClose: () -> Unit,
+    onText: (String) -> Unit,
+    onPhoto: (android.net.Uri) -> Unit,
+    onSubmit: () -> Unit,
+    onMode: (String) -> Unit,
+    onFitText: (String) -> Unit,
+    onFit: () -> Unit,
+    onAlreadyAte: () -> Unit,
+    onSelectDish: (Int) -> Unit,
+) {
+    val sheet = ui.sheet ?: return
+    val p = LocalPalette.current
+    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onClose,
+        sheetState = state,
+        containerColor = p.panel,
+        scrimColor = Color.Black.copy(alpha = 0.46f),
+        shape = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp),
+        dragHandle = {
+            Box(
+                Modifier
+                    .padding(top = 10.dp, bottom = 14.dp)
+                    .size(width = 36.dp, height = 4.dp)
+                    .background(p.line, RoundedCornerShape(99.dp)),
+            )
+        },
+    ) {
+        when (sheet) {
+            HomeSheetKind.T1 -> HomeLogSheet(ui, onText, onPhoto, onSubmit)
+            HomeSheetKind.T3 -> HomeFitSheet(ui, onMode, onFitText, onFit, onAlreadyAte, onSelectDish)
+        }
+    }
+}
+
+@Composable
+private fun HomeLogSheet(
+    ui: HomeUiState,
+    onText: (String) -> Unit,
+    onPhoto: (android.net.Uri) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    val p = LocalPalette.current
+    val picker = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
+        if (uri != null) onPhoto(uri)
+    }
+    Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 22.dp)) {
+        Text("Registrar", color = p.text, fontSize = 18.sp, fontWeight = FontWeight(590))
+        TextBox(
+            value = ui.logText,
+            onChange = onText,
+            placeholder = "2 pães, ovo, café com leite",
+            modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t1-text"),
+        )
+        if (ui.loading) {
+            Column(
+                Modifier.fillMaxWidth().padding(top = 18.dp).testTag("t1-load"),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                WaitIndicator(Modifier.testTag("t1-submit"))
+                Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+        } else {
+            Row(
+                Modifier.padding(top = 12.dp).testTag("t1-photo").clickable {
+                    picker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+                },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
+                    Modifier
+                        .size(56.dp)
+                        .background(p.surf2, RoundedCornerShape(14.dp))
+                        .border(1.dp, p.line, RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("foto", color = p.muted, fontSize = 12.sp)
+                }
+                Text("JPEG 70 · ≤1280", color = p.dim, fontSize = 12.sp)
+            }
+        }
+        NutriCta("Enviar", Modifier.padding(top = 18.dp).testTag("t1-send"), onSubmit)
+    }
+}
+
+@Composable
+private fun HomeFitSheet(
+    ui: HomeUiState,
+    onMode: (String) -> Unit,
+    onFitText: (String) -> Unit,
+    onFit: () -> Unit,
+    onAlreadyAte: () -> Unit,
+    onSelectDish: (Int) -> Unit,
+) {
+    val p = LocalPalette.current
+    val sel = when (ui.fitMode) {
+        "have" -> 1
+        "idea" -> 2
+        else -> 0
+    }
+    Column(Modifier.padding(start = 18.dp, end = 18.dp, bottom = 22.dp).testTag("t3-fit")) {
+        Text("O que cabe agora", color = p.text, fontSize = 18.sp, fontWeight = FontWeight(590))
+        NutriGroup(
+            options = listOf("Quero", "Tenho", "Sem ideia"),
+            selected = sel,
+            onSelect = { onMode(when (it) { 1 -> "have"; 2 -> "idea"; else -> "want" }) },
+            modifier = Modifier.padding(top = 12.dp).testTag("t3-modes"),
+        )
+        if (ui.fitMode != "idea") {
+            TextBox(
+                value = ui.fitText,
+                onChange = onFitText,
+                placeholder = if (ui.fitMode == "want") "lasanha" else "ovo, arroz, alface",
+                modifier = Modifier.padding(top = 12.dp).fillMaxWidth().testTag("t3-text"),
+                lines = 1,
+            )
+        }
+        if (ui.fit != null) {
+            val headline = ui.t3Headline
+            if (ui.fitMode != "idea" && headline != null) {
+                Text(
+                    headline,
+                    color = if (headline.startsWith("Cabe")) p.good else p.bad,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W600,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                val sub = ui.t3Sub
+                if (sub != null) {
+                    Text(sub, color = p.muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+            ui.fitDishes.forEachIndexed { i, dish ->
+                val selected = ui.selectedFitIndex == i
+                val selectable = dish.fits && dish.kcal.toInt() > 0
+                Column(
+                    Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                        .background(p.surf, RoundedCornerShape(NutriMeasure.cardDp.dp))
+                        .border(
+                            1.dp,
+                            if (selected) p.gold else p.line,
+                            RoundedCornerShape(NutriMeasure.cardDp.dp),
+                        )
+                        .clickable(enabled = selectable) { onSelectDish(i) }
+                        .padding(14.dp)
+                        .testTag("t3-dish-$i"),
+                ) {
+                    val line = "${dish.name} · ${dish.kcal.toInt()} kcal · ${dish.p.toInt()} g P"
+                    Text(line, color = if (selected && selectable) p.good else p.text, fontSize = 14.sp)
+                    if (ui.fitMode == "idea") {
+                        Text("preserva a janta", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+            }
+        }
+        if (ui.loading) {
+            Column(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                WaitIndicator(Modifier.testTag("t3-send"))
+                Text("estimando", color = p.dim, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+        } else {
+            NutriCta(
+                ui.t3Cta,
+                Modifier.padding(top = 18.dp).testTag("t3-send"),
+                onFit,
+            )
+            if (ui.fit != null) {
+                NutriCtaGhost(
+                    "Já comi",
+                    Modifier.padding(top = 12.dp).testTag("t3-already"),
+                    onAlreadyAte,
+                )
+            }
+        }
+    }
+}
