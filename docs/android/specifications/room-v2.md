@@ -2,7 +2,7 @@
 
 ## Estado
 
-Room v1: `profile`, `day`, `meal_log`.
+Room v2 vigente desde o [A1](../plans/completed/a1-room-v2.md): `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message`, `day_digest`. Schemas exportados em `apps/android/app/schemas/`.
 
 ## Contexto e objetivo
 
@@ -23,7 +23,7 @@ Telas, push, foto, `/v1/chat`, arquivo de memória.
 3. `meal_log` ganha: `slotId` INT NULL FK ON DELETE SET NULL, `carbs` INT DEFAULT 0, `fat` INT DEFAULT 0, `source` TEXT DEFAULT 'user'. `window` permanece. Segundo Gravar = INSERT (soma).
 4. `slot_skip` PK (`date`,`slotId`). Nunca auto-insert. `addLog` apaga skip. `addSkip` apaga logs do slot+date.
 5. `chat_message`: `date`, `role` user|assistant, `text`, `createdAtEpochMs`, estimate* nullable, `photoPath`. UI 60 d.
-6. `day_digest` PK (`date`,`seq`). seq 1 ou 2. 3º bloco substitui seq=1.
+6. `day_digest` PK (`date`,`seq`). seq 1 ou 2. 3º bloco substitui seq=1; blocos seguintes substituem sempre o mais antigo.
 7. `day.workoutKcal` intacto.
 8. TMB Mifflin-St Jeor. Macros 30/40/30.
 9. `wipeToday`: DELETE meal_log, slot_skip, day_digest WHERE date. Preserva chat_message, profile, slots, workoutKcal.
@@ -40,7 +40,7 @@ Migration 1→2 sem destructive fallback. slotId órfão → “Outros”.
 
 ## Planos relacionados
 
-- `docs/android/plans/a1-room-v2.md`
+- [A1 Room v2 (Concluído)](../plans/completed/a1-room-v2.md)
 
 ## Critérios de aceite funcionais
 

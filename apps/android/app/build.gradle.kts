@@ -114,6 +114,10 @@ kapt {
     correctErrorTypes = true
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 tasks.withType<Test> {
     testLogging {
         events("passed", "failed")

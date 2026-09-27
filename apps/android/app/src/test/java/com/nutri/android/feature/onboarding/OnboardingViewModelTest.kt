@@ -47,8 +47,6 @@ class OnboardingViewModelTest {
         context = ApplicationProvider.getApplicationContext()
         db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java)
             .allowMainThreadQueries()
-            .setQueryExecutor { it.run() }
-            .setTransactionExecutor { it.run() }
             .build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "test_onboarding_${System.nanoTime()}.preferences_pb")

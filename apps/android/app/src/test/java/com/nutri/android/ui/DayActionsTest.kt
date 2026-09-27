@@ -59,8 +59,6 @@ class DayActionsTest {
         context = ApplicationProvider.getApplicationContext()
         db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java)
             .allowMainThreadQueries()
-            .setQueryExecutor { it.run() }
-            .setTransactionExecutor { it.run() }
             .build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "nutri_day_${System.nanoTime()}.preferences_pb")

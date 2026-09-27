@@ -20,7 +20,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun database(@ApplicationContext context: Context): NutriDatabase =
-        Room.databaseBuilder(context, NutriDatabase::class.java, "nutri.db").build()
+        Room.databaseBuilder(context, NutriDatabase::class.java, "nutri.db")
+            .addMigrations(MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton

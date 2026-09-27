@@ -18,4 +18,7 @@ interface MealLogDao {
 
     @Query("DELETE FROM meal_log WHERE date = :date")
     suspend fun deleteByDate(date: String)
+
+    @Query("DELETE FROM meal_log WHERE date = :date AND slotId = :slotId")
+    suspend fun deleteBySlot(date: String, slotId: Long)
 }

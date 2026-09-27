@@ -61,7 +61,7 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 - [A0 refatoracao arquitetural (Concluído)](plans/completed/a0-arch-refactor.md) (Feature-first, eliminacao de Java/kapt, navegacao limpa)
 - [A0 tokens Expressive (Concluído)](plans/completed/a0-tokens-expressive.md) (Tokens semanticos P/C/G, tipografia 34pt, ButtonGroup)
 - [A0 Roborazzi setup (Concluído)](plans/completed/a0-roborazzi-setup.md) (Testes de screenshot headless JVM)
-- [A1 Room v2](plans/a1-room-v2.md) (Room em Kotlin Data Classes + KSP)
+- [A1 Room v2 (Concluído)](plans/completed/a1-room-v2.md) (Room v2, migration 1→2, domain TMB/macros/slots)
 - [A2 Onboarding perfil](plans/a2-onboarding-perfil.md) (O1..O4 Stitch)
 - [A4 Home painel](plans/a4-home-painel.md) (home0, home1, homeX Stitch)
 - [A5 Chat](plans/a5-chat.md) (chat0..chatG Stitch)

@@ -4,7 +4,7 @@
 - Data: 25/09/2026
 - Contexto proprietario: `android`
 - Codigo afetado: `apps/android/`
-- Pre-requisitos: A1 + [A0 Roborazzi](completed/a0-roborazzi-setup.md) + [perfil-onboarding.md](../../produto/specifications/perfil-onboarding.md)
+- Pre-requisitos: [A1](completed/a1-room-v2.md) + [A0 Roborazzi](completed/a0-roborazzi-setup.md) + [perfil-onboarding.md](../../produto/specifications/perfil-onboarding.md)
 
 ## Gate de autorizacao
 
