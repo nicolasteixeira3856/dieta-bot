@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kapt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.roborazzi)
 }
 
 val local = Properties()
@@ -104,6 +105,9 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.rule)
 }
 
 kapt {
@@ -114,4 +118,8 @@ tasks.withType<Test> {
     testLogging {
         events("passed", "failed")
     }
+}
+
+roborazzi {
+    outputDir.set(file("../../../docs/qa/android/current"))
 }

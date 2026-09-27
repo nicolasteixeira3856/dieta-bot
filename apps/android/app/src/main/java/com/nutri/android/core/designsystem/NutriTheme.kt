@@ -182,8 +182,11 @@ object NutriTheme {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    operator fun invoke(content: @Composable () -> Unit) {
-        val dark = isSystemInDarkTheme()
+    operator fun invoke(
+        darkTheme: Boolean = isSystemInDarkTheme(),
+        content: @Composable () -> Unit,
+    ) {
+        val dark = darkTheme
         val palette = if (dark) darkPalette else lightPalette
         CompositionLocalProvider(
             LocalPalette provides palette,

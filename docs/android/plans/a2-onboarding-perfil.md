@@ -4,7 +4,7 @@
 - Data: 25/09/2026
 - Contexto proprietario: `android`
 - Codigo afetado: `apps/android/`
-- Pre-requisitos: A1 + [perfil-onboarding.md](../../produto/specifications/perfil-onboarding.md)
+- Pre-requisitos: A1 + [A0 Roborazzi](completed/a0-roborazzi-setup.md) + [perfil-onboarding.md](../../produto/specifications/perfil-onboarding.md)
 
 ## Gate de autorizacao
 
@@ -12,15 +12,21 @@
 
 ## Objetivo
 
-O1-O4 no lugar de O1-O2. Perfil completo em Room.
+O1-O4 no lugar de O1-O2. Perfil completo em Room. Splash alinhada ao Stitch gold. Primeira comparacao Roborazzi contra gold.
 
 ## Fontes de verdade
 
-- Visual Gold (Stitch): `docs/qa/stitch/dark/{o1,o2,o3,o4}.png` e `docs/qa/stitch/light/{o1,o2,o3,o4}.png`
+- Visual Gold (Stitch): `docs/qa/stitch/dark/{splash,o1,o2,o3,o4}.png` e `docs/qa/stitch/light/{splash,o1,o2,o3,o4}.png`
 - spec perfil-onboarding (slots 2-6, chips por faixa, nunca assume)
 - ADR-012
 
 ## Escopo de implementacao
+
+### 0. Gold em resolucao real + splash
+
+- `tools/export-stitch.mjs` exporta os PNGs gold em resolucao real (hoje 226x512). Re-exportar os 36.
+- Splash segue o gold: layout e copy do Stitch ("Estimativa nutricional, nao substitui consulta medica ou nutricional."). Atualizar `SplashBoot.COPY` e `TokensTest`.
+- Roborazzi compara `splash` contra `docs/qa/stitch/{dark,light}/splash.png`, tolerancia 1%.
 
 ### 1. O1 corpo + teto
 
@@ -51,7 +57,8 @@ O1-O4 no lugar de O1-O2. Perfil completo em Room.
 
 - test O1 27/116/180 male → 2072
 - test O4 2000 → 150/200/67
-- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/{o1,o2,o3,o4}.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/{o1,o2,o3,o4}.png` com diff list aprovada.
+- `node tools/check-stitch.mjs`: 36 gold presentes em resolucao real.
+- Validacao visual Compose vs Stitch Gold: capturas `docs/qa/android/current/{dark,light}/{splash,o1,o2,o3,o4}.png` (Roborazzi + emulador) comparadas contra `docs/qa/stitch/{dark,light}/{splash,o1,o2,o3,o4}.png`, tolerancia 1%, com diff list aprovada.
 
 ## Fora de escopo
 
