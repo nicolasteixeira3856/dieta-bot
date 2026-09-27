@@ -25,7 +25,7 @@ Numbers first. Dry tone. No coach. No slogan.
 
 ## Splash
 
-Cold start ≤2s. Wordmark + gold bar. Copy: “estimativa, não consulta”.
+Cold start ≤2s. Layout and copy follow the Stitch gold `splash.png`.
 Splash is not a freeze. Do not remove it. Do not treat a visible splash as a crash.
 
 ## Formulas
