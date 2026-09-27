@@ -16,7 +16,7 @@ import httpx
 import httpx2
 
 import main
-from config import PHOTO_MAX_B64_CHARS
+from config import DIGEST_MAX_CHARS, PHOTO_MAX_B64_CHARS
 from tests.test_api import (
     FAKE_KEY,
     INVITE,
@@ -57,6 +57,14 @@ def _base_chat_payload(**kwargs: Any) -> dict[str, Any]:
     }
     base.update(kwargs)
     return base
+
+
+def _pairs(n: int) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for i in range(n):
+        out.append({"role": "user", "text": f"comi item {i} no cafe"})
+        out.append({"role": "assistant", "text": f"item {i}: {100 + i} kcal"})
+    return out
 
 
 class ChatTests(unittest.IsolatedAsyncioTestCase):
@@ -156,20 +164,152 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(response.json(), {"detail": "unauthorized"})
                     self.assertEqual(captured, [])
 
-    async def test_chat_compact_true_returns_400(self) -> None:
+    async def test_chat_compact_12_messages_returns_digest(self) -> None:
+        digest = (
+            "Cafe da manha: 2 paes e 2 ovos, 450 kcal, 22 g de proteina. "
+            "Almoco pulado. Jantar ainda vazio."
+        )
         captured: list[httpx2.Request] = []
-        app = self._app(_responds({"reply": "ok"}, captured))
+        app = self._app(_responds({"digest": digest}, captured))
+        messages = _pairs(6)
 
         async with _client(app) as client:
             response = await client.post(
                 "/v1/chat",
                 headers={"X-Invite": INVITE},
-                json=_base_chat_payload(compact=True),
+                json=_base_chat_payload(compact=True, text="", messages=messages),
             )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {"detail": "compact_not_enabled"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertGreater(len(body["digest"]), 20)
+        self.assertEqual(body["reply"], "")
+        self.assertIsNone(body["estimate"])
+        self.assertEqual(body["model"], "gpt-6-luna")
+        self.assertNotIn("messages", body)
+        self.assertEqual(len(captured), 1)
+        sent = json.loads(captured[0].content)
+        prompt = sent["input"][0]["content"][0]["text"]
+        self.assertIn("### CHAT_HISTORY_START", prompt)
+        for m in messages:
+            self.assertIn(m["text"], prompt)
+        # Only the messages are summarised: no profile/day block, digest instructions.
+        self.assertNotIn("PROFILE:", prompt)
+        self.assertIn("Summarise", sent["instructions"])
+
+    async def test_chat_compact_450_kcal_reaches_prompt_and_digest(self) -> None:
+        messages = [
+            {"role": "user", "text": "2 paes e 2 ovos no cafe"},
+            {"role": "assistant", "text": "Deu 450 kcal, 22 g de proteina."},
+            {"role": "user", "text": "grava no cafe"},
+            {"role": "assistant", "text": "Registrado no Cafe da manha: 450 kcal."},
+            {"role": "user", "text": "pulei o almoco"},
+            {"role": "assistant", "text": "Almoco pulado."},
+            {"role": "user", "text": "jantar vai ser leve"},
+            {"role": "assistant", "text": "Sobram 1550 kcal para o dia."},
+        ]
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds({"digest": "Cafe da manha 450 kcal e 22 g P. Almoco pulado."}, captured))
+
+        async with _client(app) as client:
+            response = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(compact=True, text="", messages=messages),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("450", response.json()["digest"])
+        self.assertIn("450 kcal", captured[0].content.decode("utf-8"))
+
+    async def test_chat_compact_without_messages_returns_422(self) -> None:
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds({"digest": "x"}, captured))
+
+        async with _client(app) as client:
+            response = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(compact=True, messages=[]),
+            )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json(), {"detail": "compact_needs_messages"})
         self.assertEqual(captured, [])
+
+    async def test_chat_compact_ignores_photo_and_writes_nothing(self) -> None:
+        sentinel = "FOTO-COMPACT-SENTINELA-4417"
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds({"digest": "Cafe da manha registrado, 450 kcal."}, captured))
+
+        async with _client(app) as client:
+            response = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(compact=True, messages=_pairs(2), image_b64=sentinel),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(captured), 1)
+        raw = captured[0].content.decode("utf-8")
+        self.assertNotIn(sentinel, raw)
+        self.assertNotIn("input_image", raw)
+        self.assertNotIn(sentinel, response.text)
+        _assert_not_on_disk(sentinel)
+
+    async def test_chat_compact_long_digest_is_capped(self) -> None:
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds({"digest": "a" * 5000}, captured))
+
+        async with _client(app) as client:
+            response = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(compact=True, messages=_pairs(1)),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["digest"]), DIGEST_MAX_CHARS)
+
+    async def test_chat_compact_model_failure_is_fail_soft_without_digest(self) -> None:
+        for handler in (
+            _explodes(httpx2.ConnectError("conectar falhou")),
+            _responds({"digest": ""}, []),
+            _responds({"reply": "sem digest"}, []),
+        ):
+            app = self._app(handler)
+            async with _client(app) as client:
+                response = await client.post(
+                    "/v1/chat",
+                    headers={"X-Invite": INVITE},
+                    json=_base_chat_payload(compact=True, messages=_pairs(1)),
+                )
+            with self.subTest(handler=handler):
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(
+                    response.json(),
+                    {"reply": "", "estimate": None, "digest": None, "model": "gpt-6-luna"},
+                )
+
+    async def test_chat_compact_false_keeps_s2_behaviour(self) -> None:
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds({"reply": "ok", "estimate": None, "digest": None}, captured))
+
+        async with _client(app) as client:
+            response = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(compact=False, messages=_pairs(1), digests=["resumo anterior"]),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["reply"], "ok")
+        raw = json.loads(captured[0].content)
+        prompt = raw["input"][0]["content"][0]["text"]
+        self.assertIn("PROFILE:", prompt)
+        self.assertIn("DIGESTS:", prompt)
+        self.assertIn("resumo anterior", prompt)
+        self.assertNotIn("Summarise", raw["instructions"])
 
     async def test_chat_photo_over_cap_returns_413_and_skips_model(self) -> None:
         too_big = "x" * (PHOTO_MAX_B64_CHARS + 1)

@@ -17,6 +17,8 @@ RATE_LIMIT_ESTIMATE = "30/minute"
 RATE_LIMIT_FIT = "30/minute"
 RATE_LIMIT_CHAT = "30/minute"
 FALLBACK_QUESTION = "descreve em 1 linha"
+# Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
+DIGEST_MAX_CHARS = 1600
 
 _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
 

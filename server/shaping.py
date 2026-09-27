@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from config import FALLBACK_QUESTION, MODEL
+from config import DIGEST_MAX_CHARS, FALLBACK_QUESTION, MODEL
 
 
 def shape_estimate(payload: dict[str, Any]) -> dict[str, Any]:
@@ -148,6 +148,29 @@ def shape_chat(
 def fail_chat() -> dict[str, Any]:
     return {
         "reply": "nao deu pra estimar",
+        "estimate": None,
+        "digest": None,
+        "model": MODEL,
+    }
+
+
+def shape_digest(payload: dict[str, Any]) -> dict[str, Any]:
+    """compact=true OUT: digest only. reply "", estimate null."""
+    raw = payload.get("digest")
+    if not isinstance(raw, str) or not raw.strip():
+        raise ValueError("digest missing")
+    return {
+        "reply": "",
+        "estimate": None,
+        "digest": raw.strip()[:DIGEST_MAX_CHARS],
+        "model": MODEL,
+    }
+
+
+def fail_digest() -> dict[str, Any]:
+    """Fail-soft compact: no digest. The client keeps its raw messages."""
+    return {
+        "reply": "",
         "estimate": None,
         "digest": None,
         "model": MODEL,

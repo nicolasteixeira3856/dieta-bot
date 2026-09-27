@@ -2,7 +2,7 @@
 
 ## Estado
 
-Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`, compact desligado até o S3.
+Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. O server aceita `compact=true` desde o S3; no client o compact segue desligado (`PromptBuilder.COMPACT_ENABLED = false`) até um plano android ligá-lo.
 
 ## Contexto e objetivo
 
@@ -54,7 +54,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A5 (Concluído)](../../android/plans/completed/a5-chat.md)
 - `docs/android/plans/a6-foto.md`
 - `docs/server/plans/completed/s2-v1-chat.md`
-- `docs/server/plans/s3-compact.md`
+- [S3 (Concluído)](../../server/plans/completed/s3-compact.md)
 
 ## Critérios de aceite funcionais
 

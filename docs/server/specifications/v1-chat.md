@@ -2,7 +2,7 @@
 
 ## Estado
 
-Contrato vigente: GET /health, POST /v1/estimate, POST /v1/fit. Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64). Sem /v1/chat. Sem digest.
+Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
 
 ## Contexto e objetivo
 
@@ -37,7 +37,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
    - digest: string ou null
    - model: gpt-6-luna
 6. suggested_slot = id de um slot do profile.slots. Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id.
-7. compact=true: Luna recebe so as messages e devolve digest ≤400 tokens, pt-BR, com kcal/P citados se existirem nas falas. reply pode ser "".
+7. compact=true: Luna recebe so as messages (delimitadas, sem foto) e devolve digest ≤400 tokens (corte em 1600 chars), pt-BR, fatos (comida, kcal/P citados nas falas, slot, pulou), sem conselho. OUT: reply "", estimate null. messages vazio → 422 `compact_needs_messages` sem chamar a Luna. Falha → 200 com digest null.
 8. Foto: data:image/jpeg;base64. HEIC nao entra no server — client converte.
 9. Recusar image_b64 maior que o cap ANTES do LLM. Nao logar o base64.
 10. Falha LLM/timeout: reply curto "nao deu pra estimar", estimate=null. Sem stacktrace.
@@ -102,7 +102,7 @@ messages[].role: `user` | `assistant`. Sem system.
 
 - [S1](../plans/completed/s1-timeout-photo-cap.md)
 - [S2](../plans/completed/s2-v1-chat.md)
-- [S3](../plans/s3-compact.md)
+- [S3 (Concluido)](../plans/completed/s3-compact.md)
 
 ## Criterios de aceite funcionais
 

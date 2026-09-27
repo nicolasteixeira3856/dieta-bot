@@ -84,7 +84,7 @@ Constraints:
 - `messages` max 12 items, roles: `user` | `assistant`.
 - `digests` max 2 items.
 - `text` max 1000 characters.
-- `compact`: `false` in S2. `compact: true` returns HTTP 400 `{"detail": "compact_not_enabled"}` (enabled in S3).
+- `compact`: `false` = normal chat turn. `true` = summarise `messages` (S3), see below.
 
 OUT
 ```json
@@ -113,3 +113,20 @@ OUT
 - `model`: always `gpt-6-luna`.
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.
+
+### compact=true (S3)
+
+Same IN. Only `messages` go to the model (no profile, day, digests, text or photo; `image_b64` is ignored). `messages` empty → HTTP 422 `{"detail":"compact_needs_messages"}`, model not called.
+
+OUT
+```json
+{
+  "reply": "",
+  "estimate": null,
+  "digest": "Cafe da manha: 2 paes e 2 ovos, 450 kcal e 22 g de proteina. Almoco pulado.",
+  "model": "gpt-6-luna"
+}
+```
+- `digest`: pt-BR prose, facts only (foods, kcal/P as stated, slot, skips), no advice. ≤ 400 tokens (capped at 1600 characters).
+- Model failure/timeout or empty digest: HTTP 200 with `"digest": null` (fail-soft). The client keeps its raw messages.
+- Stateless: the server returns the text; the client stores it (`day_digest`).

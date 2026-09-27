@@ -26,7 +26,16 @@ from config import (
     load_settings,
 )
 from llm import LlmClient
-from shaping import fail_chat, fail_estimate, fail_fit, shape_chat, shape_estimate, shape_fit
+from shaping import (
+    fail_chat,
+    fail_digest,
+    fail_estimate,
+    fail_fit,
+    shape_chat,
+    shape_digest,
+    shape_estimate,
+    shape_fit,
+)
 
 _LOG = logging.getLogger("nutri")
 _LOG_READY = False
@@ -225,7 +234,7 @@ def create_app(
     ) -> dict[str, Any]:
         _require_invite(x_invite, app.state.invite_code)
         if body.compact:
-            raise HTTPException(status_code=400, detail="compact_not_enabled")
+            return _compact(body)
         image = body.image_b64
         body.image_b64 = None
         try:
@@ -243,7 +252,23 @@ def create_app(
         finally:
             image = None
 
+    def _compact(body: ChatIn) -> dict[str, Any]:
+        # Photo is ignored in compact: it never reaches the summary call.
+        body.image_b64 = None
+        if not body.messages:
+            raise HTTPException(status_code=422, detail="compact_needs_messages")
+        try:
+            payload = llm.digest_json(history_text=_history_text(body))
+            return shape_digest(payload)
+        except Exception as exc:
+            _LOG.warning("compact failed: %s", type(exc).__name__)
+            return fail_digest()
+
     return app
+
+
+def _history_text(body: ChatIn) -> str:
+    return "\n".join(f"{m.role}: {m.text}" for m in body.messages)
 
 
 def _require_invite(received: str | None, expected: str) -> None:

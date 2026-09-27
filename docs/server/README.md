@@ -37,7 +37,7 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 ## Cobertura documental atual
 
 Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md) e [S2](plans/completed/s2-v1-chat.md) concluidos. [S3](plans/s3-compact.md) aguarda aprovacao.
+[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md) e [S3](plans/completed/s3-compact.md) concluidos.
 
 ## Como usar esta documentacao
 
@@ -50,7 +50,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. Sem digest (compact_not_enabled ate S3).
+Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. `compact=true` devolve digest (S3). O client ainda tem o compact desligado (`PromptBuilder.COMPACT_ENABLED = false`) ate um plano android ligar.
 
 Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
@@ -70,5 +70,5 @@ Nenhum ADR local. Historico: [001](../decisions/001-monorepo.md), [007](../decis
 - [S1 concluido](plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16 MB.
 - [S4 concluido](plans/completed/s4-security-hardening.md) — hardening de seguranca (rate limiting, constant time auth, payload limit).
 - [S2 concluido](plans/completed/s2-v1-chat.md) — POST /v1/chat.
-- [S3](plans/s3-compact.md) aguardando aprovacao — compact digest.
+- [S3 concluido](plans/completed/s3-compact.md) — compact digest.
 - Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`.
