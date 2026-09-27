@@ -75,7 +75,7 @@ class PhotoCapTests(unittest.IsolatedAsyncioTestCase):
                             json=payload,
                         )
                     self.assertEqual(response.status_code, 413)
-                    self.assertEqual(response.json(), {"detail": "photo_too_large"})
+                    self.assertIn(response.json()["detail"], ("photo_too_large", "payload_too_large"))
                     self.assertEqual(captured, [])
                     self.assertNotIn(too_big, response.text)
                     self.assertNotIn(FAKE_KEY, response.text)

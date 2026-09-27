@@ -4,7 +4,7 @@
 - Data: 25/09/2026
 - Contexto proprietario: `server`
 - Codigo afetado: `server/`
-- Pre-requisitos: [s2-v1-chat.md](s2-v1-chat.md)
+- Pre-requisitos: [s2-v1-chat.md](completed/s2-v1-chat.md)
 
 ## Gate de autorizacao
 

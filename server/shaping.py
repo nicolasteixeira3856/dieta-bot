@@ -74,6 +74,93 @@ def fail_fit(mode: str) -> dict[str, Any]:
     return body
 
 
+def shape_chat(
+    payload: dict[str, Any],
+    *,
+    valid_slot_ids: set[str] | list[str] | None = None,
+) -> dict[str, Any]:
+    valid_ids = set(valid_slot_ids) if valid_slot_ids else set()
+
+    reply = payload.get("reply")
+    if not isinstance(reply, str) or not reply.strip():
+        reply = "nao deu pra estimar"
+    else:
+        reply = reply.strip()
+
+    raw_estimate = payload.get("estimate")
+    estimate: dict[str, Any] | None = None
+    if isinstance(raw_estimate, dict):
+        try:
+            confidence = _confidence(raw_estimate.get("confidence"))
+        except (TypeError, ValueError):
+            confidence = "medium"
+
+        raw_slot = raw_estimate.get("suggested_slot")
+        suggested_slot = (
+            str(raw_slot).strip()
+            if isinstance(raw_slot, str) and str(raw_slot).strip() in valid_ids
+            else None
+        )
+
+        raw_items = raw_estimate.get("items")
+        items = []
+        if isinstance(raw_items, list):
+            for it in raw_items:
+                if isinstance(it, dict):
+                    items.append(_item(it))
+
+        question = raw_estimate.get("question")
+        if confidence != "high":
+            clean_question = (
+                question.strip()
+                if isinstance(question, str) and question.strip()
+                else FALLBACK_QUESTION
+            )
+        else:
+            clean_question = None
+
+        estimate = {
+            "kcal": _number_or_zero(raw_estimate.get("kcal")),
+            "p": _number_or_zero(raw_estimate.get("p")),
+            "c": _number_or_zero(raw_estimate.get("c")),
+            "g": _number_or_zero(raw_estimate.get("g")),
+            "confidence": confidence,
+            "question": clean_question,
+            "items": items,
+            "suggested_slot": suggested_slot,
+        }
+
+    raw_digest = payload.get("digest")
+    digest = (
+        raw_digest.strip()
+        if isinstance(raw_digest, str) and raw_digest.strip()
+        else None
+    )
+
+    return {
+        "reply": reply,
+        "estimate": estimate,
+        "digest": digest,
+        "model": MODEL,
+    }
+
+
+def fail_chat() -> dict[str, Any]:
+    return {
+        "reply": "nao deu pra estimar",
+        "estimate": None,
+        "digest": None,
+        "model": MODEL,
+    }
+
+
+def _number_or_zero(value: Any) -> int | float:
+    try:
+        return _number(value)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _confidence(value: Any) -> str:
     if not isinstance(value, str):
         raise TypeError("confidence missing")
@@ -123,7 +210,7 @@ def _item(raw: Any) -> dict[str, Any]:
     if not isinstance(raw, dict):
         raise TypeError("invalid item")
     name = raw.get("name", raw.get("nome"))
-    return {"name": str(name), "g": _number(raw.get("g")), "kcal": _number(raw.get("kcal"))}
+    return {"name": str(name or ""), "g": _number_or_zero(raw.get("g")), "kcal": _number_or_zero(raw.get("kcal"))}
 
 
 def _option(raw: Any, budget_kcal: float) -> dict[str, Any]:

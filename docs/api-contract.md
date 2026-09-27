@@ -1,7 +1,12 @@
-# HTTP contract — /v1/estimate and /v1/fit
+# HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat
 
-Auth: header `X-Invite: $INVITE_CODE`
+Auth: header `X-Invite: $INVITE_CODE` (constant-time validation, HTTP 401 `{"detail": "unauthorized"}` if missing or mismatch).
 Content-Type: application/json
+
+Rate limits: 30 req/minute per IP + invite on `/v1/estimate`, `/v1/fit`, and `/v1/chat`. Returns HTTP 429 `{"detail": "rate_limit_exceeded"}` when limit is exceeded.
+Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length` > 20 MB (20,971,520 bytes) enforced at the ASGI layer.
+Field lengths: `text` field in `/v1/estimate`, `/v1/fit`, and `/v1/chat` has a maximum length of 1,000 characters. Returns HTTP 422 when exceeded.
+Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as meal data.
 
 The server does not compute the ceiling. The app sends the budget on /fit.
 
@@ -44,5 +49,67 @@ IN
 ```
 OUT: dish with portions, fits true/false, 1 question, 2 options in surprise mode.
 Never offer a dish that blows the ceiling.
+
+## POST /v1/chat
+IN
+```json
+{
+  "local_time": "2026-09-25T21:10:00-03:00",
+  "profile": {
+    "ceiling_kcal": 2000,
+    "p_target": 160,
+    "c_target": 200,
+    "g_target": 67,
+    "eat_back": "zero",
+    "slots": [{"id": "cafe", "name": "Cafe da manha", "time": "08:00"}]
+  },
+  "memory": "",
+  "day": {
+    "date": "2026-09-25",
+    "eaten_kcal": 0,
+    "eaten_p": 0,
+    "eaten_c": 0,
+    "eaten_g": 0,
+    "workout_kcal": null,
+    "slots": [{"id": "cafe", "status": "empty"}]
+  },
+  "digests": [],
+  "messages": [],
+  "text": "2 paes e 2 ovos",
+  "image_b64": null,
+  "compact": false
+}
+```
+Constraints:
+- `messages` max 12 items, roles: `user` | `assistant`.
+- `digests` max 2 items.
+- `text` max 1000 characters.
+- `compact`: `false` in S2. `compact: true` returns HTTP 400 `{"detail": "compact_not_enabled"}` (enabled in S3).
+
+OUT
+```json
+{
+  "reply": "Otima escolha para o cafe da manha.",
+  "estimate": {
+    "kcal": 450,
+    "p": 22,
+    "c": 48,
+    "g": 18,
+    "confidence": "high",
+    "question": null,
+    "items": [
+      {"name": "pao", "g": 100, "kcal": 270},
+      {"name": "ovo", "g": 100, "kcal": 180}
+    ],
+    "suggested_slot": "cafe"
+  },
+  "digest": null,
+  "model": "gpt-6-luna"
+}
+```
+- `estimate`: `null` if the user message is not food (e.g. general question, greeting, explanation).
+- `suggested_slot`: matched against existing IDs in `profile.slots`. If the model suggests any other slot, it is discarded to `null`.
+- `question`: exists only if `confidence != high`.
+- `model`: always `gpt-6-luna`.
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.

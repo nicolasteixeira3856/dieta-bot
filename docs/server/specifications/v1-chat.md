@@ -95,13 +95,13 @@ messages[].role: `user` | `assistant`. Sem system.
 
 ## Decisoes relacionadas
 
-- [ADR-012](../produto/adrs/ADR-012-chat-home-perfil.md)
-- [api-contract.md](../api-contract.md) ate S2 atualizar
+- [ADR-012](../../produto/adrs/ADR-012-chat-home-perfil.md)
+- [api-contract.md](../../api-contract.md) ate S2 atualizar
 
 ## Planos relacionados
 
 - [S1](../plans/completed/s1-timeout-photo-cap.md)
-- [S2](../plans/s2-v1-chat.md)
+- [S2](../plans/completed/s2-v1-chat.md)
 - [S3](../plans/s3-compact.md)
 
 ## Criterios de aceite funcionais

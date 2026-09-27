@@ -12,6 +12,10 @@ MODEL = "gpt-6-luna"
 TIMEOUT_SECONDS = 60.0
 PHOTO_MAX_BYTES = 16 * 1024 * 1024
 PHOTO_MAX_B64_CHARS = 22_400_000
+MAX_BODY_BYTES = 20 * 1024 * 1024
+RATE_LIMIT_ESTIMATE = "30/minute"
+RATE_LIMIT_FIT = "30/minute"
+RATE_LIMIT_CHAT = "30/minute"
 FALLBACK_QUESTION = "descreve em 1 linha"
 
 _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
