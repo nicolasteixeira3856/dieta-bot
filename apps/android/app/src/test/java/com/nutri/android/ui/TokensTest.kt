@@ -126,7 +126,7 @@ class TokensTest {
     fun splashIsBootNotFreeze() {
         assertThat(SplashBoot.DELAY_MS).isAtMost(SplashBoot.MAX_MS)
         assertThat(SplashBoot.MAX_MS).isEqualTo(2000L)
-        assertThat(SplashBoot.COPY).isEqualTo("estimativa, não consulta")
+        assertThat(SplashBoot.COPY).isEqualTo("Estimativa nutricional, não substitui consulta médica ou nutricional.")
         assertThat(SplashBoot.WORDMARK).isEqualTo("Nutri")
     }
 }

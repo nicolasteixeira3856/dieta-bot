@@ -20,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -64,36 +65,133 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun defaultsAndMutations() = runBlocking {
-        val repo = DayRepository(db, clock, store)
-        val vm = OnboardingViewModel(repo, clock)
+    fun o1_tmbPrefillsCeilingUntilEdited() = runBlocking<Unit> {
+        val vm = loadedVm()
+        assertThat(vm.uiState.value.suggestedCeiling).isNull()
+        assertThat(vm.uiState.value.o1Valid).isFalse()
 
-        assertThat(vm.uiState.value.ceilingMode).isEqualTo("same")
+        vm.setSex("male")
+        vm.setAge("27")
+        vm.setHeight("180")
+        vm.setWeight("116")
+        assertThat(vm.uiState.value.suggestedCeiling).isEqualTo(2160)
+        assertThat(vm.uiState.value.sameField).isEqualTo("2160")
+        assertThat(vm.uiState.value.o1Valid).isTrue()
+
+        vm.setSameField("2000")
+        vm.setWeight("100")
+        assertThat(vm.uiState.value.suggestedCeiling).isEqualTo(2000) // 10*100+1125-135+5 = 1995 -> 2000
         assertThat(vm.uiState.value.sameField).isEqualTo("2000")
 
+        vm.setAge("")
+        assertThat(vm.uiState.value.suggestedCeiling).isNull()
+        vm.setSameField("0")
+        assertThat(vm.uiState.value.o1Valid).isFalse()
+    }
+
+    @Test
+    fun o3_countKeepsNamesAndRequiresAllNames() = runBlocking<Unit> {
+        val vm = loadedVm()
+        assertThat(vm.uiState.value.slots.map { it.minutes }).containsExactly(450, 750, 960, 1200).inOrder()
+        assertThat(vm.uiState.value.slots.all { it.name.isEmpty() }).isTrue()
+        assertThat(vm.uiState.value.o3Valid).isFalse()
+
+        vm.setSlotName(0, "Café da manhã")
+        vm.setSlotCount(6)
+        assertThat(vm.uiState.value.slots).hasSize(6)
+        assertThat(vm.uiState.value.slots[0].name).isEqualTo("Café da manhã")
+        assertThat(vm.uiState.value.slots[5].minutes).isEqualTo(22 * 60 + 30)
+
+        vm.setSlotCount(9)
+        assertThat(vm.uiState.value.slots).hasSize(6)
+        vm.setSlotCount(2)
+        assertThat(vm.uiState.value.slots).hasSize(2)
+        // Row 0 was named (kept); row 1 was untouched and takes the 2-meal default (20:00).
+        assertThat(vm.uiState.value.slots.map { it.minutes }).containsExactly(450, 1200).inOrder()
+        vm.setSlotName(1, "  ")
+        assertThat(vm.uiState.value.o3Valid).isFalse()
+        vm.setSlotName(1, "Janta")
+        vm.setSlotTime(1, 20 * 60 + 15)
+        assertThat(vm.uiState.value.o3Valid).isTrue()
+        assertThat(vm.uiState.value.slots[1].minutes).isEqualTo(1215)
+    }
+
+    @Test
+    fun o4_prefillsSplitOfDay1CeilingUnlessEdited() = runBlocking<Unit> {
+        val vm = loadedVm()
         vm.setCeilingMode("weekdayWeekend")
-        vm.setWeekdayField("1900")
-        vm.setWeekendField("2200")
+        vm.setWeekdayField("1800")
+        vm.setWeekendField("2400")
+        vm.enterMacros() // 2026-03-16 is a Monday -> weekday
+        assertThat(vm.uiState.value.day1Ceiling).isEqualTo(1800)
+        assertThat(listOf(vm.uiState.value.proteinField, vm.uiState.value.carbField, vm.uiState.value.fatField))
+            .containsExactly("135", "180", "60").inOrder()
+
+        vm.setProtein("170")
+        vm.setWeekdayField("2000")
+        vm.enterMacros()
+        assertThat(vm.uiState.value.day1Ceiling).isEqualTo(2000)
+        assertThat(vm.uiState.value.proteinField).isEqualTo("170")
+        assertThat(vm.uiState.value.carbField).isEqualTo("180")
+    }
+
+    @Test
+    fun complete_persistsProfileAndSlots_andSurvivesRestart() = runBlocking<Unit> {
+        val repo = DayRepository(db, clock, store)
+        val vm = loadedVm(repo)
+        vm.setSex("male")
+        vm.setAge("27")
+        vm.setHeight("180")
+        vm.setWeight("116")
         vm.setEat("partial")
         vm.setPct("40")
-
-        assertThat(vm.uiState.value.ceilingMode).isEqualTo("weekdayWeekend")
-        assertThat(vm.uiState.value.weekdayField).isEqualTo("1900")
-        assertThat(vm.uiState.value.weekendField).isEqualTo("2200")
-        assertThat(vm.uiState.value.eat).isEqualTo("partial")
-        assertThat(vm.uiState.value.pct).isEqualTo("40")
+        vm.setSlotCount(3)
+        vm.setSlotName(0, "Café")
+        vm.setSlotName(1, "Almoço")
+        vm.setSlotName(2, "Janta")
+        vm.setSlotTime(0, 21 * 60) // stored sorted by time
+        vm.enterMacros()
 
         var completed = false
         vm.completeOnboarding { completed = true }
-
         val snap = repo.observeToday().first { it.onboardingDone }
-        assertThat(completed).isTrue()
-        assertThat(vm.uiState.value.isComplete).isTrue()
-        assertThat(snap.onboardingDone).isTrue()
-        assertThat(snap.ceilingMode).isEqualTo("weekdayWeekend")
-        assertThat(snap.kcalWeekday).isEqualTo(1900)
-        assertThat(snap.kcalWeekend).isEqualTo(2200)
+        assertThat(snap.sex).isEqualTo("male")
+        assertThat(snap.ageYears).isEqualTo(27)
+        assertThat(snap.heightCm).isEqualTo(180)
+        assertThat(snap.weightKg).isEqualTo(116.0)
+        assertThat(snap.kcalSame).isEqualTo(2160)
         assertThat(snap.eat).isEqualTo("partial")
         assertThat(snap.pct).isEqualTo(40)
+        assertThat(listOf(snap.proteinTargetG, snap.carbTargetG, snap.fatTargetG)).containsExactly(162, 216, 72).inOrder()
+        assertThat(snap.firstDay).isEqualTo("2026-03-16")
+        assertThat(snap.slots.map { it.name to it.minutesFromMidnight })
+            .containsExactly("Almoço" to 750, "Janta" to 1200, "Café" to 1260).inOrder()
+        vm.uiState.first { it.isComplete }
+        assertThat(completed).isTrue()
+
+        // Kill + relaunch: a fresh repository and ViewModel read the same rows back.
+        val again = loadedVm(DayRepository(db, clock, store))
+        assertThat(again.uiState.value.sex).isEqualTo("male")
+        assertThat(again.uiState.value.weightField).isEqualTo("116")
+        assertThat(again.uiState.value.slots.map { it.name }).containsExactly("Almoço", "Janta", "Café").inOrder()
+        assertThat(again.uiState.value.proteinField).isEqualTo("162")
+    }
+
+    @Test
+    fun complete_isBlockedWhileInvalid_andWritesNoEmptySlots() = runBlocking<Unit> {
+        val repo = DayRepository(db, clock, store)
+        val vm = loadedVm(repo)
+        vm.setSex("female")
+        vm.completeOnboarding { error("must not complete") }
+        val snap = repo.observeToday().first()
+        assertThat(snap.onboardingDone).isFalse()
+        assertThat(snap.slots).isEmpty()
+        assertThat(vm.uiState.value.isComplete).isFalse()
+    }
+
+    private suspend fun loadedVm(repo: DayRepository = DayRepository(db, clock, store)): OnboardingViewModel {
+        val vm = OnboardingViewModel(repo, clock)
+        withTimeout(5_000) { vm.uiState.first { it.loaded } }
+        return vm
     }
 }

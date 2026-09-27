@@ -2,7 +2,7 @@
 
 ## Estado
 
-Hoje O1 teto + O2 eat-back. Sem corpo, sem TMB, sem slots nomeados, sem alvos C/G.
+Vigente desde o [A2](../../android/plans/completed/a2-onboarding-perfil.md): splash + O1-O4 conforme Stitch gold, perfil completo em Room v2.
 
 ## Contexto e objetivo
 
@@ -18,13 +18,13 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 
 ## Regras funcionais
 
-1. O1: sexo, idade, altura cm, peso kg. TMB Mifflin-St Jeor (homem 10w+6.25h-5a+5; mulher 10w+6.25h-5a-161). Prefill teto = TMB arredondado 10 kcal. User edita livre. Modo teto: mesmo / util-fds / 7 dias.
+1. O1: sexo, idade, altura cm, peso kg. TMB Mifflin-St Jeor (homem 10w+6.25h-5a+5; mulher 10w+6.25h-5a-161). Prefill teto = TMB arredondado 10 kcal, em todos os campos de teto ate o user editar um. Legenda: "Sugerido {n} kcal com base no seu perfil. Voce pode alterar quando quiser." User edita livre. Modo teto: mesmo / util-fds / 7 dias.
 2. O2: eat-back 0% | % digitavel default 50 | 100%. Sem cap.
-3. O3: 2-6 refeicoes. Cada uma: nome + horario. Chips de sugestao por faixa (05-10 Cafe da manha; 11-15 Almoco; 18-22 Janta). Chip preenche o campo. Nunca grava nome sem o user confirmar. Timezone America/Sao_Paulo.
-4. O4: P/C/G derivados 30/40/30 sobre o teto do dia 1. Campos editaveis.
+3. O3: 2-6 refeicoes, padrao 4 (07:30, 12:30, 16:00, 20:00). Cada uma: nome + horario. Nome comeca vazio. Chips de sugestao pela hora do slot (Stitch): 05-10 Cafe / Desjejum; 10-11 Lanche da manha / Lanche; 11-15 Almoco / Prato feito; 15-18 Lanche / Cafe da tarde; 18-22 Jantar / Ceia; 22-05 Ceia / Lanche da noite. Tap no chip preenche o campo. Nunca grava nome sem o user confirmar. Mudar a quantidade preserva linhas editadas; linhas intocadas assumem os horarios padrao da nova quantidade. Timezone America/Sao_Paulo.
+4. O4: P/C/G derivados 30/40/30 sobre o teto do dia 1 (4/4/9 kcal/g). Campos editaveis; editado nao e recalculado. Barra de proporcao reflete os gramas. Rodape: "{teto do dia 1} KCAL TOTAL ESTIMADA".
 5. Perfil salvo em Room. onboardingDone=1 so no fim de O4.
 6. Prefix do chat: teto vigente, eat-back, alvos P/C/G, lista nome+hora dos slots.
-7. Disclaimer "estimativa, nao consulta" no onboarding e na Home.
+7. Disclaimer na splash com a copy do Stitch ("Estimativa nutricional, nao substitui consulta medica ou nutricional.") e na Home. As telas O1-O4 do gold nao tem disclaimer.
 
 ## Estados e falhas
 
@@ -42,7 +42,7 @@ Dono: produto. Implementacao: android A2.
 
 ## Planos relacionados
 
-- [A2](../../android/plans/a2-onboarding-perfil.md)
+- [A2 (Concluido)](../../android/plans/completed/a2-onboarding-perfil.md)
 
 ## Criterios de aceite funcionais
 

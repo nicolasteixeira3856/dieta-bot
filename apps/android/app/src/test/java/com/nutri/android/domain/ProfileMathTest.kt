@@ -44,4 +44,28 @@ class ProfileMathTest {
         assertThat(SlotClock.current(slots, 23 * 60) { it }).isEqualTo(20 * 60)
         assertThat(SlotClock.current(emptyList<Int>(), 600) { it }).isNull()
     }
+
+    @Test
+    fun `slot suggestions follow the time band`() {
+        assertThat(SlotSuggestions.namesFor(7 * 60 + 30)).containsExactly("Café", "Desjejum").inOrder()
+        assertThat(SlotSuggestions.namesFor(12 * 60 + 30)).containsExactly("Almoço", "Prato feito").inOrder()
+        assertThat(SlotSuggestions.namesFor(16 * 60)).containsExactly("Lanche", "Café da tarde").inOrder()
+        assertThat(SlotSuggestions.namesFor(20 * 60)).containsExactly("Jantar", "Ceia").inOrder()
+        assertThat(SlotSuggestions.bandOf(10 * 60 + 30)).isEqualTo(SlotBand.MORNING_SNACK)
+        assertThat(SlotSuggestions.bandOf(23 * 60)).isEqualTo(SlotBand.NIGHT)
+        assertThat(SlotSuggestions.bandOf(4 * 60 + 59)).isEqualTo(SlotBand.NIGHT)
+        assertThat(SlotSuggestions.bandOf(5 * 60)).isEqualTo(SlotBand.BREAKFAST)
+    }
+
+    @Test
+    fun `default times cover 2 to 6 slots in order`() {
+        (2..6).forEach { n ->
+            val t = SlotSuggestions.defaultTimes(n)
+            assertThat(t).hasSize(n)
+            assertThat(t).isInStrictOrder()
+        }
+        assertThat(SlotSuggestions.defaultTimes(1)).hasSize(2)
+        assertThat(SlotSuggestions.defaultTimes(9)).hasSize(6)
+        assertThat(SlotSuggestions.format(7 * 60 + 5)).isEqualTo("07:05")
+    }
 }

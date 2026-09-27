@@ -15,7 +15,7 @@ Client nativo. Compose, Room, navegacao, foto, push.
 - Kotlin + Jetpack Compose + Material 3 Expressive.
 - Camada ui / domain / data. Hilt, Navigation Compose, Retrofit, Room.
 - Home, onboarding, sheets, foto. DataStore so como import legado.
-- Visual QA: `docs/qa/android/current/{dark,light}/` vs gold em `docs/qa/stitch/{dark,light}/` (Stitch `Nutri`).
+- Visual QA: `docs/qa/android/current/{dark,light}/` (screencap do emulador) vs gold em `docs/qa/stitch/{dark,light}/` (Stitch `Nutri`). Gate: `tools/diff-gold.mjs` + `StitchGoldTest` (ver [docs/qa](../qa/README.md)).
 
 ## Fora de escopo
 
@@ -62,7 +62,7 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 - [A0 tokens Expressive (Concluído)](plans/completed/a0-tokens-expressive.md) (Tokens semanticos P/C/G, tipografia 34pt, ButtonGroup)
 - [A0 Roborazzi setup (Concluído)](plans/completed/a0-roborazzi-setup.md) (Testes de screenshot headless JVM)
 - [A1 Room v2 (Concluído)](plans/completed/a1-room-v2.md) (Room v2, migration 1→2, domain TMB/macros/slots)
-- [A2 Onboarding perfil](plans/a2-onboarding-perfil.md) (O1..O4 Stitch)
+- [A2 Onboarding perfil (Concluído)](plans/completed/a2-onboarding-perfil.md) (splash + O1..O4 Stitch, gate visual)
 - [A4 Home painel](plans/a4-home-painel.md) (home0, home1, homeX Stitch)
 - [A5 Chat](plans/a5-chat.md) (chat0..chatG Stitch)
 - [A3 Config + wipe + treino](plans/a3-config-wipe-treino.md) (cfg, wipe Stitch)

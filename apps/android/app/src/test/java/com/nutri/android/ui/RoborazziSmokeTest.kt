@@ -29,7 +29,7 @@ class RoborazziSmokeTest {
                 SplashScreen(capture = true, onDone = {})
             }
         }
-        val target = File("../../../docs/qa/android/current/dark/splash.png")
+        val target = File("src/test/snapshots/dark/splash.png")
         composeTestRule.onRoot().captureRoboImage(
             filePath = target.path,
             roborazziOptions = RoborazziOptions(
@@ -45,7 +45,7 @@ class RoborazziSmokeTest {
                 SplashScreen(capture = true, onDone = {})
             }
         }
-        val target = File("../../../docs/qa/android/current/light/splash.png")
+        val target = File("src/test/snapshots/light/splash.png")
         composeTestRule.onRoot().captureRoboImage(
             filePath = target.path,
             roborazziOptions = RoborazziOptions(

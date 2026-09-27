@@ -6,7 +6,7 @@ import androidx.compose.ui.unit.dp
 object SplashBoot {
     const val MAX_MS = 2000L
     const val DELAY_MS = 1200L
-    const val COPY = "estimativa, não consulta"
+    const val COPY = "Estimativa nutricional, não substitui consulta médica ou nutricional."
     const val WORDMARK = "Nutri"
 }
 

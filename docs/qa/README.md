@@ -6,8 +6,8 @@ Padrão oficial de Qualidade Visual e Validação do Nutri.
 
 - `stitch/dark/` — Gold PNGs oficiais exportados do projeto Google Stitch `Nutri` (Dark theme, 18 telas)
 - `stitch/light/` — Gold PNGs oficiais exportados do projeto Google Stitch `Nutri` (Light theme, 18 telas)
-- `android/current/dark/` — Capturas de tela do emulador Android (Dark theme)
-- `android/current/light/` — Capturas de tela do emulador Android (Light theme)
+- `android/current/dark/` — Screencaps do emulador Android (Dark theme). Só emulador: renders JVM ficam em `build/`.
+- `android/current/light/` — Screencaps do emulador Android (Light theme)
 - `_legacy/` — Telas legadas e wires antigos depreciados. **Nunca comparar contra esta pasta.**
 
 > **Regra estrita:** Nenhum arquivo PNG/JPG pode ficar na raiz de `docs/qa/`.
@@ -49,20 +49,33 @@ node tools/check-stitch.mjs
 
 A implementação de qualquer tela no client Android deve seguir este ciclo:
 
-1. Garantir que o Gold PNG da tela está em `docs/qa/stitch/{dark,light}/<id>.png`.
-2. Capturar a tela do emulador:
+1. Garantir que o Gold PNG da tela está em `docs/qa/stitch/{dark,light}/<id>.png` (`node tools/check-stitch.mjs` falha em miniatura < 780 px).
+2. Emulador na geometria do gold (390 dp @ 2x):
+   ```bash
+   adb shell wm size 780x1688 && adb shell wm density 320
+   ```
+3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Manual:
    ```bash
    adb exec-out screencap -p > docs/qa/android/current/{theme}/<id>.png
    ```
-3. Listar as diferenças visuais contra o Gold do Stitch:
-   - Layout e proporção (390×844)
-   - Tokens literais e cores de macronutrientes (Proteína menta `#4ec994`, Carbo âmbar `#e58e42`, Gordura ouro `#e8b86d`, Estouro `#e07a6a`)
-   - Tipografia (Plus Jakarta Sans para títulos, Inter para números e corpo)
-   - Linha do tempo e nós conectados
-   - Raios de borda (Sheet 22dp, cards 16dp)
-   - Estilo do FAB e botões
-4. Ajustar a UI Compose no Kotlin.
-5. Recapturar a tela no emulador.
-6. Repetir as iterações até que o emulador esteja equivalente ao Gold do Stitch.
+4. Comparar contra o Gold:
+   ```bash
+   node tools/diff-gold.mjs            # splash + O1..O4, ou: node tools/diff-gold.mjs dark/o1 light/o1
+   ```
+   Na JVM, sem emulador: `StitchGoldTest` (`./gradlew.bat :app:testDebugUnitTest`), renders e máscaras em `apps/android/app/build/outputs/stitch-gold/`.
+5. Escrever a lista de diffs (layout, tokens, tipo, raio, ButtonGroup, CTA, timeline, macros semânticos) no plano da tela.
+6. Ajustar a UI Compose e repetir 3–5 até passar no gate.
+
+### Gate
+
+- Ambas as imagens borradas (box blur, 3 passes, raio 3 px): diferença de rasterização de glifo não conta (AGENTS: ignorar raster de fonte). Deslocamento de layout, tamanho e cor contam.
+- Pixel diverge se o maior delta de canal > 40. Ignora 40 dp do topo (relógio, bateria) e 40 dp da base (nav, pílula home).
+- Conteúdo alinhado pelo topo e rodapé (CTA) pela base, cada um com o melhor deslocamento em ±24 dp (altura de status/nav varia por aparelho).
+- Presença de conteúdo: tinta da captura entre 0,8× e 1,25× a do gold.
+- **Aprovado: ≤ 2%.** Pixel a pixel sem borrão não serve de gate: a splash fica em ~1,2% só por raster.
+
+### Regressão
+
+Baseline Roborazzi (render JVM contra ele mesmo) em `apps/android/app/src/test/snapshots/`: `recordRoborazziDebug` grava, `verifyRoborazziDebug` falha em divergência. Não é comparação com o gold.
 
 > **Sem screenshot comparado e validado contra o Stitch, a UI NÃO está pronta.**

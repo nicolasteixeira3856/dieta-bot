@@ -6,22 +6,26 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriMeasure
+import com.nutri.android.core.designsystem.NutriType
 import com.nutri.android.core.designsystem.SplashBoot
 import kotlinx.coroutines.delay
 
@@ -36,41 +40,42 @@ fun SplashScreen(
         delay(SplashBoot.DELAY_MS)
         onDone()
     }
-    Column(
+    Box(
         Modifier
             .fillMaxSize()
-            .background(p.bg)
+            .background(p.phone)
+            .drawBehind {
+                val r = 200.dp.toPx()
+                drawCircle(
+                    Brush.radialGradient(listOf(p.gold.copy(alpha = 0.06f), Color.Transparent), center = center, radius = r),
+                    radius = r,
+                    center = center,
+                )
+            }
             .testTag("splash"),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(p.gold),
-        )
-        Text(
-            SplashBoot.WORDMARK,
-            color = p.text,
-            fontSize = 22.sp,
-            fontWeight = FontWeight(590),
-            letterSpacing = (-0.6).sp,
-            modifier = Modifier.padding(top = 18.dp),
-        )
-        Box(
-            Modifier
-                .padding(top = 18.dp)
-                .width(80.dp)
-                .height(NutriMeasure.barDp.dp)
-                .clip(RoundedCornerShape(99.dp))
-                .background(p.gold),
-        )
-        Text(
-            SplashBoot.COPY,
-            color = p.dim,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 18.dp).testTag("splash-copy"),
-        )
+        Column(
+            Modifier.offset(y = (-12).dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(SplashBoot.WORDMARK, style = NutriType.displayLg.copy(lineHeight = 48.sp), color = p.text)
+            Box(
+                Modifier
+                    .padding(top = 16.dp)
+                    .width(48.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(p.gold),
+            )
+            Text(
+                SplashBoot.COPY,
+                style = NutriType.bodyMd.copy(lineHeight = 22.sp, letterSpacing = 0.sp),
+                color = p.muted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 28.dp).widthIn(max = 280.dp).testTag("splash-copy"),
+            )
+        }
     }
 }

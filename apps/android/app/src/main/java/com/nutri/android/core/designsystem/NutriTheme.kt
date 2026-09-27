@@ -49,6 +49,12 @@ data class Palette(
     val protein: Color,
     val carbs: Color,
     val fat: Color,
+    /** Roles derived from the tokens above (Stitch gold mapping). */
+    val card: Color = surf,
+    val cardSel: Color = surf2,
+    val segSel: Color = text,
+    val onSegSel: Color = ctaText,
+    val isDark: Boolean = true,
 )
 
 val darkPalette = Palette(
@@ -91,6 +97,11 @@ val lightPalette = Palette(
     protein = Color(NutriHex.lightProtein),
     carbs = Color(NutriHex.lightCarbs),
     fat = Color(NutriHex.lightFat),
+    card = Color(NutriHex.lightPanel),
+    cardSel = Color(NutriHex.lightSurf),
+    segSel = Color(NutriHex.lightSurf),
+    onSegSel = Color(NutriHex.lightText),
+    isDark = false,
 )
 
 val LocalPalette = staticCompositionLocalOf { darkPalette }
