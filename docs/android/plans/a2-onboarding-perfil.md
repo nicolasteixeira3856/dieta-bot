@@ -16,6 +16,7 @@ O1-O4 no lugar de O1-O2. Perfil completo em Room.
 
 ## Fontes de verdade
 
+- Visual Gold (Stitch): `docs/qa/stitch/dark/{o1,o2,o3,o4}.png` e `docs/qa/stitch/light/{o1,o2,o3,o4}.png`
 - spec perfil-onboarding (slots 2-6, chips por faixa, nunca assume)
 - ADR-012
 
@@ -50,7 +51,7 @@ O1-O4 no lugar de O1-O2. Perfil completo em Room.
 
 - test O1 27/116/180 male → 2072
 - test O4 2000 → 150/200/67
-- capturas dark/light o1-o4
+- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/{o1,o2,o3,o4}.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/{o1,o2,o3,o4}.png` com diff list aprovada.
 
 ## Fora de escopo
 

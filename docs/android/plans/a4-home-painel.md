@@ -12,25 +12,31 @@
 
 ## Objetivo
 
-Home = doodle. Sem composer. Consumidas + P/C/G + data + timeline + Config + FAB.
+Home painel oficial Stitch Gold. Sem composer. Consumidas + P/C/G com cores semânticas + data + timeline contínua com refeição consolidada + Config + FAB.
+
+## Fontes de verdade
+
+- Visual Gold (Stitch): `docs/qa/stitch/dark/{home0,home1,homeX}.png` e `docs/qa/stitch/light/{home0,home1,homeX}.png`
+- spec [home-timeline.md](../../produto/specifications/home-timeline.md)
+- ADR-012
 
 ## Escopo de implementacao
 
 1. Remove composer, CTA, chips de janela.
-2. Circulo eatenKcal 34pt.
-3. Linha P/C/G consumido/alvo. Estouro token bad.
+2. Circulo central de saldo/consumo com tipografia de destaque (34pt w590).
+3. Linha P/C/G consumido/alvo com cores semânticas de macronutrientes (P: menta, C: âmbar, G: ouro, estouro: bad).
 4. Data dd/MM/yyyy SP.
-5. Timeline por meal_slot. Skip = Pulado. Vazio: tap Pular {nome}.
+5. Timeline contínua com linha guia vertical e marcadores de nó. Refeições consolidadas em linha única (ex: "520 kcal · 28P · 52C · 22G"). Skip = Pulado. Vazio: "Nenhum registro · Toque para pular".
 6. Config topo dir. FAB → Chat.
 7. ChatScreen stub scaffold + back. A5 substitui o corpo.
 8. T1/T2/T3 rotas ficam. Home nao aponta pra elas.
 9. reservedUpcoming = 0.
-10. Disclaimer 1 linha.
+10. Disclaimer 1 linha: "Estimativa, não consulta."
 
 ## Validacao planejada
 
 - test groups by slotId; skip addSkip.
-- Captura Home vs doodle, nao vs gold t0.
+- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/{home0,home1,homeX}.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/{home0,home1,homeX}.png` com diff list aprovada.
 
 ## Fora de escopo
 

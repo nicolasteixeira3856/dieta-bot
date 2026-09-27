@@ -27,22 +27,24 @@ Nasce POST `/v1/chat`. Stateless. Devolve prosa + estimate estruturado + suggest
 - ProfileIn `{ceiling_kcal, p_target, c_target, g_target, eat_back, slots}`
 - DaySlotIn `{id, status, text?, kcal?, p?, c?, g?}`
 - DayIn `{date, eaten_kcal, eaten_p, eaten_c, eaten_g, workout_kcal, slots}`
-- ChatMessageIn `{role, text}`
-- ChatIn `{local_time, profile, memory, day, digests, messages, text, image_b64, compact=false}`
+- ChatMessageIn `{role, text: Field(..., max_length=1000)}`
+- ChatIn `{local_time, profile, memory, day, digests, messages, text: Field(..., max_length=1000), image_b64, compact=false}`
 - Validar role em `{user,assistant}`, status em `{empty,eaten,skipped}`, `len(messages)<=12`, `len(digests)<=2`
 
 ### 2. rota
 
 - POST `/v1/chat`, header `X-Invite`
+- Rate limiting com `slowapi`: max 30 req/min por IP/invite (protecao contra Denial of Wallet)
 - `compact=true` neste plano: 400 `{"detail":"compact_not_enabled"}` — S3 liga
 - cap foto igual S1
 - `llm.chat_json(...)`
 - `shape_chat(payload)`: defaults numericos 0; `suggested_slot` so se id esta em `profile.slots`
 
-### 3. llm
+### 3. llm & seguranca de prompt
 
 - `_CHAT_INSTRUCTIONS` conforme spec regra 4
-- input_text com secoes PROFILE / MEMORY / DAY / DIGESTS / HISTORY / USER
+- input_text com secoes PROFILE / MEMORY / DAY / DIGESTS / HISTORY
+- Isolamento estrito de prompt injection: envolver mensagem do usuario em delimitadores `### USER_MESSAGE_START` e `### USER_MESSAGE_END` instruindo o modelo a tratar o conteudo estritamente como dado de refeicao
 - Imagem igual estimate (jpeg base64)
 - Parse JSON keys `reply`, `estimate`, `digest`, `model`
 

@@ -37,7 +37,7 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 ## Cobertura documental atual
 
 Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md) concluido. [S2](plans/s2-v1-chat.md) e [S3](plans/s3-compact.md) aguardam aprovacao.
+[S1](plans/completed/s1-timeout-photo-cap.md) concluido. [S4](plans/s4-security-hardening.md), [S2](plans/s2-v1-chat.md) e [S3](plans/s3-compact.md) aguardam aprovacao.
 
 ## Como usar esta documentacao
 
@@ -68,6 +68,7 @@ Nenhum ADR local. Historico: [001](../decisions/001-monorepo.md), [007](../decis
 ### Planos e validacao
 
 - [S1 concluido](plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16 MB.
-- [S2](plans/s2-v1-chat.md) aguardando aprovacao.
-- [S3](plans/s3-compact.md) aguardando aprovacao.
+- [S4](plans/s4-security-hardening.md) aguardando aprovacao — hardening de seguranca (rate limiting, constant time auth, payload limit).
+- [S2](plans/s2-v1-chat.md) aguardando aprovacao — POST /v1/chat.
+- [S3](plans/s3-compact.md) aguardando aprovacao — compact digest.
 - Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`.

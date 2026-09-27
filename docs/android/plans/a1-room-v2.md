@@ -28,13 +28,15 @@ Room v2 no client. Perfil, slots, skip, macros no log, mensagens, digest. Sem te
 - MacroSplit.kt 30/40/30. Teste: 2000 → P 150 C 200 G 67.
 - SlotClock.kt minutesFromMidnight America/Sao_Paulo. Slot vigente = ultimo com minutes <= agora; se agora < primeiro, vigente = primeiro.
 
-### 2. Entities Java + kapt
+### 2. Entities Kotlin Data Classes + KSP (Eliminacao de Java e kapt)
 
-- ProfileEntity + sex, ageYears, heightCm, weightKg, proteinTargetG, carbTargetG, fatTargetG.
-- MealSlotEntity, SlotSkipEntity, ChatMessageEntity, DayDigestEntity.
-- MealLogEntity + slotId, carbs, fat, source. window permanece.
-- DayEntity intacta.
-- NutriDatabase version=2, exportSchema=true, MIGRATION_1_2 ALTER/CREATE. Sem destructive fallback.
+- Migracao de todos os arquivos Java legados do Room (`DayDao.java`, `DayEntity.java`, `MealLogDao.java`, `MealLogEntity.java`, `ProfileDao.java`, `ProfileEntity.java`, `NutriConverters.java`, `NutriDatabase.java`) para Kotlin puro (`data class`, `interface`, `@Database`).
+- Troca de `kapt` por `ksp` para o compilador do Room no Gradle.
+- Novas tabelas em Kotlin: `MealSlotEntity`, `SlotSkipEntity`, `ChatMessageEntity`, `DayDigestEntity`.
+- `ProfileEntity` com sex, ageYears, heightCm, weightKg, proteinTargetG, carbTargetG, fatTargetG.
+- `MealLogEntity` com slotId, carbs, fat, source. window permanece.
+- `DayEntity` em Kotlin intacta.
+- `NutriDatabase` version=2, exportSchema=true, MIGRATION_1_2 ALTER/CREATE. Sem destructive fallback.
 
 ### 3. DayRepository
 

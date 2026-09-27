@@ -14,6 +14,11 @@
 
 Exact alarm por slot. So se empty. Registrar abre Chat. Pular grava skip.
 
+## Fontes de verdade
+
+- Visual Gold (Stitch): `docs/qa/stitch/dark/push.png` e `docs/qa/stitch/light/push.png`
+- spec [memoria-push.md](../../produto/specifications/memoria-push.md)
+
 ## Escopo de implementacao
 
 - POST_NOTIFICATIONS + SCHEDULE_EXACT_ALARM. Android 14 exact: se negar, fallback inexact documentado.
@@ -27,6 +32,7 @@ Exact alarm por slot. So se empty. Registrar abre Chat. Pular grava skip.
 ## Validacao planejada
 
 - Unit resync 4 slots → 4 intents; skip existente nao agenda.
+- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/push.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/push.png` com diff list aprovada.
 
 ## Fora de escopo
 

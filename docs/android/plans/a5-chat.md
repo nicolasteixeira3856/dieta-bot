@@ -14,6 +14,12 @@
 
 Chat funcional: POST /v1/chat, bolhas, chips Gravar/Trocar/Pular, Room messages, compact client-side.
 
+## Fontes de verdade
+
+- Visual Gold (Stitch): `docs/qa/stitch/dark/{chat0,chatL,chatE,chatT,chatP,chatF,chatG}.png` e `docs/qa/stitch/light/{chat0,chatL,chatE,chatT,chatP,chatF,chatG}.png`
+- spec [chat.md](../../produto/specifications/chat.md)
+- ADR-012
+
 ## Escopo de implementacao
 
 ### 1. ChatScreen
@@ -42,7 +48,7 @@ Chat funcional: POST /v1/chat, bolhas, chips Gravar/Trocar/Pular, Room messages,
 
 - Unit PromptBuilder 12 msgs → compact; 13a raw fora do IN.
 - Unit Gravar chama addLog, nao 2o POST.
-- Captura Chat dark/light + chips.
+- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/{chat0,chatL,chatE,chatT,chatP,chatF,chatG}.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/{chat0,chatL,chatE,chatT,chatP,chatF,chatG}.png` com diff list aprovada.
 
 ## Fora de escopo
 

@@ -14,6 +14,12 @@
 
 Tela Config. Edita teto, slots, alvos, eat-back, treino hoje. Wipe de hoje se mudar teto.
 
+## Fontes de verdade
+
+- Visual Gold (Stitch): `docs/qa/stitch/dark/{cfg,wipe}.png` e `docs/qa/stitch/light/{cfg,wipe}.png`
+- spec perfil-onboarding / memoria-push
+- ADR-012
+
 ## Escopo de implementacao
 
 1. Rota Config. Icone topo dir na Home.
@@ -25,7 +31,8 @@ Tela Config. Edita teto, slots, alvos, eat-back, treino hoje. Wipe de hoje se mu
 
 ## Validacao planejada
 
-- Teste wipeToday. Mudar hora nao chama wipe. Captura config dark/light.
+- Teste wipeToday. Mudar hora nao chama wipe.
+- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/{cfg,wipe}.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/{cfg,wipe}.png` com diff list aprovada.
 
 ## Fora de escopo
 

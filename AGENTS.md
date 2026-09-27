@@ -111,14 +111,16 @@ How to export gold PNGs (agent, unattended):
 
 ## Skills
 
-dieta-bot-android-decision
-dieta-bot-android-feature
-dieta-bot-android-memory
-dieta-bot-android-qa
-dieta-bot-android-ui
-dieta-bot-android-visual
+Skills folders: `.agents/skills`, `.grok/skills`, and `.hermes/skills` must be kept strictly synchronized with identical skill sets.
+
+Project skills:
+dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual
+
+Engineering skills:
+android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · material3-expressive
+
 Official Google skills from npx stay.
-Retired: nutri-*, dieta-bot-android-decisao, dieta-bot-android-lembrar.
+Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar.
 
 ## How to work
 

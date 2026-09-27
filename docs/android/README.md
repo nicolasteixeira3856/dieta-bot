@@ -58,4 +58,14 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 
 ### Planos e validacao
 
-Nenhum plano criado ate o momento.
+- [A0 refatoracao arquitetural](plans/a0-arch-refactor.md) (Feature-first, eliminacao de Java/kapt, navegacao limpa)
+- [A0 tokens Expressive](plans/a0-tokens-expressive.md) (Tokens semanticos P/C/G, tipografia 34pt, ButtonGroup)
+- [A0 Roborazzi setup](plans/a0-roborazzi-setup.md) (Testes de screenshot headless JVM)
+- [A1 Room v2](plans/a1-room-v2.md) (Room em Kotlin Data Classes + KSP)
+- [A2 Onboarding perfil](plans/a2-onboarding-perfil.md) (O1..O4 Stitch)
+- [A4 Home painel](plans/a4-home-painel.md) (home0, home1, homeX Stitch)
+- [A5 Chat](plans/a5-chat.md) (chat0..chatG Stitch)
+- [A3 Config + wipe + treino](plans/a3-config-wipe-treino.md) (cfg, wipe Stitch)
+- [A8 memoria](plans/a8-memoria.md)
+- [A6 foto](plans/a6-foto.md)
+- [A7 push](plans/a7-push.md)

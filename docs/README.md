@@ -36,16 +36,20 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [S2 POST /v1/chat](server/plans/s2-v1-chat.md)
-2. [S3 compact digest](server/plans/s3-compact.md)
-3. [A1 Room v2](android/plans/a1-room-v2.md)
-4. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
-5. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
-6. [A4 Home painel](android/plans/a4-home-painel.md)
-7. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
-8. [A6 foto](android/plans/a6-foto.md)
-9. [A7 push](android/plans/a7-push.md)
-10. [A8 memória](android/plans/a8-memoria.md)
+1. [S4 Hardening de segurança da API](server/plans/s4-security-hardening.md)
+2. [S2 POST /v1/chat](server/plans/s2-v1-chat.md)
+3. [A0 Refatoração arquitetural feature-first & Kotlin puro](android/plans/a0-arch-refactor.md)
+4. [A0 Tokens semânticos P/C/G & Material 3 Expressive](android/plans/a0-tokens-expressive.md)
+5. [A0 Roborazzi setup & smoke test de regressão visual](android/plans/a0-roborazzi-setup.md)
+6. [A1 Room v2 (Kotlin puro + KSP)](android/plans/a1-room-v2.md)
+7. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
+8. [A4 Home painel](android/plans/a4-home-painel.md)
+9. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
+10. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
+11. [S3 compact digest](server/plans/s3-compact.md)
+12. [A8 memória](android/plans/a8-memoria.md)
+13. [A6 foto](android/plans/a6-foto.md)
+14. [A7 push](android/plans/a7-push.md)
 
 ## Planos concluídos
 

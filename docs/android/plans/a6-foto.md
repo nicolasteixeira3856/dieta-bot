@@ -14,6 +14,11 @@
 
 Clip do Chat abre camera ou picker. Upload JPEG <=16MB. Preview subsample.
 
+## Fontes de verdade
+
+- Visual Gold (Stitch): `docs/qa/stitch/dark/chatF.png` e `docs/qa/stitch/light/chatF.png`
+- spec [memoria-push.md](../../produto/specifications/memoria-push.md)
+
 ## Escopo de implementacao
 
 - TakePicture FileProvider + PickVisualMedia.
@@ -27,7 +32,7 @@ Clip do Chat abre camera ou picker. Upload JPEG <=16MB. Preview subsample.
 ## Validacao planejada
 
 - Unit rejeita File.length()>16MB.
-- Captura Chat com thumb.
+- Validacao visual Compose vs Stitch Gold: capturas emulador `docs/qa/android/current/{dark,light}/chatF.png` comparadas pixel a pixel contra `docs/qa/stitch/{dark,light}/chatF.png` com diff list aprovada.
 
 ## Fora de escopo
 
