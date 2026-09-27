@@ -66,6 +66,7 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 - [A4 Home painel (Concluído)](plans/completed/a4-home-painel.md) (home1 canônica; home0/homeX com conflito de gold)
 - [A5 Chat (Concluído)](plans/completed/a5-chat.md) (chat0..chatG Stitch)
 - [A3 Config + wipe + treino (Concluído)](plans/completed/a3-config-wipe-treino.md) (cfg, wipe Stitch)
+- [A5b ligar compact (Concluído)](plans/completed/a5b-ligar-compact.md) (compact=true ligado no Chat)
 - [A8 memoria](plans/a8-memoria.md)
 - [A6 foto](plans/a6-foto.md)
 - [A7 push](plans/a7-push.md)

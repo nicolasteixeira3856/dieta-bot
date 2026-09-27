@@ -87,7 +87,7 @@
 
 - **Falha em compact = 200 com `digest: null`** (fail-soft, regra 10 da spec). O client (A5) so grava digest se vier texto; senao mantem as raw.
 - **Corte do digest em 1600 chars** como teto duro dos 400 tokens.
-- **O client segue com o compact desligado** (`PromptBuilder.COMPACT_ENABLED = false`, A5). Ligar e trabalho de `apps/android/` — fora deste `/goal` (1 goal = 1 pasta). Pendente para um plano android.
+- **O client segue com o compact desligado** (`PromptBuilder.COMPACT_ENABLED = false`, A5). Ligar e trabalho de `apps/android/` — fora deste `/goal` (1 goal = 1 pasta). Pendente para um plano android — resolvido no [A5b](../../../android/plans/completed/a5b-ligar-compact.md).
 
 ## Validacao executada
 

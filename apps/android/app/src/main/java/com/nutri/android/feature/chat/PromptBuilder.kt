@@ -27,10 +27,10 @@ object PromptBuilder {
     private val ROLES = setOf("user", "assistant")
 
     /**
-     * Server compact (S3) is not live: compact=true answers 400. While false, compaction is a
-     * no-op and only the oldest raw messages leave the prompt. Flip in S3.
+     * Server compact is live since S3 (A5b). 12 raw since the last digest: the next send asks
+     * for compact=true first. False turns compaction into a no-op (oldest raw just leave).
      */
-    const val COMPACT_ENABLED = false
+    const val COMPACT_ENABLED = true
 
     data class Turn(val body: ChatIn, val needsCompact: Boolean)
 

@@ -31,8 +31,15 @@ class PromptBuilderTest {
     }
 
     @Test
+    fun `compact is on by default since S3 - 12 raw ask for it, 11 do not`() {
+        assertThat(PromptBuilder.COMPACT_ENABLED).isTrue()
+        assertThat(PromptBuilder.build(HomeFixtures.home0, msgs(12), emptyList(), "jantar", now).needsCompact).isTrue()
+        assertThat(PromptBuilder.build(HomeFixtures.home0, msgs(11), emptyList(), "jantar", now).needsCompact).isFalse()
+    }
+
+    @Test
     fun `compact off - 13th raw message is not in the IN, oldest leaves`() {
-        val turn = PromptBuilder.build(HomeFixtures.home0, msgs(13), emptyList(), "jantar", now)
+        val turn = PromptBuilder.build(HomeFixtures.home0, msgs(13), emptyList(), "jantar", now, compactEnabled = false)
         assertThat(turn.needsCompact).isFalse()
         assertThat(turn.body.messages).hasSize(12)
         assertThat(turn.body.messages.first().text).isEqualTo("m2")

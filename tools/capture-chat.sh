@@ -39,6 +39,7 @@ expect() { dump; if grep -qE "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo
 shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
 mode() { curl -s -X POST -d "{\"hang\": $1}" "$FAKE/__mode" >/dev/null; }
 calls() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['calls'])"; }
+compacts() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['compacts'])"; }
 db() { # db <sql> -> rows, after a force-stop so the WAL is in the pulled files
   "$ADB" shell am force-stop $PKG
   rm -f "$TMP"/nutri.db*
@@ -155,6 +156,23 @@ tap 'resource-id="chat-sheet-cancel"'
 tap 'resource-id="chat-skip"'
 shot chatP
 tap 'resource-id="chat-skip-cancel"'
+
+# A5b compact: the seeded thread is 2 raw. 5 sends make 12; the 6th asks compact=true first.
+say() { tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "$1"; tap 'resource-id="chat-send"' 2.5; }
+c0=$(compacts)
+for i in 1 2 3 4 5; do say "ovo%s$i"; done
+c5=$(compacts)
+if [ "$c5" = "$c0" ]; then echo "  ✓ no compact under 12 raw"; else echo "  ✗ compact before 12 raw ($c0 -> $c5)"; FAIL=1; fi
+before=$(calls)
+say "jantar%sleve"
+after=$(calls); c6=$(compacts)
+if [ "$c6" = "$((c5 + 1))" ] && [ "$after" = "$((before + 2))" ]; then echo "  ✓ 12 raw: compact + turn in one send"; else echo "  ✗ compact send ($before -> $after calls, $c5 -> $c6 compacts)"; FAIL=1; fi
+expect "turn answered after compact" 'resource-id="chat-actions"'
+dump; if grep -q "Resumo QA" "$TMP/ui.xml"; then echo "  ✗ digest drawn as a bubble"; FAIL=1; else echo "  ✓ digest never drawn"; fi
+digests=$(db "select count(*), max(text) from day_digest")
+case "$digests" in *"(1, 'Resumo QA"*) echo "  ✓ day_digest stored: $digests";; *) echo "  ✗ day_digest: $digests"; FAIL=1;; esac
+inchat=$(db "select count(*) from chat_message where text like 'Resumo QA%'")
+if [ "$inchat" = "[(0,)]" ]; then echo "  ✓ digest not in chat_message"; else echo "  ✗ digest in chat_message"; FAIL=1; fi
 
 rm -rf "$TMP"
 exit $FAIL

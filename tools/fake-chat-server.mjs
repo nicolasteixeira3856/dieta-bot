@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // QA-only fake of POST /v1/chat (no OpenAI). Answers the Stitch chatE estimate, suggesting the
 // profile slot whose name starts with "Caf" (else the first). POST /__mode {"hang": true} makes
-// /v1/chat never answer (loading state, then the client's 60 s timeout).
+// /v1/chat never answer (loading state, then the client's 60 s timeout). compact=true answers a
+// fixed digest like the real server (S3); empty messages -> 422. GET /__calls also counts compacts.
 // Build the app against it: ./gradlew :app:assembleDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -9,6 +10,8 @@ import http from "http";
 const port = Number(process.argv[2] ?? 8765);
 let hang = false;
 let calls = 0;
+let compacts = 0;
+const DIGEST = "Resumo QA: cafe da manha 380 kcal registrado.";
 
 const read = (req) => new Promise((resolve) => {
   let body = "";
@@ -24,13 +27,24 @@ http.createServer(async (req, res) => {
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
     calls++;
     if (hang) return; // never answers
     const input = JSON.parse(body || "{}");
+    if (input.compact) {
+      compacts++;
+      if (!input.messages?.length) {
+        res.writeHead(422, { "content-type": "application/json" }).end(JSON.stringify({ detail: "compact_needs_messages" }));
+        return;
+      }
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: "", estimate: null, digest: DIGEST, model: "gpt-6-luna",
+      }));
+      return;
+    }
     const slots = input.profile?.slots ?? [];
     const slot = slots.find((s) => s.name.startsWith("Caf")) ?? slots[0];
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({

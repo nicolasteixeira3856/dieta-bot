@@ -91,14 +91,17 @@ class ChatViewModel @Inject constructor(
         val snapshot = repository.observeToday().first()
         var digests = repository.digestsToday()
         var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt)
-        val out = runCatching {
-            if (turn.needsCompact) {
-                service.chat(PromptBuilder.compact(turn)).digest?.let { repository.upsertDigest(it) }
+        if (turn.needsCompact) {
+            // A failed compact never fails the turn: nothing stored, the newest 12 raw go as they are
+            // and the next send tries again.
+            val digest = runCatching { service.chat(PromptBuilder.compact(turn)).digest }.getOrNull()
+            if (!digest.isNullOrBlank()) {
+                repository.upsertDigest(digest)
                 digests = repository.digestsToday()
                 turn = PromptBuilder.build(snapshot, today, digests, text, sentAt)
             }
-            service.chat(turn.body)
-        }.getOrNull()
+        }
+        val out = runCatching { service.chat(turn.body) }.getOrNull()
         if (out == null || out.reply.isBlank() && out.estimate == null) {
             local.update { it.copy(failed = true) }
             return

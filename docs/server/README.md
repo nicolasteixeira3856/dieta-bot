@@ -50,7 +50,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. `compact=true` devolve digest (S3). O client ainda tem o compact desligado (`PromptBuilder.COMPACT_ENABLED = false`) ate um plano android ligar.
+Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md).
 
 Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 

@@ -2,7 +2,7 @@
 
 ## Estado
 
-Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. O server aceita `compact=true` desde o S3; no client o compact segue desligado (`PromptBuilder.COMPACT_ENABLED = false`) até um plano android ligá-lo.
+Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).
 
 ## Contexto e objetivo
 

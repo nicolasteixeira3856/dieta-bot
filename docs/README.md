@@ -9,7 +9,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5](android/plans/completed/) concluídos; [A6–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b](android/plans/completed/) concluídos; [A6–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1, S4, S2, S3](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
@@ -54,6 +54,7 @@ Ordem de `/goal` depois da frase de aprovação:
 10. [A5 Chat](android/plans/completed/a5-chat.md)
 11. [A3 Config + wipe + treino](android/plans/completed/a3-config-wipe-treino.md)
 12. [S3 compact digest](server/plans/completed/s3-compact.md)
+13. [A5b ligar compact](android/plans/completed/a5b-ligar-compact.md)
 
 ## Outros docs
 
