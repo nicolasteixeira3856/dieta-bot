@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+// QA-only fake of POST /v1/chat (no OpenAI). Answers the Stitch chatE estimate, suggesting the
+// profile slot whose name starts with "Caf" (else the first). POST /__mode {"hang": true} makes
+// /v1/chat never answer (loading state, then the client's 60 s timeout).
+// Build the app against it: ./gradlew :app:assembleDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
+// Usage: node tools/fake-chat-server.mjs [port]
+import http from "http";
+
+const port = Number(process.argv[2] ?? 8765);
+let hang = false;
+let calls = 0;
+
+const read = (req) => new Promise((resolve) => {
+  let body = "";
+  req.on("data", (c) => (body += c));
+  req.on("end", () => resolve(body));
+});
+
+http.createServer(async (req, res) => {
+  const body = await read(req);
+  if (req.method === "POST" && req.url === "/__mode") {
+    hang = Boolean(JSON.parse(body || "{}").hang);
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, calls }));
+    return;
+  }
+  if (req.method === "GET" && req.url === "/__calls") {
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls }));
+    return;
+  }
+  if (req.method === "POST" && req.url === "/v1/chat") {
+    calls++;
+    if (hang) return; // never answers
+    const input = JSON.parse(body || "{}");
+    const slots = input.profile?.slots ?? [];
+    const slot = slots.find((s) => s.name.startsWith("Caf")) ?? slots[0];
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+      reply: "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:",
+      estimate: {
+        kcal: 380, p: 22, c: 36, g: 16, confidence: "high", question: null,
+        items: [{ name: "2 pães franceses", g: 100, kcal: 270 }, { name: "2 ovos mexidos", g: 100, kcal: 110 }],
+        suggested_slot: slot ? slot.id : null,
+      },
+      digest: null,
+      model: "gpt-6-luna",
+    }));
+    return;
+  }
+  res.writeHead(404).end();
+}).listen(port, () => console.log(`fake /v1/chat on :${port}`));

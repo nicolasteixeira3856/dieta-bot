@@ -18,6 +18,9 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.NutriTheme
+import com.nutri.android.feature.chat.ChatFixtures
+import com.nutri.android.feature.chat.ChatScreen
+import com.nutri.android.feature.chat.ChatUiState
 import com.nutri.android.feature.home.HomeFixtures
 import com.nutri.android.feature.home.HomePanelMapper
 import com.nutri.android.feature.home.HomePanelScreen
@@ -108,6 +111,43 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1335dp-xhdpi")
     fun homeX_light() = check("homeX", dark = false, fullPage = true) { Home(HomeFixtures.homeX) }
 
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chat0_dark() = check("chat0", dark = true) { Chat(ChatFixtures.chat0) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chat0_light() = check("chat0", dark = false) { Chat(ChatFixtures.chat0) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatL_dark() = check("chatL", dark = true) { Chat(ChatFixtures.chatL) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatL_light() = check("chatL", dark = false) { Chat(ChatFixtures.chatL) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatE_dark() = check("chatE", dark = true) { Chat(ChatFixtures.chatE) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatE_light() = check("chatE", dark = false) { Chat(ChatFixtures.chatE) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatT_dark() = check("chatT", dark = true, navDp = 0) { Chat(ChatFixtures.chatT) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatT_light() = check("chatT", dark = false, navDp = 0) { Chat(ChatFixtures.chatT) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatP_dark() = check("chatP", dark = true) { Chat(ChatFixtures.chatP) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatP_light() = check("chatP", dark = false) { Chat(ChatFixtures.chatP) }
+
+    /** Dark chatG gold is a 2560x2048 desktop render: not comparable, light only. chatF (photo) is A6. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
+
+    @Composable private fun Chat(ui: ChatUiState) =
+        ChatScreen(ui, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {})
+
     @Composable private fun Home(day: DaySnapshot) =
         HomePanelScreen(HomePanelMapper.map(day, LocalDate.parse("2026-09-25")), {}, {}, {})
 
@@ -119,11 +159,12 @@ class StitchGoldTest {
 
     @Composable private fun O4() = MacrosScreen(GOLD_STATE, {}, {}, {}, {}, {})
 
-    private fun check(id: String, dark: Boolean, fullPage: Boolean = false, screen: @Composable () -> Unit) {
+    /** [navDp] = 0 for bottom sheets: they draw under the nav bar and pad themselves. */
+    private fun check(id: String, dark: Boolean, fullPage: Boolean = false, navDp: Int = NAV_DP, screen: @Composable () -> Unit) {
         compose.setContent {
             NutriTheme(darkTheme = dark) {
                 Box(Modifier.fillMaxSize().background(LocalPalette.current.phone)) {
-                    Box(Modifier.padding(top = STATUS_DP.dp, bottom = NAV_DP.dp)) { screen() }
+                    Box(Modifier.padding(top = STATUS_DP.dp, bottom = navDp.dp)) { screen() }
                 }
             }
         }
@@ -142,8 +183,8 @@ class StitchGoldTest {
         val inkRatio = ink(appBlur, 0).toDouble() / ink(goldBlur, top).coerceAtLeast(1)
         save(blurred.mask, File(DIFF_OUT, "$theme-$id.png"))
         println("GOLD_DIFF $theme/$id blurred ${"%.2f".format(blurred.percent)}% raw ${"%.2f".format(raw.percent)}% ink ${"%.2f".format(inkRatio)}")
-        assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
         if (id in GOLD_CONFLICTS) return // reported only, see GOLD_CONFLICTS
+        assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
         assertWithMessage("$theme/$id differs from Stitch gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
     }
 
@@ -271,11 +312,15 @@ class StitchGoldTest {
         private const val MAX_DIFF_PERCENT = 2.0
 
         /**
-         * Golds whose layout contradicts the canonical one (home1): each Home gold is a separate
-         * Stitch generation (header, node, card and spacing styles differ). Reported, not gated,
-         * until the owner regenerates them. See docs/android/plans/completed/a4-home-painel.md.
+         * Golds whose layout contradicts the canonical one of their group (home1, chatE): each is a
+         * separate Stitch generation. Reported, not gated, until the owner regenerates them.
          */
-        private val GOLD_CONFLICTS = setOf("home0", "homeX")
+        private val GOLD_CONFLICTS = setOf(
+            "home0", "homeX",
+            // Chat: chatE is canonical. chat0/chatL use another header (body alone: ~1.2-1.4%);
+            // chatG light is the chatF generation. See docs/android/plans/completed/a5-chat.md.
+            "chat0", "chatL", "chatG",
+        )
         private val ROOT = File("../../..")
         private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")

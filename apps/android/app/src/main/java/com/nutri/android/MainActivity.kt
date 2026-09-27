@@ -33,7 +33,8 @@ import com.nutri.android.feature.onboarding.OnboardingViewModel
 import com.nutri.android.feature.onboarding.SlotsScreen
 import com.nutri.android.feature.splash.SplashScreen
 import com.nutri.android.feature.splash.SplashViewModel
-import com.nutri.android.feature.stub.ChatStubScreen
+import com.nutri.android.feature.chat.ChatScreen
+import com.nutri.android.feature.chat.ChatViewModel
 import com.nutri.android.feature.stub.ConfigStubScreen
 import com.nutri.android.feature.t2.T2Screen
 import com.nutri.android.feature.t2.T2ViewModel
@@ -177,7 +178,25 @@ private fun App(captureScreen: String?) {
                     onChat = { nav.navigate(RouteChat) },
                 )
             }
-            composable<RouteChat> { ChatStubScreen(onBack = { nav.popBackStack() }) }
+            composable<RouteChat> {
+                val vm: ChatViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                ChatScreen(
+                    ui = ui,
+                    onBack = { nav.popBackStack() },
+                    onComposer = vm::setComposer,
+                    onSend = vm::send,
+                    onRetry = vm::retry,
+                    onRecord = vm::record,
+                    onSwap = vm::openSheet,
+                    onSheetSelect = vm::selectInSheet,
+                    onSheetConfirm = vm::confirmSheet,
+                    onSheetClose = vm::closeSheet,
+                    onAskSkip = vm::askSkip,
+                    onSkipConfirm = vm::confirmSkip,
+                    onSkipCancel = vm::cancelSkip,
+                )
+            }
             composable<RouteConfig> { ConfigStubScreen(onBack = { nav.popBackStack() }) }
             composable<RouteT2> {
                 val vm: T2ViewModel = hiltViewModel()

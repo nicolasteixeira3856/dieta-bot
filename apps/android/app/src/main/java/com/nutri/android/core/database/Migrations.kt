@@ -3,6 +3,15 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v2 -> v3: estimate slot, question and item names on chat_message (A5). */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `estimateSlotId` INTEGER")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `estimateQuestion` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `estimateItems` TEXT")
+    }
+}
+
 /**
  * v1 -> v2. DDL mirrors schemas/.../2.json. meal_log is rebuilt because
  * SQLite cannot add a foreign key with ALTER TABLE.

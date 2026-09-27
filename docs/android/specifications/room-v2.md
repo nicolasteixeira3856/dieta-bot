@@ -22,7 +22,7 @@ Telas, push, foto, `/v1/chat`, arquivo de memória.
 2. `meal_slot`: `id` PK auto, `name` TEXT, `minutesFromMidnight` INT 0..1439, `sortOrder` INT. Sem unique de nome.
 3. `meal_log` ganha: `slotId` INT NULL FK ON DELETE SET NULL, `carbs` INT DEFAULT 0, `fat` INT DEFAULT 0, `source` TEXT DEFAULT 'user'. `window` permanece. Segundo Gravar = INSERT (soma).
 4. `slot_skip` PK (`date`,`slotId`). Nunca auto-insert. `addLog` apaga skip. `addSkip` apaga logs do slot+date.
-5. `chat_message`: `date`, `role` user|assistant, `text`, `createdAtEpochMs`, estimate* nullable, `photoPath`. UI 60 d.
+5. `chat_message`: `date`, `role` user|assistant (recibos de UI: logged|skipped), `text`, `createdAtEpochMs`, estimate* nullable (`estimateKcal/P/C/G`, `estimateConfidence`, `estimateSlotId`, `estimateQuestion`, `estimateItems`), `photoPath`. UI 60 d. v3 (A5): `MIGRATION_2_3` adiciona os três últimos estimate*.
 6. `day_digest` PK (`date`,`seq`). seq 1 ou 2. 3º bloco substitui seq=1; blocos seguintes substituem sempre o mais antigo.
 7. `day.workoutKcal` intacto.
 8. TMB Mifflin-St Jeor. Macros 30/40/30.

@@ -2,6 +2,7 @@ package com.nutri.android.core.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.nutri.android.BuildConfig
+import com.nutri.android.feature.chat.ChatService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,9 +20,11 @@ object NetworkModule {
     @Provides
     @Singleton
     fun client(): OkHttpClient = OkHttpClient.Builder()
+        // Server timeout is 60 s (S1); the client waits as long, then shows "não deu".
         .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .writeTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .callTimeout(65, TimeUnit.SECONDS)
         .addInterceptor(InviteInterceptor(BuildConfig.INVITE_CODE))
         .build()
 
@@ -41,4 +44,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun gate(api: NutriApi): EstimateGate = EstimateGate(api)
+
+    @Provides
+    @Singleton
+    fun chat(api: NutriApi): ChatService = ChatService { api.chat(it) }
 }

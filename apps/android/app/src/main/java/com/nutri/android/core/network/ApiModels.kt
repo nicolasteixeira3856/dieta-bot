@@ -73,4 +73,7 @@ interface NutriApi {
 
     @POST("v1/fit")
     suspend fun fit(@Body body: FitIn): FitOut
+
+    @POST("v1/chat")
+    suspend fun chat(@Body body: ChatIn): ChatOut
 }

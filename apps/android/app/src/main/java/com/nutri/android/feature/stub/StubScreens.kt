@@ -29,10 +29,6 @@ import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.NutriType
 
-/** Chat scaffold. A5 replaces the body (chat0..chatG). */
-@Composable
-fun ChatStubScreen(onBack: () -> Unit) = StubScaffold("Chat", "chat", onBack)
-
 /** Config scaffold. A3 replaces the body (cfg, wipe). */
 @Composable
 fun ConfigStubScreen(onBack: () -> Unit) = StubScaffold("Configurações", "cfg", onBack)

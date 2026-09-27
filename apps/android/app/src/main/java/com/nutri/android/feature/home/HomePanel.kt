@@ -3,14 +3,8 @@ package com.nutri.android.feature.home
 import androidx.compose.runtime.Immutable
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.MealLog
-import com.nutri.android.domain.BudgetCalculator
-import com.nutri.android.domain.BudgetInput
-import com.nutri.android.domain.CeilingProfile
-import com.nutri.android.domain.CreditPolicy
-import com.nutri.android.domain.SameEveryDayCeiling
-import com.nutri.android.domain.SevenDayCeiling
+import com.nutri.android.core.database.metaOn
 import com.nutri.android.domain.SlotSuggestions
-import com.nutri.android.domain.WeekdayWeekendCeiling
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -78,20 +72,7 @@ object HomePanelMapper {
     fun map(day: DaySnapshot, today: LocalDate): HomePanelUiState {
         val first = day.firstDay.takeIf { it.isNotBlank() }?.let(LocalDate::parse) ?: today
         val appDay = (ChronoUnit.DAYS.between(first, today) + 1).coerceAtLeast(1)
-        val meta = BudgetCalculator().calculate(
-            BudgetInput(
-                date = today,
-                profile = profileOf(day),
-                policy = when (day.eat) {
-                    "partial" -> CreditPolicy.PARTIAL
-                    "full" -> CreditPolicy.FULL
-                    else -> CreditPolicy.ZERO
-                },
-                percent = day.pct,
-                workoutKcal = day.workoutKcal,
-                reservedUpcoming = 0,
-            ),
-        ).effectiveCeiling
+        val meta = day.metaOn(today)
 
         val consumed = day.logs.sumOf { it.kcal }
         return HomePanelUiState(
@@ -149,11 +130,4 @@ object HomePanelMapper {
         g = logs.sumOf { it.fat },
         fromPhoto = logs.any { it.source == "photo" },
     )
-
-    private fun profileOf(day: DaySnapshot): CeilingProfile = when (day.ceilingMode) {
-        "weekdayWeekend" -> WeekdayWeekendCeiling(day.kcalWeekday, day.kcalWeekend)
-        "seven" -> day.kcalDays.let { if (it.size == 7) it else List(7) { 2000 } }
-            .let { d -> SevenDayCeiling(d[0], d[1], d[2], d[3], d[4], d[5], d[6]) }
-        else -> SameEveryDayCeiling(day.kcalSame)
-    }
 }

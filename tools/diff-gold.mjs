@@ -38,8 +38,8 @@ const RADIUS = 3;
 const SEARCH = 48;
 const FOOTER = 260; // 130 dp: CTA + gradient + nav
 // Golds whose layout contradicts the canonical screen of their group (home1): reported, not
-// gated, until regenerated in Stitch. See docs/android/plans/completed/a4-home-painel.md.
-const GOLD_CONFLICTS = new Set(["home0", "homeX"]);
+// gated, until regenerated in Stitch. See the A4 and A5 plans in docs/android/plans/completed/.
+const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG"]);
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -136,6 +136,10 @@ for (const key of ids) {
   }
   const appRaw = load(appFile);
   const goldRaw = load(goldFile);
+  if (goldRaw.w !== WIDTH && GOLD_CONFLICTS.has(id)) {
+    console.log(`  ~ ${key} gold is ${goldRaw.w}x${goldRaw.h}, not a phone capture [gold conflict: report only]`);
+    continue;
+  }
   if (appRaw.w !== WIDTH || goldRaw.w !== WIDTH) {
     console.error(`  ✗ ${key}: width must be ${WIDTH} (app ${appRaw.w}, gold ${goldRaw.w}). Use wm size 780x1688 + density 320.`);
     failed = true;

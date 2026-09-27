@@ -188,6 +188,9 @@ class DayRepository @Inject constructor(
         estimateG: Int? = null,
         estimateConfidence: String? = null,
         photoPath: String? = null,
+        estimateSlotId: Long? = null,
+        estimateQuestion: String? = null,
+        estimateItems: List<String> = emptyList(),
     ): Long {
         importOnce()
         val now = clock.now()
@@ -204,6 +207,9 @@ class DayRepository @Inject constructor(
                     estimateG = estimateG,
                     estimateConfidence = estimateConfidence,
                     photoPath = photoPath,
+                    estimateSlotId = estimateSlotId,
+                    estimateQuestion = estimateQuestion,
+                    estimateItems = estimateItems.takeIf { it.isNotEmpty() }?.joinToString(ITEM_SEPARATOR),
                 ),
             )
         }

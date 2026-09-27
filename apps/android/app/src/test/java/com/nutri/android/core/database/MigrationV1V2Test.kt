@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** Builds a real v1 file from the exported 1.json, then opens it with Room v2 + MIGRATION_1_2. */
+/** Builds real v1/v2 files from the exported schemas, then opens them with the current Room + migrations. */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [34])
 class MigrationV1V2Test {
@@ -51,11 +51,11 @@ class MigrationV1V2Test {
         }
 
         val db = Room.databaseBuilder(context, NutriDatabase::class.java, dbFile.absolutePath)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
         try {
-            assertThat(db.openHelper.readableDatabase.version).isEqualTo(2)
+            assertThat(db.openHelper.readableDatabase.version).isEqualTo(3)
 
             val profile = db.profileDao().get()!!
             assertThat(profile.kcalSame).isEqualTo(1850)
@@ -97,18 +97,46 @@ class MigrationV1V2Test {
     fun emptyV1_migrates() {
         createV1 { }
         val db = Room.databaseBuilder(context, NutriDatabase::class.java, dbFile.absolutePath)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
         try {
-            assertThat(db.openHelper.readableDatabase.version).isEqualTo(2)
+            assertThat(db.openHelper.readableDatabase.version).isEqualTo(3)
         } finally {
             db.close()
         }
     }
 
-    private fun createV1(seed: (SQLiteDatabase) -> Unit) {
-        val schema = JSONObject(File(SCHEMA_V1).readText()).getJSONObject("database")
+    @Test
+    fun v2ChatMessages_gainEstimateColumns() = runBlocking {
+        createFromSchema(SCHEMA_V2, version = 2) { v2 ->
+            v2.execSQL(
+                "INSERT INTO chat_message (id, date, role, text, createdAtEpochMs, estimateKcal) " +
+                    "VALUES (1, '2026-09-25', 'assistant', 'ok', 1000, 380)",
+            )
+        }
+        val db = Room.databaseBuilder(context, NutriDatabase::class.java, dbFile.absolutePath)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            val row = db.chatMessageDao().getByDate("2026-09-25").single()
+            assertThat(row.estimateKcal).isEqualTo(380)
+            assertThat(row.estimateSlotId).isNull()
+            assertThat(row.itemNames).isEmpty()
+            db.chatMessageDao().insert(
+                ChatMessageEntity(date = "2026-09-25", role = "assistant", estimateSlotId = 4, estimateItems = "pao${ITEM_SEPARATOR}ovo"),
+            )
+            assertThat(db.chatMessageDao().getByDate("2026-09-25").first { it.id != 1L }.itemNames).containsExactly("pao", "ovo").inOrder()
+        } finally {
+            db.close()
+        }
+    }
+
+    private fun createV1(seed: (SQLiteDatabase) -> Unit) = createFromSchema(SCHEMA_V1, version = 1, seed)
+
+    private fun createFromSchema(path: String, version: Int, seed: (SQLiteDatabase) -> Unit) {
+        val schema = JSONObject(File(path).readText()).getJSONObject("database")
         val v1 = SQLiteDatabase.openOrCreateDatabase(dbFile, null)
         try {
             val entities = schema.getJSONArray("entities")
@@ -126,7 +154,7 @@ class MigrationV1V2Test {
                 v1.execSQL(setup.getString(i))
             }
             seed(v1)
-            v1.version = 1
+            v1.version = version
         } finally {
             v1.close()
         }
@@ -134,5 +162,6 @@ class MigrationV1V2Test {
 
     private companion object {
         const val SCHEMA_V1 = "schemas/com.nutri.android.core.database.NutriDatabase/1.json"
+        const val SCHEMA_V2 = "schemas/com.nutri.android.core.database.NutriDatabase/2.json"
     }
 }

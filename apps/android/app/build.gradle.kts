@@ -16,7 +16,8 @@ val localFile = rootProject.file("local.properties")
 if (localFile.exists()) {
     localFile.inputStream().use { local.load(it) }
 }
-val apiPublicUrl = local.getProperty("API_PUBLIC_URL") ?: "http://127.0.0.1:8080"
+// -PAPI_PUBLIC_URL=... overrides local.properties (QA against a local fake server).
+val apiPublicUrl = (project.findProperty("API_PUBLIC_URL") as String?) ?: local.getProperty("API_PUBLIC_URL") ?: "http://127.0.0.1:8080"
 val inviteCode = local.getProperty("INVITE_CODE") ?: "troca-isto"
 
 android {

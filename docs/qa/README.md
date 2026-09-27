@@ -54,7 +54,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
    ```bash
    adb shell wm size 780x1688 && adb shell wm density 320
    ```
-3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Home (inclui interações): `tools/capture-home.sh dark|light`. Manual:
+3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Home (inclui interações): `tools/capture-home.sh dark|light`. Chat: `node tools/fake-chat-server.mjs` + APK com `-PAPI_PUBLIC_URL=http://10.0.2.2:8765` + `tools/capture-chat.sh dark|light`. Manual:
    ```bash
    adb exec-out screencap -p > docs/qa/android/current/{theme}/<id>.png
    ```
@@ -73,7 +73,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 - Conteúdo alinhado pelo topo e rodapé (CTA) pela base, cada um com o melhor deslocamento em ±24 dp (altura de status/nav varia por aparelho).
 - Presença de conteúdo: tinta da captura entre 0,8× e 1,25× a do gold.
 - **Aprovado: ≤ 2%.** Pixel a pixel sem borrão não serve de gate: a splash fica em ~1,2% só por raster.
-- Golds que contradizem o canônico do grupo (hoje `home0`, `homeX` × `home1`) ficam em `GOLD_CONFLICTS`: medidos e reportados (`~`), sem bloquear, até serem regenerados no Stitch.
+- Golds que contradizem o canônico do grupo (hoje `home0`, `homeX` × `home1`; `chat0`, `chatL`, `chatG` × `chatE`) ficam em `GOLD_CONFLICTS`: medidos e reportados (`~`), sem bloquear, até serem regenerados no Stitch.
 
 ### Regressão
 

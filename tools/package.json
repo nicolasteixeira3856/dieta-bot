@@ -5,7 +5,8 @@
   "scripts": {
     "export:stitch": "node export-stitch.mjs",
     "check:stitch": "node check-stitch.mjs",
-    "diff:gold": "node diff-gold.mjs"
+    "diff:gold": "node diff-gold.mjs",
+    "fake:chat": "node fake-chat-server.mjs"
   },
   "dependencies": {
     "playwright": "^1.55.0",
