@@ -52,7 +52,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 
 - `docs/android/plans/a5-chat.md`
 - `docs/android/plans/a6-foto.md`
-- `docs/server/plans/s2-v1-chat.md`
+- `docs/server/plans/completed/s2-v1-chat.md`
 - `docs/server/plans/s3-compact.md`
 
 ## Critérios de aceite funcionais

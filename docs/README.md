@@ -9,8 +9,8 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A1–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1](server/plans/completed/s1-timeout-photo-cap.md) concluído; [S2–S3](server/plans/) aguardando aprovação | `server/tests/` |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, A0 tokens](android/plans/completed/) concluídos; [A0 Roborazzi, A1–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1, S4, S2](server/plans/completed/) concluídos; [S3](server/plans/) aguardando aprovação | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -36,30 +36,30 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [S4 Hardening de segurança da API](server/plans/s4-security-hardening.md)
-2. [S2 POST /v1/chat](server/plans/s2-v1-chat.md)
-3. [A0 Refatoração arquitetural feature-first & Kotlin puro](android/plans/a0-arch-refactor.md)
-4. [A0 Tokens semânticos P/C/G & Material 3 Expressive](android/plans/a0-tokens-expressive.md)
-5. [A0 Roborazzi setup & smoke test de regressão visual](android/plans/a0-roborazzi-setup.md)
-6. [A1 Room v2 (Kotlin puro + KSP)](android/plans/a1-room-v2.md)
-7. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
-8. [A4 Home painel](android/plans/a4-home-painel.md)
-9. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
-10. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
-11. [S3 compact digest](server/plans/s3-compact.md)
-12. [A8 memória](android/plans/a8-memoria.md)
-13. [A6 foto](android/plans/a6-foto.md)
-14. [A7 push](android/plans/a7-push.md)
+1. [A0 Roborazzi setup & smoke test de regressão visual](android/plans/a0-roborazzi-setup.md)
+2. [A1 Room v2 (Kotlin puro + KSP)](android/plans/a1-room-v2.md)
+3. [A2 Onboarding perfil](android/plans/a2-onboarding-perfil.md)
+4. [A4 Home painel](android/plans/a4-home-painel.md)
+5. [A5 Chat](android/plans/a5-chat.md) (pré-req S2 + A4)
+6. [A3 Config + wipe + treino](android/plans/a3-config-wipe-treino.md)
+7. [S3 compact digest](server/plans/s3-compact.md)
+8. [A8 memória](android/plans/a8-memoria.md)
+9. [A6 foto](android/plans/a6-foto.md)
+10. [A7 push](android/plans/a7-push.md)
 
 ## Planos concluídos
 
 1. [S1 timeout + cap 16 MB](server/plans/completed/s1-timeout-photo-cap.md)
+2. [S4 Hardening de segurança da API](server/plans/completed/s4-security-hardening.md)
+3. [S2 POST /v1/chat](server/plans/completed/s2-v1-chat.md)
+4. [A0 Refatoração arquitetural feature-first & Kotlin puro](android/plans/completed/a0-arch-refactor.md)
+5. [A0 Tokens semânticos P/C/G & Material 3 Expressive](android/plans/completed/a0-tokens-expressive.md)
 
 ## Outros docs
 
 | Arquivo | Papel |
 |---|---|
-| [api-contract.md](api-contract.md) | contrato HTTP vigente até S2 atualizar |
+| [api-contract.md](api-contract.md) | contrato HTTP vigente |
 | [tokens.md](tokens.md) | tokens visuais |
 | [TEAM.md](TEAM.md) | time |
 | [HERMES.md](HERMES.md) | troca de modelo no agente de código |
