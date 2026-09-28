@@ -1,13 +1,9 @@
 package com.nutri.android.core.network
 
-import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.DAY_PREF_KEY
 import com.nutri.android.core.database.DAY_STORE_NAME
-import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.test.runTest
 import okhttp3.Request
 import org.junit.Test
 
@@ -33,35 +29,5 @@ class NetworkTest {
         }
         interceptor.intercept(chain)
         assertThat(sent!!.header("X-Invite")).isEqualTo("troca-isto")
-    }
-
-    @Test
-    fun `network failure becomes low confidence and the one-line question`() = runTest {
-        val api = mockk<NutriApi>()
-        coEvery { api.estimate(any()) } throws java.io.IOException("down")
-        val gate = EstimateGate(api)
-        flow {
-            emit(
-                gate.estimate(
-                    EstimateIn(local_time = "2026-09-24T09:00:00-03:00", window = "breakfast", text = "pao"),
-                ),
-            )
-        }.test {
-            val item = awaitItem()
-            assertThat(item.confidence).isEqualTo("low")
-            assertThat(item.question).isEqualTo("descreve em 1 linha")
-            awaitComplete()
-        }
-    }
-
-    @Test
-    fun `high confidence omits the question`() = runTest {
-        val api = mockk<NutriApi>()
-        coEvery { api.estimate(any()) } returns EstimateOut(kcal = 385.0, p = 18.0, confidence = "high", question = "sumir")
-        val out = EstimateGate(api).estimate(
-            EstimateIn(local_time = "2026-09-24T09:00:00-03:00", window = "breakfast", text = "pao"),
-        )
-        assertThat(out.question).isNull()
-        assertThat(out.kcal).isEqualTo(385.0)
     }
 }

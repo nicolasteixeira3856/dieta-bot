@@ -48,9 +48,5 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun gate(api: NutriApi): EstimateGate = EstimateGate(api)
-
-    @Provides
-    @Singleton
     fun chat(api: NutriApi): ChatService = ChatService { api.chat(it) }
 }

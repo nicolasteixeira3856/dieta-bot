@@ -9,8 +9,8 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A9, A11](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5](server/plans/completed/) concluídos | `server/tests/` |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A13, A14](android/plans/) aguardando aprovação; [A9, A11](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S7](server/plans/s7-rename-prompt.md) aguardando aprovação; [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -29,22 +29,25 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 | [008](decisions/008-visual-qa.md) | android | visual QA |
 | [009](decisions/009-visual-match.md) | android | visual match |
 | [010](decisions/010-room.md) | android | Room |
-| [011](decisions/011-t2-t3-actions.md) | android | T2/T3 actions (vale até A5) |
+| [011](decisions/011-t2-t3-actions.md) | android | T2/T3 actions (histórico: fluxo removido no A12) |
 | [012](produto/adrs/ADR-012-chat-home-perfil.md) | produto | Chat tela, Home painel, perfil nomeado |
 | [013](server/adrs/ADR-013-gcp-host.md) | server | host GCP e2-micro |
 | [014](android/adrs/ADR-014-flavors-firebase-dev.md) | android | flavors dev/prod, Firebase só no dev |
 | [015](server/adrs/ADR-015-log-conversa-dev.md) | server | log de conversa no server de dev |
+| [016](produto/adrs/ADR-016-nome-dieta-bot.md) | produto | nome visível "Dieta Bot", IDs técnicos `nutri` (proposto) |
 
 ## Planos aguardando aprovação
 
 Ordem de `/goal` depois da frase de aprovação:
 
-Nenhum no momento.
+1. [A13 rename visível "Dieta Bot"](android/plans/a13-rename-dieta-bot.md) — aceita o [ADR-016](produto/adrs/ADR-016-nome-dieta-bot.md); Fase 0 edita os golds pelo MCP `stitch`.
+2. [S7 "Dieta Bot" no prompt do server](server/plans/s7-rename-prompt.md) — independente no código.
+3. [A14 marca: ícone e splash com o logo](android/plans/a14-marca-icone-splash.md) — depende do A13; fonte em `design/brand/`.
 
 ## Planos pendentes de aprovação manual
 
 1. [A9 chave de assinatura do release](android/plans/pending_manual_validation/a9-assinatura-release.md) — release assinado; falta o dono confirmar o backup de `nutri-release.jks` + `key.properties`.
-2. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; falta o dono ativar o Google Analytics no console, instalar o APK e usar por 1 dia.
+2. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
 3. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
 
 ## Planos concluídos
@@ -68,6 +71,7 @@ Nenhum no momento.
 17. [A7 push](android/plans/completed/a7-push.md)
 18. [S5 deploy GCP e2-micro](server/plans/completed/s5-gcp-deploy.md)
 19. [A10 flavors dev/prod](android/plans/completed/a10-flavors-dev-prod.md)
+20. [A12 remover legado T1/T2/T3](android/plans/completed/a12-remover-legado-t123.md)
 
 ## Outros docs
 

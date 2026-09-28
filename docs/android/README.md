@@ -39,12 +39,12 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 1. [matriz](../README.md) e este README
 2. AGENTS.md (stack, tokens, visual QA)
-3. ADRs 010 e 011 se o assunto for Room ou T2/T3
+3. ADR 010 se o assunto for Room (o 011, T2/T3, é histórico: fluxo removido no A12)
 4. Codigo em `apps/android/`
 
 ## Estado atual
 
-Client vivo. Room v1: profile, day, meal_log. T1/T3 sheet, T2 rota cheia. Chat (A5) com compact (A5b) e memória cifrada (A8) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
+Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b) e memória cifrada (A8) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
 
 ## Flavors
 
@@ -94,6 +94,9 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
+- [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
+- [A13 rename visível "Dieta Bot" (Aguardando aprovação)](plans/a13-rename-dieta-bot.md)
+- [A14 marca: ícone e splash (Aguardando aprovação)](plans/a14-marca-icone-splash.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)

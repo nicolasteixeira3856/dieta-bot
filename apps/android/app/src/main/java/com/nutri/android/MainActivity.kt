@@ -52,8 +52,6 @@ import com.nutri.android.feature.chat.rememberPhotoLaunchers
 import com.nutri.android.feature.config.ConfigActions
 import com.nutri.android.feature.config.ConfigScreen
 import com.nutri.android.feature.config.ConfigViewModel
-import com.nutri.android.feature.t2.T2Screen
-import com.nutri.android.feature.t2.T2ViewModel
 import com.nutri.android.core.telemetry.NoopTelemetry
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
@@ -70,7 +68,6 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteHome
 @Serializable data object RouteChat
 @Serializable data object RouteConfig
-@Serializable data object RouteT2
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -121,7 +118,6 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
     }
     val startDestination: Any = when (captureScreen) {
         "o1", "o2", "o3", "o4" -> RouteOnboarding
-        "t2", "t2q" -> RouteT2
         "home0", "home1", "homeX" -> RouteHome
         else -> RouteSplash
     }
@@ -283,18 +279,6 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 }
                 ConfigScreen(ui, actions)
             }
-            composable<RouteT2> {
-                val vm: T2ViewModel = hiltViewModel()
-                val ui by vm.uiState.collectAsStateWithLifecycle()
-                T2Screen(
-                    ui = ui,
-                    onYes = { vm.onYes { nav.popBackStack() } },
-                    onRevise = { vm.onRevise { nav.popBackStack() } },
-                    onDiscard = { vm.onDiscard { nav.popBackStack() } },
-                    onConfirm = { vm.confirm { nav.popBackStack() } },
-                    onUndo = { nav.popBackStack() },
-                )
-            }
         }
     }
 }
@@ -309,7 +293,6 @@ internal fun screenName(route: String?): String? = when (route?.substringAfterLa
     "RouteHome" -> "home"
     "RouteChat" -> "chat"
     "RouteConfig" -> "cfg"
-    "RouteT2" -> "t2"
     else -> null
 }
 

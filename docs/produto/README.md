@@ -42,7 +42,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-App no ar: splash, O1, O2, T0, T1 sheet, T2, T3. Chat ([chat](specifications/chat.md)) e Config ([memoria-push](specifications/memoria-push.md)) no ar.
+App no ar (telas do ADR-012): splash, O1–O4, Home (painel), Chat ([chat](specifications/chat.md)), Config ([memoria-push](specifications/memoria-push.md)) e Push. O fluxo antigo T0–T3 foi removido no [A12](../android/plans/completed/a12-remover-legado-t123.md).
 
 ## Indice
 

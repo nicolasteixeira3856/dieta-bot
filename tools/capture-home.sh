@@ -23,6 +23,8 @@ FAIL=0
 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
+# The prompt may already be on screen from the onboarding relaunch: restart so Home opens clean.
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
 
 dump() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/ui.xml"; }
 at() { # at <attribute regex> -> "x y" of the first matching node
