@@ -10,7 +10,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b](android/plans/completed/) concluídos; [A6–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | histórico em [decisions/](decisions/) | [S1, S4, S2, S3](server/plans/completed/) concluídos | `server/tests/` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md) | [S1, S4, S2, S3, S5](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -31,6 +31,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 | [010](decisions/010-room.md) | android | Room |
 | [011](decisions/011-t2-t3-actions.md) | android | T2/T3 actions (vale até A5) |
 | [012](produto/adrs/ADR-012-chat-home-perfil.md) | produto | Chat tela, Home painel, perfil nomeado |
+| [013](server/adrs/ADR-013-gcp-host.md) | server | host GCP e2-micro |
 
 ## Planos aguardando aprovação
 
@@ -55,6 +56,7 @@ Ordem de `/goal` depois da frase de aprovação:
 11. [A3 Config + wipe + treino](android/plans/completed/a3-config-wipe-treino.md)
 12. [S3 compact digest](server/plans/completed/s3-compact.md)
 13. [A5b ligar compact](android/plans/completed/a5b-ligar-compact.md)
+14. [S5 deploy GCP e2-micro](server/plans/completed/s5-gcp-deploy.md)
 
 ## Outros docs
 
@@ -64,7 +66,8 @@ Ordem de `/goal` depois da frase de aprovação:
 | [tokens.md](tokens.md) | tokens visuais |
 | [TEAM.md](TEAM.md) | time |
 | [HERMES.md](HERMES.md) | troca de modelo no agente de código |
-| [MIGRACAO-VPS.md](MIGRACAO-VPS.md) | migração futura; não executar |
+| [server/deploy-gcp.md](server/deploy-gcp.md) | runbook do host GCP (ADR-013) |
+| [MIGRACAO-VPS.md](MIGRACAO-VPS.md) | substituído pelo ADR-013 |
 | [qa/](qa/) | Stitch gold (`stitch/{dark,light}/`) + capturas (`android/current/`) |
 | [`../.stitch/`](../.stitch/) | Design System oficial Google Stitch (`Nutri`) |
 | [`../wires/`](../wires/) | wires preliminares (criação de layout apenas) |

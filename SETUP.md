@@ -71,6 +71,5 @@ Named tunnel (estável, o que vale pra APK):
 
 Luz caiu = API caiu. É o preço de R$ 0.
 
-## Migração futura
-
-docs/MIGRACAO-VPS.md. Não fazer hoje.
+D. Uso real (celular, Wi-Fi e 4G): VM no Google Cloud, [ADR-013](docs/server/adrs/ADR-013-gcp-host.md).
+   Runbook: [docs/server/deploy-gcp.md](docs/server/deploy-gcp.md). Deploy: `./tools/deploy-gcp.ps1`.

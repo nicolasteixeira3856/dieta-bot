@@ -9,7 +9,7 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 - Tipo: contrato HTTP.
 - Codigo principal: `server/`.
 - Consumidor: [android](../android/README.md).
-- Infra S0 indexada aqui: `server/docker-compose.yml`, `infra/`, [MIGRACAO-VPS.md](../MIGRACAO-VPS.md).
+- Infra indexada aqui: `server/docker-compose.yml`, `infra/`, `infra/gcp/`, [deploy-gcp.md](deploy-gcp.md).
 
 ## Escopo
 
@@ -19,13 +19,14 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 - Foto entra no request e some. Nao persiste.
 - Cap 16 MB JPEG (`PHOTO_MAX_B64_CHARS = 22_400_000`). Acima disso HTTP 413 `photo_too_large` antes da Luna.
 - Shaping do JSON de contrato.
-- Compose + Cloudflare Tunnel. Sem porta no roteador.
+- Compose + Cloudflare Tunnel na torre (dev). Sem porta no roteador.
+- Producao: VM e2-micro GCP + Caddy HTTPS ([ADR-013](adrs/ADR-013-gcp-host.md), runbook [deploy-gcp.md](deploy-gcp.md)). `infra/gcp/`, `tools/deploy-gcp.ps1`.
 
 ## Fora de escopo
 
 - Teto, eat-back, Room, push, UI — [android](../android/README.md) / [produto](../produto/README.md).
 - Conta de user, Stripe, persistencia do dia no server.
-- VPS agora. Texto de migracao em [MIGRACAO-VPS.md](../MIGRACAO-VPS.md).
+- Outro host alem do ADR-013 (VPS, dominio proprio, Cloud Run).
 
 ## Fronteiras e dependencias
 
@@ -37,7 +38,7 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 ## Cobertura documental atual
 
 Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md) e [S3](plans/completed/s3-compact.md) concluidos.
+[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) concluidos.
 
 ## Como usar esta documentacao
 
@@ -63,10 +64,12 @@ Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
 ### ADRs
 
-Nenhum ADR local. Historico: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
+- [ADR-013](adrs/ADR-013-gcp-host.md) — host GCP e2-micro (aceito).
+- Historico: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
 
 ### Planos e validacao
 
+- [S5 concluido](plans/completed/s5-gcp-deploy.md) — deploy GCP e2-micro + Caddy.
 - [S1 concluido](plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16 MB.
 - [S4 concluido](plans/completed/s4-security-hardening.md) — hardening de seguranca (rate limiting, constant time auth, payload limit).
 - [S2 concluido](plans/completed/s2-v1-chat.md) — POST /v1/chat.

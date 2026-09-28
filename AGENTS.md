@@ -53,6 +53,7 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   UDF, ViewModel + UiState, Hilt, collectAsStateWithLifecycle
   Room 2.6.x for profile + day + meal_log. No DataStore for day state.
 - server/ — FastAPI, untouched contract: GET /health, POST /v1/estimate, POST /v1/fit
+- Host: GCP e2-micro us-east1 + Caddy (ADR-013). Runbook: docs/server/deploy-gcp.md. Deploy: tools/deploy-gcp.ps1
 
 Dead: legacy/flutter, apps/rn. Git history keeps them. Do not restore.
 
@@ -134,7 +135,7 @@ Test before marking done.
 ## Do not
 
 Firebase, Gemini, TDEE, eat-back cap, Health/Xiaomi, key in the client,
-VPS, router port, iOS, Flutter, React Native,
+VPS outside ADR-013, router port, iOS, Flutter, React Native,
 screens outside ADR-012,
 implementation based on wires instead of Stitch gold PNGs,
 Appbar / BottomNav as showcase,
