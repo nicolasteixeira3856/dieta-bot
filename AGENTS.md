@@ -21,7 +21,7 @@ Numbers first. Dry tone. No coach. No slogan.
 - Eat-back: 0% | typed % default 50 | 100%. NO cap.
 - Workout is a typed number. No number that day → credit = 0.
 - One question if confidence is not high.
-- Photo on Chat from day 1. Client: ≤1280 JPEG 70. Server estimates and deletes.
+- Photo on Chat from day 1. Client sends the original photo as JPEG, no downscale, ≤16 MB (non-JPEG gallery images re-encoded to JPEG). Server estimates and deletes.
 - Disclaimer: estimate, not advice.
 - Screens: ADR-012 (splash, O1, O2, O3, O4, Home [home0, home1, homeX], Chat [chat0, chatL, chatE, chatT, chatP, chatF, chatG], Config [cfg, wipe], Push). Nothing else.
 
