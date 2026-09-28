@@ -12,6 +12,9 @@ import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.NutriDatabase
+import com.nutri.android.core.memory.FakeMemoryFile
+import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.photo.FakePhotoFiles
 import com.nutri.android.core.network.ChatEstimate
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
@@ -46,6 +49,9 @@ class ChatViewModelTest {
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
+    private val memoryFile = FakeMemoryFile()
+    private val memory = MemoryStore(memoryFile)
+    private val photos = FakePhotoFiles()
     private val clock = InstantClock { Instant.parse("2026-09-25T08:10:00-03:00") }
     private val requests = mutableListOf<ChatIn>()
     private var answer: () -> ChatOut = { estimateOut("1") }
@@ -104,7 +110,7 @@ class ChatViewModelTest {
 
     @Test
     fun send_storesBothMessages_andOffersGravarForSuggestedSlot() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         val cafe = slotIds().first()
         answer = { estimateOut(cafe.toString()) }
         sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
@@ -124,7 +130,7 @@ class ChatViewModelTest {
 
     @Test
     fun gravar_addsLog_withoutSecondPost_andClosesActions() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         val cafe = slotIds().first()
         answer = { estimateOut(cafe.toString()) }
         sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
@@ -148,7 +154,7 @@ class ChatViewModelTest {
 
     @Test
     fun trocar_recordsIntoChosenSlot() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         val (cafe, _, lanche) = slotIds()
         answer = { estimateOut(cafe.toString()) }
         sendAndAwait(vm, "pão com ovo")
@@ -166,7 +172,7 @@ class ChatViewModelTest {
 
     @Test
     fun suggestedSlotOutsideProfile_hidesGravar_keepsTrocar() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         answer = { estimateOut("cafe") }
         sendAndAwait(vm, "pão com ovo")
         val actions = vm.uiState.value.actions!!
@@ -177,7 +183,7 @@ class ChatViewModelTest {
 
     @Test
     fun failure_leavesRoomUntouched_andRetryRecovers() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         answer = { throw IOException("timeout") }
         sendAndAwait(vm, "pão com ovo")
 
@@ -194,7 +200,7 @@ class ChatViewModelTest {
 
     @Test
     fun pular_asksThenSkips_withoutKcal() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         val cafe = slotIds().first()
         answer = { estimateOut(cafe.toString()) }
         sendAndAwait(vm, "pão com ovo")
@@ -212,11 +218,129 @@ class ChatViewModelTest {
 
     @Test
     fun emptyDay_showsGreetingAndMeta_notSentToServer() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         val ui = vm.await { it.metaTotal > 0 }
         assertThat(ui.emptyDay).isTrue()
         assertThat(ui.items.last()).isInstanceOf(ChatItem.Greeting::class.java)
         assertThat(ui.metaRemaining).isEqualTo(2000)
+        assertThat(requests).isEmpty()
+    }
+
+    @Test
+    fun gravar_appendsOneMemoryLine_nextPostCarriesIt() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val cafe = slotIds().first()
+        answer = { estimateOut(cafe.toString()) }
+        sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
+        assertThat(requests.single().memory).isEmpty()
+        // A send with no Gravar and no question does not touch the memory.
+        assertThat(memoryFile.writes).isEqualTo(0)
+
+        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+        withTimeout(5_000) { while (memoryFile.writes == 0) kotlinx.coroutines.delay(10) }
+        assertThat(memory.read()).isEqualTo("Café da manhã: 2 pães franceses com 2 ovos mexidos (380 kcal)")
+
+        vm.setComposer("e um café")
+        vm.send()
+        withTimeout(5_000) { while (requests.size < 2) kotlinx.coroutines.delay(10) }
+        assertThat(requests.last().memory).contains("Café da manhã: 2 pães franceses com 2 ovos mexidos (380 kcal)")
+    }
+
+    @Test
+    fun answerToAssumption_appendsMemoryLine() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = {
+            estimateOut(null).copy(estimate = estimateOut(null).estimate!!.copy(confidence = "medium", question = "O pão era francês ou de forma?"))
+        }
+        sendAndAwait(vm, "pão com ovo")
+        assertThat(memory.read()).isEmpty()
+
+        answer = { ChatOut(reply = "Anotado.", model = "gpt-6-luna") }
+        vm.setComposer("francês")
+        vm.send()
+        withTimeout(5_000) { while (memoryFile.writes == 0) kotlinx.coroutines.delay(10) }
+        assertThat(memory.read()).isEqualTo("Respondeu \"O pão era francês ou de forma?\": francês")
+    }
+
+    @Test
+    fun wipeToday_keepsMemory() = runBlocking<Unit> {
+        memory.append("Café da manhã: pão com ovo (300 kcal)")
+        repo.wipeToday()
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { ChatOut(reply = "oi", model = "gpt-6-luna") }
+        vm.setComposer("oi")
+        vm.send()
+        withTimeout(5_000) { while (requests.isEmpty()) kotlinx.coroutines.delay(10) }
+        assertThat(requests.single().memory).isEqualTo("Café da manhã: pão com ovo (300 kcal)")
+        assertThat(memoryFile.writes).isEqualTo(1)
+    }
+
+    @Test
+    fun photo_postsImageWithCaption_storesPhotoPath_historyGetsMarker() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { estimateOut(null) }
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/pf.jpg")
+        vm.setComposer("Almoço de hoje")
+        vm.onPicked(android.net.Uri.parse("content://media/1"))
+        vm.await { it.actions != null }
+
+        val sent = requests.single()
+        assertThat(sent.imageB64).isEqualTo("B64:/photos/pf.jpg")
+        assertThat(sent.text).isEqualTo("Almoço de hoje")
+        val stored = repo.observeMessages().first().first { it.role == "user" }
+        assertThat(stored.photoPath).isEqualTo("/photos/pf.jpg")
+        assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.User>().single().photoPath).isEqualTo("/photos/pf.jpg")
+        assertThat(vm.uiState.value.composer).isEmpty()
+
+        // The image goes once; the history keeps a marker.
+        vm.setComposer("e um suco")
+        vm.send()
+        withTimeout(5_000) { while (requests.size < 2) kotlinx.coroutines.delay(10) }
+        assertThat(requests.last().imageB64).isNull()
+        assertThat(requests.last().messages.first().text).isEqualTo("[foto] Almoço de hoje")
+    }
+
+    @Test
+    fun photoOver16Mb_showsNotice_noPost() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.TooLarge
+        vm.onPicked(android.net.Uri.parse("content://media/2"))
+        vm.await { it.notice != null }
+        assertThat(vm.uiState.value.notice).isEqualTo("Foto grande demais.")
+        assertThat(requests).isEmpty()
+        assertThat(repo.observeMessages().first()).isEmpty()
+        vm.dismissNotice()
+        assertThat(vm.uiState.value.notice).isNull()
+    }
+
+    @Test
+    fun photoFailure_keepsPhotoForRetry_roomUntouched() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { throw IOException("timeout") }
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/x.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/3"))
+        vm.await { it.items.any { i -> i is ChatItem.Failed } }
+        assertThat(repo.observeMessages().first()).isEmpty()
+        assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.User>().single().photoPath).isEqualTo("/photos/x.jpg")
+
+        answer = { estimateOut(null) }
+        vm.retry()
+        vm.await { it.actions != null }
+        assertThat(requests.map { it.imageB64 }).containsExactly("B64:/photos/x.jpg", "B64:/photos/x.jpg")
+        assertThat(photos.deleted).isEmpty()
+    }
+
+    @Test
+    fun cancelledCameraOrPicker_doesNothing() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        vm.openPhotoSheet()
+        vm.await { it.photoSheet }
+        vm.onPicked(null)
+        vm.await { !it.photoSheet }
+        vm.newCapture()
+        vm.onCaptured(false)
+        assertThat(photos.deleted).containsExactly("/tmp/capture.jpg".replace('/', java.io.File.separatorChar))
         assertThat(requests).isEmpty()
     }
 }

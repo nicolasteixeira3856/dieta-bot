@@ -35,4 +35,24 @@ object ChatFixtures {
         emptyDay = false,
         slots = slots,
     )
+
+    /** chatF: photo of a prato feito captioned "Almoço de hoje", estimate 780 kcal for Almoço (A6). */
+    const val CHAT_F_PHOTO = "src/test/resources/chatF-photo.jpg"
+    val chatF = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(5, "Almoço de hoje", "12:41", photoPath = CHAT_F_PHOTO),
+            ChatItem.Assistant(
+                id = 6,
+                text = "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde.",
+                time = "12:41",
+                highlights = listOf("Prato Feito"),
+                estimate = EstimateView(780, 48, 82, 18, "Deseja registrar essa refeição no Almoço?", null),
+            ),
+        ),
+        emptyDay = false,
+        actions = EstimateActions(6, record = slots[1], skip = slots[1]),
+        slots = slots,
+        currentSlotId = 2,
+    )
 }

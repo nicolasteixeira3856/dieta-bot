@@ -41,6 +41,8 @@ object PromptBuilder {
         text: String,
         now: Instant,
         compactEnabled: Boolean = COMPACT_ENABLED,
+        /** MemoryStore text (A8). Never the profile: that goes in its own block. */
+        memory: String = "",
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -48,15 +50,22 @@ object PromptBuilder {
             body = ChatIn(
                 localTime = now.atZone(SaoPaulo.zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
                 profile = profile(day, today),
-                memory = "",
+                memory = memory,
                 day = snapshot(day, today),
                 digests = digests.sortedBy { it.createdAtEpochMs }.takeLast(MAX_DIGESTS).map { it.text },
-                messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, it.text.take(1000)) },
+                messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, turnText(it).take(1000)) },
                 text = text.take(1000),
                 compact = false,
             ),
             needsCompact = compactEnabled && raw.size >= MAX_RAW,
         )
+    }
+
+    /** A photo message keeps a marker in the history; the image itself is sent only once (A6). */
+    private fun turnText(m: ChatMessageEntity): String = when {
+        m.photoPath == null -> m.text
+        m.text.isBlank() -> "[foto]"
+        else -> "[foto] ${m.text}"
     }
 
     /** compact=true request: only the raw block to summarise (spec rule 9). */

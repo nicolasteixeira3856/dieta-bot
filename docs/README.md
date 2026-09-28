@@ -9,7 +9,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b](android/plans/completed/) concluídos; [A6–A8](android/plans/) aguardando aprovação | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | histórico em [decisions/](decisions/) | [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md) | [S1, S4, S2, S3, S5](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
@@ -37,9 +37,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [A8 memória](android/plans/a8-memoria.md)
-2. [A6 foto](android/plans/a6-foto.md)
-3. [A7 push](android/plans/a7-push.md)
+Nenhum no momento.
 
 ## Planos concluídos
 
@@ -56,7 +54,11 @@ Ordem de `/goal` depois da frase de aprovação:
 11. [A3 Config + wipe + treino](android/plans/completed/a3-config-wipe-treino.md)
 12. [S3 compact digest](server/plans/completed/s3-compact.md)
 13. [A5b ligar compact](android/plans/completed/a5b-ligar-compact.md)
-14. [S5 deploy GCP e2-micro](server/plans/completed/s5-gcp-deploy.md)
+14. [A8 memória](android/plans/completed/a8-memoria.md)
+15. [A8b memória com gravação atômica](android/plans/completed/a8b-memoria-gravacao-atomica.md)
+16. [A6 foto](android/plans/completed/a6-foto.md)
+17. [A7 push](android/plans/completed/a7-push.md)
+18. [S5 deploy GCP e2-micro](server/plans/completed/s5-gcp-deploy.md)
 
 ## Outros docs
 

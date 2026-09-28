@@ -1,6 +1,16 @@
 package com.nutri.android
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.push.PushHandler
 import com.nutri.android.core.designsystem.NutriTheme
 import com.nutri.android.feature.home.HomePanelScreen
 import com.nutri.android.feature.home.HomePanelViewModel
@@ -35,6 +46,7 @@ import com.nutri.android.feature.splash.SplashScreen
 import com.nutri.android.feature.splash.SplashViewModel
 import com.nutri.android.feature.chat.ChatScreen
 import com.nutri.android.feature.chat.ChatViewModel
+import com.nutri.android.feature.chat.rememberPhotoLaunchers
 import com.nutri.android.feature.config.ConfigActions
 import com.nutri.android.feature.config.ConfigScreen
 import com.nutri.android.feature.config.ConfigViewModel
@@ -60,17 +72,27 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val screen = intent?.getStringExtra("nutri_tela")
+        // A7 "Registrar": the notification restarts the task and asks for the Chat.
+        val openChat = savedInstanceState == null && intent?.getStringExtra(EXTRA_OPEN) == OPEN_CHAT
+        if (openChat) intent?.getLongExtra(EXTRA_SLOT, -1)?.takeIf { it >= 0 }?.let { PushHandler.clear(this, it) }
         setContent {
             NutriTheme {
-                App(screen)
+                App(screen, openChat)
             }
         }
+    }
+
+    companion object {
+        const val EXTRA_OPEN = "nutri_open"
+        const val OPEN_CHAT = "chat"
+        const val EXTRA_SLOT = "nutri_slot"
     }
 }
 
 @Composable
-private fun App(captureScreen: String?) {
+private fun App(captureScreen: String?, openChat: Boolean = false) {
     val nav = rememberNavController()
+    var chatPending by rememberSaveable { mutableStateOf(openChat) }
     val onboardingStart: Any = when (captureScreen) {
         "o2" -> RouteEat
         "o3" -> RouteSlots
@@ -173,6 +195,13 @@ private fun App(captureScreen: String?) {
             composable<RouteHome> {
                 val vm: HomePanelViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
+                NotificationPermissionOnce()
+                LaunchedEffect(chatPending) {
+                    if (chatPending) {
+                        chatPending = false
+                        nav.navigate(RouteChat)
+                    }
+                }
                 HomePanelScreen(
                     ui = ui,
                     onSkip = vm::skip,
@@ -183,6 +212,7 @@ private fun App(captureScreen: String?) {
             composable<RouteChat> {
                 val vm: ChatViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
+                val photo = rememberPhotoLaunchers(vm)
                 ChatScreen(
                     ui = ui,
                     onBack = { nav.popBackStack() },
@@ -197,6 +227,11 @@ private fun App(captureScreen: String?) {
                     onAskSkip = vm::askSkip,
                     onSkipConfirm = vm::confirmSkip,
                     onSkipCancel = vm::cancelSkip,
+                    onPhoto = vm::openPhotoSheet,
+                    onCamera = photo.camera,
+                    onGallery = photo.gallery,
+                    onPhotoSheetClose = vm::closePhotoSheet,
+                    onNoticeShown = vm::dismissNotice,
                 )
             }
             composable<RouteConfig> {
@@ -250,3 +285,23 @@ private fun onboardingViewModel(nav: NavHostController, entry: NavBackStackEntry
     val parent = remember(entry) { nav.getBackStackEntry<RouteOnboarding>() }
     return hiltViewModel(parent)
 }
+
+/**
+ * A7: POST_NOTIFICATIONS (Android 13+) asked once, from the Home, after onboarding. The system
+ * dialog is the only UI; a denial is kept and never asked again from here.
+ */
+@Composable
+private fun NotificationPermissionOnce() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("nutri_push", android.content.Context.MODE_PRIVATE) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        prefs.edit().putBoolean(KEY_NOTIFICATIONS_ASKED, true).apply()
+    }
+    LaunchedEffect(Unit) {
+        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        if (!granted && !prefs.getBoolean(KEY_NOTIFICATIONS_ASKED, false)) launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+}
+
+private const val KEY_NOTIFICATIONS_ASKED = "notifications_asked"

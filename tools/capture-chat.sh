@@ -39,6 +39,7 @@ expect() { dump; if grep -qE "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo
 shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
 mode() { curl -s -X POST -d "{\"hang\": $1}" "$FAKE/__mode" >/dev/null; }
 calls() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['calls'])"; }
+last_memory() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['memory'])"; }
 compacts() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['compacts'])"; }
 db() { # db <sql> -> rows, after a force-stop so the WAL is in the pulled files
   "$ADB" shell am force-stop $PKG
@@ -117,6 +118,16 @@ rows=$(db "select m.name, l.kcal, l.carbs, l.fat, l.source from meal_log l join 
 echo "  meal_log: $rows"
 case "$rows" in *"Café da manhã', 380, 36, 16, 'user'"*) echo "  ✓ logged into the suggested slot";; *) echo "  ✗ unexpected meal_log"; FAIL=1;; esac
 
+# A8/A8b: Gravar wrote one memory line to memory.bin (AES-GCM, key in the Keystore, atomic move).
+"$ADB" exec-out run-as $PKG cat files/memory.bin > "$TMP/memory.raw" 2>/dev/null
+size=$(wc -c < "$TMP/memory.raw")
+if [ "$size" -gt 15 ] && [ "$(head -c 2 "$TMP/memory.raw")" = "NM" ]; then echo "  ✓ memory.bin written ($size bytes, NM header)"; else echo "  ✗ memory.bin missing ($size bytes)"; FAIL=1; fi
+if grep -aq "380 kcal\|pães\|Caf" "$TMP/memory.raw"; then echo "  ✗ memory.bin is plaintext"; FAIL=1; else echo "  ✓ memory.bin raw shows no line (not plaintext)"; fi
+if "$ADB" exec-out run-as $PKG ls files/ | grep -q "memory.txt"; then echo "  ✗ A8 memory.txt still there"; FAIL=1; else echo "  ✓ no A8 memory.txt"; fi
+# Crash mid-write: a half-written memory.bin.new must not touch the memory (checked on the next POST).
+"$ADB" shell am force-stop $PKG
+"$ADB" shell run-as $PKG sh -c "'echo lixo-de-crash > files/memory.bin.new'"
+
 # Gold captures: the flow above is the functional check. The gold message has accents adb cannot
 # type, so the exact gold conversation is seeded and chatE / chatT / chatP are captured again.
 "$ADB" shell am force-stop $PKG
@@ -169,6 +180,8 @@ after=$(calls); c6=$(compacts)
 if [ "$c6" = "$((c5 + 1))" ] && [ "$after" = "$((before + 2))" ]; then echo "  ✓ 12 raw: compact + turn in one send"; else echo "  ✗ compact send ($before -> $after calls, $c5 -> $c6 compacts)"; FAIL=1; fi
 expect "turn answered after compact" 'resource-id="chat-actions"'
 dump; if grep -q "Resumo QA" "$TMP/ui.xml"; then echo "  ✗ digest drawn as a bubble"; FAIL=1; else echo "  ✓ digest never drawn"; fi
+mem=$(last_memory)
+case "$mem" in *"380 kcal"*) echo "  ✓ POST memory carries the Gravar line: $mem";; *) echo "  ✗ POST memory: '$mem'"; FAIL=1;; esac
 digests=$(db "select count(*), max(text) from day_digest")
 case "$digests" in *"(1, 'Resumo QA"*) echo "  ✓ day_digest stored: $digests";; *) echo "  ✗ day_digest: $digests"; FAIL=1;; esac
 inchat=$(db "select count(*) from chat_message where text like 'Resumo QA%'")

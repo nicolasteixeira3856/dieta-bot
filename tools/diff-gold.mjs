@@ -39,7 +39,12 @@ const SEARCH = 48;
 const FOOTER = 260; // 130 dp: CTA + gradient + nav
 // Golds whose layout contradicts the canonical screen of their group (home1): reported, not
 // gated, until regenerated in Stitch. See the A4 and A5 plans in docs/android/plans/completed/.
-const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG"]);
+// push: the gold is a drawn lock screen; the app only posts a notification and SystemUI draws the
+// lock screen and the card (A7). Reported, never gated.
+const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "push"]);
+// Parts of a conflict gold that are gated on their own (gold px box x0, y0, x1, y1; best
+// vertical offset). chatF: the photo bubble (A6); the rest of chatF is the chatG generation.
+const REGIONS = { chatF: [214, 368, 746, 734] };
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -95,6 +100,29 @@ function score(app, gold, goldTop, dy, y0, y1) {
     }
   }
   return [differ, total];
+}
+
+/** Blurred diff of a gold box against the app, best vertical offset in ±64 dp. */
+function regionScore(app, gold, [x0, y0, x1, y1]) {
+  let best = Infinity;
+  for (let dy = -128; dy <= 128; dy += 2) {
+    let differ = 0;
+    let total = 0;
+    for (let y = y0; y < y1; y += 2) {
+      const ay = y + dy;
+      if (ay < 0 || ay >= app.h) continue;
+      for (let x = x0; x < x1; x += 2) {
+        const ai = ay * app.w + x;
+        const gi = y * gold.w + x;
+        let m = 0;
+        for (let c = 0; c < 3; c++) m = Math.max(m, Math.abs(app.planes[c][ai] - gold.planes[c][gi]));
+        total++;
+        if (m > TOLERANCE) differ++;
+      }
+    }
+    if (total > 0) best = Math.min(best, (100 * differ) / total);
+  }
+  return best;
 }
 
 /** Pixels that stand out from the page background (median of the compared rows). */
@@ -174,6 +202,12 @@ for (const key of ids) {
   const conflict = GOLD_CONFLICTS.has(id);
   const ok = pct <= max && inkOk;
   if (!ok && !conflict) failed = true;
+  if (REGIONS[id]) {
+    const part = regionScore(app, gold, REGIONS[id]);
+    const partOk = part <= max;
+    if (!partOk) failed = true;
+    console.log(`  ${partOk ? "✓" : "✗"} ${key} region ${part.toFixed(2)}% (max ${max}%)`);
+  }
   console.log(`  ${ok ? "✓" : conflict ? "~" : "✗"} ${key} ${pct.toFixed(2)}% ink ${inkRatio.toFixed(2)} (content ${content.dy / 2} dp${footerNote}, max ${max}%, ink 0.8-1.25)${conflict ? " [gold conflict: report only]" : ""}`);
 }
 process.exit(failed ? 1 : 0);

@@ -1,5 +1,6 @@
 package com.nutri.android.feature.chat
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nutri.android.core.database.ChatMessageEntity
@@ -7,11 +8,15 @@ import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.metaOn
+import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.photo.PhotoFiles
+import com.nutri.android.core.photo.PhotoResult
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotClock
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,6 +41,8 @@ class ChatViewModel @Inject constructor(
     private val repository: DayRepository,
     private val service: ChatService,
     private val clock: InstantClock,
+    private val memory: MemoryStore,
+    private val photos: PhotoFiles,
 ) : ViewModel() {
     private val local = MutableStateFlow(Local())
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -53,7 +60,15 @@ class ChatViewModel @Inject constructor(
         val sheetSelection: Long? = null,
         val skipConfirm: SlotRef? = null,
         val openedAt: Instant? = null,
+        /** JPEG of the pending send (A6). Stored in chat_message only after the server answers. */
+        val pendingPhoto: String? = null,
+        val photoSheet: Boolean = false,
+        /** One-shot snackbar ("Foto grande demais."). */
+        val notice: String? = null,
     )
+
+    /** TakePicture target while the camera is open. */
+    private var captureFile: File? = null
 
     init {
         local.update { it.copy(openedAt = clock.now()) }
@@ -82,15 +97,80 @@ class ChatViewModel @Inject constructor(
         val text = local.value.pending ?: return
         if (!local.value.failed) return
         local.update { it.copy(failed = false) }
-        viewModelScope.launch { post(text) }
+        viewModelScope.launch { post(text, local.value.pendingPhoto) }
     }
 
-    private suspend fun post(text: String) {
+    // ------------------------------------------------------------------ photo (A6)
+
+    fun openPhotoSheet() = local.update { it.copy(photoSheet = true) }
+
+    fun closePhotoSheet() = local.update { it.copy(photoSheet = false) }
+
+    fun dismissNotice() = local.update { it.copy(notice = null) }
+
+    fun cameraDenied() = local.update { it.copy(photoSheet = false, notice = "Sem permissão da câmera.") }
+
+    /** Uri for TakePicture; the file lives in filesDir/photos. */
+    fun newCapture(): Uri {
+        val (file, uri) = photos.newCapture()
+        captureFile = file
+        local.update { it.copy(photoSheet = false) }
+        return uri
+    }
+
+    fun onCaptured(success: Boolean) {
+        val file = captureFile ?: return
+        captureFile = null
+        if (!success) {
+            photos.delete(file.path)
+            return
+        }
+        viewModelScope.launch { onPhoto(photos.acceptCapture(file)) }
+    }
+
+    fun onPicked(uri: Uri?) {
+        local.update { it.copy(photoSheet = false) }
+        if (uri == null) return
+        viewModelScope.launch { onPhoto(photos.import(uri)) }
+    }
+
+    /** The photo goes at once, captioned by what is typed (may be empty). Over 16 MB: no POST. */
+    private fun onPhoto(result: PhotoResult) {
+        when (result) {
+            is PhotoResult.Ready -> {
+                if (local.value.pending != null) {
+                    photos.delete(result.path)
+                    return
+                }
+                val text = local.value.composer.trim()
+                local.update { it.copy(composer = "", pending = text, pendingPhoto = result.path, failed = false) }
+                viewModelScope.launch { post(text, result.path) }
+            }
+            PhotoResult.TooLarge -> local.update { it.copy(notice = "Foto grande demais.") }
+            PhotoResult.Failed -> local.update { it.copy(notice = "Não deu para abrir a foto.") }
+        }
+    }
+
+    override fun onCleared() {
+        // A photo that never got an answer is not in chat_message: nothing points to it.
+        local.value.pendingPhoto?.let { photos.delete(it) }
+        captureFile?.let { photos.delete(it.path) }
+    }
+
+    private suspend fun post(text: String, photo: String? = null) {
         val sentAt = clock.now()
         val today = messages.filter { it.date == SaoPaulo.date(sentAt).toString() }
         val snapshot = repository.observeToday().first()
         var digests = repository.digestsToday()
-        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt)
+        val memoryText = memory.read()
+        // Open clarifying question of the last estimate: this send is the user's answer (A8).
+        val asked = openQuestion(SaoPaulo.date(sentAt).toString())
+        val image = photo?.let { photos.base64(it) }
+        if (photo != null && image == null) {
+            local.update { it.copy(failed = true) }
+            return
+        }
+        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText)
         if (turn.needsCompact) {
             // A failed compact never fails the turn: nothing stored, the newest 12 raw go as they are
             // and the next send tries again.
@@ -98,17 +178,18 @@ class ChatViewModel @Inject constructor(
             if (!digest.isNullOrBlank()) {
                 repository.upsertDigest(digest)
                 digests = repository.digestsToday()
-                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt)
+                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText)
             }
         }
-        val out = runCatching { service.chat(turn.body) }.getOrNull()
+        // The photo rides only on the turn, never on the compact request.
+        val out = runCatching { service.chat(turn.body.copy(imageB64 = image)) }.getOrNull()
         if (out == null || out.reply.isBlank() && out.estimate == null) {
             local.update { it.copy(failed = true) }
             return
         }
         val slots = snapshot.slots.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
-        repository.insertMessage(role = "user", text = text)
+        repository.insertMessage(role = "user", text = text, photoPath = photo)
         repository.insertMessage(
             role = "assistant",
             text = out.reply,
@@ -121,7 +202,17 @@ class ChatViewModel @Inject constructor(
             estimateQuestion = out.estimate?.question,
             estimateItems = out.estimate?.items?.map { it.name }.orEmpty(),
         )
-        local.update { it.copy(pending = null, failed = false) }
+        local.update { it.copy(pending = null, pendingPhoto = null, failed = false) }
+        asked?.let { memory.append("Respondeu \"$it\": $text") }
+    }
+
+    /** Question of the last estimate of today when nothing closed it yet (no receipt, no wipe). */
+    private fun openQuestion(todayIso: String): String? {
+        val sorted = messages.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
+        val last = sorted.lastOrNull { it.role == "assistant" && it.date == todayIso } ?: return null
+        val question = last.estimateQuestion?.takeIf { last.estimateKcal != null && it.isNotBlank() } ?: return null
+        val closed = sorted.any { it.id != last.id && it.createdAtEpochMs >= last.createdAtEpochMs && it.role in RECEIPTS }
+        return if (closed) null else question
     }
 
     /** Tap Gravar: local addLog with the last estimate. No second POST (spec rule 5). */
@@ -142,6 +233,7 @@ class ChatViewModel @Inject constructor(
                 source = if (userBefore(estimate)?.photoPath != null) "photo" else "user",
             )
             repository.insertMessage(role = "logged", text = slot.name, estimateKcal = estimate.estimateKcal, estimateSlotId = slot.id)
+            memory.append("${slot.name}: ${descriptionOf(estimate)} (${estimate.estimateKcal ?: 0} kcal)")
         }
     }
 
@@ -195,7 +287,7 @@ class ChatViewModel @Inject constructor(
             }
             val time = timeOf(m.createdAtEpochMs)
             items += when (m.role) {
-                "user" -> ChatItem.User(m.id, m.text, time)
+                "user" -> ChatItem.User(m.id, m.text, time, photoPath = m.photoPath)
                 "logged", "skipped" -> ChatItem.Receipt(
                     id = m.id,
                     skipped = m.role == "skipped",
@@ -229,7 +321,7 @@ class ChatViewModel @Inject constructor(
         }
         l.pending?.let { text ->
             if (lastDate != todayIso && !emptyDay) items += ChatItem.DateSeparator(dateLabel(today, today))
-            items += ChatItem.User(-1, text, timeOf(now.toEpochMilli()), pending = true)
+            items += ChatItem.User(-1, text, timeOf(now.toEpochMilli()), pending = true, photoPath = l.pendingPhoto)
             items += if (l.failed) ChatItem.Failed else ChatItem.Loading
         }
 
@@ -254,6 +346,8 @@ class ChatViewModel @Inject constructor(
             slots = slots,
             currentSlotId = current?.id,
             sheetFor = l.sheetFor,
+            photoSheet = l.photoSheet,
+            notice = l.notice,
             sheetSelection = l.sheetSelection,
             skipConfirm = l.skipConfirm,
         )

@@ -11,6 +11,9 @@ import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.NutriDatabase
+import com.nutri.android.core.memory.FakeMemoryFile
+import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.photo.FakePhotoFiles
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
 import java.io.File
@@ -43,6 +46,9 @@ class ChatCompactTest {
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
+    private val memoryFile = FakeMemoryFile()
+    private val memory = MemoryStore(memoryFile)
+    private val photos = FakePhotoFiles()
     private val clock = TickingClock(Instant.parse("2026-09-25T12:00:00-03:00"))
     private val requests = mutableListOf<ChatIn>()
     private var compactAnswer: () -> ChatOut = { ChatOut(digest = "resumo ${requests.count { it.compact }}", model = "gpt-6-luna") }
@@ -87,7 +93,7 @@ class ChatCompactTest {
 
     @Test
     fun under12Raw_noCompact() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         exchanges(vm, 6) // the 6th send sees 10 raw
         assertThat(requests.none { it.compact }).isTrue()
         assertThat(repo.digestsToday()).isEmpty()
@@ -95,7 +101,7 @@ class ChatCompactTest {
 
     @Test
     fun twelveRaw_compactThenTurnWithDigest() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         exchanges(vm, 6)
         requests.clear()
 
@@ -119,7 +125,7 @@ class ChatCompactTest {
 
     @Test
     fun threeCompactions_keepTwoDigests_oldestReplaced() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         // Compact on the 7th, 13th and 19th send (12 raw since the last digest each time).
         exchanges(vm, 19)
 
@@ -130,7 +136,7 @@ class ChatCompactTest {
 
     @Test
     fun compactFailure_turnStillAnswers_nothingStored_retriesNextSend() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         exchanges(vm, 6)
         for (failure in listOf<() -> ChatOut>({ throw IOException("timeout") }, { ChatOut(digest = null) }, { ChatOut(digest = " ") })) {
             compactAnswer = failure
@@ -154,7 +160,7 @@ class ChatCompactTest {
 
     @Test
     fun wipe_restartsTheRawCount() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
         exchanges(vm, 6)
         repo.wipeToday()
         requests.clear()

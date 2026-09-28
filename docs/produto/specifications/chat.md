@@ -52,7 +52,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 ## Planos relacionados
 
 - [A5 (Concluído)](../../android/plans/completed/a5-chat.md)
-- `docs/android/plans/a6-foto.md`
+- [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
 - `docs/server/plans/completed/s2-v1-chat.md`
 - [S3 (Concluído)](../../server/plans/completed/s3-compact.md)
 

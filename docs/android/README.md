@@ -44,7 +44,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Client vivo. Room v1: profile, day, meal_log. T1/T3 sheet, T2 rota cheia. Chat (A5) e Config com wipe e treino do dia (A3). Sem push.
+Client vivo. Room v1: profile, day, meal_log. T1/T3 sheet, T2 rota cheia. Chat (A5) com compact (A5b) e memória cifrada (A8) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
 
 ## Indice
 
@@ -67,6 +67,7 @@ Nenhum ADR local. Historico: [002](../decisions/002-android-client.md), [004](..
 - [A5 Chat (Concluído)](plans/completed/a5-chat.md) (chat0..chatG Stitch)
 - [A3 Config + wipe + treino (Concluído)](plans/completed/a3-config-wipe-treino.md) (cfg, wipe Stitch)
 - [A5b ligar compact (Concluído)](plans/completed/a5b-ligar-compact.md) (compact=true ligado no Chat)
-- [A8 memoria](plans/a8-memoria.md)
-- [A6 foto](plans/a6-foto.md)
-- [A7 push](plans/a7-push.md)
+- [A8 memoria (Concluído)](plans/completed/a8-memoria.md) (memory no POST)
+- [A8b memória com gravação atômica (Concluído)](plans/completed/a8b-memoria-gravacao-atomica.md) (Keystore AES-GCM + move atômico, migração do A8)
+- [A6 foto (Concluído)](plans/completed/a6-foto.md) (câmera + galeria, chatF)
+- [A7 push (Concluído)](plans/completed/a7-push.md) (alarme por slot, Registrar/Pular)

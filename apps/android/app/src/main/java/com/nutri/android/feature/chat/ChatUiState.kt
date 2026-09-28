@@ -24,7 +24,14 @@ sealed interface ChatItem {
         override val key = "date-$label"
     }
 
-    data class User(val id: Long, val text: String, val time: String, val pending: Boolean = false) : ChatItem {
+    data class User(
+        val id: Long,
+        val text: String,
+        val time: String,
+        val pending: Boolean = false,
+        /** JPEG in filesDir/photos (A6); the bubble shows a ≤720 px preview. */
+        val photoPath: String? = null,
+    ) : ChatItem {
         override val key = "u-$id"
     }
 
@@ -78,6 +85,10 @@ data class ChatUiState(
     val sheetSelection: Long? = null,
     /** Slot waiting for the skip confirmation (chatP). */
     val skipConfirm: SlotRef? = null,
+    /** Camera / gallery chooser (A6). */
+    val photoSheet: Boolean = false,
+    /** Snackbar text, shown once. */
+    val notice: String? = null,
 ) {
     val canSend: Boolean get() = composer.isNotBlank() && !sending
 }

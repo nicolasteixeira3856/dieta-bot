@@ -2,7 +2,7 @@
 
 ## Estado
 
-Sem memória. Foto T1 ≤1280 JPEG 70. Sem push. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto.
+Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `filesDir/memory.bin` cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), ≤ 4000 chars, 1 linha por Gravar ou assunção respondida, enviada em `memory` em todo POST /v1/chat. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria, JPEG sem downscale, ≤ 16 MB (o T1 antigo segue ≤1280 JPEG 70). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto.
 
 ## Contexto e objetivo
 
@@ -18,10 +18,10 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 
 ## Regras — memória
 
-1. Arquivo interno criptografado (`EncryptedFile` / equivalente). Não vai ao server além do campo `memory` do POST.
+1. Arquivo interno criptografado (AES-256-GCM, chave no Android Keystore). Gravação atômica: crash no meio de uma gravação mantém a memória anterior. Não vai ao server além do campo `memory` do POST.
 2. Conteúdo: gostos, marcas, assunções confirmadas, o que costuma pular. Sem transcrição.
 3. Teto ~1,3 k tok junto com o perfil. O que não ocorre cede lugar ao que ocorre.
-4. Atualiza quando o user confirma Gravar ou quando responde assunção. Não a cada prosa.
+4. Atualiza quando o user confirma Gravar (`{slot}: {descrição} ({kcal} kcal)`) ou quando responde assunção (`Respondeu "{pergunta}": {resposta}`). Não a cada prosa. Acima de 4000 chars, as linhas mais velhas saem.
 5. Sobrevive `wipeToday`. Morre no uninstall.
 
 ## Regras — foto
@@ -61,9 +61,9 @@ Comportamento: `produto`. Client: `android`.
 ## Planos relacionados
 
 - [A3 (Concluído)](../../android/plans/completed/a3-config-wipe-treino.md)
-- `docs/android/plans/a6-foto.md`
-- `docs/android/plans/a7-push.md`
-- `docs/android/plans/a8-memoria.md`
+- [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
+- [A7 (Concluído)](../../android/plans/completed/a7-push.md)
+- [A8 (Concluído)](../../android/plans/completed/a8-memoria.md)
 
 ## Critérios de aceite funcionais
 

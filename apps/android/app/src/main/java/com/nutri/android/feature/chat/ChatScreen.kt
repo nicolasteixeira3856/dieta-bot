@@ -54,6 +54,7 @@ import androidx.compose.material.icons.outlined.FastForward
 import androidx.compose.material.icons.outlined.Fastfood
 import androidx.compose.material.icons.outlined.LunchDining
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
@@ -94,6 +95,7 @@ import com.nutri.android.core.designsystem.formatRemaining
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 private val UserShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 2.dp)
 private val BotShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 6.dp, bottomEnd = 20.dp)
@@ -116,6 +118,12 @@ fun ChatScreen(
     onAskSkip: (SlotRef) -> Unit,
     onSkipConfirm: () -> Unit,
     onSkipCancel: () -> Unit,
+    /** A6: composer camera → chooser; chip → camera; chooser rows → launchers. */
+    onPhoto: () -> Unit = {},
+    onCamera: () -> Unit = {},
+    onGallery: () -> Unit = {},
+    onPhotoSheetClose: () -> Unit = {},
+    onNoticeShown: () -> Unit = {},
 ) {
     val p = LocalPalette.current
     Box(
@@ -127,16 +135,18 @@ fun ChatScreen(
             }
             .testTag("chat"),
     ) {
-        val overlay = ui.sheetFor != null || ui.skipConfirm != null
+        val overlay = ui.sheetFor != null || ui.skipConfirm != null || ui.photoSheet
         // Stitch: backdrop-blur behind the sheet and the skip dialog.
         Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding().imePadding()) {
             Header(onBack)
             Thread(ui, onRetry, Modifier.weight(1f))
-            if (ui.emptyDay) SuggestionRow(onComposer)
-            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip)
+            ui.notice?.let { Notice(it, onNoticeShown) }
+            if (ui.emptyDay) SuggestionRow(onComposer, onCamera)
+            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
+        if (ui.photoSheet) PhotoSheet(onCamera, onGallery, onPhotoSheetClose)
     }
 }
 
@@ -194,7 +204,7 @@ private fun Thread(ui: ChatUiState, onRetry: () -> Unit, modifier: Modifier) {
         items(ui.items, key = { it.key }) { item ->
             when (item) {
                 is ChatItem.DateSeparator -> DatePill(item.label)
-                is ChatItem.User -> UserBubble(item)
+                is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it) } ?: UserBubble(item)
                 is ChatItem.Assistant -> AssistantBubble(item)
                 is ChatItem.Receipt -> ReceiptCard(item)
                 is ChatItem.Greeting -> Greeting(item, ui)
@@ -518,13 +528,13 @@ private fun FailedBubble(onRetry: () -> Unit) {
 // ----------------------------------------------------------------------------- footer
 
 @Composable
-private fun SuggestionRow(onPick: (String) -> Unit) {
+private fun SuggestionRow(onPick: (String) -> Unit, onCamera: () -> Unit) {
     val p = LocalPalette.current
     Row(
         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Chip("📸", "Tirar foto do prato", enabled = false) {}
+        Chip("📸", "Tirar foto do prato", tag = "chat-suggestion-photo", onClick = onCamera)
         SUGGESTIONS.forEachIndexed { i, (emoji, text) -> Chip(emoji, text, tag = "chat-suggestion-$i") { onPick(text) } }
     }
 }
@@ -557,6 +567,7 @@ private fun Footer(
     onRecord: (Long, Long) -> Unit,
     onSwap: (Long) -> Unit,
     onAskSkip: (SlotRef) -> Unit,
+    onPhoto: () -> Unit,
 ) {
     val p = LocalPalette.current
     Column(
@@ -568,7 +579,7 @@ private fun Footer(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         ui.actions?.let { ActionBar(it, onRecord, onSwap, onAskSkip) }
-        Composer(ui, onComposer, onSend)
+        Composer(ui, onComposer, onSend, onPhoto)
     }
 }
 
@@ -614,7 +625,7 @@ private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, onCli
 }
 
 @Composable
-private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit) {
+private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit) {
     val p = LocalPalette.current
     Row(
         Modifier
@@ -625,12 +636,17 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
             .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Photo lands in A6.
         Box(
-            Modifier.size(36.dp).clip(CircleShape).background(p.surf2).border(1.dp, p.text.copy(alpha = 0.05f), CircleShape).testTag("chat-photo"),
+            Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(p.surf2)
+                .border(1.dp, p.text.copy(alpha = 0.05f), CircleShape)
+                .clickable(enabled = !ui.sending, onClick = onPhoto)
+                .testTag("chat-photo"),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.PhotoCamera, contentDescription = "Foto (em breve)", tint = p.muted.copy(alpha = 0.6f), modifier = Modifier.size(19.dp))
+            Icon(Icons.Outlined.PhotoCamera, contentDescription = "Enviar foto", tint = p.muted, modifier = Modifier.size(19.dp))
         }
         BasicTextField(
             value = ui.composer,
@@ -856,3 +872,89 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
         }
     }
 }
+
+// ----------------------------------------------------------------------------- photo (A6)
+
+@Composable
+private fun BoxScope.PhotoSheet(onCamera: () -> Unit, onGallery: () -> Unit, onClose: () -> Unit) {
+    val p = LocalPalette.current
+    BackHandler(onBack = onClose)
+    Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), onClose)
+    val shape = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp)
+    Column(
+        Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(if (p.isDark) p.panel else p.phone)
+            .border(1.dp, p.line.copy(alpha = 0.7f), shape)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets(bottom = 24.dp)))
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
+            .testTag("chat-photo-sheet"),
+    ) {
+        Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
+        Text("Enviar foto do prato", style = NutriType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
+        Text("O texto digitado vai junto como legenda. Até 16 MB.", style = NutriType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            PhotoSourceRow(Icons.Outlined.PhotoCamera, "Tirar foto", "chat-photo-camera", onCamera)
+            PhotoSourceRow(Icons.Outlined.PhotoLibrary, "Escolher da galeria", "chat-photo-gallery", onGallery)
+        }
+        Text(
+            "Cancelar",
+            style = NutriType.labelMd.copy(letterSpacing = 0.05.em),
+            color = p.muted,
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 14.dp).clickable(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-photo-cancel"),
+        )
+    }
+}
+
+@Composable
+private fun PhotoSourceRow(icon: ImageVector, label: String, tag: String, onClick: () -> Unit) {
+    val p = LocalPalette.current
+    val shape = RoundedCornerShape(18.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(shape)
+            .background(p.card)
+            .border(1.dp, p.line.copy(alpha = 0.6f), shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp)
+            .testTag(tag),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(p.panel).border(1.dp, p.line.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Icon(icon, contentDescription = null, tint = p.gold, modifier = Modifier.size(20.dp)) }
+        Spacer(Modifier.width(14.dp))
+        Text(label, style = NutriType.labelLg.copy(fontWeight = FontWeight.W500), color = p.text)
+    }
+}
+
+/** One-shot message above the composer ("Foto grande demais."). */
+@Composable
+private fun Notice(text: String, onShown: () -> Unit) {
+    val p = LocalPalette.current
+    LaunchedEffect(text) {
+        delay(NOTICE_MS)
+        onShown()
+    }
+    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
+        Text(
+            text,
+            style = NutriType.labelLg.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp),
+            color = p.bad,
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(p.bad.copy(alpha = 0.12f))
+                .border(1.dp, p.bad.copy(alpha = 0.3f), CircleShape)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .testTag("chat-notice"),
+        )
+    }
+}
+
+private const val NOTICE_MS = 3_000L

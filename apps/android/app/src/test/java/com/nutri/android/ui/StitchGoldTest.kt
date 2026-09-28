@@ -25,6 +25,7 @@ import com.nutri.android.core.designsystem.NutriTheme
 import com.nutri.android.feature.chat.ChatFixtures
 import com.nutri.android.feature.chat.ChatScreen
 import com.nutri.android.feature.chat.ChatUiState
+import com.nutri.android.feature.chat.PhotoPreviews
 import com.nutri.android.feature.home.HomeFixtures
 import com.nutri.android.feature.home.HomePanelMapper
 import com.nutri.android.feature.home.HomePanelScreen
@@ -145,6 +146,13 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatP_light() = check("chatP", dark = false) { Chat(ChatFixtures.chatP) }
 
+    /** A6: photo bubble. The preview is decoded before rendering (the app decodes it off the main thread). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatF_dark() = check("chatF", dark = true, region = PHOTO_BUBBLE) { Chat(ChatFixtures.chatF) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatF_light() = check("chatF", dark = false, region = PHOTO_BUBBLE) { Chat(ChatFixtures.chatF) }
+
     /** Dark chatG gold is a 2560x2048 desktop render: not comparable, light only. chatF (photo) is A6. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
@@ -180,12 +188,19 @@ class StitchGoldTest {
     @Composable private fun O4() = MacrosScreen(GOLD_STATE, {}, {}, {}, {}, {})
 
     /** [navDp] = 0 for bottom sheets: they draw under the nav bar and pad themselves. */
+    @org.junit.Before
+    fun preloadPhotos() {
+        PhotoPreviews.load(ChatFixtures.CHAT_F_PHOTO) ?: error("missing ${ChatFixtures.CHAT_F_PHOTO}")
+    }
+
     private fun check(
         id: String,
         dark: Boolean,
         fullPage: Boolean = false,
         navDp: Int = NAV_DP,
         footerDp: Int = if (fullPage) FOOTER_DP else IGNORE_BOTTOM_DP,
+        /** Gold px box gated on its own (best vertical offset) when the whole screen is a conflict. */
+        region: IntArray? = null,
         screen: @Composable () -> Unit,
     ) {
         compose.setContent {
@@ -210,6 +225,11 @@ class StitchGoldTest {
         val inkRatio = ink(appBlur, 0).toDouble() / ink(goldBlur, top).coerceAtLeast(1)
         save(blurred.mask, File(DIFF_OUT, "$theme-$id.png"))
         println("GOLD_DIFF $theme/$id blurred ${"%.2f".format(blurred.percent)}% raw ${"%.2f".format(raw.percent)}% ink ${"%.2f".format(inkRatio)}")
+        if (region != null) {
+            val part = regionDiff(appBlur, goldBlur, region)
+            println("GOLD_DIFF $theme/$id region ${"%.2f".format(part)}%")
+            assertWithMessage("$theme/$id region differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
+        }
         if (id in GOLD_CONFLICTS) return // reported only, see GOLD_CONFLICTS
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
         assertWithMessage("$theme/$id differs from Stitch gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
@@ -252,6 +272,29 @@ class StitchGoldTest {
             }
         }
         return Diff(100.0 * differ / total.coerceAtLeast(1), mask)
+    }
+
+    /** Blurred diff of the gold box [x0, y0, x1, y1] against the app, best vertical offset in ±64 dp. */
+    private fun regionDiff(app: Bitmap, gold: Bitmap, box: IntArray): Double {
+        val (x0, y0, x1, y1) = box.toList()
+        var best = 100.0
+        for (dy in -128..128 step 2) {
+            var differ = 0
+            var total = 0
+            for (y in y0 until y1 step 2) {
+                val ay = y - BAND_PX + dy
+                if (ay !in 0 until app.height) continue
+                for (x in x0 until x1 step 2) {
+                    total++
+                    val a = app.getPixel(x, ay)
+                    val g = gold.getPixel(x, y)
+                    val d = max(abs(Color.red(a) - Color.red(g)), max(abs(Color.green(a) - Color.green(g)), abs(Color.blue(a) - Color.blue(g))))
+                    if (d > CHANNEL_TOLERANCE) differ++
+                }
+            }
+            if (total > 0) best = minOf(best, 100.0 * differ / total)
+        }
+        return best
     }
 
     /** Pixels off the page background (median colour) in the compared rows: catches blank captures. */
@@ -347,7 +390,12 @@ class StitchGoldTest {
             // Chat: chatE is canonical. chat0/chatL use another header (body alone: ~1.2-1.4%);
             // chatG light is the chatF generation. See docs/android/plans/completed/a5-chat.md.
             "chat0", "chatL", "chatG",
+            // chatF is the chatF/chatG generation too: only its photo bubble is gated (PHOTO_BUBBLE, A6).
+            "chatF",
         )
+
+        /** chatF photo bubble in gold px (x0, y0, x1, y1). */
+        private val PHOTO_BUBBLE = intArrayOf(214, 368, 746, 734)
         private val ROOT = File("../../..")
         private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")
