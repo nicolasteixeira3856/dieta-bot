@@ -10,7 +10,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A14](android/plans/a14-marca-icone-splash.md) aguardando aprovação; [A9, A11, A13](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S7](server/plans/s7-rename-prompt.md) aguardando aprovação; [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5](server/plans/completed/) concluídos | `server/tests/` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5, S7](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -40,8 +40,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [S7 "Dieta Bot" no prompt do server](server/plans/s7-rename-prompt.md) — independente no código.
-2. [A14 marca: ícone e splash com o logo](android/plans/a14-marca-icone-splash.md) — depende do A13; fonte em `design/brand/`.
+1. [A14 marca: ícone e splash com o logo](android/plans/a14-marca-icone-splash.md) — depende do A13; fonte em `design/brand/`.
 
 ## Planos pendentes de aprovação manual
 
@@ -72,6 +71,7 @@ Ordem de `/goal` depois da frase de aprovação:
 18. [S5 deploy GCP e2-micro](server/plans/completed/s5-gcp-deploy.md)
 19. [A10 flavors dev/prod](android/plans/completed/a10-flavors-dev-prod.md)
 20. [A12 remover legado T1/T2/T3](android/plans/completed/a12-remover-legado-t123.md)
+21. [S7 "Dieta Bot" no prompt do server](server/plans/completed/s7-rename-prompt.md)
 
 ## Outros docs
 

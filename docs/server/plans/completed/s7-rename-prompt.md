@@ -1,10 +1,10 @@
 # Plano — S7 Nome "Dieta Bot" no prompt do server
 
-- Estado: Aguardando aprovação
+- Estado: Concluído
 - Data: 28/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py` (texto da instrução do Chat), `docs/server/README.md`. Contrato HTTP inalterado.
-- Pré-requisitos: [ADR-016](../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito (pelo A13 ou por este plano, o que for aprovado primeiro). Independente do A12/A13 no código.
+- Pré-requisitos: [ADR-016](../../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito (pelo A13 ou por este plano, o que for aprovado primeiro). Independente do A12/A13 no código.
 
 ## Gate de autorização
 
@@ -41,6 +41,18 @@ O modelo se apresenta como "Dieta Bot", igual ao app. Hoje a instrução diz "Yo
 ## Critérios de aceite
 
 - Prompt com "Dieta Bot", testes verdes, smoke registrado.
+
+## Registro de execução
+
+- 28/09/2026 — aprovado no goal único com A12/A13/A14 (exceção autorizada pelo dono para mexer em `server/` no mesmo goal). ADR-016 aceito pelo A13.
+- `server/llm.py`: "You are Nutri chat assistant." → "You are Dieta Bot, a meal-tracking chat assistant." Nenhuma outra frase mudou.
+- Teste novo `test_chat_instructions_name_the_assistant_dieta_bot` (a instrução enviada ao modelo contém "Dieta Bot" e não contém "Nutri").
+
+### Resultados da validação
+
+1. `pytest -q` → **54 passed**, 19 subtests. ✅
+2. `tools/deploy-gcp.ps1` → `/health` 200. `/v1/chat` com `X-Request-Id: s7-smoke` → 200 com resposta normal. ✅
+3. "quem é você?" (`s7-quem`) → "Sou o Dieta Bot, seu assistente para acompanhar refeições e estimar informações nutricionais." No log (S6): `route=chat`, `fallback=false`, 2083 ms. ✅
 
 ## Encerramento
 

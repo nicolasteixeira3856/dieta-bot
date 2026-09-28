@@ -124,6 +124,16 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(body["model"], "gpt-6-luna")
         self.assertEqual(len(captured), 1)
 
+    async def test_chat_instructions_name_the_assistant_dieta_bot(self) -> None:
+        """S7 / ADR-016: the model introduces itself with the visible product name."""
+        captured: list[httpx2.Request] = []
+        app = self._app(_responds({"reply": "oi", "estimate": None, "digest": None}, captured))
+        async with _client(app) as client:
+            await client.post("/v1/chat", headers={"X-Invite": INVITE}, json=_base_chat_payload())
+        instructions = json.loads(captured[0].content)["instructions"]
+        self.assertIn("Dieta Bot", instructions)
+        self.assertNotIn("Nutri", instructions)
+
     async def test_chat_general_question_returns_null_estimate(self) -> None:
         model_payload = {
             "reply": "TMB significa Taxa Metabólica Basal, a energia mínima gasta em repouso.",

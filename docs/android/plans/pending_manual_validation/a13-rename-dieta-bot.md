@@ -3,7 +3,7 @@
 - Estado: Pendente aprovação manual (rename das 22 telas no Stitch pelo editor web + reativar 2 testes de splash; APK no celular)
 - Data: 28/09/2026
 - Contexto proprietário: `android` (também toca docs, skills e `AGENTS.md`)
-- Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../../server/plans/s7-rename-prompt.md)).
+- Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../../server/plans/completed/s7-rename-prompt.md)).
 - Pré-requisitos: [A12](../completed/a12-remover-legado-t123.md) concluído (menos arquivos para renomear). [ADR-016](../../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito junto com a aprovação.
 
 ## Gate de autorização
@@ -77,7 +77,7 @@ MCP `stitch` configurado em 28/09/2026 no `.mcp.json`: endpoint oficial `https:/
 
 - `applicationId`, pacote Kotlin, Firebase, banco, VM, projeto Stitch (ADR-016).
 - Logo, ícone e splash redesenhada (plano de marca separado, depois das imagens do dono).
-- Prompt do server ([S7](../../../server/plans/s7-rename-prompt.md)).
+- Prompt do server ([S7](../../../server/plans/completed/s7-rename-prompt.md)).
 
 ## Riscos e controles
 
