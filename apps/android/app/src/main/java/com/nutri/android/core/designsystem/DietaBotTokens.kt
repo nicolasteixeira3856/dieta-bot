@@ -8,6 +8,8 @@ object SplashBoot {
     const val DELAY_MS = 1200L
     const val COPY = "Estimativa nutricional, não substitui consulta médica ou nutricional."
     const val WORDMARK = "Dieta Bot"
+    /** A14: logo above the wordmark (design/brand, tools/brand-icons.ps1). */
+    const val LOGO_DP = 120
 }
 
 object DietaBotMeasure {

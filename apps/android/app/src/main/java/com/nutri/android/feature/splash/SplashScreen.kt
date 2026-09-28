@@ -1,5 +1,6 @@
 package com.nutri.android.feature.splash
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
@@ -21,9 +23,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nutri.android.R
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.SplashBoot
@@ -60,6 +64,12 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            // A14: logo from design/brand (tools/brand-icons.ps1). Decorative: the wordmark carries the name.
+            Image(
+                painter = painterResource(R.drawable.logo_mark),
+                contentDescription = null,
+                modifier = Modifier.padding(bottom = 24.dp).size(SplashBoot.LOGO_DP.dp).testTag("splash-logo"),
+            )
             Text(SplashBoot.WORDMARK, style = DietaBotType.displayLg.copy(lineHeight = 48.sp), color = p.text)
             Box(
                 Modifier

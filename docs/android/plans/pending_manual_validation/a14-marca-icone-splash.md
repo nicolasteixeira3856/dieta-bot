@@ -1,10 +1,10 @@
 # Plano — A14 Marca: ícone do app e splash com o logo
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual (splash com logo no Stitch web + gold; ícone e splash no celular)
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/app/src/main/res/` (ícone adaptativo, splash do sistema), `feature/splash/`, `core/designsystem/` (wordmark), golds `docs/qa/stitch/{dark,light}/splash.png`, `design/brand/` (fonte), docs.
-- Pré-requisitos: [A13](pending_manual_validation/a13-rename-dieta-bot.md) concluído (wordmark "Dieta Bot" já na UI e no gold).
+- Pré-requisitos: [A13](a13-rename-dieta-bot.md) concluído (wordmark "Dieta Bot" já na UI e no gold).
 
 ## Gate de autorização
 
@@ -77,6 +77,24 @@ Ressalvas registradas (decisão do dono de seguir assim): o robô ocupa cerca de
 ## Critérios de aceite
 
 - Ícone adaptativo e temático no launcher, splash do sistema e Compose com o logo, gate visual verde fora da máscara, testes verdes.
+
+## Registro de execução
+
+- 28/09/2026 — aprovado no goal único (A12 → A13 → S7 → A14).
+- `tools/brand-icons.ps1` (System.Drawing, bicúbico de alta qualidade): recorte quadrado do símbolo, escala para 66/108 dp. Saídas: `mipmap-{mdpi…xxxhdpi}/ic_launcher_foreground.png` (108…432 px, símbolo 66…264 px), `ic_launcher_monochrome.png` e `drawable-nodpi/logo_mark.png` (480 px).
+- `mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml` (fundo `@color/ic_launcher_bg` `#0B0D10`, foreground, monochrome); manifest `icon`/`roundIcon` → `@mipmap/…`. Removidos `drawable/ic_launcher.xml`, `ic_mark.xml` e `ic_splash_blank.xml` (sem outro uso). **Sem PNG legado:** `minSdk` 26, todo aparelho suportado usa ícone adaptativo.
+- Splash do sistema (`values-v31`, `values-night-v31`): `windowSplashScreenAnimatedIcon` → `@mipmap/ic_launcher_foreground`.
+- Splash Compose: `Image(logo_mark)` de `SplashBoot.LOGO_DP` = 120 dp, 24 dp acima do wordmark; `testTag("splash-logo")`; decorativo (`contentDescription = null`).
+- **Stitch (item 3): bloqueado pelo mesmo motivo do A13.** O `edit_screens` do MCP não persiste, e o MCP não recebe imagem. **[DONO]** No Stitch web, telas `splash` dark/light: além do rename do A13, colocar o logo (upload de `design/brand/icon.png`, ~120 dp, centralizado, 24 dp acima de "Dieta Bot"). **[AGENTE]** Depois: exportar, aplicar a máscara na área do logo no gate e reativar os testes de splash.
+
+### Resultados da validação
+
+1. `assembleDevRelease` → rótulo "Dieta Bot Dev", `application-icon-*` → recurso adaptativo (caminho encurtado pelo build de release). ✅
+2. Emulador: gaveta de apps com o ícone novo ("Dieta Bot Dev": fundo escuro, anel dourado, prato, robô pequeno) — evidência em `docs/qa/android/current/light/launcher.png`. Ícone temático: camada `monochrome` presente; não foi ligado no launcher do emulador. ⏳ dono vê no celular.
+3. Cold start (`am start -W`, primeiro frame): release **0,83–1,10 s** (4 medições, `speed-profile`); debug no emulador 2,8–3,4 s (5,5 s logo após instalar, verificação de dex). A duração da splash (`SplashBoot`) não mudou. ✅
+4. `capture-onboarding` dark/light sem ✗. `diff-gold` o1–o4 ✓. **splash ✗** (dark 6,26% / tinta 3,46; light 4,60% / 2,16): logo + "Dieta Bot" × gold sem logo e com "Nutri". ⏳ Stitch.
+5. `testDevDebugUnitTest` 171 (2 pulados do A13) / 0 falhas; Roborazzi: baselines `splash` regravadas (logo). ✅
+6. Manual (dono): ícone e splash no celular. ⏳
 
 ## Encerramento
 

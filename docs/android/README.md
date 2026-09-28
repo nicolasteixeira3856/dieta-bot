@@ -73,6 +73,14 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 - Crash de teste (só dev, só via adb): `adb shell am broadcast -a com.nutri.android.dev.TEST_CRASH -n com.nutri.android.dev/com.nutri.android.core.telemetry.TestCrashReceiver`.
 - Analytics DebugView: `adb shell setprop debug.firebase.analytics.app com.nutri.android.dev`.
 
+## Marca
+
+[A14](plans/pending_manual_validation/a14-marca-icone-splash.md). Fonte em `design/brand/` (`icon.png`, `icon-mono.png`, `icon-dark-bg.png` de referência).
+
+- `./tools/brand-icons.ps1` gera `mipmap-*/ic_launcher_foreground.png` (símbolo na área segura 66/108 dp), `mipmap-*/ic_launcher_monochrome.png` (ícone temático, Android 13+) e `drawable-nodpi/logo_mark.png` (splash). Rode de novo depois de trocar os arquivos da pasta.
+- `mipmap-anydpi-v26/ic_launcher(_round).xml`: fundo `@color/ic_launcher_bg` (`#0B0D10`) + foreground + monochrome. `minSdk` 26, então não há PNG legado.
+- Splash do sistema (Android 12+) mostra o foreground do ícone; a splash em Compose mostra `logo_mark` (120 dp) acima do wordmark.
+
 ## Release
 
 - `./gradlew.bat :app:assembleDevRelease` (ou `assembleProdRelease`), assinado com a chave própria ([A9](plans/pending_manual_validation/a9-assinatura-release.md)).
@@ -96,7 +104,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
 - [A13 rename visível "Dieta Bot" (Pendente: golds no Stitch web)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
-- [A14 marca: ícone e splash (Aguardando aprovação)](plans/a14-marca-icone-splash.md)
+- [A14 marca: ícone e splash (Pendente: splash no Stitch web)](plans/pending_manual_validation/a14-marca-icone-splash.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)
