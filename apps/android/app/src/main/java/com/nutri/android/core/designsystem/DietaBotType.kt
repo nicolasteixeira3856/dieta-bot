@@ -34,7 +34,7 @@ val Inter = FontFamily(
 )
 
 /** Type scale from the Stitch `Nutri` design system (tailwind fontSize). */
-object NutriType {
+object DietaBotType {
     /** CSS-like line boxes: half-leading on both sides, never trimmed. */
     val cssLines = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
 

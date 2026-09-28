@@ -1,6 +1,6 @@
 ---
 name: dieta-bot-android-visual
-description: Compare the emulator screen with the Nutri Stitch gold design. Use after any visual change or when the owner says it looks crude.
+description: Compare the emulator screen with the Dieta Bot Stitch gold design. Use after any visual change or when the owner says it looks crude.
 ---
 
 # dieta-bot-android-visual

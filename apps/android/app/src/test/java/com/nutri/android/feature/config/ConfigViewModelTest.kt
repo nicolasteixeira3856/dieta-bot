@@ -10,7 +10,7 @@ import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
-import com.nutri.android.core.database.NutriDatabase
+import com.nutri.android.core.database.DietaBotDatabase
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +35,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [34])
 class ConfigViewModelTest {
-    private lateinit var db: NutriDatabase
+    private lateinit var db: DietaBotDatabase
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
@@ -46,7 +46,7 @@ class ConfigViewModelTest {
     fun setUp() = runBlocking<Unit> {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         val context = ApplicationProvider.getApplicationContext<Application>()
-        db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java).allowMainThreadQueries().build()
+        db = Room.inMemoryDatabaseBuilder(context, DietaBotDatabase::class.java).allowMainThreadQueries().build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "cfg_${System.nanoTime()}.preferences_pb")
         store = PreferenceDataStoreFactory.create(scope = storeScope, produceFile = { file })

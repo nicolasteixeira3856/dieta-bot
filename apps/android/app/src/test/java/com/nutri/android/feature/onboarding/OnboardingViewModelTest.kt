@@ -10,7 +10,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
-import com.nutri.android.core.database.NutriDatabase
+import com.nutri.android.core.database.DietaBotDatabase
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +36,7 @@ import org.robolectric.annotation.Config
 @Config(application = Application::class, sdk = [34])
 class OnboardingViewModelTest {
     private lateinit var context: Context
-    private lateinit var db: NutriDatabase
+    private lateinit var db: DietaBotDatabase
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
     private val clock = InstantClock { Instant.parse("2026-03-16T12:00:00-03:00") }
@@ -46,7 +46,7 @@ class OnboardingViewModelTest {
     fun setUp() {
         Dispatchers.setMain(mainDispatcher)
         context = ApplicationProvider.getApplicationContext()
-        db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java)
+        db = Room.inMemoryDatabaseBuilder(context, DietaBotDatabase::class.java)
             .allowMainThreadQueries()
             .build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())

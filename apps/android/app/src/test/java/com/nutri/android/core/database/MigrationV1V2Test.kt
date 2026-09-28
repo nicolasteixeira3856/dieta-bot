@@ -50,7 +50,7 @@ class MigrationV1V2Test {
             )
         }
 
-        val db = Room.databaseBuilder(context, NutriDatabase::class.java, dbFile.absolutePath)
+        val db = Room.databaseBuilder(context, DietaBotDatabase::class.java, dbFile.absolutePath)
             .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
@@ -96,7 +96,7 @@ class MigrationV1V2Test {
     @Test
     fun emptyV1_migrates() {
         createV1 { }
-        val db = Room.databaseBuilder(context, NutriDatabase::class.java, dbFile.absolutePath)
+        val db = Room.databaseBuilder(context, DietaBotDatabase::class.java, dbFile.absolutePath)
             .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
@@ -115,7 +115,7 @@ class MigrationV1V2Test {
                     "VALUES (1, '2026-09-25', 'assistant', 'ok', 1000, 380)",
             )
         }
-        val db = Room.databaseBuilder(context, NutriDatabase::class.java, dbFile.absolutePath)
+        val db = Room.databaseBuilder(context, DietaBotDatabase::class.java, dbFile.absolutePath)
             .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
@@ -161,7 +161,7 @@ class MigrationV1V2Test {
     }
 
     private companion object {
-        const val SCHEMA_V1 = "schemas/com.nutri.android.core.database.NutriDatabase/1.json"
-        const val SCHEMA_V2 = "schemas/com.nutri.android.core.database.NutriDatabase/2.json"
+        const val SCHEMA_V1 = "schemas/com.nutri.android.core.database.DietaBotDatabase/1.json"
+        const val SCHEMA_V2 = "schemas/com.nutri.android.core.database.DietaBotDatabase/2.json"
     }
 }

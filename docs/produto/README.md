@@ -2,7 +2,7 @@
 
 ## Proposito
 
-Comportamento visivel do Nutri: job, telas, copy, onboarding, slots, o que entra no prompt da IA.
+Comportamento visivel do Dieta Bot: job, telas, copy, onboarding, slots, o que entra no prompt da IA.
 
 ## Tipo e ownership
 

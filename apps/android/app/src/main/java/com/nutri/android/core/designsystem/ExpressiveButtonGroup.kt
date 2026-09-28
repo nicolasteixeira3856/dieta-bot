@@ -124,7 +124,7 @@ fun ExpressiveButtonGroup(
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 private fun ExpressiveButtonGroupHorizontalPreview() {
-    NutriTheme {
+    DietaBotTheme {
         ExpressiveButtonGroup(options = listOf("0%", "%", "100%"), selected = 0, onSelect = {})
     }
 }
@@ -132,7 +132,7 @@ private fun ExpressiveButtonGroupHorizontalPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 private fun ExpressiveButtonGroupStackedPreview() {
-    NutriTheme {
+    DietaBotTheme {
         ExpressiveButtonGroup(options = listOf("Mesmo", "Útil/fds", "7 dias"), selected = 1, onSelect = {}, stacked = true)
     }
 }

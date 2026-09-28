@@ -1,6 +1,6 @@
 # ADR-016 — Nome visível "Dieta Bot"; IDs técnicos continuam "nutri"
 
-- Estado: Proposto
+- Estado: Aceito (aprovação do plano A13, 2026-09-28)
 - Data: 2026-09-28
 - Contexto: `produto`
 - Substitui: parcialmente o nome "Nutri" em `AGENTS.md` e nas specs vivas. ADRs aceitos não se editam.
@@ -47,7 +47,7 @@ Deixa a confusão nas docs e no código.
 
 ## Relações
 
-- Planos: [A13](../../android/plans/a13-rename-dieta-bot.md) (app, docs, skills), [S7](../../server/plans/s7-rename-prompt.md) (prompt do server).
+- Planos: [A13](../../android/plans/pending_manual_validation/a13-rename-dieta-bot.md) (app, docs, skills), [S7](../../server/plans/s7-rename-prompt.md) (prompt do server).
 - ADRs relacionados: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md).
 
 Depois de aceito, este ADR não se edita. Mudança posterior exige ADR novo que declare a substituição.

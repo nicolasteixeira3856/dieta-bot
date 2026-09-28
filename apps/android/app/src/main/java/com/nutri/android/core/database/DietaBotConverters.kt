@@ -4,7 +4,7 @@ import androidx.room.TypeConverter
 import org.json.JSONArray
 import org.json.JSONException
 
-class NutriConverters {
+class DietaBotConverters {
     @TypeConverter
     fun intListToText(value: List<Int>?): String {
         val arr = JSONArray()

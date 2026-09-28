@@ -1,6 +1,6 @@
 ---
 name: dieta-bot-android-memory
-description: Record a durable Nutri project decision. Use when the owner locks stack, a lib pin, a screen out, or a corrected ADR.
+description: Record a durable Dieta Bot project decision. Use when the owner locks stack, a lib pin, a screen out, or a corrected ADR.
 ---
 
 # dieta-bot-android-memory

@@ -52,7 +52,7 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 
 | | dev | prod |
 |---|---|---|
-| `applicationId` | `com.nutri.android.dev` ("Nutri Dev", `versionName` `-dev`) | `com.nutri.android` ("Nutri") |
+| `applicationId` | `com.nutri.android.dev` ("Dieta Bot Dev", `versionName` `-dev`) | `com.nutri.android` ("Dieta Bot") |
 | `local.properties` | `dev.API_PUBLIC_URL`, `dev.INVITE_CODE` (fallback nas chaves sem prefixo) | `prod.API_PUBLIC_URL`, `prod.INVITE_CODE` (obrigatórias) |
 | `BuildConfig.ENV` | `"dev"` | `"prod"` |
 
@@ -95,7 +95,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 ### Planos e validacao
 
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
-- [A13 rename visível "Dieta Bot" (Aguardando aprovação)](plans/a13-rename-dieta-bot.md)
+- [A13 rename visível "Dieta Bot" (Pendente: golds no Stitch web)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
 - [A14 marca: ícone e splash (Aguardando aprovação)](plans/a14-marca-icone-splash.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)

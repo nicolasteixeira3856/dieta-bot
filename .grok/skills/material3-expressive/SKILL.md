@@ -1,6 +1,6 @@
 ---
 name: material3-expressive
-description: Liga e mantém Material 3 Expressive no client Nutri. Use quando mexer em theme, ButtonGroup, LoadingIndicator, motion, shapes ou quando a UI voltar roxa/Material default.
+description: Liga e mantém Material 3 Expressive no client Dieta Bot. Use quando mexer em theme, ButtonGroup, LoadingIndicator, motion, shapes ou quando a UI voltar roxa/Material default.
 ---
 
 # material3-expressive

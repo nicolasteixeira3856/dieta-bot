@@ -1,4 +1,6 @@
-# Nutri — repo constitution
+# Dieta Bot — repo constitution
+
+Product name: Dieta Bot. Technical IDs stay `nutri` (package, applicationId, nutri.db, Firebase nutri-bot-dev, VM nutri-api, Stitch project `Nutri`) per ADR-016.
 
 One agent. Job: fit the next meal into today's remaining budget, dinner first.
 

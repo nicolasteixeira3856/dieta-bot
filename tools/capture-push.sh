@@ -45,7 +45,7 @@ alarm_dump() { "$ADB" shell dumpsys alarm | tr -d '\r' > "$TMP/alarm.txt"; }
 alarms() { alarm_dump; grep -cE '^ +tag=\*walarm\*:com\.nutri\.android\.push\.SLOT$' "$TMP/alarm.txt"; }
 exact_alarms() { grep -A1 -E '^ +tag=\*walarm\*:com\.nutri\.android\.push\.SLOT$' "$TMP/alarm.txt" | grep -c 'window=0 exactAllowReason=permission'; }
 notified() { "$ADB" shell dumpsys notification --noredact | tr -d '\r' | grep -c "android.title=String (${1}. Ainda não registrou.)"; }
-# Shade: expand the Nutri group, then the notification titled $1, then tap its action $2.
+# Shade: expand the app notification group, then the notification titled $1, then tap its action $2.
 notification_action() {
   "$ADB" shell cmd statusbar expand-notifications; sleep 2
   local attempt xy

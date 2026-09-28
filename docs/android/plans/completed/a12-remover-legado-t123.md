@@ -64,7 +64,7 @@ Apagar o fluxo antigo de registro (sheet T1, rota cheia T2, sugestões T3 e o Ho
 ## Fora de escopo
 
 - Qualquer tela nova ou mudança de UI.
-- Rename Nutri → Dieta Bot ([A13](../a13-rename-dieta-bot.md), que vem depois deste).
+- Rename Nutri → Dieta Bot ([A13](../pending_manual_validation/a13-rename-dieta-bot.md), que vem depois deste).
 - Remover `/v1/estimate` e `/v1/fit` do server.
 - Migração de banco (nenhuma tabela muda).
 

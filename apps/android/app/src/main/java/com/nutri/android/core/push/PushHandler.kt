@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import com.nutri.android.MainActivity
 import com.nutri.android.R
 import com.nutri.android.core.database.DayRepository
-import com.nutri.android.core.designsystem.NutriHex
+import com.nutri.android.core.designsystem.DietaBotHex
 import com.nutri.android.core.telemetry.NoopTelemetry
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
@@ -81,7 +81,7 @@ class PushHandler @Inject constructor(
         )
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
-            .setColor(NutriHex.darkGold.toInt())
+            .setColor(DietaBotHex.darkGold.toInt())
             .setContentTitle(PushPlan.copy(name))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

@@ -60,8 +60,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.NumberField
-import com.nutri.android.core.designsystem.NutriMeasure
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotMeasure
+import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.Palette
 import com.nutri.android.feature.onboarding.CountStepper
 import com.nutri.android.feature.onboarding.EatCard
@@ -159,7 +159,7 @@ private fun Header(onBack: () -> Unit) {
         Spacer(Modifier.width(17.dp))
         Text(
             "Configurações",
-            style = NutriType.headlineLg.copy(fontSize = 24.5.sp, lineHeight = 32.sp, letterSpacing = (-0.02).em),
+            style = DietaBotType.headlineLg.copy(fontSize = 24.5.sp, lineHeight = 32.sp, letterSpacing = (-0.02).em),
             color = p.text,
         )
     }
@@ -170,7 +170,7 @@ private fun SectionLabel(text: String, top: Dp = 26.dp) {
     val p = LocalPalette.current
     Text(
         text.uppercase(),
-        style = NutriType.labelCaps.copy(fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.04.em),
+        style = DietaBotType.labelCaps.copy(fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.04.em),
         color = p.secondary(),
         modifier = Modifier.padding(top = top, bottom = 11.dp),
     )
@@ -213,14 +213,14 @@ private fun SettingRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f).padding(end = 8.dp)) {
-            Text(title, style = NutriType.bodyLg.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.W500), color = p.text)
+            Text(title, style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.W500), color = p.text)
             if (detail != null) {
-                Text(detail, style = NutriType.labelMd.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.W400, letterSpacing = 0.06.em), color = p.secondary())
+                Text(detail, style = DietaBotType.labelMd.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.W400, letterSpacing = 0.06.em), color = p.secondary())
             }
         }
         Text(
             value,
-            style = NutriType.bodyLg.copy(fontSize = 14.sp, lineHeight = 22.sp, fontWeight = if (accent) FontWeight.W600 else FontWeight.W400, letterSpacing = 0.sp),
+            style = DietaBotType.bodyLg.copy(fontSize = 14.sp, lineHeight = 22.sp, fontWeight = if (accent) FontWeight.W600 else FontWeight.W400, letterSpacing = 0.sp),
             color = if (accent) p.gold else p.secondary(),
             modifier = Modifier.testTag("$tag-value"),
         )
@@ -245,7 +245,7 @@ private fun WipeNote() {
         Spacer(Modifier.width(10.dp))
         Text(
             "Alterar a meta de calorias reinicia os registros do dia atual. O histórico da conversa será mantido.",
-            style = NutriType.bodyMd.copy(fontSize = 11.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
+            style = DietaBotType.bodyMd.copy(fontSize = 11.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
             color = p.secondary(),
         )
     }
@@ -268,7 +268,7 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
     val p = LocalPalette.current
     BackHandler(onBack = a.onClose)
     Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), a.onClose)
-    val shape = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp)
+    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
     val (title, subtitle) = when (editor) {
         ConfigEditor.CEILING -> "Meta de calorias" to "Salvar um novo valor reinicia os registros de hoje."
         ConfigEditor.EAT_BACK -> "Compensação de treinos" to "Quanto do treino de hoje volta para a meta."
@@ -291,8 +291,8 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
             .testTag("cfg-sheet"),
     ) {
         Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
-        Text(title, style = NutriType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        Text(subtitle, style = NutriType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
+        Text(title, style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
+        Text(subtitle, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
         Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
             when (editor) {
                 ConfigEditor.CEILING -> CeilingEditor(ui.draft, a)
@@ -320,11 +320,11 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Salvar", style = NutriType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
+            Text("Salvar", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
         }
         Text(
             "Cancelar",
-            style = NutriType.labelMd.copy(letterSpacing = 0.05.em),
+            style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
             color = p.muted,
             modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp).clickable(onClick = a.onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("cfg-cancel"),
         )
@@ -430,13 +430,13 @@ private fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
         }
         Text(
             "Reiniciar registros de hoje?",
-            style = NutriType.headlineMd.copy(fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.03).em),
+            style = DietaBotType.headlineMd.copy(fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.03).em),
             color = p.text,
             modifier = Modifier.padding(top = 16.dp),
         )
         Text(
             "Ao atualizar sua meta calórica, as refeições de hoje serão reiniciadas para o novo cálculo de saldo. O histórico da conversa e os dias anteriores serão preservados.",
-            style = NutriType.bodyLg.copy(fontSize = 13.7.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
+            style = DietaBotType.bodyLg.copy(fontSize = 13.7.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
             color = p.muted,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -456,7 +456,7 @@ private fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
             val on = if (p.isDark) p.ctaText else p.surf
             Icon(Icons.Outlined.RestartAlt, contentDescription = null, tint = on, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(10.dp))
-            Text("Confirmar e reiniciar dia", style = NutriType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = on)
+            Text("Confirmar e reiniciar dia", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = on)
         }
         Box(
             Modifier
@@ -470,7 +470,7 @@ private fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
                 .testTag("cfg-wipe-cancel"),
             contentAlignment = Alignment.Center,
         ) {
-            Text("Cancelar", style = NutriType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text)
+            Text("Cancelar", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text)
         }
     }
 }

@@ -1,6 +1,6 @@
 ---
 name: dieta-bot-android-ui
-description: Build Nutri UI in Compose. Use when creating or changing screens, timeline, chat, composer, remaining, ButtonGroup.
+description: Build Dieta Bot UI in Compose. Use when creating or changing screens, timeline, chat, composer, remaining, ButtonGroup.
 ---
 
 # dieta-bot-android-ui

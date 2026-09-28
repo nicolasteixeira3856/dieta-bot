@@ -1,6 +1,6 @@
 ---
 name: android-architecture
-description: Aplica a arquitetura oficial Android da Google no client Nutri. Use quando criar tela, ViewModel, repository, use case, Hilt, navegação ou quando o código pular camada. Fontes developer.android.com/topic/architecture e /recommendations.
+description: Aplica a arquitetura oficial Android da Google no client Dieta Bot. Use quando criar tela, ViewModel, repository, use case, Hilt, navegação ou quando o código pular camada. Fontes developer.android.com/topic/architecture e /recommendations.
 ---
 
 # android-architecture
@@ -15,7 +15,7 @@ Fontes oficiais:
 ```
 apps/android/app/src/main/java/com/nutri/android/
 ├── core/
-│   ├── designsystem/   # NutriTheme, NutriTokens, ButtonGroup, ExpressiveShapes
+│   ├── designsystem/   # DietaBotTheme, DietaBotTokens, ButtonGroup, ExpressiveShapes
 │   ├── database/       # Room v2 em Kotlin puro (KSP), DAOs, Entities
 │   └── network/        # OkHttp, Retrofit, Interceptors, DTOs
 ├── domain/             # Fórmulas e regras (Kotlin puro, sem Android)

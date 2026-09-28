@@ -1,6 +1,6 @@
 ---
 name: dieta-bot-android-feature
-description: Implement a feature in the Nutri Android client. Use when the request is a screen, a rule, an API client, or day persistence. Folder apps/android.
+description: Implement a feature in the Dieta Bot Android client. Use when the request is a screen, a rule, an API client, or day persistence. Folder apps/android.
 ---
 
 # dieta-bot-android-feature

@@ -17,8 +17,8 @@ import androidx.room.TypeConverters
     version = 3,
     exportSchema = true,
 )
-@TypeConverters(NutriConverters::class)
-abstract class NutriDatabase : RoomDatabase() {
+@TypeConverters(DietaBotConverters::class)
+abstract class DietaBotDatabase : RoomDatabase() {
     abstract fun profileDao(): ProfileDao
     abstract fun dayDao(): DayDao
     abstract fun mealLogDao(): MealLogDao

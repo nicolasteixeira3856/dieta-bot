@@ -2,7 +2,7 @@
 
 ## Proposito
 
-API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. Nao guarda o dia.
+API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula teto. Nao guarda o dia.
 
 ## Tipo e ownership
 

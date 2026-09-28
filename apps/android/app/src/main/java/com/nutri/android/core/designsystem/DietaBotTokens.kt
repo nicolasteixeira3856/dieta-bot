@@ -7,10 +7,10 @@ object SplashBoot {
     const val MAX_MS = 2000L
     const val DELAY_MS = 1200L
     const val COPY = "Estimativa nutricional, não substitui consulta médica ou nutricional."
-    const val WORDMARK = "Nutri"
+    const val WORDMARK = "Dieta Bot"
 }
 
-object NutriMeasure {
+object DietaBotMeasure {
     const val remainingPt = 34
     const val fieldPt = 28
     const val sheetTopDp = 22
@@ -18,13 +18,13 @@ object NutriMeasure {
     const val barDp = 6
 }
 
-object NutriShapes {
-    val sheetTopRadius = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp)
-    val cardRadius = RoundedCornerShape(NutriMeasure.cardDp.dp)
-    val continuousBarHeight = NutriMeasure.barDp.dp
+object DietaBotShapes {
+    val sheetTopRadius = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
+    val cardRadius = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
+    val continuousBarHeight = DietaBotMeasure.barDp.dp
 }
 
-object NutriHex {
+object DietaBotHex {
     // Dark Theme
     const val darkBg = 0xFF0B0D10
     const val darkPanel = 0xFF12151A

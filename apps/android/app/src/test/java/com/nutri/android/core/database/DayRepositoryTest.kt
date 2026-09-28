@@ -31,7 +31,7 @@ import org.robolectric.annotation.Config
 @Config(application = Application::class, sdk = [34])
 class DayRepositoryTest {
     private lateinit var context: Context
-    private lateinit var db: NutriDatabase
+    private lateinit var db: DietaBotDatabase
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
     private val clock = MutableClock(DAY_D)
@@ -39,7 +39,7 @@ class DayRepositoryTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java)
+        db = Room.inMemoryDatabaseBuilder(context, DietaBotDatabase::class.java)
             .allowMainThreadQueries()
             .setQueryExecutor { it.run() }
             .setTransactionExecutor { it.run() }

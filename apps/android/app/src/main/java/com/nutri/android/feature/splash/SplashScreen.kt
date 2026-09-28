@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.SplashBoot
 import kotlinx.coroutines.delay
 
@@ -60,7 +60,7 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(SplashBoot.WORDMARK, style = NutriType.displayLg.copy(lineHeight = 48.sp), color = p.text)
+            Text(SplashBoot.WORDMARK, style = DietaBotType.displayLg.copy(lineHeight = 48.sp), color = p.text)
             Box(
                 Modifier
                     .padding(top = 16.dp)
@@ -71,7 +71,7 @@ fun SplashScreen(
             )
             Text(
                 SplashBoot.COPY,
-                style = NutriType.bodyMd.copy(lineHeight = 22.sp, letterSpacing = 0.sp),
+                style = DietaBotType.bodyMd.copy(lineHeight = 22.sp, letterSpacing = 0.sp),
                 color = p.muted,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 28.dp).widthIn(max = 280.dp).testTag("splash-copy"),

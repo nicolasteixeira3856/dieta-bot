@@ -60,65 +60,65 @@ data class Palette(
 )
 
 val darkPalette = Palette(
-    bg = Color(NutriHex.darkBg),
-    panel = Color(NutriHex.darkPanel),
-    phone = Color(NutriHex.darkPhone),
-    surf = Color(NutriHex.darkSurf),
-    surf2 = Color(NutriHex.darkSurf2),
-    line = Color(NutriHex.darkLine),
-    text = Color(NutriHex.darkText),
-    muted = Color(NutriHex.darkMuted),
-    dim = Color(NutriHex.darkDim),
-    gold = Color(NutriHex.darkGold),
-    good = Color(NutriHex.darkGood),
-    bad = Color(NutriHex.darkBad),
-    ctaBg = Color(NutriHex.darkCtaBg),
-    ctaText = Color(NutriHex.darkCtaText),
+    bg = Color(DietaBotHex.darkBg),
+    panel = Color(DietaBotHex.darkPanel),
+    phone = Color(DietaBotHex.darkPhone),
+    surf = Color(DietaBotHex.darkSurf),
+    surf2 = Color(DietaBotHex.darkSurf2),
+    line = Color(DietaBotHex.darkLine),
+    text = Color(DietaBotHex.darkText),
+    muted = Color(DietaBotHex.darkMuted),
+    dim = Color(DietaBotHex.darkDim),
+    gold = Color(DietaBotHex.darkGold),
+    good = Color(DietaBotHex.darkGood),
+    bad = Color(DietaBotHex.darkBad),
+    ctaBg = Color(DietaBotHex.darkCtaBg),
+    ctaText = Color(DietaBotHex.darkCtaText),
     handle = Color(0xFF3A424C),
-    protein = Color(NutriHex.darkProtein),
-    carbs = Color(NutriHex.darkCarbs),
-    fat = Color(NutriHex.darkFat),
+    protein = Color(DietaBotHex.darkProtein),
+    carbs = Color(DietaBotHex.darkCarbs),
+    fat = Color(DietaBotHex.darkFat),
 )
 
 val lightPalette = Palette(
-    bg = Color(NutriHex.lightBg),
-    panel = Color(NutriHex.lightPanel),
-    phone = Color(NutriHex.lightPhone),
-    surf = Color(NutriHex.lightSurf),
-    surf2 = Color(NutriHex.lightSurf2),
-    line = Color(NutriHex.lightLine),
-    text = Color(NutriHex.lightText),
-    muted = Color(NutriHex.lightMuted),
-    dim = Color(NutriHex.lightDim),
-    gold = Color(NutriHex.lightGold),
-    good = Color(NutriHex.lightGood),
-    bad = Color(NutriHex.lightBad),
-    ctaBg = Color(NutriHex.lightCtaBg),
-    ctaText = Color(NutriHex.lightCtaText),
+    bg = Color(DietaBotHex.lightBg),
+    panel = Color(DietaBotHex.lightPanel),
+    phone = Color(DietaBotHex.lightPhone),
+    surf = Color(DietaBotHex.lightSurf),
+    surf2 = Color(DietaBotHex.lightSurf2),
+    line = Color(DietaBotHex.lightLine),
+    text = Color(DietaBotHex.lightText),
+    muted = Color(DietaBotHex.lightMuted),
+    dim = Color(DietaBotHex.lightDim),
+    gold = Color(DietaBotHex.lightGold),
+    good = Color(DietaBotHex.lightGood),
+    bad = Color(DietaBotHex.lightBad),
+    ctaBg = Color(DietaBotHex.lightCtaBg),
+    ctaText = Color(DietaBotHex.lightCtaText),
     handle = Color(0xFFC8C4BC),
-    protein = Color(NutriHex.lightProtein),
-    carbs = Color(NutriHex.lightCarbs),
-    fat = Color(NutriHex.lightFat),
-    card = Color(NutriHex.lightPanel),
-    cardSel = Color(NutriHex.lightSurf),
-    segSel = Color(NutriHex.lightSurf),
-    onSegSel = Color(NutriHex.lightText),
+    protein = Color(DietaBotHex.lightProtein),
+    carbs = Color(DietaBotHex.lightCarbs),
+    fat = Color(DietaBotHex.lightFat),
+    card = Color(DietaBotHex.lightPanel),
+    cardSel = Color(DietaBotHex.lightSurf),
+    segSel = Color(DietaBotHex.lightSurf),
+    onSegSel = Color(DietaBotHex.lightText),
     isDark = false,
-    onGold = Color(NutriHex.lightSurf),
+    onGold = Color(DietaBotHex.lightSurf),
 )
 
 val LocalPalette = staticCompositionLocalOf { darkPalette }
 val LocalNutriColors = LocalPalette
 
 val shapes = Shapes(
-    extraSmall = RoundedCornerShape(NutriMeasure.cardDp.dp),
-    small = RoundedCornerShape(NutriMeasure.cardDp.dp),
-    medium = RoundedCornerShape(NutriMeasure.cardDp.dp),
-    large = RoundedCornerShape(NutriMeasure.cardDp.dp),
-    extraLarge = RoundedCornerShape(NutriMeasure.sheetTopDp.dp),
-    largeIncreased = RoundedCornerShape(NutriMeasure.cardDp.dp),
-    extraLargeIncreased = RoundedCornerShape(NutriMeasure.sheetTopDp.dp),
-    extraExtraLarge = RoundedCornerShape(NutriMeasure.sheetTopDp.dp),
+    extraSmall = RoundedCornerShape(DietaBotMeasure.cardDp.dp),
+    small = RoundedCornerShape(DietaBotMeasure.cardDp.dp),
+    medium = RoundedCornerShape(DietaBotMeasure.cardDp.dp),
+    large = RoundedCornerShape(DietaBotMeasure.cardDp.dp),
+    extraLarge = RoundedCornerShape(DietaBotMeasure.sheetTopDp.dp),
+    largeIncreased = RoundedCornerShape(DietaBotMeasure.cardDp.dp),
+    extraLargeIncreased = RoundedCornerShape(DietaBotMeasure.sheetTopDp.dp),
+    extraExtraLarge = RoundedCornerShape(DietaBotMeasure.sheetTopDp.dp),
 )
 
 private fun scheme(p: Palette, dark: Boolean): ColorScheme {
@@ -166,13 +166,13 @@ private fun scheme(p: Palette, dark: Boolean): ColorScheme {
 private fun type(p: Palette) = Typography(
     headlineLarge = TextStyle(
         color = p.text,
-        fontSize = NutriMeasure.remainingPt.sp,
+        fontSize = DietaBotMeasure.remainingPt.sp,
         fontWeight = FontWeight(590),
         letterSpacing = (-0.8).sp,
     ),
     headlineMedium = TextStyle(
         color = p.text,
-        fontSize = NutriMeasure.fieldPt.sp,
+        fontSize = DietaBotMeasure.fieldPt.sp,
         fontWeight = FontWeight(560),
     ),
     titleLarge = TextStyle(color = p.text, fontSize = 22.sp, fontWeight = FontWeight(590)),
@@ -181,7 +181,7 @@ private fun type(p: Palette) = Typography(
     labelSmall = TextStyle(color = p.gold, fontSize = 11.sp, fontWeight = FontWeight.W600, letterSpacing = 0.8.sp),
 )
 
-object NutriTheme {
+object DietaBotTheme {
     val colors: Palette
         @Composable
         get() = LocalPalette.current
@@ -218,7 +218,7 @@ object NutriTheme {
 }
 
 @Composable
-fun NutriGroup(
+fun DietaBotGroup(
     options: List<String>,
     selected: Int,
     onSelect: (Int) -> Unit,
@@ -235,7 +235,7 @@ fun NutriGroup(
 }
 
 @Composable
-fun NutriCta(
+fun DietaBotCta(
     text: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
@@ -255,7 +255,7 @@ fun NutriCta(
 }
 
 @Composable
-fun NutriCtaGhost(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun DietaBotCtaGhost(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val p = LocalPalette.current
     Button(
         onClick = onClick,
@@ -273,6 +273,6 @@ fun NutriCtaGhost(text: String, modifier: Modifier = Modifier, onClick: () -> Un
 fun Modifier.cardBorder(): Modifier {
     val p = LocalPalette.current
     return this
-        .background(p.surf, RoundedCornerShape(NutriMeasure.cardDp.dp))
-        .border(1.dp, p.line, RoundedCornerShape(NutriMeasure.cardDp.dp))
+        .background(p.surf, RoundedCornerShape(DietaBotMeasure.cardDp.dp))
+        .border(1.dp, p.line, RoundedCornerShape(DietaBotMeasure.cardDp.dp))
 }

@@ -24,7 +24,7 @@ class ExpressiveButtonGroupTest {
         var selectedIndex = 0
 
         composeTestRule.setContent {
-            NutriTheme {
+            DietaBotTheme {
                 ExpressiveButtonGroup(
                     options = options,
                     selected = selectedIndex,
@@ -48,7 +48,7 @@ class ExpressiveButtonGroupTest {
         var selectedIndex = 0
 
         composeTestRule.setContent {
-            NutriTheme {
+            DietaBotTheme {
                 ExpressiveButtonGroup(
                     options = options,
                     selected = selectedIndex,

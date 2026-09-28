@@ -1,6 +1,6 @@
 ---
 name: kotlin-clean
-description: Código Kotlin limpo no client Nutri. Use quando criar classe, refatorar, nomear, tratar erro de rede ou quando o arquivo misturar camada.
+description: Código Kotlin limpo no client Dieta Bot. Use quando criar classe, refatorar, nomear, tratar erro de rede ou quando o arquivo misturar camada.
 ---
 
 # kotlin-clean

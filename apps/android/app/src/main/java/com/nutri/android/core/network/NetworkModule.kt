@@ -35,7 +35,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun api(client: OkHttpClient): NutriApi {
+    fun api(client: OkHttpClient): DietaBotApi {
         val json = Json { ignoreUnknownKeys = true }
         val base = BuildConfig.API_PUBLIC_URL.let { if (it.endsWith("/")) it else "$it/" }
         return Retrofit.Builder()
@@ -43,10 +43,10 @@ object NetworkModule {
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
-            .create(NutriApi::class.java)
+            .create(DietaBotApi::class.java)
     }
 
     @Provides
     @Singleton
-    fun chat(api: NutriApi): ChatService = ChatService { api.chat(it) }
+    fun chat(api: DietaBotApi): ChatService = ChatService { api.chat(it) }
 }

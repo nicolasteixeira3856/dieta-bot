@@ -47,10 +47,10 @@ import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriMeasure
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotMeasure
+import com.nutri.android.core.designsystem.DietaBotType
 
-internal val CardShape = RoundedCornerShape(NutriMeasure.cardDp.dp)
+internal val CardShape = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
 internal val InnerShape = RoundedCornerShape(12.dp)
 
 /** Top bar variants as drawn in each Stitch gold. */
@@ -154,8 +154,8 @@ private fun TopBar(bar: OnboardingBar, onBack: (() -> Unit)?) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Voltar", tint = p.text, modifier = Modifier.size(20.dp))
                     }
                     Text(
-                        "Nutri",
-                        style = NutriType.headlineMd.copy(fontWeight = FontWeight.W700),
+                        "Dieta Bot",
+                        style = DietaBotType.headlineMd.copy(fontWeight = FontWeight.W700),
                         color = if (p.isDark) p.gold else p.text,
                     )
                     Box(
@@ -196,7 +196,7 @@ private fun IntakeRow(onBack: (() -> Unit)?, modifier: Modifier = Modifier) {
         }
         Text(
             "NUTRI INTAKE",
-            style = NutriType.labelCaps.copy(fontWeight = FontWeight.W700, letterSpacing = 0.2.em),
+            style = DietaBotType.labelCaps.copy(fontWeight = FontWeight.W700, letterSpacing = 0.2.em),
             color = if (p.isDark) p.dim else p.text,
             modifier = Modifier.align(Alignment.Center),
         )
@@ -271,7 +271,7 @@ fun PillCta(
     ) {
         Text(
             text,
-            style = NutriType.bodyLg.copy(fontFamily = if (jakarta) Jakarta else Inter, fontWeight = weight ?: if (jakarta) FontWeight.W600 else FontWeight.W700, fontSize = 16.sp),
+            style = DietaBotType.bodyLg.copy(fontFamily = if (jakarta) Jakarta else Inter, fontWeight = weight ?: if (jakarta) FontWeight.W600 else FontWeight.W700, fontSize = 16.sp),
             color = p.ctaText.copy(alpha = if (enabled) 1f else 0.7f),
         )
         Spacer(Modifier.width(8.dp))
@@ -290,11 +290,11 @@ fun Eyebrow(step: String, section: String, sectionAccent: Boolean, leadingDot: B
         }
         // Stitch: a non-accent eyebrow is dim in dark and gold in light.
         val plain = if (sectionAccent || p.isDark) p.dim else p.gold
-        Text(step, style = NutriType.labelCaps.copy(letterSpacing = tracking.em), color = plain)
+        Text(step, style = DietaBotType.labelCaps.copy(letterSpacing = tracking.em), color = plain)
         Spacer(Modifier.width(8.dp))
         Box(Modifier.size(4.dp).clip(CircleShape).background(if (sectionAccent) p.line else plain))
         Spacer(Modifier.width(8.dp))
-        Text(section, style = NutriType.labelCaps.copy(letterSpacing = if (sectionAccent) 0.14.em else tracking.em), color = if (sectionAccent) p.gold else plain)
+        Text(section, style = DietaBotType.labelCaps.copy(letterSpacing = if (sectionAccent) 0.14.em else tracking.em), color = if (sectionAccent) p.gold else plain)
     }
 }
 
@@ -311,13 +311,13 @@ fun ScreenTitle(
     val p = LocalPalette.current
     Text(
         title,
-        style = titleStyle ?: NutriType.headlineLg.copy(fontSize = titleSize.sp, lineHeight = titleLine.sp, letterSpacing = (-0.025).em, fontWeight = titleWeight),
+        style = titleStyle ?: DietaBotType.headlineLg.copy(fontSize = titleSize.sp, lineHeight = titleLine.sp, letterSpacing = (-0.025).em, fontWeight = titleWeight),
         color = p.text,
         modifier = Modifier.padding(top = 8.dp),
     )
     Text(
         subtitle,
-        style = NutriType.bodyMd.copy(lineHeight = 23.sp),
+        style = DietaBotType.bodyMd.copy(lineHeight = 23.sp),
         color = p.muted,
         modifier = Modifier.padding(top = subtitleTop),
     )
@@ -328,7 +328,7 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     val p = LocalPalette.current
     Text(
         text.uppercase(),
-        style = NutriType.labelCaps.copy(fontWeight = FontWeight.W500, letterSpacing = 0.05.em),
+        style = DietaBotType.labelCaps.copy(fontWeight = FontWeight.W500, letterSpacing = 0.05.em),
         color = p.muted,
         modifier = modifier.padding(bottom = 14.dp),
     )
@@ -355,7 +355,7 @@ fun InfoNote(
     ) {
         Icon(icon, contentDescription = null, tint = p.gold, modifier = Modifier.padding(top = 1.dp).size(18.dp))
         Column(Modifier.weight(1f)) {
-            Text(text, style = NutriType.labelMd.copy(lineHeight = infoLine.sp, letterSpacing = infoTracking.em, fontWeight = FontWeight.W400), color = p.muted)
+            Text(text, style = DietaBotType.labelMd.copy(lineHeight = infoLine.sp, letterSpacing = infoTracking.em, fontWeight = FontWeight.W400), color = p.muted)
             footer?.invoke()
         }
     }

@@ -1,6 +1,6 @@
 ---
 name: dieta-bot-android-decision
-description: Decide whether a Nutri idea is a feature, a hypothesis, or a constitution violation. Use before a new spec or code, or when the request reopens Flutter, RN, TDEE, a cap, or an extra screen.
+description: Decide whether a Dieta Bot idea is a feature, a hypothesis, or a constitution violation. Use before a new spec or code, or when the request reopens Flutter, RN, TDEE, a cap, or an extra screen.
 ---
 
 # dieta-bot-android-decision

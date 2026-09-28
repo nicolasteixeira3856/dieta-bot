@@ -36,7 +36,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.push.PushHandler
-import com.nutri.android.core.designsystem.NutriTheme
+import com.nutri.android.core.designsystem.DietaBotTheme
 import com.nutri.android.feature.home.HomePanelScreen
 import com.nutri.android.feature.home.HomePanelViewModel
 import com.nutri.android.feature.onboarding.CeilingScreen
@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
             telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "open"))
         }
         setContent {
-            NutriTheme {
+            DietaBotTheme {
                 App(screen, openChat, telemetry)
             }
         }

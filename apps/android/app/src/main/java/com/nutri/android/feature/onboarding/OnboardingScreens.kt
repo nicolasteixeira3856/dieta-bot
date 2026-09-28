@@ -71,7 +71,7 @@ import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
 import kotlin.math.roundToInt
@@ -157,7 +157,7 @@ fun CeilingScreen(
                         withStyle(SpanStyle(color = p.text, fontWeight = FontWeight.W600)) { append("$suggested kcal") }
                         append(" com base no seu perfil. Você pode alterar quando quiser.")
                     },
-                    style = NutriType.labelMd.copy(letterSpacing = 0.sp, lineHeight = 16.5.sp, fontWeight = FontWeight.W400),
+                    style = DietaBotType.labelMd.copy(letterSpacing = 0.sp, lineHeight = 16.5.sp, fontWeight = FontWeight.W400),
                     color = p.muted,
                     modifier = Modifier.testTag("o1-suggested"),
                 )
@@ -193,7 +193,7 @@ private fun SexToggle(sex: String, onSex: (String) -> Unit) {
             ) {
                 Text(
                     label,
-                    style = NutriType.labelLg.copy(fontWeight = if (selected) FontWeight.W600 else FontWeight.W500),
+                    style = DietaBotType.labelLg.copy(fontWeight = if (selected) FontWeight.W600 else FontWeight.W500),
                     color = if (selected) p.onSegSel else p.muted,
                 )
             }
@@ -232,7 +232,7 @@ private fun UnitField(
                     .padding(horizontal = 12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                if (value.isEmpty()) Text("$placeholder · $unit", style = NutriType.labelMd, color = p.dim)
+                if (value.isEmpty()) Text("$placeholder · $unit", style = DietaBotType.labelMd, color = p.dim)
                 inner()
             }
         },
@@ -286,8 +286,8 @@ internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(title, style = NutriType.labelLg.copy(letterSpacing = (-0.025).em, fontWeight = if (selected) FontWeight.W600 else FontWeight.W500), color = p.text)
-                    Text(body, style = NutriType.labelMd.copy(letterSpacing = 0.sp, fontWeight = FontWeight.W400), color = if (selected) p.muted else p.dim, modifier = Modifier.padding(top = 2.dp))
+                    Text(title, style = DietaBotType.labelLg.copy(letterSpacing = (-0.025).em, fontWeight = if (selected) FontWeight.W600 else FontWeight.W500), color = p.text)
+                    Text(body, style = DietaBotType.labelMd.copy(letterSpacing = 0.sp, fontWeight = FontWeight.W400), color = if (selected) p.muted else p.dim, modifier = Modifier.padding(top = 2.dp))
                 }
                 GoldRadio(selected)
             }
@@ -330,7 +330,7 @@ internal fun KcalField(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
-                    if (caption != null) Text(caption.uppercase(), style = NutriType.labelCaps.copy(fontSize = 9.sp), color = p.dim)
+                    if (caption != null) Text(caption.uppercase(), style = DietaBotType.labelCaps.copy(fontSize = 9.sp), color = p.dim)
                     inner()
                 }
                 if (!compact) {
@@ -343,11 +343,11 @@ internal fun KcalField(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text("kcal", style = NutriType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.gold)
+                        Text("kcal", style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.gold)
                         Icon(Icons.Outlined.Bolt, contentDescription = null, tint = p.gold, modifier = Modifier.size(14.dp))
                     }
                 } else {
-                    Text("kcal", style = NutriType.labelMd, color = p.muted)
+                    Text("kcal", style = DietaBotType.labelMd, color = p.muted)
                 }
             }
         },
@@ -453,14 +453,14 @@ internal fun EatCard(
                 // Stitch: flex row (with badge) = 20 line; plain inline span = 24 line box.
                 Text(
                     title,
-                    style = NutriType.headlineMd.copy(fontSize = 15.sp, lineHeight = if (badge != null) 20.sp else 24.sp, letterSpacing = (-0.025).em),
+                    style = DietaBotType.headlineMd.copy(fontSize = 15.sp, lineHeight = if (badge != null) 20.sp else 24.sp, letterSpacing = (-0.025).em),
                     color = p.text,
                     modifier = Modifier.weight(1f),
                 )
                 if (badge != null) {
                     Text(
                         badge.uppercase(),
-                        style = NutriType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.05.em),
+                        style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.05.em),
                         color = p.gold,
                         modifier = Modifier
                             .clip(CircleShape)
@@ -470,7 +470,7 @@ internal fun EatCard(
                     )
                 }
             }
-            Text(body, style = NutriType.bodyMd.copy(fontSize = 13.sp, lineHeight = 17.875.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 7.dp))
+            Text(body, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, lineHeight = 17.875.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 7.dp))
             extra()
         }
     }
@@ -499,7 +499,7 @@ internal fun PctField(value: String, onChange: (String) -> Unit, tag: String = "
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f)) { inner() }
-                Text("% do treino", style = NutriType.labelMd, color = p.muted)
+                Text("% do treino", style = DietaBotType.labelMd, color = p.muted)
             }
         },
     )
@@ -585,7 +585,7 @@ internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3"
             ) {
                 Text(
                     n.toString(),
-                    style = NutriType.labelLg.copy(fontWeight = if (selected) FontWeight.W700 else FontWeight.W600),
+                    style = DietaBotType.labelLg.copy(fontWeight = if (selected) FontWeight.W700 else FontWeight.W600),
                     color = if (selected) p.onSegSel else p.muted,
                 )
             }
@@ -612,7 +612,7 @@ internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onP
                 value = slot.name,
                 onValueChange = onName,
                 singleLine = true,
-                textStyle = NutriType.bodyMd.copy(color = p.text),
+                textStyle = DietaBotType.bodyMd.copy(color = p.text),
                 cursorBrush = SolidColor(p.gold),
                 modifier = Modifier.weight(1f).testTag("$tag-name-$index"),
                 decorationBox = { inner ->
@@ -629,7 +629,7 @@ internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onP
                         Icon(bandIcon(slot.minutes), contentDescription = null, tint = p.muted, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(10.dp))
                         Box(Modifier.weight(1f)) {
-                            if (slot.name.isEmpty()) Text("Nome da refeição", style = NutriType.bodyMd, color = p.dim)
+                            if (slot.name.isEmpty()) Text("Nome da refeição", style = DietaBotType.bodyMd, color = p.dim)
                             inner()
                         }
                     }
@@ -648,16 +648,16 @@ internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onP
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(SlotSuggestions.format(slot.minutes), style = NutriType.bodyMd.copy(fontWeight = FontWeight.W500), color = p.text)
+                Text(SlotSuggestions.format(slot.minutes), style = DietaBotType.bodyMd.copy(fontWeight = FontWeight.W500), color = p.text)
                 Icon(Icons.Outlined.Schedule, contentDescription = "Horário", tint = p.gold, modifier = Modifier.size(18.dp))
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Sugestões:", style = NutriType.labelCaps.copy(fontSize = 10.sp), color = p.dim, modifier = Modifier.padding(end = 4.dp))
+            Text("Sugestões:", style = DietaBotType.labelCaps.copy(fontSize = 10.sp), color = p.dim, modifier = Modifier.padding(end = 4.dp))
             SlotSuggestions.namesFor(slot.minutes).forEachIndexed { j, name ->
                 Text(
                     name,
-                    style = NutriType.labelMd,
+                    style = DietaBotType.labelMd,
                     color = p.muted,
                     modifier = Modifier
                         .clip(CircleShape)
@@ -732,7 +732,7 @@ fun MacrosScreen(
             titleSize = 28,
             titleLine = 35f,
             // Stitch dark gold: title falls back to an unstyled 16/20 regular (undefined class).
-            titleStyle = if (p.isDark) TextStyle(fontFamily = FontFamily.Default, fontSize = 16.sp, lineHeight = 20.sp, lineHeightStyle = NutriType.cssLines) else NutriType.headlineMd.copy(fontWeight = FontWeight.W700, lineHeight = 30.sp),
+            titleStyle = if (p.isDark) TextStyle(fontFamily = FontFamily.Default, fontSize = 16.sp, lineHeight = 20.sp, lineHeightStyle = DietaBotType.cssLines) else DietaBotType.headlineMd.copy(fontWeight = FontWeight.W700, lineHeight = 30.sp),
         )
         Spacer(Modifier.height(20.dp))
         SplitBar(pct)
@@ -754,7 +754,7 @@ fun MacrosScreen(
                 Spacer(Modifier.width(6.dp))
                 Text(
                     "${ui.day1Ceiling} KCAL TOTAL ESTIMADA",
-                    style = NutriType.labelCaps.copy(letterSpacing = 0.025.em),
+                    style = DietaBotType.labelCaps.copy(letterSpacing = 0.025.em),
                     color = p.gold,
                     modifier = Modifier.testTag("o4-total"),
                 )
@@ -769,7 +769,7 @@ fun MacrosScreen(
             text = {
                 Text(
                     "P e C: 4 kcal/g. G: 9 kcal/g. Sugestão 30/40/30 sobre o teto do dia 1. Estimativa, não consulta.",
-                    style = NutriType.bodyMd,
+                    style = DietaBotType.bodyMd,
                     color = p.muted,
                 )
             },
@@ -796,7 +796,7 @@ private fun SplitBar(pct: List<Int>) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(8.dp).clip(CircleShape).background(colors[i]))
                     Spacer(Modifier.width(4.dp))
-                    Text("${pct[i]}% $label", style = NutriType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp), color = colors[i])
+                    Text("${pct[i]}% $label", style = DietaBotType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp), color = colors[i])
                 }
             }
         }
@@ -856,19 +856,19 @@ internal fun MacroCard(
             Box(Modifier.size(10.dp).clip(CircleShape).background(color))
         }
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
-            Text(name, style = NutriType.labelLg, color = p.text)
-            Text(detail, style = NutriType.labelMd, color = p.muted)
+            Text(name, style = DietaBotType.labelLg, color = p.text)
+            Text(detail, style = DietaBotType.labelMd, color = p.muted)
         }
         BasicTextField(
             value = value,
             onValueChange = onChange,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textStyle = NutriType.headlineMd.copy(fontWeight = FontWeight.W700, color = p.text, textAlign = TextAlign.End),
+            textStyle = DietaBotType.headlineMd.copy(fontWeight = FontWeight.W700, color = p.text, textAlign = TextAlign.End),
             cursorBrush = SolidColor(p.gold),
             modifier = Modifier.width(72.dp).focusRequester(focus).testTag("$tag-field"),
         )
-        Text("g", style = NutriType.bodyMd, color = p.muted, modifier = Modifier.padding(start = 6.dp, end = 8.dp))
+        Text("g", style = DietaBotType.bodyMd, color = p.muted, modifier = Modifier.padding(start = 6.dp, end = 8.dp))
         Box(
             Modifier
                 .size(28.dp)

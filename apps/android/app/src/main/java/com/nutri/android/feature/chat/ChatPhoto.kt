@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.photo.PhotoStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -124,18 +124,18 @@ internal fun PhotoBubble(item: ChatItem.User, photoPath: String) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = p.gold, modifier = Modifier.size(12.dp))
-                    Text("Visão Computacional", style = NutriType.labelMd.copy(fontSize = 9.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = Color.White)
+                    Text("Visão Computacional", style = DietaBotType.labelMd.copy(fontSize = 9.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = Color.White)
                 }
             }
             Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 3.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     item.text,
-                    style = NutriType.bodyLg.copy(fontSize = 13.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
+                    style = DietaBotType.bodyLg.copy(fontSize = 13.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
                     color = p.text,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(item.time, style = NutriType.labelMd.copy(fontSize = 10.5.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted)
+                Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 10.5.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted)
                 Spacer(Modifier.width(4.dp))
                 Icon(Icons.Filled.DoneAll, contentDescription = null, tint = p.gold, modifier = Modifier.size(12.dp))
             }

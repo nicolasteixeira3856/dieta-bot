@@ -9,7 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
-import com.nutri.android.core.database.NutriDatabase
+import com.nutri.android.core.database.DietaBotDatabase
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +24,7 @@ import org.junit.Before
 /** In-memory Room with the gold profile: 4 slots (07:30, 12:30, 16:00, 20:00), onboarding done. */
 abstract class PushTestBase {
     protected val context: Application = ApplicationProvider.getApplicationContext()
-    protected lateinit var db: NutriDatabase
+    protected lateinit var db: DietaBotDatabase
     private lateinit var storeScope: CoroutineScope
     protected lateinit var repo: DayRepository
     protected var now: Instant = Instant.parse("2026-09-25T06:00:00-03:00")
@@ -33,7 +33,7 @@ abstract class PushTestBase {
 
     @Before
     fun setUpRoom() = runBlocking<Unit> {
-        db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java).allowMainThreadQueries().build()
+        db = Room.inMemoryDatabaseBuilder(context, DietaBotDatabase::class.java).allowMainThreadQueries().build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "push_${System.nanoTime()}.preferences_pb")
         val store: DataStore<Preferences> = PreferenceDataStoreFactory.create(scope = storeScope, produceFile = { file })

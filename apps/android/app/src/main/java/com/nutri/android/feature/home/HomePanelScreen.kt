@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.SplashBoot
 
 private val CardRadius = RoundedCornerShape(16.dp)
@@ -92,7 +92,7 @@ fun HomePanelScreen(
                 Timeline(ui) { confirmSkip = it }
                 Text(
                     SplashBoot.COPY,
-                    style = NutriType.labelCaps.copy(fontWeight = FontWeight.W400, letterSpacing = 0.sp, lineHeight = 18.sp),
+                    style = DietaBotType.labelCaps.copy(fontWeight = FontWeight.W400, letterSpacing = 0.sp, lineHeight = 18.sp),
                     color = p.dim,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).testTag("home-disclaimer"),
@@ -105,7 +105,7 @@ fun HomePanelScreen(
         AlertDialog(
             onDismissRequest = { confirmSkip = null },
             containerColor = p.card,
-            title = { Text("Pular ${slot.name}?", style = NutriType.headlineMd.copy(fontSize = 18.sp), color = p.text) },
+            title = { Text("Pular ${slot.name}?", style = DietaBotType.headlineMd.copy(fontSize = 18.sp), color = p.text) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -128,10 +128,10 @@ private fun Header(ui: HomePanelUiState, onConfig: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(ui.dayLabel, style = NutriType.labelCaps.copy(letterSpacing = 0.1.em), color = p.dim, modifier = Modifier.padding(bottom = 2.dp))
+            Text(ui.dayLabel, style = DietaBotType.labelCaps.copy(letterSpacing = 0.1.em), color = p.dim, modifier = Modifier.padding(bottom = 2.dp))
             Text(
                 ui.dateLabel,
-                style = NutriType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.5.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.025).em),
+                style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.5.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.025).em),
                 color = p.text,
                 modifier = Modifier.testTag("home-date"),
             )
@@ -180,14 +180,14 @@ private fun Ring(ui: HomePanelUiState) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     ui.consumed.toString(),
-                    style = NutriType.displayLg.copy(fontSize = 36.sp, lineHeight = 36.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.025).em),
+                    style = DietaBotType.displayLg.copy(fontSize = 36.sp, lineHeight = 36.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.025).em),
                     color = p.text,
                     modifier = Modifier.padding(bottom = 2.dp).testTag("home-consumed"),
                 )
-                Text("kcal consumidas", style = NutriType.labelMd.copy(letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(bottom = 8.dp))
+                Text("kcal consumidas", style = DietaBotType.labelMd.copy(letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(bottom = 8.dp))
                 Text(
                     "Meta ${ui.meta} kcal",
-                    style = NutriType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.025.em),
+                    style = DietaBotType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.025.em),
                     color = p.dim,
                     modifier = Modifier
                         .clip(CircleShape)
@@ -211,7 +211,7 @@ private fun Ring(ui: HomePanelUiState) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Box(Modifier.size(6.dp).clip(CircleShape).background(p.bad))
-                Text("Meta excedida (+${ui.over} kcal)", style = NutriType.labelMd.copy(letterSpacing = 0.sp), color = p.bad)
+                Text("Meta excedida (+${ui.over} kcal)", style = DietaBotType.labelMd.copy(letterSpacing = 0.sp), color = p.bad)
             }
         }
     }
@@ -246,7 +246,7 @@ private fun MacroRow(letter: String, name: String, line: MacroLine, color: Color
             Spacer(Modifier.width(8.dp))
             Text(
                 "$letter $name",
-                style = NutriType.labelLg.copy(fontSize = 13.sp, letterSpacing = (-0.025).em),
+                style = DietaBotType.labelLg.copy(fontSize = 13.sp, letterSpacing = (-0.025).em),
                 color = p.text,
                 modifier = Modifier.weight(1f),
             )
@@ -255,7 +255,7 @@ private fun MacroRow(letter: String, name: String, line: MacroLine, color: Color
                     withStyle(SpanStyle(color = if (line.over) p.bad else p.text, fontWeight = FontWeight.W600)) { append(line.consumed.toString()) }
                     append(" / ${line.target} g")
                 },
-                style = NutriType.labelLg.copy(fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp),
+                style = DietaBotType.labelLg.copy(fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp),
                 color = p.muted,
             )
         }
@@ -272,11 +272,11 @@ private fun Timeline(ui: HomePanelUiState, onEmptyTap: (TimelineSlot) -> Unit) {
         Row(Modifier.fillMaxWidth().padding(bottom = 37.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "LINHA DO TEMPO NUTRICIONAL",
-                style = NutriType.labelCaps.copy(letterSpacing = 0.1.em),
+                style = DietaBotType.labelCaps.copy(letterSpacing = 0.1.em),
                 color = p.muted,
                 modifier = Modifier.weight(1f),
             )
-            Text("${ui.slotCount} Refeições", style = NutriType.labelMd, color = p.dim)
+            Text("${ui.slotCount} Refeições", style = DietaBotType.labelMd, color = p.dim)
         }
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             ui.timeline.forEachIndexed { i, slot ->
@@ -376,22 +376,22 @@ private fun SlotCard(slot: TimelineSlot, modifier: Modifier, onEmptyTap: (Timeli
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 slot.name,
-                style = NutriType.headlineMd.copy(fontSize = 15.sp, lineHeight = 22.sp, fontWeight = if (skipped) FontWeight.W500 else FontWeight.W700, letterSpacing = 0.sp),
+                style = DietaBotType.headlineMd.copy(fontSize = 15.sp, lineHeight = 22.sp, fontWeight = if (skipped) FontWeight.W500 else FontWeight.W700, letterSpacing = 0.sp),
                 color = if (skipped) p.muted else p.text,
                 modifier = Modifier.weight(1f),
             )
-            slot.time?.let { Text(it, style = NutriType.labelMd, color = p.dim) }
+            slot.time?.let { Text(it, style = DietaBotType.labelMd, color = p.dim) }
             if (empty) Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = p.dim, modifier = Modifier.padding(start = 4.dp).size(18.dp))
         }
         when {
             empty -> Text(
                 "Nenhum registro · Toque para pular",
-                style = NutriType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp),
+                style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp),
                 color = p.muted,
             )
             skipped -> Text(
                 "Refeição pulada",
-                style = NutriType.bodyMd.copy(fontSize = 13.sp, fontStyle = FontStyle.Italic, letterSpacing = 0.sp),
+                style = DietaBotType.bodyMd.copy(fontSize = 13.sp, fontStyle = FontStyle.Italic, letterSpacing = 0.sp),
                 color = p.dim,
             )
             else -> {
@@ -400,14 +400,14 @@ private fun SlotCard(slot: TimelineSlot, modifier: Modifier, onEmptyTap: (Timeli
                         Row {
                             Text(
                                 line.text,
-                                style = NutriType.bodyMd.copy(fontSize = 13.sp, lineHeight = 16.sp),
+                                style = DietaBotType.bodyMd.copy(fontSize = 13.sp, lineHeight = 16.sp),
                                 color = p.text,
                                 // Stitch wraps the description ~24 dp before the kcal column.
                                 modifier = Modifier.weight(1f).padding(end = 24.dp),
                             )
                             Text(
                                 "${line.kcal} kcal",
-                                style = NutriType.bodyMd.copy(fontSize = 13.sp, fontWeight = if (over) FontWeight.W700 else FontWeight.W500),
+                                style = DietaBotType.bodyMd.copy(fontSize = 13.sp, fontWeight = if (over) FontWeight.W700 else FontWeight.W500),
                                 color = if (over) p.bad else p.muted,
                             )
                         }
@@ -416,7 +416,7 @@ private fun SlotCard(slot: TimelineSlot, modifier: Modifier, onEmptyTap: (Timeli
                 Box(Modifier.fillMaxWidth().height(1.dp).background(p.line.copy(alpha = 0.4f)))
                 Text(
                     slot.summary,
-                    style = NutriType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp),
+                    style = DietaBotType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp),
                     color = if (over) p.bad else p.muted,
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -444,6 +444,6 @@ private fun Fab(onClick: () -> Unit, modifier: Modifier) {
             .testTag("home-fab"),
         contentAlignment = Alignment.Center,
     ) {
-        Text("Chat", style = NutriType.headlineMd.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.onGold)
+        Text("Chat", style = DietaBotType.headlineMd.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.onGold)
     }
 }

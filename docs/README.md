@@ -1,6 +1,6 @@
 # Documentação — matriz
 
-Índice global do Nutri. Política: [`sdd/README.md`](sdd/README.md).
+Índice global do Dieta Bot. Política: [`sdd/README.md`](sdd/README.md).
 
 Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 
@@ -9,7 +9,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A13, A14](android/plans/) aguardando aprovação; [A9, A11](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A14](android/plans/a14-marca-icone-splash.md) aguardando aprovação; [A9, A11, A13](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S7](server/plans/s7-rename-prompt.md) aguardando aprovação; [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
@@ -34,21 +34,21 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 | [013](server/adrs/ADR-013-gcp-host.md) | server | host GCP e2-micro |
 | [014](android/adrs/ADR-014-flavors-firebase-dev.md) | android | flavors dev/prod, Firebase só no dev |
 | [015](server/adrs/ADR-015-log-conversa-dev.md) | server | log de conversa no server de dev |
-| [016](produto/adrs/ADR-016-nome-dieta-bot.md) | produto | nome visível "Dieta Bot", IDs técnicos `nutri` (proposto) |
+| [016](produto/adrs/ADR-016-nome-dieta-bot.md) | produto | nome visível "Dieta Bot", IDs técnicos `nutri` |
 
 ## Planos aguardando aprovação
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [A13 rename visível "Dieta Bot"](android/plans/a13-rename-dieta-bot.md) — aceita o [ADR-016](produto/adrs/ADR-016-nome-dieta-bot.md); Fase 0 edita os golds pelo MCP `stitch`.
-2. [S7 "Dieta Bot" no prompt do server](server/plans/s7-rename-prompt.md) — independente no código.
-3. [A14 marca: ícone e splash com o logo](android/plans/a14-marca-icone-splash.md) — depende do A13; fonte em `design/brand/`.
+1. [S7 "Dieta Bot" no prompt do server](server/plans/s7-rename-prompt.md) — independente no código.
+2. [A14 marca: ícone e splash com o logo](android/plans/a14-marca-icone-splash.md) — depende do A13; fonte em `design/brand/`.
 
 ## Planos pendentes de aprovação manual
 
 1. [A9 chave de assinatura do release](android/plans/pending_manual_validation/a9-assinatura-release.md) — release assinado; falta o dono confirmar o backup de `nutri-release.jks` + `key.properties`.
 2. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
-3. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
+3. [A13 rename visível "Dieta Bot"](android/plans/pending_manual_validation/a13-rename-dieta-bot.md) — app, docs e skills renomeados; falta o dono aplicar o texto nas 22 telas do Stitch pelo editor web (o MCP não persiste `edit_screens`), para reexportar os golds e reativar 2 testes de splash.
+4. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
 
 ## Planos concluídos
 

@@ -1,6 +1,6 @@
 # Hermes — outras IAs, e o Grok quando o assunto é o repo
 
-Hermes Agent (Nous Research) é o lugar para trocar de modelo sem mudar o Nutri.
+Hermes Agent (Nous Research) é o lugar para trocar de modelo sem mudar o Dieta Bot.
 
 O time de chat foi aposentado. grok-cli é 1 agente. Hermes não despacha persona no tree.
 
@@ -11,7 +11,7 @@ Site: https://hermes-agent.nousresearch.com/docs
 As skills compartilhadas já estão em `.agents/skills/`.
 Grok e Hermes leem essa pasta.
 
-No repo do Nutri, uma vez:
+No repo do Dieta Bot, uma vez:
 
 ```
 hermes skills trust
@@ -28,7 +28,7 @@ Não cole chave de provedor neste repo. A chave do Hermes fica em `~/.hermes/.en
 
 ## Patch no repo
 
-Quando a decisão pedir patch no Nutri, Hermes chama o Grok no repo, sem outro agente e sem `.env`:
+Quando a decisão pedir patch no Dieta Bot, Hermes chama o Grok no repo, sem outro agente e sem `.env`:
 
 ```
 grok -p --prompt-file briefing.txt --deny "Read(.env)" --deny "Read(**/.env)" --no-subagents

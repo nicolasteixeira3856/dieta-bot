@@ -21,7 +21,7 @@ import kotlinx.serialization.json.Json
 
 @Singleton
 class DayRepository @Inject constructor(
-    private val db: NutriDatabase,
+    private val db: DietaBotDatabase,
     private val clock: InstantClock,
     private val legacyStore: DataStore<Preferences>,
 ) {

@@ -1,10 +1,10 @@
 # Plano — A13 Rename visível "Nutri" → "Dieta Bot"
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual (rename das 22 telas no Stitch pelo editor web + reativar 2 testes de splash; APK no celular)
 - Data: 28/09/2026
 - Contexto proprietário: `android` (também toca docs, skills e `AGENTS.md`)
-- Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../server/plans/s7-rename-prompt.md)).
-- Pré-requisitos: [A12](completed/a12-remover-legado-t123.md) concluído (menos arquivos para renomear). [ADR-016](../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito junto com a aprovação.
+- Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../../server/plans/s7-rename-prompt.md)).
+- Pré-requisitos: [A12](../completed/a12-remover-legado-t123.md) concluído (menos arquivos para renomear). [ADR-016](../../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito junto com a aprovação.
 
 ## Gate de autorização
 
@@ -77,7 +77,7 @@ MCP `stitch` configurado em 28/09/2026 no `.mcp.json`: endpoint oficial `https:/
 
 - `applicationId`, pacote Kotlin, Firebase, banco, VM, projeto Stitch (ADR-016).
 - Logo, ícone e splash redesenhada (plano de marca separado, depois das imagens do dono).
-- Prompt do server ([S7](../../server/plans/s7-rename-prompt.md)).
+- Prompt do server ([S7](../../../server/plans/s7-rename-prompt.md)).
 
 ## Riscos e controles
 
@@ -92,6 +92,36 @@ MCP `stitch` configurado em 28/09/2026 no `.mcp.json`: endpoint oficial `https:/
 - O usuário vê "Dieta Bot" em todo lugar; os IDs técnicos seguem `nutri`.
 - Testes, migração, Roborazzi e gate visual verdes contra os golds novos.
 - O app atualiza por cima sem perder dados.
+
+## Registro de execução
+
+- 28/09/2026 — aprovado junto com A12/S7/A14 (goal único). ADR-016 aceito.
+
+### Fase 0 — Stitch: bloqueada pelo MCP (pendência do dono)
+
+- Levantamento: o nome aparece em **11 telas por tema** (o1 não tem): splash "Nutri"; o2/o3 "NUTRI INTAKE"; o4 "Nutri"; chat0/L/E/F/G "Chat Nutri" + "Nutri AI"; chatT "Nutri" + "NUTRI INTELLIGENCE"; chatP "Nutri" (fundo).
+- `edit_screens` (MCP `stitch`) nas 22 telas respondeu sucesso, com `dom_operations` corretas (só troca de texto, no lugar). **Nada foi persistido**: `list_screens` mostra os mesmos arquivos, e o HTML e o screenshot baixados continuam com "Nutri" minutos depois. As operações são aplicadas pelo editor web do Stitch; pela API elas não são gravadas.
+- `export-stitch.mjs` + pixel diff contra o backup: as 36 telas saíram **idênticas**. Os golds do repo continuam os antigos.
+- **[DONO]** No Stitch web, projeto `Nutri`, trocar nas 22 telas: "Nutri" → "Dieta Bot", "NUTRI INTAKE" → "DIETA BOT INTAKE", "NUTRI INTELLIGENCE" → "DIETA BOT INTELLIGENCE", "Chat Nutri" → "Chat Dieta Bot", "Nutri AI" → "Dieta Bot AI". Pode ser com o mesmo pedido de texto no chat do editor. **[AGENTE]** Depois disso: `export-stitch.mjs`, pixel diff (só o texto muda), remover os 2 `@Ignore` do `StitchGoldTest` e rodar o gate.
+
+### Fases 1–3 (feitas, por decisão do dono de não bloquear)
+
+- Texto: `app_name` "Dieta Bot" / "Dieta Bot Dev"; `SplashBoot.WORDMARK` "Dieta Bot"; `OnboardingChrome` "Dieta Bot"; `ChatScreen` "Chat Dieta Bot", "Dieta Bot AI" ×2.
+- Kotlin: `Nutri*` → `DietaBot*` em classes e arquivos (`DietaBotApplication`, `DietaBotConverters`, `DietaBotDatabase`, `DietaBotComponents` (`DietaBotCta`, `DietaBotCtaGhost`, `DietaBotGroup`), `DietaBotTheme`, `DietaBotTokens`, `DietaBotType`, `DietaBotMeasure`, `DietaBotShapes`, `DietaBotHex`, `DietaBotApi`); estilo `Theme.DietaBot` (manifest + 4 `themes.xml`). O pacote `com.nutri.android` não mudou.
+- Room: `app/schemas/…NutriDatabase/` → `…DietaBotDatabase/` (`git mv`, conteúdo igual); `MigrationV1V2Test` aponta para a pasta nova. Foi preciso um `clean` por causa do `Hilt_NutriApplication` gerado antes.
+- `TokensTest`: o wordmark esperado passou a ser "Dieta Bot".
+- `StitchGoldTest.splash_dark/splash_light`: `@Ignore` com o motivo escrito (gold ainda com "Nutri"). **Reativar na pendência acima.**
+- Roborazzi: baselines `snapshots/{dark,light}/splash.png` regravadas. É o wordmark novo; nenhuma outra baseline mudou.
+- Docs e skills: `AGENTS.md` (título + linha "Product name: Dieta Bot. Technical IDs stay `nutri`…"), `docs/README.md`, `HERMES.md`, `sdd/README.md`, `produto/README.md`, `android/README.md` (tabela de flavors), `server/README.md`, `qa/README.md`, `tools/capture-push.sh` (comentário) e as skills nas 3 pastas (9 descrições + `DietaBotTheme` em 2 exemplos, `diff -r` idênticas).
+- Ficaram, por serem fatos ou IDs: o projeto Stitch `Nutri`, `CN=Nutri` do certificado (A9), o nome "Nutri Dev" do projeto no Firebase, e os ADRs e planos concluídos ou pendentes (histórico).
+
+### Resultados da validação
+
+1. `git grep -w Nutri` em código e docs vivas: só as exceções acima; `\bNutri[A-Z]` e `"…Nutri…"` em `app/src`: zero (fora a mensagem do `@Ignore`). ✅
+2. `testDevDebugUnitTest` → 171 testes, 0 falhas, **2 pulados** (splash × gold antigo); `verifyRoborazziDevDebug` verde. ✅ / ⏳
+3. Emulador + fake: `capture-chat` light 21/0 e dark 21/0; `diff-gold` o1–o4 dark/light ✓. **splash dark/light ✗ só na tinta** (1,39 / 1,42 > 1,25; pixel 1,7% < 2%): "Dieta Bot" contra o gold "Nutri". Diferenças de chat contra o gold: título "Chat Dieta Bot" × "Chat Nutri" e rótulo "Dieta Bot AI" × "Nutri AI". ⏳ até os golds novos.
+4. Upgrade sobre o APK do A12 (`adb install -r`): antes e depois, `chat_message` 2, `profile` 1, `user_version` 3; o app abre (pid vivo, 0 crashes). O estado não tinha `meal_log`, mas o arquivo `nutri.db` é o mesmo. ✅
+5. `assembleDevRelease` → `com.nutri.android.dev`, rótulo **"Dieta Bot Dev"**. ⏳ Instalação pelo dono.
 
 ## Encerramento
 

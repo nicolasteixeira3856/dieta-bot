@@ -11,7 +11,7 @@ data class HealthOut(val ok: Boolean = false, val model: String = "")
 @Serializable
 data class ItemOut(val name: String = "", val g: Double = 0.0, val kcal: Double = 0.0)
 
-interface NutriApi {
+interface DietaBotApi {
     @GET("health")
     suspend fun health(): HealthOut
 

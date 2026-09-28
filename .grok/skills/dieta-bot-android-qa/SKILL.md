@@ -1,6 +1,6 @@
 ---
 name: dieta-bot-android-qa
-description: Validate a Nutri delivery. Use before marking /goal DONE, after UI, or when the owner pastes a log.
+description: Validate a Dieta Bot delivery. Use before marking /goal DONE, after UI, or when the owner pastes a log.
 ---
 
 # dieta-bot-android-qa

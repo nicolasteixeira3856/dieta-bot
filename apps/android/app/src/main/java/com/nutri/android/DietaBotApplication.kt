@@ -6,7 +6,7 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
-class NutriApplication : Application() {
+class DietaBotApplication : Application() {
     @Inject lateinit var pushSync: PushSync
 
     override fun onCreate() {

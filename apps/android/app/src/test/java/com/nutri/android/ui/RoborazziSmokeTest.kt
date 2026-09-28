@@ -4,7 +4,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.nutri.android.core.designsystem.NutriTheme
+import com.nutri.android.core.designsystem.DietaBotTheme
 import com.nutri.android.feature.splash.SplashScreen
 import org.junit.Rule
 import org.junit.Test
@@ -25,7 +25,7 @@ class RoborazziSmokeTest {
     @Test
     fun splash_dark() {
         composeTestRule.setContent {
-            NutriTheme(darkTheme = true) {
+            DietaBotTheme(darkTheme = true) {
                 SplashScreen(capture = true, onDone = {})
             }
         }
@@ -41,7 +41,7 @@ class RoborazziSmokeTest {
     @Test
     fun splash_light() {
         composeTestRule.setContent {
-            NutriTheme(darkTheme = false) {
+            DietaBotTheme(darkTheme = false) {
                 SplashScreen(capture = true, onDone = {})
             }
         }

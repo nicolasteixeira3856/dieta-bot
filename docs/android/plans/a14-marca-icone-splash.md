@@ -4,7 +4,7 @@
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/app/src/main/res/` (ícone adaptativo, splash do sistema), `feature/splash/`, `core/designsystem/` (wordmark), golds `docs/qa/stitch/{dark,light}/splash.png`, `design/brand/` (fonte), docs.
-- Pré-requisitos: [A13](a13-rename-dieta-bot.md) concluído (wordmark "Dieta Bot" já na UI e no gold).
+- Pré-requisitos: [A13](pending_manual_validation/a13-rename-dieta-bot.md) concluído (wordmark "Dieta Bot" já na UI e no gold).
 
 ## Gate de autorização
 

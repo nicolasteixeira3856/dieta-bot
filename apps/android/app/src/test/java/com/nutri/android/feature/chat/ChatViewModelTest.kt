@@ -11,7 +11,7 @@ import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
-import com.nutri.android.core.database.NutriDatabase
+import com.nutri.android.core.database.DietaBotDatabase
 import com.nutri.android.core.memory.FakeMemoryFile
 import com.nutri.android.core.memory.MemoryStore
 import com.nutri.android.core.photo.FakePhotoFiles
@@ -49,7 +49,7 @@ import org.robolectric.annotation.Config
 @Config(application = Application::class, sdk = [34])
 class ChatViewModelTest {
     private lateinit var context: Context
-    private lateinit var db: NutriDatabase
+    private lateinit var db: DietaBotDatabase
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
@@ -69,7 +69,7 @@ class ChatViewModelTest {
     fun setUp() = runBlocking<Unit> {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         context = ApplicationProvider.getApplicationContext()
-        db = Room.inMemoryDatabaseBuilder(context, NutriDatabase::class.java).allowMainThreadQueries().build()
+        db = Room.inMemoryDatabaseBuilder(context, DietaBotDatabase::class.java).allowMainThreadQueries().build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "chat_${System.nanoTime()}.preferences_pb")
         store = PreferenceDataStoreFactory.create(scope = storeScope, produceFile = { file })

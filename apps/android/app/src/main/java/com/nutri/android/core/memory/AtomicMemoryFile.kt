@@ -82,7 +82,7 @@ class AtomicMemoryFile(
 
     private companion object {
         const val FILE_NAME = "memory.bin"
-        const val TAG = "NutriMemory"
+        const val TAG = "DietaBotMemory"
     }
 }
 

@@ -3,9 +3,9 @@ package com.nutri.android.ui
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.common.truth.Truth.assertThat
-import com.nutri.android.core.designsystem.NutriHex
-import com.nutri.android.core.designsystem.NutriMeasure
-import com.nutri.android.core.designsystem.NutriShapes
+import com.nutri.android.core.designsystem.DietaBotHex
+import com.nutri.android.core.designsystem.DietaBotMeasure
+import com.nutri.android.core.designsystem.DietaBotShapes
 import com.nutri.android.core.designsystem.SplashBoot
 import com.nutri.android.core.designsystem.darkPalette
 import com.nutri.android.core.designsystem.formatRemaining
@@ -15,69 +15,69 @@ import org.junit.Test
 class TokensTest {
     @Test
     fun remainingAndFieldMatchWire() {
-        assertThat(NutriMeasure.remainingPt).isEqualTo(34)
-        assertThat(NutriMeasure.fieldPt).isEqualTo(28)
-        assertThat(NutriMeasure.sheetTopDp).isEqualTo(22)
-        assertThat(NutriMeasure.cardDp).isEqualTo(14)
-        assertThat(NutriMeasure.barDp).isEqualTo(6)
+        assertThat(DietaBotMeasure.remainingPt).isEqualTo(34)
+        assertThat(DietaBotMeasure.fieldPt).isEqualTo(28)
+        assertThat(DietaBotMeasure.sheetTopDp).isEqualTo(22)
+        assertThat(DietaBotMeasure.cardDp).isEqualTo(14)
+        assertThat(DietaBotMeasure.barDp).isEqualTo(6)
     }
 
     @Test
     fun shapesAndGeometry() {
-        assertThat(NutriShapes.continuousBarHeight).isEqualTo(6.dp)
-        assertThat(NutriShapes.sheetTopRadius.topStart).isNotNull()
-        assertThat(NutriShapes.sheetTopRadius.topEnd).isNotNull()
-        assertThat(NutriShapes.cardRadius).isNotNull()
+        assertThat(DietaBotShapes.continuousBarHeight).isEqualTo(6.dp)
+        assertThat(DietaBotShapes.sheetTopRadius.topStart).isNotNull()
+        assertThat(DietaBotShapes.sheetTopRadius.topEnd).isNotNull()
+        assertThat(DietaBotShapes.cardRadius).isNotNull()
     }
 
     @Test
     fun ctaIsNotGold() {
-        assertThat(NutriHex.darkCtaBg).isNotEqualTo(NutriHex.darkGold)
-        assertThat(NutriHex.lightCtaBg).isNotEqualTo(NutriHex.lightGold)
-        assertThat(NutriHex.darkCtaBg).isEqualTo(0xFFF3F5F7)
-        assertThat(NutriHex.darkCtaText).isEqualTo(0xFF111111)
-        assertThat(NutriHex.lightCtaBg).isEqualTo(0xFF111111)
-        assertThat(NutriHex.lightCtaText).isEqualTo(0xFFF3F5F7)
+        assertThat(DietaBotHex.darkCtaBg).isNotEqualTo(DietaBotHex.darkGold)
+        assertThat(DietaBotHex.lightCtaBg).isNotEqualTo(DietaBotHex.lightGold)
+        assertThat(DietaBotHex.darkCtaBg).isEqualTo(0xFFF3F5F7)
+        assertThat(DietaBotHex.darkCtaText).isEqualTo(0xFF111111)
+        assertThat(DietaBotHex.lightCtaBg).isEqualTo(0xFF111111)
+        assertThat(DietaBotHex.lightCtaText).isEqualTo(0xFFF3F5F7)
     }
 
     @Test
     fun darkAndLightHexes() {
-        assertThat(NutriHex.darkBg).isEqualTo(0xFF0B0D10)
-        assertThat(NutriHex.darkGold).isEqualTo(0xFFE8B86D)
-        assertThat(NutriHex.lightBg).isEqualTo(0xFFF4F3F0)
-        assertThat(NutriHex.lightGold).isEqualTo(0xFFB8873D)
-        assertThat(darkPalette.ctaBg).isEqualTo(Color(NutriHex.darkCtaBg))
-        assertThat(lightPalette.gold).isEqualTo(Color(NutriHex.lightGold))
+        assertThat(DietaBotHex.darkBg).isEqualTo(0xFF0B0D10)
+        assertThat(DietaBotHex.darkGold).isEqualTo(0xFFE8B86D)
+        assertThat(DietaBotHex.lightBg).isEqualTo(0xFFF4F3F0)
+        assertThat(DietaBotHex.lightGold).isEqualTo(0xFFB8873D)
+        assertThat(darkPalette.ctaBg).isEqualTo(Color(DietaBotHex.darkCtaBg))
+        assertThat(lightPalette.gold).isEqualTo(Color(DietaBotHex.lightGold))
     }
 
     @Test
     fun semanticMacros() {
         // Dark semantic macros
-        assertThat(NutriHex.darkProtein).isEqualTo(0xFF4EC994)
-        assertThat(NutriHex.darkCarbs).isEqualTo(0xFFE58E42)
-        assertThat(NutriHex.darkFat).isEqualTo(0xFFE8B86D)
-        assertThat(NutriHex.darkBad).isEqualTo(0xFFE07A6A)
-        assertThat(NutriHex.darkGood).isEqualTo(0xFF7DDA9A)
+        assertThat(DietaBotHex.darkProtein).isEqualTo(0xFF4EC994)
+        assertThat(DietaBotHex.darkCarbs).isEqualTo(0xFFE58E42)
+        assertThat(DietaBotHex.darkFat).isEqualTo(0xFFE8B86D)
+        assertThat(DietaBotHex.darkBad).isEqualTo(0xFFE07A6A)
+        assertThat(DietaBotHex.darkGood).isEqualTo(0xFF7DDA9A)
 
         // Light semantic macros
-        assertThat(NutriHex.lightProtein).isEqualTo(0xFF1B7A4B)
-        assertThat(NutriHex.lightCarbs).isEqualTo(0xFFC2651E)
-        assertThat(NutriHex.lightFat).isEqualTo(0xFFB8873D)
-        assertThat(NutriHex.lightBad).isEqualTo(0xFFC14D40)
-        assertThat(NutriHex.lightGood).isEqualTo(0xFF1F8A4C)
+        assertThat(DietaBotHex.lightProtein).isEqualTo(0xFF1B7A4B)
+        assertThat(DietaBotHex.lightCarbs).isEqualTo(0xFFC2651E)
+        assertThat(DietaBotHex.lightFat).isEqualTo(0xFFB8873D)
+        assertThat(DietaBotHex.lightBad).isEqualTo(0xFFC14D40)
+        assertThat(DietaBotHex.lightGood).isEqualTo(0xFF1F8A4C)
 
         // Palette bindings
-        assertThat(darkPalette.protein).isEqualTo(Color(NutriHex.darkProtein))
-        assertThat(darkPalette.carbs).isEqualTo(Color(NutriHex.darkCarbs))
-        assertThat(darkPalette.fat).isEqualTo(Color(NutriHex.darkFat))
-        assertThat(darkPalette.bad).isEqualTo(Color(NutriHex.darkBad))
-        assertThat(darkPalette.good).isEqualTo(Color(NutriHex.darkGood))
+        assertThat(darkPalette.protein).isEqualTo(Color(DietaBotHex.darkProtein))
+        assertThat(darkPalette.carbs).isEqualTo(Color(DietaBotHex.darkCarbs))
+        assertThat(darkPalette.fat).isEqualTo(Color(DietaBotHex.darkFat))
+        assertThat(darkPalette.bad).isEqualTo(Color(DietaBotHex.darkBad))
+        assertThat(darkPalette.good).isEqualTo(Color(DietaBotHex.darkGood))
 
-        assertThat(lightPalette.protein).isEqualTo(Color(NutriHex.lightProtein))
-        assertThat(lightPalette.carbs).isEqualTo(Color(NutriHex.lightCarbs))
-        assertThat(lightPalette.fat).isEqualTo(Color(NutriHex.lightFat))
-        assertThat(lightPalette.bad).isEqualTo(Color(NutriHex.lightBad))
-        assertThat(lightPalette.good).isEqualTo(Color(NutriHex.lightGood))
+        assertThat(lightPalette.protein).isEqualTo(Color(DietaBotHex.lightProtein))
+        assertThat(lightPalette.carbs).isEqualTo(Color(DietaBotHex.lightCarbs))
+        assertThat(lightPalette.fat).isEqualTo(Color(DietaBotHex.lightFat))
+        assertThat(lightPalette.bad).isEqualTo(Color(DietaBotHex.lightBad))
+        assertThat(lightPalette.good).isEqualTo(Color(DietaBotHex.lightGood))
     }
 
     @Test
@@ -127,6 +127,6 @@ class TokensTest {
         assertThat(SplashBoot.DELAY_MS).isAtMost(SplashBoot.MAX_MS)
         assertThat(SplashBoot.MAX_MS).isEqualTo(2000L)
         assertThat(SplashBoot.COPY).isEqualTo("Estimativa nutricional, não substitui consulta médica ou nutricional.")
-        assertThat(SplashBoot.WORDMARK).isEqualTo("Nutri")
+        assertThat(SplashBoot.WORDMARK).isEqualTo("Dieta Bot")
     }
 }

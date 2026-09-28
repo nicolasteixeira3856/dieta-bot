@@ -42,7 +42,7 @@ class HomeScreenScreenshotTest {
     @Test
     fun home_dark_matches_stitch_gold() {
         composeTestRule.setContent {
-            NutriTheme(darkTheme = true) {
+            DietaBotTheme(darkTheme = true) {
                 HomeScreen(uiState = sampleHomeState())
             }
         }

@@ -89,8 +89,8 @@ import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NutriMeasure
-import com.nutri.android.core.designsystem.NutriType
+import com.nutri.android.core.designsystem.DietaBotMeasure
+import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.formatRemaining
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
@@ -173,13 +173,13 @@ private fun Header(onBack: () -> Unit) {
         }
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Chat Nutri", style = NutriType.headlineMd.copy(fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = (-0.025).em), color = p.text)
+                Text("Chat Dieta Bot", style = DietaBotType.headlineMd.copy(fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = (-0.025).em), color = p.text)
                 Spacer(Modifier.width(6.dp))
                 Box(Modifier.size(8.dp).clip(CircleShape).background(p.gold))
             }
             Text(
                 "ASSISTENTE DE REFEIÇÕES",
-                style = NutriType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W500, letterSpacing = 0.1.em),
+                style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W500, letterSpacing = 0.1.em),
                 color = p.muted,
                 modifier = Modifier.padding(top = 2.dp),
             )
@@ -221,7 +221,7 @@ private fun DatePill(label: String) {
     Box(Modifier.fillMaxWidth().padding(vertical = 4.dp), contentAlignment = Alignment.Center) {
         Text(
             label,
-            style = NutriType.labelCaps.copy(letterSpacing = 0.05.em),
+            style = DietaBotType.labelCaps.copy(letterSpacing = 0.05.em),
             color = p.muted,
             modifier = Modifier
                 .clip(CircleShape)
@@ -238,7 +238,7 @@ private fun UserBubble(item: ChatItem.User) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
         Text(
             item.text,
-            style = NutriType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
+            style = DietaBotType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
             color = p.text,
             modifier = Modifier
                 .fillMaxWidth(0.82f)
@@ -250,7 +250,7 @@ private fun UserBubble(item: ChatItem.User) {
                 .testTag("chat-user-${item.id}"),
         )
         Row(Modifier.padding(top = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(item.time, style = NutriType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim)
+            Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim)
             Spacer(Modifier.width(4.dp))
             Icon(Icons.Filled.DoneAll, contentDescription = null, tint = p.gold, modifier = Modifier.size(14.dp))
         }
@@ -268,11 +268,11 @@ private fun AiLabel() {
             Icon(Icons.Filled.Bolt, contentDescription = null, tint = p.gold, modifier = Modifier.size(10.dp))
         }
         Spacer(Modifier.width(6.dp))
-        Text("Nutri AI", style = NutriType.headlineMd.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = (-0.025).em), color = p.text)
+        Text("Dieta Bot AI", style = DietaBotType.headlineMd.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = (-0.025).em), color = p.text)
         Spacer(Modifier.width(6.dp))
         Text(
             "IA ATIVA",
-            style = NutriType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W600, letterSpacing = 0.1.em),
+            style = DietaBotType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W600, letterSpacing = 0.1.em),
             color = p.gold,
             modifier = Modifier
                 .clip(CircleShape)
@@ -296,22 +296,22 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
                 .padding(16.dp)
                 .testTag("chat-bot-${item.id}"),
         ) {
-            Text(highlighted(item.text, item.highlights, p.gold), style = NutriType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 21.sp, letterSpacing = 0.sp), color = p.text)
+            Text(highlighted(item.text, item.highlights, p.gold), style = DietaBotType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 21.sp, letterSpacing = 0.sp), color = p.text)
             item.estimate?.let { e ->
                 EstimateCard(e)
                 e.slotQuestion?.let { q ->
                     Text(
                         slotQuestion(q, p.text),
-                        style = NutriType.bodyMd.copy(fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.sp),
+                        style = DietaBotType.bodyMd.copy(fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.sp),
                         color = p.muted,
                     )
                 }
                 e.question?.let {
-                    Text(it, style = NutriType.bodyMd.copy(fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 6.dp).testTag("chat-question"))
+                    Text(it, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 6.dp).testTag("chat-question"))
                 }
             }
         }
-        Text(item.time, style = NutriType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
+        Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
     }
 }
 
@@ -360,7 +360,7 @@ private fun EstimateCard(e: EstimateView) {
                 .padding(bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("ENERGIA TOTAL", style = NutriType.labelCaps.copy(letterSpacing = 0.sp), color = p.muted, modifier = Modifier.weight(1f))
+            Text("ENERGIA TOTAL", style = DietaBotType.labelCaps.copy(letterSpacing = 0.sp), color = p.muted, modifier = Modifier.weight(1f))
             Text(
                 buildAnnotatedString {
                     withStyle(SpanStyle(color = p.gold, fontFamily = Jakarta, fontSize = 18.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.025).em)) { append("~${e.kcal}") }
@@ -387,8 +387,8 @@ private fun MacroBox(label: String, value: String, color: Color, modifier: Modif
             .padding(horizontal = 4.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(label, style = NutriType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W700, letterSpacing = 0.1.em), color = p.muted)
-        Text(value, style = NutriType.headlineMd.copy(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = color)
+        Text(label, style = DietaBotType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W700, letterSpacing = 0.1.em), color = p.muted)
+        Text(value, style = DietaBotType.headlineMd.copy(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = color)
     }
 }
 
@@ -418,13 +418,13 @@ private fun ReceiptCard(item: ChatItem.Receipt) {
                         withStyle(SpanStyle(fontWeight = FontWeight.W600)) { append(item.slotName) }
                         item.slotTime?.let { withStyle(SpanStyle(color = p.dim)) { append("  ·  $it") } }
                     },
-                    style = NutriType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp),
+                    style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp),
                     color = p.text,
                 )
                 item.kcal?.takeIf { !item.skipped }?.let {
                     Text(
                         "+$it kcal",
-                        style = NutriType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp),
+                        style = DietaBotType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp),
                         color = p.good,
                         modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp)).background(p.good.copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 1.dp),
                     )
@@ -441,7 +441,7 @@ private fun Greeting(item: ChatItem.Greeting, ui: ChatUiState) {
         Column(horizontalAlignment = Alignment.Start) {
             Text(
                 "Olá! Descreva o que você comeu ou envie uma foto do prato para estimarmos as calorias e macros.",
-                style = NutriType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
+                style = DietaBotType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
                 color = p.text,
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
@@ -451,7 +451,7 @@ private fun Greeting(item: ChatItem.Greeting, ui: ChatUiState) {
                     .padding(14.dp)
                     .testTag("chat-greeting"),
             )
-            Text(item.time, style = NutriType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 6.dp, start = 8.dp))
+            Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 6.dp, start = 8.dp))
         }
         Row(
             Modifier
@@ -469,15 +469,15 @@ private fun Greeting(item: ChatItem.Greeting, ui: ChatUiState) {
             ) { Icon(Icons.Outlined.Restaurant, contentDescription = null, tint = p.gold, modifier = Modifier.size(20.dp)) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text("Meta calórica de hoje", style = NutriType.bodyMd.copy(fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
+                Text("Meta calórica de hoje", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
                 Text(
                     "${formatRemaining(ui.metaRemaining)} / ${formatRemaining(ui.metaTotal)} kcal restantes",
-                    style = NutriType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp),
+                    style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp),
                     color = p.muted,
                 )
             }
             val pct = if (ui.metaTotal > 0) (ui.metaRemaining * 100f / ui.metaTotal).roundToInt() else 0
-            Text("$pct%", style = NutriType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.gold)
+            Text("$pct%", style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.gold)
         }
     }
 }
@@ -500,11 +500,11 @@ private fun LoadingBubble() {
             LoadingIndicator(color = p.gold, modifier = Modifier.size(24.dp))
             Spacer(Modifier.width(14.dp))
             Column {
-                Text("Analisando e calculando estimativa...", style = NutriType.bodyMd.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.muted)
-                Text("MICRO & MACRONUTRIENTES", style = NutriType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.05.em), color = p.dim, modifier = Modifier.padding(top = 2.dp))
+                Text("Analisando e calculando estimativa...", style = DietaBotType.bodyMd.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.muted)
+                Text("MICRO & MACRONUTRIENTES", style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.05.em), color = p.dim, modifier = Modifier.padding(top = 2.dp))
             }
         }
-        Text("Nutri AI", style = NutriType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+        Text("Dieta Bot AI", style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
     }
 }
 
@@ -513,7 +513,7 @@ private fun FailedBubble(onRetry: () -> Unit) {
     val p = LocalPalette.current
     Text(
         "Não deu. Toque para tentar de novo.",
-        style = NutriType.bodyMd.copy(letterSpacing = 0.sp),
+        style = DietaBotType.bodyMd.copy(letterSpacing = 0.sp),
         color = p.bad,
         modifier = Modifier
             .clip(BotShape)
@@ -555,7 +555,7 @@ private fun Chip(emoji: String, text: String, enabled: Boolean = true, tag: Stri
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(emoji, fontSize = 13.sp)
-        Text(text, style = NutriType.labelMd.copy(fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted)
+        Text(text, style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted)
     }
 }
 
@@ -620,7 +620,7 @@ private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, onCli
     ) {
         Icon(icon, contentDescription = null, tint = p.muted, modifier = Modifier.size(17.dp))
         Spacer(Modifier.width(6.dp))
-        Text(label, style = NutriType.labelMd.copy(fontSize = 12.5.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text, maxLines = 1)
+        Text(label, style = DietaBotType.labelMd.copy(fontSize = 12.5.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text, maxLines = 1)
     }
 }
 
@@ -652,13 +652,13 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
             value = ui.composer,
             onValueChange = onComposer,
             singleLine = true,
-            textStyle = NutriType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
+            textStyle = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
             cursorBrush = SolidColor(p.gold),
             modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp).testTag("chat-input"),
             decorationBox = { inner ->
                 Box {
                     if (ui.composer.isEmpty()) {
-                        Text("Descreva sua refeição ou envie foto...", style = NutriType.bodyMd.copy(letterSpacing = 0.sp), color = p.dim, maxLines = 1)
+                        Text("Descreva sua refeição ou envie foto...", style = DietaBotType.bodyMd.copy(letterSpacing = 0.sp), color = p.dim, maxLines = 1)
                     }
                     inner()
                 }
@@ -695,7 +695,7 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
     val p = LocalPalette.current
     BackHandler(onBack = onClose)
     Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), onClose)
-    val shape = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp)
+    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
     Column(
         Modifier
             .align(Alignment.BottomCenter)
@@ -711,8 +711,8 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
             .testTag("chat-sheet"),
     ) {
         Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
-        Text("Selecione a refeição", style = NutriType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        Text("Escolha o momento do dia para salvar este registro:", style = NutriType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
+        Text("Selecione a refeição", style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
+        Text("Escolha o momento do dia para salvar este registro:", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             ui.slots.forEach { slot -> SheetRow(slot, slot.id == ui.sheetSelection, slot.id == ui.currentSlotId) { onSelect(slot.id) } }
         }
@@ -728,13 +728,13 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Confirmar refeição", style = NutriType.labelLg.copy(fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.onGold)
+            Text("Confirmar refeição", style = DietaBotType.labelLg.copy(fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.onGold)
             Spacer(Modifier.width(8.dp))
             Icon(Icons.Outlined.ArrowForward, contentDescription = null, tint = p.onGold, modifier = Modifier.size(18.dp))
         }
         Text(
             "Cancelar",
-            style = NutriType.labelMd.copy(letterSpacing = 0.05.em),
+            style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
             color = p.muted,
             modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp).clickable(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-sheet-cancel"),
         )
@@ -769,10 +769,10 @@ private fun SheetRow(slot: SlotRef, selected: Boolean, current: Boolean, onClick
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(slot.name, style = NutriType.labelLg.copy(fontWeight = if (selected) FontWeight.W600 else FontWeight.W500), color = p.text)
+            Text(slot.name, style = DietaBotType.labelLg.copy(fontWeight = if (selected) FontWeight.W600 else FontWeight.W500), color = p.text)
             Text(
                 if (current) "${slot.time} (atual)" else slot.time,
-                style = NutriType.labelCaps.copy(fontWeight = if (selected) FontWeight.W500 else FontWeight.W400, letterSpacing = 0.sp),
+                style = DietaBotType.labelCaps.copy(fontWeight = if (selected) FontWeight.W500 else FontWeight.W400, letterSpacing = 0.sp),
                 color = if (selected) p.gold else p.muted,
             )
         }
@@ -825,18 +825,18 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(Icons.Outlined.Schedule, contentDescription = null, tint = p.muted, modifier = Modifier.size(14.dp))
-                Text(slot.time, style = NutriType.labelCaps.copy(letterSpacing = 0.05.em), color = p.muted)
+                Text(slot.time, style = DietaBotType.labelCaps.copy(letterSpacing = 0.05.em), color = p.muted)
             }
         }
         Text(
             "Deseja pular o ${slot.name}?",
-            style = NutriType.bodyLg.copy(fontSize = 18.sp, lineHeight = 24.75.sp, fontWeight = if (p.isDark) FontWeight.W600 else FontWeight.W700, letterSpacing = (-0.025).em),
+            style = DietaBotType.bodyLg.copy(fontSize = 18.sp, lineHeight = 24.75.sp, fontWeight = if (p.isDark) FontWeight.W600 else FontWeight.W700, letterSpacing = (-0.025).em),
             color = p.text,
             modifier = Modifier.padding(top = 20.dp),
         )
         Text(
             "Nenhuma caloria será somada hoje. Se você mudar de ideia, ainda poderá registrar alimentos nessa refeição mais tarde.",
-            style = NutriType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
+            style = DietaBotType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
             color = p.muted,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -854,7 +854,7 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
         ) {
             Icon(Icons.Outlined.FastForward, contentDescription = null, tint = p.ctaText, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Pular refeição", style = NutriType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
+            Text("Pular refeição", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
         }
         Box(
             Modifier
@@ -868,7 +868,7 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
                 .testTag("chat-skip-cancel"),
             contentAlignment = Alignment.Center,
         ) {
-            Text("Cancelar", style = NutriType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
+            Text("Cancelar", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
         }
     }
 }
@@ -880,7 +880,7 @@ private fun BoxScope.PhotoSheet(onCamera: () -> Unit, onGallery: () -> Unit, onC
     val p = LocalPalette.current
     BackHandler(onBack = onClose)
     Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), onClose)
-    val shape = RoundedCornerShape(topStart = NutriMeasure.sheetTopDp.dp, topEnd = NutriMeasure.sheetTopDp.dp)
+    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
     Column(
         Modifier
             .align(Alignment.BottomCenter)
@@ -894,15 +894,15 @@ private fun BoxScope.PhotoSheet(onCamera: () -> Unit, onGallery: () -> Unit, onC
             .testTag("chat-photo-sheet"),
     ) {
         Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
-        Text("Enviar foto do prato", style = NutriType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        Text("O texto digitado vai junto como legenda. Até 16 MB.", style = NutriType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
+        Text("Enviar foto do prato", style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
+        Text("O texto digitado vai junto como legenda. Até 16 MB.", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             PhotoSourceRow(Icons.Outlined.PhotoCamera, "Tirar foto", "chat-photo-camera", onCamera)
             PhotoSourceRow(Icons.Outlined.PhotoLibrary, "Escolher da galeria", "chat-photo-gallery", onGallery)
         }
         Text(
             "Cancelar",
-            style = NutriType.labelMd.copy(letterSpacing = 0.05.em),
+            style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
             color = p.muted,
             modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 14.dp).clickable(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-photo-cancel"),
         )
@@ -930,7 +930,7 @@ private fun PhotoSourceRow(icon: ImageVector, label: String, tag: String, onClic
             contentAlignment = Alignment.Center,
         ) { Icon(icon, contentDescription = null, tint = p.gold, modifier = Modifier.size(20.dp)) }
         Spacer(Modifier.width(14.dp))
-        Text(label, style = NutriType.labelLg.copy(fontWeight = FontWeight.W500), color = p.text)
+        Text(label, style = DietaBotType.labelLg.copy(fontWeight = FontWeight.W500), color = p.text)
     }
 }
 
@@ -945,7 +945,7 @@ private fun Notice(text: String, onShown: () -> Unit) {
     Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
         Text(
             text,
-            style = NutriType.labelLg.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp),
+            style = DietaBotType.labelLg.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp),
             color = p.bad,
             modifier = Modifier
                 .clip(CircleShape)

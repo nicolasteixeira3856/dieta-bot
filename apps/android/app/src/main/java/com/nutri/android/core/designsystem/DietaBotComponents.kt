@@ -73,7 +73,7 @@ fun NumberField(
     val p = LocalPalette.current
     val size = when {
         compact -> 12.sp
-        large -> NutriMeasure.fieldPt.sp
+        large -> DietaBotMeasure.fieldPt.sp
         else -> 16.sp
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
