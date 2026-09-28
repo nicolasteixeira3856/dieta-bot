@@ -4,12 +4,16 @@
 // /v1/chat never answer (loading state, then the client's 60 s timeout). compact=true answers a
 // fixed digest like the real server (S3); empty messages -> 422. GET /__calls also counts compacts
 // and echoes the `memory` of the last request (A8) and what came in `image_b64` (A6: bytes, JPEG?).
-// Build the app against it: ./gradlew :app:assembleDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
+// POST /__mode {"fallback": true} answers the real server's fallback ("nao deu pra estimar", no
+// estimate) to exercise the A11 ChatFallback non-fatal; /__calls echoes the last X-Request-Id.
+// Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
 
 const port = Number(process.argv[2] ?? 8765);
 let hang = false;
+let fallback = false;
+let lastRequestId = "";
 let calls = 0;
 let compacts = 0;
 let lastMemory = "";
@@ -25,16 +29,19 @@ const read = (req) => new Promise((resolve) => {
 http.createServer(async (req, res) => {
   const body = await read(req);
   if (req.method === "POST" && req.url === "/__mode") {
-    hang = Boolean(JSON.parse(body || "{}").hang);
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, calls }));
+    const mode = JSON.parse(body || "{}");
+    hang = Boolean(mode.hang);
+    fallback = Boolean(mode.fallback);
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
     calls++;
+    lastRequestId = req.headers["x-request-id"] ?? "";
     if (hang) return; // never answers
     const input = JSON.parse(body || "{}");
     lastMemory = input.memory ?? "";
@@ -50,6 +57,12 @@ http.createServer(async (req, res) => {
       }
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
         reply: "", estimate: null, digest: DIGEST, model: "gpt-6-luna",
+      }));
+      return;
+    }
+    if (fallback) {
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: "nao deu pra estimar", estimate: null, digest: null, model: "gpt-6-luna",
       }));
       return;
     }

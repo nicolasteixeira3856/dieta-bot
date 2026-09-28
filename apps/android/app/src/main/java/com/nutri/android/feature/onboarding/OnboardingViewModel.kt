@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
+import com.nutri.android.core.telemetry.NoopTelemetry
+import com.nutri.android.core.telemetry.Telemetry
+import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.MacroSplit
 import com.nutri.android.domain.SameEveryDayCeiling
 import com.nutri.android.domain.SaoPaulo
@@ -26,6 +29,7 @@ import kotlinx.coroutines.launch
 class OnboardingViewModel @Inject constructor(
     private val repository: DayRepository,
     private val clock: InstantClock,
+    private val telemetry: Telemetry = NoopTelemetry,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
@@ -150,6 +154,10 @@ class OnboardingViewModel @Inject constructor(
                 proteinTargetG = state.proteinField.toIntOrNull() ?: 0,
                 carbTargetG = state.carbField.toIntOrNull() ?: 0,
                 fatTargetG = state.fatField.toIntOrNull() ?: 0,
+            )
+            telemetry.event(
+                TelemetryEvents.ONBOARDING_COMPLETE,
+                mapOf("slots" to state.slots.size, "ceiling_mode" to state.ceilingMode, "eat" to state.eat),
             )
             _uiState.update { it.copy(isComplete = true) }
             onSuccess()

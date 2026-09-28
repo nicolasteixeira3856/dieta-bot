@@ -3,7 +3,7 @@
 # Reaches the state shown in the Stitch gold through the real UI (testTag = resource-id), then
 # finishes onboarding, kills the app and checks that a relaunch skips onboarding.
 #
-# Prereqs: debug APK installed; AVD at gold geometry:
+# Prereqs: devDebug APK installed; AVD at gold geometry:
 #   adb shell wm size 780x1688 && adb shell wm density 320
 # Usage: tools/capture-onboarding.sh dark|light
 # Then:  node tools/diff-gold.mjs
@@ -15,7 +15,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")" # Git Bash: node needs a Windows path
-PKG=com.nutri.android
+PKG=com.nutri.android.dev
+# The Kotlin package did not change with the dev flavor (A10): name the activity in full.
+ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 
 center() { # center <resource-id> -> "x y"
@@ -41,10 +43,10 @@ shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "
 "$ADB" shell pm clear $PKG >/dev/null
 
 # Splash in capture mode (it stays up), then a normal cold start into O1.
-"$ADB" shell am start -W -n $PKG/.MainActivity -e nutri_tela splash >/dev/null
+"$ADB" shell am start -W -n $PKG/$ACTIVITY -e nutri_tela splash >/dev/null
 shot splash 2.5
 "$ADB" shell am force-stop $PKG
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 2.5
 
 tap o1-sex-male
@@ -77,7 +79,7 @@ sleep 1.5
 
 # Kill + relaunch: must land on Home, not onboarding.
 "$ADB" shell am force-stop $PKG
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
 "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/relaunch.xml"

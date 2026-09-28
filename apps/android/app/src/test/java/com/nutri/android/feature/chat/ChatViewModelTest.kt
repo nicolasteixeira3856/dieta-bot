@@ -19,6 +19,10 @@ import com.nutri.android.core.network.ChatEstimate
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
 import com.nutri.android.core.network.ItemOut
+import com.nutri.android.core.telemetry.ChatFallback
+import com.nutri.android.core.telemetry.FakeTelemetry
+import com.nutri.android.core.telemetry.RequestIds
+import com.nutri.android.core.telemetry.TelemetryEvents
 import java.io.File
 import java.io.IOException
 import java.time.Instant
@@ -342,5 +346,71 @@ class ChatViewModelTest {
         vm.onCaptured(false)
         assertThat(photos.deleted).containsExactly("/tmp/capture.jpg".replace('/', java.io.File.separatorChar))
         assertThat(requests).isEmpty()
+    }
+
+    // ------------------------------------------------------------------ telemetry (A11)
+
+    @Test
+    fun serverFallback_isShown_andReportedAsNonFatalWithRequestId() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val ids = RequestIds()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry, ids)
+        answer = {
+            ids.last = "req-fallback"
+            ChatOut(reply = "nao deu pra estimar", estimate = null, model = "gpt-6-luna")
+        }
+        vm.setComposer("o que encaixa no dia?")
+        vm.send()
+        vm.await { ui -> ui.items.any { it is ChatItem.Assistant } }
+
+        // Shown as a normal reply (unchanged behavior), stored in Room.
+        assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.Assistant>().single().text).isEqualTo("nao deu pra estimar")
+        val fallback = telemetry.nonFatals.single()
+        assertThat(fallback).isInstanceOf(ChatFallback::class.java)
+        assertThat(fallback.message).isEqualTo("request_id=req-fallback has_photo=false")
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
+            .containsExactly(mapOf("outcome" to "fallback", "has_estimate" to false))
+    }
+
+    @Test
+    fun chatSend_carriesBucketsOnly_neverTheText() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry, RequestIds())
+        answer = { estimateOut(null) }
+        val text = "2 pães franceses com 2 ovos mexidos"
+        sendAndAwait(vm, text)
+
+        assertThat(telemetry.params(TelemetryEvents.CHAT_SEND))
+            .containsExactly(mapOf("has_photo" to false, "text_len" to "20-100"))
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high"))
+        assertThat(telemetry.nonFatals).isEmpty()
+        val allValues = telemetry.events.flatMap { it.second.values }.map { it.toString() } + telemetry.breadcrumbs
+        assertThat(allValues.none { it.contains("pães") || it.contains("ovos") }).isTrue()
+    }
+
+    @Test
+    fun networkError_reportsErrorOutcome() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry, RequestIds())
+        answer = { throw IOException("down") }
+        sendAndAwait(vm, "pão")
+
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
+            .containsExactly(mapOf("outcome" to "error", "has_estimate" to false))
+    }
+
+    @Test
+    fun gravar_reportsMealSaved_withNumbersOnly() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry, RequestIds())
+        val cafe = slotIds().first()
+        answer = { estimateOut(cafe.toString()) }
+        sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
+        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+
+        assertThat(telemetry.params(TelemetryEvents.MEAL_SAVED))
+            .containsExactly(mapOf("from" to "chat", "has_photo" to false, "kcal" to 380))
     }
 }

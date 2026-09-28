@@ -3,7 +3,7 @@
 # -> workout 400 / empty -> new ceiling -> wipe dialog (capture) -> Cancelar keeps the ceiling ->
 # Confirmar wipes today's meal_log only -> back to Home. Captures land in docs/qa/android/current/<theme>/.
 #
-# Prereqs: debug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
+# Prereqs: devDebug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
 # Usage: tools/capture-config.sh dark|light      Then: node tools/diff-gold.mjs dark/cfg dark/wipe ...
 set -u
 THEME="${1:?dark|light}"
@@ -14,11 +14,15 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android
+PKG=com.nutri.android.dev
+# The Kotlin package did not change with the dev flavor (A10): name the activity in full.
+ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+# Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
+"$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
 dump() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/ui.xml"; }
 at() {
@@ -65,7 +69,7 @@ EOF
 "$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
 "$ADB" shell chmod 644 /data/local/tmp/nutri.db
 "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 
 tap 'resource-id="home-config"' && expect "gear opens Config" 'resource-id="cfg"'

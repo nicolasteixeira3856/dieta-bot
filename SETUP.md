@@ -71,5 +71,10 @@ Named tunnel (estável, o que vale pra APK):
 
 Luz caiu = API caiu. É o preço de R$ 0.
 
+Release assinado (A9): `nutri-release.jks` + `key.properties` na raiz do repo (fora do git; restaure do backup num PC novo).
+`cd apps/android && ./gradlew.bat :app:assembleDevRelease`. Sem `key.properties`, o APK sai sem assinatura.
+Flavors (A10): `apps/android/local.properties` com `dev.API_PUBLIC_URL` e `dev.INVITE_CODE`. O prod só constrói com `prod.API_PUBLIC_URL` e `prod.INVITE_CODE`.
+Firebase (A11, só dev): `npx -y firebase-tools@latest login` uma vez. Num PC novo, baixe o `google-services.json` do app Android `com.nutri.android.dev` no projeto `nutri-bot-dev` (console ou MCP `firebase_get_sdk_config`) para `apps/android/app/src/dev/`.
+
 D. Uso real (celular, Wi-Fi e 4G): VM no Google Cloud, [ADR-013](docs/server/adrs/ADR-013-gcp-host.md).
    Runbook: [docs/server/deploy-gcp.md](docs/server/deploy-gcp.md). Deploy: `./tools/deploy-gcp.ps1`.

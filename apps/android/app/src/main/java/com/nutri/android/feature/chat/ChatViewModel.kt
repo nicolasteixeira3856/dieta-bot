@@ -13,6 +13,11 @@ import com.nutri.android.core.photo.PhotoFiles
 import com.nutri.android.core.photo.PhotoResult
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
+import com.nutri.android.core.telemetry.ChatFallback
+import com.nutri.android.core.telemetry.NoopTelemetry
+import com.nutri.android.core.telemetry.RequestIds
+import com.nutri.android.core.telemetry.Telemetry
+import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotClock
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +48,8 @@ class ChatViewModel @Inject constructor(
     private val clock: InstantClock,
     private val memory: MemoryStore,
     private val photos: PhotoFiles,
+    private val telemetry: Telemetry = NoopTelemetry,
+    private val requestIds: RequestIds = RequestIds(),
 ) : ViewModel() {
     private val local = MutableStateFlow(Local())
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -158,6 +165,10 @@ class ChatViewModel @Inject constructor(
     }
 
     private suspend fun post(text: String, photo: String? = null) {
+        telemetry.event(
+            TelemetryEvents.CHAT_SEND,
+            mapOf("has_photo" to (photo != null), "text_len" to TelemetryEvents.lengthBucket(text.length)),
+        )
         val sentAt = clock.now()
         val today = messages.filter { it.date == SaoPaulo.date(sentAt).toString() }
         val snapshot = repository.observeToday().first()
@@ -167,6 +178,7 @@ class ChatViewModel @Inject constructor(
         val asked = openQuestion(SaoPaulo.date(sentAt).toString())
         val image = photo?.let { photos.base64(it) }
         if (photo != null && image == null) {
+            chatResult("error")
             local.update { it.copy(failed = true) }
             return
         }
@@ -184,8 +196,16 @@ class ChatViewModel @Inject constructor(
         // The photo rides only on the turn, never on the compact request.
         val out = runCatching { service.chat(turn.body.copy(imageB64 = image)) }.getOrNull()
         if (out == null || out.reply.isBlank() && out.estimate == null) {
+            chatResult("error")
             local.update { it.copy(failed = true) }
             return
+        }
+        // The server fallback arrives as a normal reply: shown as is, reported as a non-fatal (A11).
+        if (out.estimate == null && out.reply.trim() == SERVER_FALLBACK_REPLY) {
+            telemetry.nonFatal(ChatFallback(requestIds.last, hasPhoto = photo != null))
+            chatResult("fallback")
+        } else {
+            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence)
         }
         val slots = snapshot.slots.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
@@ -204,6 +224,15 @@ class ChatViewModel @Inject constructor(
         )
         local.update { it.copy(pending = null, pendingPhoto = null, failed = false) }
         asked?.let { memory.append("Respondeu \"$it\": $text") }
+    }
+
+    private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null) {
+        val params = buildMap<String, Any> {
+            put("outcome", outcome)
+            put("has_estimate", hasEstimate)
+            confidence?.let { put("confidence", it) }
+        }
+        telemetry.event(TelemetryEvents.CHAT_RESULT, params)
     }
 
     /** Question of the last estimate of today when nothing closed it yet (no receipt, no wipe). */
@@ -233,6 +262,10 @@ class ChatViewModel @Inject constructor(
                 source = if (userBefore(estimate)?.photoPath != null) "photo" else "user",
             )
             repository.insertMessage(role = "logged", text = slot.name, estimateKcal = estimate.estimateKcal, estimateSlotId = slot.id)
+            telemetry.event(
+                TelemetryEvents.MEAL_SAVED,
+                mapOf("from" to "chat", "has_photo" to (userBefore(estimate)?.photoPath != null), "kcal" to (estimate.estimateKcal ?: 0)),
+            )
             memory.append("${slot.name}: ${descriptionOf(estimate)} (${estimate.estimateKcal ?: 0} kcal)")
         }
     }
@@ -265,6 +298,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             repository.addSkip(slot.id)
             repository.insertMessage(role = "skipped", text = slot.name, estimateSlotId = slot.id)
+            telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat"))
         }
     }
 
@@ -366,6 +400,9 @@ class ChatViewModel @Inject constructor(
     private fun timeOf(epochMs: Long) = Instant.ofEpochMilli(epochMs).atZone(SaoPaulo.zone).format(TIME)
 
     companion object {
+        /** server/shaping.py CHAT_FALLBACK_REPLY: bad JSON, empty reply or model error on the server. */
+        const val SERVER_FALLBACK_REPLY = "nao deu pra estimar"
+
         /** Rows that close the last estimate: its actions go away. A wipe closes it too. */
         private val RECEIPTS = setOf("logged", "skipped", DayRepository.ROLE_WIPED)
         private val TIME = DateTimeFormatter.ofPattern("HH:mm")

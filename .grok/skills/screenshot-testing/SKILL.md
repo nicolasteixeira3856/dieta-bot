@@ -11,15 +11,15 @@ Regras para teste de screenshot automatizado na JVM com **Roborazzi** e Robolect
 
 1. **Gravar / Gerar Novas Capturas**:
    ```bash
-   ./gradlew.bat recordRoborazziDebug
+   ./gradlew.bat recordRoborazziDevDebug
    ```
 2. **Verificar / Comparar com as Imagens de Ouro**:
    ```bash
-   ./gradlew.bat verifyRoborazziDebug
+   ./gradlew.bat verifyRoborazziDevDebug
    ```
 3. **Gerar Relatório HTML com Diffs**:
    ```bash
-   ./gradlew.bat compareRoborazziDebug
+   ./gradlew.bat compareRoborazziDevDebug
    ```
    O relatório é salvo em: `build/reports/roborazzi/index.html`.
 

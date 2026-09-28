@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
+import com.nutri.android.core.telemetry.NoopTelemetry
+import com.nutri.android.core.telemetry.Telemetry
+import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.SaoPaulo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -17,6 +20,7 @@ import kotlinx.coroutines.launch
 class HomePanelViewModel @Inject constructor(
     private val repository: DayRepository,
     private val clock: InstantClock,
+    private val telemetry: Telemetry = NoopTelemetry,
 ) : ViewModel() {
     val uiState: StateFlow<HomePanelUiState> = repository.observeToday()
         .map { HomePanelMapper.map(it, SaoPaulo.date(clock.now())) }
@@ -24,6 +28,9 @@ class HomePanelViewModel @Inject constructor(
 
     /** Explicit user action from the timeline. Never automatic. */
     fun skip(slotId: Long) {
-        viewModelScope.launch { repository.addSkip(slotId) }
+        viewModelScope.launch {
+            repository.addSkip(slotId)
+            telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "home"))
+        }
     }
 }

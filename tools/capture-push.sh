@@ -5,7 +5,7 @@
 # slot has no alarm -> lock-screen capture in docs/qa/android/current/<theme>/push.png ->
 # Pular (skip stored, notification gone) -> Registrar (opens the Chat, notification gone).
 #
-# Prereqs: debug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
+# Prereqs: devDebug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
 # Turns on the swipe lock screen (locksettings) for the capture. Takes ~6 minutes (real alarms).
 # Usage: tools/capture-push.sh dark|light
 set -u
@@ -17,7 +17,9 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android
+PKG=com.nutri.android.dev
+# The Kotlin package did not change with the dev flavor (A10): name the activity in full.
+ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
@@ -93,7 +95,7 @@ EOF
 # First Home after onboarding asks POST_NOTIFICATIONS (Android 13+).
 "$ADB" shell am force-stop $PKG
 "$ADB" shell appops set $PKG SCHEDULE_EXACT_ALARM default >/dev/null 2>&1
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 4
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 4
 expect "Home asks for notification permission" 'permission_allow_button'
 tap 'resource-id="com.android.permissioncontroller:id/permission_allow_button"' 2
 check "POST_NOTIFICATIONS granted" "$("$ADB" shell dumpsys package $PKG | tr -d '\r' | grep -c 'POST_NOTIFICATIONS: granted=true')" "1"
@@ -125,12 +127,12 @@ EOF
 
 # Without SCHEDULE_EXACT_ALARM (Android 14+ default): alarms still set, inexact (window > 0).
 "$ADB" shell appops set $PKG SCHEDULE_EXACT_ALARM deny >/dev/null 2>&1
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 4
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 4
 check "exact denied: A and C scheduled (B logged, D skipped)" "$(alarms)" "2"
 check "exact denied: both inexact" "$(exact_alarms)" "0"
 # With it: exact. The permission change resyncs through the receiver; the app start does too.
 "$ADB" shell appops set $PKG SCHEDULE_EXACT_ALARM allow >/dev/null 2>&1
-"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 4
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 4
 check "exact allowed: A and C scheduled" "$(alarms)" "2"
 check "exact allowed: both exact (window 0)" "$(exact_alarms)" "2"
 "$ADB" shell input keyevent 3 # home: the app in background, alarms must still fire

@@ -17,8 +17,12 @@ server/.venv/
 *.apk
 *.aab
 node_modules/
+/logs/
 android/local.properties
 *.jks
+*.keystore
+key.properties
+google-services.json
 apps/rn/.expo/
 
 .agents/

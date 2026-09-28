@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -52,7 +54,11 @@ import com.nutri.android.feature.config.ConfigScreen
 import com.nutri.android.feature.config.ConfigViewModel
 import com.nutri.android.feature.t2.T2Screen
 import com.nutri.android.feature.t2.T2ViewModel
+import com.nutri.android.core.telemetry.NoopTelemetry
+import com.nutri.android.core.telemetry.Telemetry
+import com.nutri.android.core.telemetry.TelemetryEvents
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.serialization.Serializable
 
 @Serializable data object RouteSplash
@@ -68,16 +74,21 @@ import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var telemetry: Telemetry
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val screen = intent?.getStringExtra("nutri_tela")
         // A7 "Registrar": the notification restarts the task and asks for the Chat.
         val openChat = savedInstanceState == null && intent?.getStringExtra(EXTRA_OPEN) == OPEN_CHAT
-        if (openChat) intent?.getLongExtra(EXTRA_SLOT, -1)?.takeIf { it >= 0 }?.let { PushHandler.clear(this, it) }
+        if (openChat) {
+            intent?.getLongExtra(EXTRA_SLOT, -1)?.takeIf { it >= 0 }?.let { PushHandler.clear(this, it) }
+            telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "open"))
+        }
         setContent {
             NutriTheme {
-                App(screen, openChat)
+                App(screen, openChat, telemetry)
             }
         }
     }
@@ -90,8 +101,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun App(captureScreen: String?, openChat: Boolean = false) {
+private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Telemetry = NoopTelemetry) {
     val nav = rememberNavController()
+    DisposableEffect(nav, telemetry) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            val screen = screenName(destination.route) ?: return@OnDestinationChangedListener
+            telemetry.breadcrumb("screen $screen")
+            telemetry.event(TelemetryEvents.SCREEN_VIEW, mapOf("screen" to screen))
+        }
+        nav.addOnDestinationChangedListener(listener)
+        onDispose { nav.removeOnDestinationChangedListener(listener) }
+    }
     var chatPending by rememberSaveable { mutableStateOf(openChat) }
     val onboardingStart: Any = when (captureScreen) {
         "o2" -> RouteEat
@@ -277,6 +297,20 @@ private fun App(captureScreen: String?, openChat: Boolean = false) {
             }
         }
     }
+}
+
+/** ADR-012 screen id of a typed route ("com.nutri.android.RouteCeiling" -> "o1"); null for nav graphs. */
+internal fun screenName(route: String?): String? = when (route?.substringAfterLast('.')?.substringBefore('?')) {
+    "RouteSplash" -> "splash"
+    "RouteCeiling" -> "o1"
+    "RouteEat" -> "o2"
+    "RouteSlots" -> "o3"
+    "RouteMacros" -> "o4"
+    "RouteHome" -> "home"
+    "RouteChat" -> "chat"
+    "RouteConfig" -> "cfg"
+    "RouteT2" -> "t2"
+    else -> null
 }
 
 /** One OnboardingViewModel for O1..O4, scoped to the onboarding graph. */

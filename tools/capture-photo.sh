@@ -4,7 +4,7 @@
 # (notice, no POST) -> WebP (becomes full-size JPEG, same branch as HEIC) -> chatF capture with the
 # gold conversation seeded. Captures land in docs/qa/android/current/<theme>/.
 #
-# Prereqs: node tools/fake-chat-server.mjs running (port 8765); APK built with
+# Prereqs: node tools/fake-chat-server.mjs running (port 8765); devDebug APK built with
 #   -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed; AVD at gold geometry (wm size 780x1688,
 #   wm density 320) with the stock camera app; python3 with Pillow.
 # Usage: tools/capture-photo.sh dark|light      Then: node tools/diff-gold.mjs dark/chatF ...
@@ -18,11 +18,15 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android
+PKG=com.nutri.android.dev
+# The Kotlin package did not change with the dev flavor (A10): name the activity in full.
+ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+# Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
+"$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
 dump() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/ui.xml"; }
 center() { # center <attribute regex> -> "x y" of the first matching node (current dump)
@@ -60,7 +64,7 @@ gallery() { # gallery <file>: newest photo in the picker, then pick it
 }
 "$ADB" shell pm revoke $PKG android.permission.CAMERA >/dev/null 2>&1
 
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null; sleep 2
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 2
 tap 'resource-id="home-fab"' && expect "FAB opens Chat" 'resource-id="chat"'
 
 # 1. Gallery JPEG: the file bytes go as they are (no downscale, no re-encode).
@@ -115,7 +119,7 @@ for table in ("chat_message", "meal_log", "slot_skip", "day_digest"):
     c.execute(f"delete from {table}")
 now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,photoPath) values(?,?,?,?,?)",
-          (today, "user", "Almoço de hoje", now - 2000, "/data/user/0/com.nutri.android/files/photos/chatf.jpg"))
+          (today, "user", "Almoço de hoje", now - 2000, "/data/user/0/com.nutri.android.dev/files/photos/chatf.jpg"))
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
           "estimateConfidence,estimateSlotId,estimateItems) values(?,?,?,?,?,?,?,?,?,?,?)",
           (today, "assistant", "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde.",
@@ -128,7 +132,7 @@ EOF
 "$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
 "$ADB" shell chmod 644 /data/local/tmp/nutri.db
 "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
-"$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 2
 shot chatF

@@ -34,5 +34,5 @@ Orientações para garantir que o compilador do Jetpack Compose considere as cla
 
 5. **Auditoria com Compose Compiler Metrics**:
    - Gerar relatórios de estabilidade:
-     `./gradlew.bat assembleRelease -PcomposeCompilerReports=true`
+     `./gradlew.bat assembleDevRelease -PcomposeCompilerReports=true`
    - Verificar classes marcadas como `unstable` em `build/compose_compiler/`.

@@ -52,6 +52,10 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   Official architecture: ui / domain / data
   UDF, ViewModel + UiState, Hilt, collectAsStateWithLifecycle
   Room 2.6.x for profile + day + meal_log. No DataStore for day state.
+  Flavors dev (com.nutri.android.dev, GCP dev server) / prod (com.nutri.android) per ADR-014.
+  Build and test with the dev variant: assembleDevRelease, testDevDebugUnitTest, verifyRoborazziDevDebug.
+  Telemetry: core/telemetry Telemetry interface. dev = Firebase nutri-bot-dev (Crashlytics + Analytics), prod = NoopTelemetry.
+  Events carry enums and numbers only, never user text. X-Request-Id links Crashlytics to the dev server log (ADR-015).
 - server/ — FastAPI, untouched contract: GET /health, POST /v1/estimate, POST /v1/fit
 - Host: GCP e2-micro us-east1 + Caddy (ADR-013). Runbook: docs/server/deploy-gcp.md. Deploy: tools/deploy-gcp.ps1
 
@@ -134,7 +138,7 @@ Test before marking done.
 
 ## Do not
 
-Firebase, Gemini, TDEE, eat-back cap, Health/Xiaomi, key in the client,
+Firebase outside ADR-014 (Crashlytics + Analytics, dev flavor only), Gemini / Firebase AI, TDEE, eat-back cap, Health/Xiaomi, key in the client,
 VPS outside ADR-013, router port, iOS, Flutter, React Native,
 screens outside ADR-012,
 implementation based on wires instead of Stitch gold PNGs,

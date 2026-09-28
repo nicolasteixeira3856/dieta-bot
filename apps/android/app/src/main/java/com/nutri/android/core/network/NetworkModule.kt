@@ -2,6 +2,9 @@ package com.nutri.android.core.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.nutri.android.BuildConfig
+import com.nutri.android.core.telemetry.RequestIdInterceptor
+import com.nutri.android.core.telemetry.RequestIds
+import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.feature.chat.ChatService
 import dagger.Module
 import dagger.Provides
@@ -19,13 +22,15 @@ import retrofit2.Retrofit
 object NetworkModule {
     @Provides
     @Singleton
-    fun client(): OkHttpClient = OkHttpClient.Builder()
+    fun client(telemetry: Telemetry, ids: RequestIds): OkHttpClient = OkHttpClient.Builder()
         // Server timeout is 60 s (S1); the client waits as long, then shows "não deu".
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .callTimeout(65, TimeUnit.SECONDS)
         .addInterceptor(InviteInterceptor(BuildConfig.INVITE_CODE))
+        // A11: X-Request-Id on every call, matched by the dev server log (ADR-015).
+        .addInterceptor(RequestIdInterceptor(telemetry, ids, BuildConfig.VERSION_NAME, BuildConfig.ENV))
         .build()
 
     @Provides

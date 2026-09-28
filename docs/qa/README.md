@@ -62,7 +62,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
    ```bash
    node tools/diff-gold.mjs            # splash + O1..O4, ou: node tools/diff-gold.mjs dark/o1 light/o1
    ```
-   Na JVM, sem emulador: `StitchGoldTest` (`./gradlew.bat :app:testDebugUnitTest`), renders e máscaras em `apps/android/app/build/outputs/stitch-gold/`.
+   Na JVM, sem emulador: `StitchGoldTest` (`./gradlew.bat :app:testDevDebugUnitTest`), renders e máscaras em `apps/android/app/build/outputs/stitch-gold/`.
 5. Escrever a lista de diffs (layout, tokens, tipo, raio, ButtonGroup, CTA, timeline, macros semânticos) no plano da tela.
 6. Ajustar a UI Compose e repetir 3–5 até passar no gate.
 
@@ -77,6 +77,6 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 
 ### Regressão
 
-Baseline Roborazzi (render JVM contra ele mesmo) em `apps/android/app/src/test/snapshots/`: `recordRoborazziDebug` grava, `verifyRoborazziDebug` falha em divergência. Não é comparação com o gold.
+Baseline Roborazzi (render JVM contra ele mesmo) em `apps/android/app/src/test/snapshots/`: `recordRoborazziDevDebug` grava, `verifyRoborazziDevDebug` falha em divergência. Não é comparação com o gold.
 
 > **Sem screenshot comparado e validado contra o Stitch, a UI NÃO está pronta.**

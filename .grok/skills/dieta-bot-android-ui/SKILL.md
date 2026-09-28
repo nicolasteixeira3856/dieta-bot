@@ -31,7 +31,7 @@ Implementation is based strictly on the Stitch PNGs. Layout creation may use wir
 ## Visual Verification
 
 1. Automated headless screenshot test:
-   - `./gradlew.bat verifyRoborazziDebug`
+   - `./gradlew.bat verifyRoborazziDevDebug`
 2. Emulator fallback:
    - `cmd /c "adb exec-out screencap -p > docs\qa\android\current\dark\<id>.png"`
 3. Compare against Stitch gold in `docs/qa/stitch/{dark,light}/<id>.png`. A screen is NOT done until verified against the matching Stitch PNG.

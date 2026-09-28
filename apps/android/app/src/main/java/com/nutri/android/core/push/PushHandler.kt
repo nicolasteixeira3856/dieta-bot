@@ -15,6 +15,9 @@ import com.nutri.android.MainActivity
 import com.nutri.android.R
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.designsystem.NutriHex
+import com.nutri.android.core.telemetry.NoopTelemetry
+import com.nutri.android.core.telemetry.Telemetry
+import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.PushPlan
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -27,6 +30,7 @@ class PushHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: DayRepository,
     private val scheduler: SlotAlarmScheduler,
+    private val telemetry: Telemetry = NoopTelemetry,
 ) {
     /** Slot alarm fired: notify only when the slot is still empty (spec rule 2). */
     suspend fun onSlot(slotId: Long): Boolean {
@@ -34,7 +38,9 @@ class PushHandler @Inject constructor(
         val slot = day.slots.firstOrNull { it.id == slotId } ?: return false
         val logged = day.logs.mapNotNull { it.slotId }.toSet()
         if (!day.onboardingDone || !PushPlan.shouldNotify(slotId, logged, day.skippedSlotIds)) return false
-        return notify(slotId, slot.name)
+        val shown = notify(slotId, slot.name)
+        if (shown) telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "shown"))
+        return shown
     }
 
     /** "Pular" on the notification: skip status, notification and alarm gone (spec rule 4). */
@@ -42,6 +48,8 @@ class PushHandler @Inject constructor(
         repository.addSkip(slotId)
         NotificationManagerCompat.from(context).cancel(notificationId(slotId))
         scheduler.cancel(slotId)
+        telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "skip"))
+        telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "push"))
     }
 
     suspend fun onResync() {

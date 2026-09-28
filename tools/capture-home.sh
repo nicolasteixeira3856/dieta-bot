@@ -3,7 +3,7 @@
 # in docs/qa/android/current/<theme>/. Logs are seeded straight into Room (sqlite) because meal
 # logging only exists once the Chat lands (A5).
 #
-# Prereqs: debug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
+# Prereqs: devDebug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
 # Usage: tools/capture-home.sh dark|light      Then: node tools/diff-gold.mjs dark/home1 ...
 set -u
 THEME="${1:?dark|light}"
@@ -14,11 +14,15 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android
+PKG=com.nutri.android.dev
+# The Kotlin package did not change with the dev flavor (A10): name the activity in full.
+ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+# Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
+"$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
 dump() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/ui.xml"; }
 at() { # at <attribute regex> -> "x y" of the first matching node
@@ -77,7 +81,7 @@ EOF
   "$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
   "$ADB" shell chmod 644 /data/local/tmp/nutri.db
   "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
-  "$ADB" shell am start -W -n $PKG/.MainActivity >/dev/null
+  "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
   sleep 3
   "$ADB" exec-out screencap -p > "$OUT/$1.png"
   echo "  captured $THEME/$1"
