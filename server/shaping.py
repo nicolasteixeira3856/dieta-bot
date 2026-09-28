@@ -6,6 +6,8 @@ from typing import Any
 
 from config import DIGEST_MAX_CHARS, FALLBACK_QUESTION, MODEL
 
+CHAT_FALLBACK_REPLY = "nao deu pra estimar"
+
 
 def shape_estimate(payload: dict[str, Any]) -> dict[str, Any]:
     confidence = _confidence(payload.get("confidence"))
@@ -83,7 +85,7 @@ def shape_chat(
 
     reply = payload.get("reply")
     if not isinstance(reply, str) or not reply.strip():
-        reply = "nao deu pra estimar"
+        reply = CHAT_FALLBACK_REPLY
     else:
         reply = reply.strip()
 
@@ -147,7 +149,7 @@ def shape_chat(
 
 def fail_chat() -> dict[str, Any]:
     return {
-        "reply": "nao deu pra estimar",
+        "reply": CHAT_FALLBACK_REPLY,
         "estimate": None,
         "digest": None,
         "model": MODEL,

@@ -14,7 +14,7 @@ Decisão: [ADR-013](adrs/ADR-013-gcp-host.md). Plano de origem: [S5](plans/compl
 | URL da API | `https://35-231-53-42.sslip.io` |
 | Firewall | `nutri-allow-web` (80/443 público), `nutri-allow-iap-ssh` (22 só do IAP `35.235.240.0/20`) |
 | Orçamento | `nutri-mensal` — R$ 30/mês, alertas 50/90/100% |
-| Na VM | `/opt/nutri/{server/, infra/gcp/, .env}` — `.env` root:root 600; `infra/gcp/.env` só com `PUBLIC_HOST` (interpolação do compose) |
+| Na VM | `/opt/nutri/{server/, infra/gcp/, logs/, .env}` — `.env` root:root 600; `infra/gcp/.env` só com `PUBLIC_HOST` (interpolação do compose) |
 
 ## Redeploy
 
@@ -38,11 +38,23 @@ gcloud compute ssh nutri-api --zone us-east1-b --tunnel-through-iap --command "c
 
 Na primeira conexão, o `gcloud` gera `~/.ssh/google_compute_engine` e grava a chave no metadata do projeto.
 
+## Log de conversa (dev)
+
+[ADR-015](adrs/ADR-015-log-conversa-dev.md). Ligado pelo `infra/gcp/compose.yml` (`CONVERSATION_LOG_PATH=/data/conversations.jsonl`, volume `/opt/nutri/logs`, `chmod 700`). Uma linha JSON por chamada ao modelo; rotação de 20 MB × 5.
+
+```powershell
+./tools/pull-conversations.ps1                  # últimas 20 linhas
+./tools/pull-conversations.ps1 -RequestId <id>  # uma chamada (id do header X-Request-Id)
+./tools/pull-conversations.ps1 -Download        # copia para logs/ (gitignored)
+```
+
+Campos: `ts`, `request_id`, `route`, `app_version`, `app_env`, `prompt`, `input_text`, `has_photo`, `photo_b64_chars`, `raw_output`, `error`, `response`, `fallback`, `latency_ms`. Nunca a foto, o convite ou a chave.
+
 ## Trocar o INVITE_CODE
 
-1. Gravar o novo valor na linha `INVITE_CODE=` do `.env` da raiz **e** em `apps/android/local.properties`.
+1. Gravar o novo valor na linha `INVITE_CODE=` do `.env` da raiz **e** na linha `dev.INVITE_CODE=` de `apps/android/local.properties`.
 2. `./tools/deploy-gcp.ps1 -Env`.
-3. Rebuild e reinstalação do APK (`./gradlew :app:assembleDebug`, `adb install -r`).
+3. Rebuild e reinstalação do APK dev (`./gradlew.bat :app:assembleDevRelease`, `adb install -r app/build/outputs/apk/dev/release/app-dev-release.apk`).
 
 ## Desligar
 

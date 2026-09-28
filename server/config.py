@@ -19,6 +19,9 @@ RATE_LIMIT_CHAT = "30/minute"
 FALLBACK_QUESTION = "descreve em 1 linha"
 # Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
 DIGEST_MAX_CHARS = 1600
+# Dev conversation log (ADR-015): on only when CONVERSATION_LOG_PATH is set.
+CONVERSATION_LOG_MAX_BYTES = 20 * 1024 * 1024
+CONVERSATION_LOG_BACKUPS = 5
 
 _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
 
@@ -29,6 +32,7 @@ def load_settings() -> "Settings":
     return Settings(
         invite_code=os.environ.get("INVITE_CODE", ""),
         api_key=os.environ.get("OPENAI_API_KEY", ""),
+        conversation_log_path=os.environ.get("CONVERSATION_LOG_PATH", "").strip(),
     )
 
 
@@ -36,3 +40,4 @@ def load_settings() -> "Settings":
 class Settings:
     invite_code: str
     api_key: str
+    conversation_log_path: str = ""

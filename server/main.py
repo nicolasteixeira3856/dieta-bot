@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import secrets
+import time
+import uuid
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from typing import Any, Literal
 
@@ -25,8 +29,10 @@ from config import (
     RATE_LIMIT_FIT,
     load_settings,
 )
+from conversation_log import ConversationLog, now_iso
 from llm import LlmClient
 from shaping import (
+    CHAT_FALLBACK_REPLY,
     fail_chat,
     fail_digest,
     fail_estimate,
@@ -39,6 +45,8 @@ from shaping import (
 
 _LOG = logging.getLogger("nutri")
 _LOG_READY = False
+_REQUEST_ID = re.compile(r"[A-Za-z0-9-]{1,64}")
+_ERROR_MESSAGE_MAX = 500
 
 
 class AssumptionIn(BaseModel):
@@ -140,6 +148,10 @@ def create_app(
     _configure_logging()
     settings = load_settings()
     llm = LlmClient(api_key=settings.api_key, transport=transport)
+    conversation_log = ConversationLog(
+        settings.conversation_log_path,
+        redact=(settings.invite_code, settings.api_key),
+    )
 
     if limiter is None:
         limiter = Limiter(key_func=_rate_limit_key)
@@ -148,11 +160,13 @@ def create_app(
     async def lifespan(app: FastAPI):
         yield
         llm.close()
+        conversation_log.close()
 
     app = FastAPI(lifespan=lifespan)
     app.state.llm = llm
     app.state.invite_code = settings.invite_code
     app.state.limiter = limiter
+    app.state.conversation_log = conversation_log
 
     @app.exception_handler(RateLimitExceeded)
     def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:
@@ -176,6 +190,46 @@ def create_app(
                 pass
         return await call_next(request)
 
+    # Registered last = outermost: every response carries X-Request-Id, 413/401/429 included.
+    @app.middleware("http")
+    async def request_id(request: Request, call_next):
+        received = request.headers.get("X-Request-Id", "")
+        rid = received if _REQUEST_ID.fullmatch(received) else str(uuid.uuid4())
+        request.state.request_id = rid
+        response = await call_next(request)
+        response.headers["X-Request-Id"] = rid
+        return response
+
+    def _llm_call(
+        request: Request,
+        route: str,
+        image: str | None,
+        call: Callable[[dict[str, Any]], dict[str, Any]],
+        shape: Callable[[dict[str, Any]], dict[str, Any]],
+        fail: Callable[[], dict[str, Any]],
+        is_fallback: Callable[[dict[str, Any]], bool] | None = None,
+    ) -> dict[str, Any]:
+        record = _new_record(request, route, image)
+        started = time.monotonic()
+        try:
+            try:
+                result = shape(call(record))
+            except Exception as exc:
+                _LOG.warning("%s failed: %s", route, type(exc).__name__)
+                record["error"] = {
+                    "type": type(exc).__name__,
+                    "message": str(exc)[:_ERROR_MESSAGE_MAX],
+                }
+                record["fallback"] = True
+                result = fail()
+            if is_fallback is not None and is_fallback(result):
+                record["fallback"] = True
+            record["response"] = result
+            return result
+        finally:
+            record["latency_ms"] = round((time.monotonic() - started) * 1000)
+            conversation_log.write(record)
+
     @app.get("/health")
     def health() -> Response:
         body = '{"ok": true, "model": "' + MODEL + '"}'
@@ -194,12 +248,16 @@ def create_app(
         try:
             if reject_photo(image) == "too_large":
                 raise HTTPException(status_code=413, detail="photo_too_large")
-            try:
-                payload = llm.estimate_json(user_text=_estimate_text(body), image_b64=image)
-                return shape_estimate(payload)
-            except Exception as exc:
-                _LOG.warning("estimate failed: %s", type(exc).__name__)
-                return fail_estimate()
+            return _llm_call(
+                request,
+                "estimate",
+                image,
+                lambda trace: llm.estimate_json(
+                    user_text=_estimate_text(body), image_b64=image, trace=trace
+                ),
+                shape_estimate,
+                fail_estimate,
+            )
         finally:
             image = None
 
@@ -216,12 +274,14 @@ def create_app(
         try:
             if reject_photo(image) == "too_large":
                 raise HTTPException(status_code=413, detail="photo_too_large")
-            try:
-                payload = llm.fit_json(user_text=_fit_text(body), image_b64=image)
-                return shape_fit(payload, budget_kcal=body.budget.kcal, mode=body.mode)
-            except Exception as exc:
-                _LOG.warning("fit failed: %s", type(exc).__name__)
-                return fail_fit(body.mode)
+            return _llm_call(
+                request,
+                "fit",
+                image,
+                lambda trace: llm.fit_json(user_text=_fit_text(body), image_b64=image, trace=trace),
+                lambda payload: shape_fit(payload, budget_kcal=body.budget.kcal, mode=body.mode),
+                lambda: fail_fit(body.mode),
+            )
         finally:
             image = None
 
@@ -234,37 +294,67 @@ def create_app(
     ) -> dict[str, Any]:
         _require_invite(x_invite, app.state.invite_code)
         if body.compact:
-            return _compact(body)
+            return _compact(request, body)
         image = body.image_b64
         body.image_b64 = None
         try:
             if reject_photo(image) == "too_large":
                 raise HTTPException(status_code=413, detail="photo_too_large")
-            try:
-                payload = llm.chat_json(user_text=_chat_text(body), image_b64=image)
-                return shape_chat(
+            return _llm_call(
+                request,
+                "chat",
+                image,
+                lambda trace: llm.chat_json(user_text=_chat_text(body), image_b64=image, trace=trace),
+                lambda payload: shape_chat(
                     payload,
                     valid_slot_ids=[s.id for s in body.profile.slots],
-                )
-            except Exception as exc:
-                _LOG.warning("chat failed: %s", type(exc).__name__)
-                return fail_chat()
+                ),
+                fail_chat,
+                is_fallback=lambda result: result.get("reply") == CHAT_FALLBACK_REPLY,
+            )
         finally:
             image = None
 
-    def _compact(body: ChatIn) -> dict[str, Any]:
+    def _compact(request: Request, body: ChatIn) -> dict[str, Any]:
         # Photo is ignored in compact: it never reaches the summary call.
         body.image_b64 = None
         if not body.messages:
             raise HTTPException(status_code=422, detail="compact_needs_messages")
-        try:
-            payload = llm.digest_json(history_text=_history_text(body))
-            return shape_digest(payload)
-        except Exception as exc:
-            _LOG.warning("compact failed: %s", type(exc).__name__)
-            return fail_digest()
+        return _llm_call(
+            request,
+            "compact",
+            None,
+            lambda trace: llm.digest_json(history_text=_history_text(body), trace=trace),
+            shape_digest,
+            fail_digest,
+        )
 
     return app
+
+
+def _new_record(request: Request, route: str, image: str | None) -> dict[str, Any]:
+    """One conversation-log line (ADR-015). Photo: presence and size only."""
+    return {
+        "ts": now_iso(),
+        "request_id": getattr(request.state, "request_id", None),
+        "route": route,
+        "app_version": _short_header(request, "X-App-Version"),
+        "app_env": _short_header(request, "X-App-Env"),
+        "prompt": None,
+        "input_text": None,
+        "has_photo": bool(image),
+        "photo_b64_chars": len(image) if image else 0,
+        "raw_output": None,
+        "error": None,
+        "response": None,
+        "fallback": False,
+        "latency_ms": None,
+    }
+
+
+def _short_header(request: Request, name: str) -> str | None:
+    value = request.headers.get(name, "").strip()[:64]
+    return value or None
 
 
 def _history_text(body: ChatIn) -> str:

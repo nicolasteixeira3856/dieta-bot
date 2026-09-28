@@ -113,20 +113,39 @@ class LlmClient:
         elif http is not None:
             http.close()
 
-    def estimate_json(self, *, user_text: str, image_b64: str | None) -> dict[str, Any]:
-        return self._complete(_ESTIMATE_INSTRUCTIONS, wrap_user_input(user_text), image_b64)
+    # trace (ADR-015): optional dict filled with prompt, input_text and raw_output. Never the photo.
+    def estimate_json(
+        self, *, user_text: str, image_b64: str | None, trace: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        return self._complete(
+            "estimate", _ESTIMATE_INSTRUCTIONS, wrap_user_input(user_text), image_b64, trace
+        )
 
-    def fit_json(self, *, user_text: str, image_b64: str | None) -> dict[str, Any]:
-        return self._complete(_FIT_INSTRUCTIONS, wrap_user_input(user_text), image_b64)
+    def fit_json(
+        self, *, user_text: str, image_b64: str | None, trace: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        return self._complete("fit", _FIT_INSTRUCTIONS, wrap_user_input(user_text), image_b64, trace)
 
-    def chat_json(self, *, user_text: str, image_b64: str | None) -> dict[str, Any]:
-        return self._complete(_CHAT_INSTRUCTIONS, user_text, image_b64)
+    def chat_json(
+        self, *, user_text: str, image_b64: str | None, trace: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        return self._complete("chat", _CHAT_INSTRUCTIONS, user_text, image_b64, trace)
 
-    def digest_json(self, *, history_text: str) -> dict[str, Any]:
+    def digest_json(self, *, history_text: str, trace: dict[str, Any] | None = None) -> dict[str, Any]:
         """compact=true: text only. A photo is never sent to the summary."""
-        return self._complete(_DIGEST_INSTRUCTIONS, wrap_history(history_text), None)
+        return self._complete("digest", _DIGEST_INSTRUCTIONS, wrap_history(history_text), None, trace)
 
-    def _complete(self, instructions: str, input_text: str, image_b64: str | None) -> dict[str, Any]:
+    def _complete(
+        self,
+        prompt: str,
+        instructions: str,
+        input_text: str,
+        image_b64: str | None,
+        trace: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if trace is not None:
+            trace["prompt"] = prompt
+            trace["input_text"] = input_text
         content: list[dict[str, str]] = [{"type": "input_text", "text": input_text}]
         if image_b64:
             content.append(
@@ -152,6 +171,8 @@ class LlmClient:
                 part.clear()
             content.clear()
         text = response.output_text
+        if trace is not None:
+            trace["raw_output"] = text
         if not text.strip():
             raise ValueError("empty response")
         return _parse_json_object(text)

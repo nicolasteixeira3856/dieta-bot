@@ -4,6 +4,11 @@ services:
   api:
     build: ../../server
     env_file: ../../.env
+    # Dev conversation log (ADR-015). Read with tools/pull-conversations.ps1.
+    environment:
+      CONVERSATION_LOG_PATH: /data/conversations.jsonl
+    volumes:
+      - /opt/nutri/logs:/data
     # No published port: only Caddy reaches 8080.
     # keep-alive >= 60s (server README); proxy headers so the rate limit sees the client IP.
     command:

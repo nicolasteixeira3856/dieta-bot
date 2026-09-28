@@ -20,6 +20,7 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 - Cap 16 MB JPEG (`PHOTO_MAX_B64_CHARS = 22_400_000`). Acima disso HTTP 413 `photo_too_large` antes da Luna.
 - Shaping do JSON de contrato.
 - Compose + Cloudflare Tunnel na torre (dev). Sem porta no roteador.
+- `X-Request-Id` em toda resposta. Log de conversa opcional (`CONVERSATION_LOG_PATH`), ligado so no server GCP de dev ([ADR-015](adrs/ADR-015-log-conversa-dev.md)); leitura por `tools/pull-conversations.ps1`.
 - Producao: VM e2-micro GCP + Caddy HTTPS ([ADR-013](adrs/ADR-013-gcp-host.md), runbook [deploy-gcp.md](deploy-gcp.md)). `infra/gcp/`, `tools/deploy-gcp.ps1`.
 
 ## Fora de escopo
@@ -37,7 +38,7 @@ API HTTP do Nutri. Estima refeicao e devolve prato que cabe. Nao calcula teto. N
 
 ## Cobertura documental atual
 
-Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`.
+Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`.
 [S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) concluidos.
 
 ## Como usar esta documentacao
@@ -65,13 +66,15 @@ Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 ### ADRs
 
 - [ADR-013](adrs/ADR-013-gcp-host.md) — host GCP e2-micro (aceito).
+- [ADR-015](adrs/ADR-015-log-conversa-dev.md) — log de conversa no server de dev (aceito).
 - Historico: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
 
 ### Planos e validacao
 
+- [S6 pendente aprovacao manual](plans/pending_manual_validation/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; falta o dono reproduzir o "nao deu".
 - [S5 concluido](plans/completed/s5-gcp-deploy.md) — deploy GCP e2-micro + Caddy.
 - [S1 concluido](plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16 MB.
 - [S4 concluido](plans/completed/s4-security-hardening.md) — hardening de seguranca (rate limiting, constant time auth, payload limit).
 - [S2 concluido](plans/completed/s2-v1-chat.md) — POST /v1/chat.
 - [S3 concluido](plans/completed/s3-compact.md) — compact digest.
-- Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`.
+- Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`.

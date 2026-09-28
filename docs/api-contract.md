@@ -8,6 +8,9 @@ Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length
 Field lengths: `text` field in `/v1/estimate`, `/v1/fit`, and `/v1/chat` has a maximum length of 1,000 characters. Returns HTTP 422 when exceeded.
 Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as meal data.
 
+Request id: optional request header `X-Request-Id` (`[A-Za-z0-9-]{1,64}`). The server reuses it, or generates a UUID when it is missing or invalid, and always returns it in the `X-Request-Id` response header, on every route and status. Optional request headers `X-App-Version` and `X-App-Env` are only recorded. None of them changes the JSON body.
+Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error, final response, latency). Never the photo, the invite or the API key. Off by default.
+
 The server does not compute the ceiling. The app sends the budget on /fit.
 
 ## GET /health

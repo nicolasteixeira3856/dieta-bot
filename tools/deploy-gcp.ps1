@@ -56,7 +56,7 @@ if ($Env) {
 }
 
 # 4. Replace code and (re)start the stack.
-Invoke-Remote ("sudo mkdir -p /opt/nutri && sudo rm -rf /opt/nutri/server /opt/nutri/infra && " +
+Invoke-Remote ("sudo mkdir -p /opt/nutri/logs && sudo chmod 700 /opt/nutri/logs && sudo rm -rf /opt/nutri/server /opt/nutri/infra && " +
     "sudo tar -xzf /tmp/nutri-deploy.tgz -C /opt/nutri && rm -f /tmp/nutri-deploy.tgz && " +
     "test -f /opt/nutri/.env && cd /opt/nutri && " +
     # Compose interpolation file: lets plain `docker compose ps|logs` work on the VM.

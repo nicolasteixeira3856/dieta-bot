@@ -20,4 +20,5 @@ if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>
 fi
 systemctl enable --now docker
 
-mkdir -p /opt/nutri
+mkdir -p /opt/nutri /opt/nutri/logs
+chmod 700 /opt/nutri/logs
