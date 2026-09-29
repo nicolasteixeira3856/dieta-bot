@@ -134,12 +134,15 @@ if "$ADB" exec-out run-as $PKG ls files/ | grep -q "memory.txt"; then echo "  �
 
 # Gold captures: the flow above is the functional check. The gold message has accents adb cannot
 # type, so the exact gold conversation is seeded and chatE / chatT / chatP are captured again.
+# chatE (ST1/A19) carries the follow-up question in its own bubble; chatT / chatP golds have none.
+seed_gold() { # seed_gold <question or empty>
 "$ADB" shell am force-stop $PKG
 rm -f "$TMP"/nutri.db*
 for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+"$PY" - "$TMP/nutri.db" "$1" <<'EOF'
 import sqlite3, sys, time
 c = sqlite3.connect(sys.argv[1])
+question = sys.argv[2] or None
 today = c.execute("select firstDay from profile").fetchone()[0]
 first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
 for table in ("chat_message", "meal_log", "slot_skip"):
@@ -148,9 +151,9 @@ now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)",
           (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
-          "estimateConfidence,estimateSlotId,estimateItems) values(?,?,?,?,?,?,?,?,?,?,?)",
+          "estimateConfidence,estimateSlotId,estimateItems,estimateQuestion) values(?,?,?,?,?,?,?,?,?,?,?,?)",
           (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000,
-           380, 22, 36, 16, "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos"))
+           380, 22, 36, 16, "medium" if question else "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", question))
 c.commit()
 c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
@@ -162,7 +165,11 @@ EOF
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 1.5
+}
+seed_gold "Os pães tinham manteiga ou requeijão?"
+expect "follow-up question in its own bubble" 'resource-id="chat-question"'
 shot chatE
+seed_gold ""
 tap 'resource-id="chat-swap"'
 dump; last=$(grep -o 'resource-id="chat-sheet-slot-[0-9]*"' "$TMP/ui.xml" | tail -1)
 tap "$last" 0.6

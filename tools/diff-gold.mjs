@@ -41,10 +41,15 @@ const FOOTER = 260; // 130 dp: CTA + gradient + nav
 // gated, until regenerated in Stitch. See the A4 and A5 plans in docs/android/plans/completed/.
 // push: the gold is a drawn lock screen; the app only posts a notification and SystemUI draws the
 // lock screen and the card (A7). Reported, never gated.
-const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "push"]);
+// chatA: a copy of chat0 (same other header), only its composer is new (A19).
+const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatA", "push"]);
 // Parts of a conflict gold that are gated on their own (gold px box x0, y0, x1, y1; best
 // vertical offset). chatF: the photo bubble (A6); the rest of chatF is the chatG generation.
-const REGIONS = { chatF: [214, 368, 746, 734] };
+// chatA: the composer with the attached thumbnail (A19).
+const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664] };
+// Regions reported, not gated: light chatA draws the composer on the page colour (chat0
+// generation) while the canonical light chatE uses the card colour.
+const REGION_REPORT_ONLY = new Set(["light/chatA"]);
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -205,8 +210,9 @@ for (const key of ids) {
   if (REGIONS[id]) {
     const part = regionScore(app, gold, REGIONS[id]);
     const partOk = part <= max;
-    if (!partOk) failed = true;
-    console.log(`  ${partOk ? "✓" : "✗"} ${key} region ${part.toFixed(2)}% (max ${max}%)`);
+    const reportOnly = REGION_REPORT_ONLY.has(key);
+    if (!partOk && !reportOnly) failed = true;
+    console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} region ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
   }
   console.log(`  ${ok ? "✓" : conflict ? "~" : "✗"} ${key} ${pct.toFixed(2)}% ink ${inkRatio.toFixed(2)} (content ${content.dy / 2} dp${footerNote}, max ${max}%, ink 0.8-1.25)${conflict ? " [gold conflict: report only]" : ""}`);
 }

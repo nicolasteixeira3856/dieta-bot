@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,10 +27,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotType
+import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.photo.PhotoStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -88,7 +92,8 @@ object PhotoPreviews {
         cached(path) ?: PhotoStore.preview(path)?.asImageBitmap()?.also { cache.put(path, it) }
 }
 
-private val PhotoBubbleShape = RoundedCornerShape(24.dp)
+/** Same 16 dp as every other bubble (ST1). */
+private val PhotoBubbleShape = BubbleShape
 private val PhotoShape = RoundedCornerShape(14.dp)
 
 /** chatF: photo card inside the user bubble, "Visão Computacional" tag, caption + time. */
@@ -139,6 +144,41 @@ internal fun PhotoBubble(item: ChatItem.User, photoPath: String) {
                 Spacer(Modifier.width(4.dp))
                 Icon(Icons.Filled.DoneAll, contentDescription = null, tint = p.gold, modifier = Modifier.size(12.dp))
             }
+        }
+    }
+}
+
+private val ThumbShape = RoundedCornerShape(12.dp)
+
+/** chatA: 64 dp thumbnail of the composer attachment, ✕ on its top-right corner. */
+@Composable
+internal fun AttachmentThumb(path: String, onRemove: () -> Unit) {
+    val p = LocalPalette.current
+    // key(path): a replaced attachment must not keep the previous photo (produceState keeps its value across keys).
+    val image by key(path) {
+        produceState(PhotoPreviews.cached(path), path) {
+            if (value == null) value = withContext(Dispatchers.IO) { PhotoPreviews.load(path) }
+        }
+    }
+    // chatA: 13 dp above and 11 dp below the thumbnail, 14.5 dp from the composer edge.
+    Box(Modifier.padding(start = 4.5.dp, top = 7.dp, bottom = 11.dp)) {
+        Box(Modifier.size(64.dp).clip(ThumbShape).background(p.panel).border(1.dp, p.line, ThumbShape).testTag("chat-attachment")) {
+            image?.let {
+                Image(it, contentDescription = "Foto anexada", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            }
+        }
+        Box(
+            Modifier
+                .offset(x = 49.dp, y = (-7).dp)
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(p.surf2)
+                .border(1.dp, p.line, CircleShape)
+                .dietaClick(onClick = onRemove)
+                .testTag("chat-attachment-remove"),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Outlined.Close, contentDescription = "Remover foto", tint = p.text, modifier = Modifier.size(14.dp))
         }
     }
 }

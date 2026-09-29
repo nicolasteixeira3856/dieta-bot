@@ -30,7 +30,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +39,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
@@ -74,6 +75,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -102,8 +104,10 @@ import com.nutri.android.domain.SlotSuggestions
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 
-private val UserShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 2.dp)
-private val BotShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 6.dp, bottomEnd = 20.dp)
+/** Every chat bubble has the same shape: 16 dp on all four corners (ST1). */
+internal val BubbleShape = RoundedCornerShape(16.dp)
+private val UserShape = BubbleShape
+private val BotShape = BubbleShape
 
 /** Suggestion chips of an empty day (chat0). The photo one waits for A6. */
 private val SUGGESTIONS = listOf("☕" to "Café com 2 ovos mexidos", "🥗" to "Salada Caesar")
@@ -133,6 +137,8 @@ fun ChatScreen(
     onGallery: () -> Unit = {},
     onPhotoSheetClose: () -> Unit = {},
     onNoticeShown: () -> Unit = {},
+    /** chatA: ✕ on the composer thumbnail. */
+    onRemoveAttachment: () -> Unit = {},
 ) {
     val p = LocalPalette.current
     Box(
@@ -150,8 +156,9 @@ fun ChatScreen(
             Header(onBack)
             Thread(ui, onRetry, Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
-            if (ui.emptyDay) SuggestionRow(onComposer, onCamera)
-            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto)
+            // chatA: with a photo attached the chips go away (they would compete with it).
+            if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, onCamera)
+            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto, onRemoveAttachment)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
@@ -209,19 +216,32 @@ private fun Thread(ui: ChatUiState, onRetry: () -> Unit, modifier: Modifier) {
         modifier.fillMaxWidth().testTag("chat-thread"),
         state = list,
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 15.dp, bottom = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(ui.items, key = { it.key }) { item ->
-            when (item) {
-                is ChatItem.DateSeparator -> DatePill(item.label)
-                is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it) } ?: UserBubble(item)
-                is ChatItem.Assistant -> AssistantBubble(item)
-                is ChatItem.Receipt -> ReceiptCard(item)
-                is ChatItem.Greeting -> Greeting(item, ui)
-                ChatItem.Loading -> LoadingBubble()
-                ChatItem.Failed -> FailedBubble(onRetry)
+        itemsIndexed(ui.items, key = { _, it -> it.key }) { i, item ->
+            // 16 dp between items; the question hugs its estimate (chatE).
+            val gap = when {
+                i == 0 -> 0.dp
+                item is ChatItem.Question -> 5.dp
+                else -> 16.dp
+            }
+            Box(Modifier.padding(top = gap)) {
+                ThreadItem(item, ui, onRetry)
             }
         }
+    }
+}
+
+@Composable
+private fun ThreadItem(item: ChatItem, ui: ChatUiState, onRetry: () -> Unit) {
+    when (item) {
+        is ChatItem.DateSeparator -> DatePill(item.label)
+        is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it) } ?: UserBubble(item)
+        is ChatItem.Assistant -> AssistantBubble(item)
+        is ChatItem.Question -> QuestionBubble(item)
+        is ChatItem.Receipt -> ReceiptCard(item)
+        is ChatItem.Greeting -> Greeting(item, ui)
+        ChatItem.Loading -> LoadingBubble()
+        ChatItem.Failed -> FailedBubble(onRetry)
     }
 }
 
@@ -270,7 +290,7 @@ private fun UserBubble(item: ChatItem.User) {
 @Composable
 private fun AiLabel() {
     val p = LocalPalette.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, top = 2.dp, bottom = 13.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 9.dp)) {
         Box(
             Modifier.size(16.dp).clip(CircleShape).background(p.gold.copy(alpha = 0.2f)).border(1.dp, p.gold.copy(alpha = 0.4f), CircleShape),
             contentAlignment = Alignment.Center,
@@ -279,17 +299,6 @@ private fun AiLabel() {
         }
         Spacer(Modifier.width(6.dp))
         Text("Dieta Bot AI", style = DietaBotType.headlineMd.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = (-0.025).em), color = p.text)
-        Spacer(Modifier.width(6.dp))
-        Text(
-            "IA ATIVA",
-            style = DietaBotType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W600, letterSpacing = 0.1.em),
-            color = p.gold,
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(p.gold.copy(alpha = 0.1f))
-                .border(1.dp, p.gold.copy(alpha = 0.2f), CircleShape)
-                .padding(horizontal = 6.dp, vertical = 2.dp),
-        )
     }
 }
 
@@ -316,10 +325,34 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
                         color = p.muted,
                     )
                 }
-                e.question?.let {
-                    Text(it, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 6.dp).testTag("chat-question"))
-                }
             }
+        }
+        // With a follow-up question the time moves under the question bubble (chatE).
+        if (item.estimate?.question.isNullOrBlank()) {
+            Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
+        }
+    }
+}
+
+/** chatE: the clarifying question in its own bubble. Gold bar on the left, help icon, text in primary colour. */
+@Composable
+private fun QuestionBubble(item: ChatItem.Question) {
+    val p = LocalPalette.current
+    Column(Modifier.fillMaxWidth(0.88f), horizontalAlignment = Alignment.Start) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(BubbleShape)
+                .background(p.card)
+                .drawBehind { drawRect(p.gold, size = Size(3.dp.toPx(), size.height)) }
+                .border(1.dp, p.line, BubbleShape)
+                .padding(start = 19.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
+                .testTag("chat-question"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = null, tint = p.gold, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(12.dp))
+            Text(item.text, style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = 23.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.text)
         }
         Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
     }
@@ -584,6 +617,7 @@ private fun Footer(
     onSwap: (Long) -> Unit,
     onAskSkip: (SlotRef) -> Unit,
     onPhoto: () -> Unit,
+    onRemoveAttachment: () -> Unit,
 ) {
     val p = LocalPalette.current
     Column(
@@ -595,7 +629,7 @@ private fun Footer(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         ui.actions?.let { ActionBar(it, onRecord, onSwap, onAskSkip) }
-        Composer(ui, onComposer, onSend, onPhoto)
+        Composer(ui, onComposer, onSend, onPhoto, onRemoveAttachment)
     }
 }
 
@@ -641,20 +675,33 @@ private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, hapti
 }
 
 @Composable
-private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit) {
+private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit, onRemoveAttachment: () -> Unit) {
     val p = LocalPalette.current
-    Row(
+    // chatA: with an attachment the pill grows into a rounded box, thumbnail on top.
+    val attached = ui.attachment != null
+    val shape = if (attached) ComposerAttachedShape else CircleShape
+    Column(
         Modifier
             .fillMaxWidth()
-            .clip(CircleShape)
+            .clip(shape)
             .background(p.card)
-            .border(1.dp, p.line, CircleShape)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .border(1.dp, p.line, shape)
+            .then(if (attached) Modifier.padding(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 11.dp) else Modifier.padding(horizontal = 8.dp, vertical = 6.dp)),
     ) {
+        ui.attachment?.let { AttachmentThumb(it, onRemoveAttachment) }
+        ComposerRow(ui, onComposer, onSend, onPhoto, buttonDp = if (attached) 40 else 36)
+    }
+}
+
+private val ComposerAttachedShape = RoundedCornerShape(28.dp)
+
+@Composable
+private fun ComposerRow(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit, buttonDp: Int) {
+    val p = LocalPalette.current
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier
-                .size(36.dp)
+                .size(buttonDp.dp)
                 .clip(CircleShape)
                 .background(p.surf2)
                 .border(1.dp, p.text.copy(alpha = 0.05f), CircleShape)
@@ -673,7 +720,7 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Default),
             textStyle = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
             cursorBrush = SolidColor(p.gold),
-            modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp).testTag("chat-input"),
+            modifier = Modifier.weight(1f).padding(start = if (buttonDp > 36) 16.dp else 12.dp, end = 8.dp).testTag("chat-input"),
             decorationBox = { inner ->
                 Box {
                     if (ui.composer.isEmpty()) {
@@ -685,7 +732,7 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
         )
         Box(
             Modifier
-                .size(36.dp)
+                .size(buttonDp.dp)
                 .clip(CircleShape)
                 .background(p.gold)
                 .dietaClick(enabled = ui.canSend, onClick = onSend)

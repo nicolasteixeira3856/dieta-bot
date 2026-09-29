@@ -378,6 +378,8 @@ class ChatViewModelTest {
         photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/pf.jpg")
         vm.setComposer("Almoço de hoje")
         vm.onPicked(android.net.Uri.parse("content://media/1"))
+        vm.await { it.attachment != null }
+        vm.send()
         vm.await { it.actions != null }
 
         val sent = requests.single()
@@ -415,6 +417,8 @@ class ChatViewModelTest {
         answer = { throw IOException("timeout") }
         photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/x.jpg")
         vm.onPicked(android.net.Uri.parse("content://media/3"))
+        vm.await { it.attachment != null }
+        vm.send()
         vm.await { it.items.any { i -> i is ChatItem.Failed } }
         assertThat(repo.observeMessages().first()).isEmpty()
         assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.User>().single().photoPath).isEqualTo("/photos/x.jpg")
@@ -424,6 +428,101 @@ class ChatViewModelTest {
         vm.await { it.actions != null }
         assertThat(requests.map { it.imageB64 }).containsExactly("B64:/photos/x.jpg", "B64:/photos/x.jpg")
         assertThat(photos.deleted).isEmpty()
+    }
+
+    // ------------------------------------------------------------------ attachment (A19, chatA)
+
+    @Test
+    fun pickedPhoto_isAttached_noPost_untilSend() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { estimateOut(null) }
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/a.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/4"))
+        val attached = vm.await { it.attachment != null }
+        assertThat(attached.attachment).isEqualTo("/photos/a.jpg")
+        assertThat(attached.canSend).isTrue()
+        assertThat(attached.items.filterIsInstance<ChatItem.User>()).isEmpty()
+        assertThat(requests).isEmpty()
+
+        vm.setComposer("almoço de hoje, comi tudo")
+        vm.send()
+        vm.await { it.actions != null }
+        assertThat(requests).hasSize(1)
+        assertThat(requests.single().text).isEqualTo("almoço de hoje, comi tudo")
+        assertThat(requests.single().imageB64).isEqualTo("B64:/photos/a.jpg")
+        assertThat(vm.uiState.value.attachment).isNull()
+        assertThat(photos.deleted).isEmpty()
+    }
+
+    @Test
+    fun capturedPhoto_isAttached_noPost() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/cam.jpg")
+        vm.newCapture()
+        vm.onCaptured(true)
+        vm.await { it.attachment == "/photos/cam.jpg" }
+        assertThat(requests).isEmpty()
+    }
+
+    @Test
+    fun removeAttachment_deletesFile_andDisablesSend() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/b.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/5"))
+        vm.await { it.attachment != null }
+        vm.removeAttachment()
+        val cleared = vm.await { it.attachment == null }
+        assertThat(cleared.canSend).isFalse()
+        assertThat(photos.deleted).containsExactly("/photos/b.jpg")
+        vm.send()
+        assertThat(requests).isEmpty()
+    }
+
+    @Test
+    fun secondPhoto_replacesAttachment_deletesThePrevious() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/c1.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/6"))
+        vm.await { it.attachment == "/photos/c1.jpg" }
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/c2.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/7"))
+        vm.await { it.attachment == "/photos/c2.jpg" }
+        assertThat(photos.deleted).containsExactly("/photos/c1.jpg")
+        assertThat(requests).isEmpty()
+    }
+
+    @Test
+    fun leavingChat_withUnsentAttachment_deletesFile() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val owner = androidx.lifecycle.ViewModelStore()
+        androidx.lifecycle.ViewModelProvider(
+            owner,
+            object : androidx.lifecycle.ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T = vm as T
+            },
+        )[ChatViewModel::class.java]
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/d.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/8"))
+        vm.await { it.attachment != null }
+        owner.clear()
+        assertThat(photos.deleted).containsExactly("/photos/d.jpg")
+        assertThat(requests).isEmpty()
+    }
+
+    @Test
+    fun estimateWithQuestion_rendersQuestionItemRightBelow() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = {
+            estimateOut("1").copy(estimate = estimateOut("1").estimate!!.copy(confidence = "medium", question = "Os pães tinham manteiga ou requeijão?"))
+        }
+        sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
+        val items = vm.uiState.value.items
+        val bot = items.indexOfFirst { it is ChatItem.Assistant }
+        val question = items[bot + 1] as ChatItem.Question
+        assertThat(question.text).isEqualTo("Os pães tinham manteiga ou requeijão?")
+        assertThat(question.estimateId).isEqualTo((items[bot] as ChatItem.Assistant).id)
+        assertThat(question.time).isEqualTo((items[bot] as ChatItem.Assistant).time)
     }
 
     @Test

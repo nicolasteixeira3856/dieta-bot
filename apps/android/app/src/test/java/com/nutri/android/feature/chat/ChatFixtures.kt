@@ -27,17 +27,30 @@ object ChatFixtures {
         slots = slots,
     )
     val chatL = ChatUiState(items = listOf(date, user.copy(pending = true), ChatItem.Loading), sending = true, emptyDay = false, slots = slots)
-    val chatE = ChatUiState(items = listOf(date, user, bot), emptyDay = false, actions = actions, slots = slots, currentSlotId = 4)
-    val chatT = chatE.copy(sheetFor = 2, sheetSelection = 4)
-    val chatP = chatE.copy(skipConfirm = SlotRef(3, "Lanche da tarde", "16:00", 960))
+    /** Estimate without a follow-up question: the chatT / chatP background (unchanged by ST1). */
+    private val estimated = ChatUiState(items = listOf(date, user, bot), emptyDay = false, actions = actions, slots = slots, currentSlotId = 4)
+
+    /** chatE after ST1: the follow-up question in its own bubble right below the estimate (A19). */
+    private const val QUESTION = "Os pães tinham manteiga ou requeijão?"
+    val chatE = estimated.copy(
+        items = listOf(date, user, bot.copy(estimate = bot.estimate!!.copy(question = QUESTION)), ChatItem.Question(2, QUESTION, "20:15")),
+    )
+    val chatT = estimated.copy(sheetFor = 2, sheetSelection = 4)
+    val chatP = estimated.copy(skipConfirm = SlotRef(3, "Lanche da tarde", "16:00", 960))
 
     /** A18 / ADR-017: Gravar on a taken slot. chatP layout, new copy (no gold of its own). */
-    val chatReplace = chatE.copy(replaceConfirm = ReplaceConfirm(2, slots[3], oldKcal = 880, newKcal = 1220))
+    val chatReplace = estimated.copy(replaceConfirm = ReplaceConfirm(2, slots[3], oldKcal = 880, newKcal = 1220))
     val chatG = ChatUiState(
         items = listOf(date, user, bot.copy(estimate = bot.estimate!!.copy(slotQuestion = null)), ChatItem.Receipt(3, false, "Café da manhã", "07:30", 380)),
         emptyDay = false,
         slots = slots,
     )
+
+    /** chatA: empty day, the photo attached in the composer with a caption, not sent yet (A19). */
+    val chatA = chat0.copy(composer = "almoço de hoje, comi tudo", attachment = CHAT_A_PHOTO)
+
+    /** Thumbnail of the chatA gold (the photo the owner attached in Stitch). */
+    const val CHAT_A_PHOTO = "src/test/resources/chatA-photo.jpg"
 
     /** chatF: photo of a prato feito captioned "Almoço de hoje", estimate 780 kcal for Almoço (A6). */
     const val CHAT_F_PHOTO = "src/test/resources/chatF-photo.jpg"

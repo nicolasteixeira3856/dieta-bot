@@ -6,7 +6,9 @@ Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta
 
 Um registro por refeição com confirmação ao substituir, Enter pula linha e foto 2048 px desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [ADR-018](../../android/adrs/ADR-018-foto-2048.md); server: [S8](../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)): regras 3, 5 e 7 e "Estados e falhas".
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): pergunta em bolha própria, bolhas iguais, sem "IA ATIVA", anexo com preview ([A19](../../android/plans/a19-chat-visual.md), gate [ST1](../../stitch/plans/completed/st1-chat.md)). Regras 2, 4 e 14 mudam na entrega desse plano. Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso ([ADR-022](../adrs/ADR-022-limite-texto-chat.md), [S9](../../server/plans/completed/s9-limite-texto-2000.md), no ar, [A25](../../android/plans/a25-limite-texto-composer.md), gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
+Pergunta em bolha própria, bolhas iguais, sem "IA ATIVA" e foto como anexo com preview desde o [A19](../../android/plans/pending_manual_validation/a19-chat-visual.md) (gate [ST1](../../stitch/plans/completed/st1-chat.md)): regras 2, 3, 14 e 15.
+
+Mudança planejada (29/09/2026, aguardando aprovação): limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso ([ADR-022](../adrs/ADR-022-limite-texto-chat.md), [S9](../../server/plans/completed/s9-limite-texto-2000.md), no ar, [A25](../../android/plans/a25-limite-texto-composer.md), gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
 
 ## Contexto e objetivo
 
@@ -23,8 +25,8 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 ## Regras funcionais
 
 1. Tela cheia. Back → Home.
-2. Bolhas: user à direita, IA à esquerda. Sem foto de perfil.
-3. Composer: texto + clipe (foto) + send. Enter pula linha (até 5 linhas visíveis); só a seta envia.
+2. Bolhas: user à direita, IA à esquerda, todas com o mesmo raio (16 dp nos 4 cantos). Rótulo da IA: ícone + "Dieta Bot AI", sem selo. Sem foto de perfil.
+3. Composer: texto + câmera (foto) + send. Enter pula linha (até 5 linhas visíveis); só a seta envia. A foto (câmera ou galeria) vira anexo no composer, com miniatura e ✕; nada sai antes do toque em enviar. Uma foto por vez: outra substitui a anterior. Send ativo com texto ou anexo; manda os dois juntos. ✕, troca ou sair do Chat com o anexo apagam o arquivo.
 4. Após estimate da IA: barra com “Gravar {slot}” (slot sugerido pelo server; some se não for do perfil), “Trocar” (sheet com os slots, o da hora marcado “(atual)”) e “Pular” (confirmação “Deseja pular o {slot}?”; sem slot sugerido, o da hora). As ações valem só para a última estimativa sem recibo.
 5. Tap Gravar (ou Confirmar no Trocar): slot sem registro hoje → `addLog` local com o último estimate (kcal, p, c, g, text). Slot com registro → confirmação no layout do `chatP`: `Substituir {slot}?`, `{slot} tem {kcal antigo} kcal. Fica com {kcal novo} kcal.`, **Substituir** | **Outra refeição** (fecha e abre o Trocar sem seleção). Substituir troca os registros de hoje daquele slot pelo novo numa transação ([ADR-017](../adrs/ADR-017-registro-consolidado.md)). Back ou toque fora só fecha. Sem novo POST.
 6. Sem tap: número não entra no contador.
@@ -35,8 +37,8 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 11. Dia SP vira: digest some do prompt. UI do fio 60 d continua com separador de data.
 12. A descrição que a IA devolve na foto é o texto da timeline se o user gravar.
 13. O client deste corte chama `POST /v1/chat`. Não chama `/v1/estimate` nem `/v1/fit` a partir do Chat.
-14. 1 pergunta se confiança ≠ alto. Assunção pergunta 1×.
-15. Dia sem mensagens: saudação fixa, cartão “Meta calórica de hoje” (restante / meta) e chips de sugestão que preenchem o composer. Nada disso é gravado nem enviado.
+14. 1 pergunta se confiança ≠ alto, numa bolha própria logo abaixo da estimativa (barra gold à esquerda, ícone de ajuda, texto em cor primária). O horário fica só nela. Assunção pergunta 1×.
+15. Dia sem mensagens: saudação fixa, cartão “Meta calórica de hoje” (restante / meta) e chips de sugestão que preenchem o composer. Com foto anexada, os chips somem. Nada disso é gravado nem enviado.
 
 ## Estados e falhas
 
@@ -60,6 +62,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A5 (Concluído)](../../android/plans/completed/a5-chat.md)
 - [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
 - [A18 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)
+- [A19 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a19-chat-visual.md)
 - `docs/server/plans/completed/s2-v1-chat.md`
 - [S3 (Concluído)](../../server/plans/completed/s3-compact.md)
 

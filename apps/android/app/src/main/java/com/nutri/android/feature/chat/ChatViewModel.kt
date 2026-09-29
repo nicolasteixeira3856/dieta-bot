@@ -71,6 +71,8 @@ class ChatViewModel @Inject constructor(
         /** JPEG of the pending send (A6). Stored in chat_message only after the server answers. */
         val pendingPhoto: String? = null,
         val photoSheet: Boolean = false,
+        /** JPEG attached in the composer (chatA): leaves only on Enviar. One at a time. */
+        val attachment: String? = null,
         /** One-shot snackbar ("Foto grande demais."). */
         val notice: String? = null,
     )
@@ -93,11 +95,13 @@ class ChatViewModel @Inject constructor(
 
     fun useSuggestion(text: String) = setComposer(text)
 
+    /** Text, attachment or both. The attachment becomes the pending photo of this send. */
     fun send() {
         val text = local.value.composer.trim()
-        if (text.isEmpty() || local.value.pending != null) return
-        local.update { it.copy(composer = "", pending = text, failed = false) }
-        viewModelScope.launch { post(text) }
+        val photo = local.value.attachment
+        if (text.isEmpty() && photo == null || local.value.pending != null) return
+        local.update { it.copy(composer = "", attachment = null, pending = text, pendingPhoto = photo, failed = false) }
+        viewModelScope.launch { post(text, photo) }
     }
 
     fun retry() {
@@ -141,26 +145,30 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch { onPhoto(photos.import(uri)) }
     }
 
-    /** The photo goes at once, captioned by what is typed (may be empty). TooLarge (no memory to decode): no POST. */
+    /** The photo becomes the composer attachment; nothing is sent until Enviar. A new one replaces the old. */
     private fun onPhoto(result: PhotoResult) {
         when (result) {
             is PhotoResult.Ready -> {
-                if (local.value.pending != null) {
-                    photos.delete(result.path)
-                    return
-                }
-                val text = local.value.composer.trim()
-                local.update { it.copy(composer = "", pending = text, pendingPhoto = result.path, failed = false) }
-                viewModelScope.launch { post(text, result.path) }
+                val previous = local.value.attachment
+                local.update { it.copy(attachment = result.path) }
+                previous?.takeIf { it != result.path }?.let { photos.delete(it) }
             }
             PhotoResult.TooLarge -> local.update { it.copy(notice = "Foto grande demais.") }
             PhotoResult.Failed -> local.update { it.copy(notice = "Não deu para abrir a foto.") }
         }
     }
 
+    /** ✕ on the thumbnail: the file goes too. */
+    fun removeAttachment() {
+        val path = local.value.attachment ?: return
+        local.update { it.copy(attachment = null) }
+        photos.delete(path)
+    }
+
     override fun onCleared() {
         // A photo that never got an answer is not in chat_message: nothing points to it.
         local.value.pendingPhoto?.let { photos.delete(it) }
+        local.value.attachment?.let { photos.delete(it) }
         captureFile?.let { photos.delete(it.path) }
     }
 
@@ -373,25 +381,14 @@ class ChatViewModel @Inject constructor(
                     slotTime = m.estimateSlotId?.let { slotById[it]?.time },
                     kcal = m.estimateKcal,
                 )
-                else -> ChatItem.Assistant(
-                    id = m.id,
-                    text = m.text,
-                    time = time,
-                    highlights = m.itemNames,
-                    estimate = m.estimateKcal?.let {
-                        EstimateView(
-                            kcal = it,
-                            p = m.estimateP ?: 0,
-                            c = m.estimateC ?: 0,
-                            g = m.estimateG ?: 0,
-                            slotQuestion = m.estimateSlotId?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" },
-                            question = m.estimateQuestion,
-                        )
-                    },
-                )
+                else -> assistant(m, time, slotById)
+            }
+            if (m.role == "assistant" && m.estimateKcal != null) {
+                m.estimateQuestion?.takeIf { it.isNotBlank() }?.let { items += ChatItem.Question(m.id, it, time) }
             }
         }
         val todayIso = today.toString()
+
         val emptyDay = visible.none { it.date == todayIso } && l.pending == null
         if (emptyDay) {
             if (lastDate != todayIso) items += ChatItem.DateSeparator(dateLabel(today, today))
@@ -425,12 +422,30 @@ class ChatViewModel @Inject constructor(
             currentSlotId = current?.id,
             sheetFor = l.sheetFor,
             photoSheet = l.photoSheet,
+            attachment = l.attachment,
             notice = l.notice,
             sheetSelection = l.sheetSelection,
             skipConfirm = l.skipConfirm,
             replaceConfirm = l.replaceConfirm,
         )
     }
+
+    private fun assistant(m: ChatMessageEntity, time: String, slotById: Map<Long, SlotRef>) = ChatItem.Assistant(
+        id = m.id,
+        text = m.text,
+        time = time,
+        highlights = m.itemNames,
+        estimate = m.estimateKcal?.let {
+            EstimateView(
+                kcal = it,
+                p = m.estimateP ?: 0,
+                c = m.estimateC ?: 0,
+                g = m.estimateG ?: 0,
+                slotQuestion = m.estimateSlotId?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" },
+                question = m.estimateQuestion,
+            )
+        },
+    )
 
     private fun userBefore(estimate: ChatMessageEntity): ChatMessageEntity? = messages
         .filter { it.role == "user" && it.createdAtEpochMs <= estimate.createdAtEpochMs && it.id < estimate.id }

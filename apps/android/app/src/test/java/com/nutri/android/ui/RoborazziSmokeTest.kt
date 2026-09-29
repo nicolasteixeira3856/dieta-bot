@@ -65,6 +65,36 @@ class RoborazziSmokeTest {
         )
     }
 
+    /** A19: follow-up question in its own bubble (chatE). */
+    @Test
+    fun chatQuestion_dark() = chat(dark = true, ChatFixtures.chatE, "chatQuestion")
+
+    @Test
+    fun chatQuestion_light() = chat(dark = false, ChatFixtures.chatE, "chatQuestion")
+
+    /** A19: photo attached in the composer, not sent (chatA). */
+    @Test
+    fun chatA_dark() = chat(dark = true, ChatFixtures.chatA, "chatA")
+
+    @Test
+    fun chatA_light() = chat(dark = false, ChatFixtures.chatA, "chatA")
+
+    private fun chat(dark: Boolean, ui: com.nutri.android.feature.chat.ChatUiState, name: String) {
+        com.nutri.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_A_PHOTO)
+        composeTestRule.setContent {
+            DietaBotTheme(darkTheme = dark) {
+                ChatScreen(ui, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {})
+            }
+        }
+        val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/$name.png")
+        composeTestRule.onRoot().captureRoboImage(
+            filePath = target.path,
+            roborazziOptions = RoborazziOptions(
+                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f)
+            )
+        )
+    }
+
     /** A18: replace confirmation (chatP layout, ADR-017 copy). */
     @Test
     fun chatReplace_dark() = chatReplace(dark = true)
