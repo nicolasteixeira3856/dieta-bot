@@ -1,63 +1,22 @@
 ---
 name: screenshot-testing
-description: Executa e valida testes de regressão visual automatizados na JVM via Roborazzi sem necessidade de emulador Android ativo. Use após qualquer alteração visual ou de tokens.
+description: Verify Dieta Bot JVM screenshot regression with Roborazzi and distinguish app baselines from read-only Stitch design golds after visual changes.
 ---
 
-# screenshot-testing
+# Screenshot regression
 
-Regras para teste de screenshot automatizado na JVM com **Roborazzi** e Robolectric.
+Read [AGENTS](../../../AGENTS.md), [QA guidance](../../../docs/qa/README.md), the approved plan and the current [Roborazzi tests](../../../apps/android/app/src/test/java/com/nutri/android/ui/RoborazziSmokeTest.kt) / [Stitch tests](../../../apps/android/app/src/test/java/com/nutri/android/ui/StitchGoldTest.kt).
 
-## Fluxo de Execução
+From apps/android:
+- verifyRoborazziDevDebug checks existing app baselines first.
+- compareRoborazziDevDebug produces comparison output for review.
+- recordRoborazziDevDebug intentionally changes app baselines. Use it only when baseline updates are in scope, after inspecting the diff; do not start every verification by recording.
 
-1. **Gravar / Gerar Novas Capturas**:
-   ```bash
-   ./gradlew.bat recordRoborazziDevDebug
-   ```
-2. **Verificar / Comparar com as Imagens de Ouro**:
-   ```bash
-   ./gradlew.bat verifyRoborazziDevDebug
-   ```
-3. **Gerar Relatório HTML com Diffs**:
-   ```bash
-   ./gradlew.bat compareRoborazziDevDebug
-   ```
-   O relatório é salvo em: `build/reports/roborazzi/index.html`.
+Three separate artifact classes:
+- App regression baselines: apps/android/app/src/test/snapshots/{dark,light}/, as configured by Roborazzi.
+- Imported design inputs: docs/qa/stitch/{dark,light}/. These are read-only during app verification; never point captureRoboImage or a baseline recorder at them.
+- Fresh device captures: docs/qa/android/current/{dark,light}/. JVM renders/diffs belong in build output, not in device capture folders.
 
-## Padrão Ouro de Diretórios
+The Roborazzi tests currently use CompareOptions(changeThreshold = 0.01f). StitchGoldTest has its own 2% blurred-image/region comparisons and explicit report-only gold conflicts; the emulator tool has its corresponding gate. These metrics are not interchangeable. Inspect the actual test/tool before interpreting its report, and do not relax thresholds or describe report-only checks as assertions.
 
-- As imagens de referência oficiais residem em:
-  `docs/qa/stitch/dark/<id>.png` e `docs/qa/stitch/light/<id>.png`
-- O teste Roborazzi configura o `RoborazziOptions` para comparar diretamente com a pasta `docs/qa/stitch/` com tolerância máxima de 0.5% (`dumpThreshold = 0.005`).
-
-## Estrutura do Teste de Screenshot (Robolectric)
-
-```kotlin
-@RunWith(RobolectricTestRunner::class)
-@GraphicsMode(GraphicsMode.Mode.NATIVE)
-class HomeScreenScreenshotTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
-    @Test
-    fun home_dark_matches_stitch_gold() {
-        composeTestRule.setContent {
-            DietaBotTheme(darkTheme = true) {
-                HomeScreen(uiState = sampleHomeState())
-            }
-        }
-        composeTestRule.onRoot().captureRoboImage(
-            filePath = "docs/qa/stitch/dark/home1.png",
-            roborazziOptions = RoborazziOptions(
-                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f)
-            )
-        )
-    }
-}
-```
-
-## Benefícios para Agentes
-
-- Rápido: roda em ~3 segundos na JVM sem ligar emulador.
-- Determinístico: não depende da rasterização da GPU do host ou variações de tela.
-- Autônomo: o agente pode rodar o comando Gradle e receber imediatamente o diff numérico ou falha de teste.
+JVM rendering is useful for regression, but it does not prove device layout, IME behavior or a Stitch match. Changed UI still requires the [visual workflow](../dieta-bot-android-visual/SKILL.md): fresh dark/light emulator PNGs and written gold comparisons. Report known gaps honestly. Do not promise a fixed run time.

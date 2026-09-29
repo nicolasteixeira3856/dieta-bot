@@ -1,22 +1,21 @@
 ---
 name: dieta-bot-android-visual
-description: Compare the emulator screen with the Dieta Bot Stitch gold design. Use after any visual change or when the owner says it looks crude.
+description: Compare fresh Dieta Bot emulator captures and measured layout bounds with matching dark/light Stitch golds after a visual change.
 ---
 
-# dieta-bot-android-visual
+# Dieta Bot visual QA
 
-Tool: Android CLI (`android`). If `android` is not on PATH (session opened before the install), call `$env:USERPROFILE\AppData\AndroidCLI\android.exe` (PowerShell) or `"$USERPROFILE/AppData/AndroidCLI/android.exe"` (Bash).
+Read [AGENTS](../../../AGENTS.md), the [QA workflow](../../../docs/qa/README.md), [tokens](../../../docs/tokens.md) and the matching gold. Use [Android CLI interaction guidance](../android-cli/references/interact.md); discover the installed executable before treating stale PATH as an absent installation.
 
-1. `android info` (or `adb devices`) lists the emulator. Gold geometry: `adb shell wm size 780x1688` and `adb shell wm density 320` (390 dp @ 2x, 1 dp = 2 px).
-2. Flows with interaction: the `tools/capture-*.sh` scripts listed in `docs/qa/README.md`. They stay the official path for those screens.
-3. Ad hoc capture: `android screen capture -o docs/qa/android/current/<theme>/<id>.png`. Fallback: `cmd /c "adb exec-out screencap -p > docs\qa\android\current\<theme>\<id>.png"`.
-4. Measure: `android layout --flat -o <scratchpad>/<id>.json`. Read it as UTF-8 (in PowerShell 5.1: `Get-Content -Encoding utf8`), or accents break. Check against the gold, same pixel grid:
-   - position and size (`bounds`) of every `resource-id` on the screen (e.g. `home-consumed`, `home-fab`, `home-summary-*`);
-   - rendered text: pt-BR copy, consolidated meal entry (`520 kcal · 28P · 52C · 22G`), zero chips on day 1;
-   - expected element missing or `off-screen`.
-5. Color, font size (remaining 34pt), radius (sheet 22, card/chip 14), CTA and semantic macro colors: read the capture against `docs/qa/stitch/{dark,light}/<id>.png` and `docs/tokens.md`. `layout` does not carry them.
-6. Element without a testTag, or missing from `layout`: `android screen capture --annotate -o <scratchpad>/<id>-annot.png` and look at the PNG before concluding. Annotated PNGs never go in `docs/qa/`.
-7. Write the diff list (layout, tokens, type size, radius, ButtonGroup, CTA, timeline, semantic macros), citing the measured bounds.
-8. Gate: `node tools/diff-gold.mjs <theme>/<id>` at 2% or less. `layout` feeds the diff list; it never approves a screen alone.
-9. Fail if default Material purple/blue, Appbar, FAB menu, coach copy, small remaining, chip on day 1, or missing timeline guide.
-10. Fix and recapture. Do not mark DONE in the dark.
+1. Confirm the intended device with android info or adb devices. Coordinate use with other active chats before navigating, installing instrumentation/APKs, changing theme, geometry or data. The QA tool expects device captures at 780x1688 and density 320; exported golds have different/full-page heights and need its documented offsets. Set device geometry only on a coordinated test device.
+2. For interaction flows, retain the tools/capture-*.sh scripts listed in QA. Ad hoc clean capture: android screen capture --device=<serial> -o docs/qa/android/current/<theme>/<id>.png. An adb binary screencap is a fallback when CLI capture is unavailable.
+3. Inspect each PNG visually. Capture both themes as required for the changed screen; annotated diagnostic captures stay in scratch output, never in QA gold/current folders.
+4. Measure with android layout --device=<serial> --flat -o <scratchpad>/<id>.json; add --full when non-interactive content is needed. Read UTF-8, including with Get-Content -Encoding utf8 on PowerShell 5.1. Do not rely on the deprecated no-op --diff flag.
+5. Compare resource-id/testTag, bounds, visible text and off-screen status against the gold's pixel grid. Record content offsets and clipping rather than treating different full-page heights as interchangeable.
+6. Layout JSON does not prove colors, font sizes, radius or CTA appearance. Check these visually against the gold/tokens; use screen capture --annotate only as a diagnostic fallback for visually located elements.
+7. Write the required diff list: layout, tokens, type size, radius, ButtonGroup, CTA, timeline, semantic macros, and measured bounds for changed elements.
+8. Run node tools/diff-gold.mjs <theme>/<id>; preserve the existing 2% gate and its current region/report-only behavior. Report known gold conflicts explicitly; do not lower thresholds or treat a report-only region as a passing assertion.
+9. Check the approved day-one Home and Chat states, including Chat suggestion chips, the Home Chat FAB and consolidated entries. Fail on default Material colors, coaching, missing timeline or incorrect tokens/layout.
+10. Iterate and recapture until the applicable comparisons pass. Ignore only the system/font-raster differences allowed by AGENTS. A cold-start splash is expected, not evidence of a freeze.
+
+Layout measurements support the diff; they do not approve the screen alone. Imported Stitch PNGs remain unchanged during app verification.

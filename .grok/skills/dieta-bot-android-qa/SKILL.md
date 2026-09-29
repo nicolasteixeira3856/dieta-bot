@@ -1,22 +1,19 @@
 ---
 name: dieta-bot-android-qa
-description: Validate a Dieta Bot delivery. Use before marking /goal DONE, after UI, or when the owner pastes a log.
+description: Validate a Dieta Bot delivery against its approved plan, dev checks, visual evidence and manual-validation requirements.
 ---
 
-# dieta-bot-android-qa
+# Dieta Bot delivery QA
 
-Checklist:
-- `.\gradlew.bat test` green
-- `.\gradlew.bat :app:compileDebugKotlin` green
-- `android info` (or `adb devices`) lists the emulator
-- screenshots in `docs/qa/android/current/{dark|light}/` matching Stitch gold in `docs/qa/stitch/{dark,light}/`
-- the diff list cites the bounds measured with `android layout --flat` for the parts that changed (see `dieta-bot-android-visual`)
-- tokens vs `docs/tokens.md` (no default purple, correct semantic macros)
-- timeline guide and single consolidated meal entries
-- no OPENAI_API_KEY in source
-- ADR if there was a decision
+Use [AGENTS](../../../AGENTS.md), the approved plan and [Android validation guidance](../../../docs/android/README.md). Run relevant checks from apps/android using assembleDevRelease, testDevDebugUnitTest and verifyRoborazziDevDebug. Do not substitute aggregate test or unflavored compileDebugKotlin tasks.
 
-Without a screenshot of new UI matching the Stitch gold, it is not DONE.
+For changed UI:
+- Confirm the matching dark/light Stitch PNGs exist and any required gate is completed.
+- Follow the [visual workflow](../dieta-bot-android-visual/SKILL.md): Android CLI clean captures, layout bounds/text read as UTF-8, and the existing scripted capture flows.
+- Save fresh emulator captures in docs/qa/android/current/{dark,light}/. JVM renders do not belong there.
+- Compare against the matching golds using the current QA gate and write diffs covering layout, tokens, type size, radius, ButtonGroup, CTA, timeline and semantic macros.
+- Preserve system theme following, the Home Chat FAB, consolidated meal entries, current day-one state and splash cold-start behavior. A visible splash alone is not a crash.
 
-Test build for the owner's phone (A16): `./tools/distribute-dev.ps1` (clean tree required; `-DryRun` builds and checks only).
-The version bumps by itself (0.0.N -> 0.0.N+1). Never edit `apps/android/version.properties` by hand; never reuse a number.
+Check scope, applicable ADRs and dev-only telemetry; never print secrets when checking credential boundaries. Passing automation does not complete a plan with pending owner validation. Record executed commands, real results and remaining manual checks, then apply the [SDD lifecycle](../../../docs/sdd/README.md).
+
+When the owner asks for a phone test build, use tools/distribute-dev.ps1 -Notes <scratchpad-notes.md> per [Android distribution](../../../docs/android/README.md#distribuição). Notes are a human pt-BR changelog, never raw git log. The script requires a clean tree and controls version/commit/tag; do not hand-edit version.properties. -DryRun builds/checks without distribution.

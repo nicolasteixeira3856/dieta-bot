@@ -1,6 +1,14 @@
 A journey is an XML-specified test of an Android app's behavior. It consists of
+a list of approved interactions on a coordinated idle test device. Read
+[device interaction rules](interact.md) first. Journey XML describes a test;
+it does not authorize changes to the product, installation, data resets or
+interruption of another chat's device work. A visible cold-start splash is
+expected in Dieta Bot and is not evidence of a freeze; measure its duration
+against the current specification before reporting a startup failure.
+
+The journey format consists of
 a list of `<action>` elements. For example:
-`xml
+```xml
 <journey name="My Journey">
 <description>
 A sample journey to illustrate the format
@@ -13,7 +21,8 @@ Tap the "Home" icon
 Verify that the app is on its Home screen
 </action>
 </actions>
-</journey>`
+</journey>
+```
 
 Evaluate a journey by proceeding through the `<actions>` list in sequential
 order. Evaluate each `<action>` block individually.
