@@ -234,4 +234,4 @@ The contract intro has the historical all-route 1000 summary; its current Chat s
 
 ### Delivery
 
-Local acceptance checks completed. Delivery follows the scoped PR workflow; the delivery PR and final repository verification are recorded by this chat.
+Local acceptance checks completed. [Delivery PR #26](https://github.com/nicolasteixeira3856/dieta-bot/pull/26) was created through the installed GitHub CLI and attached to this chat. GitHub reported a clean, mergeable PR with no configured status checks; local validation evidence is above. Final merge/master/cleanup verification is recorded by this chat, preserving unrelated work and reconciling only this chat's original planning artifacts.
