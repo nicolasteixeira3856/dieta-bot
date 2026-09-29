@@ -1,14 +1,14 @@
 # Gate Stitch — ST4 Refeições por dia da semana
 
-- Estado: Aguardando o dono no Stitch
+- Estado: Concluído
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
-- Executa: [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md)
-- Pré-requisito: [ST3](completed/st3-seletor-horario.md) `Concluído` (a tela da O3 precisa estar estável antes).
-- Bloqueia: [A24 Refeições por dia](../../android/plans/a24-refeicoes-por-dia.md)
+- Executa: [ADR-021](../../../produto/adrs/ADR-021-refeicoes-por-dia.md)
+- Pré-requisito: [ST3](st3-seletor-horario.md) `Concluído` (a tela da O3 precisa estar estável antes).
+- Bloqueia: [A24 Refeições por dia](../../../android/plans/a24-refeicoes-por-dia.md)
 
-Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
+Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 
 ## ⛔ Bloqueio do dono — prompts para o Stitch
 
@@ -125,11 +125,11 @@ Title sizes: every row title in this screen ("Meta de calorias", "Compensação 
 
 ### Checklist
 
-- [ ] "Distribuição das refeições": seção "DIAS DA SEMANA" com 3 chips, "Todos os dias" selecionado; o resto da tela sem mudança.
-- [ ] "Refeições Sáb e Dom": "Seg–Sex · Sáb–Dom" selecionado, cabeçalho "Sáb e Dom · Etapa 2 de 2", barra de 2 segmentos, botão "Copiar de Seg a Sex", 3 refeições.
-- [ ] "Configurações com refeições por dia": duas linhas "Seg a Sex" / "Sáb e Dom" com detalhe e o rótulo do modo ao lado do título da seção.
-- [ ] "Configurações com refeições por dia": todos os títulos de linha no tamanho de "Meta de calorias".
-- [ ] Tokens do `AGENTS.md`; dark e light coerentes.
+- [x] "Distribuição das refeições": seção "DIAS DA SEMANA" com 3 chips, "Todos os dias" selecionado; o resto da tela sem mudança.
+- [x] "Refeições Sáb e Dom": "Seg–Sex · Sáb–Dom" selecionado, cabeçalho "Sáb e Dom · Etapa 2 de 2", barra de 2 segmentos, botão "Copiar de Seg a Sex", 3 refeições.
+- [x] "Configurações com refeições por dia": duas linhas "Seg a Sex" / "Sáb e Dom" com detalhe e o rótulo do modo ao lado do título da seção.
+- [x] "Configurações com refeições por dia": todos os títulos de linha no tamanho de "Meta de calorias".
+- [x] Tokens do `AGENTS.md`; dark e light coerentes.
 
 Checklist verde: lista de golds com `o3s` e `cfgS`, `docs/stitch/README.md` com os títulos na tabela principal, estado `Concluído`, mover para `completed/`, índices e entrega git (`docs/st4-stitch-refeicoes-por-dia`).
 
@@ -143,3 +143,5 @@ Checklist verde: lista de golds com `o3s` e `cfgS`, `docs/stitch/README.md` com 
 
 - 29/09/2026 — Gate criado. Aguardando o dono.
 - 29/09/2026 — Prompts reescritos com os títulos reais do Stitch (pedido do dono).
+- 29/09/2026 — Verificação 1: `verify-stitch` **passou**, mas o checklist falhou no light: em "Onboarding 3/4 - Refeições Sáb e Dom (V2 Light)" o "3" selecionado da contagem veio com fundo `#111111` e texto branco, enquanto na "Distribuição das refeições (V2 Light)" o selecionado é branco com texto `#14161a`. Causa parcial: o prompt 4.1 light dizia que o "4" selecionado tinha fundo escuro. Prompt de ajuste enviado ao dono.
+- 29/09/2026 — Verificação 2: **passou**. O ajuste mudou só o "3" (diff do HTML). IDs novos: "Onboarding 3/4 - Refeições Sáb e Dom (V2 Expressive)" `e315333953d848ba926bc1674adf6c7f`, "(V2 Light)" `97623fec43ad4f7892c6790de8d73a97`; "Configurações com refeições por dia (V2 Expressive)" `8a05d4beabc04253a45e7b09e0975085`, "(V2 Light)" `2cca2addc43b47a195cee2e2bfc3901a`. As O3 e as Config mantêm IDs e títulos. `o3` re-exportado (780x2478, com "DIAS DA SEMANA"); `o3s` e `cfgS` entraram nos scripts (46 golds, 23 por tema). No light, chip de modo selecionado tem fundo escuro e segmento de contagem selecionado tem fundo branco; é o estado dos golds. Nota: "Onboarding 3/4 - Seletor de horário" (`o3t`) foi copiada da O3 antes dos chips; a O3 atrás do diálogo, borrada pelo scrim, não tem "DIAS DA SEMANA". Não bloqueia.

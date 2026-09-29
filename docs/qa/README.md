@@ -14,13 +14,13 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 
 ---
 
-## Filenames (21 telas oficiais por tema)
+## Filenames (23 telas oficiais por tema)
 
 ```text
-splash.png · o1.png · o2.png · o3.png · o3t.png · o4.png
+splash.png · o1.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
 home0.png · home1.png · homeX.png · homeW.png
 chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png
-cfg.png · wipe.png · push.png
+cfg.png · cfgS.png · wipe.png · push.png
 ```
 
 O nome base (`<id>.png`) é rigorosamente idêntico em `stitch/{dark,light}/` e `android/current/{dark,light}/`.
