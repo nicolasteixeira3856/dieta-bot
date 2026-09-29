@@ -1,6 +1,6 @@
 # ADR-017 — Um registro por refeição, com confirmação ao substituir
 
-- Estado: Proposto (aceito junto com a aprovação do S8 ou do A18)
+- Estado: Aceito (29/09/2026, com a aprovação do S8)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o [ADR-012](ADR-012-chat-home-perfil.md), regra 5 ("Segundo Gravar no mesmo slot **soma**"), e a regra 5 da [home-timeline](../specifications/home-timeline.md) ("Segundo log no mesmo slot empilha").
@@ -47,7 +47,7 @@ Custo de token: a refeição gravada já vai no snapshot do dia (`day.slots[].te
 
 ## Relações
 
-- Planos: [S8](../../server/plans/s8-chat-json-slot-consolidado.md), [A18](../../android/plans/a18-chat-registro-foto.md).
+- Planos: [S8](../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md), [A18](../../android/plans/a18-chat-registro-foto.md).
 - Specs: [chat](../specifications/chat.md), [home-timeline](../specifications/home-timeline.md), [v1-chat](../../server/specifications/v1-chat.md).
 
 Depois de aceito, este ADR não se edita.

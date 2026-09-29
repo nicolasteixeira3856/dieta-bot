@@ -51,6 +51,24 @@ _CHAT_INSTRUCTIONS = (
     "estimate: object {kcal, p, c, g, confidence, question, items, suggested_slot} or null. "
     "items is a list of objects {name, g, kcal}. "
     "digest: null (unless compacting). "
+    "DAY slots show what is already recorded: id:status, then kcal, P/C/G and the recorded text. "
+    "The meal a message refers to is the meal it names; if it names none, the meal of the previous "
+    "user message in HISTORY; if there is none, the slot matching the local time. "
+    "If the message adds, removes or corrects food of a meal whose slot in DAY is eaten, "
+    "return the estimate of the whole meal (the foods already recorded in that slot's text plus the change) "
+    "and set suggested_slot to that slot. Say in reply that it replaces the recorded meal. "
+    "If the user gives only a calorie total without saying what was eaten, estimate is null "
+    "and reply asks what was eaten. This holds even when that slot is already recorded: "
+    "never copy a calorie total typed by the user into kcal. "
+    "Never return an estimate with p, c and g all zero for real food. "
+    "p, c and g must add up to about kcal (4 kcal per gram of p and c, 9 per gram of g). "
+    "If you cannot estimate the food, estimate is null, never zeros. "
+    "When the user answers your clarifying question, re-estimate the same meal with the answer, "
+    "including every food of that meal from HISTORY; keep the same suggested_slot. "
+    "The app records only today. If the user refers to another day (e.g. ontem), estimate if asked "
+    "but say in reply that it will be recorded today. "
+    "When confidence is not high, question is one specific question about the biggest uncertainty "
+    "(portion, size, preparation). Never generic. "
     "Estimate, not medical advice."
 )
 
@@ -64,6 +82,71 @@ _DIGEST_INSTRUCTIONS = (
     "No advice, no judgement, no new estimates, no numbers that are not in the messages. "
     "Reply with one JSON object only, key digest (string)."
 )
+
+
+_DIGEST_FORMAT: dict[str, Any] = {
+    "type": "json_schema",
+    "name": "digest",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {"digest": {"type": "string"}},
+        "required": ["digest"],
+        "additionalProperties": False,
+    },
+}
+
+
+def chat_format(slot_ids: list[str]) -> dict[str, Any]:
+    """Structured output for /v1/chat. suggested_slot is limited to the profile slot ids."""
+    item = {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "g": {"type": "number"},
+            "kcal": {"type": "number"},
+        },
+        "required": ["name", "g", "kcal"],
+        "additionalProperties": False,
+    }
+    estimate = {
+        "type": "object",
+        "properties": {
+            "kcal": {"type": "number"},
+            "p": {"type": "number"},
+            "c": {"type": "number"},
+            "g": {"type": "number"},
+            "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+            "question": {"type": ["string", "null"]},
+            "items": {"type": "array", "items": item},
+            "suggested_slot": {"type": ["string", "null"], "enum": [*dict.fromkeys(slot_ids), None]},
+        },
+        "required": ["kcal", "p", "c", "g", "confidence", "question", "items", "suggested_slot"],
+        "additionalProperties": False,
+    }
+    return {
+        "type": "json_schema",
+        "name": "chat_turn",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "reply": {"type": "string"},
+                "estimate": {"anyOf": [estimate, {"type": "null"}]},
+                "digest": {"type": "null"},
+            },
+            "required": ["reply", "estimate", "digest"],
+            "additionalProperties": False,
+        },
+    }
+
+
+class TextOnlyOutput(ValueError):
+    """The model answered in plain text, without a JSON object."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__("no json")
+        self.text = text
 
 
 def wrap_user_input(user_text: str) -> str:
@@ -127,13 +210,22 @@ class LlmClient:
         return self._complete("fit", _FIT_INSTRUCTIONS, wrap_user_input(user_text), image_b64, trace)
 
     def chat_json(
-        self, *, user_text: str, image_b64: str | None, trace: dict[str, Any] | None = None
+        self,
+        *,
+        user_text: str,
+        image_b64: str | None,
+        slot_ids: list[str],
+        trace: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        return self._complete("chat", _CHAT_INSTRUCTIONS, user_text, image_b64, trace)
+        return self._complete(
+            "chat", _CHAT_INSTRUCTIONS, user_text, image_b64, trace, chat_format(slot_ids)
+        )
 
     def digest_json(self, *, history_text: str, trace: dict[str, Any] | None = None) -> dict[str, Any]:
         """compact=true: text only. A photo is never sent to the summary."""
-        return self._complete("digest", _DIGEST_INSTRUCTIONS, wrap_history(history_text), None, trace)
+        return self._complete(
+            "digest", _DIGEST_INSTRUCTIONS, wrap_history(history_text), None, trace, _DIGEST_FORMAT
+        )
 
     def _complete(
         self,
@@ -142,6 +234,7 @@ class LlmClient:
         input_text: str,
         image_b64: str | None,
         trace: dict[str, Any] | None,
+        text_format: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if trace is not None:
             trace["prompt"] = prompt
@@ -157,6 +250,7 @@ class LlmClient:
         image_b64 = None
         if self._openai is None:
             raise RuntimeError("llm unavailable")
+        extra: dict[str, Any] = {"text": {"format": text_format}} if text_format else {}
         try:
             response = self._openai.responses.create(
                 model=MODEL,
@@ -165,6 +259,7 @@ class LlmClient:
                 input=[{"role": "user", "content": content}],
                 timeout=TIMEOUT_SECONDS,
                 store=False,
+                **extra,
             )
         finally:
             for part in content:
@@ -187,7 +282,9 @@ def _parse_json_object(text: str) -> dict[str, Any]:
         raw = raw.strip()
     start = raw.find("{")
     end = raw.rfind("}")
-    if start < 0 or end <= start:
+    if start < 0:
+        raise TextOnlyOutput(text.strip())
+    if end <= start:
         raise ValueError("no json")
     data = json.loads(raw[start : end + 1])
     if not isinstance(data, dict):

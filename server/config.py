@@ -12,11 +12,13 @@ MODEL = "gpt-6-luna"
 TIMEOUT_SECONDS = 60.0
 PHOTO_MAX_BYTES = 16 * 1024 * 1024
 PHOTO_MAX_B64_CHARS = 22_400_000
-MAX_BODY_BYTES = 20 * 1024 * 1024
+# Covers PHOTO_MAX_B64_CHARS + JSON. The photo cap stays the 413 photo_too_large (S8).
+MAX_BODY_BYTES = 24 * 1024 * 1024
 RATE_LIMIT_ESTIMATE = "30/minute"
 RATE_LIMIT_FIT = "30/minute"
 RATE_LIMIT_CHAT = "30/minute"
 FALLBACK_QUESTION = "descreve em 1 linha"
+CHAT_FALLBACK_QUESTION = "Alguma porção foi diferente do que considerei?"
 # Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
 DIGEST_MAX_CHARS = 1600
 # Dev conversation log (ADR-015): on only when CONVERSATION_LOG_PATH is set.

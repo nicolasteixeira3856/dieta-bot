@@ -4,7 +4,7 @@
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): saída estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil), texto sem JSON vira `reply`, refeição consolidada, total sem comida sem estimate, `MAX_BODY_BYTES` 24 MB ([S8](../plans/s8-chat-json-slot-consolidado.md)).
+Desde o [S8](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) (29/09/2026): saída estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil), texto sem JSON vira `reply`, refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)), total sem comida sem estimate, `MAX_BODY_BYTES` 24 MB.
 
 ## Contexto e objetivo
 
@@ -31,18 +31,21 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 
 1. Auth igual estimate. 401 se X-Invite falhar.
 2. Modelo gpt-6-luna, reasoning.effort=none. store=false.
-3. Prompt do turno = instructions fixas + bloco perfil + memoria + day + digests + messages (≤12) + text atual + imagem opcional.
-4. Instructions: estimar se o user registrou comida; responder duvida; nunca gravar sozinho; sugerir slot pelo horario local vs slots do perfil; 1 pergunta se confidence ≠ high.
-5. OUT sempre JSON:
+3. Prompt do turno = instructions fixas + bloco perfil + memoria + day + digests + messages (≤12) + text atual + imagem opcional. As instructions vêm primeiro e são idênticas entre turnos (cache de prompt). O `day` leva, por slot gravado, `kcal`, P/C/G e `text`.
+4. Instructions: estimar se o user registrou comida; responder duvida; nunca gravar sozinho; sugerir slot pelo horario local vs slots do perfil; 1 pergunta específica (porção, tamanho, preparo) se confidence ≠ high. A refeição da fala é a que ela nomeia, senão a da fala anterior do user, senão a do horário. Completar, corrigir ou remover comida de um slot `eaten` → estimate da **refeição inteira** (itens gravados + mudança) com aquele slot, e o reply diz que substitui. Resposta a pergunta → reestima a mesma refeição, mesmo slot. Outro dia ("ontem") → estima se pedido, e o reply avisa que grava hoje.
+4a. Total de kcal sem comida ("comi 1220 kcal"), mesmo com o slot gravado → `estimate: null` e o reply pergunta o que foi comido. Nunca estimate com p, c e g todos zero; P/C/G coerentes com kcal; sem conseguir estimar → null, nunca zeros.
+5. OUT sempre JSON. O server pede ao modelo `text.format` `json_schema` strict (`chat_turn`: todo campo obrigatório, nulo explícito; compact usa o schema `digest`):
    - reply: string (prosa pt-BR)
    - estimate: {kcal,p,c,g,confidence,question,items,suggested_slot} ou null se nao houver comida nesta fala
    - digest: string ou null
    - model: gpt-6-luna
-6. suggested_slot = id de um slot do profile.slots. Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id.
+6. suggested_slot = id de um slot do profile.slots (enum no schema, montado por request; perfil sem slots → só `null`). Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id. Defesa no shaping: aceita `"1"`, `1` e `{"id": 1}`, normaliza para string e descarta id fora do perfil.
+6a. confidence ≠ high sem `question` → `"Alguma porção foi diferente do que considerei?"` (`CHAT_FALLBACK_QUESTION`).
 7. compact=true: Luna recebe so as messages (delimitadas, sem foto) e devolve digest ≤400 tokens (corte em 1600 chars), pt-BR, fatos (comida, kcal/P citados nas falas, slot, pulou), sem conselho. OUT: reply "", estimate null. messages vazio → 422 `compact_needs_messages` sem chamar a Luna. Falha → 200 com digest null.
 8. Foto: data:image/jpeg;base64. HEIC nao entra no server — client converte.
 9. Recusar image_b64 maior que o cap ANTES do LLM. Nao logar o base64.
-10. Falha LLM/timeout: reply curto "nao deu pra estimar", estimate=null. Sem stacktrace.
+10. Modelo respondeu texto sem JSON (nenhum `{`): o texto vira `reply`, estimate=null (log `fallback: "text_only"`). Falha LLM/timeout, saída vazia ou JSON inválido: reply curto "nao deu pra estimar", estimate=null (log `fallback: "error"`). Sem stacktrace.
+11. Corpo HTTP até 24 MB (`MAX_BODY_BYTES`), acima → 413 `payload_too_large`. Cobre o cap da foto + JSON: foto acima do cap continua 413 `photo_too_large`.
 
 ## IN
 
@@ -98,6 +101,8 @@ messages[].role: `user` | `assistant`. Sem system.
 ## Decisoes relacionadas
 
 - [ADR-012](../../produto/adrs/ADR-012-chat-home-perfil.md)
+- [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)
+- [ADR-015](../adrs/ADR-015-log-conversa-dev.md)
 - [api-contract.md](../../api-contract.md) ate S2 atualizar
 
 ## Planos relacionados
@@ -105,6 +110,7 @@ messages[].role: `user` | `assistant`. Sem system.
 - [S1](../plans/completed/s1-timeout-photo-cap.md)
 - [S2](../plans/completed/s2-v1-chat.md)
 - [S3 (Concluido)](../plans/completed/s3-compact.md)
+- [S8 (Pendente aprovação manual)](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)
 
 ## Criterios de aceite funcionais
 

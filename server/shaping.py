@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from config import DIGEST_MAX_CHARS, FALLBACK_QUESTION, MODEL
+from config import CHAT_FALLBACK_QUESTION, DIGEST_MAX_CHARS, FALLBACK_QUESTION, MODEL
 
 CHAT_FALLBACK_REPLY = "nao deu pra estimar"
 
@@ -97,12 +97,7 @@ def shape_chat(
         except (TypeError, ValueError):
             confidence = "medium"
 
-        raw_slot = raw_estimate.get("suggested_slot")
-        suggested_slot = (
-            str(raw_slot).strip()
-            if isinstance(raw_slot, str) and str(raw_slot).strip() in valid_ids
-            else None
-        )
+        suggested_slot = _slot_id(raw_estimate.get("suggested_slot"), valid_ids)
 
         raw_items = raw_estimate.get("items")
         items = []
@@ -116,7 +111,7 @@ def shape_chat(
             clean_question = (
                 question.strip()
                 if isinstance(question, str) and question.strip()
-                else FALLBACK_QUESTION
+                else CHAT_FALLBACK_QUESTION
             )
         else:
             clean_question = None
@@ -143,6 +138,19 @@ def shape_chat(
         "reply": reply,
         "estimate": estimate,
         "digest": digest,
+        "model": MODEL,
+    }
+
+
+def text_only_chat(text: str) -> dict[str, Any]:
+    """The model answered without JSON: the text is the reply, no estimate."""
+    reply = text.strip()
+    if not reply:
+        return fail_chat()
+    return {
+        "reply": reply,
+        "estimate": None,
+        "digest": None,
         "model": MODEL,
     }
 
@@ -184,6 +192,20 @@ def _number_or_zero(value: Any) -> int | float:
         return _number(value)
     except (TypeError, ValueError):
         return 0
+
+
+def _slot_id(value: Any, valid_ids: set[str]) -> str | None:
+    """Accepts "1", 1 and {"id": 1}. Returns the id only when it is a profile slot."""
+    if isinstance(value, dict):
+        value = value.get("id")
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    if not isinstance(value, (str, int)):
+        return None
+    slot = str(value).strip()
+    return slot if slot in valid_ids else None
 
 
 def _confidence(value: Any) -> str:

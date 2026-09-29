@@ -141,7 +141,7 @@ Não foi o dono que reproduziu, e sim um tester, em uso real (0.0.2-dev, request
 - Mensagem: "tamanho pequeno a lasanha foi um pedaço só do almoço de ontem", resposta à pergunta da estimativa anterior.
 - `raw_output`: texto livre, sem JSON ("Entendi: a lasanha era um pedaço pequeno… Quer que eu corrija a estimativa anterior com essa informação?").
 - `error`: `ValueError: no json` → `fail_chat()` → "nao deu pra estimar".
-- Causa: o server não pede saída estruturada ao modelo. De quebra, o log mostrou que `suggested_slot` volta nulo em 17/17 estimativas (o modelo manda número). Correção: [S8](../s8-chat-json-slot-consolidado.md).
+- Causa: o server não pede saída estruturada ao modelo. De quebra, o log mostrou que `suggested_slot` volta nulo em 17/17 estimativas (o modelo manda número). Correção: [S8](s8-chat-json-slot-consolidado.md).
 
 O objetivo do plano (explicar o "nao deu" pelo log) foi atingido. Falta o dono declarar a aprovação manual para mover o S6 para `completed/`.
 
