@@ -4,7 +4,7 @@
 
 Vigente desde o [A4](../../android/plans/completed/a4-home-painel.md): painel conforme Stitch gold home1 (canônico).
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): regra 5 passa a um registro por refeição ([ADR-017](../adrs/ADR-017-registro-consolidado.md)); linha "Treino de hoje" abaixo dos macros ([A22](../../android/plans/a22-treino-home.md), gate [ST2](../../stitch/plans/st2-home-treino.md)); disclaimer inteiro acima do FAB ([A20](../../android/plans/a20-polimento-geral.md)); slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Mudanças planejadas (29/09/2026, aguardando aprovação): linha "Treino de hoje" abaixo dos macros ([A22](../../android/plans/a22-treino-home.md), gate [ST2](../../stitch/plans/st2-home-treino.md)); disclaimer inteiro acima do FAB ([A20](../../android/plans/a20-polimento-geral.md)); slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 
@@ -25,7 +25,7 @@ Relógio do dia. Registro mora no Chat.
 2. Linha P C G = consumido/alvo. Estouro usa token `bad`.
 3. Cabeçalho `DIA {n}` (dias desde o primeiro dia) + data `{d} de {mês}` pt-BR, America/Sao_Paulo.
 4. Timeline: um bloco por slot do perfil, ordem da hora. Slot com logs: cada linha é o texto gravado (descrição da IA se veio de foto) + kcal, e um resumo consolidado `{kcal} kcal · {P}P · {C}C · {G}G`; nó ✓ (câmera se veio de foto). Slot skip: "Refeição pulada". Slot vazio: "Nenhum registro · Toque para pular"; tap abre confirmação "Pular {nome}?". O 1º slot vazio depois do último preenchido fica em destaque. O slot em que o acumulado passa da meta (e os seguintes com log) ficam em `bad`. Logs sem slot: bloco "Outros" no fim.
-5. Segundo log no mesmo slot empilha (soma no contador).
+5. Um registro por refeição: gravar pelo Chat num slot com registro pede confirmação e substitui ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)). Registros duplicados de antes do A18 continuam somando.
 6. Config: ícone no topo direito → tela Config.
 7. FAB canto inferior direito → Chat. Único caminho de registro.
 8. Tap num log não abre Chat neste corte.

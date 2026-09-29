@@ -30,6 +30,9 @@ object ChatFixtures {
     val chatE = ChatUiState(items = listOf(date, user, bot), emptyDay = false, actions = actions, slots = slots, currentSlotId = 4)
     val chatT = chatE.copy(sheetFor = 2, sheetSelection = 4)
     val chatP = chatE.copy(skipConfirm = SlotRef(3, "Lanche da tarde", "16:00", 960))
+
+    /** A18 / ADR-017: Gravar on a taken slot. chatP layout, new copy (no gold of its own). */
+    val chatReplace = chatE.copy(replaceConfirm = ReplaceConfirm(2, slots[3], oldKcal = 880, newKcal = 1220))
     val chatG = ChatUiState(
         items = listOf(date, user, bot.copy(estimate = bot.estimate!!.copy(slotQuestion = null)), ChatItem.Receipt(3, false, "Café da manhã", "07:30", 380)),
         emptyDay = false,

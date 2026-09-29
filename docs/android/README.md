@@ -112,13 +112,12 @@ Nenhuma especificacao criada ate o momento.
 Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-expressive.md), [005](../decisions/005-android-only.md), [007](../decisions/007-english-identifiers.md), [008](../decisions/008-visual-qa.md), [009](../decisions/009-visual-match.md), [010](../decisions/010-room.md), [011](../decisions/011-t2-t3-actions.md).
 
 - [ADR-014](adrs/ADR-014-flavors-firebase-dev.md) — flavors dev/prod, Firebase só no dev (aceito).
-- [ADR-018](adrs/ADR-018-foto-2048.md) — foto reduzida a 2048 px no client (proposto, aceito com o A18).
+- [ADR-018](adrs/ADR-018-foto-2048.md) — foto reduzida a 2048 px no client (aceito com o A18).
 
 ### Planos e validacao
 
 Aguardando aprovação (lote do feedback, 29/09/2026):
 
-- [A18 chat: refeição consolidada, Enter, foto 2048 px](plans/a18-chat-registro-foto.md) — após S8
 - [A19 chat visual](plans/a19-chat-visual.md) — gate ST1
 - [A20 polimento geral](plans/a20-polimento-geral.md)
 - [A21 seletor de horário em rodas](plans/a21-seletor-horario.md) — gate ST3
@@ -133,6 +132,7 @@ Aguardando aprovação (lote do feedback, 29/09/2026):
 - [A16 Firebase App Distribution, versão 0.0.N (Concluído)](plans/completed/a16-app-distribution.md)
 - [A9 chave de assinatura do release (Concluído)](plans/completed/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
+- [A18 chat: refeição consolidada, Enter, foto 2048 px (Pendente aprovação manual: esfihas + suco no APK)](plans/pending_manual_validation/a18-chat-registro-foto.md)
 - [A17 changelog humano no deploy (Pendente aprovação manual: primeiro deploy real)](plans/pending_manual_validation/a17-changelog-deploy.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)
 

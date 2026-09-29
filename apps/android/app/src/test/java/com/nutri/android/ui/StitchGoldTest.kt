@@ -150,6 +150,13 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatP_light() = check("chatP", dark = false) { Chat(ChatFixtures.chatP) }
 
+    /** A18: the replace dialog reuses chatP. Copy differs from the gold, so the diff is reported only. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatReplace_dark() = check("chatReplace", dark = true, goldId = "chatP", reportOnly = true) { Chat(ChatFixtures.chatReplace) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatReplace_light() = check("chatReplace", dark = false, goldId = "chatP", reportOnly = true) { Chat(ChatFixtures.chatReplace) }
+
     /** A6: photo bubble. The preview is decoded before rendering (the app decodes it off the main thread). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatF_dark() = check("chatF", dark = true, region = PHOTO_BUBBLE) { Chat(ChatFixtures.chatF) }
@@ -205,6 +212,9 @@ class StitchGoldTest {
         footerDp: Int = if (fullPage) FOOTER_DP else IGNORE_BOTTOM_DP,
         /** Gold px box gated on its own (best vertical offset) when the whole screen is a conflict. */
         region: IntArray? = null,
+        /** Gold to diff against when the state has none of its own. */
+        goldId: String = id,
+        reportOnly: Boolean = false,
         screen: @Composable () -> Unit,
     ) {
         compose.setContent {
@@ -219,7 +229,7 @@ class StitchGoldTest {
         val theme = if (dark) "dark" else "light"
         save(app, File(RENDER_OUT, "$theme/$id.png"))
 
-        val goldFile = File(GOLD, "$theme/$id.png")
+        val goldFile = File(GOLD, "$theme/$goldId.png")
         val gold = BitmapFactory.decodeFile(goldFile.path) ?: error("missing gold $goldFile")
         val top = if (fullPage) 0 else BAND_PX
         val raw = diff(app, gold, top)
@@ -234,7 +244,7 @@ class StitchGoldTest {
             println("GOLD_DIFF $theme/$id region ${"%.2f".format(part)}%")
             assertWithMessage("$theme/$id region differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
         }
-        if (id in GOLD_CONFLICTS) return // reported only, see GOLD_CONFLICTS
+        if (id in GOLD_CONFLICTS || reportOnly) return // reported only, see GOLD_CONFLICTS
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
         assertWithMessage("$theme/$id differs from Stitch gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
     }

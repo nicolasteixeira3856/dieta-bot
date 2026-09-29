@@ -4,7 +4,7 @@
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat`)
-- Pré-requisitos: **[ST1](../../stitch/plans/st1-chat.md) em `stitch/plans/completed/`** (golds novos de chat + `chatA`). [A18](a18-chat-registro-foto.md) concluído (mesmo arquivo `ChatScreen.kt`; evita conflito).
+- Pré-requisitos: **[ST1](../../stitch/plans/st1-chat.md) em `stitch/plans/completed/`** (golds novos de chat + `chatA`). [A18](pending_manual_validation/a18-chat-registro-foto.md) concluído (mesmo arquivo `ChatScreen.kt`; evita conflito).
 
 ## Gate de autorização
 
@@ -74,7 +74,7 @@ Levar para o app os golds do ST1:
 
 ## Fora de escopo
 
-- Comportamento de registro e foto 2048: [A18](a18-chat-registro-foto.md).
+- Comportamento de registro e foto 2048: [A18](pending_manual_validation/a18-chat-registro-foto.md).
 - Mais de uma foto por mensagem.
 
 ## Riscos e controles

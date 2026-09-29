@@ -17,7 +17,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.io.File
-import java.io.FileInputStream
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,10 +24,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 sealed interface PhotoResult {
-    /** JPEG in app storage, ≤ 16 MB. */
+    /** JPEG q85 in app storage, longest side ≤ 2048 px, no EXIF (ADR-018). */
     data class Ready(val path: String) : PhotoResult
 
-    /** Over 16 MB: deleted, never posted. */
+    /** Did not fit in memory to decode (or still over 16 MB after the resize): deleted, never posted. */
     data object TooLarge : PhotoResult
 
     data object Failed : PhotoResult
@@ -39,9 +38,10 @@ interface PhotoFiles {
     /** Empty target file + content Uri for ActivityResultContracts.TakePicture. */
     fun newCapture(): Pair<File, Uri>
 
+    /** Camera file → normalized JPEG (see [PhotoStore.normalize]). The original is deleted. */
     suspend fun acceptCapture(file: File): PhotoResult
 
-    /** Photo picker Uri → JPEG file. JPEG bytes are copied as they are; anything else becomes JPEG q90. */
+    /** Photo picker Uri → normalized JPEG, whatever the source format. */
     suspend fun import(uri: Uri): PhotoResult
 
     /** Upload body: the file bytes, base64 (no wrap). */
@@ -59,13 +59,21 @@ class PhotoStore @Inject constructor(@ApplicationContext private val context: Co
         return file to FileProvider.getUriForFile(context, "${context.packageName}$AUTHORITY_SUFFIX", file)
     }
 
-    override suspend fun acceptCapture(file: File): PhotoResult = withContext(Dispatchers.IO) { gate(file) }
+    override suspend fun acceptCapture(file: File): PhotoResult = withContext(Dispatchers.IO) {
+        val target = File(dir, "${UUID.randomUUID()}.jpg")
+        try {
+            if (!file.exists() || file.length() == 0L) PhotoResult.Failed else normalize(file, target)
+        } finally {
+            file.delete()
+        }
+    }
 
     override suspend fun import(uri: Uri): PhotoResult = withContext(Dispatchers.IO) {
         val raw = File(dir, "${UUID.randomUUID()}.import")
         val target = File(dir, raw.nameWithoutExtension + ".jpg")
         try {
-            importInto(uri, raw, target)
+            val copied = context.contentResolver.openInputStream(uri)?.use { input -> raw.outputStream().use { input.copyTo(it) } }
+            if (copied == null) PhotoResult.Failed else normalize(raw, target)
         } catch (e: Exception) {
             target.delete()
             PhotoResult.Failed
@@ -74,18 +82,49 @@ class PhotoStore @Inject constructor(@ApplicationContext private val context: Co
         }
     }
 
-    private fun importInto(uri: Uri, raw: File, target: File): PhotoResult {
-        val copied = context.contentResolver.openInputStream(uri)?.use { input -> raw.outputStream().use { input.copyTo(it) } }
-        if (copied == null) return PhotoResult.Failed
-        if (PhotoGate.isJpeg(head(raw))) {
-            if (!raw.renameTo(target)) return PhotoResult.Failed
-        } else {
-            // HEIC, WebP, PNG...: full-size JPEG q90, no downscale (spec foto rule 2).
-            val bitmap = decodeFull(raw) ?: return PhotoResult.Failed
-            target.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, PhotoGate.JPEG_QUALITY, it) }
+    /**
+     * ADR-018, camera and gallery alike: power-of-two subsample on decode, EXIF rotation applied,
+     * longest side resized to 2048 (never enlarged), JPEG q85. The EXIF block is not copied.
+     */
+    private fun normalize(source: File, target: File): PhotoResult {
+        val bitmap = try {
+            decodeUpright(source)
+        } catch (e: OutOfMemoryError) {
+            return PhotoResult.TooLarge.also { target.delete() }
+        } ?: return PhotoResult.Failed.also { target.delete() }
+        try {
+            val (w, h) = PhotoGate.targetSize(bitmap.width, bitmap.height)
+            val sized = if (w == bitmap.width && h == bitmap.height) bitmap else Bitmap.createScaledBitmap(bitmap, w, h, true)
+            target.outputStream().use { sized.compress(Bitmap.CompressFormat.JPEG, PhotoGate.JPEG_QUALITY, it) }
+            if (sized !== bitmap) sized.recycle()
+        } catch (e: OutOfMemoryError) {
+            return PhotoResult.TooLarge.also { target.delete() }
+        } finally {
             bitmap.recycle()
         }
         return gate(target)
+    }
+
+    /** Subsampled so the longest side stays in 2048..4096, turned upright. Null when not an image. */
+    private fun decodeUpright(file: File): Bitmap? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // Applies the EXIF / HEIF rotation; software bitmap so it can be scaled and compressed.
+            return runCatching {
+                ImageDecoder.decodeBitmap(ImageDecoder.createSource(file)) { decoder, info, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                    decoder.setTargetSampleSize(PhotoGate.decodeSample(info.size.width, info.size.height))
+                }
+            }.getOrElse { if (it is OutOfMemoryError) throw it else null }
+        }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        if (bounds.outWidth <= 0) return null
+        val options = BitmapFactory.Options().apply { inSampleSize = PhotoGate.decodeSample(bounds.outWidth, bounds.outHeight) }
+        val bitmap = BitmapFactory.decodeFile(file.path, options) ?: return null
+        val degrees = exifDegrees(file.path)
+        if (degrees == 0f) return bitmap
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(degrees) }, true)
+            .also { if (it !== bitmap) bitmap.recycle() }
     }
 
     override suspend fun base64(path: String): String? = withContext(Dispatchers.IO) {
@@ -104,19 +143,6 @@ class PhotoStore @Inject constructor(@ApplicationContext private val context: Co
         else -> PhotoResult.Ready(file.path)
     }
 
-    private fun head(file: File): ByteArray = FileInputStream(file).use { input -> ByteArray(3).also { input.read(it) } }
-
-    private fun decodeFull(file: File): Bitmap? = runCatching {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            // Applies EXIF/HEIF rotation; software bitmap so it can be compressed.
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(file)) { decoder, _, _ ->
-                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-            }
-        } else {
-            BitmapFactory.decodeFile(file.path)
-        }
-    }.getOrNull()
-
     companion object {
         const val DIR = "photos"
         const val AUTHORITY_SUFFIX = ".photos"
@@ -128,14 +154,19 @@ class PhotoStore @Inject constructor(@ApplicationContext private val context: Co
             if (bounds.outWidth <= 0) return null
             val options = BitmapFactory.Options().apply { inSampleSize = PhotoGate.sampleSize(bounds.outWidth, bounds.outHeight) }
             val bitmap = BitmapFactory.decodeFile(path, options) ?: return null
-            val degrees = when (ExifInterface(path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+            // Photos stored since ADR-018 are already upright; older ones still carry EXIF.
+            val degrees = exifDegrees(path)
+            if (degrees == 0f) bitmap else Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(degrees) }, true)
+        }.getOrNull()
+
+        private fun exifDegrees(path: String): Float = runCatching {
+            when (ExifInterface(path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
                 ExifInterface.ORIENTATION_ROTATE_90 -> 90f
                 ExifInterface.ORIENTATION_ROTATE_180 -> 180f
                 ExifInterface.ORIENTATION_ROTATE_270 -> 270f
                 else -> 0f
             }
-            if (degrees == 0f) bitmap else Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(degrees) }, true)
-        }.getOrNull()
+        }.getOrDefault(0f)
     }
 }
 

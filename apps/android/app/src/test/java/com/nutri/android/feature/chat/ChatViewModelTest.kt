@@ -56,7 +56,8 @@ class ChatViewModelTest {
     private val memoryFile = FakeMemoryFile()
     private val memory = MemoryStore(memoryFile)
     private val photos = FakePhotoFiles()
-    private val clock = InstantClock { Instant.parse("2026-09-25T08:10:00-03:00") }
+    private var now = Instant.parse("2026-09-25T08:10:00-03:00")
+    private val clock = InstantClock { now }
     private val requests = mutableListOf<ChatIn>()
     private var answer: () -> ChatOut = { estimateOut("1") }
 
@@ -200,6 +201,96 @@ class ChatViewModelTest {
         vm.await { it.actions != null }
         assertThat(repo.observeMessages().first().map { it.role }).containsExactly("user", "assistant").inOrder()
         assertThat(requests).hasSize(2)
+    }
+
+    /** A18 / ADR-017: 4 esfihas in the Jantar, then "também tomei suco" re-estimated as the whole meal. */
+    private suspend fun jantarTakenThenJuice(vm: ChatViewModel): Long {
+        val jantar = slotIds()[3]
+        answer = { estimateOut(jantar.toString()) }
+        sendAndAwait(vm, "4 esfihas")
+        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+        // A later message: a receipt in the same millisecond would close the new estimate.
+        now = now.plusSeconds(60)
+        answer = {
+            estimateOut(jantar.toString()).copy(
+                reply = "4 esfihas e 2 copos de suco.",
+                estimate = estimateOut(jantar.toString()).estimate!!.copy(kcal = 1220.0, p = 40.0, c = 150.0, g = 45.0),
+            )
+        }
+        sendAndAwait(vm, "também tomei 2 copos de suco")
+        return jantar
+    }
+
+    @Test
+    fun gravarOnTakenSlot_asksFirst_thenReplacesWithOneLog() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = jantarTakenThenJuice(vm)
+
+        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        val ui = vm.await { it.replaceConfirm != null }
+        assertThat(ui.replaceConfirm!!.slot.name).isEqualTo("Jantar")
+        assertThat(ui.replaceConfirm!!.oldKcal).isEqualTo(380)
+        assertThat(ui.replaceConfirm!!.newKcal).isEqualTo(1220)
+        // Nothing written until Substituir.
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
+
+        vm.confirmReplace()
+        vm.await { it.replaceConfirm == null && it.actions == null && it.items.any { i -> i is ChatItem.Receipt && i.replaced } }
+
+        val log = repo.observeToday().first().logs.single()
+        assertThat(log.slotId).isEqualTo(jantar)
+        assertThat(log.kcal).isEqualTo(1220)
+        assertThat(log.p).isEqualTo(40)
+        assertThat(log.carbs).isEqualTo(150)
+        assertThat(log.fat).isEqualTo(45)
+        assertThat(log.text).isEqualTo("também tomei 2 copos de suco")
+        val receipt = vm.uiState.value.items.filterIsInstance<ChatItem.Receipt>().last()
+        assertThat(receipt.replaced).isTrue()
+        assertThat(receipt.slotName).isEqualTo("Jantar")
+        assertThat(receipt.slotTime).isEqualTo("20:00")
+        assertThat(receipt.kcal).isEqualTo(1220)
+        withTimeout(5_000) { while (!memory.read().contains("atualizado")) kotlinx.coroutines.delay(10) }
+        assertThat(memory.read()).endsWith("Jantar (atualizado): também tomei 2 copos de suco (1220 kcal)")
+        assertThat(requests).hasSize(2)
+    }
+
+    @Test
+    fun replaceElsewhere_opensTrocarEmpty_roomIntact() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = jantarTakenThenJuice(vm)
+        val estimateId = vm.uiState.value.actions!!.estimateId
+
+        vm.record(estimateId, jantar)
+        vm.await { it.replaceConfirm != null }
+        vm.replaceElsewhere()
+        val ui = vm.await { it.replaceConfirm == null && it.sheetFor != null }
+        assertThat(ui.sheetFor).isEqualTo(estimateId)
+        assertThat(ui.sheetSelection).isNull()
+        assertThat(ui.actions).isNotNull()
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
+
+        // Trocar into an empty slot records at once.
+        val lanche = slotIds()[2]
+        vm.selectInSheet(lanche)
+        vm.confirmSheet()
+        vm.await { it.actions == null }
+        assertThat(repo.observeToday().first().logs.map { it.slotId to it.kcal }).containsExactly(jantar to 380, lanche to 1220)
+    }
+
+    @Test
+    fun trocarIntoTakenSlot_asksToo_cancelKeepsRoom() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = jantarTakenThenJuice(vm)
+        vm.openSheet(vm.uiState.value.actions!!.estimateId)
+        vm.selectInSheet(jantar)
+        vm.confirmSheet()
+        vm.await { it.replaceConfirm != null && it.sheetFor == null }
+
+        vm.cancelReplace()
+        val ui = vm.await { it.replaceConfirm == null }
+        assertThat(ui.actions).isNotNull()
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
     }
 
     @Test

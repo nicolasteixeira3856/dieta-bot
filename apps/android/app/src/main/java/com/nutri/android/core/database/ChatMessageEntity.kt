@@ -10,7 +10,7 @@ data class ChatMessageEntity(
     val id: Long = 0,
     val date: String = "",
     /**
-     * "user" | "assistant" | receipts: "logged" | "skipped" (UI only, never sent to the server) |
+     * "user" | "assistant" | receipts: "logged" | "replaced" | "skipped" (UI only, never sent to the server) |
      * "wiped": marker of wipeToday, never rendered; today's prompt starts after it.
      */
     val role: String = "user",
