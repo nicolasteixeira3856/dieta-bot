@@ -19,6 +19,7 @@ export const DARK_SCREENS = {
   home0: "9e798987e4794692a03d42e2fb7cb249",
   home1: "fad15337390b4638b5d51fdac191a010",
   homeX: "1df72fbb44824b6a861d334672f31c6c",
+  homeW: "df7066fb62474c2aa9aea3804c2ba548",
   chat0: "be092fe5db2f40b4bca8da18ae9ce580",
   chatL: "e021044511b44e25b8a8de6433b8dbad",
   chatE: "a91c63f2a624456f9d5e30ef14422578",
@@ -41,6 +42,7 @@ export const LIGHT_SCREENS = {
   home0: "9f2849ad1ae9413f8ef23ae7777051a0",
   home1: "83adedc45ff1441ea398414b7f41dede",
   homeX: "74299a8d5cff46f790fab34d5626b5a7",
+  homeW: "cad05772505e480c997b722296b64473",
   chat0: "84f166d46b6f4a6d847a3c64977e07d3",
   chatL: "611e2752cdd04d2fb103c251b6d21c7b",
   chatE: "2811a76b200a447aad6d5233cbb5cce4",
@@ -111,6 +113,13 @@ async function renderHtml(htmlUrl, dest, cssHeight) {
       frame = await findFrame();
     }
     if (!frame) throw new Error("phone frame (≈390 px wide) not found in the screen HTML");
+    // Frames taller than the declared screen: grow the viewport to the frame, as the Stitch canvas shows it.
+    // Otherwise fixed elements (the Home "Chat" FAB) sit at the short viewport bottom, over the content.
+    const tall = Math.ceil((await frame.boundingBox()).height);
+    if (tall > cssHeight) {
+      await page.setViewportSize({ width: page.viewportSize().width, height: tall });
+      frame = await findFrame();
+    }
     // Same framing as the Stitch screenshots: the declared screen height, with 20 dp of page above the phone
     // frame when the frame is shorter than the screen (844 dp frame in a 884 dp screen). StitchGoldTest relies on it.
     const box = await frame.boundingBox();
@@ -121,10 +130,15 @@ async function renderHtml(htmlUrl, dest, cssHeight) {
   }
 }
 
+// Screens whose full-size Stitch screenshot is stale (older than the HTML): always rendered from the HTML.
+const RENDER_FROM_HTML = new Set([
+  "cad05772505e480c997b722296b64473" // light/homeW: screenshot predates the ST2 row fix
+]);
+
 async function exportOne(theme, name, screen, outDir) {
   const dest = path.join(outDir, `${name}.png`);
   await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
-  if (isFullSizePng(dest)) return "screenshot";
+  if (!RENDER_FROM_HTML.has(screen.name.split("/").pop()) && isFullSizePng(dest)) return "screenshot";
   if (!screen.htmlCode?.downloadUrl) throw new Error(`${theme}/${name}: small screenshot and no HTML to render`);
   await renderHtml(screen.htmlCode.downloadUrl, dest, Math.round(Number(screen.height || 1768) / 2));
   return "rendered from HTML (2x)";
@@ -151,7 +165,7 @@ export async function exportStitch() {
     screensById.set(id, s);
   }
 
-  console.log("Exporting Dark screens (19)...");
+  console.log("Exporting Dark screens (20)...");
   for (const [name, id] of Object.entries(DARK_SCREENS)) {
     const screen = screensById.get(id);
     if (!screen || !screen.screenshot?.downloadUrl) {
@@ -161,7 +175,7 @@ export async function exportStitch() {
     console.log(`  ✓ dark/${name}.png (${id}) ${how}`);
   }
 
-  console.log("Exporting Light screens (19)...");
+  console.log("Exporting Light screens (20)...");
   for (const [name, id] of Object.entries(LIGHT_SCREENS)) {
     const screen = screensById.get(id);
     if (!screen || !screen.screenshot?.downloadUrl) {
@@ -172,7 +186,7 @@ export async function exportStitch() {
   }
 
   if (browser) await browser.close();
-  console.log("\nDone! 38 screens exported to docs/qa/stitch/{dark,light}/");
+  console.log("\nDone! 40 screens exported to docs/qa/stitch/{dark,light}/");
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
