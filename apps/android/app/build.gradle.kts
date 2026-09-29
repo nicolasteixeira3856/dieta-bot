@@ -40,6 +40,17 @@ if (keyPropsFile.exists()) {
     logger.warn("key.properties not found at ${keyPropsFile.path}: release APK will be unsigned.")
 }
 
+// Version (A16): apps/android/version.properties, bumped only by tools/distribute-dev.ps1.
+// versionName = 0.0.N (the dev flavor adds -dev), versionCode = N. Until 1.0.0 (its own plan).
+val versionFile = rootProject.file("version.properties")
+val versionPatch: Int = run {
+    if (!versionFile.exists()) throw GradleException("Missing ${versionFile.path} (VERSION_PATCH=N). See docs/android/README.md, Distribution.")
+    val props = Properties().apply { versionFile.inputStream().use { load(it) } }
+    val raw = props.getProperty("VERSION_PATCH")?.trim()
+    raw?.toIntOrNull()?.takeIf { it >= 1 }
+        ?: throw GradleException("VERSION_PATCH in ${versionFile.path} must be a positive integer, got '$raw'.")
+}
+
 android {
     namespace = "com.nutri.android"
     compileSdk = 37
@@ -48,8 +59,8 @@ android {
         applicationId = "com.nutri.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = versionPatch
+        versionName = "0.0.$versionPatch"
     }
 
     flavorDimensions += "env"

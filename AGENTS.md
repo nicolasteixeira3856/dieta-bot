@@ -138,9 +138,14 @@ New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/d
 UI DONE = gold PNG comparison above. No screenshot, UI is not done.
 Test before marking done.
 
+Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1`.
+It ships the signed dev release APK through Firebase App Distribution (group `owner`, installed via Firebase App Tester).
+The version bumps by itself (0.0.N → 0.0.N+1) and is recorded as a commit + tag `dev-v0.0.N`.
+Never edit `apps/android/version.properties` by hand. Never reuse a number. Until 1.0.0 (its own plan).
+
 ## Do not
 
-Firebase outside ADR-014 (Crashlytics + Analytics, dev flavor only), Gemini / Firebase AI, TDEE, eat-back cap, Health/Xiaomi, key in the client,
+Firebase outside ADR-014 (Crashlytics + Analytics, dev flavor only) and A16 (App Distribution of the dev APK), Gemini / Firebase AI, TDEE, eat-back cap, Health/Xiaomi, key in the client,
 VPS outside ADR-013, router port, iOS, Flutter, React Native,
 screens outside ADR-012,
 implementation based on wires instead of Stitch gold PNGs,

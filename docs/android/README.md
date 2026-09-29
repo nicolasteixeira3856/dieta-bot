@@ -88,6 +88,17 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 - Sem `key.properties` o build gera `app-<flavor>-release-unsigned.apk` e avisa. Nunca usa a chave de debug.
 - Perder a chave = nenhuma atualização instala por cima. Backup fora do PC é obrigatório.
 
+## Distribuição
+
+[A16](plans/a16-app-distribution.md). Build de teste para o celular do dono, sem cabo:
+
+- `./tools/distribute-dev.ps1`: árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`nutri-bot-dev`, grupo `owner`) → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
+- `-DryRun`: faz o build e as conferências; não distribui, não commita, não faz push, e deixa a árvore limpa.
+- Versão: `apps/android/version.properties` (`VERSION_PATCH=N`) → `versionName` `0.0.N` (+ `-dev` do flavor) e `versionCode` `N`. O Gradle falha se o arquivo faltar ou não for inteiro positivo.
+- Bump: se a tag `dev-v0.0.N` já existe, o script grava N+1; se não existe (primeira vez), publica N como está. Falha antes do commit desfaz o bump, então o número não é queimado. Nunca editar o arquivo à mão; nunca reutilizar um número.
+- Até a `1.0.0`: a virada e a regra depois dela são um plano/ADR próprio.
+- Console: `https://console.firebase.google.com/project/nutri-bot-dev/appdistribution`. O dono instala e atualiza pelo app **Firebase App Tester**.
+
 ## Indice
 
 ### Especificacoes
@@ -106,6 +117,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 - [A13 rename visível "Dieta Bot" (Pendente: APK no celular)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
 - [A14 marca: ícone e splash (Pendente: celular)](plans/pending_manual_validation/a14-marca-icone-splash.md)
 - [A15 ajuste aos golds novos (Pendente: tinta dark/o4 × gold novo)](plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md)
+- [A16 Firebase App Distribution, versão 0.0.N (Em implementação)](plans/a16-app-distribution.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)

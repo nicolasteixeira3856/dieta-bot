@@ -40,7 +40,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [A16 Firebase App Distribution, versão 0.0.N automática](android/plans/a16-app-distribution.md)
+1. [A16 Firebase App Distribution, versão 0.0.N automática](android/plans/a16-app-distribution.md) — em implementação.
 
 ## Planos pendentes de aprovação manual
 

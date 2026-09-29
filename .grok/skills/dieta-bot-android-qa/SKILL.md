@@ -16,3 +16,6 @@ Checklist:
 - ADR if there was a decision
 
 Without a screenshot of new UI matching the Stitch gold, it is not DONE.
+
+Test build for the owner's phone (A16): `./tools/distribute-dev.ps1` (clean tree required; `-DryRun` builds and checks only).
+The version bumps by itself (0.0.N -> 0.0.N+1). Never edit `apps/android/version.properties` by hand; never reuse a number.
