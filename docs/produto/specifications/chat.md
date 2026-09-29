@@ -6,7 +6,7 @@ Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta
 
 Um registro por refeição com confirmação ao substituir, Enter pula linha e foto 2048 px desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [ADR-018](../../android/adrs/ADR-018-foto-2048.md); server: [S8](../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)): regras 3, 5 e 7 e "Estados e falhas".
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): pergunta em bolha própria, bolhas iguais, sem "IA ATIVA", anexo com preview ([A19](../../android/plans/a19-chat-visual.md), gate [ST1](../../stitch/plans/st1-chat.md)). Regras 2, 4 e 14 mudam na entrega desse plano.
+Mudanças planejadas (29/09/2026, aguardando aprovação): pergunta em bolha própria, bolhas iguais, sem "IA ATIVA", anexo com preview ([A19](../../android/plans/a19-chat-visual.md), gate [ST1](../../stitch/plans/st1-chat.md)). Regras 2, 4 e 14 mudam na entrega desse plano. Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso ([ADR-022](../adrs/ADR-022-limite-texto-chat.md), [S9](../../server/plans/s9-limite-texto-2000.md), [A25](../../android/plans/a25-limite-texto-composer.md), gate [ST5](../../stitch/plans/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
 
 ## Contexto e objetivo
 

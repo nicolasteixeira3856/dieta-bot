@@ -25,6 +25,8 @@ Antes de enviar, selecione as 7 telas de chat do tema:
 | chatF | `ac502aadad004c18bc271e0c74355960` | `35a756967193481fa84c48e05e33e0be` |
 | chatG | `5e95d8451bf447989bd62a2e9dd38909` | `c226508d6c9b4830952a42005f1cf2f4` |
 
+Se o [ST5](st5-chat-texto-longo.md) já rodou, selecione também a `chatX` do tema (IDs no Registro do ST5).
+
 ```text
 Edit only the chat message bubbles and the assistant label on these screens.
 
