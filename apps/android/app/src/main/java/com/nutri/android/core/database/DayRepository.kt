@@ -94,7 +94,10 @@ class DayRepository @Inject constructor(
         }
     }
 
-    /** INSERT, never merge: a second log on the same slot adds up. Clears that slot's skip. */
+    /**
+     * INSERT, never merge: a second log on the same slot adds up. The Chat never does that: a taken
+     * slot goes through [replaceSlotLog] (ADR-017). Clears that slot's skip.
+     */
     suspend fun addLog(
         window: String,
         text: String,
@@ -125,6 +128,43 @@ class DayRepository @Inject constructor(
                     ),
                 )
                 if (slotId != null) db.slotSkipDao().delete(date, slotId)
+            }
+        }
+    }
+
+    /**
+     * One meal, one log (ADR-017): today's logs of [slotId] go and the new one takes their place,
+     * in one transaction. Clears that slot's skip.
+     */
+    suspend fun replaceSlotLog(
+        slotId: Long,
+        text: String,
+        kcal: Int,
+        p: Int,
+        carbs: Int,
+        fat: Int,
+        source: String = "user",
+    ) {
+        importOnce()
+        val date = todayIso()
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                db.mealLogDao().deleteBySlot(date, slotId)
+                db.mealLogDao().insert(
+                    MealLogEntity(
+                        date = date,
+                        window = "",
+                        text = text,
+                        kcal = kcal,
+                        p = p,
+                        stable = 1,
+                        slotId = slotId,
+                        carbs = carbs,
+                        fat = fat,
+                        source = source,
+                    ),
+                )
+                db.slotSkipDao().delete(date, slotId)
             }
         }
     }

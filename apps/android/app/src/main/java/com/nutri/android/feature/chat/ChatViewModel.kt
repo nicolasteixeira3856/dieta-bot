@@ -55,7 +55,6 @@ class ChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private var day: DaySnapshot = DaySnapshot()
     private var messages: List<ChatMessageEntity> = emptyList()
 
     /** VM-only state: never in Room until the server answers (spec: failure leaves Room untouched). */
@@ -66,6 +65,8 @@ class ChatViewModel @Inject constructor(
         val sheetFor: Long? = null,
         val sheetSelection: Long? = null,
         val skipConfirm: SlotRef? = null,
+        /** Gravar on a slot that already has a log today (ADR-017): asks before replacing. */
+        val replaceConfirm: ReplaceConfirm? = null,
         val openedAt: Instant? = null,
         /** JPEG of the pending send (A6). Stored in chat_message only after the server answers. */
         val pendingPhoto: String? = null,
@@ -82,7 +83,6 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             combine(repository.observeToday(), repository.observeMessages(), local) { d, m, l -> Triple(d, m, l) }
                 .collect { (d, m, l) ->
-                    day = d
                     messages = m
                     _uiState.value = render(d, m, l)
                 }
@@ -141,7 +141,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch { onPhoto(photos.import(uri)) }
     }
 
-    /** The photo goes at once, captioned by what is typed (may be empty). Over 16 MB: no POST. */
+    /** The photo goes at once, captioned by what is typed (may be empty). TooLarge (no memory to decode): no POST. */
     private fun onPhoto(result: PhotoResult) {
         when (result) {
             is PhotoResult.Ready -> {
@@ -244,12 +244,22 @@ class ChatViewModel @Inject constructor(
         return if (closed) null else question
     }
 
-    /** Tap Gravar: local addLog with the last estimate. No second POST (spec rule 5). */
+    /**
+     * Tap Gravar: local log with the last estimate. No second POST (spec rule 5).
+     * A slot that already has a log today asks first and replaces (ADR-017): never two logs by the Chat.
+     */
     fun record(estimateId: Long, slotId: Long) {
         val estimate = messages.firstOrNull { it.id == estimateId && it.estimateKcal != null } ?: return
-        val slot = day.slots.firstOrNull { it.id == slotId } ?: return
         local.update { it.copy(sheetFor = null, sheetSelection = null) }
         viewModelScope.launch {
+            val today = repository.observeToday().first()
+            val slot = today.slots.refs().firstOrNull { it.id == slotId } ?: return@launch
+            val taken = today.logs.filter { it.slotId == slotId }
+            if (taken.isNotEmpty()) {
+                val confirm = ReplaceConfirm(estimateId, slot, oldKcal = taken.sumOf { it.kcal }, newKcal = estimate.estimateKcal ?: 0)
+                local.update { it.copy(replaceConfirm = confirm) }
+                return@launch
+            }
             repository.addLog(
                 window = "",
                 text = descriptionOf(estimate),
@@ -259,16 +269,49 @@ class ChatViewModel @Inject constructor(
                 slotId = slot.id,
                 carbs = estimate.estimateC ?: 0,
                 fat = estimate.estimateG ?: 0,
-                source = if (userBefore(estimate)?.photoPath != null) "photo" else "user",
+                source = sourceOf(estimate),
             )
             repository.insertMessage(role = "logged", text = slot.name, estimateKcal = estimate.estimateKcal, estimateSlotId = slot.id)
-            telemetry.event(
-                TelemetryEvents.MEAL_SAVED,
-                mapOf("from" to "chat", "has_photo" to (userBefore(estimate)?.photoPath != null), "kcal" to (estimate.estimateKcal ?: 0)),
-            )
+            mealSaved(estimate)
             memory.append("${slot.name}: ${descriptionOf(estimate)} (${estimate.estimateKcal ?: 0} kcal)")
         }
     }
+
+    /** Substituir: today's log(s) of the slot become this estimate, in one transaction. */
+    fun confirmReplace() {
+        val confirm = local.value.replaceConfirm ?: return
+        val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.estimateKcal != null } ?: return
+        local.update { it.copy(replaceConfirm = null) }
+        viewModelScope.launch {
+            repository.replaceSlotLog(
+                slotId = confirm.slot.id,
+                text = descriptionOf(estimate),
+                kcal = estimate.estimateKcal ?: 0,
+                p = estimate.estimateP ?: 0,
+                carbs = estimate.estimateC ?: 0,
+                fat = estimate.estimateG ?: 0,
+                source = sourceOf(estimate),
+            )
+            repository.insertMessage(role = ROLE_REPLACED, text = confirm.slot.name, estimateKcal = estimate.estimateKcal, estimateSlotId = confirm.slot.id)
+            mealSaved(estimate)
+            memory.append("${confirm.slot.name} (atualizado): ${descriptionOf(estimate)} (${estimate.estimateKcal ?: 0} kcal)")
+        }
+    }
+
+    /** Outra refeição: closes the confirmation and opens Trocar with nothing picked. Room untouched. */
+    fun replaceElsewhere() {
+        val confirm = local.value.replaceConfirm ?: return
+        local.update { it.copy(replaceConfirm = null, sheetFor = confirm.estimateId, sheetSelection = null) }
+    }
+
+    fun cancelReplace() = local.update { it.copy(replaceConfirm = null) }
+
+    private fun sourceOf(estimate: ChatMessageEntity) = if (userBefore(estimate)?.photoPath != null) "photo" else "user"
+
+    private fun mealSaved(estimate: ChatMessageEntity) = telemetry.event(
+        TelemetryEvents.MEAL_SAVED,
+        mapOf("from" to "chat", "has_photo" to (userBefore(estimate)?.photoPath != null), "kcal" to (estimate.estimateKcal ?: 0)),
+    )
 
     fun openSheet(estimateId: Long) = local.update {
         val preset = _uiState.value.actions?.record?.id ?: _uiState.value.currentSlotId
@@ -322,9 +365,10 @@ class ChatViewModel @Inject constructor(
             val time = timeOf(m.createdAtEpochMs)
             items += when (m.role) {
                 "user" -> ChatItem.User(m.id, m.text, time, photoPath = m.photoPath)
-                "logged", "skipped" -> ChatItem.Receipt(
+                "logged", ROLE_REPLACED, "skipped" -> ChatItem.Receipt(
                     id = m.id,
                     skipped = m.role == "skipped",
+                    replaced = m.role == ROLE_REPLACED,
                     slotName = m.text,
                     slotTime = m.estimateSlotId?.let { slotById[it]?.time },
                     kcal = m.estimateKcal,
@@ -384,6 +428,7 @@ class ChatViewModel @Inject constructor(
             notice = l.notice,
             sheetSelection = l.sheetSelection,
             skipConfirm = l.skipConfirm,
+            replaceConfirm = l.replaceConfirm,
         )
     }
 
@@ -403,8 +448,11 @@ class ChatViewModel @Inject constructor(
         /** server/shaping.py CHAT_FALLBACK_REPLY: bad JSON, empty reply or model error on the server. */
         const val SERVER_FALLBACK_REPLY = "nao deu pra estimar"
 
+        /** Receipt of Substituir (ADR-017). UI only, like "logged". */
+        const val ROLE_REPLACED = "replaced"
+
         /** Rows that close the last estimate: its actions go away. A wipe closes it too. */
-        private val RECEIPTS = setOf("logged", "skipped", DayRepository.ROLE_WIPED)
+        private val RECEIPTS = setOf("logged", ROLE_REPLACED, "skipped", DayRepository.ROLE_WIPED)
         private val TIME = DateTimeFormatter.ofPattern("HH:mm")
         private val DAY = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
 

@@ -24,9 +24,23 @@ class PhotoGateTest {
     }
 
     @Test
-    fun jpegMagic() {
-        assertThat(PhotoGate.isJpeg(byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte()))).isTrue()
-        assertThat(PhotoGate.isJpeg("RIFF".toByteArray())).isFalse()
-        assertThat(PhotoGate.isJpeg(byteArrayOf(0xFF.toByte()))).isFalse()
+    fun upload_longestSideIs2048_neverEnlarged() {
+        assertThat(PhotoGate.targetSize(8000, 6000)).isEqualTo(2048 to 1536)
+        assertThat(PhotoGate.targetSize(6000, 8000)).isEqualTo(1536 to 2048)
+        assertThat(PhotoGate.targetSize(1000, 800)).isEqualTo(1000 to 800)
+        assertThat(PhotoGate.targetSize(2048, 10)).isEqualTo(2048 to 10)
+    }
+
+    @Test
+    fun decodeSample_keepsLongestSideBetween2048And4096() {
+        assertThat(PhotoGate.decodeSample(8000, 6000)).isEqualTo(2) // 4000
+        assertThat(PhotoGate.decodeSample(8160, 6120)).isEqualTo(2) // 50 MP: 4080
+        assertThat(PhotoGate.decodeSample(16320, 12240)).isEqualTo(4) // 200 MP: 4080
+        assertThat(PhotoGate.decodeSample(4096, 3072)).isEqualTo(2) // 2048
+        assertThat(PhotoGate.decodeSample(4095, 3000)).isEqualTo(1)
+        assertThat(PhotoGate.decodeSample(1000, 800)).isEqualTo(1)
+        for ((w, h) in listOf(8000 to 6000, 16320 to 12240, 5000 to 100, 12000 to 9000)) {
+            assertThat(maxOf(w, h) / PhotoGate.decodeSample(w, h)).isIn(com.google.common.collect.Range.closed(PhotoGate.MAX_SIDE, 2 * PhotoGate.MAX_SIDE))
+        }
     }
 }

@@ -46,7 +46,15 @@ sealed interface ChatItem {
         override val key = "a-$id"
     }
 
-    data class Receipt(val id: Long, val skipped: Boolean, val slotName: String, val slotTime: String?, val kcal: Int?) : ChatItem {
+    data class Receipt(
+        val id: Long,
+        val skipped: Boolean,
+        val slotName: String,
+        val slotTime: String?,
+        val kcal: Int?,
+        /** "Atualizado em": the slot's log was replaced (ADR-017). */
+        val replaced: Boolean = false,
+    ) : ChatItem {
         override val key = "r-$id"
     }
 
@@ -85,6 +93,8 @@ data class ChatUiState(
     val sheetSelection: Long? = null,
     /** Slot waiting for the skip confirmation (chatP). */
     val skipConfirm: SlotRef? = null,
+    /** Slot waiting for the replace confirmation (chatP layout, ADR-017). */
+    val replaceConfirm: ReplaceConfirm? = null,
     /** Camera / gallery chooser (A6). */
     val photoSheet: Boolean = false,
     /** Snackbar text, shown once. */
@@ -92,6 +102,10 @@ data class ChatUiState(
 ) {
     val canSend: Boolean get() = composer.isNotBlank() && !sending
 }
+
+/** Gravar on a taken slot: "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */
+@Immutable
+data class ReplaceConfirm(val estimateId: Long, val slot: SlotRef, val oldKcal: Int, val newKcal: Int)
 
 @Immutable
 data class EstimateActions(

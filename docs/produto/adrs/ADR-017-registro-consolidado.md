@@ -47,7 +47,7 @@ Custo de token: a refeição gravada já vai no snapshot do dia (`day.slots[].te
 
 ## Relações
 
-- Planos: [S8](../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md), [A18](../../android/plans/a18-chat-registro-foto.md).
+- Planos: [S8](../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md), [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md).
 - Specs: [chat](../specifications/chat.md), [home-timeline](../specifications/home-timeline.md), [v1-chat](../../server/specifications/v1-chat.md).
 
 Depois de aceito, este ADR não se edita.

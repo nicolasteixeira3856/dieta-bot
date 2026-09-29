@@ -36,6 +36,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
@@ -82,6 +83,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -118,6 +121,10 @@ fun ChatScreen(
     onAskSkip: (SlotRef) -> Unit,
     onSkipConfirm: () -> Unit,
     onSkipCancel: () -> Unit,
+    /** ADR-017: Gravar on a taken slot → Substituir | Outra refeição. */
+    onReplaceConfirm: () -> Unit = {},
+    onReplaceElsewhere: () -> Unit = {},
+    onReplaceCancel: () -> Unit = {},
     /** A6: composer camera → chooser; chip → camera; chooser rows → launchers. */
     onPhoto: () -> Unit = {},
     onCamera: () -> Unit = {},
@@ -135,7 +142,7 @@ fun ChatScreen(
             }
             .testTag("chat"),
     ) {
-        val overlay = ui.sheetFor != null || ui.skipConfirm != null || ui.photoSheet
+        val overlay = ui.sheetFor != null || ui.skipConfirm != null || ui.replaceConfirm != null || ui.photoSheet
         // Stitch: backdrop-blur behind the sheet and the skip dialog.
         Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding().imePadding()) {
             Header(onBack)
@@ -146,6 +153,7 @@ fun ChatScreen(
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
+        ui.replaceConfirm?.let { ReplaceDialog(it, onReplaceConfirm, onReplaceElsewhere, onReplaceCancel) }
         if (ui.photoSheet) PhotoSheet(onCamera, onGallery, onPhotoSheetClose)
     }
 }
@@ -414,7 +422,13 @@ private fun ReceiptCard(item: ChatItem.Receipt) {
             Column {
                 Text(
                     buildAnnotatedString {
-                        append(if (item.skipped) "Pulado " else "Registrado em ")
+                        append(
+                            when {
+                                item.skipped -> "Pulado "
+                                item.replaced -> "Atualizado em "
+                                else -> "Registrado em "
+                            },
+                        )
                         withStyle(SpanStyle(fontWeight = FontWeight.W600)) { append(item.slotName) }
                         item.slotTime?.let { withStyle(SpanStyle(color = p.dim)) { append("  ·  $it") } }
                     },
@@ -423,7 +437,7 @@ private fun ReceiptCard(item: ChatItem.Receipt) {
                 )
                 item.kcal?.takeIf { !item.skipped }?.let {
                     Text(
-                        "+$it kcal",
+                        if (item.replaced) "$it kcal" else "+$it kcal",
                         style = DietaBotType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp),
                         color = p.good,
                         modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp)).background(p.good.copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 1.dp),
@@ -651,7 +665,10 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
         BasicTextField(
             value = ui.composer,
             onValueChange = onComposer,
-            singleLine = true,
+            // Enter inserts a line break; only the arrow sends (A18).
+            singleLine = false,
+            maxLines = 5,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Default),
             textStyle = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
             cursorBrush = SolidColor(p.gold),
             modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp).testTag("chat-input"),
@@ -795,11 +812,52 @@ private fun sheetIcon(minutes: Int): ImageVector = when (SlotSuggestions.bandOf(
 }
 
 @Composable
-private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: () -> Unit) {
+private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: () -> Unit) = ConfirmDialog(
+    time = slot.time,
+    title = "Deseja pular o ${slot.name}?",
+    body = "Nenhuma caloria será somada hoje. Se você mudar de ideia, ainda poderá registrar alimentos nessa refeição mais tarde.",
+    primaryIcon = Icons.Outlined.FastForward,
+    primaryLabel = "Pular refeição",
+    secondaryLabel = "Cancelar",
+    tag = "chat-skip",
+    onPrimary = onConfirm,
+    onSecondary = onCancel,
+    onDismiss = onCancel,
+)
+
+/** ADR-017, same chatP dialog. Outra refeição opens Trocar; back and scrim only close. */
+@Composable
+private fun BoxScope.ReplaceDialog(confirm: ReplaceConfirm, onReplace: () -> Unit, onElsewhere: () -> Unit, onCancel: () -> Unit) = ConfirmDialog(
+    time = confirm.slot.time,
+    title = "Substituir ${confirm.slot.name}?",
+    body = "${confirm.slot.name} tem ${confirm.oldKcal} kcal. Fica com ${confirm.newKcal} kcal.",
+    primaryIcon = Icons.Outlined.SwapHoriz,
+    primaryLabel = "Substituir",
+    secondaryLabel = "Outra refeição",
+    tag = "chat-replace",
+    onPrimary = onReplace,
+    onSecondary = onElsewhere,
+    onDismiss = onCancel,
+)
+
+/** Stitch chatP layout: icon + slot time, title, body, CTA pill, secondary pill. Tags {tag}-dialog/-confirm/-cancel. */
+@Composable
+private fun BoxScope.ConfirmDialog(
+    time: String,
+    title: String,
+    body: String,
+    primaryIcon: ImageVector,
+    primaryLabel: String,
+    secondaryLabel: String,
+    tag: String,
+    onPrimary: () -> Unit,
+    onSecondary: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     val p = LocalPalette.current
-    BackHandler(onBack = onCancel)
+    BackHandler(onBack = onDismiss)
     // Stitch chatP: #07090d/80 dark, text colour/40 light.
-    Scrim(if (p.isDark) Color(0xFF07090D).copy(alpha = 0.8f) else p.text.copy(alpha = 0.4f), onCancel)
+    Scrim(if (p.isDark) Color(0xFF07090D).copy(alpha = 0.8f) else p.text.copy(alpha = 0.4f), onDismiss)
     val shape = RoundedCornerShape(24.dp)
     Column(
         Modifier
@@ -811,7 +869,7 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
             .border(1.dp, p.line, shape)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
             .padding(24.dp)
-            .testTag("chat-skip-dialog"),
+            .testTag("$tag-dialog"),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -825,17 +883,17 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(Icons.Outlined.Schedule, contentDescription = null, tint = p.muted, modifier = Modifier.size(14.dp))
-                Text(slot.time, style = DietaBotType.labelCaps.copy(letterSpacing = 0.05.em), color = p.muted)
+                Text(time, style = DietaBotType.labelCaps.copy(letterSpacing = 0.05.em), color = p.muted)
             }
         }
         Text(
-            "Deseja pular o ${slot.name}?",
+            title,
             style = DietaBotType.bodyLg.copy(fontSize = 18.sp, lineHeight = 24.75.sp, fontWeight = if (p.isDark) FontWeight.W600 else FontWeight.W700, letterSpacing = (-0.025).em),
             color = p.text,
             modifier = Modifier.padding(top = 20.dp),
         )
         Text(
-            "Nenhuma caloria será somada hoje. Se você mudar de ideia, ainda poderá registrar alimentos nessa refeição mais tarde.",
+            body,
             style = DietaBotType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
             color = p.muted,
             modifier = Modifier.padding(top = 8.dp),
@@ -847,14 +905,14 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
                 .height(52.dp)
                 .clip(CircleShape)
                 .background(p.ctaBg)
-                .clickable(onClick = onConfirm)
-                .testTag("chat-skip-confirm"),
+                .clickable(onClick = onPrimary)
+                .testTag("$tag-confirm"),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Outlined.FastForward, contentDescription = null, tint = p.ctaText, modifier = Modifier.size(20.dp))
+            Icon(primaryIcon, contentDescription = null, tint = p.ctaText, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Pular refeição", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
+            Text(primaryLabel, style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
         }
         Box(
             Modifier
@@ -864,11 +922,11 @@ private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: 
                 .clip(CircleShape)
                 .background(p.surf2)
                 .border(1.dp, p.line, CircleShape)
-                .clickable(onClick = onCancel)
-                .testTag("chat-skip-cancel"),
+                .clickable(onClick = onSecondary)
+                .testTag("$tag-cancel"),
             contentAlignment = Alignment.Center,
         ) {
-            Text("Cancelar", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
+            Text(secondaryLabel, style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
         }
     }
 }
