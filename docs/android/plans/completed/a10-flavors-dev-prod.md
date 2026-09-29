@@ -4,7 +4,7 @@
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (Gradle, `src/dev/`, `src/prod/`), `tools/capture-*.sh`, `tools/fake-chat-server.mjs`, skills com comandos de build, docs.
-- Pré-requisitos: [A9](../pending_manual_validation/a9-assinatura-release.md) concluído. [ADR-014](../../adrs/ADR-014-flavors-firebase-dev.md) aceito junto com a aprovação deste plano.
+- Pré-requisitos: [A9](a9-assinatura-release.md) concluído. [ADR-014](../../adrs/ADR-014-flavors-firebase-dev.md) aceito junto com a aprovação deste plano.
 
 ## Gate de autorização
 

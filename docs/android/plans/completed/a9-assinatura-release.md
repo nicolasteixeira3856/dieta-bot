@@ -1,6 +1,6 @@
 # Plano — A9 Chave de assinatura própria para o release
 
-- Estado: Pendente aprovação manual (passo 5.1: backup da chave)
+- Estado: Concluído (28/09/2026). Backup da chave confirmado pelo dono.
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/app/build.gradle.kts`, `.gitignore`, docs. Arquivos locais (não versionados): `nutri-release.jks`, `key.properties` na raiz do repo.
@@ -80,7 +80,7 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 ## Fora de escopo
 
-- Flavors ([A10](../completed/a10-flavors-dev-prod.md)), Firebase ([A11](a11-firebase-dev.md)).
+- Flavors ([A10](../completed/a10-flavors-dev-prod.md)), Firebase ([A11](../pending_manual_validation/a11-firebase-dev.md)).
 - R8/minify, AAB, Play Console, Play App Signing.
 - Incremento de `versionCode`.
 
@@ -114,7 +114,11 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 3. `apksigner verify --print-certs` (build-tools 36.0.0): `Verifies`, esquema v2, DN `CN=Nutri, O=Nicolas Teixeira, C=BR`, SHA-256 `c9978f23…2b8a1d`, igual ao do keytool. ✅
 4. Sem `key.properties`: aviso `release APK will be unsigned` e `app-release-unsigned.apk`. Arquivo restaurado, APK assinado regerado. ✅
 5. `testDebugUnitTest` → 186 testes, 0 falhas. ✅
-6. Manual: backup da chave pelo dono. ⏳
+6. Manual: backup da chave pelo dono. ✅ (confirmado em 28/09/2026)
+
+### Aprovação manual (28/09/2026)
+
+Frase do dono: "Pode completar tambem o A9 tbm." Backup de `nutri-release.jks` + `key.properties` dado como feito.
 
 ## Encerramento
 

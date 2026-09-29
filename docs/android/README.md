@@ -83,7 +83,7 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 
 ## Release
 
-- `./gradlew.bat :app:assembleDevRelease` (ou `assembleProdRelease`), assinado com a chave própria ([A9](plans/pending_manual_validation/a9-assinatura-release.md)).
+- `./gradlew.bat :app:assembleDevRelease` (ou `assembleProdRelease`), assinado com a chave própria ([A9](plans/completed/a9-assinatura-release.md)).
 - Chave: `nutri-release.jks` + `key.properties` na raiz do repo, fora do git. Certificado `CN=Nutri, O=Nicolas Teixeira, C=BR`, SHA-256 `C9:97:8F:23:53:3C:F1:AD:91:C3:A7:EA:AE:57:A7:D7:88:E3:92:B9:50:D0:0F:9B:D8:A0:85:3F:7B:2B:8A:1D`.
 - Sem `key.properties` o build gera `app-<flavor>-release-unsigned.apk` e avisa. Nunca usa a chave de debug.
 - Perder a chave = nenhuma atualização instala por cima. Backup fora do PC é obrigatório.
@@ -118,7 +118,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 - [A14 marca: ícone e splash (Concluído)](plans/completed/a14-marca-icone-splash.md)
 - [A15 ajuste aos golds novos (Concluído)](plans/completed/a15-ajuste-visual-golds-novos.md)
 - [A16 Firebase App Distribution, versão 0.0.N (Concluído)](plans/completed/a16-app-distribution.md)
-- [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
+- [A9 chave de assinatura do release (Concluído)](plans/completed/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)
 

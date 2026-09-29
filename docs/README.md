@@ -44,9 +44,8 @@ Nenhum no momento.
 
 ## Planos pendentes de aprovação manual
 
-1. [A9 chave de assinatura do release](android/plans/pending_manual_validation/a9-assinatura-release.md) — release assinado; falta o dono confirmar o backup de `nutri-release.jks` + `key.properties`.
-2. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
-3. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
+1. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
+2. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
 
 ## Planos concluídos
 
@@ -75,6 +74,7 @@ Nenhum no momento.
 23. [A14 marca: ícone e splash com o logo](android/plans/completed/a14-marca-icone-splash.md)
 24. [A15 ajuste aos golds novos](android/plans/completed/a15-ajuste-visual-golds-novos.md) — tinta do dark/o4: mantido o token do `AGENTS.md` (decisão do dono).
 25. [A16 Firebase App Distribution, versão 0.0.N](android/plans/completed/a16-app-distribution.md)
+26. [A9 chave de assinatura do release](android/plans/completed/a9-assinatura-release.md)
 
 ## Outros docs
 

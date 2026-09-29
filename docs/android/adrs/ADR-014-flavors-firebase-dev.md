@@ -17,7 +17,7 @@ O app só tinha um ambiente: debug assinado com a chave do PC, apontando para o 
 - Firebase projeto `nutri-bot-dev` (plano Spark), app Android `com.nutri.android.dev`, com **Crashlytics + Analytics**.
 - Dependências Firebase só em `devImplementation`. O código chama uma interface `Telemetry` em `main`; a implementação Firebase fica em `src/dev/` e a no-op em `src/prod/`.
 - Analytics recebe só eventos e métricas (sem texto livre do usuário). O conteúdo das conversas fica no log do server ([ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md)), correlacionado por `X-Request-Id`.
-- Os dois flavors são assinados na release com a chave própria do app ([A9](../plans/pending_manual_validation/a9-assinatura-release.md)).
+- Os dois flavors são assinados na release com a chave própria do app ([A9](../plans/completed/a9-assinatura-release.md)).
 
 ## Motivação
 
@@ -54,7 +54,7 @@ Mantém o ID atual para o uso diário, mas deixa o prod com um ID "sujo". Rejeit
 
 ## Relações
 
-- Planos: [A9](../plans/pending_manual_validation/a9-assinatura-release.md), [A10](../plans/completed/a10-flavors-dev-prod.md), [A11](../plans/pending_manual_validation/a11-firebase-dev.md).
+- Planos: [A9](../plans/completed/a9-assinatura-release.md), [A10](../plans/completed/a10-flavors-dev-prod.md), [A11](../plans/pending_manual_validation/a11-firebase-dev.md).
 - ADRs relacionados: [ADR-013](../../server/adrs/ADR-013-gcp-host.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), [002](../../decisions/002-android-client.md).
 - Contextos consumidores: [server](../../server/README.md) (header `X-Request-Id`).
 
