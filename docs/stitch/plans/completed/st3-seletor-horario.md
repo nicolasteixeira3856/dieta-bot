@@ -1,13 +1,13 @@
 # Gate Stitch — ST3 Seletor de horário em rodas
 
-- Estado: Aguardando o dono no Stitch
+- Estado: Concluído
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
-- Executa: [ADR-020](../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
-- Bloqueia: [A21 Seletor de horário](../../android/plans/a21-seletor-horario.md); é pré-requisito do [ST4](st4-refeicoes-por-dia.md).
+- Executa: [ADR-020](../../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
+- Bloqueia: [A21 Seletor de horário](../../../android/plans/a21-seletor-horario.md); é pré-requisito do [ST4](../st4-refeicoes-por-dia.md).
 
-Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
+Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 
 ## ⛔ Bloqueio do dono — prompt para o Stitch
 
@@ -68,12 +68,12 @@ No clock dial, no keyboard icon, no other text. Keep the screen behind the dialo
 
 ### Checklist
 
-- [ ] Diálogo centralizado sobre a O3, com scrim.
-- [ ] Duas rodas (hora 00–23, minuto 00–59) com ":" no meio, formato 24 h.
-- [ ] Faixa de seleção única atravessando as duas rodas; valor central grande e vizinhos esmaecidos.
-- [ ] Sem mostrador de relógio e sem ícone de teclado.
-- [ ] "Cancelar" e "OK" lado a lado, com o mesmo tamanho e a mesma fonte.
-- [ ] Tokens do `AGENTS.md`; dark e light coerentes.
+- [x] Diálogo centralizado sobre a O3, com scrim.
+- [x] Duas rodas (hora 00–23, minuto 00–59) com ":" no meio, formato 24 h.
+- [x] Faixa de seleção única atravessando as duas rodas; valor central grande e vizinhos esmaecidos.
+- [x] Sem mostrador de relógio e sem ícone de teclado.
+- [x] "Cancelar" e "OK" lado a lado, com o mesmo tamanho e a mesma fonte.
+- [x] Tokens do `AGENTS.md`; dark e light coerentes.
 
 Checklist verde: lista de golds com `o3t`, `docs/stitch/README.md` com o título na tabela principal, estado `Concluído`, mover para `completed/`, índices e entrega git (`docs/st3-stitch-seletor-horario`).
 
@@ -87,3 +87,5 @@ Checklist verde: lista de golds com `o3t`, `docs/stitch/README.md` com o título
 
 - 29/09/2026 — Gate criado. Aguardando o dono.
 - 29/09/2026 — Prompt reescrito com os títulos reais do Stitch (pedido do dono).
+- 29/09/2026 — Verificação 1: `verify-stitch` **passou**, mas o checklist falhou no dark: subtítulo "Horário da refeição" em `on-surface-variant` `#d3c4b3` (bege) em vez de muted `#8b939c`. Prompt de ajuste enviado ao dono.
+- 29/09/2026 — Verificação 2: **passou**. IDs novos: "Onboarding 3/4 - Seletor de horário (V2 Expressive)" `cb0d43cb5159426dae69f7c3d6a320bb`, "(V2 Light)" `57b1c448f8d0475591c8827f2ea04ff6`. As O3 mantêm IDs e títulos. O ajuste do dono mudou só a cor do subtítulo (diff do HTML). "Cancelar" e "OK": 48 px de altura, 110 px entre os textos, nos 2 temas. `o3t` entrou nos scripts (42 golds, 21 por tema).
