@@ -1,6 +1,6 @@
 # Plano — A16 Firebase App Distribution (APK assinado, versão 0.0.N)
 
-- Estado: Em implementação
+- Estado: Pendente aprovação manual (convite aceito, App Tester instalado, 0.0.2 por cima da 0.0.1 no celular)
 - Aprovação: 28/09/2026, `/goal` do dono ("Aprovo os planos … a15 … e … a16 …").
 - Data: 28/09/2026
 - Contexto proprietário: `android`
@@ -82,6 +82,23 @@ Um comando gera o **APK dev release assinado** (chave do A9), sobe a versão soz
 
 - Um comando distribui o APK assinado com versão nova, e o dono recebe no App Tester.
 - Versões 0.0.1, 0.0.2… registradas em commits e tags.
+
+## Resultados (28/09/2026)
+
+### Implementado
+
+- `apps/android/version.properties` (`VERSION_PATCH`) → `versionCode` N, `versionName` `0.0.N` (`-dev` do flavor). O Gradle falha com mensagem clara sem o arquivo ou com valor não inteiro (testado com `abc` e com o arquivo ausente). ✅
+- `tools/distribute-dev.ps1` como no escopo. Detalhe do bump: se a tag `dev-v0.0.N` já existe, grava N+1; se não existe, publica N (é assim que a primeira execução sai `0.0.1`). Falha antes do commit restaura `version.properties`. Na primeira execução não há mudança de arquivo, então o commit `chore(release): 0.0.1-dev` é vazio (`--allow-empty`). Release notes vão por `--release-notes-file` (UTF-8 sem BOM).
+- Firebase: grupo `owner` ("Owner") criado em `nutri-bot-dev` com `nicolasteixeira3856@gmail.com` (`appdistribution:group:create` + `appdistribution:testers:add`). O App Distribution já respondia pela API: não foi preciso ativar no console. ✅
+- Regra permanente em `AGENTS.md` (How to work + "Do not" citando o A16), skill `dieta-bot-android-qa` nas 3 pastas (sincronizadas), `docs/android/README.md` (Distribuição) e `SETUP.md` (App Tester).
+- Fora do previsto, necessário para o script: `StitchGoldTest` e `RoborazziSmokeTest` passaram a usar `@Config(application = Application::class)`, como os outros testes Robolectric. Com a `DietaBotApplication` real, o `PushSync` observava o Room entre testes e vazava `Illegal connection pointer` para o teste seguinte (`chatE_dark` falhou uma vez no primeiro `-DryRun`). Depois: 3 execuções seguidas 171 / 0 falhas / 0 pulados, números de gold idênticos.
+
+### Validação
+
+1. `-DryRun` com a árvore limpa: `app-dev-release.apk`, `CN=Nutri`, `versionName 0.0.1-dev`, `versionCode 1`; árvore limpa depois. Com uma tag local temporária `dev-v0.0.1`: `0.0.2-dev` / 2 e `version.properties` de volta a 1 (tag removida). Com o teste intermitente acima: parou em "testDevDebugUnitTest failed", sem build e sem bump. ✅
+2. Primeira distribuição real: `0.0.1-dev (1)` enviada e distribuída ao grupo `owner`; commit `a304fa3 chore(release): 0.0.1-dev` e tag `dev-v0.0.1` no remoto. ✅
+3. Segunda distribuição: `0.0.2-dev (2)`; `version.properties` 1 → 2 no commit `262bd0c chore(release): 0.0.2-dev`, tag `dev-v0.0.2` no remoto. ✅ Emulador: `0.0.1-dev` assinada instalada, onboarding feito, `adb install -r` da `0.0.2-dev` → `versionCode 2`, abre na Home com a meta e as refeições do onboarding (dados mantidos). ✅
+4. Manual (dono): aceitar o convite do e-mail, instalar o **Firebase App Tester**, instalar a `0.0.2-dev` (ou a 0.0.1 e depois atualizar) e confirmar que o app sobe sem perder dados. ⏳ Obs.: o celular hoje tem o APK antigo `1.0` / `versionCode 1` com a mesma chave; a 0.0.2 (`versionCode 2`) instala por cima.
 
 ## Encerramento
 

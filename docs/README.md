@@ -40,7 +40,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-1. [A16 Firebase App Distribution, versão 0.0.N automática](android/plans/a16-app-distribution.md) — em implementação.
+Nenhum no momento.
 
 ## Planos pendentes de aprovação manual
 
@@ -49,7 +49,8 @@ Ordem de `/goal` depois da frase de aprovação:
 3. [A13 rename visível "Dieta Bot"](android/plans/pending_manual_validation/a13-rename-dieta-bot.md) — app, docs, skills e golds renomeados, gate verde (A15); falta o dono ver o APK no celular.
 4. [A14 marca: ícone e splash com o logo](android/plans/pending_manual_validation/a14-marca-icone-splash.md) — ícone adaptativo/temático e splash com logo no app e no gold, gate verde (A15); falta o dono ver no celular.
 5. [A15 ajuste aos golds novos](android/plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md) — 171 testes / 0 falhas / 0 pulados e `diff-gold` verde, exceto a tinta do dark/o4; falta o dono decidir essa tinta no emulador (texto muted do gold novo `#9ca2aa` × token `#8b939c`).
-6. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
+6. [A16 Firebase App Distribution, versão 0.0.N](android/plans/pending_manual_validation/a16-app-distribution.md) — `tools/distribute-dev.ps1` distribuiu `0.0.1-dev` e `0.0.2-dev` ao grupo `owner` (commits e tags `dev-v0.0.N` no remoto); falta o dono aceitar o convite, instalar o App Tester e ver a atualização no celular.
+7. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
 
 ## Planos concluídos
 

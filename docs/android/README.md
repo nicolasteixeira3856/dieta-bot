@@ -90,7 +90,7 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 
 ## Distribuição
 
-[A16](plans/a16-app-distribution.md). Build de teste para o celular do dono, sem cabo:
+[A16](plans/pending_manual_validation/a16-app-distribution.md). Build de teste para o celular do dono, sem cabo:
 
 - `./tools/distribute-dev.ps1`: árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`nutri-bot-dev`, grupo `owner`) → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
 - `-DryRun`: faz o build e as conferências; não distribui, não commita, não faz push, e deixa a árvore limpa.
@@ -117,7 +117,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 - [A13 rename visível "Dieta Bot" (Pendente: APK no celular)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
 - [A14 marca: ícone e splash (Pendente: celular)](plans/pending_manual_validation/a14-marca-icone-splash.md)
 - [A15 ajuste aos golds novos (Pendente: tinta dark/o4 × gold novo)](plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md)
-- [A16 Firebase App Distribution, versão 0.0.N (Em implementação)](plans/a16-app-distribution.md)
+- [A16 Firebase App Distribution, versão 0.0.N (Pendente: App Tester no celular)](plans/pending_manual_validation/a16-app-distribution.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)
