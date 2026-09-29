@@ -58,7 +58,7 @@ Nenhuma especificacao criada ate o momento.
 - [ADR-019](adrs/ADR-019-ferramentas-dev.md) — telas de ferramenta só no dev (proposto).
 - [ADR-020](adrs/ADR-020-estados-novos-chat-home-horario.md) — golds novos `chatA`, `homeW`, `o3t` (proposto).
 - [ADR-021](adrs/ADR-021-refeicoes-por-dia.md) — refeições por dia da semana (proposto).
-- [ADR-022](adrs/ADR-022-limite-texto-chat.md) — mensagem do Chat até 2000 caracteres, estado de erro (proposto).
+- [ADR-022](adrs/ADR-022-limite-texto-chat.md) — mensagem do Chat até 2000 caracteres, estado de erro (aceito).
 
 Historico em `docs/decisions/` (ver [matriz](../README.md)).
 

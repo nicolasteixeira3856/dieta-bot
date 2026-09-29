@@ -506,13 +506,38 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         app = self._app(_responds({"reply": "ok"}, captured))
 
         async with _client(app) as client:
-            # text > 1000 characters
+            # S9 / ADR-022: text and messages[].text up to 2000 characters
             res = await client.post(
                 "/v1/chat",
                 headers={"X-Invite": INVITE},
-                json=_base_chat_payload(text="a" * 1001),
+                json=_base_chat_payload(text="a" * 2000),
+            )
+            self.assertEqual(res.status_code, 200)
+            res = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(text="a" * 2001),
             )
             self.assertEqual(res.status_code, 422)
+            res = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(messages=[{"role": "user", "text": "a" * 2000}]),
+            )
+            self.assertEqual(res.status_code, 200)
+            res = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(messages=[{"role": "assistant", "text": "a" * 2001}]),
+            )
+            self.assertEqual(res.status_code, 422)
+            # Characters are code points, not bytes: 2000 emoji (8000 UTF-8 bytes) pass.
+            res = await client.post(
+                "/v1/chat",
+                headers={"X-Invite": INVITE},
+                json=_base_chat_payload(text="🍎" * 2000),
+            )
+            self.assertEqual(res.status_code, 200)
 
             # messages > 12 items
             too_many_msgs = [{"role": "user", "text": f"msg {i}"} for i in range(13)]

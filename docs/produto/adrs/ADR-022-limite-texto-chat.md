@@ -1,6 +1,6 @@
 # ADR-022 — Mensagem do Chat até 2000 caracteres, com estado de erro
 
-- Estado: Proposto (aceito junto com a aprovação do S9 ou do A25, o que vier primeiro)
+- Estado: Aceito (29/09/2026, com a aprovação do S9)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o [ADR-020](ADR-020-estados-novos-chat-home-horario.md) e a lista de golds do `AGENTS.md` (adiciona o gold `chatX`; não remove nenhum). Muda o limite de `text` do `POST /v1/chat` no [contrato](../../api-contract.md).
@@ -48,7 +48,7 @@ Custo: o histórico leva até 12 mensagens. O pior caso passa de ~12 k para ~24 
 
 ## Relações
 
-- Planos: [S9](../../server/plans/s9-limite-texto-2000.md), [ST5](../../stitch/plans/st5-chat-texto-longo.md), [A25](../../android/plans/a25-limite-texto-composer.md).
+- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/st5-chat-texto-longo.md), [A25](../../android/plans/a25-limite-texto-composer.md).
 - Specs: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md).
 
 Depois de aceito, este ADR não se edita.
