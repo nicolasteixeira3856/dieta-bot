@@ -2,9 +2,11 @@
 import path from "path";
 import fs from "fs";
 import https from "https";
+import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
+import { PNG } from "pngjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDark = path.join(root, "docs", "qa", "stitch", "dark");
 const outLight = path.join(root, "docs", "qa", "stitch", "light");
 
@@ -56,6 +58,18 @@ export const LIGHT_SCREENS = {
   push: "038a997a4f2247c9a12da72aea01f73c"
 };
 
+// Noise filter: a re-export rewrites every PNG with invisible byte and pixel noise. A pixel changed when its
+// largest RGB channel delta is above NOISE_DELTA; a PNG whose changed pixels stay under NOISE_MAX_PCT (in %)
+// of the image is restored from git, so only PNGs with a real visual change stay modified.
+export const NOISE_DELTA = 40;
+export const NOISE_MAX_PCT = 0.05;
+
+export function listArg(name) {
+  const i = process.argv.indexOf(name);
+  if (i < 0) return null;
+  return (process.argv[i + 1] || "").split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 // Bare lh3 URLs serve a 226px thumbnail. "=s0" requests the original size.
 function fullSize(url) {
   return url.replace(/=[^/]*$/, "") + "=s0";
@@ -86,14 +100,29 @@ function isFullSizePng(file) {
 }
 
 let browser = null;
-async function renderHtml(htmlUrl, dest, cssHeight) {
+async function getBrowser() {
   if (!browser) {
     const { chromium } = await import("playwright");
     browser = await chromium.launch({ channel: "chrome" }).catch(() => chromium.launch());
   }
-  const html = await (await fetch(htmlUrl)).text();
-  // Viewport height = the screen height Stitch declares (2x px / 2): min-h-screen frames take it.
-  const page = await browser.newPage({ viewport: { width: 1280, height: cssHeight }, deviceScaleFactor: 2 });
+  return browser;
+}
+
+export async function closeBrowser() {
+  if (browser) await browser.close();
+  browser = null;
+}
+
+// CSS height of a screen: the 2x pixel height Stitch declares, halved.
+export function screenCssHeight(screen) {
+  return Math.round(Number(screen.height || 1768) / 2);
+}
+
+// The one render shared by the exporter and the verifier (tools/verify-stitch.mjs): the screen HTML laid out
+// as the Stitch canvas shows it. Returns the page and the phone frame; the caller closes the page.
+export async function loadFrame(html, cssHeight) {
+  // Viewport height = the screen height Stitch declares: min-h-screen frames take it.
+  const page = await (await getBrowser()).newPage({ viewport: { width: 1280, height: cssHeight }, deviceScaleFactor: 2 });
   try {
     await page.setContent(html, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
@@ -120,6 +149,17 @@ async function renderHtml(htmlUrl, dest, cssHeight) {
       await page.setViewportSize({ width: page.viewportSize().width, height: tall });
       frame = await findFrame();
     }
+    return { page, frame };
+  } catch (err) {
+    await page.close();
+    throw err;
+  }
+}
+
+async function renderHtml(htmlUrl, dest, cssHeight) {
+  const html = await (await fetch(htmlUrl)).text();
+  const { page, frame } = await loadFrame(html, cssHeight);
+  try {
     // Same framing as the Stitch screenshots: the declared screen height, with 20 dp of page above the phone
     // frame when the frame is shorter than the screen (844 dp frame in a 884 dp screen). StitchGoldTest relies on it.
     const box = await frame.boundingBox();
@@ -135,58 +175,105 @@ const RENDER_FROM_HTML = new Set([
   "cad05772505e480c997b722296b64473" // light/homeW: screenshot predates the ST2 row fix
 ]);
 
-async function exportOne(theme, name, screen, outDir) {
+export async function exportOne(theme, name, screen, outDir) {
   const dest = path.join(outDir, `${name}.png`);
   await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
   if (!RENDER_FROM_HTML.has(screen.name.split("/").pop()) && isFullSizePng(dest)) return "screenshot";
   if (!screen.htmlCode?.downloadUrl) throw new Error(`${theme}/${name}: small screenshot and no HTML to render`);
-  await renderHtml(screen.htmlCode.downloadUrl, dest, Math.round(Number(screen.height || 1768) / 2));
+  await renderHtml(screen.htmlCode.downloadUrl, dest, screenCssHeight(screen));
   return "rendered from HTML (2x)";
 }
 
-export async function exportStitch() {
-  fs.mkdirSync(outDark, { recursive: true });
-  fs.mkdirSync(outLight, { recursive: true });
-
+export async function listScreens() {
   const apiKey = process.env.STITCH_API_KEY;
   if (!apiKey) {
     throw new Error("STITCH_API_KEY environment variable is required to fetch screens.");
   }
-
-  console.log(`Fetching screen metadata from Stitch project ${STITCH_PROJECT_ID}...`);
   const res = await fetch(`https://stitch.googleapis.com/v1/projects/${STITCH_PROJECT_ID}/screens?key=${apiKey}`);
   if (!res.ok) {
     throw new Error(`Failed to list screens: ${res.status} ${await res.text()}`);
   }
-  const data = await res.json();
-  const screensById = new Map();
-  for (const s of data.screens || []) {
-    const id = s.name.split("/").pop();
-    screensById.set(id, s);
-  }
+  return (await res.json()).screens || [];
+}
 
-  console.log("Exporting Dark screens (20)...");
-  for (const [name, id] of Object.entries(DARK_SCREENS)) {
-    const screen = screensById.get(id);
-    if (!screen || !screen.screenshot?.downloadUrl) {
-      throw new Error(`Dark screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
+// Pixel diff of two PNG buffers: share (%) of pixels whose largest RGB channel delta is above NOISE_DELTA, and
+// the bounding box of those pixels. Images of different sizes are compared by size only.
+export function pngDiff(a, b) {
+  const pa = PNG.sync.read(a), pb = PNG.sync.read(b);
+  if (pa.width !== pb.width || pa.height !== pb.height) {
+    return { sameSize: false, pct: 100, sizes: `${pa.width}x${pa.height} → ${pb.width}x${pb.height}`, bbox: null };
+  }
+  let changed = 0, x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+  for (let y = 0; y < pa.height; y++) {
+    for (let x = 0; x < pa.width; x++) {
+      const i = (y * pa.width + x) * 4;
+      const d = Math.max(Math.abs(pa.data[i] - pb.data[i]), Math.abs(pa.data[i + 1] - pb.data[i + 1]), Math.abs(pa.data[i + 2] - pb.data[i + 2]));
+      if (d > NOISE_DELTA) {
+        changed++;
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      }
     }
-    const how = await exportOne("dark", name, screen, outDark);
-    console.log(`  ✓ dark/${name}.png (${id}) ${how}`);
   }
+  return { sameSize: true, pct: (100 * changed) / (pa.width * pa.height), bbox: changed ? { x0, y0, x1, y1 } : null };
+}
 
-  console.log("Exporting Light screens (20)...");
-  for (const [name, id] of Object.entries(LIGHT_SCREENS)) {
-    const screen = screensById.get(id);
-    if (!screen || !screen.screenshot?.downloadUrl) {
-      throw new Error(`Light screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
+// The committed version (HEAD) of a gold, or null when the gold is new.
+export function gitGold(theme, name) {
+  try {
+    return execFileSync("git", ["show", `HEAD:docs/qa/stitch/${theme}/${name}.png`], { cwd: root, maxBuffer: 64 << 20, stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return null;
+  }
+}
+
+// Restores the git version of a freshly exported gold when the change is only noise. Returns the log suffix.
+function filterNoise(theme, name, dest) {
+  const old = gitGold(theme, name);
+  if (!old) return "new file";
+  const d = pngDiff(old, fs.readFileSync(dest));
+  if (!d.sameSize) return `size changed ${d.sizes}, kept`;
+  const pct = `${d.pct.toFixed(3)}% px changed`;
+  if (d.pct < NOISE_MAX_PCT) {
+    fs.writeFileSync(dest, old);
+    return `${pct}, noise → restored from git`;
+  }
+  return `${pct}, kept`;
+}
+
+// Exports the golds (all, or only the ids in `only`) to `dirs` ({dark, light}). With noiseFilter, a PNG that
+// only changed by noise goes back to its git version.
+export async function exportScreens({ only = null, dirs = { dark: outDark, light: outLight }, noiseFilter = true, screens = null } = {}) {
+  const known = new Set([...Object.keys(DARK_SCREENS), ...Object.keys(LIGHT_SCREENS)]);
+  const unknown = (only || []).filter((n) => !known.has(n));
+  if (unknown.length) throw new Error(`Unknown gold id(s): ${unknown.join(", ")}`);
+  if (!screens) {
+    console.log(`Fetching screen metadata from Stitch project ${STITCH_PROJECT_ID}...`);
+    screens = await listScreens();
+  }
+  const screensById = new Map(screens.map((s) => [s.name.split("/").pop(), s]));
+  let count = 0;
+  for (const [theme, map] of [["dark", DARK_SCREENS], ["light", LIGHT_SCREENS]]) {
+    fs.mkdirSync(dirs[theme], { recursive: true });
+    const entries = Object.entries(map).filter(([name]) => !only || only.includes(name));
+    console.log(`Exporting ${theme} screens (${entries.length})...`);
+    for (const [name, id] of entries) {
+      const screen = screensById.get(id);
+      if (!screen || !screen.screenshot?.downloadUrl) {
+        throw new Error(`${theme} screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
+      }
+      const how = await exportOne(theme, name, screen, dirs[theme]);
+      const noise = noiseFilter ? `; ${filterNoise(theme, name, path.join(dirs[theme], `${name}.png`))}` : "";
+      console.log(`  ✓ ${theme}/${name}.png (${id}) ${how}${noise}`);
+      count++;
     }
-    const how = await exportOne("light", name, screen, outLight);
-    console.log(`  ✓ light/${name}.png (${id}) ${how}`);
   }
+  await closeBrowser();
+  return count;
+}
 
-  if (browser) await browser.close();
-  console.log("\nDone! 40 screens exported to docs/qa/stitch/{dark,light}/");
+export async function exportStitch() {
+  const count = await exportScreens({ only: listArg("--only") });
+  console.log(`\nDone! ${count} screens exported to docs/qa/stitch/{dark,light}/`);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

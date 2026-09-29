@@ -1,0 +1,41 @@
+{
+  "gate": "ST4",
+  "keep": ["QUANTIDADE DE REFEIÇÕES", "Continuar"],
+  "coherence": { "exceptions": [], "known": [] },
+  "screens": [
+    {
+      "gold": "o3",
+      "keep": ["DIAS DA SEMANA", "Todos os dias", "Seg–Sex · Sáb–Dom", "Cada dia"],
+      "checks": [
+        { "type": "text", "has": ["DIAS DA SEMANA", "Todos os dias", "Seg–Sex · Sáb–Dom", "Cada dia", "QUANTIDADE DE REFEIÇÕES", "Café da manhã", "Continuar"],
+          "not": ["Sáb e Dom", "Etapa 2 de 2", "Copiar de Seg a Sex"] }
+      ]
+    },
+    {
+      "gold": "o3s",
+      "keep": ["DIAS DA SEMANA", "Sáb e Dom", "Etapa 2 de 2", "Copiar de Seg a Sex"],
+      "checks": [
+        { "type": "text",
+          "has": ["DIAS DA SEMANA", "Todos os dias", "Seg–Sex · Sáb–Dom", "Cada dia", "Sáb e Dom", "Etapa 2 de 2", "Copiar de Seg a Sex",
+            "QUANTIDADE DE REFEIÇÕES", "Café da manhã", "09:30", "Almoço", "13:30", "Jantar", "20:30", "Continuar"] },
+        { "type": "fits", "text": "Sáb e Dom", "with": "Etapa 2 de 2" },
+        { "type": "gap", "a": "Sáb e Dom", "b": "Etapa 2 de 2", "min": 12 },
+        { "type": "fits", "text": "Copiar de Seg a Sex", "maxHeight": 44 }
+      ]
+    },
+    { "gold": "cfg", "checks": [{ "type": "text", "has": ["Meta de calorias"], "not": ["Seg a Sex", "Sáb e Dom"] }] },
+    {
+      "gold": "cfgS",
+      "keep": ["Meta de calorias", "Compensação de treinos", "Macronutrientes (P · C · G)", "Gasto calórico do treino"],
+      "checks": [
+        { "type": "text",
+          "has": ["HORÁRIOS DAS REFEIÇÕES", "Seg–Sex · Sáb–Dom", "Seg a Sex", "4 refeições · 07:30 a 20:00", "Sáb e Dom", "3 refeições · 09:30 a 20:30",
+            "Meta de calorias", "Compensação de treinos", "Macronutrientes (P · C · G)", "Gasto calórico do treino"] },
+        { "type": "fits", "text": "HORÁRIOS DAS REFEIÇÕES", "with": "Seg–Sex · Sáb–Dom" },
+        { "type": "gap", "a": "HORÁRIOS DAS REFEIÇÕES", "b": "Seg–Sex · Sáb–Dom", "min": 8 },
+        { "type": "fits", "text": "4 refeições · 07:30 a 20:00" },
+        { "type": "fits", "text": "3 refeições · 09:30 a 20:30" }
+      ]
+    }
+  ]
+}

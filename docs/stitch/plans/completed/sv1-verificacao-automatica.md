@@ -1,10 +1,10 @@
 # Plano — SV1 Verificação automática dos gates Stitch
 
-- Estado: Aguardando aprovação
+- Estado: Concluído
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Código afetado: `tools/` (scripts Node do Stitch), `docs/stitch/`
-- Pré-requisitos: Nenhum. Deve ficar pronto antes da verificação do [ST3](st3-seletor-horario.md), [ST4](st4-refeicoes-por-dia.md) e [ST5](st5-chat-texto-longo.md).
+- Pré-requisitos: Nenhum. Deve ficar pronto antes da verificação do [ST3](../st3-seletor-horario.md), [ST4](../st4-refeicoes-por-dia.md) e [ST5](../st5-chat-texto-longo.md).
 
 ## Gate de autorização
 
@@ -18,13 +18,13 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 Verificar um gate em **uma rodada só**: um comando que exporta só as telas do gate, confere regras objetivas no HTML de cada tela e gera um relatório com o antes e depois, as falhas e o prompt de correção. Menos leitura de PNG, menos idas e vindas, menos custo.
 
-Motivo: no ST1 e no ST2 (29/09/2026), a verificação levou muitas rodadas. Metade delas veio de defeitos do render do agente e de screenshots velhos do Stitch, não do Stitch em si. Detalhes em [dieta-bot-stitch](../../../.claude/skills/dieta-bot-stitch/SKILL.md) § Known limits.
+Motivo: no ST1 e no ST2 (29/09/2026), a verificação levou muitas rodadas. Metade delas veio de defeitos do render do agente e de screenshots velhos do Stitch, não do Stitch em si. Detalhes em [dieta-bot-stitch](../../../../.claude/skills/dieta-bot-stitch/SKILL.md) § Known limits.
 
 ## Fontes de verdade
 
-- [docs/sdd/README.md § Gate Stitch](../../sdd/README.md#gate-stitch).
-- [docs/stitch/README.md](../README.md) (títulos ↔ golds).
-- Skill [dieta-bot-stitch](../../../.claude/skills/dieta-bot-stitch/SKILL.md).
+- [docs/sdd/README.md § Gate Stitch](../../../sdd/README.md#gate-stitch).
+- [docs/stitch/README.md](../../README.md) (títulos ↔ golds).
+- Skill [dieta-bot-stitch](../../../../.claude/skills/dieta-bot-stitch/SKILL.md).
 
 ## Escopo de implementação
 
@@ -114,3 +114,33 @@ Motivo: no ST1 e no ST2 (29/09/2026), a verificação levou muitas rodadas. Meta
 Depois da implementação, registre resultados reais e aplique o ciclo de vida em `docs/sdd/README.md`.
 
 Só declaração explícita do dono cancelando este plano permite `Cancelado` e a pasta `plans/cancelled/`.
+
+## Resultados (29/09/2026)
+
+Implementado:
+
+- `tools/verify-stitch.mjs`: checagens `text`, `fits`, `gap`, `visibleAbove` declaradas; `images`, coerência dark × light e títulos repetidos sempre rodam. Tela antiga pelo ID (confere o título), tela nova pelo título exato do README. `--report [--out]` exporta as telas do gate numa pasta temporária e gera o HTML com antes/depois recortado e o prompt de correção por tema. Referência dos tipos: [docs/stitch/README.md § Verificação automática](../../README.md#verificação-automática-sv1).
+- `tools/export-stitch.mjs`: render compartilhado (`loadFrame`), `--only`, filtro de ruído (`NOISE_DELTA` 40, `NOISE_MAX_PCT` 0,05%) com o percentual por arquivo no log.
+- `checks.json`: ST1 e ST2 (regressão, em `completed/`), ST3, ST4 e ST5.
+- Regressão local: `node --test tools/verify-stitch.test.mjs`, com fixtures em `tools/fixtures/verify-stitch/` e um servidor local que devolve 403.
+- Template do gate, README do contexto, índice e skill `dieta-bot-stitch` (4 pastas; `.agents` e `.hermes` são ignoradas pelo git e ficam sincronizadas só no disco).
+
+Validação:
+
+1. `verify-stitch st1` e `st2`: `PASSOU`. `aviso` em títulos repetidos do `home1` (as cópias sem uso já registradas no ST2) e nas divergências conhecidas abaixo.
+2. Fixtures: "IA ATIVA" (`text not`), linha de treino 186 px além da borda (`fits`), imagem 403 (`images`), dark sem "PROTEÍNA" (coerência): as 4 falham como esperado; o par limpo passa.
+3. `export-stitch --only chat0`: só `chat0` exportado nos dois temas, 0,000% de mudança, restaurado; `git status` sem PNG.
+4. Export completo: os 40 PNGs voltaram ao git pelo filtro; `git status` sem PNG.
+5. `check-stitch`: 40 golds verdes.
+6. `--report` na fixture: prompt de correção com o título exato ("Estimate com botões de ação (V2 Expressive)", "Foto de refeição e estimativa no Chat (V2 Light)") e a lista "keep unchanged"; tela sem falha não ganha prompt. `--report` no ST2 real: 8 telas, sem mudança visual.
+7. ST3–ST5: rodam e falham só por "no screen titled …" (telas novas ainda não criadas pelo dono); a `o3` atual passa.
+
+Decisão tomada na implementação: a coerência dark × light achou divergências nos golds atuais, anteriores a esta ferramenta. Em vez de `exceptions` (diferença de propósito), elas entram em `coherence.known` com uma nota e aparecem como `aviso`, sem travar o gate:
+
+- `homeX`: ícone `photo_camera` num nó da timeline só no light (já em `GOLD_CONFLICTS`).
+- `chatF`: dark mostra "Dieta Bot AI" no lugar de "~780 kcal" (já registrado no ST1).
+- `chatT`: rótulo do assistente "Dieta Bot AI" (dark) × "DIETA BOT INTELLIGENCE" (light). Novo.
+- `chatP`: "DIETA BOT INTELLIGENCE" só no dark, "PRO" só no light. Novo.
+- `chatG`: a bolha dark perde "A estimativa total é de:". Novo.
+
+As três novas não têm origem conhecida (nada media isso antes). Corrigir no Stitch é passo do dono, num gate próprio, se ele quiser.

@@ -1,0 +1,41 @@
+{
+  "gate": "ST1",
+  "keep": ["Chat Dieta Bot", "Dieta Bot AI"],
+  "coherence": {
+    "exceptions": [],
+    "known": [
+      { "gold": "chatF", "text": "~780", "note": "dark shows \"Dieta Bot AI\" where the kcal value goes; older than ST1 (recorded in the ST1 log)" },
+      { "gold": "chatT", "text": "Dieta Bot AI", "note": "assistant label: dark \"Dieta Bot AI\", light \"DIETA BOT INTELLIGENCE\"; found by SV1 on 29/09/2026, origin unknown" },
+      { "gold": "chatT", "text": "DIETA BOT INTELLIGENCE", "note": "assistant label: dark \"Dieta Bot AI\", light \"DIETA BOT INTELLIGENCE\"; found by SV1 on 29/09/2026, origin unknown" },
+      { "gold": "chatP", "text": "DIETA BOT INTELLIGENCE", "note": "label only in dark; found by SV1 on 29/09/2026, origin unknown" },
+      { "gold": "chatP", "text": "PRO", "note": "label only in light; found by SV1 on 29/09/2026, origin unknown" },
+      { "gold": "chatF", "text": "kcal", "note": "dark shows \"Dieta Bot AI\" where the kcal value goes; older than ST1 (recorded in the ST1 log)" },
+      { "gold": "chatG", "text": ".", "note": "dark bubble drops \"A estimativa total é de:\"; found by SV1 on 29/09/2026, origin unknown" },
+      { "gold": "chatG", "text": ". A estimativa total é de:", "note": "dark bubble drops \"A estimativa total é de:\"; found by SV1 on 29/09/2026, origin unknown" }
+    ]
+  },
+  "screens": [
+    { "gold": "chat0", "checks": [{ "type": "text", "has": ["Chat Dieta Bot"], "not": ["IA ATIVA", "Dieta Bot AI"] }] },
+    { "gold": "chatL", "checks": [{ "type": "text", "has": ["Chat Dieta Bot"], "not": ["IA ATIVA"] }] },
+    {
+      "gold": "chatE",
+      "keep": ["ENERGIA TOTAL", "PROTEÍNA", "CARBO", "GORDURA", "Gravar café", "Trocar", "Pular"],
+      "checks": [
+        { "type": "text",
+          "has": ["Chat Dieta Bot", "Dieta Bot AI", "ENERGIA TOTAL", "PROTEÍNA", "CARBO", "GORDURA", "Deseja registrar essa refeição no Café da manhã?", "Os pães tinham manteiga ou requeijão?", "Gravar café", "Trocar", "Pular"],
+          "not": ["IA ATIVA"] }
+      ]
+    },
+    { "gold": "chatT", "checks": [{ "type": "text", "not": ["IA ATIVA"] }] },
+    { "gold": "chatP", "checks": [{ "type": "text", "not": ["IA ATIVA"] }] },
+    {
+      "gold": "chatF",
+      "checks": [{ "type": "text", "has": ["Chat Dieta Bot", "Dieta Bot AI", "PROTEÍNA", "CARBO", "GORDURA"], "not": ["IA ATIVA"] }]
+    },
+    { "gold": "chatG", "checks": [{ "type": "text", "not": ["IA ATIVA"] }] },
+    {
+      "gold": "chatA",
+      "checks": [{ "type": "text", "has": ["Chat Dieta Bot", "almoço de hoje, comi tudo"], "not": ["IA ATIVA", "Dieta Bot AI"] }]
+    }
+  ]
+}

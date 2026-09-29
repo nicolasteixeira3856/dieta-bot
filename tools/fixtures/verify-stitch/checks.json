@@ -1,0 +1,17 @@
+{
+  "gate": "SV1 fixture",
+  "fixtureHeight": 844,
+  "keep": ["Chat Dieta Bot"],
+  "coherence": { "exceptions": [] },
+  "screens": [
+    { "gold": "chatE", "checks": [{ "type": "text", "has": ["Chat Dieta Bot", "PROTEÍNA"], "not": ["IA ATIVA"] }] },
+    {
+      "gold": "home1",
+      "checks": [
+        { "type": "fits", "text": "Treino de hoje", "with": "350 kcal", "maxHeight": 56 },
+        { "type": "gap", "a": "Treino de hoje", "b": "350 kcal", "min": 12 }
+      ]
+    },
+    { "gold": "chatF", "checks": [{ "type": "text", "has": ["Chat Dieta Bot"] }] }
+  ]
+}

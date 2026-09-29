@@ -1,0 +1,46 @@
+{
+  "gate": "ST2",
+  "keep": ["Proteína", "Carboidratos", "Gorduras", "LINHA DO TEMPO NUTRICIONAL", "Estimativa nutricional, não substitui consulta médica ou nutricional."],
+  "coherence": {
+    "exceptions": [],
+    "known": [
+      { "gold": "homeX", "text": "photo_camera", "note": "light timeline node shows a camera icon, dark does not; older than ST2 (homeX is in GOLD_CONFLICTS)" }
+    ]
+  },
+  "screens": [
+    {
+      "gold": "home0",
+      "checks": [
+        { "type": "text", "has": ["Treino de hoje", "Informar", "Estimativa nutricional, não substitui consulta médica ou nutricional."] },
+        { "type": "fits", "text": "Treino de hoje", "with": "Informar", "maxHeight": 56 },
+        { "type": "gap", "a": "Treino de hoje", "b": "Informar", "min": 12 },
+        { "type": "visibleAbove", "text": "Estimativa nutricional, não substitui consulta médica ou nutricional.", "fixed": "Chat" }
+      ]
+    },
+    {
+      "gold": "home1",
+      "checks": [
+        { "type": "text", "has": ["Treino de hoje", "350 kcal", "+175 na meta", "Estimativa nutricional, não substitui consulta médica ou nutricional."] },
+        { "type": "fits", "text": "Treino de hoje", "with": "350 kcal", "maxHeight": 56 },
+        { "type": "gap", "a": "Treino de hoje", "b": "350 kcal", "min": 12 },
+        { "type": "visibleAbove", "text": "Estimativa nutricional, não substitui consulta médica ou nutricional.", "fixed": "Chat" }
+      ]
+    },
+    {
+      "gold": "homeX",
+      "checks": [
+        { "type": "text", "has": ["Treino de hoje", "200 kcal", "+100 na meta", "Estimativa nutricional, não substitui consulta médica ou nutricional."] },
+        { "type": "fits", "text": "Treino de hoje", "with": "200 kcal", "maxHeight": 56 },
+        { "type": "gap", "a": "Treino de hoje", "b": "200 kcal", "min": 12 },
+        { "type": "visibleAbove", "text": "Estimativa nutricional, não substitui consulta médica ou nutricional.", "fixed": "Chat" }
+      ]
+    },
+    {
+      "gold": "homeW",
+      "keep": ["Treino de hoje", "350", "Salvar", "Cancelar"],
+      "checks": [
+        { "type": "text", "has": ["Treino de hoje", "350", "kcal", "+175 kcal na meta de hoje (compensação 50%)", "Salvar", "Cancelar"] }
+      ]
+    }
+  ]
+}
