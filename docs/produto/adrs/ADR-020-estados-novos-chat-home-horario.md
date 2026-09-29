@@ -21,7 +21,7 @@ Golds novos (dark + light), que entram na lista do `AGENTS.md`:
 
 | id | Estado | Gate |
 |---|---|---|
-| `chatA` | Chat com foto anexada no composer (miniatura + ✕), texto sendo digitado, botão enviar ativo | [ST1](../../stitch/plans/st1-chat.md) |
+| `chatA` | Chat com foto anexada no composer (miniatura + ✕), texto sendo digitado, botão enviar ativo | [ST1](../../stitch/plans/completed/st1-chat.md) |
 | `homeW` | Home com o sheet "Treino de hoje" aberto a partir do atalho 🔥 | [ST2](../../stitch/plans/st2-home-treino.md) |
 | `o3t` | O3 com o diálogo de horário em rodas aberto | [ST3](../../stitch/plans/st3-seletor-horario.md) |
 
@@ -50,7 +50,7 @@ Cada pedido muda o que o usuário vê. Sem gold, a implementação cairia em "ba
 
 ## Relações
 
-- Gates: [ST1](../../stitch/plans/st1-chat.md), [ST2](../../stitch/plans/st2-home-treino.md), [ST3](../../stitch/plans/st3-seletor-horario.md).
+- Gates: [ST1](../../stitch/plans/completed/st1-chat.md), [ST2](../../stitch/plans/st2-home-treino.md), [ST3](../../stitch/plans/st3-seletor-horario.md).
 - Implementação: [A19](../../android/plans/a19-chat-visual.md), [A22](../../android/plans/a22-treino-home.md), [A21](../../android/plans/a21-seletor-horario.md).
 
 Depois de aceito, este ADR não se edita.

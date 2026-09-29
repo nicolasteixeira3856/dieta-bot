@@ -26,6 +26,7 @@ export const DARK_SCREENS = {
   chatP: "e64a7a52e1a54259b2e488e7dfdf7413",
   chatF: "ac502aadad004c18bc271e0c74355960",
   chatG: "5e95d8451bf447989bd62a2e9dd38909",
+  chatA: "242efa973e9e4bf38f570319af81eed3",
   cfg: "ffb8e640dff34e8b9015e4936f36ebe5",
   wipe: "f2797b013a714413ac252918753dffa9",
   push: "f9c469937daa43849a07deb36ac0610d"
@@ -47,6 +48,7 @@ export const LIGHT_SCREENS = {
   chatP: "66c301014a5f4fdc8b002756faa87396",
   chatF: "35a756967193481fa84c48e05e33e0be",
   chatG: "c226508d6c9b4830952a42005f1cf2f4",
+  chatA: "f2ea449a4ed44d439a35115d0ac1bd1e",
   cfg: "d582887ce63242a9ab48b882647ddbb9",
   wipe: "bacd8c4d917040d687ef6a4e9ddedad2",
   push: "038a997a4f2247c9a12da72aea01f73c"
@@ -149,7 +151,7 @@ export async function exportStitch() {
     screensById.set(id, s);
   }
 
-  console.log("Exporting Dark screens (18)...");
+  console.log("Exporting Dark screens (19)...");
   for (const [name, id] of Object.entries(DARK_SCREENS)) {
     const screen = screensById.get(id);
     if (!screen || !screen.screenshot?.downloadUrl) {
@@ -159,7 +161,7 @@ export async function exportStitch() {
     console.log(`  ✓ dark/${name}.png (${id}) ${how}`);
   }
 
-  console.log("Exporting Light screens (18)...");
+  console.log("Exporting Light screens (19)...");
   for (const [name, id] of Object.entries(LIGHT_SCREENS)) {
     const screen = screensById.get(id);
     if (!screen || !screen.screenshot?.downloadUrl) {
@@ -170,7 +172,7 @@ export async function exportStitch() {
   }
 
   if (browser) await browser.close();
-  console.log("\nDone! 36 screens exported to docs/qa/stitch/{dark,light}/");
+  console.log("\nDone! 38 screens exported to docs/qa/stitch/{dark,light}/");
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

@@ -52,6 +52,7 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 | `chatP` | Diálogo de confirmação para pular refeição (V2 Expressive) | Diálogo de confirmação para pular refeição (V2 Light) |
 | `chatF` | Foto de refeição e estimativa no Chat (V2 Expressive) | Foto de refeição e estimativa no Chat (V2 Light) |
 | `chatG` | Confirmação pós-gravação com recibo duplo-check (V2 Expressive) | Confirmação pós-gravação com recibo duplo-check (V2 Light) |
+| `chatA` | Chat com foto anexada (V2 Expressive) | Chat com foto anexada (V2 Light) |
 | `cfg` | Configurações do perfil e dia (V2 Expressive) | Configurações do perfil e dia (V2 Light) |
 | `wipe` | Reiniciar registros de hoje - Diálogo Wipe (V2 Expressive) | Reiniciar registros de hoje - Diálogo Wipe (V2 Light) |
 | `push` | Notificação do sistema - Lembrete de refeição (V2 Expressive) | Notificação do sistema - Lembrete de refeição (V2 Light) |
@@ -60,7 +61,6 @@ Telas novas previstas pelos gates (título que o dono dá à cópia):
 
 | Gold | Dark (Stitch) | Light (Stitch) | Gate |
 |---|---|---|---|
-| `chatA` | Chat com foto anexada (V2 Expressive) | Chat com foto anexada (V2 Light) | ST1 |
 | `homeW` | Home com treino de hoje - Bottom Sheet (V2 Expressive Timeline) | Home com treino de hoje - Bottom Sheet (V2 Light Timeline) | ST2 |
 | `o3t` | Onboarding 3/4 - Seletor de horário (V2 Expressive) | Onboarding 3/4 - Seletor de horário (V2 Light) | ST3 |
 | `o3s` | Onboarding 3/4 - Refeições Sáb e Dom (V2 Expressive) | Onboarding 3/4 - Refeições Sáb e Dom (V2 Light) | ST4 |
@@ -82,13 +82,13 @@ Não há "aprovação" de gate: o prompt já é o que foi decidido nos ADRs. O d
 
 ## Estado atual
 
-Cinco gates esperando o dono.
+ST1 concluído (29/09/2026). Quatro gates esperando o dono.
 
 ## Índice
 
 ### Planos
 
-1. [ST1 Chat: bolhas, pergunta separada, anexo (`chatA`)](plans/st1-chat.md) — bloqueia [A19](../android/plans/a19-chat-visual.md).
+1. ✅ [ST1 Chat: bolhas, pergunta separada, anexo (`chatA`)](plans/completed/st1-chat.md) — concluído; libera [A19](../android/plans/a19-chat-visual.md).
 2. [ST2 Home: atalho de treino (`homeW`)](plans/st2-home-treino.md) — bloqueia [A22](../android/plans/a22-treino-home.md).
 3. [ST3 Seletor de horário em rodas (`o3t`)](plans/st3-seletor-horario.md) — bloqueia [A21](../android/plans/a21-seletor-horario.md).
 4. [ST4 Refeições por dia da semana](plans/st4-refeicoes-por-dia.md) — bloqueia [A24](../android/plans/a24-refeicoes-por-dia.md). Rodar depois do ST3 (usa o `o3` já com o seletor novo).

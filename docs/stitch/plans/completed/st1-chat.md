@@ -1,13 +1,13 @@
 # Gate Stitch — ST1 Chat: bolhas, pergunta separada, anexo com preview
 
-- Estado: Aguardando o dono no Stitch
+- Estado: Concluído
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
-- Executa: [ADR-020](../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
-- Bloqueia: [A19 Chat visual](../../android/plans/a19-chat-visual.md)
+- Executa: [ADR-020](../../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
+- Bloqueia: [A19 Chat visual](../../../android/plans/a19-chat-visual.md)
 
-Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
+Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 
 ## ⛔ Bloqueio do dono — prompts para o Stitch
 
@@ -27,7 +27,7 @@ Antes de enviar, selecione as 7 telas de chat do tema:
 | Foto de refeição e estimativa no Chat (V2 Expressive) | Foto de refeição e estimativa no Chat (V2 Light) |
 | Confirmação pós-gravação com recibo duplo-check (V2 Expressive) | Confirmação pós-gravação com recibo duplo-check (V2 Light) |
 
-Se o [ST5](st5-chat-texto-longo.md) já rodou, selecione também "Chat com texto longo demais (V2 Expressive)" / "(V2 Light)" e acrescente o nome dela na lista do prompt.
+Se o [ST5](../st5-chat-texto-longo.md) já rodou, selecione também "Chat com texto longo demais (V2 Expressive)" / "(V2 Light)" e acrescente o nome dela na lista do prompt.
 
 **Dark:**
 
@@ -139,14 +139,14 @@ Começa quando o dono avisa que rodou os prompts.
 
 ### Checklist
 
-- [ ] Todas as bolhas das 7 telas com os 4 cantos iguais (sem o canto agudo da bolha do usuário).
-- [ ] Nenhum "IA ATIVA" em nenhuma tela; o ícone e "Dieta Bot AI" continuam.
-- [ ] "Estimate com botões de ação": card "ENERGIA TOTAL" e "Deseja registrar…" continuam na 1ª bolha.
-- [ ] "Estimate com botões de ação": 2ª bolha separada com barra gold à esquerda, ícone de ajuda e a pergunta em cor de texto primária.
-- [ ] "Estimate com botões de ação": barra de ações (Gravar café · Trocar · Pular) sem mudança.
-- [ ] "Chat com foto anexada": miniatura 64 px com ✕ acima do campo, texto digitado, enviar ativo, nenhuma foto no fio.
-- [ ] Tokens: fundo, gold e cores P/C/G iguais aos do `AGENTS.md` (sem roxo, sem cor nova).
-- [ ] Light e dark coerentes entre si.
+- [x] Todas as bolhas das 7 telas com os 4 cantos iguais (sem o canto agudo da bolha do usuário).
+- [x] Nenhum "IA ATIVA" em nenhuma tela; o ícone e "Dieta Bot AI" continuam.
+- [x] "Estimate com botões de ação": card "ENERGIA TOTAL" e "Deseja registrar…" continuam na 1ª bolha.
+- [x] "Estimate com botões de ação": 2ª bolha separada com barra gold à esquerda, ícone de ajuda e a pergunta em cor de texto primária.
+- [x] "Estimate com botões de ação": barra de ações (Gravar café · Trocar · Pular) sem mudança.
+- [x] "Chat com foto anexada": miniatura 64 px com ✕ acima do campo, texto digitado, enviar ativo, nenhuma foto no fio.
+- [x] Tokens: fundo, gold e cores P/C/G iguais aos do `AGENTS.md` (sem roxo, sem cor nova).
+- [x] Light e dark coerentes entre si.
 
 Depois do checklist verde:
 
@@ -164,3 +164,4 @@ Depois do checklist verde:
 - 29/09/2026 — Gate criado. Aguardando o dono.
 - 29/09/2026 — Prompts reescritos com os títulos reais do Stitch (pedido do dono).
 - 29/09/2026 — Verificação 1: **falhou**. Telas novas achadas: "Chat com foto anexada (V2 Expressive)" `242efa973e9e4bf38f570319af81eed3`, "Chat com foto anexada (V2 Light)" `f2ea449a4ed44d439a35115d0ac1bd1e`. As 14 antigas mantêm IDs e títulos. Passou: bolhas com 4 cantos iguais, "IA ATIVA" removido, 2ª bolha de pergunta no `chatE` (dark e light), miniatura do `chatA`. Falhas para o dono corrigir: (1) "Estimate com botões de ação (V2 Expressive)": os chips perderam os rótulos PROTEÍNA / CARBO / GORDURA; (2) "Chat vazio (V2 Expressive)": o título do header virou "Dieta Bot AI" (era "Chat Dieta Bot"), e a cópia "Chat com foto anexada (V2 Expressive)" herdou o erro; (3) "Foto de refeição e estimativa no Chat (V2 Light)": a foto do prato quebrou (a imagem retorna 403 no próprio Stitch). Não travam: o enviar do `chatA` passa da borda do composer; na "Foto de refeição e estimativa no Chat (V2 Expressive)", "Dieta Bot AI" ocupa o lugar do kcal (defeito anterior ao ST1). Golds não exportados. Estado segue `Aguardando o dono no Stitch`.
+- 29/09/2026 — Verificação 2: **passou**. O dono autorizou o agente a corrigir as 3 falhas pelo MCP do Stitch (`edit_screens`); as edições levaram alguns minutos para aparecer na API. IDs mantidos. Checklist inteiro verde, dark e light. `chatA` entrou em `tools/export-stitch.mjs` e `tools/check-stitch.mjs` (38 golds, 19 por tema). Golds de chat re-exportados (`chat0`, `chatL`, `chatE`, `chatF`, `chatG`, `chatA`; `chatT` e `chatP` sem mudança). Fica para o A19 saber: em "Foto de refeição e estimativa no Chat (V2 Expressive)", "Dieta Bot AI" ocupa o lugar do kcal (defeito anterior ao ST1; o app usa o valor, como no light).
