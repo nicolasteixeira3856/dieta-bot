@@ -1,6 +1,7 @@
 # Plano — A20 Polimento: feedback de toque, botões dos sheets, respiro de scroll, Config
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual
+- Aprovado: 29/09/2026 ("Aprovo o plano `docs/android/plans/a20-polimento-geral.md`. Implemente o plano aprovado.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/designsystem`, `feature/config`, `feature/home`, `feature/onboarding`, `feature/chat` só no toque)
@@ -64,10 +65,37 @@ Os ajustes de layout do feedback que não precisam de Stitch.
 3. Área de toque: `Cancelar` ≥ 48 dp de altura (Accessibility Scanner ou `UiAutomator` bounds).
 4. Manual (dono): sentir a vibração em Gravar/Salvar; desligar a vibração ao toque no sistema e confirmar que o app para de vibrar.
 
+## Resultados (29/09/2026)
+
+### Implementado
+
+- `core/designsystem/DietaBotClick.kt`: `Modifier.dietaClick(haptic, enabled, role)` = `clickable` com `ripple()` M3 + `LocalHapticFeedback` (`Haptic.Confirm` → `HapticFeedbackType.Confirm`, `Haptic.Light` → `ContextClick`). `rememberHaptic()` para os botões M3 que já têm ripple (`TextButton` dos diálogos de horário e ajuda do O4, `ToggleButton` do `ExpressiveButtonGroup`). A chamada da plataforma (`View.performHapticFeedback`) respeita a vibração ao toque do sistema.
+- Todos os `clickable` de controle real de Config, Home, O1–O4 e Chat viraram `dietaClick`. `indication = null` ficou só em scrim e fundo de sheet/diálogo (6 lugares). Confirm: Salvar, Continuar/Concluir (O1–O4), Gravar, Confirmar refeição, Substituir, Pular refeição, Pular (Home), Confirmar e reiniciar dia. O resto é leve.
+- `SheetActions(primary, secondary)` em `DietaBotComponents.kt`: dois pills de largura total, 52 dp, 15 sp W700; secundário em `surf2` com 1 dp `line`, como o par do chatP. Usado nos 5 sheets da Config (tags `cfg-save`/`cfg-cancel` mantidas) e no diálogo de pular da Home (`BasicAlertDialog`, tags `home-skip-confirm`/`home-skip-cancel`), que deixou de usar `TextButton`.
+- Respiro: Home = 28 + 64 (FAB) + 48 dp + inset de navegação; O1–O4 = 108 dp (rodapé do CTA) + 24 dp + inset; sheets da Config = 24 dp entre a lista e o par de botões; Config já tinha 32 dp + inset.
+- Copy: sheet "Treino de hoje" sem subtítulo; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje." Spec [memoria-push](../../../produto/specifications/memoria-push.md) § Config itens 8–9 e [home-timeline](../../../produto/specifications/home-timeline.md) § Estado.
+- Títulos da Config (item 4): diagnóstico sem mudança de código. Na captura de 390 dp as linhas de título medem 24 px ("Meta de calorias", "Compensação de" e "Gasto calórico do") e 30/29 px nas linhas com descendentes, com 44 px de entrelinha, igual ao gold `cfg` pixel a pixel. As três quebram em duas linhas também no gold. O tamanho já bate.
+
+### Validação automatizada
+
+- `testDevDebugUnitTest`: 187 testes, 181 passam. Os 6 que falham são `StitchGoldTest` (`home1`, `chatE`, `o3`, dark e light) e falham igual na `master` sem este plano (mesmos scores: home1 6,47/7,13, chatE 4,48/3,93, o3 ink 0,66/0,70), porque os golds mudaram nos gates ST2/ST3/ST1 e só os planos A22/A21/A19 os implementam.
+- `verifyRoborazziDevDebug --tests RoborazziSmokeTest`: 10/10. Novos baselines `cfgWorkout` e `cfgSlots` (dark/light).
+
+### Emulador (Medium_Phone, 780x1688 @ 320 dpi)
+
+- `tools/capture-config.sh dark|light` e `tools/capture-home.sh dark|light`: todos os ✓ (os scripts usam `cfg-save`/`cfg-cancel` e o novo diálogo de pular).
+- `node tools/diff-gold.mjs`: `cfg` 0,40/0,37 %, `wipe` 0,76/1,26 %, `o1` 1,16/0,82 %, `o2` 0,85/1,13 %, `light/o4` 1,02 % passam. `home1` 4,63/4,65 % (antes 4,72/4,60 %), `o3`, `dark/o4` (ink 0,76) e os report-only `home0`/`homeX` estão iguais às capturas anteriores: diferenças dos golds novos (linha Treino, seletor de horário), fora deste plano.
+- Diff escrito: layout, tokens, tipo, raio 22 do sheet, CTA e macros sem mudança nas capturas estáticas (o ripple só aparece durante o toque). Home no fim da rolagem: disclaimer termina em y=1360, FAB começa em 1456 → 48 dp, igual ao gold `home1`. O1–O4 no fim: último item ≥ 48 dp acima do CTA (y 1472). Sheet de horários no fim: último card termina 24 dp acima do Salvar. Config no fim: nota do wipe inteira acima da barra de gestos.
+- Área de toque (UiAutomator): `cfg-save` e `cfg-cancel` 700×104 px = 52 dp de altura cada.
+
+### Pendente (dono)
+
+- Sentir a vibração em Gravar/Salvar; desligar a vibração ao toque no sistema e confirmar que o app para de vibrar.
+
 ## Fora de escopo
 
 - Qualquer mudança de gold ou de tela nova.
-- Seletor de horário: [A21](a21-seletor-horario.md).
+- Seletor de horário: [A21](../a21-seletor-horario.md).
 
 ## Riscos e controles
 

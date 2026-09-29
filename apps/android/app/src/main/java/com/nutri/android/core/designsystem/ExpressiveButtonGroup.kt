@@ -34,6 +34,7 @@ fun ExpressiveButtonGroup(
     stacked: Boolean = false,
 ) {
     val p = LocalPalette.current
+    val haptic = rememberHaptic()
     val colors = ToggleButtonDefaults.colors(
         containerColor = Color.Transparent,
         contentColor = p.muted,
@@ -59,7 +60,7 @@ fun ExpressiveButtonGroup(
                         buttonGroupContent = {
                             ToggleButton(
                                 checked = selected == i,
-                                onCheckedChange = { onSelect(i) },
+                                onCheckedChange = { haptic(Haptic.Light); onSelect(i) },
                                 modifier = itemMod.semantics {
                                     contentDescription = label
                                 },
@@ -98,7 +99,7 @@ fun ExpressiveButtonGroup(
                     buttonGroupContent = {
                         ToggleButton(
                             checked = selected == i,
-                            onCheckedChange = { onSelect(i) },
+                            onCheckedChange = { haptic(Haptic.Light); onSelect(i) },
                             modifier = itemMod.semantics {
                                 contentDescription = label
                             },

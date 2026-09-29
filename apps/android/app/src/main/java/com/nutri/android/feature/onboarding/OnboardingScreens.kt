@@ -2,7 +2,6 @@ package com.nutri.android.feature.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,10 +68,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotType
+import com.nutri.android.core.designsystem.dietaClick
+import com.nutri.android.core.designsystem.rememberHaptic
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
 import kotlin.math.roundToInt
@@ -188,7 +190,7 @@ private fun SexToggle(sex: String, onSex: (String) -> Unit) {
                     .fillMaxHeight()
                     .clip(InnerShape)
                     .background(if (selected) p.segSel else p.card)
-                    .clickable { onSex(value) }
+                    .dietaClick { onSex(value) }
                     .testTag("o1-sex-$value"),
                 contentAlignment = Alignment.Center,
             ) {
@@ -281,7 +283,7 @@ internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1
                 Modifier
                     .fillMaxWidth()
                     .background(if (selected) p.cardSel else p.card)
-                    .clickable { onMode(value) }
+                    .dietaClick { onMode(value) }
                     .padding(horizontal = 16.dp, vertical = 16.dp)
                     .testTag("$tag-mode-$value"),
                 verticalAlignment = Alignment.CenterVertically,
@@ -443,7 +445,7 @@ internal fun EatCard(
                 if (!selected) p.line else if (p.isDark) p.gold.copy(alpha = 0.6f) else p.gold,
                 shape,
             )
-            .clickable(onClick = onClick)
+            .dietaClick(onClick = onClick)
             .padding(16.dp)
             .testTag(tag),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -582,7 +584,7 @@ internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3"
                     .height(itemHeight)
                     .clip(InnerShape)
                     .background(if (selected) p.segSel else p.card)
-                    .clickable { onCount(n) }
+                    .dietaClick { onCount(n) }
                     .testTag("$tag-count-$n"),
                 contentAlignment = Alignment.Center,
             ) {
@@ -645,7 +647,7 @@ internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onP
                     .clip(field)
                     .background(p.phone)
                     .border(1.dp, p.line, field)
-                    .clickable(onClick = onPickTime)
+                    .dietaClick(onClick = onPickTime)
                     .padding(horizontal = 12.dp)
                     .testTag("$tag-time-$index"),
                 verticalAlignment = Alignment.CenterVertically,
@@ -666,7 +668,7 @@ internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onP
                         .clip(CircleShape)
                         .background(p.surf2)
                         .border(1.dp, p.line, CircleShape)
-                        .clickable { onName(name) }
+                        .dietaClick { onName(name) }
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                         .testTag("$tag-chip-$index-$j"),
                 )
@@ -688,13 +690,14 @@ private fun bandIcon(minutes: Int): ImageVector = when (SlotSuggestions.bandOf(m
 internal fun SlotTimeDialog(minutes: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
     val p = LocalPalette.current
     val state = rememberTimePickerState(initialHour = minutes / 60, initialMinute = minutes % 60, is24Hour = true)
+    val haptic = rememberHaptic()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = p.card,
         confirmButton = {
-            TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) { Text("OK", color = p.gold) }
+            TextButton(onClick = { haptic(Haptic.Light); onConfirm(state.hour * 60 + state.minute) }) { Text("OK", color = p.gold) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar", color = p.muted) } },
+        dismissButton = { TextButton(onClick = { haptic(Haptic.Light); onDismiss() }) { Text("Cancelar", color = p.muted) } },
         text = {
             TimePicker(state = state)
         },
@@ -714,6 +717,7 @@ fun MacrosScreen(
 ) {
     val p = LocalPalette.current
     var help by remember { mutableStateOf(false) }
+    val haptic = rememberHaptic()
     val grams = listOf(ui.proteinField, ui.carbField, ui.fatField).map { it.toIntOrNull() ?: 0 }
     val kcal = listOf(grams[0] * 4, grams[1] * 4, grams[2] * 9)
     val total = kcal.sum()
@@ -771,7 +775,7 @@ fun MacrosScreen(
         AlertDialog(
             onDismissRequest = { help = false },
             containerColor = p.card,
-            confirmButton = { TextButton(onClick = { help = false }) { Text("OK", color = p.gold) } },
+            confirmButton = { TextButton(onClick = { haptic(Haptic.Light); help = false }) { Text("OK", color = p.gold) } },
             text = {
                 Text(
                     "P e C: 4 kcal/g. G: 9 kcal/g. Sugestão 30/40/30 sobre o teto do dia 1. Estimativa, não consulta.",
@@ -881,7 +885,7 @@ internal fun MacroCard(
                 .size(28.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(p.surf2)
-                .clickable { focus.requestFocus() },
+                .dietaClick { focus.requestFocus() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Outlined.Tune, contentDescription = "Ajustar $name", tint = p.muted, modifier = Modifier.size(16.dp))

@@ -2,9 +2,9 @@
 
 ## Estado
 
-Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `filesDir/memory.bin` cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), ≤ 4000 chars, 1 linha por Gravar ou assunção respondida, enviada em `memory` em todo POST /v1/chat. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria; desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) reduzida a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto.
+Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `filesDir/memory.bin` cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), ≤ 4000 chars, 1 linha por Gravar ou assunção respondida, enviada em `memory` em todo POST /v1/chat. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria; desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) reduzida a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto. Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): Salvar/Cancelar do mesmo tamanho nos sheets, toque com ripple + vibração e a copy dos sheets abaixo.
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): copy dos sheets de treino e horários ([A20](../../android/plans/a20-polimento-geral.md)); treino também pela Home ([A22](../../android/plans/a22-treino-home.md)); editor de memória só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md), [A23](../../android/plans/a23-editor-memoria-dev.md)); push por dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Mudanças planejadas (29/09/2026, aguardando aprovação): treino também pela Home ([A22](../../android/plans/a22-treino-home.md)); editor de memória só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md), [A23](../../android/plans/a23-editor-memoria-dev.md)); push por dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 
@@ -42,6 +42,8 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 5. Mudou teto: diálogo “Reiniciar registros de hoje?”. Default sim. Confirmar → `wipeToday` (meal_log + skip + digest de hoje). Cancelar → teto não é salvo. Chat UI fica. Prompt do dia recomeça: `wipeToday` grava em `chat_message` um marcador `wiped` (nunca desenhado, nunca enviado) e o prompt só leva raw depois dele.
 6. Mudou só nome/hora: relabela. Não apaga logs.
 7. Back → Home.
+8. Copy dos sheets ([A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md)): "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
+9. Todo sheet termina no par `Salvar` / `Cancelar`: dois botões pill de largura total e 52 dp. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema.
 
 ## Regras — push
 

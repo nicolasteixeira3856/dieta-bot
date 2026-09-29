@@ -91,7 +91,9 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
+import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.DietaBotMeasure
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.formatRemaining
@@ -173,7 +175,7 @@ private fun Header(onBack: () -> Unit) {
                 .clip(CircleShape)
                 .background(p.card)
                 .border(1.dp, p.line, CircleShape)
-                .clickable(onClick = onBack)
+                .dietaClick(onClick = onBack)
                 .testTag("chat-back"),
             contentAlignment = Alignment.Center,
         ) {
@@ -533,7 +535,7 @@ private fun FailedBubble(onRetry: () -> Unit) {
             .clip(BotShape)
             .background(p.card)
             .border(1.dp, p.bad.copy(alpha = 0.4f), BotShape)
-            .clickable(onClick = onRetry)
+            .dietaClick(onClick = onRetry)
             .padding(14.dp)
             .testTag("chat-failed"),
     )
@@ -562,7 +564,7 @@ private fun Chip(emoji: String, text: String, enabled: Boolean = true, tag: Stri
             .clip(CircleShape)
             .background(p.card)
             .border(1.dp, p.line.copy(alpha = 0.7f), CircleShape)
-            .clickable(enabled = enabled, onClick = onClick)
+            .dietaClick(enabled = enabled, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 6.dp)
             .then(if (tag != null) Modifier.testTag(tag) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
@@ -610,7 +612,7 @@ private fun ActionBar(actions: EstimateActions, onRecord: (Long, Long) -> Unit, 
             .testTag("chat-actions"),
     ) {
         val segments = buildList<@Composable BoxScope.() -> Unit> {
-            actions.record?.let { slot -> add { Action(Icons.Outlined.CheckCircle, "Gravar ${shortName(slot.name)}", "chat-record") { onRecord(actions.estimateId, slot.id) } } }
+            actions.record?.let { slot -> add { Action(Icons.Outlined.CheckCircle, "Gravar ${shortName(slot.name)}", "chat-record", Haptic.Confirm) { onRecord(actions.estimateId, slot.id) } } }
             add { Action(Icons.Outlined.SwapHoriz, "Trocar", "chat-swap") { onSwap(actions.estimateId) } }
             actions.skip?.let { slot -> add { Action(Icons.Outlined.Close, "Pular", "chat-skip") { onAskSkip(slot) } } }
         }
@@ -625,10 +627,10 @@ private fun ActionBar(actions: EstimateActions, onRecord: (Long, Long) -> Unit, 
 private fun shortName(name: String) = name.substringBefore(' ').lowercase()
 
 @Composable
-private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, onClick: () -> Unit) {
+private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, haptic: Haptic = Haptic.Light, onClick: () -> Unit) {
     val p = LocalPalette.current
     Row(
-        Modifier.fillMaxSize().clickable(onClick = onClick).testTag(tag),
+        Modifier.fillMaxSize().dietaClick(haptic, onClick = onClick).testTag(tag),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -656,7 +658,7 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
                 .clip(CircleShape)
                 .background(p.surf2)
                 .border(1.dp, p.text.copy(alpha = 0.05f), CircleShape)
-                .clickable(enabled = !ui.sending, onClick = onPhoto)
+                .dietaClick(enabled = !ui.sending, onClick = onPhoto)
                 .testTag("chat-photo"),
             contentAlignment = Alignment.Center,
         ) {
@@ -686,7 +688,7 @@ private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(p.gold)
-                .clickable(enabled = ui.canSend, onClick = onSend)
+                .dietaClick(enabled = ui.canSend, onClick = onSend)
                 .testTag("chat-send"),
             contentAlignment = Alignment.Center,
         ) {
@@ -740,7 +742,7 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
                 .height(48.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(p.gold.copy(alpha = if (ui.sheetSelection != null) 1f else 0.5f))
-                .clickable(enabled = ui.sheetSelection != null, onClick = onConfirm)
+                .dietaClick(Haptic.Confirm, enabled = ui.sheetSelection != null, onClick = onConfirm)
                 .testTag("chat-sheet-confirm"),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -753,7 +755,7 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
             "Cancelar",
             style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
             color = p.muted,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp).clickable(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-sheet-cancel"),
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp).clip(CircleShape).dietaClick(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-sheet-cancel"),
         )
     }
 }
@@ -769,7 +771,7 @@ private fun SheetRow(slot: SlotRef, selected: Boolean, current: Boolean, onClick
             .clip(shape)
             .background(if (selected) p.gold.copy(alpha = 0.16f) else p.card)
             .border(if (selected) 2.dp else 1.dp, if (selected) p.gold else p.line.copy(alpha = 0.6f), shape)
-            .clickable(onClick = onClick)
+            .dietaClick(onClick = onClick)
             .padding(horizontal = 16.dp)
             .testTag("chat-sheet-slot-${slot.id}"),
         verticalAlignment = Alignment.CenterVertically,
@@ -905,7 +907,7 @@ private fun BoxScope.ConfirmDialog(
                 .height(52.dp)
                 .clip(CircleShape)
                 .background(p.ctaBg)
-                .clickable(onClick = onPrimary)
+                .dietaClick(Haptic.Confirm, onClick = onPrimary)
                 .testTag("$tag-confirm"),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -922,7 +924,7 @@ private fun BoxScope.ConfirmDialog(
                 .clip(CircleShape)
                 .background(p.surf2)
                 .border(1.dp, p.line, CircleShape)
-                .clickable(onClick = onSecondary)
+                .dietaClick(onClick = onSecondary)
                 .testTag("$tag-cancel"),
             contentAlignment = Alignment.Center,
         ) {
@@ -962,7 +964,7 @@ private fun BoxScope.PhotoSheet(onCamera: () -> Unit, onGallery: () -> Unit, onC
             "Cancelar",
             style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
             color = p.muted,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 14.dp).clickable(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-photo-cancel"),
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 14.dp).clip(CircleShape).dietaClick(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-photo-cancel"),
         )
     }
 }
@@ -978,7 +980,7 @@ private fun PhotoSourceRow(icon: ImageVector, label: String, tag: String, onClic
             .clip(shape)
             .background(p.card)
             .border(1.dp, p.line.copy(alpha = 0.6f), shape)
-            .clickable(onClick = onClick)
+            .dietaClick(onClick = onClick)
             .padding(horizontal = 16.dp)
             .testTag(tag),
         verticalAlignment = Alignment.CenterVertically,

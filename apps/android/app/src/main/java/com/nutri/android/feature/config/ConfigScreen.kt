@@ -58,11 +58,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.NumberField
 import com.nutri.android.core.designsystem.DietaBotMeasure
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.Palette
+import com.nutri.android.core.designsystem.SheetActions
+import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.feature.onboarding.CountStepper
 import com.nutri.android.feature.onboarding.EatCard
 import com.nutri.android.feature.onboarding.KcalField
@@ -150,7 +153,7 @@ private fun Header(onBack: () -> Unit) {
                 .clip(CircleShape)
                 .background(p.surf2)
                 .border(1.dp, p.line, CircleShape)
-                .clickable(onClick = onBack)
+                .dietaClick(onClick = onBack)
                 .testTag("cfg-back"),
             contentAlignment = Alignment.Center,
         ) {
@@ -207,7 +210,7 @@ private fun SettingRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .dietaClick(onClick = onClick)
             .padding(start = 17.dp, end = 15.dp, top = 16.dp, bottom = 16.dp)
             .testTag(tag),
         verticalAlignment = Alignment.CenterVertically,
@@ -273,8 +276,8 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
         ConfigEditor.CEILING -> "Meta de calorias" to "Salvar um novo valor reinicia os registros de hoje."
         ConfigEditor.EAT_BACK -> "Compensação de treinos" to "Quanto do treino de hoje volta para a meta."
         ConfigEditor.MACROS -> "Macronutrientes" to "Alvos diários em gramas."
-        ConfigEditor.SLOTS -> "Horários das refeições" to "Nome e horário. Os registros de hoje ficam."
-        ConfigEditor.WORKOUT -> "Treino de hoje" to "Kcal do treino. Vazio: crédito 0. Zera à meia-noite."
+        ConfigEditor.SLOTS -> "Horários das refeições" to "Mudar nome ou horário não apaga o que você já registrou hoje."
+        ConfigEditor.WORKOUT -> "Treino de hoje" to null
     }
     Column(
         Modifier
@@ -292,7 +295,11 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
     ) {
         Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
         Text(title, style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        Text(subtitle, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
+        if (subtitle != null) {
+            Text(subtitle, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
+        } else {
+            Spacer(Modifier.height(16.dp))
+        }
         Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
             when (editor) {
                 ConfigEditor.CEILING -> CeilingEditor(ui.draft, a)
@@ -308,25 +315,16 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
                 )
             }
         }
-        Row(
-            Modifier
-                .padding(top = 20.dp)
-                .fillMaxWidth()
-                .height(52.dp)
-                .clip(CircleShape)
-                .background(p.ctaBg.copy(alpha = if (ui.canSave) 1f else 0.38f))
-                .clickable(enabled = ui.canSave, onClick = a.onSave)
-                .testTag("cfg-save"),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Salvar", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
-        }
-        Text(
-            "Cancelar",
-            style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
-            color = p.muted,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp).clickable(onClick = a.onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("cfg-cancel"),
+        SheetActions(
+            primary = "Salvar",
+            onPrimary = a.onSave,
+            secondary = "Cancelar",
+            onSecondary = a.onClose,
+            primaryEnabled = ui.canSave,
+            primaryTag = "cfg-save",
+            secondaryTag = "cfg-cancel",
+            // A20: >= 24 dp between the last scrolled item and the actions.
+            modifier = Modifier.padding(top = 24.dp),
         )
     }
 }
@@ -448,7 +446,7 @@ private fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
                 .shadow(12.dp, CircleShape, ambientColor = p.bad, spotColor = p.bad)
                 .clip(CircleShape)
                 .background(p.bad)
-                .clickable(onClick = onConfirm)
+                .dietaClick(Haptic.Confirm, onClick = onConfirm)
                 .testTag("cfg-wipe-confirm"),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -466,7 +464,7 @@ private fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
                 .clip(CircleShape)
                 .background(if (p.isDark) p.surf2 else p.panel)
                 .then(if (p.isDark) Modifier.border(1.dp, p.line, CircleShape) else Modifier)
-                .clickable(onClick = onCancel)
+                .dietaClick(onClick = onCancel)
                 .testTag("cfg-wipe-cancel"),
             contentAlignment = Alignment.Center,
         ) {
