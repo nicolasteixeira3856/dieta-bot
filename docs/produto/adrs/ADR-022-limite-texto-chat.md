@@ -20,7 +20,7 @@ O composer corta o texto em 1000 caracteres sem avisar ([A5](../../android/plans
    Voltou a 2000 ou menos: o estado some.
 3. Sem contador visível. Só o estado de erro.
 4. Server: `text` e `messages[].text` do `POST /v1/chat` passam de 1000 para 2000 caracteres. `/v1/estimate` e `/v1/fit` ficam como estão.
-5. Gold novo `chatX` (dark e light): Chat com um texto longo demais no composer, no estado de erro. Gate [ST5](../../stitch/plans/st5-chat-texto-longo.md).
+5. Gold novo `chatX` (dark e light): Chat com um texto longo demais no composer, no estado de erro. Gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md).
 
 ## Motivação
 
@@ -48,7 +48,7 @@ Custo: o histórico leva até 12 mensagens. O pior caso passa de ~12 k para ~24 
 
 ## Relações
 
-- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/st5-chat-texto-longo.md), [A25](../../android/plans/a25-limite-texto-composer.md).
+- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md), [A25](../../android/plans/a25-limite-texto-composer.md).
 - Specs: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md).
 
 Depois de aceito, este ADR não se edita.

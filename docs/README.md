@@ -10,7 +10,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A19–A25](android/README.md#planos-e-validacao) aguardando aprovação; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
-| [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1](stitch/plans/completed/st1-chat.md) e [ST2](stitch/plans/completed/st2-home-treino.md) concluídos; [ST3–ST5](stitch/README.md#planos) aguardando o dono no Stitch; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
+| [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1–ST5](stitch/README.md#planos) concluídos; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S8](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) e [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendentes aprovação manual; [S1, S4, S2, S3, S5, S7, S9](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
@@ -58,7 +58,7 @@ Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um
 
 Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto-chat.md)). Independe do lote acima:
 
-1. ⛔ [ST5](stitch/plans/st5-chat-texto-longo.md) → [A25 composer: limite de 2000 com estado de erro](android/plans/a25-limite-texto-composer.md) — o [S9](server/plans/completed/s9-limite-texto-2000.md) já está no ar.
+1. ✅ [ST5](stitch/plans/completed/st5-chat-texto-longo.md) → [A25 composer: limite de 2000 com estado de erro](android/plans/a25-limite-texto-composer.md) — o [S9](server/plans/completed/s9-limite-texto-2000.md) já está no ar.
 
 
 ## Planos pendentes de aprovação manual

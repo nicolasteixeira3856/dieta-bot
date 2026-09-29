@@ -27,7 +27,7 @@ Antes de enviar, selecione as 7 telas de chat do tema:
 | Foto de refeição e estimativa no Chat (V2 Expressive) | Foto de refeição e estimativa no Chat (V2 Light) |
 | Confirmação pós-gravação com recibo duplo-check (V2 Expressive) | Confirmação pós-gravação com recibo duplo-check (V2 Light) |
 
-Se o [ST5](../st5-chat-texto-longo.md) já rodou, selecione também "Chat com texto longo demais (V2 Expressive)" / "(V2 Light)" e acrescente o nome dela na lista do prompt.
+Se o [ST5](st5-chat-texto-longo.md) já rodou, selecione também "Chat com texto longo demais (V2 Expressive)" / "(V2 Light)" e acrescente o nome dela na lista do prompt.
 
 **Dark:**
 

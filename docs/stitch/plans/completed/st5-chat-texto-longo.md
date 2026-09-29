@@ -1,19 +1,19 @@
 # Gate Stitch — ST5 Chat: texto longo demais no composer (`chatX`)
 
-- Estado: Aguardando o dono no Stitch
+- Estado: Concluído
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
-- Executa: [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)
-- Bloqueia: [A25 limite de texto no composer](../../android/plans/a25-limite-texto-composer.md)
+- Executa: [ADR-022](../../../produto/adrs/ADR-022-limite-texto-chat.md)
+- Bloqueia: [A25 limite de texto no composer](../../../android/plans/a25-limite-texto-composer.md)
 
 ## ⛔ Bloqueio do dono — prompt para o Stitch
 
-Este passo é manual e trava o A25. Um prompt, enviado duas vezes (dark e light). Independe do [ST1](completed/st1-chat.md): se o ST1 rodar depois, "Chat com texto longo demais" entra na seleção do prompt 1.1 dele.
+Este passo é manual e trava o A25. Um prompt, enviado duas vezes (dark e light). Independe do [ST1](st1-chat.md): se o ST1 rodar depois, "Chat com texto longo demais" entra na seleção do prompt 1.1 dele.
 
 ### Prompt 5.1 — tela nova: composer no estado de erro (`chatX`)
 
-Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-telas-regra-do-dono-29092026)). Um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
+Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 
 Antes de enviar:
 
@@ -61,14 +61,14 @@ Começa quando o dono avisa que rodou o prompt.
 
 ### Checklist
 
-- [ ] Composer com o texto longo em cor primária, 5 linhas visíveis, e a caixa mais alta que uma linha com cantos de 24 px.
-- [ ] Borda da caixa do composer em vermelho `bad` do tema (dark `#e07a6a`, light `#c14d40`), e só ela.
-- [ ] "Texto muito longo" logo abaixo da caixa, alinhado ao início do texto, em `bad`, sem ícone.
-- [ ] Enviar sem gold: fundo `surf2`, seta `dim`.
-- [ ] Botão de câmera com ícone `dim`.
-- [ ] Sem contador, diálogo ou toast.
-- [ ] Header, pílula de data, saudação e chips iguais à `chat0`.
-- [ ] Tokens do `AGENTS.md` (sem roxo, sem cor nova além de `bad`). Light e dark coerentes.
+- [x] Composer com o texto longo em cor primária, 5 linhas visíveis, e a caixa mais alta que uma linha com cantos de 24 px.
+- [x] Borda da caixa do composer em vermelho `bad` do tema (dark `#e07a6a`, light `#c14d40`), e só ela.
+- [x] "Texto muito longo" logo abaixo da caixa, alinhado ao início do texto, em `bad`, sem ícone.
+- [x] Enviar sem gold: fundo `surf2`, seta `dim`.
+- [x] Botão de câmera com ícone `dim`.
+- [x] Sem contador, diálogo ou toast.
+- [x] Header, pílula de data, saudação e chips iguais à `chat0`.
+- [x] Tokens do `AGENTS.md` (sem roxo, sem cor nova além de `bad`). Light e dark coerentes.
 
 Depois do checklist verde:
 
@@ -85,3 +85,5 @@ Depois do checklist verde:
 
 - 29/09/2026 — Gate criado. Aguardando o dono.
 - 29/09/2026 — Prompt reescrito com os títulos reais do Stitch (pedido do dono).
+- 29/09/2026 — Verificação 1: `verify-stitch` **passou**; dark verde. Light falhou no checklist: o texto do composer usava entrelinha 1,625 (`leading-relaxed`) numa caixa de 110 px e mostrava 4 linhas e meia, com a 5ª cortada. Prompt de ajuste enviado ao dono.
+- 29/09/2026 — Verificação 2: **passou**. O ajuste mudou só o textarea do light (entrelinha 1,4, altura 110 px = 5 × 19,6 + 12 de padding; diff do HTML). IDs novos: "Chat com texto longo demais (V2 Expressive)" `ea0ae602fcdf475384cb8c345fc0c16c`, "(V2 Light)" `dd52579d00964e7dbcef4fb92735a51a`. Cores no HTML: borda 1,5 px `#e07a6a` / `#c14d40`, erro na mesma cor, enviar `#1e242b` / `#e8e6e2` com seta `#5c6570` / `#8b939c`, câmera no mesmo tom. `chatX` entrou nos scripts (48 golds, 24 por tema). No light, o topo da 6ª linha aparece na borda de baixo da caixa (o texto rola por dentro).
