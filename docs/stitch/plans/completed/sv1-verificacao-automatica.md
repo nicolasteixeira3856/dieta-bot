@@ -4,7 +4,7 @@
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Código afetado: `tools/` (scripts Node do Stitch), `docs/stitch/`
-- Pré-requisitos: Nenhum. Deve ficar pronto antes da verificação do [ST3](st3-seletor-horario.md), [ST4](st4-refeicoes-por-dia.md) e [ST5](../st5-chat-texto-longo.md).
+- Pré-requisitos: Nenhum. Deve ficar pronto antes da verificação do [ST3](st3-seletor-horario.md), [ST4](st4-refeicoes-por-dia.md) e [ST5](st5-chat-texto-longo.md).
 
 ## Gate de autorização
 

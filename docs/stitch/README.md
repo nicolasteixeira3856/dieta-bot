@@ -58,16 +58,11 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 | `chatF` | Foto de refeição e estimativa no Chat (V2 Expressive) | Foto de refeição e estimativa no Chat (V2 Light) |
 | `chatG` | Confirmação pós-gravação com recibo duplo-check (V2 Expressive) | Confirmação pós-gravação com recibo duplo-check (V2 Light) |
 | `chatA` | Chat com foto anexada (V2 Expressive) | Chat com foto anexada (V2 Light) |
+| `chatX` | Chat com texto longo demais (V2 Expressive) | Chat com texto longo demais (V2 Light) |
 | `cfg` | Configurações do perfil e dia (V2 Expressive) | Configurações do perfil e dia (V2 Light) |
 | `cfgS` | Configurações com refeições por dia (V2 Expressive) | Configurações com refeições por dia (V2 Light) |
 | `wipe` | Reiniciar registros de hoje - Diálogo Wipe (V2 Expressive) | Reiniciar registros de hoje - Diálogo Wipe (V2 Light) |
 | `push` | Notificação do sistema - Lembrete de refeição (V2 Expressive) | Notificação do sistema - Lembrete de refeição (V2 Light) |
-
-Telas novas previstas pelos gates (título que o dono dá à cópia):
-
-| Gold | Dark (Stitch) | Light (Stitch) | Gate |
-|---|---|---|---|
-| `chatX` | Chat com texto longo demais (V2 Expressive) | Chat com texto longo demais (V2 Light) | ST5 |
 
 Títulos lidos pelo MCP do Stitch (`list_screens`) em 29/09/2026.
 
@@ -117,7 +112,7 @@ ST1 e ST2 concluídos (29/09/2026). Três gates esperando o dono, cada um já co
 2. ✅ [ST2 Home: atalho de treino (`homeW`)](plans/completed/st2-home-treino.md) — concluído; libera [A22](../android/plans/a22-treino-home.md).
 3. ✅ [ST3 Seletor de horário em rodas (`o3t`)](plans/completed/st3-seletor-horario.md) — concluído; libera [A21](../android/plans/a21-seletor-horario.md).
 4. ✅ [ST4 Refeições por dia da semana (`o3s`, `cfgS`)](plans/completed/st4-refeicoes-por-dia.md) — concluído; libera [A24](../android/plans/a24-refeicoes-por-dia.md).
-5. [ST5 Chat: texto longo demais no composer (`chatX`)](plans/st5-chat-texto-longo.md) — bloqueia [A25](../android/plans/a25-limite-texto-composer.md). Independe do ST1.
+5. ✅ [ST5 Chat: texto longo demais no composer (`chatX`)](plans/completed/st5-chat-texto-longo.md) — concluído; libera [A25](../android/plans/a25-limite-texto-composer.md).
 6. ✅ [SV1 Verificação automática dos gates](plans/completed/sv1-verificacao-automatica.md) — concluído; `tools/verify-stitch.mjs`, usado na verificação do ST3–ST5.
 
 ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md).
