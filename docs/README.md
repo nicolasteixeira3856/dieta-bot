@@ -49,7 +49,7 @@ Ordem de `/goal` depois da frase de aprovação:
 
 Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um gate Stitch (⛔) é passo do dono, não aprovação.
 
-1. [A20 polimento: toque/vibração, botões dos sheets, respiro, Config](android/plans/a20-polimento-geral.md).
+1. ✅ [A20 polimento: toque/vibração, botões dos sheets, respiro, Config](android/plans/pending_manual_validation/a20-polimento-geral.md) — implementado, vibração pendente de validação manual.
 2. [A23 editor de memória e perfil (dev)](android/plans/a23-editor-memoria-dev.md).
 3. ✅ [ST1](stitch/plans/completed/st1-chat.md) → [A19 chat visual](android/plans/a19-chat-visual.md) — depois do A18.
 4. ✅ [ST2](stitch/plans/completed/st2-home-treino.md) → [A22 treino na Home](android/plans/a22-treino-home.md) — depois do A20.

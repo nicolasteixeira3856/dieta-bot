@@ -5,10 +5,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -101,5 +104,52 @@ fun NumberField(
                 ) { inner() }
             },
         )
+    }
+}
+
+/**
+ * A20: the Salvar/Cancelar pair of every sheet, same shape as the chatP pair. Both pills are full width,
+ * 52 dp: primary on the CTA colours, secondary on surf2 with a 1 dp line border.
+ */
+@Composable
+fun SheetActions(
+    primary: String,
+    onPrimary: () -> Unit,
+    secondary: String,
+    onSecondary: () -> Unit,
+    modifier: Modifier = Modifier,
+    primaryEnabled: Boolean = true,
+    primaryTag: String = "sheet-primary",
+    secondaryTag: String = "sheet-secondary",
+) {
+    val p = LocalPalette.current
+    val label = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp)
+    Column(modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(CircleShape)
+                .background(p.ctaBg.copy(alpha = if (primaryEnabled) 1f else 0.38f))
+                .dietaClick(Haptic.Confirm, enabled = primaryEnabled, onClick = onPrimary)
+                .testTag(primaryTag),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(primary, style = label, color = p.ctaText)
+        }
+        Spacer(Modifier.height(12.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(CircleShape)
+                .background(p.surf2)
+                .border(1.dp, p.line, CircleShape)
+                .dietaClick(Haptic.Light, onClick = onSecondary)
+                .testTag(secondaryTag),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(secondary, style = label, color = p.text)
+        }
     }
 }

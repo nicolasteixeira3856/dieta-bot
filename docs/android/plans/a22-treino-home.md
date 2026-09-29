@@ -4,7 +4,7 @@
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/home`, componente de campo/sheet compartilhado com `feature/config`)
-- Pré-requisitos: **[ST2](../../stitch/plans/completed/st2-home-treino.md) em `stitch/plans/completed/`** (golds `home0`, `home1`, `homeX` alterados + `homeW`). [A20](a20-polimento-geral.md) concluído (botões iguais do sheet).
+- Pré-requisitos: **[ST2](../../stitch/plans/completed/st2-home-treino.md) em `stitch/plans/completed/`** (golds `home0`, `home1`, `homeX` alterados + `homeW`). [A20](pending_manual_validation/a20-polimento-geral.md) concluído (botões iguais do sheet).
 
 ## Gate de autorização
 

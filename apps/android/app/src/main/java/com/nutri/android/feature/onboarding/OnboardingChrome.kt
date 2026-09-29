@@ -2,7 +2,6 @@ package com.nutri.android.feature.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -44,14 +43,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotMeasure
 import com.nutri.android.core.designsystem.DietaBotType
+import com.nutri.android.core.designsystem.dietaClick
 
 internal val CardShape = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
 internal val InnerShape = RoundedCornerShape(12.dp)
+
+/** CtaFooter: 24 top + 56 pill + 28 bottom, above the navigation inset. */
+private val CtaFooterHeight = 108.dp
+
+/** A20: >= 24 dp between the last item and the CTA once scrolled to the end. */
+private val ScrollBreath = 24.dp
 
 /** Top bar variants as drawn in each Stitch gold. */
 sealed interface OnboardingBar {
@@ -94,7 +101,8 @@ fun OnboardingFrame(
                 Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 24.dp, end = 24.dp, top = contentTop, bottom = 132.dp),
+                    .navigationBarsPadding()
+                    .padding(start = 24.dp, end = 24.dp, top = contentTop, bottom = CtaFooterHeight + ScrollBreath),
                 content = content,
             )
         }
@@ -147,7 +155,7 @@ private fun TopBar(bar: OnboardingBar, onBack: (() -> Unit)?) {
                             .clip(CircleShape)
                             .background(p.card)
                             .border(1.dp, p.line, CircleShape)
-                            .clickable(enabled = onBack != null) { onBack?.invoke() }
+                            .dietaClick(enabled = onBack != null) { onBack?.invoke() }
                             .testTag("onboarding-back"),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -159,7 +167,7 @@ private fun TopBar(bar: OnboardingBar, onBack: (() -> Unit)?) {
                         color = if (p.isDark) p.gold else p.text,
                     )
                     Box(
-                        Modifier.size(36.dp).clip(CircleShape).clickable(onClick = bar.onHelp).testTag("onboarding-help"),
+                        Modifier.size(36.dp).clip(CircleShape).dietaClick(onClick = bar.onHelp).testTag("onboarding-help"),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ajuda", tint = p.muted, modifier = Modifier.size(20.dp))
@@ -183,7 +191,7 @@ private fun IntakeRow(onBack: (() -> Unit)?, modifier: Modifier = Modifier) {
                 .size(36.dp)
                 .clip(CircleShape)
                 .then(circle)
-                .clickable(enabled = onBack != null) { onBack?.invoke() }
+                .dietaClick(enabled = onBack != null) { onBack?.invoke() }
                 .testTag("onboarding-back"),
             contentAlignment = if (p.isDark) Alignment.CenterStart else Alignment.Center,
         ) {
@@ -265,7 +273,7 @@ fun PillCta(
             .height(56.dp)
             .clip(CircleShape)
             .background(p.ctaBg.copy(alpha = alpha))
-            .clickable(enabled = enabled, onClick = onClick),
+            .dietaClick(Haptic.Confirm, enabled = enabled, onClick = onClick),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {

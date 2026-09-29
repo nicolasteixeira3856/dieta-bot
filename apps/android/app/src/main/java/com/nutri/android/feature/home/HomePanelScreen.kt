@@ -3,7 +3,6 @@ package com.nutri.android.feature.home
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,10 +29,10 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PriorityHigh
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,9 +61,16 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotType
+import com.nutri.android.core.designsystem.SheetActions
 import com.nutri.android.core.designsystem.SplashBoot
+import com.nutri.android.core.designsystem.dietaClick
 
 private val CardRadius = RoundedCornerShape(16.dp)
+private val FabSize = 64.dp
+private val FabBottom = 28.dp
+
+/** home1 gold: ~48 dp between the disclaimer and the top of the FAB at the end of the scroll. */
+private val ContentBottom = FabBottom + FabSize + 48.dp
 
 @Composable
 fun HomePanelScreen(
@@ -84,7 +90,9 @@ fun HomePanelScreen(
         ) {
             Header(ui, onConfig)
             Column(
-                Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 116.dp),
+                Modifier
+                    .navigationBarsPadding()
+                    .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = ContentBottom),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 Ring(ui)
@@ -102,21 +110,44 @@ fun HomePanelScreen(
         Fab(onChat, Modifier.align(Alignment.BottomEnd))
     }
     confirmSkip?.let { slot ->
-        AlertDialog(
-            onDismissRequest = { confirmSkip = null },
-            containerColor = p.card,
-            title = { Text("Pular ${slot.name}?", style = DietaBotType.headlineMd.copy(fontSize = 18.sp), color = p.text) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        slot.slotId?.let(onSkip)
-                        confirmSkip = null
-                    },
-                    modifier = Modifier.testTag("home-skip-confirm"),
-                ) { Text("Pular", color = p.gold) }
+        SkipDialog(
+            slot = slot,
+            onConfirm = {
+                slot.slotId?.let(onSkip)
+                confirmSkip = null
             },
-            dismissButton = { TextButton(onClick = { confirmSkip = null }) { Text("Cancelar", color = p.muted) } },
+            onCancel = { confirmSkip = null },
         )
+    }
+}
+
+/** A20: same SheetActions pair as the Config sheets. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SkipDialog(slot: TimelineSlot, onConfirm: () -> Unit, onCancel: () -> Unit) {
+    val p = LocalPalette.current
+    val shape = RoundedCornerShape(24.dp)
+    BasicAlertDialog(onDismissRequest = onCancel) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(p.card)
+                .border(1.dp, p.line, shape)
+                .padding(24.dp)
+                .testTag("home-skip-dialog"),
+        ) {
+            Text("Pular ${slot.name}?", style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 24.sp), color = p.text)
+            SheetActions(
+                primary = "Pular",
+                onPrimary = onConfirm,
+                secondary = "Cancelar",
+                onSecondary = onCancel,
+                primaryTag = "home-skip-confirm",
+                secondaryTag = "home-skip-cancel",
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        }
     }
 }
 
@@ -142,7 +173,7 @@ private fun Header(ui: HomePanelUiState, onConfig: () -> Unit) {
                 .clip(CircleShape)
                 .background(p.card)
                 .border(1.dp, p.line, CircleShape)
-                .clickable(onClick = onConfig)
+                .dietaClick(onClick = onConfig)
                 .testTag("home-config"),
             contentAlignment = Alignment.Center,
         ) {
@@ -369,7 +400,7 @@ private fun SlotCard(slot: TimelineSlot, modifier: Modifier, onEmptyTap: (Timeli
             .clip(CardRadius)
             .background(if (skipped) p.card.copy(alpha = 0.5f) else p.card)
             .border(1.dp, border, CardRadius)
-            .then(if (empty && slot.slotId != null) Modifier.clickable { onEmptyTap(slot) } else Modifier)
+            .then(if (empty && slot.slotId != null) Modifier.dietaClick { onEmptyTap(slot) } else Modifier)
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(if (empty || skipped) 4.dp else 10.dp),
     ) {
@@ -436,11 +467,11 @@ private fun Fab(onClick: () -> Unit, modifier: Modifier) {
     Box(
         modifier
             .navigationBarsPadding()
-            .padding(end = 22.dp, bottom = 28.dp)
-            .size(64.dp)
+            .padding(end = 22.dp, bottom = FabBottom)
+            .size(FabSize)
             .clip(CircleShape)
             .background(p.gold)
-            .clickable(onClick = onClick)
+            .dietaClick(onClick = onClick)
             .testTag("home-fab"),
         contentAlignment = Alignment.Center,
     ) {

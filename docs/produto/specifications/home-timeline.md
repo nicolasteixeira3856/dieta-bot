@@ -2,9 +2,9 @@
 
 ## Estado
 
-Vigente desde o [A4](../../android/plans/completed/a4-home-painel.md): painel conforme Stitch gold home1 (canônico).
+Vigente desde o [A4](../../android/plans/completed/a4-home-painel.md): painel conforme Stitch gold home1 (canônico). Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): no fim da rolagem o disclaimer fica inteiro acima do FAB (48 dp de respiro, medido no gold home1, + inset de navegação).
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): linha "Treino de hoje" abaixo dos macros ([A22](../../android/plans/a22-treino-home.md), gate [ST2](../../stitch/plans/completed/st2-home-treino.md)); disclaimer inteiro acima do FAB ([A20](../../android/plans/a20-polimento-geral.md)); slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Mudanças planejadas (29/09/2026, aguardando aprovação): linha "Treino de hoje" abaixo dos macros ([A22](../../android/plans/a22-treino-home.md), gate [ST2](../../stitch/plans/completed/st2-home-treino.md)); slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 
