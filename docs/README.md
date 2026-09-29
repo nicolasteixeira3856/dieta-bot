@@ -9,7 +9,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A19–A25](android/README.md#planos-e-validacao) aguardando aprovação; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A21–A24](android/README.md#planos-e-validacao) aguardando aprovação; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
 | [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1–ST5](stitch/README.md#planos) concluídos; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S8](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) e [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendentes aprovação manual; [S1, S4, S2, S3, S5, S7, S9](server/plans/completed/) concluídos | `server/tests/` |
 
@@ -58,7 +58,7 @@ Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um
 
 Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto-chat.md)). Independe do lote acima:
 
-1. ✅ [ST5](stitch/plans/completed/st5-chat-texto-longo.md) → [A25 composer: limite de 2000 com estado de erro](android/plans/a25-limite-texto-composer.md) — o [S9](server/plans/completed/s9-limite-texto-2000.md) já está no ar.
+1. ✅ [ST5](stitch/plans/completed/st5-chat-texto-longo.md) → ✅ [A25 composer: limite de 2000 com estado de erro](android/plans/pending_manual_validation/a25-limite-texto-composer.md) — implementado, colar texto longo no APK pendente de validação manual. O [S9](server/plans/completed/s9-limite-texto-2000.md) já está no ar.
 
 
 ## Planos pendentes de aprovação manual
@@ -68,6 +68,7 @@ Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto
 3. [S8 chat: JSON garantido, slot sugerido, refeição consolidada](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — no ar no dev (29/09); 64 testes e 4 replays do log OK; falta o dono ver "Gravar café" no APK 0.0.2.
 4. [A17 changelog humano no deploy](android/plans/pending_manual_validation/a17-changelog-deploy.md) — `-Notes` obrigatório e validado antes do build; falta o primeiro deploy real com notas no App Tester e seção no `CHANGELOG.md`.
 5. [A18 chat: refeição consolidada, Enter, foto 2048 px](android/plans/pending_manual_validation/a18-chat-registro-foto.md) — substituir com confirmação, Enter pula linha, foto 2048 px q85 sem EXIF; unit, Roborazzi e emulador OK; falta o dono repetir esfihas + suco no APK distribuído.
+6. [A25 composer: limite de 2000 com estado de erro](android/plans/pending_manual_validation/a25-limite-texto-composer.md) — nada é cortado; acima de 2000 borda vermelha e "Texto muito longo", enviar e câmera desligados; unit, gold e emulador OK; falta o dono colar um texto longo no APK distribuído.
 
 ## Planos concluídos
 

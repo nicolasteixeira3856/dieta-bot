@@ -430,6 +430,56 @@ class ChatViewModelTest {
         assertThat(photos.deleted).isEmpty()
     }
 
+    // ------------------------------------------------------------------ text limit (A25, chatX)
+
+    @Test
+    fun composer_keeps1500Chars_andSendsThemWhole() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { estimateOut(null) }
+        val text = "a".repeat(1500)
+        vm.setComposer(text)
+        val typed = vm.await { it.composer.isNotEmpty() }
+        assertThat(typed.composer).hasLength(1500)
+        assertThat(typed.composerTooLong).isFalse()
+        vm.send()
+        vm.await { it.actions != null }
+        assertThat(requests.single().text).hasLength(1500)
+    }
+
+    @Test
+    fun over2000_blocksSendAndPhoto_backTo2000_sends() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { estimateOut(null) }
+        vm.setComposer("a".repeat(2001))
+        val blocked = vm.await { it.composer.isNotEmpty() }
+        assertThat(blocked.composer).hasLength(2001)
+        assertThat(blocked.composerTooLong).isTrue()
+        assertThat(blocked.canSend).isFalse()
+        assertThat(blocked.canAttach).isFalse()
+        vm.send()
+        vm.openPhotoSheet()
+        assertThat(vm.uiState.value.photoSheet).isFalse()
+        assertThat(vm.uiState.value.composer).hasLength(2001)
+
+        // Photo attached some other way (suggestion chip): the caption is still too long, nothing leaves.
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/x.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/9"))
+        vm.await { it.attachment != null }
+        assertThat(vm.uiState.value.canSend).isFalse()
+        vm.send()
+        assertThat(requests).isEmpty()
+
+        vm.removeAttachment()
+        vm.setComposer("a".repeat(2000))
+        val back = vm.await { !it.composerTooLong && it.attachment == null }
+        assertThat(back.composer).hasLength(2000)
+        assertThat(back.canSend).isTrue()
+        vm.send()
+        vm.await { it.actions != null }
+        assertThat(requests.single().text).hasLength(2000)
+        assertThat(vm.uiState.value.composerTooLong).isFalse()
+    }
+
     // ------------------------------------------------------------------ attachment (A19, chatA)
 
     @Test

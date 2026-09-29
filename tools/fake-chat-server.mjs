@@ -9,6 +9,8 @@
 // A18: /__calls also reports the JPEG width/height (ADR-018, longest side 2048). POST /__mode
 // {"slot": "Jan", "kcal": 1220} suggests the slot whose name starts with "Jan" and answers 1220 kcal
 // (the replace flow on a taken slot, ADR-017). Every /__mode call resets what it does not name.
+// A25: /__calls reports `textLen`, the code points of the last turn text; above 2000 answers 422
+// like the server (ADR-022, S9).
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -22,6 +24,7 @@ let lastRequestId = "";
 let calls = 0;
 let compacts = 0;
 let lastMemory = "";
+let textLen = 0;
 let image = { bytes: 0, jpeg: false, width: 0, height: 0, photos: 0 };
 const DIGEST = "Resumo QA: cafe da manha 380 kcal registrado.";
 
@@ -57,7 +60,7 @@ http.createServer(async (req, res) => {
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -66,6 +69,11 @@ http.createServer(async (req, res) => {
     if (hang) return; // never answers
     const input = JSON.parse(body || "{}");
     lastMemory = input.memory ?? "";
+    if (!input.compact) textLen = [...(input.text ?? "")].length;
+    if (textLen > 2000) {
+      res.writeHead(422, { "content-type": "application/json" }).end(JSON.stringify({ detail: "text_too_long" }));
+      return;
+    }
     if (input.image_b64) {
       const bytes = Buffer.from(input.image_b64, "base64");
       const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;

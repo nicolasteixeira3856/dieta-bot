@@ -8,7 +8,7 @@ Um registro por refeição com confirmação ao substituir, Enter pula linha e f
 
 Pergunta em bolha própria, bolhas iguais, sem "IA ATIVA" e foto como anexo com preview desde o [A19](../../android/plans/pending_manual_validation/a19-chat-visual.md) (gate [ST1](../../stitch/plans/completed/st1-chat.md)): regras 2, 3, 14 e 15.
 
-Mudança planejada (29/09/2026, aguardando aprovação): limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso ([ADR-022](../adrs/ADR-022-limite-texto-chat.md), [S9](../../server/plans/completed/s9-limite-texto-2000.md), no ar, [A25](../../android/plans/a25-limite-texto-composer.md), gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
+Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso, desde o [A25](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md) ([ADR-022](../adrs/ADR-022-limite-texto-chat.md); server: [S9](../../server/plans/completed/s9-limite-texto-2000.md); gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
 
 ## Contexto e objetivo
 
@@ -26,7 +26,7 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 
 1. Tela cheia. Back → Home.
 2. Bolhas: user à direita, IA à esquerda, todas com o mesmo raio (16 dp nos 4 cantos). Rótulo da IA: ícone + "Dieta Bot AI", sem selo. Sem foto de perfil.
-3. Composer: texto + câmera (foto) + send. Enter pula linha (até 5 linhas visíveis); só a seta envia. A foto (câmera ou galeria) vira anexo no composer, com miniatura e ✕; nada sai antes do toque em enviar. Uma foto por vez: outra substitui a anterior. Send ativo com texto ou anexo; manda os dois juntos. ✕, troca ou sair do Chat com o anexo apagam o arquivo.
+3. Composer: texto + câmera (foto) + send. Enter pula linha (até 5 linhas visíveis); só a seta envia. A foto (câmera ou galeria) vira anexo no composer, com miniatura e ✕; nada sai antes do toque em enviar. Uma foto por vez: outra substitui a anterior. Send ativo com texto ou anexo; manda os dois juntos. ✕, troca ou sair do Chat com o anexo apagam o arquivo. Texto até 2000 caracteres (code points do texto sem espaços nas pontas; emoji conta 1), nada é cortado. Acima de 2000 (`chatX`): borda da caixa em `bad`, `Texto muito longo` logo abaixo, enviar e câmera desabilitados; sem contador. Com mais de uma linha a caixa tem cantos de 24 dp.
 4. Após estimate da IA: barra com “Gravar {slot}” (slot sugerido pelo server; some se não for do perfil), “Trocar” (sheet com os slots, o da hora marcado “(atual)”) e “Pular” (confirmação “Deseja pular o {slot}?”; sem slot sugerido, o da hora). As ações valem só para a última estimativa sem recibo.
 5. Tap Gravar (ou Confirmar no Trocar): slot sem registro hoje → `addLog` local com o último estimate (kcal, p, c, g, text). Slot com registro → confirmação no layout do `chatP`: `Substituir {slot}?`, `{slot} tem {kcal antigo} kcal. Fica com {kcal novo} kcal.`, **Substituir** | **Outra refeição** (fecha e abre o Trocar sem seleção). Substituir troca os registros de hoje daquele slot pelo novo numa transação ([ADR-017](../adrs/ADR-017-registro-consolidado.md)). Back ou toque fora só fecha. Sem novo POST.
 6. Sem tap: número não entra no contador.
@@ -45,6 +45,7 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 - Timeout 60 s: bolha “Não deu. Toque para tentar de novo.”. Nada gravado; o toque reenvia.
 - Foto: o client reduz a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). “Foto grande demais.” só quando a foto não cabe na memória para decodificar. Cap de 16 MB fica como defesa.
 - Sem rede: bolha de falha. Room intocado.
+- Texto acima de 2000 caracteres: estado de erro do `chatX`, nada sai (0 POST, nem com foto). Apagar até 2000 volta a enviar.
 
 ## Fronteiras e ownership
 
@@ -63,6 +64,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
 - [A18 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)
 - [A19 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a19-chat-visual.md)
+- [A25 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md)
 - `docs/server/plans/completed/s2-v1-chat.md`
 - [S3 (Concluído)](../../server/plans/completed/s3-compact.md)
 

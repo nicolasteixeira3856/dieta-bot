@@ -41,15 +41,16 @@ const FOOTER = 260; // 130 dp: CTA + gradient + nav
 // gated, until regenerated in Stitch. See the A4 and A5 plans in docs/android/plans/completed/.
 // push: the gold is a drawn lock screen; the app only posts a notification and SystemUI draws the
 // lock screen and the card (A7). Reported, never gated.
-// chatA: a copy of chat0 (same other header), only its composer is new (A19).
-const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatA", "push"]);
+// chatA: a copy of chat0 (same other header), only its composer is new (A19). chatX too (A25).
+const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatA", "chatX", "push"]);
 // Parts of a conflict gold that are gated on their own (gold px box x0, y0, x1, y1; best
 // vertical offset). chatF: the photo bubble (A6); the rest of chatF is the chatG generation.
-// chatA: the composer with the attached thumbnail (A19).
-const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664] };
-// Regions reported, not gated: light chatA draws the composer on the page colour (chat0
+// chatA: the composer with the attached thumbnail (A19). chatX: the 5-line composer with the red
+// border and "Texto muito longo" (A25).
+const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668] };
+// Regions reported, not gated: light chatA / chatX draw the composer on the page colour (chat0
 // generation) while the canonical light chatE uses the card colour.
-const REGION_REPORT_ONLY = new Set(["light/chatA"]);
+const REGION_REPORT_ONLY = new Set(["light/chatA", "light/chatX"]);
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));

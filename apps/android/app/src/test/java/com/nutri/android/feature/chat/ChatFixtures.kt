@@ -49,6 +49,12 @@ object ChatFixtures {
     /** chatA: empty day, the photo attached in the composer with a caption, not sent yet (A19). */
     val chatA = chat0.copy(composer = "almoço de hoje, comi tudo", attachment = CHAT_A_PHOTO)
 
+    /** chatX: empty day, a pasted message over 2000 characters (A25, ADR-022). The gold shows its first 5 lines. */
+    private const val CHAT_X_TEXT = "Hoje no almoço comi arroz branco, feijão carioca, duas coxas de frango assadas sem pele, " +
+        "salada de alface com tomate e cebola, uma colher de farofa, meio bife acebolado e de sobremesa um pedaço de pudim de leite. " +
+        "No lanche da tarde tomei um café com leite e comi um pão de queijo grande e uma banana. "
+    val chatX = chat0.copy(composer = CHAT_X_TEXT.repeat(10).trim(), composerTooLong = true)
+
     /** Thumbnail of the chatA gold (the photo the owner attached in Stitch). */
     const val CHAT_A_PHOTO = "src/test/resources/chatA-photo.jpg"
 

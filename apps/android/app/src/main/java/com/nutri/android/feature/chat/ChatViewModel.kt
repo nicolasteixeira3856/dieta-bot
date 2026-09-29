@@ -18,6 +18,7 @@ import com.nutri.android.core.telemetry.NoopTelemetry
 import com.nutri.android.core.telemetry.RequestIds
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
+import com.nutri.android.domain.ChatText
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotClock
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -60,6 +61,8 @@ class ChatViewModel @Inject constructor(
     /** VM-only state: never in Room until the server answers (spec: failure leaves Room untouched). */
     private data class Local(
         val composer: String = "",
+        /** Counted once per change, not per render: a huge paste stays linear. */
+        val composerTooLong: Boolean = false,
         val pending: String? = null,
         val failed: Boolean = false,
         val sheetFor: Long? = null,
@@ -91,7 +94,8 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun setComposer(text: String) = local.update { it.copy(composer = text.take(1000)) }
+    /** Kept exactly as typed or pasted: nothing is cut (ADR-022). Over the limit the composer shows chatX. */
+    fun setComposer(text: String) = local.update { it.copy(composer = text, composerTooLong = ChatText.tooLong(text)) }
 
     fun useSuggestion(text: String) = setComposer(text)
 
@@ -99,8 +103,8 @@ class ChatViewModel @Inject constructor(
     fun send() {
         val text = local.value.composer.trim()
         val photo = local.value.attachment
-        if (text.isEmpty() && photo == null || local.value.pending != null) return
-        local.update { it.copy(composer = "", attachment = null, pending = text, pendingPhoto = photo, failed = false) }
+        if (text.isEmpty() && photo == null || local.value.pending != null || local.value.composerTooLong) return
+        local.update { it.copy(composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, failed = false) }
         viewModelScope.launch { post(text, photo) }
     }
 
@@ -113,7 +117,11 @@ class ChatViewModel @Inject constructor(
 
     // ------------------------------------------------------------------ photo (A6)
 
-    fun openPhotoSheet() = local.update { it.copy(photoSheet = true) }
+    /** Disabled in the chatX state like Enviar: the caption would be the too-long composer. */
+    fun openPhotoSheet() {
+        if (local.value.composerTooLong) return
+        local.update { it.copy(photoSheet = true) }
+    }
 
     fun closePhotoSheet() = local.update { it.copy(photoSheet = false) }
 
@@ -413,6 +421,7 @@ class ChatViewModel @Inject constructor(
         return ChatUiState(
             items = items,
             composer = l.composer,
+            composerTooLong = l.composerTooLong,
             sending = l.pending != null && !l.failed,
             emptyDay = emptyDay,
             metaRemaining = (meta - eaten).coerceAtLeast(0),

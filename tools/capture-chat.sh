@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Chat QA on a running emulator against tools/fake-chat-server.mjs (no OpenAI):
 # onboarding -> chat0 -> chatL -> (dark: timeout + retry) -> chatE -> chatT -> chatP -> Gravar -> chatG
-# -> Home ring. Captures land in docs/qa/android/current/<theme>/.
+# -> Home ring -> compact -> chatX (A25: 2100 characters block send and photo; back to 2000 sends). Captures land in docs/qa/android/current/<theme>/.
 #
 # Prereqs: node tools/fake-chat-server.mjs running on the host (port 8765);
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
@@ -197,6 +197,70 @@ digests=$(db "select count(*), max(text) from day_digest")
 case "$digests" in *"(1, 'Resumo QA"*) echo "  ✓ day_digest stored: $digests";; *) echo "  ✗ day_digest: $digests"; FAIL=1;; esac
 inchat=$(db "select count(*) from chat_message where text like 'Resumo QA%'")
 if [ "$inchat" = "[(0,)]" ]; then echo "  ✓ digest not in chat_message"; else echo "  ✗ digest in chat_message"; FAIL=1; fi
+
+# A25 / ADR-022: chatX. Empty day, 2100 characters typed: red border, "Texto muito longo", send and
+# camera do nothing (0 POST). Back to 2000: sends, the fake gets 2000 code points. adb cannot type
+# accents: the gold message goes without them.
+"$ADB" shell am force-stop $PKG
+rm -f "$TMP"/nutri.db*
+for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/nutri.db" <<'EOF'
+import sqlite3, sys
+c = sqlite3.connect(sys.argv[1])
+for table in ("chat_message", "day_digest", "meal_log", "slot_skip"):
+    c.execute(f"delete from {table}")
+c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
+EOF
+"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/nutri.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
+sleep 3
+tap 'resource-id="home-fab"' 1.5
+composer_len() { # trimmed code points in the composer, from the last dump
+  "$PY" -c "
+import re, sys, html
+xml = open(sys.argv[1], encoding='utf-8').read()
+m = re.search(r'text=\"([^\"]*)\"[^>]*resource-id=\"chat-input\"', xml)
+print(len(html.unescape(m.group(1)).strip()) if m else -1)" "$TMP/ui.xml"
+}
+tap 'resource-id="chat-input"' 0.4
+# 2100 characters, typed in chunks: one long `input text` overflows the shell argument.
+"$PY" - <<'EOF'
+import os, subprocess
+t = ("Hoje no almoco comi arroz branco, feijao carioca, duas coxas de frango assadas sem pele, salada de alface "
+     "com tomate e cebola, uma colher de farofa, meio bife acebolado e de sobremesa um pedaco de pudim de leite. "
+     "No lanche da tarde tomei um cafe com leite e comi um pao de queijo grande e uma banana. ")
+s = (t * 10)[:2100]
+# No space at the ends of 2100 nor of the first 2000: the limit counts the trimmed text.
+s = s[:1999] + "x" + s[2000:2099] + "x"
+adb = os.environ.get("ADB", "adb")
+for i in range(0, len(s), 200):
+    subprocess.run([adb, "shell", "input", "text", s[i:i + 200].replace(" ", "%s")], check=True)
+EOF
+# `input text` sometimes drops a character: top up to exactly 2100 at the end.
+dump; missing=$((2100 - $(composer_len)))
+[ "$missing" -gt 0 ] && "$ADB" shell input text "$(printf 'x%.0s' $(seq $missing))"
+dump; echo "  composer holds $(composer_len) characters"
+"$ADB" shell input keyevent 4; sleep 0.8  # hide the keyboard: the gold has none
+expect "over 2000: Texto muito longo" 'resource-id="chat-too-long"'
+shot chatX
+before=$(calls)
+tap 'resource-id="chat-send"' 1
+tap 'resource-id="chat-photo"' 1
+dump
+if grep -q 'resource-id="chat-photo-camera"' "$TMP/ui.xml"; then echo "  ✗ camera opened the photo sheet"; FAIL=1; "$ADB" shell input keyevent 4; else echo "  ✓ camera did nothing"; fi
+after=$(calls)
+if [ "$after" = "$before" ]; then echo "  ✓ over 2000: 0 POST"; else echo "  ✗ over 2000 posted ($before -> $after)"; FAIL=1; fi
+# The field keeps focus with the cursor at the end: no tap (a tap would move the cursor).
+"$ADB" shell input keyevent $(printf '67 %.0s' $(seq 100)); sleep 0.8
+dump
+if grep -q 'resource-id="chat-too-long"' "$TMP/ui.xml"; then echo "  ✗ still too long at 2000"; FAIL=1; else echo "  ✓ 2000: error gone"; fi
+echo "  composer holds $(composer_len) characters"
+tap 'resource-id="chat-send"' 3
+expect "2000 characters answered" 'resource-id="chat-actions"'
+len=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['textLen'])")
+if [ "$len" = 2000 ]; then echo "  ✓ fake got 2000 characters"; else echo "  ✗ fake got $len characters"; FAIL=1; fi
 
 rm -rf "$TMP"
 exit $FAIL

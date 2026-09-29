@@ -11,6 +11,7 @@ import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatProfile
 import com.nutri.android.core.network.ChatSlot
 import com.nutri.android.core.network.ChatTurn
+import com.nutri.android.domain.ChatText
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotSuggestions
 import java.time.Instant
@@ -53,8 +54,8 @@ object PromptBuilder {
                 memory = memory,
                 day = snapshot(day, today),
                 digests = digests.sortedBy { it.createdAtEpochMs }.takeLast(MAX_DIGESTS).map { it.text },
-                messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, turnText(it).take(1000)) },
-                text = text.take(1000),
+                messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, ChatText.clip(turnText(it))) },
+                text = ChatText.clip(text),
                 compact = false,
             ),
             needsCompact = compactEnabled && raw.size >= MAX_RAW,
