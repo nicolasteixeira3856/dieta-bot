@@ -11,6 +11,8 @@ import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.DietaBotDatabase
+import com.nutri.android.feature.home.HomePanelUiState
+import com.nutri.android.feature.home.HomePanelViewModel
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -197,6 +200,53 @@ class ConfigViewModelTest {
         vm.save()
         awaitUi { it.eatBackValue == "100%" && it.macrosValue.startsWith("160g") }
         assertThat(repo.observeToday().first().logs).hasSize(1)
+    }
+
+    @Test
+    fun workout_savedFromHome_raisesHomeMetaAndShowsInConfig() = runBlocking<Unit> {
+        val home = HomePanelViewModel(repo, clock)
+        val collector = launch(Dispatchers.Main) { home.uiState.collect {} }
+        awaitHome(home) { it.meta == 2000 && it.workoutKcal == null }
+
+        home.openWorkout()
+        awaitHome(home) { it.workoutEditor?.input == "" }
+        home.setWorkout("350")
+        awaitHome(home) { it.workoutEditor?.creditLine == "+175 kcal na meta de hoje (compensação 50%)" }
+        home.saveWorkout()
+
+        awaitHome(home) { it.meta == 2175 && it.workoutKcal == 350 && it.workoutCredit == 175 && it.workoutEditor == null }
+        awaitUi { it.workoutValue == "350 kcal" && it.creditKcal == 175 }
+        vm.open(ConfigEditor.WORKOUT)
+        assertThat(vm.uiState.value.draft.workoutField).isEqualTo("350")
+        assertThat(vm.uiState.value.draft.workoutEditor.credit).isEqualTo(175)
+        vm.close()
+
+        // Empty + Salvar = no workout = credit 0.
+        home.openWorkout()
+        awaitHome(home) { it.workoutEditor?.input == "350" }
+        home.setWorkout("")
+        home.saveWorkout()
+        awaitHome(home) { it.meta == 2000 && it.workoutKcal == null && it.workoutCredit == 0 }
+        awaitUi { it.workoutValue == ConfigMapper.NO_WORKOUT && it.creditKcal == 0 }
+        collector.cancel()
+    }
+
+    @Test
+    fun workout_cancelFromHome_storesNothing() = runBlocking<Unit> {
+        val home = HomePanelViewModel(repo, clock)
+        val collector = launch(Dispatchers.Main) { home.uiState.collect {} }
+        awaitHome(home) { it.meta == 2000 }
+        home.openWorkout()
+        home.setWorkout("500")
+        awaitHome(home) { it.workoutEditor?.input == "500" }
+        home.closeWorkout()
+        awaitHome(home) { it.workoutEditor == null }
+        assertThat(repo.observeToday().first().workoutKcal).isNull()
+        collector.cancel()
+    }
+
+    private suspend fun awaitHome(home: HomePanelViewModel, predicate: (HomePanelUiState) -> Boolean) {
+        withTimeout(5_000) { home.uiState.first(predicate) }
     }
 
     private suspend fun awaitUi(predicate: (ConfigUiState) -> Boolean) {

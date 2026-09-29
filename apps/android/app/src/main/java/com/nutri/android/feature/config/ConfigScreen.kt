@@ -60,7 +60,6 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.NumberField
 import com.nutri.android.core.designsystem.DietaBotMeasure
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.Palette
@@ -74,6 +73,7 @@ import com.nutri.android.feature.onboarding.ModeGroup
 import com.nutri.android.feature.onboarding.PctField
 import com.nutri.android.feature.onboarding.SlotCard
 import com.nutri.android.feature.onboarding.SlotTimeDialog
+import com.nutri.android.feature.workout.WorkoutField
 
 private val CardShape = RoundedCornerShape(16.dp)
 
@@ -306,13 +306,8 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
                 ConfigEditor.EAT_BACK -> EatBackEditor(ui.draft, a)
                 ConfigEditor.MACROS -> MacrosEditor(ui.draft, a)
                 ConfigEditor.SLOTS -> SlotsEditor(ui.draft, a)
-                ConfigEditor.WORKOUT -> NumberField(
-                    label = "Kcal gastas no treino",
-                    value = ui.draft.workoutField,
-                    onChange = a.onWorkout,
-                    large = true,
-                    modifier = Modifier.testTag("cfg-workout-field"),
-                )
+                // A22: same editor as the Home sheet (homeW).
+                ConfigEditor.WORKOUT -> WorkoutField(ui.draft.workoutEditor, a.onWorkout, tag = "cfg-workout", autoFocus = true)
             }
         }
         SheetActions(

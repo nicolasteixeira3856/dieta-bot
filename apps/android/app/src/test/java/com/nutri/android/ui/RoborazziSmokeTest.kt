@@ -14,6 +14,9 @@ import com.nutri.android.feature.config.ConfigEditor
 import com.nutri.android.feature.config.ConfigScreen
 import com.nutri.android.feature.config.ConfigSlotRow
 import com.nutri.android.feature.config.ConfigUiState
+import com.nutri.android.feature.home.HomeFixtures
+import com.nutri.android.feature.home.HomePanelMapper
+import com.nutri.android.feature.home.HomePanelScreen
 import com.nutri.android.feature.onboarding.SlotDraft
 import com.nutri.android.feature.splash.SplashScreen
 import org.junit.Rule
@@ -23,6 +26,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
+import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -123,6 +127,29 @@ class RoborazziSmokeTest {
 
     @Test
     fun cfgWorkout_light() = cfgSheet(dark = false, ConfigEditor.WORKOUT, "cfgWorkout")
+
+    /** A22 homeW: Treino de hoje sheet over the Home, live credit line. */
+    @Test
+    fun homeW_dark() = homeW(dark = true)
+
+    @Test
+    fun homeW_light() = homeW(dark = false)
+
+    private fun homeW(dark: Boolean) {
+        val ui = HomePanelMapper.map(HomeFixtures.home1Workout, LocalDate.parse("2026-09-25"), workoutDraft = "350")
+        composeTestRule.setContent {
+            DietaBotTheme(darkTheme = dark) {
+                HomePanelScreen(ui, {}, {}, {})
+            }
+        }
+        val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/homeW.png")
+        composeTestRule.onRoot().captureRoboImage(
+            filePath = target.path,
+            roborazziOptions = RoborazziOptions(
+                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f)
+            )
+        )
+    }
 
     /** A20: slots sheet copy. */
     @Test

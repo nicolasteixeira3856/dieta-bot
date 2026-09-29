@@ -5,6 +5,7 @@ import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.MealLog
 import com.nutri.android.core.database.metaOn
 import com.nutri.android.domain.SlotSuggestions
+import com.nutri.android.feature.workout.WorkoutEditorState
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -61,6 +62,11 @@ data class HomePanelUiState(
     val fat: MacroLine = MacroLine(0, 67),
     val timeline: List<TimelineSlot> = emptyList(),
     val slotCount: Int = 0,
+    /** Null = no workout today: the row reads "Informar". */
+    val workoutKcal: Int? = null,
+    val workoutCredit: Int = 0,
+    /** A22: "Treino de hoje" sheet (homeW). Null = closed. */
+    val workoutEditor: WorkoutEditorState? = null,
 ) {
     val over: Int get() = (consumed - meta).coerceAtLeast(0)
     val ringFraction: Float get() = if (meta <= 0) 1f else (consumed.toFloat() / meta).coerceIn(0f, 1f)
@@ -69,12 +75,15 @@ data class HomePanelUiState(
 object HomePanelMapper {
     private val dateFormat = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
 
-    fun map(day: DaySnapshot, today: LocalDate): HomePanelUiState {
+    /** [workoutDraft] = field of the open workout sheet, null when closed. */
+    fun map(day: DaySnapshot, today: LocalDate, workoutDraft: String? = null): HomePanelUiState {
         val first = day.firstDay.takeIf { it.isNotBlank() }?.let(LocalDate::parse) ?: today
         val appDay = (ChronoUnit.DAYS.between(first, today) + 1).coerceAtLeast(1)
         val meta = day.metaOn(today)
 
         val consumed = day.logs.sumOf { it.kcal }
+        val policy = WorkoutEditorState.policyOf(day.eat)
+        val stored = WorkoutEditorState(day.workoutKcal?.toString().orEmpty(), policy, day.pct)
         return HomePanelUiState(
             dayLabel = "DIA $appDay",
             dateLabel = today.format(dateFormat),
@@ -85,6 +94,9 @@ object HomePanelMapper {
             fat = MacroLine(day.logs.sumOf { it.fat }, day.fatTargetG),
             timeline = timeline(day, meta),
             slotCount = day.slots.size,
+            workoutKcal = day.workoutKcal,
+            workoutCredit = stored.credit,
+            workoutEditor = workoutDraft?.let { stored.copy(input = it) },
         )
     }
 
