@@ -251,6 +251,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                     onGallery = photo.gallery,
                     onPhotoSheetClose = vm::closePhotoSheet,
                     onNoticeShown = vm::dismissNotice,
+                    onRemoveAttachment = vm::removeAttachment,
                 )
             }
             composable<RouteConfig> {

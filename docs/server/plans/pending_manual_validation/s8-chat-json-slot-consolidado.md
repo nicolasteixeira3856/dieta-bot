@@ -105,7 +105,7 @@ Acrescentar, em inglês, no bloco fixo (prefixo estável, bom para o cache autom
 
 ## Fora de escopo
 
-- UI do client (pergunta em bolha, confirmação de substituir): [A18](../../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) e [A19](../../../android/plans/a19-chat-visual.md).
+- UI do client (pergunta em bolha, confirmação de substituir): [A18](../../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) e [A19](../../../android/plans/pending_manual_validation/a19-chat-visual.md).
 - `/v1/estimate` e `/v1/fit`.
 - Troca de modelo ou de `reasoning.effort`.
 

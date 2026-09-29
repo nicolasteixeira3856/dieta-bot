@@ -118,13 +118,13 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 Aguardando aprovação (lote do feedback, 29/09/2026):
 
-- [A19 chat visual](plans/a19-chat-visual.md) — gate ST1
 - [A21 seletor de horário em rodas](plans/a21-seletor-horario.md) — gate ST3
 - [A22 treino na Home](plans/a22-treino-home.md) — gate ST2
 - [A23 editor de memória e perfil (dev)](plans/a23-editor-memoria-dev.md)
 - [A24 refeições por dia da semana](plans/a24-refeicoes-por-dia.md) — gate ST4, por último
 - [A25 composer: limite de 2000 caracteres com estado de erro](plans/a25-limite-texto-composer.md) — S9 no ar + gate ST5
 
+- [A19 chat visual: pergunta em bolha, bolhas iguais, anexo com preview (Pendente aprovação manual: anexar e enviar no APK)](plans/pending_manual_validation/a19-chat-visual.md)
 - [A20 polimento geral (Pendente aprovação manual: vibração)](plans/pending_manual_validation/a20-polimento-geral.md)
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
 - [A13 rename visível "Dieta Bot" (Concluído)](plans/completed/a13-rename-dieta-bot.md)

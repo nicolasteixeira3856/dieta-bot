@@ -21,7 +21,7 @@ Os ajustes de comportamento do Chat que não mudam gold:
 2. Enter do teclado pula linha.
 3. A foto sai reduzida a 2048 px e o "Foto grande demais." some na prática.
 
-Pergunta em bolha separada, formato das bolhas e anexo com preview dependem de gold e ficam no [A19](../a19-chat-visual.md).
+Pergunta em bolha separada, formato das bolhas e anexo com preview dependem de gold e ficam no [A19](a19-chat-visual.md).
 
 ## Fontes de verdade
 
@@ -108,7 +108,7 @@ Observação para o dono: na substituição, o texto da timeline segue a regra 1
 
 ## Fora de escopo
 
-- Pergunta em bolha separada, bolhas, "IA ATIVA", anexo com preview: [A19](../a19-chat-visual.md).
+- Pergunta em bolha separada, bolhas, "IA ATIVA", anexo com preview: [A19](a19-chat-visual.md).
 - Limpar registros duplicados antigos (ADR-017 regra 6).
 
 ## Riscos e controles

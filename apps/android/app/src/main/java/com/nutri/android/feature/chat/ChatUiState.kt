@@ -46,6 +46,11 @@ sealed interface ChatItem {
         override val key = "a-$id"
     }
 
+    /** Follow-up question of an estimate, in its own bubble right below it (chatE). UI only. */
+    data class Question(val estimateId: Long, val text: String, val time: String) : ChatItem {
+        override val key = "q-$estimateId"
+    }
+
     data class Receipt(
         val id: Long,
         val skipped: Boolean,
@@ -97,10 +102,12 @@ data class ChatUiState(
     val replaceConfirm: ReplaceConfirm? = null,
     /** Camera / gallery chooser (A6). */
     val photoSheet: Boolean = false,
+    /** JPEG attached in the composer, not sent yet (chatA). */
+    val attachment: String? = null,
     /** Snackbar text, shown once. */
     val notice: String? = null,
 ) {
-    val canSend: Boolean get() = composer.isNotBlank() && !sending
+    val canSend: Boolean get() = (composer.isNotBlank() || attachment != null) && !sending
 }
 
 /** Gravar on a taken slot: "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */

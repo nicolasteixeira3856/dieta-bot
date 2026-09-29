@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Photo QA (A6, A18/ADR-018) on a running emulator against tools/fake-chat-server.mjs:
-# gallery JPEG 2000 px (re-encoded, not enlarged) -> camera (runtime permission + TakePicture,
+# Photo QA (A6, A18/ADR-018, A19) on a running emulator against tools/fake-chat-server.mjs:
+# chatA (the photo is attached in the composer; nothing leaves before Enviar; ✕ and leaving the Chat
+# delete the file) -> gallery JPEG 2000 px (re-encoded, not enlarged) -> camera (runtime permission + TakePicture,
 # longest side <= 2048) -> 50 MP JPEG turned by EXIF (posted at 1536x2048, < 2 MB) -> the old
 # "> 16 MB" file now passes -> WebP (JPEG, same branch as HEIC) -> chatF capture with the gold
 # conversation seeded. Captures land in docs/qa/android/current/<theme>/.
@@ -50,7 +51,7 @@ posted() {
 }
 photos_on_device() { "$ADB" exec-out run-as $PKG ls files/photos/ 2>/dev/null | tr -d '\r' | grep -c '\.jpg$'; }
 
-# Test images: the plate from the chatF gold at 2000 px, the same padded past 16 MB, a WebP, and a
+# Test images: the thumbnail of the chatA gold at 1000 px (the photo attached there), the plate from the chatF gold at 2000 px, the same padded past 16 MB, a WebP, and a
 # 50 MP (8160x6120) JPEG with EXIF orientation 6 (rotate 90) and GPS.
 PYROOT="$ROOT"
 command -v cygpath >/dev/null && PYROOT="$(cygpath -m "$ROOT")"
@@ -61,6 +62,7 @@ root, tmp = sys.argv[1], sys.argv[2]
 im = Image.open(root + "/docs/qa/stitch/dark/chatF.png").convert("RGB").crop((238, 392, 722, 662)).resize((2000, 1116), Image.LANCZOS)
 im.save(tmp + "/prato.jpg", quality=92)
 im.save(tmp + "/prato.webp", quality=90)
+Image.open(root + "/docs/qa/stitch/dark/chatA.png").convert("RGB").crop((63, 1416, 187, 1540)).resize((1000, 1000), Image.LANCZOS).save(tmp + "/chata.jpg", quality=92)
 data = open(tmp + "/prato.jpg", "rb").read()
 open(tmp + "/gigante.jpg", "wb").write(data + b"\0" * (17 * 1024 * 1024 - len(data)))
 exif = Image.Exif()
@@ -76,14 +78,46 @@ gallery() { # gallery <file>: newest photo in the picker, then pick it
   tap 'resource-id="chat-photo"' && tap 'resource-id="chat-photo-gallery"' 2.5
   tap 'content-desc="Photo taken on' "${2:-4}"
 }
+send() { tap 'resource-id="chat-send"' "${1:-4}"; } # A19: a picked photo is only an attachment until Enviar
+hide_ime() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && "$ADB" shell input keyevent 4; sleep 0.5; }
 "$ADB" shell pm revoke $PKG android.permission.CAMERA >/dev/null 2>&1
 
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 2
 tap 'resource-id="home-fab"' && expect "FAB opens Chat" 'resource-id="chat"'
 
+# chatA (A19): the picked photo is an attachment with a preview; no POST until Enviar.
+PHOTOS=$(fake "d['image']['photos']")
+n0=$(photos_on_device)
+gallery prato.jpg
+expect "photo attached in the composer" 'resource-id="chat-attachment"'
+posted; if [ "${GOT%% *}" = False ]; then echo "  ✓ picking a photo made no POST"; else echo "  ✗ picking a photo posted"; FAIL=1; fi
+tap 'resource-id="chat-attachment-remove"'
+dump; if grep -q 'resource-id="chat-attachment"' "$TMP/ui.xml"; then echo "  ✗ ✕ kept the attachment"; FAIL=1; fi
+if [ "$(photos_on_device)" = "$n0" ]; then echo "  ✓ ✕ deleted the attached file"; else echo "  ✗ ✕ left the file ($n0 -> $(photos_on_device))"; FAIL=1; fi
+gallery prato.jpg
+gallery chata.jpg
+if [ "$(photos_on_device)" = "$((n0 + 1))" ]; then echo "  ✓ a second photo replaced the first (one file)"; else echo "  ✗ replace: $n0 -> $(photos_on_device) files"; FAIL=1; fi
+# Gold caption has a cedilla adb cannot type: "almoco" (font raster only).
+tap 'resource-id="chat-input"' 0.4
+"$ADB" shell input text "almoco%sde%shoje,%scomi%studo"
+hide_ime
+shot chatA
+send
+posted; got=$GOT
+if [ "$got" = "True True 1000 1000 True" ]; then echo "  ✓ Enviar posted text + photo once"; else echo "  ✗ Enviar: fake got '$got'"; FAIL=1; fi
+expect "photo bubble after Enviar" 'resource-id="chat-photo-[0-9]+"'
+# Leaving the Chat with an unsent attachment deletes the file (onCleared).
+n1=$(photos_on_device)
+gallery prato.jpg
+"$ADB" shell input keyevent 4; sleep 2
+if [ "$(photos_on_device)" = "$n1" ]; then echo "  ✓ leaving the Chat deleted the unsent attachment"; else echo "  ✗ unsent attachment left behind ($n1 -> $(photos_on_device))"; FAIL=1; fi
+posted; if [ "${GOT%% *}" = False ]; then echo "  ✓ leaving the Chat made no POST"; else echo "  ✗ leaving the Chat posted"; FAIL=1; fi
+tap 'resource-id="home-fab"' && expect "FAB opens Chat" 'resource-id="chat"'
+
 # 1. Gallery JPEG at 2000 px: re-encoded JPEG q85, not enlarged.
 PHOTOS=$(fake "d['image']['photos']")
 gallery prato.jpg
+send
 posted; got=$GOT
 if [ "$got" = "True True 2000 1116 True" ]; then echo "  ✓ gallery JPEG posted at 2000x1116, < 2 MB"; else echo "  ✗ gallery JPEG: fake got '$got'"; FAIL=1; fi
 expect "photo bubble in the thread" 'resource-id="chat-photo-[0-9]+"'
@@ -99,12 +133,15 @@ wait_for 'com.android.camera2:id/shutter_button'
 tap 'resource-id="com.android.camera2:id/shutter_button"' 3
 wait_for 'com.android.camera2:id/done_button'
 tap 'resource-id="com.android.camera2:id/done_button"' 5
+expect "camera photo attached, not sent" 'resource-id="chat-attachment"'
+send 5
 after=$(fake "d['image']['photos'], d['image']['jpeg'], max(d['image']['width'], d['image']['height']) <= 2048")
 PHOTOS=$(fake "d['image']['photos']")
 if [ "$after" = "$((before + 1)) True True" ]; then echo "  ✓ camera photo posted as JPEG, longest side <= 2048"; else echo "  ✗ camera: $before -> '$after'"; FAIL=1; fi
 
 # 3. 50 MP with EXIF rotation: upright, longest side 2048, < 2 MB, no EXIF kept on the device.
 gallery 50mp.jpg 8
+send
 posted; got=$GOT
 if [ "$got" = "True True 1536 2048 True" ]; then echo "  ✓ 50 MP posted upright at 1536x2048, < 2 MB"; else echo "  ✗ 50 MP: fake got '$got'"; FAIL=1; fi
 dump; grep -q 'text="Foto grande demais."' "$TMP/ui.xml" && { echo "  ✗ 50 MP showed 'Foto grande demais.'"; FAIL=1; }
@@ -115,11 +152,13 @@ if [ "$exif" = "0" ]; then echo "  ✓ stored photo has no EXIF"; else echo "  �
 
 # 4. The file that was "> 16 MB" (valid JPEG + padding) now passes.
 gallery gigante.jpg 4
+send
 posted; got=$GOT
 if [ "$got" = "True True 2000 1116 True" ]; then echo "  ✓ former > 16 MB file posted, < 2 MB"; else echo "  ✗ former > 16 MB: fake got '$got'"; FAIL=1; fi
 
 # 5. WebP (same branch as HEIC): JPEG before the POST, not enlarged.
 gallery prato.webp
+send
 posted; got=$GOT
 if [ "$got" = "True True 2000 1116 True" ]; then echo "  ✓ WebP became JPEG 2000x1116"; else echo "  ✗ WebP: fake got '$got'"; FAIL=1; fi
 "$ADB" shell rm -f /sdcard/Pictures/nutri-qa-*

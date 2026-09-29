@@ -75,7 +75,7 @@ O composer deixa de cortar o texto em 1000 caracteres em silêncio. Até 2000 en
 
 - Contador visível.
 - Limite do campo de memória, digests ou `/v1/estimate` e `/v1/fit`.
-- Bolhas, anexo com preview: [A19](a19-chat-visual.md).
+- Bolhas, anexo com preview: [A19](pending_manual_validation/a19-chat-visual.md).
 
 ## Riscos e controles
 

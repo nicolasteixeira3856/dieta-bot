@@ -164,6 +164,17 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatF_light() = check("chatF", dark = false, region = PHOTO_BUBBLE) { Chat(ChatFixtures.chatF) }
 
+    /**
+     * A19: photo attached in the composer. chatA is a copy of chat0 (other header): only the composer is gated.
+     * Light gold draws the composer on the page colour (chat0 generation) while the canonical chatE light uses
+     * the card colour, so the light region is reported only.
+     */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatA_dark() = check("chatA", dark = true, region = COMPOSER_ATTACHED) { Chat(ChatFixtures.chatA) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatA_light() = check("chatA", dark = false, region = COMPOSER_ATTACHED, gateRegion = false) { Chat(ChatFixtures.chatA) }
+
     /** Dark chatG gold is a 2560x2048 desktop render: not comparable, light only. chatF (photo) is A6. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
@@ -202,6 +213,7 @@ class StitchGoldTest {
     @org.junit.Before
     fun preloadPhotos() {
         PhotoPreviews.load(ChatFixtures.CHAT_F_PHOTO) ?: error("missing ${ChatFixtures.CHAT_F_PHOTO}")
+        PhotoPreviews.load(ChatFixtures.CHAT_A_PHOTO) ?: error("missing ${ChatFixtures.CHAT_A_PHOTO}")
     }
 
     private fun check(
@@ -215,6 +227,8 @@ class StitchGoldTest {
         /** Gold to diff against when the state has none of its own. */
         goldId: String = id,
         reportOnly: Boolean = false,
+        /** false: [region] is printed, not asserted (the gold contradicts the canonical one). */
+        gateRegion: Boolean = true,
         screen: @Composable () -> Unit,
     ) {
         compose.setContent {
@@ -242,7 +256,7 @@ class StitchGoldTest {
         if (region != null) {
             val part = regionDiff(appBlur, goldBlur, region)
             println("GOLD_DIFF $theme/$id region ${"%.2f".format(part)}%")
-            assertWithMessage("$theme/$id region differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
+            if (gateRegion) assertWithMessage("$theme/$id region differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
         }
         if (id in GOLD_CONFLICTS || reportOnly) return // reported only, see GOLD_CONFLICTS
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
@@ -406,10 +420,15 @@ class StitchGoldTest {
             "chat0", "chatL", "chatG",
             // chatF is the chatF/chatG generation too: only its photo bubble is gated (PHOTO_BUBBLE, A6).
             "chatF",
+            // chatA is a copy of chat0 (same other header): only its composer is gated (COMPOSER_ATTACHED, A19).
+            "chatA",
         )
 
         /** chatF photo bubble in gold px (x0, y0, x1, y1). */
         private val PHOTO_BUBBLE = intArrayOf(214, 368, 746, 734)
+
+        /** chatA composer with the attached thumbnail in gold px (x0, y0, x1, y1). */
+        private val COMPOSER_ATTACHED = intArrayOf(32, 1388, 748, 1664)
         private val ROOT = File("../../..")
         private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")
