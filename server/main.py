@@ -112,9 +112,13 @@ class DayIn(BaseModel):
     slots: list[DaySlotIn] = Field(default_factory=list)
 
 
+# ADR-022: a chat message is up to 2000 characters (code points), client and server alike.
+CHAT_TEXT_MAX = 2000
+
+
 class ChatMessageIn(BaseModel):
     role: Literal["user", "assistant"]
-    text: str = Field(..., max_length=1000)
+    text: str = Field(..., max_length=CHAT_TEXT_MAX)
 
 
 class ChatIn(BaseModel):
@@ -124,7 +128,7 @@ class ChatIn(BaseModel):
     day: DayIn
     digests: list[str] = Field(default_factory=list, max_length=2)
     messages: list[ChatMessageIn] = Field(default_factory=list, max_length=12)
-    text: str = Field(..., max_length=1000)
+    text: str = Field(..., max_length=CHAT_TEXT_MAX)
     image_b64: str | None = None
     compact: bool = False
 

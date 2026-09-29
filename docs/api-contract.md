@@ -86,7 +86,7 @@ IN
 Constraints:
 - `messages` max 12 items, roles: `user` | `assistant`.
 - `digests` max 2 items.
-- `text` max 1000 characters.
+- `text` and `messages[].text` max 2000 characters (code points; S9, ADR-022).
 - `compact`: `false` = normal chat turn. `true` = summarise `messages` (S3), see below.
 
 OUT

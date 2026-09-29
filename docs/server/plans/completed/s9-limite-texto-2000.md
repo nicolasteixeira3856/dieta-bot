@@ -1,10 +1,11 @@
 # Plano — S9 Texto do Chat até 2000 caracteres
 
-- Estado: Aguardando aprovação
+- Estado: Concluído
+- Aprovado: 29/09/2026 ("Aprovo o plano `docs/server/plans/s9-limite-texto-2000.md`. Implemente o plano aprovado.")
 - Data: 29/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/main.py`, `server/tests/`
-- Pré-requisitos: Nenhum. Executa o [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md) (regra 4).
+- Pré-requisitos: Nenhum. Executa o [ADR-022](../../../produto/adrs/ADR-022-limite-texto-chat.md) (regra 4).
 
 ## Gate de autorização
 
@@ -16,11 +17,11 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 ## Objetivo
 
-O `POST /v1/chat` aceita `text` e `messages[].text` até 2000 caracteres. Vai ao ar no dev antes do [A25](../../android/plans/a25-limite-texto-composer.md), para o client nunca mandar algo que o server recusa.
+O `POST /v1/chat` aceita `text` e `messages[].text` até 2000 caracteres. Vai ao ar no dev antes do [A25](../../../android/plans/a25-limite-texto-composer.md), para o client nunca mandar algo que o server recusa.
 
 ## Fontes de verdade
 
-- [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md), [v1-chat](../specifications/v1-chat.md), [api-contract](../../api-contract.md).
+- [ADR-022](../../../produto/adrs/ADR-022-limite-texto-chat.md), [v1-chat](../../specifications/v1-chat.md), [api-contract](../../../api-contract.md).
 
 ## Escopo de implementação
 
@@ -55,10 +56,22 @@ O `POST /v1/chat` aceita `text` e `messages[].text` até 2000 caracteres. Vai ao
 2. Depois do deploy: `GET /health` 200; `POST /v1/chat` com `text` de 2000 caracteres → 200; com 2001 → 422.
 3. Log de conversa (S6) sem erro novo.
 
+## Resultados (29/09/2026)
+
+- `server/main.py`: `CHAT_TEXT_MAX = 2000` em `ChatIn.text` e `ChatMessageIn.text`. `/v1/estimate` e `/v1/fit` seguem com 1000.
+- `test_chat_pydantic_validation_limits`: `text` 2000 → 200, 2001 → 422; `messages[].text` 2000 → 200, 2001 → 422; 2000 emojis (8000 bytes UTF-8) → 200.
+- `docs/api-contract.md` e `v1-chat.md` atualizados.
+
+Validação:
+
+1. `server/.venv/Scripts/python -m pytest -q` → 64 passed, 25 subtests. OK.
+2. `./tools/deploy-gcp.ps1` (só código): `/health` 200. No dev: `text` de 2000 caracteres → 200 com estimate; `text` 2001 → 422; `messages[].text` 2001 → 422. OK.
+3. Log do container sem `Traceback`/`ERROR`; log de conversa do turno de 2000 caracteres com `error: None`, `fallback: False`, 4,0 s. OK.
+
 ## Fora de escopo
 
 - `/v1/estimate`, `/v1/fit`.
-- Qualquer mudança no client: [A25](../../android/plans/a25-limite-texto-composer.md).
+- Qualquer mudança no client: [A25](../../../android/plans/a25-limite-texto-composer.md).
 
 ## Riscos e controles
 

@@ -5,7 +5,7 @@
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat`, `domain`)
 - Pré-requisitos:
-  - [S9](../../server/plans/s9-limite-texto-2000.md) no ar no dev (`/v1/chat` aceita 2000).
+  - [S9](../../server/plans/completed/s9-limite-texto-2000.md) no ar no dev (`/v1/chat` aceita 2000). **Concluído em 29/09/2026.**
   - **[ST5](../../stitch/plans/st5-chat-texto-longo.md) em `stitch/plans/completed/`** (gold `chatX`). Sem ele a implementação não começa.
   - [A18](pending_manual_validation/a18-chat-registro-foto.md) no `master` (mesmo `ChatScreen.kt`).
   - Aceita o [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md).
