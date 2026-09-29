@@ -1,0 +1,19 @@
+{
+  "gate": "ST3",
+  "keep": ["Café da manhã", "Continuar"],
+  "coherence": { "exceptions": [], "known": [] },
+  "screens": [
+    { "gold": "o3", "checks": [{ "type": "text", "has": ["Café da manhã", "07:30", "Continuar"] }] },
+    {
+      "gold": "o3t",
+      "keep": ["Café da manhã", "Horário da refeição", "Cancelar", "OK"],
+      "checks": [
+        { "type": "text",
+          "has": ["Café da manhã", "Horário da refeição", "05", "06", "07", "08", "09", "28", "29", "30", "31", "32", ":", "Cancelar", "OK"],
+          "not": ["keyboard"] },
+        { "type": "fits", "text": "Cancelar", "with": "OK", "maxHeight": 48 },
+        { "type": "gap", "a": "Cancelar", "b": "OK", "min": 12 }
+      ]
+    }
+  ]
+}

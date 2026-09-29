@@ -36,22 +36,25 @@ Depois de enviar: <o que conferir no Stitch>.
 
 ## Verificação (agente)
 
-Começa quando o dono avisa que rodou o prompt.
+Começa quando o dono avisa que rodou o prompt. Checagens do gate: [`st<n>-<assunto>.checks.json`](st<n>-<assunto>.checks.json), escrito junto com este plano ([tipos](../README.md#verificação-automática-sv1)).
 
-1. `mcp__stitch__list_screens` no projeto `Nutri`: as telas esperadas existem **com os títulos exatos do gate** (IDs novos anotados abaixo).
-2. Atualiza `tools/export-stitch.mjs` (IDs) e a contagem de `tools/check-stitch.mjs`.
-3. `node tools/export-stitch.mjs` + `node tools/check-stitch.mjs` verdes.
-4. Confere o checklist nos PNGs exportados, dark e light.
-5. Qualquer item falho (inclusive título diferente): **para**, lista o que falta para o dono e deixa o estado `Aguardando o dono no Stitch`.
+1. `node tools/verify-stitch.mjs st<n> --report --out <scratchpad>/stitch-report.html`: acha as telas pelo título exato (tela nova) ou pelo ID (tela antiga), confere as checagens no HTML renderizado a 390 px, a coerência dark × light e as imagens, e gera o relatório com antes/depois e o prompt de correção por tema. Responde `PASSOU` ou `NÃO PASSOU`.
+2. `NÃO PASSOU` (inclusive título diferente): **para**, manda o relatório ao dono numa mensagem só e deixa o estado `Aguardando o dono no Stitch`.
+3. `PASSOU`: olha o relatório (antes/depois) para os itens de aparência que o script não mede.
+4. Adiciona os IDs novos (Registro) a `tools/export-stitch.mjs` e a contagem a `tools/check-stitch.mjs`.
+5. `node tools/export-stitch.mjs --only <golds do gate>` + `node tools/check-stitch.mjs` verdes. O filtro de ruído devolve ao git os PNGs sem mudança visual.
 
 ### Checklist
 
-- [ ] <item visual verificável>
+Cada item diz a checagem que o cobre, ou "relatório" quando só o olho confere.
+
+- [ ] <item visual verificável> — `text has "<texto>"` / `fits "<texto>"` / relatório
 
 ## Arquivos que este gate pode tocar
 
 - `docs/qa/stitch/{dark,light}/<id>.png`
 - `tools/export-stitch.mjs`, `tools/check-stitch.mjs`
+- `st<n>-<assunto>.checks.json` (checagens do gate)
 - Lista de golds em `AGENTS.md` e `docs/qa/README.md`; tabela de nomes em `docs/stitch/README.md`
 
 Nada em `apps/` ou `server/`.

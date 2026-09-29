@@ -1,0 +1,17 @@
+{
+  "gate": "ST5",
+  "keep": ["Chat Dieta Bot", "Hoje, 25 de setembro"],
+  "coherence": { "exceptions": [], "known": [] },
+  "screens": [
+    {
+      "gold": "chatX",
+      "keep": ["Texto muito longo"],
+      "checks": [
+        { "type": "text",
+          "has": ["Chat Dieta Bot", "Hoje, 25 de setembro", "Hoje no almoço comi arroz branco", "Texto muito longo"],
+          "not": ["IA ATIVA", "caracteres", "/2000", "/ 2000"] },
+        { "type": "fits", "text": "Texto muito longo", "maxHeight": 24 }
+      ]
+    }
+  ]
+}
