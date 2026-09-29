@@ -62,6 +62,7 @@ Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um
 1. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
 2. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; o "nao deu para estimar" já foi explicado pelo log (29/09, virou o S8); falta o dono aprovar.
 3. [S8 chat: JSON garantido, slot sugerido, refeição consolidada](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — no ar no dev (29/09); 64 testes e 4 replays do log OK; falta o dono ver "Gravar café" no APK 0.0.2.
+4. [A17 changelog humano no deploy](android/plans/pending_manual_validation/a17-changelog-deploy.md) — `-Notes` obrigatório e validado antes do build; falta o primeiro deploy real com notas no App Tester e seção no `CHANGELOG.md`.
 
 ## Planos concluídos
 
