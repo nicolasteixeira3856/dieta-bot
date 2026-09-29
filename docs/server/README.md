@@ -71,6 +71,7 @@ Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
 ### Planos e validacao
 
+- [S9 aguardando aprovacao](plans/s9-limite-texto-2000.md) — `/v1/chat` aceita `text` e `messages[].text` ate 2000 caracteres ([ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md)); vai ao ar antes do A25.
 - [S8 pendente aprovacao manual](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — saida estruturada (`json_schema` strict), slot sugerido, refeicao consolidada, total sem comida sem estimate, corpo 24 MB; no ar no dev; falta o dono ver "Gravar cafe" no APK 0.0.2.
 - [S7 concluido](plans/completed/s7-rename-prompt.md) — "Dieta Bot" no prompt do Chat.
 - [S6 pendente aprovacao manual](plans/pending_manual_validation/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; o "nao deu" ja foi explicado pelo log (29/09); falta o dono aprovar.

@@ -39,7 +39,7 @@ Não há "aprovação" de gate: o prompt já é o que foi decidido nos ADRs. O d
 
 ## Estado atual
 
-Quatro gates esperando o dono.
+Cinco gates esperando o dono.
 
 ## Índice
 
@@ -49,5 +49,6 @@ Quatro gates esperando o dono.
 2. [ST2 Home: atalho de treino (`homeW`)](plans/st2-home-treino.md) — bloqueia [A22](../android/plans/a22-treino-home.md).
 3. [ST3 Seletor de horário em rodas (`o3t`)](plans/st3-seletor-horario.md) — bloqueia [A21](../android/plans/a21-seletor-horario.md).
 4. [ST4 Refeições por dia da semana](plans/st4-refeicoes-por-dia.md) — bloqueia [A24](../android/plans/a24-refeicoes-por-dia.md). Rodar depois do ST3 (usa o `o3` já com o seletor novo).
+5. [ST5 Chat: texto longo demais no composer (`chatX`)](plans/st5-chat-texto-longo.md) — bloqueia [A25](../android/plans/a25-limite-texto-composer.md). Independe do ST1.
 
-ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md).
+ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md).
