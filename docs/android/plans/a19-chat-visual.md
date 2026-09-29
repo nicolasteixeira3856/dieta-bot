@@ -4,7 +4,7 @@
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat`)
-- Pré-requisitos: **[ST1](../../stitch/plans/st1-chat.md) em `stitch/plans/completed/`** (golds novos de chat + `chatA`). [A18](pending_manual_validation/a18-chat-registro-foto.md) concluído (mesmo arquivo `ChatScreen.kt`; evita conflito).
+- Pré-requisitos: **[ST1](../../stitch/plans/completed/st1-chat.md) em `stitch/plans/completed/`** (golds novos de chat + `chatA`). [A18](pending_manual_validation/a18-chat-registro-foto.md) concluído (mesmo arquivo `ChatScreen.kt`; evita conflito).
 
 ## Gate de autorização
 

@@ -14,12 +14,12 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 
 ---
 
-## Filenames (18 telas oficiais por tema)
+## Filenames (19 telas oficiais por tema)
 
 ```text
 splash.png · o1.png · o2.png · o3.png · o4.png
 home0.png · home1.png · homeX.png
-chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png
+chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png
 cfg.png · wipe.png · push.png
 ```
 

@@ -9,7 +9,7 @@
 
 ## ⛔ Bloqueio do dono — prompt para o Stitch
 
-Este passo é manual e trava o A25. Um prompt, enviado duas vezes (dark e light). Independe do [ST1](st1-chat.md): se o ST1 rodar depois, "Chat com texto longo demais" entra na seleção do prompt 1.1 dele.
+Este passo é manual e trava o A25. Um prompt, enviado duas vezes (dark e light). Independe do [ST1](completed/st1-chat.md): se o ST1 rodar depois, "Chat com texto longo demais" entra na seleção do prompt 1.1 dele.
 
 ### Prompt 5.1 — tela nova: composer no estado de erro (`chatX`)
 
