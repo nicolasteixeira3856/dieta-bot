@@ -53,7 +53,7 @@ Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um
 2. [A23 editor de memória e perfil (dev)](android/plans/a23-editor-memoria-dev.md).
 3. ✅ [ST1](stitch/plans/completed/st1-chat.md) → [A19 chat visual](android/plans/a19-chat-visual.md) — depois do A18.
 4. ✅ [ST2](stitch/plans/completed/st2-home-treino.md) → [A22 treino na Home](android/plans/a22-treino-home.md) — depois do A20.
-5. ⛔ [ST3](stitch/plans/st3-seletor-horario.md) → [A21 seletor de horário](android/plans/a21-seletor-horario.md) — depois do A20.
+5. ✅ [ST3](stitch/plans/completed/st3-seletor-horario.md) → [A21 seletor de horário](android/plans/a21-seletor-horario.md) — depois do A20.
 6. ⛔ [ST4](stitch/plans/st4-refeicoes-por-dia.md) → [A24 refeições por dia](android/plans/a24-refeicoes-por-dia.md) — por último.
 
 Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto-chat.md)). Independe do lote acima:

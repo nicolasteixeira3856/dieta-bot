@@ -43,6 +43,7 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 | `o1` | Onboarding 1/4 - Teto do dia (V2 Expressive) | Onboarding 1/4 - Teto do dia (V2 Light) |
 | `o2` | Onboarding 2/4 - Compensação de treinos (V2 Expressive) | Onboarding 2/4 - Compensação de treinos (V2 Light) |
 | `o3` | Onboarding 3/4 - Distribuição das refeições (V2 Expressive) | Onboarding 3/4 - Distribuição das refeições (V2 Light) |
+| `o3t` | Onboarding 3/4 - Seletor de horário (V2 Expressive) | Onboarding 3/4 - Seletor de horário (V2 Light) |
 | `o4` | Onboarding 4/4 - Alvos de macronutrientes (V2 Expressive) | Onboarding 4/4 - Alvos de macronutrientes (V2 Light) |
 | `home0` | Home vazia - Day 1 (V2 Expressive Timeline) | Home vazia - Day 1 (V2 Light Timeline) |
 | `home1` | Home no dia - 1300 kcal (V2 Expressive Timeline) | Home no dia - 1300 kcal (V2 Light Timeline) |
@@ -64,7 +65,6 @@ Telas novas previstas pelos gates (título que o dono dá à cópia):
 
 | Gold | Dark (Stitch) | Light (Stitch) | Gate |
 |---|---|---|---|
-| `o3t` | Onboarding 3/4 - Seletor de horário (V2 Expressive) | Onboarding 3/4 - Seletor de horário (V2 Light) | ST3 |
 | `o3s` | Onboarding 3/4 - Refeições Sáb e Dom (V2 Expressive) | Onboarding 3/4 - Refeições Sáb e Dom (V2 Light) | ST4 |
 | `cfgS` | Configurações com refeições por dia (V2 Expressive) | Configurações com refeições por dia (V2 Light) | ST4 |
 | `chatX` | Chat com texto longo demais (V2 Expressive) | Chat com texto longo demais (V2 Light) | ST5 |
@@ -115,7 +115,7 @@ ST1 e ST2 concluídos (29/09/2026). Três gates esperando o dono, cada um já co
 
 1. ✅ [ST1 Chat: bolhas, pergunta separada, anexo (`chatA`)](plans/completed/st1-chat.md) — concluído; libera [A19](../android/plans/a19-chat-visual.md).
 2. ✅ [ST2 Home: atalho de treino (`homeW`)](plans/completed/st2-home-treino.md) — concluído; libera [A22](../android/plans/a22-treino-home.md).
-3. [ST3 Seletor de horário em rodas (`o3t`)](plans/st3-seletor-horario.md) — bloqueia [A21](../android/plans/a21-seletor-horario.md).
+3. ✅ [ST3 Seletor de horário em rodas (`o3t`)](plans/completed/st3-seletor-horario.md) — concluído; libera [A21](../android/plans/a21-seletor-horario.md).
 4. [ST4 Refeições por dia da semana](plans/st4-refeicoes-por-dia.md) — bloqueia [A24](../android/plans/a24-refeicoes-por-dia.md). Rodar depois do ST3 (usa o `o3` já com o seletor novo).
 5. [ST5 Chat: texto longo demais no composer (`chatX`)](plans/st5-chat-texto-longo.md) — bloqueia [A25](../android/plans/a25-limite-texto-composer.md). Independe do ST1.
 6. ✅ [SV1 Verificação automática dos gates](plans/completed/sv1-verificacao-automatica.md) — concluído; `tools/verify-stitch.mjs`, usado na verificação do ST3–ST5.

@@ -4,7 +4,7 @@
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/designsystem`, `feature/onboarding`, `feature/config`)
-- Pré-requisitos: **[ST3](../../stitch/plans/st3-seletor-horario.md) em `stitch/plans/completed/`** (gold `o3t`). [A20](a20-polimento-geral.md) concluído (botões e toque do design system).
+- Pré-requisitos: **[ST3](../../stitch/plans/completed/st3-seletor-horario.md) em `stitch/plans/completed/`** (gold `o3t`). [A20](a20-polimento-geral.md) concluído (botões e toque do design system).
 
 ## Gate de autorização
 
