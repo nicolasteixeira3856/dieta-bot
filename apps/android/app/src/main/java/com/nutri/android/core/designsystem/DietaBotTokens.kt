@@ -8,8 +8,13 @@ object SplashBoot {
     const val DELAY_MS = 1200L
     const val COPY = "Estimativa nutricional, não substitui consulta médica ou nutricional."
     const val WORDMARK = "Dieta Bot"
-    /** A14: logo above the wordmark (design/brand, tools/brand-icons.ps1). */
-    const val LOGO_DP = 120
+    /**
+     * A14: logo above the wordmark (design/brand, tools/brand-icons.ps1). Stitch gold: a 120 dp box with the
+     * uploaded icon.png (symbol ≈ half of it), 16 dp above the wordmark line box (A15, measured on the gold PNG). logo_mark is the tight crop, so it is
+     * drawn at LOGO_DP inside the LOGO_BOX_DP box.
+     */
+    const val LOGO_BOX_DP = 120
+    const val LOGO_DP = 60
 }
 
 object DietaBotMeasure {

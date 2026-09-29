@@ -1,6 +1,6 @@
 # Plano — A13 Rename visível "Nutri" → "Dieta Bot"
 
-- Estado: Pendente aprovação manual (rename das 22 telas no Stitch pelo editor web + reativar 2 testes de splash; APK no celular)
+- Estado: Pendente aprovação manual (APK no celular). Stitch, golds e gate fechados pelo [A15](a15-ajuste-visual-golds-novos.md) em 28/09/2026.
 - Data: 28/09/2026
 - Contexto proprietário: `android` (também toca docs, skills e `AGENTS.md`)
 - Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../../server/plans/completed/s7-rename-prompt.md)).
@@ -122,6 +122,13 @@ MCP `stitch` configurado em 28/09/2026 no `.mcp.json`: endpoint oficial `https:/
 3. Emulador + fake: `capture-chat` light 21/0 e dark 21/0; `diff-gold` o1–o4 dark/light ✓. **splash dark/light ✗ só na tinta** (1,39 / 1,42 > 1,25; pixel 1,7% < 2%): "Dieta Bot" contra o gold "Nutri". Diferenças de chat contra o gold: título "Chat Dieta Bot" × "Chat Nutri" e rótulo "Dieta Bot AI" × "Nutri AI". ⏳ até os golds novos.
 4. Upgrade sobre o APK do A12 (`adb install -r`): antes e depois, `chat_message` 2, `profile` 1, `user_version` 3; o app abre (pid vivo, 0 crashes). O estado não tinha `meal_log`, mas o arquivo `nutri.db` é o mesmo. ✅
 5. `assembleDevRelease` → `com.nutri.android.dev`, rótulo **"Dieta Bot Dev"**. ⏳ Instalação pelo dono.
+
+### Atualização A15 (28/09/2026)
+
+- O dono aplicou o rename no Stitch web; golds novos exportados (`export-stitch.mjs` com render 2x no Chrome para telas salvas pelo editor).
+- Os 2 `@Ignore` de splash saíram do `StitchGoldTest`. `testDevDebugUnitTest` 171 / 0 falhas / **0 pulados**; Roborazzi verde. ✅
+- Emulador: `capture-onboarding` e `capture-chat` dark/light sem ✗; `diff-gold` splash/o1–o4 ✓ exceto a tinta do dark/o4 (pendência de gold registrada no A15). Chat: nome igual ao gold. ✅
+- Falta: **[DONO]** APK no celular.
 
 ## Encerramento
 

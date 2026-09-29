@@ -72,6 +72,62 @@ function downloadFile(url, dest) {
   });
 }
 
+// Screens re-saved by the Stitch web editor get a 1x JPEG screenshot (390 px, and the renderer may miss the
+// web fonts). The gold contract is a 2x PNG of the phone frame (780 px), so those screens are rendered from
+// their HTML instead: 390 CSS px phone frame, deviceScaleFactor 2, fonts loaded, clipped to the frame.
+function isFullSizePng(file) {
+  const b = fs.readFileSync(file);
+  const png = b.length > 24 && b.readUInt32BE(0) === 0x89504e47;
+  return png && b.readUInt32BE(16) >= 780;
+}
+
+let browser = null;
+async function renderHtml(htmlUrl, dest, cssHeight) {
+  if (!browser) {
+    const { chromium } = await import("playwright");
+    browser = await chromium.launch({ channel: "chrome" }).catch(() => chromium.launch());
+  }
+  const html = await (await fetch(htmlUrl)).text();
+  // Viewport height = the screen height Stitch declares (2x px / 2): min-h-screen frames take it.
+  const page = await browser.newPage({ viewport: { width: 1280, height: cssHeight }, deviceScaleFactor: 2 });
+  try {
+    await page.setContent(html, { waitUntil: "networkidle" });
+    await page.evaluate(() => document.fonts.ready);
+    // The phone frame: the largest element 385–415 CSS px wide and at least 700 tall.
+    const findFrame = async () => (await page.evaluateHandle(() => {
+      let best = null, area = 0;
+      for (const el of document.body.querySelectorAll("*")) {
+        const r = el.getBoundingClientRect();
+        if (r.width >= 385 && r.width <= 415 && r.height >= 700 && r.width * r.height > area) { best = el; area = r.width * r.height; }
+      }
+      return best;
+    })).asElement();
+    let frame = await findFrame();
+    // Responsive frames (w-full max-w-[412px]) are rendered at the 390 px gold width.
+    if (frame && (await frame.boundingBox()).width > 395) {
+      await page.setViewportSize({ width: 390, height: cssHeight });
+      frame = await findFrame();
+    }
+    if (!frame) throw new Error("phone frame (≈390 px wide) not found in the screen HTML");
+    // Same framing as the Stitch screenshots: the declared screen height, with 20 dp of page above the phone
+    // frame when the frame is shorter than the screen (844 dp frame in a 884 dp screen). StitchGoldTest relies on it.
+    const box = await frame.boundingBox();
+    const top = Math.max(0, box.y - Math.min(20, Math.max(0, cssHeight - box.height)));
+    await page.screenshot({ path: dest, fullPage: true, clip: { x: box.x, y: top, width: box.width, height: Math.max(cssHeight, box.height) } });
+  } finally {
+    await page.close();
+  }
+}
+
+async function exportOne(theme, name, screen, outDir) {
+  const dest = path.join(outDir, `${name}.png`);
+  await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
+  if (isFullSizePng(dest)) return "screenshot";
+  if (!screen.htmlCode?.downloadUrl) throw new Error(`${theme}/${name}: small screenshot and no HTML to render`);
+  await renderHtml(screen.htmlCode.downloadUrl, dest, Math.round(Number(screen.height || 1768) / 2));
+  return "rendered from HTML (2x)";
+}
+
 export async function exportStitch() {
   fs.mkdirSync(outDark, { recursive: true });
   fs.mkdirSync(outLight, { recursive: true });
@@ -99,9 +155,8 @@ export async function exportStitch() {
     if (!screen || !screen.screenshot?.downloadUrl) {
       throw new Error(`Dark screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
     }
-    const dest = path.join(outDark, `${name}.png`);
-    await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
-    console.log(`  ✓ dark/${name}.png (${id})`);
+    const how = await exportOne("dark", name, screen, outDark);
+    console.log(`  ✓ dark/${name}.png (${id}) ${how}`);
   }
 
   console.log("Exporting Light screens (18)...");
@@ -110,11 +165,11 @@ export async function exportStitch() {
     if (!screen || !screen.screenshot?.downloadUrl) {
       throw new Error(`Light screen ${name} (ID: ${id}) not found or has no screenshot URL.`);
     }
-    const dest = path.join(outLight, `${name}.png`);
-    await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
-    console.log(`  ✓ light/${name}.png (${id})`);
+    const how = await exportOne("light", name, screen, outLight);
+    console.log(`  ✓ light/${name}.png (${id}) ${how}`);
   }
 
+  if (browser) await browser.close();
   console.log("\nDone! 36 screens exported to docs/qa/stitch/{dark,light}/");
 }
 

@@ -135,7 +135,7 @@ private fun TopBar(bar: OnboardingBar, onBack: (() -> Unit)?) {
             }
         }
         is OnboardingBar.Brand -> {
-            Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 5.dp, bottom = 8.dp)) {
+            Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 7.dp, bottom = 8.dp)) {
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -307,13 +307,14 @@ fun ScreenTitle(
     titleStyle: TextStyle? = null,
     titleWeight: FontWeight = FontWeight.W600,
     subtitleTop: Dp = 8.dp,
+    titleTop: Dp = 8.dp,
 ) {
     val p = LocalPalette.current
     Text(
         title,
         style = titleStyle ?: DietaBotType.headlineLg.copy(fontSize = titleSize.sp, lineHeight = titleLine.sp, letterSpacing = (-0.025).em, fontWeight = titleWeight),
         color = p.text,
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = Modifier.padding(top = titleTop),
     )
     Text(
         subtitle,
@@ -324,13 +325,13 @@ fun ScreenTitle(
 }
 
 @Composable
-fun SectionLabel(text: String, modifier: Modifier = Modifier) {
+fun SectionLabel(text: String, modifier: Modifier = Modifier, bottom: Dp = 14.dp) {
     val p = LocalPalette.current
     Text(
         text.uppercase(),
         style = DietaBotType.labelCaps.copy(fontWeight = FontWeight.W500, letterSpacing = 0.05.em),
         color = p.muted,
-        modifier = modifier.padding(bottom = 14.dp),
+        modifier = modifier.padding(bottom = bottom),
     )
 }
 

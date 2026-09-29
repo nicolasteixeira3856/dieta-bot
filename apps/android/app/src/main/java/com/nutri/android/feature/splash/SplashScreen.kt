@@ -60,20 +60,25 @@ fun SplashScreen(
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            Modifier.offset(y = (-12).dp),
+            Modifier.offset(y = (-6.5).dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             // A14: logo from design/brand (tools/brand-icons.ps1). Decorative: the wordmark carries the name.
-            Image(
-                painter = painterResource(R.drawable.logo_mark),
-                contentDescription = null,
-                modifier = Modifier.padding(bottom = 24.dp).size(SplashBoot.LOGO_DP.dp).testTag("splash-logo"),
-            )
+            Box(
+                Modifier.padding(bottom = 16.dp).size(SplashBoot.LOGO_BOX_DP.dp).testTag("splash-logo"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.logo_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size(SplashBoot.LOGO_DP.dp),
+                )
+            }
             Text(SplashBoot.WORDMARK, style = DietaBotType.displayLg.copy(lineHeight = 48.sp), color = p.text)
             Box(
                 Modifier
-                    .padding(top = 16.dp)
+                    .padding(top = 10.dp)
                     .width(48.dp)
                     .height(4.dp)
                     .clip(CircleShape)

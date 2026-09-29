@@ -42,7 +42,6 @@ import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.max
 import org.junit.Rule
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -69,11 +68,9 @@ class StitchGoldTest {
     @get:Rule
     val compose = createComposeRule()
 
-    @Ignore("A13 pending: the Stitch gold still shows 'Nutri'. Re-enable after the owner applies the rename in Stitch and tools/export-stitch.mjs runs.")
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun splash_dark() = check("splash", dark = true) { SplashScreen(capture = true, onDone = {}) }
 
-    @Ignore("A13 pending: the Stitch gold still shows 'Nutri'. Re-enable after the owner applies the rename in Stitch and tools/export-stitch.mjs runs.")
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun splash_light() = check("splash", dark = false) { SplashScreen(capture = true, onDone = {}) }
 

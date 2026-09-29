@@ -65,6 +65,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -529,9 +530,10 @@ fun SlotsScreen(
         Eyebrow("ONBOARDING 3/4", "ROTINA", sectionAccent = false)
         ScreenTitle("Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.", titleLine = 37.5f)
         Spacer(Modifier.height(24.dp))
-        SectionLabel("Quantidade de refeições")
-        CountStepper(ui.slots.size, onCount)
-        Spacer(Modifier.height(26.dp))
+        // A15 (Stitch gold): stepper 46 dp tall (36 dp pills, 5 dp inset), 10 dp under the label, 28 dp above the cards.
+        SectionLabel("Quantidade de refeições", bottom = 10.dp)
+        CountStepper(ui.slots.size, onCount, itemHeight = 36.dp, inset = 5.dp)
+        Spacer(Modifier.height(28.dp))
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             ui.slots.forEachIndexed { i, slot ->
                 SlotCard(
@@ -539,6 +541,7 @@ fun SlotsScreen(
                     slot = slot,
                     onName = { onName(i, it) },
                     onPickTime = { picking = i },
+                    pad = 15.dp, // A15: Stitch gold card is 2 dp taller than the Config one.
                 )
             }
         }
@@ -560,7 +563,7 @@ fun SlotsScreen(
 }
 
 @Composable
-internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3") {
+internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3", itemHeight: Dp = 40.dp, inset: Dp = 4.dp) {
     val p = LocalPalette.current
     Row(
         Modifier
@@ -568,7 +571,7 @@ internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3"
             .clip(RoundedCornerShape(16.dp))
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(16.dp))
-            .padding(4.dp)
+            .padding(inset)
             .testTag("$tag-count"),
     ) {
         (SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS).forEach { n ->
@@ -576,7 +579,7 @@ internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3"
             Box(
                 Modifier
                     .weight(1f)
-                    .height(40.dp)
+                    .height(itemHeight)
                     .clip(InnerShape)
                     .background(if (selected) p.segSel else p.card)
                     .clickable { onCount(n) }
@@ -594,7 +597,7 @@ internal fun CountStepper(count: Int, onCount: (Int) -> Unit, tag: String = "o3"
 }
 
 @Composable
-internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPickTime: () -> Unit, tag: String = "o3") {
+internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onPickTime: () -> Unit, tag: String = "o3", pad: Dp = 14.dp) {
     val p = LocalPalette.current
     val field = RoundedCornerShape(12.dp)
     Column(
@@ -603,7 +606,7 @@ internal fun SlotCard(index: Int, slot: SlotDraft, onName: (String) -> Unit, onP
             .clip(RoundedCornerShape(16.dp))
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(16.dp))
-            .padding(14.dp)
+            .padding(pad)
             .testTag("$tag-slot-$index"),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -732,11 +735,14 @@ fun MacrosScreen(
             titleSize = 28,
             titleLine = 35f,
             // Stitch dark gold: title falls back to an unstyled 16/20 regular (undefined class).
-            titleStyle = if (p.isDark) TextStyle(fontFamily = FontFamily.Default, fontSize = 16.sp, lineHeight = 20.sp, lineHeightStyle = DietaBotType.cssLines) else DietaBotType.headlineMd.copy(fontWeight = FontWeight.W700, lineHeight = 30.sp),
+            titleStyle = if (p.isDark) TextStyle(fontFamily = FontFamily.Default, fontSize = 16.sp, lineHeight = 18.sp, lineHeightStyle = DietaBotType.cssLines) else DietaBotType.headlineMd.copy(fontSize = 26.sp, fontWeight = FontWeight.W700, lineHeight = 30.sp),
+            // A15: light gold title is 26 sp and sits 3 dp higher.
+            titleTop = if (p.isDark) 8.dp else 5.dp,
+            subtitleTop = if (p.isDark) 8.dp else 9.dp,
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(if (p.isDark) 21.dp else 20.dp))
         SplitBar(pct)
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(if (p.isDark) 21.dp else 20.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             MacroCard("Proteína", "4 kcal/g • ${pct[0]}%", ui.proteinField, p.protein, onProtein, "o4-protein")
             MacroCard("Carboidrato", "4 kcal/g • ${pct[1]}%", ui.carbField, p.carbs, onCarb, "o4-carb")
@@ -788,7 +794,8 @@ private fun SplitBar(pct: List<Int>) {
             .clip(RoundedCornerShape(20.dp))
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(20.dp))
-            .padding(12.dp)
+            // A15: the light gold card is 2 dp taller (bar 1 dp lower, 1 dp more at the bottom).
+            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = if (p.isDark) 12.dp else 13.dp)
             .testTag("o4-split"),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -802,7 +809,7 @@ private fun SplitBar(pct: List<Int>) {
         }
         Row(
             Modifier
-                .padding(top = 8.dp)
+                .padding(top = if (p.isDark) 8.dp else 9.dp)
                 .fillMaxWidth()
                 .height(12.dp)
                 .clip(CircleShape)

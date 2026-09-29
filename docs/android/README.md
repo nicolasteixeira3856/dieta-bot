@@ -103,8 +103,9 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 ### Planos e validacao
 
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
-- [A13 rename visível "Dieta Bot" (Pendente: golds no Stitch web)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
-- [A14 marca: ícone e splash (Pendente: splash no Stitch web)](plans/pending_manual_validation/a14-marca-icone-splash.md)
+- [A13 rename visível "Dieta Bot" (Pendente: APK no celular)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
+- [A14 marca: ícone e splash (Pendente: celular)](plans/pending_manual_validation/a14-marca-icone-splash.md)
+- [A15 ajuste aos golds novos (Pendente: tinta dark/o4 × gold novo)](plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)

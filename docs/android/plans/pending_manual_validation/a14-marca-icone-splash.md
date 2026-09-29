@@ -1,6 +1,6 @@
 # Plano — A14 Marca: ícone do app e splash com o logo
 
-- Estado: Pendente aprovação manual (splash com logo no Stitch web + gold; ícone e splash no celular)
+- Estado: Pendente aprovação manual (ícone e splash no celular). Splash com logo no Stitch, gold e gate fechados pelo [A15](a15-ajuste-visual-golds-novos.md) em 28/09/2026.
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/app/src/main/res/` (ícone adaptativo, splash do sistema), `feature/splash/`, `core/designsystem/` (wordmark), golds `docs/qa/stitch/{dark,light}/splash.png`, `design/brand/` (fonte), docs.
@@ -95,6 +95,13 @@ Ressalvas registradas (decisão do dono de seguir assim): o robô ocupa cerca de
 4. `capture-onboarding` dark/light sem ✗. `diff-gold` o1–o4 ✓. **splash ✗** (dark 6,26% / tinta 3,46; light 4,60% / 2,16): logo + "Dieta Bot" × gold sem logo e com "Nutri". ⏳ Stitch.
 5. `testDevDebugUnitTest` 171 (2 pulados do A13) / 0 falhas; Roborazzi: baselines `splash` regravadas (logo). ✅
 6. Manual (dono): ícone e splash no celular. ⏳
+
+### Atualização A15 (28/09/2026)
+
+- Gold novo com o logo (upload do dono no Stitch web): caixa de 120 dp com o símbolo ≈ 60 dp. `SplashBoot.LOGO_BOX_DP` = 120, `LOGO_DP` = 60; espaços medidos no PNG do gold (logo 16 dp acima do wordmark, barra 10 dp abaixo).
+- Máscara do logo no gate: **não foi preciso**, o logo real bate com o gold (`StitchGoldTest` splash 0,04% / 0,03%; `diff-gold` 0,42% / 0,41%). ✅
+- Roborazzi `splash` regravado. ✅
+- Falta: **[DONO]** ícone e splash no celular.
 
 ## Encerramento
 

@@ -40,15 +40,16 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 Ordem de `/goal` depois da frase de aprovação:
 
-Nenhum no momento.
+1. [A16 Firebase App Distribution, versão 0.0.N automática](android/plans/a16-app-distribution.md)
 
 ## Planos pendentes de aprovação manual
 
 1. [A9 chave de assinatura do release](android/plans/pending_manual_validation/a9-assinatura-release.md) — release assinado; falta o dono confirmar o backup de `nutri-release.jks` + `key.properties`.
 2. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
-3. [A13 rename visível "Dieta Bot"](android/plans/pending_manual_validation/a13-rename-dieta-bot.md) — app, docs e skills renomeados; falta o dono aplicar o texto nas 22 telas do Stitch pelo editor web (o MCP não persiste `edit_screens`), para reexportar os golds e reativar 2 testes de splash.
-4. [A14 marca: ícone e splash com o logo](android/plans/pending_manual_validation/a14-marca-icone-splash.md) — ícone adaptativo/temático e splash com logo no app; falta o dono pôr o logo na splash do Stitch web (junto do rename do A13) e ver no celular.
-5. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
+3. [A13 rename visível "Dieta Bot"](android/plans/pending_manual_validation/a13-rename-dieta-bot.md) — app, docs, skills e golds renomeados, gate verde (A15); falta o dono ver o APK no celular.
+4. [A14 marca: ícone e splash com o logo](android/plans/pending_manual_validation/a14-marca-icone-splash.md) — ícone adaptativo/temático e splash com logo no app e no gold, gate verde (A15); falta o dono ver no celular.
+5. [A15 ajuste aos golds novos](android/plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md) — 171 testes / 0 falhas / 0 pulados e `diff-gold` verde, exceto a tinta do dark/o4; falta o dono decidir essa tinta no emulador (texto muted do gold novo `#9ca2aa` × token `#8b939c`).
+6. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
 
 ## Planos concluídos
 
