@@ -71,8 +71,9 @@ Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
 ### Planos e validacao
 
+- [S8 aguardando aprovacao](plans/s8-chat-json-slot-consolidado.md) — saida estruturada, slot sugerido, refeicao consolidada (diagnostico do log do S6).
 - [S7 concluido](plans/completed/s7-rename-prompt.md) — "Dieta Bot" no prompt do Chat.
-- [S6 pendente aprovacao manual](plans/pending_manual_validation/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; falta o dono reproduzir o "nao deu".
+- [S6 pendente aprovacao manual](plans/pending_manual_validation/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; o "nao deu" ja foi explicado pelo log (29/09); falta o dono aprovar.
 - [S5 concluido](plans/completed/s5-gcp-deploy.md) — deploy GCP e2-micro + Caddy.
 - [S1 concluido](plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16 MB.
 - [S4 concluido](plans/completed/s4-security-hardening.md) — hardening de seguranca (rate limiting, constant time auth, payload limit).

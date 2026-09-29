@@ -43,6 +43,10 @@ Comportamento visível: job, telas, copy, onboarding, slots, o que entra no prom
 
 `server/`. Rotas, auth, LLM, shaping, timeout. Infra S0 (compose, tunnel, migração) indexada neste contexto. Sem contexto `infra` separado.
 
+### Gate de design
+
+`stitch`. Prompts que o dono executa no Stitch `Nutri` e a conferência dos golds resultantes. Não tem código de app. Ver [Gate Stitch](#gate-stitch).
+
 ## Estrutura de um contexto
 
 Todo contexto começa por um `README.md`. O resto é opcional e só existe com conteúdo:
@@ -121,6 +125,34 @@ Pedido para analisar, documentar, criar spec, criar ADR ou criar plano **não** 
 3. Aplique o ciclo de vida do plano na mesma entrega.
 4. Atualize links que apontavam para o caminho anterior.
 5. Remova pastas de estado que ficaram vazias, pela regra de limpeza abaixo.
+6. Entregue pelo fluxo git abaixo.
+
+### 6. Entrega git (decisão do dono, 29/09/2026)
+
+Ao fim da implementação de qualquer plano, o agente faz sozinho, sem pedir:
+
+1. `git switch -c <tipo>/<id-do-plano>` a partir da `master` atualizada (ex.: `fix/s8-chat-json-slot`, `feat/a22-treino-home`, `docs/st1-stitch-chat`).
+2. Commit(s) só com os arquivos do plano. Nada de `git add -A` com lixo de fora do escopo.
+3. `git push -u origin <branch>` e `gh pr create --base master` com resumo, validação executada e pendências.
+4. `gh pr merge --merge --delete-branch` (merge commit, sem squash).
+5. `git switch master` e `git pull --ff-only`. O repositório local termina igual ao remote.
+
+Exceções: o commit `chore(release)` + tag do `tools/distribute-dev.ps1` (A16) continua indo direto na `master`, porque faz parte do deploy e não de um plano. PR com CI vermelho ou conflito não é mergeado: o agente para e reporta.
+
+## Gate Stitch
+
+Mudança de layout que precisa de gold novo ou alterado no Stitch `Nutri` é um passo manual do dono. Ela vive no contexto [stitch](../stitch/README.md), num plano de gate (`ST<n>`), separado da implementação.
+
+Um plano de gate:
+
+- Abre com o **prompt exato** que o dono cola no Stitch, marcado como bloqueio do dono. Logo abaixo, as instruções extras: quais telas selecionar, o que anexar.
+- Não muda layout nem funcionalidade do app. Mexe só em gold PNG (`docs/qa/stitch/`), no mapa de IDs de `tools/export-stitch.mjs` e `tools/check-stitch.mjs`, na lista de golds do `AGENTS.md` e de `docs/qa/README.md`.
+- Tem uma verificação: o agente lê o projeto pelo MCP do Stitch, exporta os golds e confere um checklist. Se algo do prompt não aparece no Stitch, o agente **para na hora**, lista o que falta e não segue para nenhum plano dependente.
+- Termina `Concluído` só quando o checklist inteiro passou.
+
+Planos de implementação que dependem de um gate declaram o `ST<n>` em Pré-requisitos. O primeiro passo da implementação confere que o gate está em `stitch/plans/completed/`. Se não estiver, a implementação nem começa.
+
+Template: [plano de gate Stitch](templates/stitch-gate.md).
 
 ## Criação de um novo contexto
 
@@ -219,4 +251,5 @@ Criação, movimentação ou substituição:
 - [Especificação](templates/specification.md)
 - [ADR](templates/adr.md)
 - [Plano](templates/plan.md)
+- [Plano de gate Stitch](templates/stitch-gate.md)
 - [Matriz de validação](templates/validation-matrix.md)

@@ -9,8 +9,9 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A9, A11, A13, A14](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5, S7](server/plans/completed/) concluídos | `server/tests/` |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A17–A24](android/README.md#planos-e-validacao) aguardando aprovação; [A11](android/plans/pending_manual_validation/) pendente de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
+| [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1–ST4](stitch/README.md#planos) aguardando o dono no Stitch | `tools/check-stitch.mjs` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S8](server/plans/s8-chat-json-slot-consolidado.md) aguardando aprovação; [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendente aprovação manual; [S1, S4, S2, S3, S5, S7](server/plans/completed/) concluídos | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -35,17 +36,33 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 | [014](android/adrs/ADR-014-flavors-firebase-dev.md) | android | flavors dev/prod, Firebase só no dev |
 | [015](server/adrs/ADR-015-log-conversa-dev.md) | server | log de conversa no server de dev |
 | [016](produto/adrs/ADR-016-nome-dieta-bot.md) | produto | nome visível "Dieta Bot", IDs técnicos `nutri` |
+| [017](produto/adrs/ADR-017-registro-consolidado.md) | produto | um registro por refeição, confirmação ao substituir (proposto) |
+| [018](android/adrs/ADR-018-foto-2048.md) | android | foto reduzida a 2048 px no client (proposto) |
+| [019](produto/adrs/ADR-019-ferramentas-dev.md) | produto | telas de ferramenta só no dev, sem gold (proposto) |
+| [020](produto/adrs/ADR-020-estados-novos-chat-home-horario.md) | produto | golds novos `chatA`, `homeW`, `o3t` (proposto) |
+| [021](produto/adrs/ADR-021-refeicoes-por-dia.md) | produto | refeições por dia da semana (proposto) |
 
 ## Planos aguardando aprovação
 
 Ordem de `/goal` depois da frase de aprovação:
 
-Nenhum no momento.
+Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um gate Stitch (⛔) é passo do dono, não aprovação.
+
+1. [S8 chat: JSON garantido, slot sugerido, refeição consolidada](server/plans/s8-chat-json-slot-consolidado.md) — server; conserta "Gravar" e "não deu para estimar" até no APK atual.
+2. [A17 changelog humano no deploy](android/plans/a17-changelog-deploy.md) — tools.
+3. [A18 chat: refeição consolidada, Enter, foto 2048 px](android/plans/a18-chat-registro-foto.md) — depois do S8.
+4. [A20 polimento: toque/vibração, botões dos sheets, respiro, Config](android/plans/a20-polimento-geral.md).
+5. [A23 editor de memória e perfil (dev)](android/plans/a23-editor-memoria-dev.md).
+6. ⛔ [ST1](stitch/plans/st1-chat.md) → [A19 chat visual](android/plans/a19-chat-visual.md) — depois do A18.
+7. ⛔ [ST2](stitch/plans/st2-home-treino.md) → [A22 treino na Home](android/plans/a22-treino-home.md) — depois do A20.
+8. ⛔ [ST3](stitch/plans/st3-seletor-horario.md) → [A21 seletor de horário](android/plans/a21-seletor-horario.md) — depois do A20.
+9. ⛔ [ST4](stitch/plans/st4-refeicoes-por-dia.md) → [A24 refeições por dia](android/plans/a24-refeicoes-por-dia.md) — por último.
+
 
 ## Planos pendentes de aprovação manual
 
 1. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
-2. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
+2. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; o "nao deu para estimar" já foi explicado pelo log (29/09, virou o S8); falta o dono aprovar.
 
 ## Planos concluídos
 

@@ -118,7 +118,7 @@ How to export gold PNGs (agent, unattended):
 
 ## Skills
 
-Skills folders: `.agents/skills`, `.grok/skills`, and `.hermes/skills` must be kept strictly synchronized with identical skill sets.
+Skills folders: `.agents/skills`, `.grok/skills`, `.hermes/skills`, and `.claude/skills` must be kept strictly synchronized with identical skill sets.
 
 Project skills:
 dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual
@@ -138,8 +138,13 @@ New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/d
 UI DONE = gold PNG comparison above. No screenshot, UI is not done.
 Test before marking done.
 
+Git delivery (every implemented plan, no need to ask): new branch from an up-to-date `master` → commit only the plan's files → push → `gh pr create --base master` → `gh pr merge --merge --delete-branch` → `git switch master` → `git pull --ff-only`. Red CI or conflict: stop and report. Exception: the `chore(release)` commit + tag of `tools/distribute-dev.ps1` goes straight to `master`. Details: `docs/sdd/README.md` § Entrega git.
+
+Stitch gate: a layout change that needs a new or changed gold is a manual owner step. It lives in a `docs/stitch/plans/ST<n>` gate plan: the exact Stitch prompt at the top (marked as the owner's blocker), extra instructions right below it, then the agent's verification checklist. A gate never touches app layout or behavior. Implementation plans that need it list it as a prerequisite and do not start until it is `Concluído`. If the agent finds the Stitch change missing or wrong, it stops at once. Details: `docs/sdd/README.md` § Gate Stitch.
+
 Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1`.
 It ships the signed dev release APK through Firebase App Distribution (group `owner`, installed via Firebase App Tester).
+Release notes are a human changelog in pt-BR written by the agent (what changed for the tester: Novidades / Correções / Ajustes), never a raw `git log`. Until A17 is implemented the script still uses the git log.
 The version bumps by itself (0.0.N → 0.0.N+1) and is recorded as a commit + tag `dev-v0.0.N`.
 Never edit `apps/android/version.properties` by hand. Never reuse a number. Until 1.0.0 (its own plan).
 

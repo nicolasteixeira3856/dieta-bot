@@ -4,6 +4,8 @@
 
 Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `filesDir/memory.bin` cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), ≤ 4000 chars, 1 linha por Gravar ou assunção respondida, enviada em `memory` em todo POST /v1/chat. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria, JPEG sem downscale, ≤ 16 MB. Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto.
 
+Mudanças planejadas (29/09/2026, aguardando aprovação): foto reduzida a 2048 px, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md), [A18](../../android/plans/a18-chat-registro-foto.md)); copy dos sheets de treino e horários ([A20](../../android/plans/a20-polimento-geral.md)); treino também pela Home ([A22](../../android/plans/a22-treino-home.md)); editor de memória só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md), [A23](../../android/plans/a23-editor-memoria-dev.md)); push por dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+
 ## Contexto e objetivo
 
 Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada.

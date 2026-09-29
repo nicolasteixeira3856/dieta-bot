@@ -4,6 +4,8 @@
 
 Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).
 
+Mudanças planejadas (29/09/2026, aguardando aprovação): um registro por refeição com confirmação ao substituir e total de kcal sem comida não vira estimativa ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [S8](../../server/plans/s8-chat-json-slot-consolidado.md), [A18](../../android/plans/a18-chat-registro-foto.md)); Enter pula linha e foto 2048 px ([A18](../../android/plans/a18-chat-registro-foto.md)); pergunta em bolha própria, bolhas iguais, sem "IA ATIVA", anexo com preview ([A19](../../android/plans/a19-chat-visual.md), gate [ST1](../../stitch/plans/st1-chat.md)). Regras 2, 3, 4, 5 e 14 mudam na entrega desses planos.
+
 ## Contexto e objetivo
 
 Toda interação com a IA. Registro só depois do tap no chip.

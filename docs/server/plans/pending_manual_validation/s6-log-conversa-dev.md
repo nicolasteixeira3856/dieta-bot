@@ -134,6 +134,17 @@ Cada chamada ao LLM no server de dev deixa uma linha JSON com entrada, saída cr
 4. VM: `/opt/nutri/logs` = `drwx------ root`; `grep -c` do convite (lido do `.env` da VM) no log = **0**. `-Download` copia para `logs/`, ignorado pelo git. ✅
 5. Manual (passo 8.4): pendente. ⏳
 
+### Diagnóstico pelo log (29/09/2026)
+
+Não foi o dono que reproduziu, e sim um tester, em uso real (0.0.2-dev, request `dada7406-eae7-4561-88d6-8839bc3ea0e2`, 28/09 22:25). O log explicou o caso sem ajuda:
+
+- Mensagem: "tamanho pequeno a lasanha foi um pedaço só do almoço de ontem", resposta à pergunta da estimativa anterior.
+- `raw_output`: texto livre, sem JSON ("Entendi: a lasanha era um pedaço pequeno… Quer que eu corrija a estimativa anterior com essa informação?").
+- `error`: `ValueError: no json` → `fail_chat()` → "nao deu pra estimar".
+- Causa: o server não pede saída estruturada ao modelo. De quebra, o log mostrou que `suggested_slot` volta nulo em 17/17 estimativas (o modelo manda número). Correção: [S8](../s8-chat-json-slot-consolidado.md).
+
+O objetivo do plano (explicar o "nao deu" pelo log) foi atingido. Falta o dono declarar a aprovação manual para mover o S6 para `completed/`.
+
 ## Encerramento
 
 Depois da implementação, registre resultados reais e aplique o ciclo de vida em `docs/sdd/README.md`.

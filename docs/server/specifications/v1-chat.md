@@ -4,6 +4,8 @@
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
 
+Mudanças planejadas (29/09/2026, aguardando aprovação): saída estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil), texto sem JSON vira `reply`, refeição consolidada, total sem comida sem estimate, `MAX_BODY_BYTES` 24 MB ([S8](../plans/s8-chat-json-slot-consolidado.md)).
+
 ## Contexto e objetivo
 
 O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda perfil + snapshot do dia + ate 12 msgs + foto opcional. O server devolve prosa + estimate estruturado + slot sugerido. Stateless. Nao grava o dia.

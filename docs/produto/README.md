@@ -52,7 +52,14 @@ Nenhuma especificacao criada ate o momento.
 
 ### ADRs
 
-Nenhum ADR local. Historico em `docs/decisions/` (ver [matriz](../README.md)).
+- [ADR-012](adrs/ADR-012-chat-home-perfil.md) — Chat tela, Home painel, perfil nomeado.
+- [ADR-016](adrs/ADR-016-nome-dieta-bot.md) — nome "Dieta Bot".
+- [ADR-017](adrs/ADR-017-registro-consolidado.md) — um registro por refeição (proposto).
+- [ADR-019](adrs/ADR-019-ferramentas-dev.md) — telas de ferramenta só no dev (proposto).
+- [ADR-020](adrs/ADR-020-estados-novos-chat-home-horario.md) — golds novos `chatA`, `homeW`, `o3t` (proposto).
+- [ADR-021](adrs/ADR-021-refeicoes-por-dia.md) — refeições por dia da semana (proposto).
+
+Historico em `docs/decisions/` (ver [matriz](../README.md)).
 
 ### Planos e validacao
 
