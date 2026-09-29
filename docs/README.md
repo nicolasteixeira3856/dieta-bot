@@ -46,11 +46,7 @@ Nenhum no momento.
 
 1. [A9 chave de assinatura do release](android/plans/pending_manual_validation/a9-assinatura-release.md) — release assinado; falta o dono confirmar o backup de `nutri-release.jks` + `key.properties`.
 2. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
-3. [A13 rename visível "Dieta Bot"](android/plans/pending_manual_validation/a13-rename-dieta-bot.md) — app, docs, skills e golds renomeados, gate verde (A15); falta o dono ver o APK no celular.
-4. [A14 marca: ícone e splash com o logo](android/plans/pending_manual_validation/a14-marca-icone-splash.md) — ícone adaptativo/temático e splash com logo no app e no gold, gate verde (A15); falta o dono ver no celular.
-5. [A15 ajuste aos golds novos](android/plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md) — 171 testes / 0 falhas / 0 pulados e `diff-gold` verde, exceto a tinta do dark/o4; falta o dono decidir essa tinta no emulador (texto muted do gold novo `#9ca2aa` × token `#8b939c`).
-6. [A16 Firebase App Distribution, versão 0.0.N](android/plans/pending_manual_validation/a16-app-distribution.md) — `tools/distribute-dev.ps1` distribuiu `0.0.1-dev` e `0.0.2-dev` ao grupo `owner` (commits e tags `dev-v0.0.N` no remoto); falta o dono aceitar o convite, instalar o App Tester e ver a atualização no celular.
-7. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
+3. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; falta o dono reproduzir o "nao deu para estimar" para o agente explicar pelo log.
 
 ## Planos concluídos
 
@@ -75,6 +71,10 @@ Nenhum no momento.
 19. [A10 flavors dev/prod](android/plans/completed/a10-flavors-dev-prod.md)
 20. [A12 remover legado T1/T2/T3](android/plans/completed/a12-remover-legado-t123.md)
 21. [S7 "Dieta Bot" no prompt do server](server/plans/completed/s7-rename-prompt.md)
+22. [A13 rename visível "Dieta Bot"](android/plans/completed/a13-rename-dieta-bot.md)
+23. [A14 marca: ícone e splash com o logo](android/plans/completed/a14-marca-icone-splash.md)
+24. [A15 ajuste aos golds novos](android/plans/completed/a15-ajuste-visual-golds-novos.md) — tinta do dark/o4: mantido o token do `AGENTS.md` (decisão do dono).
+25. [A16 Firebase App Distribution, versão 0.0.N](android/plans/completed/a16-app-distribution.md)
 
 ## Outros docs
 

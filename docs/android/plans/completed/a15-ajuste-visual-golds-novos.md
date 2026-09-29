@@ -1,6 +1,6 @@
 # Plano — A15 Ajustar o app aos golds novos (splash, o3, o4)
 
-- Estado: Pendente aprovação manual (tinta do `diff-gold` dark/o4 no emulador × gold novo; A13/A14 no celular)
+- Estado: Concluído (28/09/2026). Tinta do dark/o4: o dono manteve o token do `AGENTS.md`.
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (Compose de splash, o3, o4), `tools/export-stitch.mjs`, golds `docs/qa/stitch/`, docs. Nenhuma regra de produto muda.
@@ -80,10 +80,16 @@ Este plano é exclusivamente documental. A implementação só começa após apr
 5. `diff-gold` splash/o1–o4: dark splash 0,42%, o1 1,16%, o2 0,85%, o3 1,07%, light splash 0,41%, o1 0,82%, o2 1,13%, o3 0,81%, o4 1,02% ✓. **dark/o4 ✗ só na tinta: pixel 1,28% (< 2%), tinta 0,76 (< 0,8).** ⏳
 6. Chat × golds novos (`diff-gold`): chatE dark 1,50% / light 1,21%, chatT 1,32% / 1,75%, chatP 0,36% / 0,51%, região da foto do chatF 1,98% / 1,66% ✓. O nome "Chat Dieta Bot" / "Dieta Bot AI" agora bate com o gold. Seguem só reportadas (conflitos de gold já registrados no A4/A5, sem gate): chat0 5,16% / 4,92%, chatL 5,59% / 5,15%, chatF inteira 11,24% / 11,11%, chatG 10,37% / 9,15%.
 
-### Pendência (dono)
+### Pendência (dono) — resolvida em 28/09/2026, ver abaixo
 
 - **dark/o4, tinta no emulador:** a mesma captura dá 0,85 contra o gold antigo e 0,76 contra o novo; a do A14 (antes deste plano) também dá 0,76. A causa é o gold: no render Chrome do export novo, o texto muted sai `#9ca2aa` e mais grosso, e o token do `AGENTS.md` é `#8b939c` (app e JVM usam o token). Depois do blur, a descrição e a nota caem abaixo do limiar de tinta no emulador. Não mudei cor nem o gate (fora de escopo). Opções do dono: (a) aceitar como diferença de render de fonte, (b) reexportar o o4 dark no Stitch, (c) outro plano para o limiar de tinta.
 - A13 e A14: validação manual no celular (ícone, splash e nome). Sobem para `completed/` quando o dono confirmar.
+
+### Aprovação manual (28/09/2026)
+
+Frase do dono: "Tudo certo, sobre a tinta do dark, mantem o token do agents. Pode completar todos os planos e dai realize um novo commit."
+- Tinta do `diff-gold` dark/o4 (0,76 < 0,8, pixel 1,28%): **decisão do dono, manter o token** `#8b939c` do `AGENTS.md`. O texto muted `#9ca2aa` do gold novo é tratado como diferença de render do export, não como alvo. O gate e o gold não mudam; o ✗ de tinta desse par é conhecido e aceito.
+- A13 e A14 no celular: confirmados. ✅
 
 ## Encerramento
 

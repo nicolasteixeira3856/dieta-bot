@@ -75,7 +75,7 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 
 ## Marca
 
-[A14](plans/pending_manual_validation/a14-marca-icone-splash.md). Fonte em `design/brand/` (`icon.png`, `icon-mono.png`, `icon-dark-bg.png` de referência).
+[A14](plans/completed/a14-marca-icone-splash.md). Fonte em `design/brand/` (`icon.png`, `icon-mono.png`, `icon-dark-bg.png` de referência).
 
 - `./tools/brand-icons.ps1` gera `mipmap-*/ic_launcher_foreground.png` (símbolo na área segura 66/108 dp), `mipmap-*/ic_launcher_monochrome.png` (ícone temático, Android 13+) e `drawable-nodpi/logo_mark.png` (splash). Rode de novo depois de trocar os arquivos da pasta.
 - `mipmap-anydpi-v26/ic_launcher(_round).xml`: fundo `@color/ic_launcher_bg` (`#0B0D10`) + foreground + monochrome. `minSdk` 26, então não há PNG legado.
@@ -90,7 +90,7 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 
 ## Distribuição
 
-[A16](plans/pending_manual_validation/a16-app-distribution.md). Build de teste para o celular do dono, sem cabo:
+[A16](plans/completed/a16-app-distribution.md). Build de teste para o celular do dono, sem cabo:
 
 - `./tools/distribute-dev.ps1`: árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`nutri-bot-dev`, grupo `owner`) → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
 - `-DryRun`: faz o build e as conferências; não distribui, não commita, não faz push, e deixa a árvore limpa.
@@ -114,10 +114,10 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 ### Planos e validacao
 
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
-- [A13 rename visível "Dieta Bot" (Pendente: APK no celular)](plans/pending_manual_validation/a13-rename-dieta-bot.md)
-- [A14 marca: ícone e splash (Pendente: celular)](plans/pending_manual_validation/a14-marca-icone-splash.md)
-- [A15 ajuste aos golds novos (Pendente: tinta dark/o4 × gold novo)](plans/pending_manual_validation/a15-ajuste-visual-golds-novos.md)
-- [A16 Firebase App Distribution, versão 0.0.N (Pendente: App Tester no celular)](plans/pending_manual_validation/a16-app-distribution.md)
+- [A13 rename visível "Dieta Bot" (Concluído)](plans/completed/a13-rename-dieta-bot.md)
+- [A14 marca: ícone e splash (Concluído)](plans/completed/a14-marca-icone-splash.md)
+- [A15 ajuste aos golds novos (Concluído)](plans/completed/a15-ajuste-visual-golds-novos.md)
+- [A16 Firebase App Distribution, versão 0.0.N (Concluído)](plans/completed/a16-app-distribution.md)
 - [A9 chave de assinatura do release (Pendente aprovação manual: backup)](plans/pending_manual_validation/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
 - [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)

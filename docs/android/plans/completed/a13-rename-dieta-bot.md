@@ -1,6 +1,6 @@
 # Plano — A13 Rename visível "Nutri" → "Dieta Bot"
 
-- Estado: Pendente aprovação manual (APK no celular). Stitch, golds e gate fechados pelo [A15](a15-ajuste-visual-golds-novos.md) em 28/09/2026.
+- Estado: Concluído (28/09/2026). Validação manual do dono confirmada; Stitch, golds e gate fechados pelo [A15](a15-ajuste-visual-golds-novos.md).
 - Data: 28/09/2026
 - Contexto proprietário: `android` (também toca docs, skills e `AGENTS.md`)
 - Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../../server/plans/completed/s7-rename-prompt.md)).
@@ -129,6 +129,11 @@ MCP `stitch` configurado em 28/09/2026 no `.mcp.json`: endpoint oficial `https:/
 - Os 2 `@Ignore` de splash saíram do `StitchGoldTest`. `testDevDebugUnitTest` 171 / 0 falhas / **0 pulados**; Roborazzi verde. ✅
 - Emulador: `capture-onboarding` e `capture-chat` dark/light sem ✗; `diff-gold` splash/o1–o4 ✓ exceto a tinta do dark/o4 (pendência de gold registrada no A15). Chat: nome igual ao gold. ✅
 - Falta: **[DONO]** APK no celular.
+
+### Aprovação manual (28/09/2026)
+
+Frase do dono: "Tudo certo, sobre a tinta do dark, mantem o token do agents. Pode completar todos os planos e dai realize um novo commit."
+- APK no celular: confirmado. ✅
 
 ## Encerramento
 

@@ -47,7 +47,7 @@ Deixa a confusão nas docs e no código.
 
 ## Relações
 
-- Planos: [A13](../../android/plans/pending_manual_validation/a13-rename-dieta-bot.md) (app, docs, skills), [S7](../../server/plans/completed/s7-rename-prompt.md) (prompt do server).
+- Planos: [A13](../../android/plans/completed/a13-rename-dieta-bot.md) (app, docs, skills), [S7](../../server/plans/completed/s7-rename-prompt.md) (prompt do server).
 - ADRs relacionados: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md).
 
 Depois de aceito, este ADR não se edita. Mudança posterior exige ADR novo que declare a substituição.

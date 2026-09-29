@@ -1,6 +1,6 @@
 # Plano — A14 Marca: ícone do app e splash com o logo
 
-- Estado: Pendente aprovação manual (ícone e splash no celular). Splash com logo no Stitch, gold e gate fechados pelo [A15](a15-ajuste-visual-golds-novos.md) em 28/09/2026.
+- Estado: Concluído (28/09/2026). Ícone e splash confirmados pelo dono; gold e gate fechados pelo [A15](a15-ajuste-visual-golds-novos.md).
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/app/src/main/res/` (ícone adaptativo, splash do sistema), `feature/splash/`, `core/designsystem/` (wordmark), golds `docs/qa/stitch/{dark,light}/splash.png`, `design/brand/` (fonte), docs.
@@ -102,6 +102,11 @@ Ressalvas registradas (decisão do dono de seguir assim): o robô ocupa cerca de
 - Máscara do logo no gate: **não foi preciso**, o logo real bate com o gold (`StitchGoldTest` splash 0,04% / 0,03%; `diff-gold` 0,42% / 0,41%). ✅
 - Roborazzi `splash` regravado. ✅
 - Falta: **[DONO]** ícone e splash no celular.
+
+### Aprovação manual (28/09/2026)
+
+Frase do dono: "Tudo certo, sobre a tinta do dark, mantem o token do agents. Pode completar todos os planos e dai realize um novo commit."
+- Ícone e splash no celular: confirmados. ✅
 
 ## Encerramento
 

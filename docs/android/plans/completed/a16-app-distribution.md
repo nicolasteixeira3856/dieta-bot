@@ -1,6 +1,6 @@
 # Plano — A16 Firebase App Distribution (APK assinado, versão 0.0.N)
 
-- Estado: Pendente aprovação manual (convite aceito, App Tester instalado, 0.0.2 por cima da 0.0.1 no celular)
+- Estado: Concluído (28/09/2026). Validação manual do dono confirmada (convite, App Tester, atualização no celular).
 - Aprovação: 28/09/2026, `/goal` do dono ("Aprovo os planos … a15 … e … a16 …").
 - Data: 28/09/2026
 - Contexto proprietário: `android`
@@ -99,6 +99,11 @@ Um comando gera o **APK dev release assinado** (chave do A9), sobe a versão soz
 2. Primeira distribuição real: `0.0.1-dev (1)` enviada e distribuída ao grupo `owner`; commit `a304fa3 chore(release): 0.0.1-dev` e tag `dev-v0.0.1` no remoto. ✅
 3. Segunda distribuição: `0.0.2-dev (2)`; `version.properties` 1 → 2 no commit `262bd0c chore(release): 0.0.2-dev`, tag `dev-v0.0.2` no remoto. ✅ Emulador: `0.0.1-dev` assinada instalada, onboarding feito, `adb install -r` da `0.0.2-dev` → `versionCode 2`, abre na Home com a meta e as refeições do onboarding (dados mantidos). ✅
 4. Manual (dono): aceitar o convite do e-mail, instalar o **Firebase App Tester**, instalar a `0.0.2-dev` (ou a 0.0.1 e depois atualizar) e confirmar que o app sobe sem perder dados. ⏳ Obs.: o celular hoje tem o APK antigo `1.0` / `versionCode 1` com a mesma chave; a 0.0.2 (`versionCode 2`) instala por cima.
+
+### Aprovação manual (28/09/2026)
+
+Frase do dono: "Tudo certo, sobre a tinta do dark, mantem o token do agents. Pode completar todos os planos e dai realize um novo commit."
+- Convite aceito, Firebase App Tester instalado e atualização no celular: confirmados. ✅
 
 ## Encerramento
 
