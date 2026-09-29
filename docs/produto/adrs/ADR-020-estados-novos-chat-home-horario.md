@@ -51,6 +51,6 @@ Cada pedido muda o que o usuário vê. Sem gold, a implementação cairia em "ba
 ## Relações
 
 - Gates: [ST1](../../stitch/plans/completed/st1-chat.md), [ST2](../../stitch/plans/completed/st2-home-treino.md), [ST3](../../stitch/plans/completed/st3-seletor-horario.md).
-- Implementação: [A19](../../android/plans/pending_manual_validation/a19-chat-visual.md), [A22](../../android/plans/a22-treino-home.md), [A21](../../android/plans/a21-seletor-horario.md).
+- Implementação: [A19](../../android/plans/pending_manual_validation/a19-chat-visual.md), [A22](../../android/plans/pending_manual_validation/a22-treino-home.md), [A21](../../android/plans/a21-seletor-horario.md).
 
 Depois de aceito, este ADR não se edita.

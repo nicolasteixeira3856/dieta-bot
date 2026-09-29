@@ -3,6 +3,7 @@ package com.nutri.android.feature.config
 import androidx.compose.runtime.Immutable
 import com.nutri.android.domain.SlotSuggestions
 import com.nutri.android.feature.onboarding.SlotDraft
+import com.nutri.android.feature.workout.WorkoutEditorState
 
 /** Edit sheet opened from a cfg row. Layers of the Config screen, not screens (ADR-012). */
 enum class ConfigEditor { CEILING, EAT_BACK, MACROS, SLOTS, WORKOUT }
@@ -27,6 +28,10 @@ data class ConfigDraft(
     /** Empty = no workout today = credit 0. */
     val workoutField: String = "",
 ) {
+    /** Credit uses the stored eat-back (the draft copies it on open). */
+    val workoutEditor: WorkoutEditorState
+        get() = WorkoutEditorState(workoutField, WorkoutEditorState.policyOf(eat), pct.toIntOrNull() ?: 50)
+
     fun ceilingFields(): List<String> = when (ceilingMode) {
         "weekdayWeekend" -> listOf(weekdayField, weekendField)
         "seven" -> dayFields

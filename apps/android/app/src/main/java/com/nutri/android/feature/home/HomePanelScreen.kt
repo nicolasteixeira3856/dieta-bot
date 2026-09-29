@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PriorityHigh
 import androidx.compose.material.icons.outlined.Remove
@@ -41,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -55,6 +57,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -63,7 +66,9 @@ import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.SheetActions
 import com.nutri.android.core.designsystem.SplashBoot
+import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.dietaClick
+import com.nutri.android.feature.workout.WorkoutSheet
 
 private val CardRadius = RoundedCornerShape(16.dp)
 private val FabSize = 64.dp
@@ -78,13 +83,20 @@ fun HomePanelScreen(
     onSkip: (Long) -> Unit,
     onConfig: () -> Unit,
     onChat: () -> Unit,
+    onWorkoutOpen: () -> Unit = {},
+    onWorkoutChange: (String) -> Unit = {},
+    onWorkoutSave: () -> Unit = {},
+    onWorkoutCancel: () -> Unit = {},
 ) {
     val p = LocalPalette.current
     var confirmSkip by remember { mutableStateOf<TimelineSlot?>(null) }
+    val workout = ui.workoutEditor
     Box(Modifier.fillMaxSize().background(p.phone).testTag("home")) {
         Column(
             Modifier
                 .fillMaxSize()
+                // homeW: the Home behind the sheet is blurred (same as the cfg sheets).
+                .then(if (workout != null) Modifier.blur(8.dp) else Modifier)
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState()),
         ) {
@@ -97,6 +109,7 @@ fun HomePanelScreen(
             ) {
                 Ring(ui)
                 MacroCard(ui)
+                WorkoutRow(ui, onWorkoutOpen)
                 Timeline(ui) { confirmSkip = it }
                 Text(
                     SplashBoot.COPY,
@@ -107,7 +120,11 @@ fun HomePanelScreen(
                 )
             }
         }
-        Fab(onChat, Modifier.align(Alignment.BottomEnd))
+        if (workout == null) {
+            Fab(onChat, Modifier.align(Alignment.BottomEnd))
+        } else {
+            WorkoutSheet(workout, onWorkoutChange, onWorkoutSave, onWorkoutCancel)
+        }
     }
     confirmSkip?.let { slot ->
         SkipDialog(
@@ -264,6 +281,52 @@ private fun MacroCard(ui: HomePanelUiState) {
         MacroRow("P", "Proteína", ui.protein, p.protein)
         MacroRow("C", "Carboidratos", ui.carbs, p.carbs)
         MacroRow("G", "Gorduras", ui.fat, p.fat)
+    }
+}
+
+/** A22 "Treino de hoje": "Informar" in gold, or "350 kcal · +175 na meta". Tap opens homeW. */
+@Composable
+private fun WorkoutRow(ui: HomePanelUiState, onClick: () -> Unit) {
+    val p = LocalPalette.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(CardRadius)
+            .background(p.card)
+            .border(1.dp, p.line.copy(alpha = 0.4f), CardRadius)
+            .dietaClick(Haptic.Light, onClick = onClick)
+            .padding(start = 20.dp, end = 16.dp)
+            .testTag("home-workout"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.LocalFireDepartment, contentDescription = null, tint = p.gold, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(11.dp))
+        Text(
+            "Treino de hoje",
+            style = DietaBotType.bodyLg.copy(fontSize = 14.5.sp, lineHeight = 22.sp, fontWeight = FontWeight.W600, letterSpacing = (-0.2).sp),
+            color = p.text,
+            maxLines = 1,
+        )
+        val value = DietaBotType.bodyLg.copy(fontSize = 13.sp, lineHeight = 22.sp, fontWeight = FontWeight.W600, letterSpacing = (-0.2).sp)
+        val kcal = ui.workoutKcal
+        Text(
+            if (kcal == null) {
+                buildAnnotatedString { withStyle(SpanStyle(color = p.gold)) { append("Informar") } }
+            } else {
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = p.text)) { append("$kcal kcal") }
+                    withStyle(SpanStyle(color = p.muted, fontWeight = FontWeight.W500)) { append(" · +${ui.workoutCredit} na meta") }
+                }
+            },
+            style = value,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End,
+            // The chevron always stays: a long value ellipsizes first.
+            modifier = Modifier.weight(1f).padding(start = 6.dp).testTag("home-workout-value"),
+        )
+        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = p.muted, modifier = Modifier.padding(start = 2.dp).size(20.dp))
     }
 }
 

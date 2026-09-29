@@ -8,11 +8,13 @@ import com.nutri.android.core.telemetry.NoopTelemetry
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.SaoPaulo
+import com.nutri.android.feature.workout.WorkoutEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,9 +24,12 @@ class HomePanelViewModel @Inject constructor(
     private val clock: InstantClock,
     private val telemetry: Telemetry = NoopTelemetry,
 ) : ViewModel() {
-    val uiState: StateFlow<HomePanelUiState> = repository.observeToday()
-        .map { HomePanelMapper.map(it, SaoPaulo.date(clock.now())) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomePanelUiState())
+    /** Field of the open "Treino de hoje" sheet. Null = closed. Nothing reaches Room before Salvar. */
+    private val workoutDraft = MutableStateFlow<String?>(null)
+
+    val uiState: StateFlow<HomePanelUiState> = combine(repository.observeToday(), workoutDraft) { day, draft ->
+        HomePanelMapper.map(day, SaoPaulo.date(clock.now()), draft)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomePanelUiState())
 
     /** Explicit user action from the timeline. Never automatic. */
     fun skip(slotId: Long) {
@@ -32,5 +37,25 @@ class HomePanelViewModel @Inject constructor(
             repository.addSkip(slotId)
             telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "home"))
         }
+    }
+
+    /** Opens the sheet with the stored kcal of today. */
+    fun openWorkout() {
+        workoutDraft.value = uiState.value.workoutKcal?.toString().orEmpty()
+    }
+
+    fun setWorkout(value: String) {
+        if (workoutDraft.value != null) workoutDraft.value = WorkoutEditorState.clean(value)
+    }
+
+    fun closeWorkout() {
+        workoutDraft.value = null
+    }
+
+    /** Same field as the Config workout editor. Empty = no workout = credit 0. */
+    fun saveWorkout() {
+        val draft = workoutDraft.value ?: return
+        workoutDraft.value = null
+        viewModelScope.launch { repository.setWorkout(draft.toIntOrNull()) }
     }
 }

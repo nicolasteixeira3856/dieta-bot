@@ -109,16 +109,26 @@ class StitchGoldTest {
     fun home0_light() = check("home0", dark = false, fullPage = true) { Home(HomeFixtures.home0) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
-    fun home1_dark() = check("home1", dark = true, fullPage = true) { Home(HomeFixtures.home1) }
+    fun home1_dark() = check("home1", dark = true, fullPage = true) { Home(HomeFixtures.home1Workout) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
-    fun home1_light() = check("home1", dark = false, fullPage = true) { Home(HomeFixtures.home1) }
+    fun home1_light() = check("home1", dark = false, fullPage = true) { Home(HomeFixtures.home1Workout) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1335dp-xhdpi")
-    fun homeX_dark() = check("homeX", dark = true, fullPage = true) { Home(HomeFixtures.homeX) }
+    fun homeX_dark() = check("homeX", dark = true, fullPage = true) { Home(HomeFixtures.homeXWorkout) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1335dp-xhdpi")
-    fun homeX_light() = check("homeX", dark = false, fullPage = true) { Home(HomeFixtures.homeX) }
+    fun homeX_light() = check("homeX", dark = false, fullPage = true) { Home(HomeFixtures.homeXWorkout) }
+
+    /**
+     * A22 homeW: "Treino de hoje" sheet over home1. The sheet is gated on its own (the Home behind
+     * is blurred under a scrim). Heights: gold page minus the 40 px band.
+     */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1330dp-xhdpi")
+    fun homeW_dark() = check("homeW", dark = true, fullPage = true, navDp = 0, region = WORKOUT_SHEET_DARK) { HomeW() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1342dp-xhdpi")
+    fun homeW_light() = check("homeW", dark = false, fullPage = true, navDp = 0, region = WORKOUT_SHEET_LIGHT) { HomeW() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chat0_dark() = check("chat0", dark = true) { Chat(ChatFixtures.chat0) }
@@ -210,6 +220,11 @@ class StitchGoldTest {
 
     @Composable private fun Home(day: DaySnapshot) =
         HomePanelScreen(HomePanelMapper.map(day, LocalDate.parse("2026-09-25")), {}, {}, {})
+
+    @Composable private fun HomeW() = HomePanelScreen(
+        HomePanelMapper.map(HomeFixtures.home1Workout, LocalDate.parse("2026-09-25"), workoutDraft = "350"),
+        {}, {}, {},
+    )
 
     @Composable private fun O1() = CeilingScreen(GOLD_STATE, {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
 
@@ -434,7 +449,13 @@ class StitchGoldTest {
             "chatA",
             // chatX too (A25): only its composer and the error line are gated (COMPOSER_TOO_LONG).
             "chatX",
+            // homeW (A22): only the sheet is gated (WORKOUT_SHEET_*).
+            "homeW",
         )
+
+        /** homeW sheet, top edge to 40 dp above the page end (home pill), in gold px (x0, y0, x1, y1). Same as tools/diff-gold.mjs. */
+        private val WORKOUT_SHEET_DARK = intArrayOf(0, 2012, 780, 2620)
+        private val WORKOUT_SHEET_LIGHT = intArrayOf(0, 2026, 780, 2644)
 
         /** chatF photo bubble in gold px (x0, y0, x1, y1). */
         private val PHOTO_BUBBLE = intArrayOf(214, 368, 746, 734)

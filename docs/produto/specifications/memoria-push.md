@@ -4,7 +4,9 @@
 
 Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `filesDir/memory.bin` cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), ≤ 4000 chars, 1 linha por Gravar ou assunção respondida, enviada em `memory` em todo POST /v1/chat. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria; desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) reduzida a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto. Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): Salvar/Cancelar do mesmo tamanho nos sheets, toque com ripple + vibração e a copy dos sheets abaixo.
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): treino também pela Home ([A22](../../android/plans/a22-treino-home.md)); editor de memória só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md), [A23](../../android/plans/a23-editor-memoria-dev.md)); push por dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md): o treino do dia também pode ser informado pela Home, com o mesmo editor.
+
+Mudanças planejadas (29/09/2026, aguardando aprovação): editor de memória só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md), [A23](../../android/plans/a23-editor-memoria-dev.md)); push por dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 
@@ -36,7 +38,7 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 ## Regras — Config
 
 1. Edita teto (3 modos) e slots (nome + hora, 2–6) à vontade.
-2. Campo “treino hoje” kcal. Null = crédito 0. Some no rollover SP.
+2. Campo “treino hoje” kcal. Null = crédito 0. Some no rollover SP. Também pode ser informado pela Home (linha "Treino de hoje", [home-timeline](home-timeline.md) regra 11): mesmo campo `day.workoutKcal`, mesmo editor (campo 28 pt + linha de crédito ao vivo), mesma validação.
 3. Política eat-back 0% / % / 100%.
 4. Alvos P/C/G editáveis.
 5. Mudou teto: diálogo “Reiniciar registros de hoje?”. Default sim. Confirmar → `wipeToday` (meal_log + skip + digest de hoje). Cancelar → teto não é salvo. Chat UI fica. Prompt do dia recomeça: `wipeToday` grava em `chat_message` um marcador `wiped` (nunca desenhado, nunca enviado) e o prompt só leva raw depois dele.
@@ -65,6 +67,7 @@ Comportamento: `produto`. Client: `android`.
 ## Planos relacionados
 
 - [A3 (Concluído)](../../android/plans/completed/a3-config-wipe-treino.md)
+- [A22 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a22-treino-home.md)
 - [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
 - [A18 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)
 - [A7 (Concluído)](../../android/plans/completed/a7-push.md)

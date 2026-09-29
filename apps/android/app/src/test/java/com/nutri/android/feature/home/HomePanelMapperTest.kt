@@ -76,6 +76,39 @@ class HomePanelMapperTest {
         // Nothing filled among real slots: no highlight.
         assertThat(ui.timeline.dropLast(1).map { it.state }.toSet()).containsExactly(SlotState.EMPTY)
     }
+
+    @Test
+    fun `workout row - no workout reads Informar, credit 0`() {
+        val ui = HomePanelMapper.map(HomeFixtures.day().copy(eat = "partial", pct = 50), today)
+        assertThat(ui.workoutKcal).isNull()
+        assertThat(ui.workoutCredit).isEqualTo(0)
+        assertThat(ui.meta).isEqualTo(2000)
+        assertThat(ui.workoutEditor).isNull()
+    }
+
+    @Test
+    fun `workout row - credit follows the eat-back policy 0, 50 and 100 percent`() {
+        val day = HomeFixtures.day().copy(workoutKcal = 350)
+        val zero = HomePanelMapper.map(day.copy(eat = "zero"), today)
+        assertThat(zero.workoutKcal).isEqualTo(350)
+        assertThat(zero.workoutCredit).isEqualTo(0)
+        assertThat(zero.meta).isEqualTo(2000)
+        val half = HomePanelMapper.map(day.copy(eat = "partial", pct = 50), today)
+        assertThat(half.workoutCredit).isEqualTo(175)
+        assertThat(half.meta).isEqualTo(2175)
+        val full = HomePanelMapper.map(day.copy(eat = "full"), today)
+        assertThat(full.workoutCredit).isEqualTo(350)
+        assertThat(full.meta).isEqualTo(2350)
+    }
+
+    @Test
+    fun `open sheet carries the draft and a live credit line`() {
+        val day = HomeFixtures.day().copy(eat = "partial", pct = 50, workoutKcal = 200)
+        val ui = HomePanelMapper.map(day, today, workoutDraft = "350")
+        assertThat(ui.workoutEditor?.creditLine).isEqualTo("+175 kcal na meta de hoje (compensação 50%)")
+        // The stored value drives the row until Salvar.
+        assertThat(ui.workoutCredit).isEqualTo(100)
+    }
 }
 
 object HomeFixtures {
@@ -113,4 +146,8 @@ object HomeFixtures {
         ),
         skipped = setOf(3L),
     )
+
+    /** A22 golds: "350 kcal · +175 na meta" and "200 kcal · +100 na meta" with the pill still at 2000. */
+    val home1Workout = home1.copy(kcalSame = 1825, eat = "partial", pct = 50, workoutKcal = 350)
+    val homeXWorkout = homeX.copy(kcalSame = 1900, eat = "partial", pct = 50, workoutKcal = 200)
 }

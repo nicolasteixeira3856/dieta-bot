@@ -2,9 +2,9 @@
 
 ## Estado
 
-Vigente desde o [A4](../../android/plans/completed/a4-home-painel.md): painel conforme Stitch gold home1 (canônico). Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): no fim da rolagem o disclaimer fica inteiro acima do FAB (48 dp de respiro, medido no gold home1, + inset de navegação).
+Vigente desde o [A4](../../android/plans/completed/a4-home-painel.md): painel conforme Stitch gold home1 (canônico). Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): no fim da rolagem o disclaimer fica inteiro acima do FAB (48 dp de respiro, medido no gold home1, + inset de navegação). Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md): linha "Treino de hoje" abaixo dos macros e sheet do treino (gold homeW, gate [ST2](../../stitch/plans/completed/st2-home-treino.md)).
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): linha "Treino de hoje" abaixo dos macros ([A22](../../android/plans/a22-treino-home.md), gate [ST2](../../stitch/plans/completed/st2-home-treino.md)); slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Mudanças planejadas (29/09/2026, aguardando aprovação): slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 
@@ -31,6 +31,7 @@ Relógio do dia. Registro mora no Chat.
 8. Tap num log não abre Chat neste corte.
 9. Rollover 00:00 SP: contador e timeline do novo dia, vazios. Fio do chat (UI) não apaga.
 10. Disclaimer visível no rodapé com a copy do Stitch ("Estimativa nutricional, não substitui consulta médica ou nutricional.").
+11. Linha "Treino de hoje" abaixo dos macros, antes da timeline ([A22](../../android/plans/pending_manual_validation/a22-treino-home.md)). Sem treino hoje: valor `Informar` em gold. Com treino: `{kcal} kcal · +{crédito} na meta`, crédito pela fórmula do `AGENTS.md` (0% → `+0 na meta`, a linha continua). Toque abre o sheet "Treino de hoje": campo numérico 28 pt com sufixo `kcal`, uma linha de crédito ao vivo (`+{n} kcal na meta de hoje (compensação {pct}%)`; 0%: `Compensação desativada na Config`) e o par Salvar / Cancelar. Salvar grava o mesmo `day.workoutKcal` da Config; campo vazio + Salvar = sem treino (crédito 0). Cancelar ou back não grava. Mesmo editor da Config.
 
 ## Estados e falhas
 
@@ -48,9 +49,11 @@ Comportamento: `produto`. UI: `android`.
 ## Planos relacionados
 
 - [A4 (Concluído)](../../android/plans/completed/a4-home-painel.md)
+- [A22 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a22-treino-home.md)
 
 ## Critérios de aceite funcionais
 
-- Zero campo de texto na Home.
+- Zero campo de texto no painel da Home (o único campo é o numérico do sheet de treino).
+- Da Home ao treino salvo em 3 toques (linha, digitar, Salvar); o kcal e o crédito aparecem na linha.
 - FAB e Config visíveis.
 - Pular na timeline grava skip e redesenha.

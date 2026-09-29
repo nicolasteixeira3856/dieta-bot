@@ -223,6 +223,10 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                     onSkip = vm::skip,
                     onConfig = { nav.navigate(RouteConfig) },
                     onChat = { nav.navigate(RouteChat) },
+                    onWorkoutOpen = vm::openWorkout,
+                    onWorkoutChange = vm::setWorkout,
+                    onWorkoutSave = vm::saveWorkout,
+                    onWorkoutCancel = vm::closeWorkout,
                 )
             }
             composable<RouteChat> {

@@ -12,6 +12,7 @@ import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotSuggestions
 import com.nutri.android.domain.workoutCredit
 import com.nutri.android.feature.onboarding.SlotDraft
+import com.nutri.android.feature.workout.WorkoutEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import javax.inject.Inject
@@ -83,7 +84,7 @@ class ConfigViewModel @Inject constructor(
     fun setSlotTime(index: Int, minutes: Int) = editSlot(index) { it.copy(minutes = minutes.coerceIn(0, 1439)) }
 
     // Workout
-    fun setWorkout(v: String) = edit { it.copy(workoutField = v.digits(5)) }
+    fun setWorkout(v: String) = edit { it.copy(workoutField = WorkoutEditorState.clean(v)) }
 
     /**
      * Salvar. A changed ceiling only raises the wipe dialog; everything else is stored at once
@@ -202,9 +203,5 @@ object ConfigMapper {
         workoutField = day.workoutKcal?.toString().orEmpty(),
     )
 
-    fun policyOf(eat: String) = when (eat) {
-        "partial" -> CreditPolicy.PARTIAL
-        "full" -> CreditPolicy.FULL
-        else -> CreditPolicy.ZERO
-    }
+    fun policyOf(eat: String) = WorkoutEditorState.policyOf(eat)
 }

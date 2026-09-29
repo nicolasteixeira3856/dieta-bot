@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Home QA on a running emulator: onboarding, Home interactions, then captures of home0/home1/homeX
+# Home QA on a running emulator: onboarding, Home interactions, then captures of home0/home1/homeX/homeW
 # in docs/qa/android/current/<theme>/. Logs are seeded straight into Room (sqlite) because meal
 # logging only exists once the Chat lands (A5).
 #
@@ -50,6 +50,19 @@ to_top; tap 'resource-id="home-config"' && expect "gear opens Config" 'resource-
 "$ADB" shell input keyevent 4; sleep 0.8; expect "back returns Home" 'resource-id="home"'
 if grep -q 'android.widget.EditText' "$TMP/ui.xml"; then echo "  ✗ Home has a text field"; FAIL=1; else echo "  ✓ zero text fields on Home"; fi
 
+# A22: Treino de hoje from the Home in 3 taps (row, field, Salvar). The sheet focuses the field itself.
+expect "workout row reads Informar" 'text="Informar"'
+tap 'resource-id="home-workout"' && expect "row opens the workout sheet" 'resource-id="home-workout-sheet"'
+"$ADB" shell input text 350; sleep 0.5
+"$ADB" shell input keyevent 4; sleep 0.5 # hide the keyboard
+tap 'resource-id="home-workout-save"' && expect "saved workout shows on the row" 'text="350 kcal · +[0-9]* na meta"'
+to_top; tap 'resource-id="home-config"' && expect "Config shows the Home workout" 'text="350 kcal"'
+"$ADB" shell input keyevent 4; sleep 0.8
+tap 'resource-id="home-workout"' && expect "sheet opens with the stored value" 'text="350"'
+for _ in 1 2 3 4; do "$ADB" shell input keyevent 67; done; sleep 0.3
+"$ADB" shell input keyevent 4; sleep 0.5
+tap 'resource-id="home-workout-save"' && expect "empty Salvar clears the workout" 'text="Informar"'
+
 seed() { # seed home0|home1|homeX -> capture
   "$ADB" shell am force-stop $PKG
   rm -f "$TMP"/nutri.db*
@@ -63,8 +76,15 @@ ids = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMid
 c.execute("update meal_slot set name='Café da manhã' where id=?", (ids[0],))  # adb cannot type accents
 c.execute("delete from meal_log")
 c.execute("delete from slot_skip")
+# A22 golds: home1 "350 kcal · +175 na meta", homeX "200 kcal · +100 na meta", pill still at 2000.
+workout = {"home1": (1825, 350), "homeW": (1825, 350), "homeX": (1900, 200)}.get(state)
+c.execute("update profile set ceilingMode='same', kcalSame=?, eat=?, pct=50", (workout[0] if workout else 2000, "partial" if workout else "zero"))
+c.execute("insert or ignore into day(date, workoutKcal, removedWindows, askedWindows) values(?, null, '[]', '[]')", (today,))
+c.execute("update day set workoutKcal=? where date=?", (workout[1] if workout else None, today))
 logs = {
     "home1": [(0, "2 pães franceses, 2 ovos mexidos e café com leite", 520, 28, 52, 22, "user"),
+              (1, "Prato feito: frango grelhado, arroz, feijão e salada", 780, 48, 82, 18, "photo")],
+    "homeW": [(0, "2 pães franceses, 2 ovos mexidos e café com leite", 520, 28, 52, 22, "user"),
               (1, "Prato feito: frango grelhado, arroz, feijão e salada", 780, 48, 82, 18, "photo")],
     "homeX": [(0, "2 pães franceses, 2 ovos", 380, 22, 48, 12, "user"),
               (1, "PF de frango grelhado, arroz e feijão", 780, 64, 88, 16, "user"),
@@ -85,11 +105,15 @@ EOF
   "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
   "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
   sleep 3
+  if [ "$1" = homeW ]; then # sheet open over home1, keyboard hidden, field still focused
+    tap 'resource-id="home-workout"'; "$ADB" shell input keyevent 4; sleep 0.8
+  fi
   "$ADB" exec-out screencap -p > "$OUT/$1.png"
   echo "  captured $THEME/$1"
 }
 seed home0
 seed home1
 seed homeX
+seed homeW
 rm -rf "$TMP"
 exit $FAIL

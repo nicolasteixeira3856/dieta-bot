@@ -109,7 +109,7 @@ ST1 e ST2 concluídos (29/09/2026). Três gates esperando o dono, cada um já co
 ### Planos
 
 1. ✅ [ST1 Chat: bolhas, pergunta separada, anexo (`chatA`)](plans/completed/st1-chat.md) — concluído; libera [A19](../android/plans/pending_manual_validation/a19-chat-visual.md) (implementado).
-2. ✅ [ST2 Home: atalho de treino (`homeW`)](plans/completed/st2-home-treino.md) — concluído; libera [A22](../android/plans/a22-treino-home.md).
+2. ✅ [ST2 Home: atalho de treino (`homeW`)](plans/completed/st2-home-treino.md) — concluído; libera [A22](../android/plans/pending_manual_validation/a22-treino-home.md).
 3. ✅ [ST3 Seletor de horário em rodas (`o3t`)](plans/completed/st3-seletor-horario.md) — concluído; libera [A21](../android/plans/a21-seletor-horario.md).
 4. ✅ [ST4 Refeições por dia da semana (`o3s`, `cfgS`)](plans/completed/st4-refeicoes-por-dia.md) — concluído; libera [A24](../android/plans/a24-refeicoes-por-dia.md).
 5. ✅ [ST5 Chat: texto longo demais no composer (`chatX`)](plans/completed/st5-chat-texto-longo.md) — concluído; libera [A25](../android/plans/pending_manual_validation/a25-limite-texto-composer.md).
