@@ -91,21 +91,31 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("o que cabe hoje?", line["input_text"])
         self.assertEqual(json.loads(line["raw_output"]), model)
         self.assertEqual(line["response"], response.json())
-        self.assertFalse(line["fallback"])
+        self.assertIs(line["fallback"], False)
         self.assertIsNone(line["error"])
         self.assertEqual(line["app_version"], "1.0-dev")
         self.assertEqual(line["app_env"], "dev")
         self.assertIsInstance(line["latency_ms"], int)
         self.assertTrue(line["ts"].endswith("-03:00"))
 
-    async def test_output_without_json_keeps_raw_output_and_marks_fallback(self) -> None:
+    async def test_output_without_json_becomes_the_reply_and_marks_text_only(self) -> None:
         app = self._app(_raw("Desculpe, nao consigo ajudar com isso."), str(self.path))
+        response = await self._chat(app)
+        self.assertEqual(response.json()["reply"], "Desculpe, nao consigo ajudar com isso.")
+        self.assertIsNone(response.json()["estimate"])
+        [line] = self._lines()
+        self.assertEqual(line["raw_output"], "Desculpe, nao consigo ajudar com isso.")
+        self.assertIsNone(line["error"])
+        self.assertEqual(line["fallback"], "text_only")
+        self.assertEqual(line["response"], response.json())
+
+    async def test_malformed_json_is_an_error_fallback(self) -> None:
+        app = self._app(_raw('{"reply": "quebrado"'), str(self.path))
         response = await self._chat(app)
         self.assertEqual(response.json()["reply"], "nao deu pra estimar")
         [line] = self._lines()
-        self.assertEqual(line["raw_output"], "Desculpe, nao consigo ajudar com isso.")
-        self.assertEqual(line["error"]["type"], "ValueError")
-        self.assertTrue(line["fallback"])
+        self.assertIsNotNone(line["error"])
+        self.assertEqual(line["fallback"], "error")
 
     async def test_empty_reply_is_a_fallback_without_error(self) -> None:
         model = {"reply": "", "estimate": None, "digest": None}
@@ -114,7 +124,7 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.json()["reply"], "nao deu pra estimar")
         [line] = self._lines()
         self.assertIsNone(line["error"])
-        self.assertTrue(line["fallback"])
+        self.assertEqual(line["fallback"], "error")
 
     async def test_transport_error_logs_the_error_and_no_raw_output(self) -> None:
         app = self._app(_explodes(httpx2.ConnectError("boom")), str(self.path))
@@ -123,7 +133,7 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
         [line] = self._lines()
         self.assertIsNone(line["raw_output"])
         self.assertIsNotNone(line["error"])
-        self.assertTrue(line["fallback"])
+        self.assertEqual(line["fallback"], "error")
 
     async def test_photo_is_counted_but_never_written(self) -> None:
         model = {"reply": "ok", "estimate": None, "digest": None}

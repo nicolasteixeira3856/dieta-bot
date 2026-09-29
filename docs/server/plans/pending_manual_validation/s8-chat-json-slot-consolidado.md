@@ -1,10 +1,10 @@
 # Plano — S8 Chat: JSON garantido, slot sugerido e refeição consolidada
 
-- Estado: Aguardando aprovação
-- Data: 29/09/2026
+- Estado: Pendente aprovação manual
+- Data: 29/09/2026 (aprovado e implementado em 29/09/2026)
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py`, `server/shaping.py`, `server/main.py`, `server/config.py`, `server/tests/`
-- Pré-requisitos: Nenhum. Aceita o [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md) (regras de IA) e a parte server do [ADR-018](../../android/adrs/ADR-018-foto-2048.md).
+- Pré-requisitos: Nenhum. Aceita o [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md) (regras de IA) e a parte server do [ADR-018](../../../android/adrs/ADR-018-foto-2048.md).
 
 ## Gate de autorização
 
@@ -31,8 +31,8 @@ Acabar com o "nao deu pra estimar" quando a IA respondeu, fazer o "Gravar {slot}
 
 ## Fontes de verdade
 
-- [v1-chat](../specifications/v1-chat.md), [api-contract.md](../../api-contract.md), [chat](../../produto/specifications/chat.md).
-- [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-018](../../android/adrs/ADR-018-foto-2048.md), [ADR-015](../adrs/ADR-015-log-conversa-dev.md).
+- [v1-chat](../../specifications/v1-chat.md), [api-contract.md](../../../api-contract.md), [chat](../../../produto/specifications/chat.md).
+- [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-018](../../../android/adrs/ADR-018-foto-2048.md), [ADR-015](../../adrs/ADR-015-log-conversa-dev.md).
 
 ## Escopo de implementação
 
@@ -105,7 +105,7 @@ Acrescentar, em inglês, no bloco fixo (prefixo estável, bom para o cache autom
 
 ## Fora de escopo
 
-- UI do client (pergunta em bolha, confirmação de substituir): [A18](../../android/plans/a18-chat-registro-foto.md) e [A19](../../android/plans/a19-chat-visual.md).
+- UI do client (pergunta em bolha, confirmação de substituir): [A18](../../../android/plans/a18-chat-registro-foto.md) e [A19](../../../android/plans/a19-chat-visual.md).
 - `/v1/estimate` e `/v1/fit`.
 - Troca de modelo ou de `reasoning.effort`.
 
@@ -128,6 +128,47 @@ Acrescentar, em inglês, no bloco fixo (prefixo estável, bom para o cache autom
 - A instrução fixa vem primeiro e é idêntica entre turnos: o cache automático de prompt da OpenAI (prefixo ≥ 1024 tokens) já pega. Não pôr nada variável antes dela.
 - Saída estruturada elimina a volta extra do usuário depois de um fallback, que hoje custa um turno inteiro.
 - Linhas `Respondeu "…": …` da memória repetem o que já está no histórico do dia. Candidato a sair num plano futuro.
+
+## Resultados (29/09/2026)
+
+### Implementado
+
+- `llm.py`: `chat_json` manda `text.format` `json_schema` strict (`chat_turn`), com `enum` de `suggested_slot` = ids de `profile.slots` + `null` (perfil sem slots → `[null]`). `digest_json` manda o schema `digest`. `/v1/estimate` e `/v1/fit` sem mudança.
+- `llm.py`: saída sem nenhum `{` levanta `TextOnlyOutput`; JSON truncado ou inválido continua erro.
+- `shaping.py`: `_slot_id` aceita `"1"`, `1` e `{"id": 1}` e valida contra o perfil (bool → null). `text_only_chat` devolve o texto como `reply`, `estimate: null`. `CHAT_FALLBACK_QUESTION` no chat; `FALLBACK_QUESTION` do `/v1/estimate` intacto.
+- `main.py`: `_llm_call` grava `fallback` `false | "error" | "text_only"`. A rota do chat passa os ids do perfil para o schema.
+- `config.py`: `MAX_BODY_BYTES = 24 MB`, `CHAT_FALLBACK_QUESTION`.
+- `conversation_log.py` não precisou mudar: o valor de `fallback` sai de `main.py`.
+
+### Ajustes dentro do escopo (seção 3), descobertos no replay
+
+O primeiro replay local com o modelo real, só com as 5 regras do plano, falhou em 3 de 4 casos: a lasanha voltou com estimate zerado, o suco foi somado ao **almoço** (slot 3), e o "1220 kcal" copiou o total com as macros do suco. Correções, todas no bloco fixo de instruções ou no snapshot que já ia no prompt:
+
+- Snapshot do dia no prompt: `DAY slots` agora leva, por slot gravado, `kcal`, `P/C/G` e `text` (o client já mandava esses campos — ADR-017, "Custo de token"; antes o server só repassava `kcal`). Sem isso a IA não vê os itens da refeição gravada.
+- Regra de referência: a refeição da fala é a que ela nomeia; senão a da fala anterior do usuário; senão a do horário.
+- Total sem comida: vale mesmo com o slot já gravado; nunca copiar um total digitado para `kcal`.
+- Macros coerentes com kcal (4/4/9). Sem conseguir estimar: `estimate` null, nunca zeros.
+- Resposta a pergunta: reestimar incluindo todos os alimentos daquela refeição no HISTORY.
+
+### Validação automatizada
+
+- `server/.venv/Scripts/python -m pytest -q` → **64 passed, 25 subtests** (eram 54). Novos: schema com enum (e `[null]` sem slots), schema do compact, slot `1`/`"1"`/`{"id":1}`/fora do perfil/bool, texto livre → reply, saída vazia → fallback fixo, medium sem pergunta → `CHAT_FALLBACK_QUESTION`, snapshot com texto gravado + regras no prompt, corpo de 21 MB com foto dentro do cap → 200. Log: texto livre → `fallback: "text_only"` sem `error`; JSON truncado, saída vazia e erro de transporte → `"error"`.
+- A API aceitou o `json_schema` strict no `gpt-6-luna` (replay local e no dev). O plano B (`json_object`) não foi necessário.
+
+### Deploy e replay (seção 7)
+
+`./tools/deploy-gcp.ps1` → `/health` 200. Replay no server de dev (`https://35-231-53-42.sslip.io`), mesmos `input` do log baixado, perfil com slots `1` Café, `2` Lanche, `3` Almoço, `4` Ceia. Log do server: `fallback: false` nos 4.
+
+| Caso | Request id | Resultado | Aceite |
+|---|---|---|---|
+| `bfbf194d` almoço | `s8-almoco-dev` | 1040 kcal · 49P · 112C · 43G, `suggested_slot: "3"`, pergunta sobre o peso da lasanha e da costela | OK |
+| `dada7406` lasanha ("tamanho pequeno… almoço de ontem") | `s8-lasanha-dev` | reply útil, reestima o almoço inteiro (890 kcal, 5 itens, lasanha pequena), slot `"3"`, avisa que grava hoje | OK |
+| `d111a3dd` + suco com a Ceia `eaten` | `s8-suco-dev` | ceia inteira: 4 esfihas + suco = 1225 kcal · 41P · 172C · 47G, slot `"4"`, "substituir a estimativa registrada" | OK |
+| "corrija, na minha ceia eu consumi aproximadamente 1220kcal" | `s8-1220-dev` | `estimate: null`, "O que você comeu na ceia?" | OK |
+
+### Pendente (manual, dono)
+
+- Validação 3: no app atual (0.0.2), "Café da manhã: 2 pães e 2 ovos" mostra "Gravar café", sem update do client. Aprovado → estado `Concluído` e o plano vai para `completed/`.
 
 ## Encerramento
 

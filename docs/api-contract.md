@@ -4,12 +4,12 @@ Auth: header `X-Invite: $INVITE_CODE` (constant-time validation, HTTP 401 `{"det
 Content-Type: application/json
 
 Rate limits: 30 req/minute per IP + invite on `/v1/estimate`, `/v1/fit`, and `/v1/chat`. Returns HTTP 429 `{"detail": "rate_limit_exceeded"}` when limit is exceeded.
-Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length` > 20 MB (20,971,520 bytes) enforced at the ASGI layer.
+Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length` > 24 MB (25,165,824 bytes) enforced at the ASGI layer. It covers the photo cap plus JSON; a photo over the cap is still `photo_too_large` (S8).
 Field lengths: `text` field in `/v1/estimate`, `/v1/fit`, and `/v1/chat` has a maximum length of 1,000 characters. Returns HTTP 422 when exceeded.
 Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as meal data.
 
 Request id: optional request header `X-Request-Id` (`[A-Za-z0-9-]{1,64}`). The server reuses it, or generates a UUID when it is missing or invalid, and always returns it in the `X-Request-Id` response header, on every route and status. Optional request headers `X-App-Version` and `X-App-Env` are only recorded. None of them changes the JSON body.
-Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error, final response, latency). Never the photo, the invite or the API key. Off by default.
+Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error, final response, `fallback`: `false` | `"error"` | `"text_only"`, latency). Never the photo, the invite or the API key. Off by default.
 
 The server does not compute the ceiling. The app sends the budget on /fit.
 
@@ -111,8 +111,11 @@ OUT
 }
 ```
 - `estimate`: `null` if the user message is not food (e.g. general question, greeting, explanation).
-- `suggested_slot`: matched against existing IDs in `profile.slots`. If the model suggests any other slot, it is discarded to `null`.
-- `question`: exists only if `confidence != high`.
+- The server asks the model for structured output (`json_schema` strict). `suggested_slot` is an enum of the `profile.slots` ids plus `null`.
+- `suggested_slot`: always a string id from `profile.slots` or `null`. The server normalises `1` / `{"id": 1}` to `"1"` and discards any other value to `null`.
+- A message that completes or corrects a meal whose slot is `eaten` returns the estimate of the **whole meal** with that slot (ADR-017). A calorie total without food returns `estimate: null`.
+- `question`: exists only if `confidence != high`. Missing → `"Alguma porção foi diferente do que considerei?"`.
+- Model answered plain text (no JSON): that text is the `reply`, `estimate: null`. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "estimate": null, "digest": null}`.
 - `model`: always `gpt-6-luna`.
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.

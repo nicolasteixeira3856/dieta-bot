@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -30,7 +31,7 @@ from config import (
     load_settings,
 )
 from conversation_log import ConversationLog, now_iso
-from llm import LlmClient
+from llm import LlmClient, TextOnlyOutput
 from shaping import (
     CHAT_FALLBACK_REPLY,
     fail_chat,
@@ -41,6 +42,7 @@ from shaping import (
     shape_digest,
     shape_estimate,
     shape_fit,
+    text_only_chat,
 )
 
 _LOG = logging.getLogger("nutri")
@@ -208,22 +210,31 @@ def create_app(
         shape: Callable[[dict[str, Any]], dict[str, Any]],
         fail: Callable[[], dict[str, Any]],
         is_fallback: Callable[[dict[str, Any]], bool] | None = None,
+        text_only: Callable[[str], dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
+        """Log fallback (ADR-015 / S8): False | "error" | "text_only"."""
         record = _new_record(request, route, image)
         started = time.monotonic()
         try:
             try:
                 result = shape(call(record))
-            except Exception as exc:
-                _LOG.warning("%s failed: %s", route, type(exc).__name__)
-                record["error"] = {
-                    "type": type(exc).__name__,
-                    "message": str(exc)[:_ERROR_MESSAGE_MAX],
-                }
-                record["fallback"] = True
-                result = fail()
+            except TextOnlyOutput as exc:
+                if text_only is None:
+                    raise
+                record["fallback"] = "text_only"
+                result = text_only(exc.text)
             if is_fallback is not None and is_fallback(result):
-                record["fallback"] = True
+                record["fallback"] = "error"
+            record["response"] = result
+            return result
+        except Exception as exc:
+            _LOG.warning("%s failed: %s", route, type(exc).__name__)
+            record["error"] = {
+                "type": type(exc).__name__,
+                "message": str(exc)[:_ERROR_MESSAGE_MAX],
+            }
+            record["fallback"] = "error"
+            result = fail()
             record["response"] = result
             return result
         finally:
@@ -304,13 +315,19 @@ def create_app(
                 request,
                 "chat",
                 image,
-                lambda trace: llm.chat_json(user_text=_chat_text(body), image_b64=image, trace=trace),
+                lambda trace: llm.chat_json(
+                    user_text=_chat_text(body),
+                    image_b64=image,
+                    slot_ids=[s.id for s in body.profile.slots],
+                    trace=trace,
+                ),
                 lambda payload: shape_chat(
                     payload,
                     valid_slot_ids=[s.id for s in body.profile.slots],
                 ),
                 fail_chat,
                 is_fallback=lambda result: result.get("reply") == CHAT_FALLBACK_REPLY,
+                text_only=text_only_chat,
             )
         finally:
             image = None
@@ -406,10 +423,7 @@ def _chat_text(body: ChatIn) -> str:
     if body.memory:
         lines.append(f"MEMORY: {body.memory}")
 
-    day_slots = ", ".join(
-        f"{s.id}:{s.status}" + (f" ({s.kcal}kcal)" if s.kcal is not None else "")
-        for s in body.day.slots
-    )
+    day_slots = ", ".join(_day_slot(s) for s in body.day.slots)
     lines.append(
         f"DAY: date={body.day.date}, local_time={body.local_time or 'unknown'}, "
         f"eaten_kcal={body.day.eaten_kcal}, eaten_p={body.day.eaten_p}, "
@@ -437,6 +451,19 @@ def _chat_text(body: ChatIn) -> str:
     )
 
     return "\n".join(lines)
+
+
+def _day_slot(slot: DaySlotIn) -> str:
+    """id:status plus what is recorded, so the model can re-estimate the whole meal (ADR-017)."""
+    details: list[str] = []
+    if slot.kcal is not None:
+        details.append(f"{slot.kcal}kcal")
+    macros = [f"{value}{unit}" for value, unit in ((slot.p, "P"), (slot.c, "C"), (slot.g, "G")) if value is not None]
+    if macros:
+        details.append(" ".join(macros))
+    if slot.text:
+        details.append("text=" + json.dumps(slot.text, ensure_ascii=False))
+    return f"{slot.id}:{slot.status}" + (f" ({', '.join(details)})" if details else "")
 
 
 def _configure_logging() -> None:

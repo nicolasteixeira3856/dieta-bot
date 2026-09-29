@@ -39,7 +39,7 @@ API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula tet
 ## Cobertura documental atual
 
 Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) concluidos.
+[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) concluidos. [S8](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) pendente aprovacao manual.
 
 ## Como usar esta documentacao
 
@@ -52,7 +52,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md).
+Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. `/v1/chat` pede saida estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil) e texto sem JSON vira `reply` ([S8](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)). Corpo ate 24 MB (`MAX_BODY_BYTES`). Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md).
 
 Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
@@ -71,7 +71,7 @@ Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
 ### Planos e validacao
 
-- [S8 aguardando aprovacao](plans/s8-chat-json-slot-consolidado.md) — saida estruturada, slot sugerido, refeicao consolidada (diagnostico do log do S6).
+- [S8 pendente aprovacao manual](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — saida estruturada (`json_schema` strict), slot sugerido, refeicao consolidada, total sem comida sem estimate, corpo 24 MB; no ar no dev; falta o dono ver "Gravar cafe" no APK 0.0.2.
 - [S7 concluido](plans/completed/s7-rename-prompt.md) — "Dieta Bot" no prompt do Chat.
 - [S6 pendente aprovacao manual](plans/pending_manual_validation/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; o "nao deu" ja foi explicado pelo log (29/09); falta o dono aprovar.
 - [S5 concluido](plans/completed/s5-gcp-deploy.md) — deploy GCP e2-micro + Caddy.
