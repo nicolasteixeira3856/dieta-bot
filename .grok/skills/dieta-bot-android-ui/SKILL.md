@@ -33,5 +33,7 @@ Implementation is based strictly on the Stitch PNGs. Layout creation may use wir
 1. Automated headless screenshot test:
    - `./gradlew.bat verifyRoborazziDevDebug`
 2. Emulator fallback:
-   - `cmd /c "adb exec-out screencap -p > docs\qa\android\current\dark\<id>.png"`
-3. Compare against Stitch gold in `docs/qa/stitch/{dark,light}/<id>.png`. A screen is NOT done until verified against the matching Stitch PNG.
+   - `android screen capture -o docs/qa/android/current/<theme>/<id>.png`
+3. Compare against Stitch gold in `docs/qa/stitch/{dark,light}/<id>.png`. A screen is NOT done until verified against the matching Stitch PNG. Measuring and diff list: `dieta-bot-android-visual`.
+
+Doubt about an Android or M3 API: `android docs search "<keywords>"` before guessing.

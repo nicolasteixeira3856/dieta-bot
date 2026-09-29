@@ -8,8 +8,9 @@ description: Validate a Dieta Bot delivery. Use before marking /goal DONE, after
 Checklist:
 - `.\gradlew.bat test` green
 - `.\gradlew.bat :app:compileDebugKotlin` green
-- `adb devices` has an emulator
+- `android info` (or `adb devices`) lists the emulator
 - screenshots in `docs/qa/android/current/{dark|light}/` matching Stitch gold in `docs/qa/stitch/{dark,light}/`
+- the diff list cites the bounds measured with `android layout --flat` for the parts that changed (see `dieta-bot-android-visual`)
 - tokens vs `docs/tokens.md` (no default purple, correct semantic macros)
 - timeline guide and single consolidated meal entries
 - no OPENAI_API_KEY in source

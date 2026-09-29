@@ -126,7 +126,7 @@ dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-mem
 Engineering skills:
 android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · material3-expressive
 
-Official Google skills from npx stay.
+Official Google skills (npx or `android skills`) stay.
 Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar.
 
 ## How to work

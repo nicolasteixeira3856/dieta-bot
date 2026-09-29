@@ -15,7 +15,7 @@ Client nativo. Compose, Room, navegacao, foto, push.
 - Kotlin + Jetpack Compose + Material 3 Expressive.
 - Camada ui / domain / data. Hilt, Navigation Compose, Retrofit, Room.
 - Home, onboarding, sheets, foto. DataStore so como import legado.
-- Visual QA: `docs/qa/android/current/{dark,light}/` (screencap do emulador) vs gold em `docs/qa/stitch/{dark,light}/` (Stitch `Nutri`). Gate: `tools/diff-gold.mjs` + `StitchGoldTest` (ver [docs/qa](../qa/README.md)).
+- Visual QA: `docs/qa/android/current/{dark,light}/` (captura do emulador: `tools/capture-*.sh` ou `android screen capture`; medidas com `android layout`) vs gold em `docs/qa/stitch/{dark,light}/` (Stitch `Nutri`). Gate: `tools/diff-gold.mjs` + `StitchGoldTest` (ver [docs/qa](../qa/README.md)).
 
 ## Fora de escopo
 
@@ -126,6 +126,7 @@ Aguardando aprovação (lote do feedback, 29/09/2026):
 - [A25 composer: limite de 2000 caracteres com estado de erro (Pendente aprovação manual: colar texto longo no APK)](plans/pending_manual_validation/a25-limite-texto-composer.md)
 - [A19 chat visual: pergunta em bolha, bolhas iguais, anexo com preview (Pendente aprovação manual: anexar e enviar no APK)](plans/pending_manual_validation/a19-chat-visual.md)
 - [A20 polimento geral (Pendente aprovação manual: vibração)](plans/pending_manual_validation/a20-polimento-geral.md)
+- [A26 Android CLI no loop de QA visual (Concluído)](plans/completed/a26-android-cli-qa.md)
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
 - [A13 rename visível "Dieta Bot" (Concluído)](plans/completed/a13-rename-dieta-bot.md)
 - [A14 marca: ícone e splash (Concluído)](plans/completed/a14-marca-icone-splash.md)
