@@ -121,7 +121,7 @@ How to export gold PNGs (agent, unattended):
 Skills folders: `.agents/skills`, `.grok/skills`, `.hermes/skills`, and `.claude/skills` must be kept strictly synchronized with identical skill sets.
 
 Project skills:
-dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual
+dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual · dieta-bot-stitch
 
 Engineering skills:
 android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · material3-expressive
