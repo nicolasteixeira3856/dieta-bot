@@ -1,6 +1,7 @@
 # Plano — A17 Changelog humano no deploy de teste
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual
+- Aprovado: 29/09/2026 ("Aprovo o plano `docs/android/plans/a17-changelog-deploy.md`. Implemente o plano aprovado.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `tools/distribute-dev.ps1`, `apps/android/CHANGELOG.md` (novo)
@@ -55,6 +56,19 @@ As notas que o tester vê no Firebase App Tester passam a ser um changelog escri
 2. Sem `-Notes` e sem `-DryRun`: falha antes do Gradle, `version.properties` intacto.
 3. `-Notes` com um hash dentro: falha com a linha.
 4. Deploy real na próxima entrega pedida pelo dono: notas no App Tester legíveis e `CHANGELOG.md` no commit de release.
+
+## Resultados (29/09/2026)
+
+- `tools/distribute-dev.ps1`: `-Notes` novo, validado no passo 0, antes da árvore limpa, do bump e do Gradle. Recusa arquivo ausente, vazio, hash (`[0-9a-f]{7,40}`, case-sensitive), prefixo convencional (`feat|fix|chore|docs|refactor|test|build|ci|perf|style`, com escopo opcional e `:`) e título `#`/`##` (o `##` é da seção de versão no `CHANGELOG.md`). Bloco do `git log` removido. Script continua ASCII (o PowerShell 5.1 lê `.ps1` sem BOM como ANSI); o travessão do título vem de `[char]0x2014`. Data em America/Sao_Paulo.
+- `apps/android/CHANGELOG.md` criado só com o cabeçalho; as seções nascem a partir do próximo deploy.
+- `AGENTS.md` e `docs/android/README.md` § Distribuição atualizados.
+
+Validação:
+
+1. `-DryRun` sem `-Notes`: RESULT_DRYRUN.
+2. Sem `-Notes` e sem `-DryRun`: `x -Notes <file.md> is required…`, exit 1, sem Gradle, `version.properties` com o mesmo hash. OK.
+3. `-Notes` com `8bc25a5`: `x notes line 2 has a commit hash…` com a linha. OK. Também recusados: `- fix(server): …` (linha 1), arquivo vazio, arquivo ausente.
+4. Pendente (manual): o próximo deploy pedido pelo dono. Conferir as notas no App Tester e a seção no `CHANGELOG.md` do commit `chore(release)`. O prepend foi exercitado isolado, numa cópia do `CHANGELOG.md`, para duas versões: a mais nova fica no topo.
 
 ## Fora de escopo
 
