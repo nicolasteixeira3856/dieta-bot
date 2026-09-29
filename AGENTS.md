@@ -144,7 +144,7 @@ Stitch gate: a layout change that needs a new or changed gold is a manual owner 
 
 Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1`.
 It ships the signed dev release APK through Firebase App Distribution (group `owner`, installed via Firebase App Tester).
-Release notes are a human changelog in pt-BR written by the agent (what changed for the tester: Novidades / Correções / Ajustes), never a raw `git log`. Until A17 is implemented the script still uses the git log.
+Release notes are a human changelog in pt-BR written by the agent (what changed for the tester: Novidades / Correções / Ajustes), never a raw `git log`. Pass it with `-Notes <file.md>` (required; scratchpad file). The script rejects hashes and commit prefixes and prepends the notes to `apps/android/CHANGELOG.md` in the `chore(release)` commit.
 The version bumps by itself (0.0.N → 0.0.N+1) and is recorded as a commit + tag `dev-v0.0.N`.
 Never edit `apps/android/version.properties` by hand. Never reuse a number. Until 1.0.0 (its own plan).
 

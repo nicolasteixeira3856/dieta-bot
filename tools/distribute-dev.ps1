@@ -3,21 +3,27 @@
   Builds the signed dev release APK, bumps 0.0.N and ships it through Firebase App Distribution (A16).
 
 .DESCRIPTION
+  0. Outside -DryRun, -Notes is required: a pt-BR changelog for the tester (A17). It must exist, not be
+     empty, and carry no commit hash, no conventional-commit prefix and no "#"/"##" heading. Checked
+     before anything else, so a bad file never burns a number.
   1. Refuses a dirty git tree, a missing key.properties (repo root) or google-services.json (app/src/dev).
   2. Reads VERSION_PATCH from apps/android/version.properties. If tag dev-v0.0.N already exists,
      writes N+1 (never reuses or lowers a number); otherwise ships N as recorded (first run: 0.0.1).
   3. testDevDebugUnitTest, then assembleDevRelease.
   4. Checks the APK: signer CN=Nutri (A9) with apksigner, versionName 0.0.N-dev / versionCode N with aapt2.
   5. firebase appdistribution:distribute to the "owner" group of nutri-bot-dev.
-  6. Commit "chore(release): 0.0.N-dev" + tag dev-v0.0.N, push both.
+     Release notes = "Dieta Bot 0.0.N" + blank line + the -Notes file.
+  6. Prepends "## 0.0.N - DD/MM/AAAA" (em dash) + the notes to apps/android/CHANGELOG.md.
+     Commit "chore(release): 0.0.N-dev" (version.properties + CHANGELOG.md) + tag dev-v0.0.N, push both.
   Any failure before step 6 restores version.properties, so the number is not burned.
 
 .EXAMPLE
-  ./tools/distribute-dev.ps1           # build, distribute, commit, tag, push
-  ./tools/distribute-dev.ps1 -DryRun   # build and check only; tree left clean
+  ./tools/distribute-dev.ps1 -Notes notes.md   # build, distribute, commit, tag, push
+  ./tools/distribute-dev.ps1 -DryRun           # build and check only; tree left clean
 #>
 param(
     [switch]$DryRun,
+    [string]$Notes,
     [string]$FirebaseProject = "nutri-bot-dev",
     [string]$FirebaseApp = "1:823717355877:android:d01b29a0b20b0674bd818c",
     [string]$Group = "owner"
@@ -29,6 +35,8 @@ $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $PSScriptRoot
 $android = Join-Path $root "apps/android"
 $versionFile = Join-Path $android "version.properties"
+$changelogFile = Join-Path $android "CHANGELOG.md"
+$utf8 = New-Object Text.UTF8Encoding $false
 $consoleUrl = "https://console.firebase.google.com/project/$FirebaseProject/appdistribution/app/android:com.nutri.android.dev/releases"
 
 function Fail([string]$msg) { Write-Host "x $msg" -ForegroundColor Red; exit 1 }
@@ -64,6 +72,36 @@ function Find-BuildTool([string]$name) {
     if (-not $tool) { Fail "$name not found in $sdk/build-tools" }
     return $tool.FullName
 }
+
+# Human release notes (A17): what the tester notices, never a git log.
+function Read-Notes([string]$path) {
+    $full = Resolve-Path -LiteralPath $path -ErrorAction SilentlyContinue
+    if (-not $full) { Fail "notes file not found: $path" }
+    $text = [IO.File]::ReadAllText($full.Path, $utf8).Trim()
+    if (-not $text) { Fail "notes file is empty: $path" }
+    $i = 0
+    foreach ($line in ($text -split "`r?`n")) {
+        $i++
+        if ($line -cmatch '\b[0-9a-f]{7,40}\b') { Fail "notes line $($i) has a commit hash, write for the tester:`n  $line" }
+        if ($line -match '^\s*([-*]\s*)?(feat|fix|chore|docs|refactor|test|build|ci|perf|style)(\([^)]*\))?!?:') {
+            Fail "notes line $($i) is a commit message, write for the tester:`n  $line"
+        }
+        if ($line -match '^\s*##?\s') { Fail "notes line $($i): use '###' sections, '#'/'##' belong to CHANGELOG.md:`n  $line" }
+    }
+    return $text
+}
+
+function Get-SaoPauloDate {
+    foreach ($id in @("E. South America Standard Time", "America/Sao_Paulo")) {
+        try { return [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, $id).ToString("dd/MM/yyyy") } catch {}
+    }
+    return (Get-Date).ToString("dd/MM/yyyy")
+}
+
+# 0. Notes first: a missing or bad file fails before any build or bump.
+$notesText = $null
+if ($Notes) { $notesText = Read-Notes $Notes }
+elseif (-not $DryRun) { Fail "-Notes <file.md> is required: pt-BR changelog for the tester (Novidades / Correcoes / Ajustes). See docs/android/README.md, section Distribuicao" }
 
 # 1. Preconditions.
 $dirty = git -C $root status --porcelain
@@ -106,19 +144,19 @@ try {
     }
     Write-Host "ok $($apk.Name): CN=Nutri, versionName $version, versionCode $n"
 
+    $releaseNotes = "Dieta Bot 0.0.$n`n`n$notesText"
     if ($DryRun) {
+        if ($notesText) { Write-Host "release notes:`n$releaseNotes" }
         Write-Host "dry run: not distributed, not committed, not pushed"
         return
     }
 
-    # 5. Distribute. Release notes = commits since the previous dev tag.
-    $prev = git -C $root describe --tags --abbrev=0 --match "dev-v0.0.*" 2>$null
-    $log = if ($prev) { git -C $root log --oneline "$prev..HEAD" } else { git -C $root log --oneline -20 }
-    $notes = Join-Path $env:TEMP "dieta-bot-release-notes.txt"
-    [IO.File]::WriteAllText($notes, ((@("Dieta Bot $version") + $log) -join "`n"), (New-Object Text.UTF8Encoding $false))
-    npx -y firebase-tools@latest appdistribution:distribute $apk.FullName --app $FirebaseApp --groups $Group --release-notes-file $notes --project $FirebaseProject
+    # 5. Distribute with the human notes.
+    $notesFile = Join-Path $env:TEMP "dieta-bot-release-notes.txt"
+    [IO.File]::WriteAllText($notesFile, $releaseNotes, $utf8)
+    npx -y firebase-tools@latest appdistribution:distribute $apk.FullName --app $FirebaseApp --groups $Group --release-notes-file $notesFile --project $FirebaseProject
     if ($LASTEXITCODE -ne 0) { throw "firebase appdistribution:distribute failed" }
-    Remove-Item $notes -Force -ErrorAction SilentlyContinue
+    Remove-Item $notesFile -Force -ErrorAction SilentlyContinue
 } catch {
     Restore-Version
     Fail $_.Exception.Message
@@ -127,8 +165,13 @@ try {
 }
 if ($DryRun) { exit 0 }
 
-# 6. Record the shipped number: commit (empty on the first run, 0.0.1 is already recorded) + tag + push.
-git -C $root add "apps/android/version.properties"
+# 6. Record the shipped number and its notes: CHANGELOG.md (newest first) + commit + tag + push.
+$section = "## 0.0.$n $([char]0x2014) $(Get-SaoPauloDate)`n`n$notesText`n"
+$changelog = [IO.File]::ReadAllText($changelogFile, $utf8)
+$first = [regex]::Match($changelog, '(?m)^## ')
+$changelog = if ($first.Success) { $changelog.Insert($first.Index, "$section`n") } else { $changelog.TrimEnd() + "`n`n$section" }
+[IO.File]::WriteAllText($changelogFile, $changelog, $utf8)
+git -C $root add "apps/android/version.properties" "apps/android/CHANGELOG.md"
 git -C $root commit --allow-empty -m "chore(release): $version" | Out-Null
 if ($LASTEXITCODE -ne 0) { Fail "distributed $version but the release commit failed: commit and tag $tag by hand" }
 git -C $root tag -a $tag -m "Dieta Bot $version (Firebase App Distribution)"
