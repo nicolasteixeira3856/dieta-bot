@@ -65,7 +65,7 @@ As notas que o tester vê no Firebase App Tester passam a ser um changelog escri
 
 Validação:
 
-1. `-DryRun` sem `-Notes`: RESULT_DRYRUN.
+1. `-DryRun` sem `-Notes`: testes + `assembleDevRelease` OK, `app-dev-release.apk: CN=Nutri, versionName 0.0.3-dev, versionCode 3`, exit 0, árvore limpa. OK. Com `-Notes` válido, mostra `Dieta Bot 0.0.3` + as notas (acentos preservados) e sai limpo.
 2. Sem `-Notes` e sem `-DryRun`: `x -Notes <file.md> is required…`, exit 1, sem Gradle, `version.properties` com o mesmo hash. OK.
 3. `-Notes` com `8bc25a5`: `x notes line 2 has a commit hash…` com a linha. OK. Também recusados: `- fix(server): …` (linha 1), arquivo vazio, arquivo ausente.
 4. Pendente (manual): o próximo deploy pedido pelo dono. Conferir as notas no App Tester e a seção no `CHANGELOG.md` do commit `chore(release)`. O prepend foi exercitado isolado, numa cópia do `CHANGELOG.md`, para duas versões: a mais nova fica no topo.
