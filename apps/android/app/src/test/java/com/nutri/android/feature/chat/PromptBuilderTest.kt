@@ -89,8 +89,13 @@ class PromptBuilderTest {
     }
 
     @Test
-    fun `text is capped at 1000 chars`() {
-        val body = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x".repeat(1500), now).body
-        assertThat(body.text).hasLength(1000)
+    fun `text is capped at 2000 code points, 1500 goes whole`() {
+        val whole = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x".repeat(1500), now).body
+        assertThat(whole.text).hasLength(1500)
+        val capped = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x".repeat(2500), now).body
+        assertThat(capped.text).hasLength(2000)
+        // 2000 emojis are 4000 UTF-16 chars: nothing is cut (ADR-022 counts code points).
+        val emoji = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "🍚".repeat(2000), now).body
+        assertThat(emoji.text).isEqualTo("🍚".repeat(2000))
     }
 }

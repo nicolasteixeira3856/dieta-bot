@@ -1,6 +1,7 @@
 package com.nutri.android.feature.chat
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,19 +14,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -67,7 +69,10 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -78,8 +83,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -91,13 +98,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.nutri.android.core.designsystem.Inter
-import com.nutri.android.core.designsystem.Jakarta
-import com.nutri.android.core.designsystem.Haptic
-import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.DietaBotMeasure
 import com.nutri.android.core.designsystem.DietaBotType
+import com.nutri.android.core.designsystem.Haptic
+import com.nutri.android.core.designsystem.Inter
+import com.nutri.android.core.designsystem.Jakarta
+import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.formatRemaining
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
@@ -678,38 +685,77 @@ private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, hapti
 private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit, onRemoveAttachment: () -> Unit) {
     val p = LocalPalette.current
     // chatA: with an attachment the pill grows into a rounded box, thumbnail on top.
+    // chatX: past one line the pill becomes a 24 dp box, buttons at the bottom.
     val attached = ui.attachment != null
-    val shape = if (attached) ComposerAttachedShape else CircleShape
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(p.card)
-            .border(1.dp, p.line, shape)
-            .then(if (attached) Modifier.padding(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 11.dp) else Modifier.padding(horizontal = 8.dp, vertical = 6.dp)),
-    ) {
-        ui.attachment?.let { AttachmentThumb(it, onRemoveAttachment) }
-        ComposerRow(ui, onComposer, onSend, onPhoto, buttonDp = if (attached) 40 else 36)
+    var multiLine by remember { mutableStateOf(false) }
+    val metrics = when {
+        attached -> ComposerMetrics(ComposerAttachedShape, PaddingValues(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 11.dp), buttonDp = 40, textStartDp = 16, bottomAligned = false)
+        multiLine -> ComposerMetrics(ComposerTallShape, PaddingValues(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 13.dp), buttonDp = 40, textStartDp = 12, bottomAligned = true, textEndDp = 4)
+        else -> ComposerMetrics(CircleShape, PaddingValues(horizontal = 8.dp, vertical = 6.dp), buttonDp = 36, textStartDp = 12, bottomAligned = false)
+    }
+    val border = if (ui.composerTooLong) BorderStroke(1.5.dp, p.bad) else BorderStroke(1.dp, p.line)
+    Column(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(metrics.shape)
+                .background(p.card)
+                .border(border, metrics.shape)
+                .padding(metrics.padding),
+        ) {
+            ui.attachment?.let { AttachmentThumb(it, onRemoveAttachment) }
+            ComposerRow(ui, onComposer, onSend, onPhoto, metrics) { lines -> multiLine = lines > 1 }
+        }
+        if (ui.composerTooLong) {
+            // Start of the text field (chatX gold): container padding + camera.
+            val textStart = metrics.padding.calculateStartPadding(LocalLayoutDirection.current) + metrics.buttonDp.dp
+            Text(
+                "Texto muito longo",
+                style = DietaBotType.labelMd.copy(letterSpacing = 0.sp),
+                color = p.bad,
+                maxLines = 1,
+                modifier = Modifier.padding(start = textStart, top = 4.dp).testTag("chat-too-long"),
+            )
+        }
     }
 }
 
 private val ComposerAttachedShape = RoundedCornerShape(28.dp)
+private val ComposerTallShape = RoundedCornerShape(24.dp)
+
+private class ComposerMetrics(
+    val shape: Shape,
+    val padding: PaddingValues,
+    val buttonDp: Int,
+    val textStartDp: Int,
+    val bottomAligned: Boolean,
+    val textEndDp: Int = 8,
+)
 
 @Composable
-private fun ComposerRow(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit, buttonDp: Int) {
+private fun ComposerRow(
+    ui: ChatUiState,
+    onComposer: (String) -> Unit,
+    onSend: () -> Unit,
+    onPhoto: () -> Unit,
+    metrics: ComposerMetrics,
+    onLines: (Int) -> Unit,
+) {
     val p = LocalPalette.current
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    val buttonDp = metrics.buttonDp
+    val blocked = ui.composerTooLong
+    Row(Modifier.fillMaxWidth(), verticalAlignment = if (metrics.bottomAligned) Alignment.Bottom else Alignment.CenterVertically) {
         Box(
             Modifier
                 .size(buttonDp.dp)
                 .clip(CircleShape)
                 .background(p.surf2)
                 .border(1.dp, p.text.copy(alpha = 0.05f), CircleShape)
-                .dietaClick(enabled = !ui.sending, onClick = onPhoto)
+                .dietaClick(enabled = ui.canAttach, onClick = onPhoto)
                 .testTag("chat-photo"),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.PhotoCamera, contentDescription = "Enviar foto", tint = p.muted, modifier = Modifier.size(19.dp))
+            Icon(Icons.Outlined.PhotoCamera, contentDescription = "Enviar foto", tint = if (blocked) p.dim else p.muted, modifier = Modifier.size(19.dp))
         }
         BasicTextField(
             value = ui.composer,
@@ -720,7 +766,8 @@ private fun ComposerRow(ui: ChatUiState, onComposer: (String) -> Unit, onSend: (
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Default),
             textStyle = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
             cursorBrush = SolidColor(p.gold),
-            modifier = Modifier.weight(1f).padding(start = if (buttonDp > 36) 16.dp else 12.dp, end = 8.dp).testTag("chat-input"),
+            onTextLayout = { onLines(it.lineCount) },
+            modifier = Modifier.weight(1f).padding(start = metrics.textStartDp.dp, end = metrics.textEndDp.dp).testTag("chat-input"),
             decorationBox = { inner ->
                 Box {
                     if (ui.composer.isEmpty()) {
@@ -734,12 +781,12 @@ private fun ComposerRow(ui: ChatUiState, onComposer: (String) -> Unit, onSend: (
             Modifier
                 .size(buttonDp.dp)
                 .clip(CircleShape)
-                .background(p.gold)
+                .background(if (blocked) p.surf2 else p.gold)
                 .dietaClick(enabled = ui.canSend, onClick = onSend)
                 .testTag("chat-send"),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.ArrowUpward, contentDescription = "Enviar", tint = p.onGold, modifier = Modifier.size(20.dp))
+            Icon(Icons.Outlined.ArrowUpward, contentDescription = "Enviar", tint = if (blocked) p.dim else p.onGold, modifier = Modifier.size(20.dp))
         }
     }
 }

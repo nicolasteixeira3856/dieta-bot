@@ -175,6 +175,16 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatA_light() = check("chatA", dark = false, region = COMPOSER_ATTACHED, gateRegion = false) { Chat(ChatFixtures.chatA) }
 
+    /**
+     * A25: text over 2000 characters. chatX is a copy of chat0 (other header): only the composer + error line is gated.
+     * Like chatA, the light gold draws the composer on the page colour (chat0 generation): light region reported only.
+     */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatX_dark() = check("chatX", dark = true, region = COMPOSER_TOO_LONG) { Chat(ChatFixtures.chatX) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatX_light() = check("chatX", dark = false, region = COMPOSER_TOO_LONG, gateRegion = false) { Chat(ChatFixtures.chatX) }
+
     /** Dark chatG gold is a 2560x2048 desktop render: not comparable, light only. chatF (photo) is A6. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
@@ -422,6 +432,8 @@ class StitchGoldTest {
             "chatF",
             // chatA is a copy of chat0 (same other header): only its composer is gated (COMPOSER_ATTACHED, A19).
             "chatA",
+            // chatX too (A25): only its composer and the error line are gated (COMPOSER_TOO_LONG).
+            "chatX",
         )
 
         /** chatF photo bubble in gold px (x0, y0, x1, y1). */
@@ -429,6 +441,9 @@ class StitchGoldTest {
 
         /** chatA composer with the attached thumbnail in gold px (x0, y0, x1, y1). */
         private val COMPOSER_ATTACHED = intArrayOf(32, 1388, 748, 1664)
+
+        /** chatX composer (5 lines, red border) and "Texto muito longo" in gold px (x0, y0, x1, y1). */
+        private val COMPOSER_TOO_LONG = intArrayOf(32, 1344, 748, 1668)
         private val ROOT = File("../../..")
         private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")

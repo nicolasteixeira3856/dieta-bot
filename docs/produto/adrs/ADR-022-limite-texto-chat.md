@@ -48,7 +48,7 @@ Custo: o histórico leva até 12 mensagens. O pior caso passa de ~12 k para ~24 
 
 ## Relações
 
-- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md), [A25](../../android/plans/a25-limite-texto-composer.md).
+- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md), [A25](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md).
 - Specs: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md).
 
 Depois de aceito, este ADR não se edita.

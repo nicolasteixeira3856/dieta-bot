@@ -84,6 +84,8 @@ data class SlotRef(val id: Long, val name: String, val time: String, val minutes
 data class ChatUiState(
     val items: List<ChatItem> = emptyList(),
     val composer: String = "",
+    /** Composer over [ChatText.MAX_CHARS][com.nutri.android.domain.ChatText.MAX_CHARS] (chatX): nothing leaves. */
+    val composerTooLong: Boolean = false,
     val sending: Boolean = false,
     /** Empty day: meta card + suggestion chips (chat0). */
     val emptyDay: Boolean = true,
@@ -107,7 +109,10 @@ data class ChatUiState(
     /** Snackbar text, shown once. */
     val notice: String? = null,
 ) {
-    val canSend: Boolean get() = (composer.isNotBlank() || attachment != null) && !sending
+    val canSend: Boolean get() = (composer.isNotBlank() || attachment != null) && !sending && !composerTooLong
+
+    /** Camera / gallery: off while sending and in the chatX state. */
+    val canAttach: Boolean get() = !sending && !composerTooLong
 }
 
 /** Gravar on a taken slot: "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */

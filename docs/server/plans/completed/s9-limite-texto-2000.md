@@ -17,7 +17,7 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 ## Objetivo
 
-O `POST /v1/chat` aceita `text` e `messages[].text` até 2000 caracteres. Vai ao ar no dev antes do [A25](../../../android/plans/a25-limite-texto-composer.md), para o client nunca mandar algo que o server recusa.
+O `POST /v1/chat` aceita `text` e `messages[].text` até 2000 caracteres. Vai ao ar no dev antes do [A25](../../../android/plans/pending_manual_validation/a25-limite-texto-composer.md), para o client nunca mandar algo que o server recusa.
 
 ## Fontes de verdade
 
@@ -71,7 +71,7 @@ Validação:
 ## Fora de escopo
 
 - `/v1/estimate`, `/v1/fit`.
-- Qualquer mudança no client: [A25](../../../android/plans/a25-limite-texto-composer.md).
+- Qualquer mudança no client: [A25](../../../android/plans/pending_manual_validation/a25-limite-texto-composer.md).
 
 ## Riscos e controles
 
