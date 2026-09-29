@@ -26,6 +26,49 @@ Gate de design. Guarda os prompts que o dono executa no Google Stitch `Nutri` (`
 - Um gate bloqueia um ou mais planos do android. Eles o listam em Pré-requisitos.
 - Um gate falho (o Stitch não produziu o esperado) para tudo: o agente reporta o que falta e não segue.
 
+## Nomes das telas (regra do dono, 29/09/2026)
+
+No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de gold (`chat0`). Por isso:
+
+1. Toda instrução para o dono (selecionar, duplicar, renomear) e toda tela citada **dentro** de um prompt usa o **título exato do Stitch**, copiado da tabela abaixo. O id de gold (`chatE`) só aparece entre parênteses, para o agente.
+2. Tema: `V2 Expressive` = dark, `V2 Light` = light. O prompt vem em dois blocos prontos, um por tema, cada um com os títulos daquele tema.
+3. Tela nova: o gate define o título final no mesmo padrão ("… (V2 Expressive)" / "… (V2 Light)"). O dono renomeia a cópia para esse título exato, e o agente acha a tela por ele no `list_screens`.
+4. Quando um gate cria ou renomeia uma tela, a tabela abaixo é atualizada na mesma entrega.
+
+| Gold | Dark (Stitch) | Light (Stitch) |
+|---|---|---|
+| `splash` | Nutri Splash Screen (V2 Expressive) | Nutri Splash Screen (V2 Light) |
+| `o1` | Onboarding 1/4 - Teto do dia (V2 Expressive) | Onboarding 1/4 - Teto do dia (V2 Light) |
+| `o2` | Onboarding 2/4 - Compensação de treinos (V2 Expressive) | Onboarding 2/4 - Compensação de treinos (V2 Light) |
+| `o3` | Onboarding 3/4 - Distribuição das refeições (V2 Expressive) | Onboarding 3/4 - Distribuição das refeições (V2 Light) |
+| `o4` | Onboarding 4/4 - Alvos de macronutrientes (V2 Expressive) | Onboarding 4/4 - Alvos de macronutrientes (V2 Light) |
+| `home0` | Home vazia - Day 1 (V2 Expressive Timeline) | Home vazia - Day 1 (V2 Light Timeline) |
+| `home1` | Home no dia - 1300 kcal (V2 Expressive Timeline) | Home no dia - 1300 kcal (V2 Light Timeline) |
+| `homeX` | Home meta excedida - 2280 / 2000 kcal (V2 Expressive Timeline) | Home meta excedida - 2280 / 2000 kcal (V2 Light Timeline) |
+| `chat0` | Chat vazio (V2 Expressive) | Chat vazio (V2 Light) |
+| `chatL` | Chat loading - Estimando (V2 Expressive) | Chat loading - Estimando (V2 Light) |
+| `chatE` | Estimate com botões de ação (V2 Expressive) | Estimate com botões de ação (V2 Light) |
+| `chatT` | Selecionar refeição - Bottom Sheet (V2 Expressive) | Selecionar refeição - Bottom Sheet (V2 Light) |
+| `chatP` | Diálogo de confirmação para pular refeição (V2 Expressive) | Diálogo de confirmação para pular refeição (V2 Light) |
+| `chatF` | Foto de refeição e estimativa no Chat (V2 Expressive) | Foto de refeição e estimativa no Chat (V2 Light) |
+| `chatG` | Confirmação pós-gravação com recibo duplo-check (V2 Expressive) | Confirmação pós-gravação com recibo duplo-check (V2 Light) |
+| `cfg` | Configurações do perfil e dia (V2 Expressive) | Configurações do perfil e dia (V2 Light) |
+| `wipe` | Reiniciar registros de hoje - Diálogo Wipe (V2 Expressive) | Reiniciar registros de hoje - Diálogo Wipe (V2 Light) |
+| `push` | Notificação do sistema - Lembrete de refeição (V2 Expressive) | Notificação do sistema - Lembrete de refeição (V2 Light) |
+
+Telas novas previstas pelos gates (título que o dono dá à cópia):
+
+| Gold | Dark (Stitch) | Light (Stitch) | Gate |
+|---|---|---|---|
+| `chatA` | Chat com foto anexada (V2 Expressive) | Chat com foto anexada (V2 Light) | ST1 |
+| `homeW` | Home com treino de hoje - Bottom Sheet (V2 Expressive Timeline) | Home com treino de hoje - Bottom Sheet (V2 Light Timeline) | ST2 |
+| `o3t` | Onboarding 3/4 - Seletor de horário (V2 Expressive) | Onboarding 3/4 - Seletor de horário (V2 Light) | ST3 |
+| `o3s` | Onboarding 3/4 - Refeições Sáb e Dom (V2 Expressive) | Onboarding 3/4 - Refeições Sáb e Dom (V2 Light) | ST4 |
+| `cfgS` | Configurações com refeições por dia (V2 Expressive) | Configurações com refeições por dia (V2 Light) | ST4 |
+| `chatX` | Chat com texto longo demais (V2 Expressive) | Chat com texto longo demais (V2 Light) | ST5 |
+
+Títulos lidos pelo MCP do Stitch (`list_screens`) em 29/09/2026.
+
 ## Ciclo de vida
 
 | Situação | Estado | Local |

@@ -146,6 +146,7 @@ Mudança de layout que precisa de gold novo ou alterado no Stitch `Nutri` é um 
 Um plano de gate:
 
 - Abre com o **prompt exato** que o dono cola no Stitch, marcado como bloqueio do dono. Logo abaixo, as instruções extras: quais telas selecionar, o que anexar.
+- Chama as telas pelo **título exato do Stitch**, em toda instrução ao dono (selecionar, duplicar, renomear) e dentro do próprio prompt. Nunca pelo id de gold (`chatE`), que só aparece entre parênteses, para o agente. `V2 Expressive` = dark, `V2 Light` = light, com um bloco de prompt pronto por tema. Tela nova ganha no gate o título final, que o dono aplica na cópia. A tabela título ↔ gold fica em [stitch/README.md § Nomes das telas](../stitch/README.md#nomes-das-telas-regra-do-dono-29092026) e é atualizada a cada gate.
 - Não muda layout nem funcionalidade do app. Mexe só em gold PNG (`docs/qa/stitch/`), no mapa de IDs de `tools/export-stitch.mjs` e `tools/check-stitch.mjs`, na lista de golds do `AGENTS.md` e de `docs/qa/README.md`.
 - Tem uma verificação: o agente lê o projeto pelo MCP do Stitch, exporta os golds e confere um checklist. Se algo do prompt não aparece no Stitch, o agente **para na hora**, lista o que falta e não segue para nenhum plano dependente.
 - Termina `Concluído` só quando o checklist inteiro passou.
