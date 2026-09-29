@@ -55,6 +55,6 @@ if (failed) {
   console.error("\nCheck failed. Some Stitch gold PNGs are missing or empty.");
   process.exit(1);
 } else {
-  console.log("\nAll 38 Stitch gold PNGs verified successfully (19 dark + 19 light)!");
+  console.log("\nAll 40 Stitch gold PNGs verified successfully (20 dark + 20 light)!");
   process.exit(0);
 }

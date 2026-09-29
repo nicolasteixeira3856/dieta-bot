@@ -1,13 +1,13 @@
 # Gate Stitch — ST2 Home: atalho de treino
 
-- Estado: Aguardando o dono no Stitch
+- Estado: Concluído
 - Data: 29/09/2026
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
-- Executa: [ADR-020](../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
-- Bloqueia: [A22 Treino na Home](../../android/plans/a22-treino-home.md)
+- Executa: [ADR-020](../../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
+- Bloqueia: [A22 Treino na Home](../../../android/plans/a22-treino-home.md)
 
-Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
+Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 
 ## ⛔ Bloqueio do dono — prompts para o Stitch
 
@@ -118,13 +118,13 @@ No other text in the sheet. Keep the Home behind it unchanged.
 
 ### Checklist
 
-- [ ] As 3 Homes: linha "Treino de hoje" com chama gold logo abaixo dos macros, antes da timeline.
-- [ ] "Home vazia - Day 1": valor "Informar" em gold; "Home no dia" e "Home meta excedida": "{n} kcal · +{n} na meta".
-- [ ] Anel, pílula da meta, macros e timeline sem mudança.
-- [ ] Disclaimer inteiro visível acima do botão "Chat".
-- [ ] "Home com treino de hoje - Bottom Sheet": sheet com raio 22 no topo, campo 28pt, uma linha de crédito, Salvar e Cancelar do mesmo tamanho e mesma fonte.
-- [ ] Nenhuma outra copy no sheet.
-- [ ] Tokens do `AGENTS.md`; dark e light coerentes.
+- [x] As 3 Homes: linha "Treino de hoje" com chama gold logo abaixo dos macros, antes da timeline.
+- [x] "Home vazia - Day 1": valor "Informar" em gold; "Home no dia" e "Home meta excedida": "{n} kcal · +{n} na meta".
+- [x] Anel, pílula da meta, macros e timeline sem mudança.
+- [x] Disclaimer inteiro visível acima do botão "Chat".
+- [x] "Home com treino de hoje - Bottom Sheet": sheet com raio 22 no topo, campo 28pt, uma linha de crédito, Salvar e Cancelar do mesmo tamanho e mesma fonte.
+- [x] Nenhuma outra copy no sheet.
+- [x] Tokens do `AGENTS.md`; dark e light coerentes.
 
 Checklist verde: lista de golds (`AGENTS.md`, `docs/qa/README.md`) com `homeW`, `docs/stitch/README.md` com o título na tabela principal, estado `Concluído`, mover para `completed/`, índices e entrega git (`docs/st2-stitch-home-treino`).
 
@@ -138,3 +138,4 @@ Checklist verde: lista de golds (`AGENTS.md`, `docs/qa/README.md`) com `homeW`, 
 
 - 29/09/2026 — Gate criado. Aguardando o dono.
 - 29/09/2026 — Prompts reescritos com os títulos reais do Stitch (pedido do dono).
+- 29/09/2026 — Verificação: **passou** (após 2 rodadas de ajuste do dono). IDs novos: "Home com treino de hoje - Bottom Sheet (V2 Expressive Timeline)" `df7066fb62474c2aa9aea3804c2ba548`, "(V2 Light Timeline)" `cad05772505e480c997b722296b64473`. As 3 Homes mantêm IDs e títulos. Linha "Treino de hoje" medida no HTML a 390 px: 56 px, sem transbordar, nos 8 frames. Exportador: a viewport agora cresce até a altura do frame (o FAB fixo cobria o disclaimer só no render), e o `homeW` light é renderizado do HTML porque o screenshot do Stitch estava velho (`RENDER_FROM_HTML`). `homeW` entrou nos scripts (40 golds, 20 por tema). Sobram no projeto duas cópias sem uso com o título "Home no dia - 1300 kcal": `ad36520e364b41619c1c7d0e40551df1` (dark) e `43d0cbff74434241b8312d770ac262a1` (light), sem a linha de treino. Ignorar; o dono pode apagá-las.

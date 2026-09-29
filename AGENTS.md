@@ -94,9 +94,9 @@ Folder law:
 - Do not compare against `_legacy`
 - No PNG/JPG may sit in the `docs/qa/` root
 
-Gold filenames (19 per theme):
+Gold filenames (20 per theme):
 splash.png · o1.png · o2.png · o3.png · o4.png
-home0.png · home1.png · homeX.png
+home0.png · home1.png · homeX.png · homeW.png
 chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png
 cfg.png · wipe.png · push.png
 
