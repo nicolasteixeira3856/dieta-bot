@@ -1,5 +1,6 @@
 package com.nutri.android.ui
 
+import android.app.Application
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.RoborazziOptions
@@ -16,7 +17,8 @@ import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+// Plain Application: the real one starts PushSync on a Room flow that outlives each test (see StitchGoldTest).
+@Config(application = Application::class, sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
 class RoborazziSmokeTest {
 
     @get:Rule

@@ -1,5 +1,6 @@
 package com.nutri.android.ui
 
+import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -64,6 +65,9 @@ import org.robolectric.annotation.GraphicsMode
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
+// Plain Application: the real one starts PushSync on a Room flow that outlives each test and leaks
+// "Illegal connection pointer" into the next one (flaky UncaughtExceptionsBeforeTest).
+@Config(application = Application::class)
 class StitchGoldTest {
     @get:Rule
     val compose = createComposeRule()
