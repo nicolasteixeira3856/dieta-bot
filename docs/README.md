@@ -9,7 +9,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum (Planning fechado) | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A21–A24](android/README.md#planos-e-validacao) aguardando aprovação; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A21–A24](android/README.md#planos-e-validacao) aguardando aprovação; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12, A26](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
 | [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1–ST5](stitch/README.md#planos) concluídos; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S8](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) e [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendentes aprovação manual; [S1, S4, S2, S3, S5, S7, S9](server/plans/completed/) concluídos | `server/tests/` |
 
@@ -99,6 +99,7 @@ Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto
 25. [A16 Firebase App Distribution, versão 0.0.N](android/plans/completed/a16-app-distribution.md)
 26. [A9 chave de assinatura do release](android/plans/completed/a9-assinatura-release.md)
 27. [S9 `/v1/chat` aceita 2000 caracteres](server/plans/completed/s9-limite-texto-2000.md)
+28. [A26 Android CLI no loop de QA visual](android/plans/completed/a26-android-cli-qa.md) — `android screen capture` e `android layout` nas skills e no QA; gate `diff-gold.mjs` igual.
 
 ## Outros docs
 

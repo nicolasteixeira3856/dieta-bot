@@ -164,6 +164,33 @@ cmd /c "adb exec-out screencap -p > docs\qa\screencap-check.png"
 
 Provado em 2026-09-24: `docs/qa/screencap-check.png`, PNG `1080x2400`, tela inicial do emulador. Troque `screencap-check` pelo nome da tela.
 
+## Android CLI
+
+Instalado pelo dono em 29/09/2026, versão `1.0.16457483` ([A26](android/plans/completed/a26-android-cli-qa.md)). Instalação oficial no Windows:
+
+```
+curl -fsSL https://dl.google.com/android/cli/latest/windows_x86_64/install.cmd -o "%TEMP%\i.cmd" && "%TEMP%\i.cmd"
+```
+
+Binário em `%USERPROFILE%\AppData\AndroidCLI\android.exe`, no PATH do usuário. Depois: `android init`.
+
+Conferência:
+
+```
+android --version
+android info
+android emulator list
+android studio check
+```
+
+`android info` mostra o SDK (`%LOCALAPPDATA%\Android\Sdk`); `studio check` mostra o projeto `nutri-android` quando o Studio está aberto.
+
+Uso no QA visual: `android screen capture -o <png>`, `android screen capture --annotate -o <png>` e `android layout --flat -o <json>`. Regras em [docs/qa](qa/README.md#loop-de-implementação-visual-padrão-ouro).
+
+Skills oficiais: `android skills list` e `android skills add <id>`. O que entrar no projeto vai igual para as 4 pastas (`.agents`, `.grok`, `.hermes`, `.claude/skills`).
+
+Terminal ou sessão de agente aberta antes da instalação não vê o PATH novo. Abra outra, ou chame o caminho completo.
+
 ## Clients
 
 Os clients leem só `API_PUBLIC_URL` + `INVITE_CODE`. Nunca `OPENAI_API_KEY`.

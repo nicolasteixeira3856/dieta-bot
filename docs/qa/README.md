@@ -54,16 +54,17 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
    ```bash
    adb shell wm size 780x1688 && adb shell wm density 320
    ```
-3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Home (inclui interações): `tools/capture-home.sh dark|light`. Config (cfg, wipe + checagens de wipe/treino no Room): `tools/capture-config.sh dark|light`. Foto (chatA: anexo sem POST, ✕, troca, sair do Chat; chatF + galeria, câmera, 50 MP com EXIF → 2048 px < 2 MB, arquivo de 16 MB passa, WebP→JPEG): fake + `tools/capture-photo.sh dark|light` (AVD com `-camera-back virtualscene`). Substituir refeição + Enter (`chatReplace`, layout do `chatP`): fake + `tools/capture-replace.sh dark|light`. Push (alarmes reais, Registrar/Pular, tela de bloqueio): `tools/capture-push.sh dark|light` (~6 min). Chat: `node tools/fake-chat-server.mjs` + APK com `-PAPI_PUBLIC_URL=http://10.0.2.2:8765` + `tools/capture-chat.sh dark|light`. Manual:
+3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Home (inclui interações): `tools/capture-home.sh dark|light`. Config (cfg, wipe + checagens de wipe/treino no Room): `tools/capture-config.sh dark|light`. Foto (chatA: anexo sem POST, ✕, troca, sair do Chat; chatF + galeria, câmera, 50 MP com EXIF → 2048 px < 2 MB, arquivo de 16 MB passa, WebP→JPEG): fake + `tools/capture-photo.sh dark|light` (AVD com `-camera-back virtualscene`). Substituir refeição + Enter (`chatReplace`, layout do `chatP`): fake + `tools/capture-replace.sh dark|light`. Push (alarmes reais, Registrar/Pular, tela de bloqueio): `tools/capture-push.sh dark|light` (~6 min). Chat: `node tools/fake-chat-server.mjs` + APK com `-PAPI_PUBLIC_URL=http://10.0.2.2:8765` + `tools/capture-chat.sh dark|light`. Manual, com o [Android CLI](../SETUP-WINDOWS.md#android-cli):
    ```bash
-   adb exec-out screencap -p > docs/qa/android/current/{theme}/<id>.png
+   android screen capture -o docs/qa/android/current/{theme}/<id>.png
    ```
+   Alternativa sem o CLI: `adb exec-out screencap -p > docs/qa/android/current/{theme}/<id>.png`.
 4. Comparar contra o Gold:
    ```bash
    node tools/diff-gold.mjs            # splash + O1..O4, ou: node tools/diff-gold.mjs dark/o1 light/o1
    ```
    Na JVM, sem emulador: `StitchGoldTest` (`./gradlew.bat :app:testDevDebugUnitTest`), renders e máscaras em `apps/android/app/build/outputs/stitch-gold/`.
-5. Escrever a lista de diffs (layout, tokens, tipo, raio, ButtonGroup, CTA, timeline, macros semânticos) no plano da tela.
+5. Escrever a lista de diffs (layout, tokens, tipo, raio, ButtonGroup, CTA, timeline, macros semânticos) no plano da tela. Posição, tamanho e texto vêm medidos do `android layout --flat -o <scratchpad>/<id>.json` (testTag = `resource-id`, `bounds` na mesma grade de pixels do gold; ler o JSON como UTF-8). Cor, tamanho de fonte e raio vêm da imagem contra o gold: o `layout` não os traz. Elemento que não aparece no `layout`: `android screen capture --annotate` no scratchpad, nunca em `docs/qa/`.
 6. Ajustar a UI Compose e repetir 3–5 até passar no gate.
 
 ### Gate
