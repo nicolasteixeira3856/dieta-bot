@@ -25,15 +25,26 @@ This skill provides instructions for using the `android` CLI tool. The tool
 includes various commands for creating projects, running applications,
 interacting with devices, and managing the CLI environment.
 
-## Installation
+## Executable discovery and installation
 
-If the android tool is not in the path, install it. To install run the following
-command:
+First try the current PATH: `Get-Command android -ErrorAction SilentlyContinue`
+in PowerShell, or `command -v android` in a POSIX shell. On Windows, if this
+process predates installation, inspect the persisted user PATH with
+`[Environment]::GetEnvironmentVariable('Path', 'User')`, check candidate
+directories for android.exe, and invoke the verified executable by full path.
+A stale process PATH does not mean the CLI is absent. Do not reinstall, run
+`android init`, update global skills or require a new chat just for discovery.
 
-- Linux: curl -fsSL https://dl.google.com/android/cli/latest/linux_x86_64/install.sh \| bash
-- Mac Arm: curl -fsSL https://dl.google.com/android/cli/latest/darwin_arm64/install.sh \| bash
-- Mac Intel: curl -fsSL https://dl.google.com/android/cli/latest/darwin_x86_64/install.sh \| bash
-- Windows: curl -fsSL https://dl.google.com/android/cli/latest/windows_x86_64/install.cmd -o "%TEMP%\\i.cmd" \&\& "%TEMP%\\i.cmd"
+Confirm the version and specific command's `--help`. The help excerpt below is
+an upstream snapshot, not a guarantee of the installed version's capabilities.
+If installation or updating is actually needed, use the official instructions
+for the host platform within the user's authorized setup scope; do not run
+shell installers implicitly during app inspection.
+
+This repository copy is based on android/skills revision
+42dc2270e96032bd860bb94511e440aa00a43125. Local adaptations cover executable
+discovery, device coordination and the verified layout/screenshot commands.
+Repository approval, stack pins and one-agent rules govern generic recipes.
 
 ## SDK management
 
@@ -158,15 +169,15 @@ Update the Android CLI using the `android update` command.
               Usage: android completion [-h] [<shell>]
               Installs shell autocomplete configuration for the Android CLI in the
               current user profile
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
                 -V, --version    Print version information and exit
-              
+
               Positional Parameters:
                 <shell>  If provided, print the given shell completion without
                          installing. Supported: bash, zsh
@@ -178,7 +189,7 @@ Update the Android CLI using the `android update` command.
               Create a new Android project from available templates. Allows
               specifying project name, output directory, minSdk, and dry-run
               execution
-              
+
               Options:
                     --applicationId=PARAM  The application ID for the application
                                            (e.g. 'com.example.myapp')
@@ -192,12 +203,12 @@ Update the Android CLI using the `android update` command.
                                            name for Kotlin source files
                 -o, --output=PARAM         The destination project directory path
                                            (default is '.')
-              
+
               android options:
                     --sdk=PARAM            Path to the Android SDK
                 -v, --verbose              Enable verbose output for troubleshooting
                 -V, --version              Print version information and exit
-              
+
               Positional Parameters:
                 <template-name>  The template name
 
@@ -208,11 +219,11 @@ Update the Android CLI using the `android update` command.
               project's structure, including build targets and their corresponding
               output artifact locations (e.g., APKs). This information enables other
               tools and commands to locate build artifacts efficiently
-              
+
               Options:
                 -h, --help               Show the help message for this command
                     --project_dir=PARAM  The project directory to describe
-              
+
               android options:
                     --sdk=PARAM          Path to the Android SDK
                 -v, --verbose            Enable verbose output for troubleshooting
@@ -222,10 +233,10 @@ Update the Android CLI using the `android update` command.
               Usage: android docs [-h] [COMMAND]
               Android documentation commands for searching and fetching developer
               documentation from the official knowledge base
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
@@ -238,10 +249,10 @@ Update the Android CLI using the `android update` command.
               Usage: android emulator [-h] [COMMAND]
               Manage Android Virtual Devices (AVDs). Includes commands to start,
               stop, list, and view details about emulators
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
@@ -257,15 +268,15 @@ Update the Android CLI using the `android update` command.
     help
               Usage: android help [-h] [COMMAND]
               Shows the help of all commands
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
                 -V, --version    Print version information and exit
-              
+
               Positional Parameters:
                 COMMAND  The command to show help for
 
@@ -274,15 +285,15 @@ Update the Android CLI using the `android update` command.
               Print environment information including SDK location, connected
               devices, and configuration variables. Use specific fields to narrow
               the output
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
                 -V, --version    Print version information and exit
-              
+
               Positional Parameters:
                 <field>  The specific field to print the value of. If omitted print
                          all
@@ -291,10 +302,10 @@ Update the Android CLI using the `android update` command.
               Usage: android init [-h]
               Initializes the environment for the Android CLI. Sets up required
               configurations, directories, and default skills
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
@@ -306,7 +317,7 @@ Update the Android CLI using the `android update` command.
               Install an Android Application (one or more APKs) to a connected
               device or emulator without activating any components using incremental
               optimizations for faster deployment than adb
-              
+
               Options:
                     --apks=PARAM             The paths to the APKs, comma separated
                     --device=PARAM           The device serial number
@@ -317,7 +328,7 @@ Update the Android CLI using the `android update` command.
                                              incremental updates by transferring
                                              only modified code and resources;
                                              default: true)
-              
+
               android options:
                     --sdk=PARAM              Path to the Android SDK
                 -v, --verbose                Enable verbose output for
@@ -328,7 +339,7 @@ Update the Android CLI using the `android update` command.
               Usage: android layout [-dhp] [--device=PARAM] [--flat] [--full] [--no-idle]
                                     [--output=PARAM]
               Returns the layout tree of an application
-              
+
               Options:
                     --device=PARAM  The device serial number
                 -d, --diff          Deprecated; no-op flag. Will be removed in a
@@ -342,7 +353,7 @@ Update the Android CLI using the `android update` command.
                 -o, --output=PARAM  Writes the layout to the specified file or
                                     directory. If omitted, prints to standard output
                 -p, --pretty        Pretty-prints the returned JSON
-              
+
               android options:
                     --sdk=PARAM     Path to the Android SDK
                 -v, --verbose       Enable verbose output for troubleshooting
@@ -353,7 +364,7 @@ Update the Android CLI using the `android update` command.
                                  [--install-options=PARAM] [--type=PARAM] [--use-delta-install]
               Build, deploy, and launch an Android application on a connected device
               or emulator
-              
+
               Options:
                     --activity=PARAM         The activity name
                     --apks=PARAM             The paths to the APKs, comma separated
@@ -369,7 +380,7 @@ Update the Android CLI using the `android update` command.
                                              incremental updates by transferring
                                              only modified code and resources;
                                              default: true)
-              
+
               android options:
                     --sdk=PARAM              Path to the Android SDK
                 -v, --verbose                Enable verbose output for
@@ -379,10 +390,10 @@ Update the Android CLI using the `android update` command.
     screen
               Usage: android screen [-h] [COMMAND]
               Commands to view the device
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
@@ -398,13 +409,13 @@ Update the Android CLI using the `android update` command.
               Usage: android sdk [-h] [--platform=PARAM] [COMMAND]
               Manage the Android SDK installation. Includes commands to install,
               update, remove, and list available and installed SDK packages
-              
+
               Options:
                 -h, --help            Show the help message for this command
                     --platform=PARAM  Target platform <os>_<arch> (e.g.
                                       linux_x86_64, mac_arm64, windows_x86),
                                       defaults to current host
-              
+
               android options:
                     --sdk=PARAM       Path to the Android SDK
                 -v, --verbose         Enable verbose output for troubleshooting
@@ -419,10 +430,10 @@ Update the Android CLI using the `android update` command.
               Usage: android skills [-h] [COMMAND]
               Manage Android CLI skills. Includes commands to install, remove, list,
               and search for skills by keyword
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
@@ -438,10 +449,10 @@ Update the Android CLI using the `android update` command.
     studio
               Usage: android studio [-h] [COMMAND]
               Android Studio commands
-              
+
               Options:
                 -h, --help       Show the help message for this command
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting
@@ -460,11 +471,11 @@ Update the Android CLI using the `android update` command.
     update
               Usage: android update [-h] [--url=PARAM]
               Update the Android CLI to the latest version
-              
+
               Options:
                 -h, --help       Show the help message for this command
                     --url=PARAM  The URL to download the update from
-              
+
               android options:
                     --sdk=PARAM  Path to the Android SDK
                 -v, --verbose    Enable verbose output for troubleshooting

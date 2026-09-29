@@ -7,3 +7,8 @@
 *.jpg   binary
 *.ttf   binary
 *.jar   binary
+# Repository skill Markdown must remain byte-identical across all four mirrors.
+/.agents/skills/**/*.md text eol=lf
+/.grok/skills/**/*.md text eol=lf
+/.hermes/skills/**/*.md text eol=lf
+/.claude/skills/**/*.md text eol=lf

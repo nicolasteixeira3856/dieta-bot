@@ -1,113 +1,95 @@
-Run `android layout --help` and `android screen --help`.
+Run `android layout --help`, `android screen capture --help` and
+`android screen resolve --help` for the installed version. Resolve the executable
+as described in [the CLI skill](../SKILL.md).
 
-## UI Dump
+## Device coordination
 
-`android layout` returns a flat JSON list of the UI elements on screen. `android
-layout --diff` returns a flat JSON list of the UI elements that have changed
-since the last call to `layout` or `layout --diff`
+Select an explicit device serial. Coordinate with any chat already using the
+device before changing app state, navigation, theme, size/density or installed
+packages. Layout and clean screenshots inspect the current state; instrumentation
+installation by a first layout call is a separate device mutation. Use an idle
+test device for initialization and journeys. Do not run init, install an APK,
+reset data or navigate merely to demonstrate access to another chat's device.
 
-Each JSON object represents a UI element in the Android app. The following
-properties may be present:
+## UI dump
 
-- `text` - any literal text the element contains
-- `resourceId` - the Android resource id used to refer to the element
-- `contentDesc` - a description of a UI element for use by accessibility tools
-- `interactions` - the set of user interactions the element supports. May contain one or more of: `checkable`, `clickable`, `focusable`, `scrollable`, `long-clickable`, `password`
-- `state` - the set of states the element is in. May contain one or more of `checked`, `focused`, `selected`
-- `bounds` - the screen coordinates of the bounding rectangle of the element, in the format `[min X,min Y][max X, max Y]`
-- `center` - the screen coordinates of the center of the element, in the format `[x,y]`
-- `off-screen` - if true, the element is in the UI hierarchy but not visible; it may require scrolling to view.
+`android layout --device <serial>` returns a JSON tree by default.
+`--flat` returns a flat list; `--full` includes non-interactive and hidden
+elements; `--output <file.json>` saves JSON without shell encoding ambiguity.
+Use UTF-8 when parsing saved JSON.
 
-Use `layout` as a primary means of examining an Android app. Use `layout --diff`
-to focus on changes and to keep your context small. Example: When entering
-digits into a calculator, use `layout --diff` to output only the digit readout
-element.
+In CLI 1.0.16457483, `--diff` is a deprecated no-op. It does not return
+incremental changes or reduce the response. To inspect only relevant elements,
+filter a fresh layout locally and compare saved captures when needed.
+`--no-idle` avoids waiting for idle state; use it for a diagnosed idle-wait
+problem, not as the default.
 
-`layout` may fail due to the app displaying a WebView or animation; in these
-cases, use `android screen capture --annotate` to inspect the app. This failure
-will likely resolve after navigating away from the current screen.
+Each element may contain:
 
-## Screenshot
+- `text`, `resourceId`, `contentDesc`.
+- `interactions`: checkable, clickable, focusable, scrollable, long-clickable, password.
+- `state`: checked, focused, selected.
+- `bounds`: `[min X,min Y][max X,max Y]`; `center`: `[x,y]`.
+- `off-screen`: the element exists in the hierarchy but may need scrolling to be visible.
 
-`android screen capture -o <file path>` saves a PNG of the current device screen
-to `<file path>`
+Inspect JSON structure before assuming a flat list or optional field exists.
+Layout helps locate elements and measure bounds; it does not prove color,
+typography or visual fidelity. WebViews, animations or idle waits can prevent
+a useful dump. Inspect a screenshot and report the limitation before changing
+the device state.
 
-Use `screen capture` as a secondary means of examining an Android app
-Examples:
+## Clean screenshot
 
-- Understanding the content of an on-screen image
-- Looking at a `WebView` (web content does not always appear in the ui dump)
-- Trying to find a UI element by its visual appearance
+`android screen capture --device <serial> --output <file.png>` saves a PNG
+of the current screen. Visually examine each PNG before relying on it.
 
-**IMPORTANT** : Always *VISUALLY* examine the PNG image returned from `android
-screen` BEFORE doing anything else.
+Use screenshots for images, WebViews, visual appearance and the repository's
+gold comparison. Required app captures belong to docs/qa/android/current/dark/
+or light/; golds in docs/qa/stitch/ are separate read-only comparison inputs.
+Diagnostic captures go in scratch output. Do not claim a screenshot alone
+completes the written diff and iterative visual QA.
 
-## Annotated Screenshot
+## Annotated screenshot
 
-`android screen capture --annotate -o <file path>`
-`android screen resolve --screen <path> --string <string>`
+`android screen capture --device <serial> --annotate --output <file.png>`
+adds numbered labels and bounding boxes. Visually inspect it. Keep annotated
+images in scratch output; use clean images for gold comparisons.
 
-The `--annotate` command adds numerical labels and bounding boxes around UI
-elements. Use this command to locate UI elements that cannot be located in the
-`layout` output.
-
-**IMPORTANT** : When using `android screen --annotate`, always *VISUALLY* examine
-the resulting PNG file.
-
-To refer to these labels in input commands, use `screen resolve` to convert
-labels into coordinates:
-
-`android screen resolve --screen <file path> --string "#3"` returns `<x coord of
-region 3> <y coord of region 3>`
-
-To save turns, you can combine shell commands:
-
-`adb shell input $(android screen resolve --screen screen.png --string "tap #34")`
-
-This command taps on region #34 from `screen.png`
+In the verified CLI, use
+`android screen resolve --screenshot <file.png> --string "tap #3"`.
+The option is `--screenshot`, not `--screen`. The result substitutes the
+label with its center coordinates. Inspect that result, confirm the current
+screen still matches the annotated capture, then send the authorized input
+to the selected device. Do not combine resolution with immediate execution of
+uninspected shell text.
 
 ## Input
 
-Use `adb shell input` for interacting with Android devices. Refer to the
-`"interactions"` property of an element for what interactions can be performed
-on a particular element.
+Use `adb -s <serial> shell input` for authorized interaction. Locate the
+element's current center or bounds and check its available interactions.
 
-Interact with UI elements with their `center` coordinate or their `bounds`
-coordinates:
-`json
+```json
 {
-"key": -248568265,
-"class": "android.widget.Button",
-"bounds": "[138,9][167,38]",
-"center": "[152,23]"
-}`
+  "key": -248568265,
+  "class": "android.widget.Button",
+  "bounds": "[138,9][167,38]",
+  "center": "[152,23]"
+}
+```
 
-To tap on this button, you would execute `adb shell input tap 152 23`. This taps
-the center.
+Tap this center with `adb -s <serial> shell input tap 152 23`.
+For a scrollable list with bounds `[100,200][400,600]`, a slow upward swipe is
+`adb -s <serial> shell input swipe 250 400 250 200 500` (500 ms).
+Scroll only when the requested action permits it; inspect the result.
 
-    {
-      "key": 12487234,
-      "class": "com.example.ui.ScrollableList",
-      "bounds": "[100,200][400,600]",
-      "center": "[250,400]"
-    }
+### Text input
 
-To scroll down on this list, you would execute `adb shell input swipe 250 400
-250 200 500`. This swipes from the center to the top over 500ms.
+Ensure the field is focused in its state list before input.
+`adb -s <serial> shell input text "arroz%sfeijao"` illustrates ADB's
+`%s` space convention. Shell quoting and special-character behavior differ
+between PowerShell and POSIX; this command is not a general Unicode input API.
+Use the project's existing Unicode-capable capture/test path when required.
+Enter uses `adb -s <serial> shell input keyevent 66`.
 
-### Text Input
-
-To enter text, ensure the field is focused and execute `adb shell input text
-"<text>"`.
-
-- **Spaces (`%s`):** Replace spaces with `%s` (Android ignores text after raw spaces): `adb shell input text "Hello%sworld"` (enters `"Hello world"`).
-- **Special characters:** Escape shell metacharacters (`&`, `$`, `(`, `)`, `!`): `adb shell input text "AT\&T"` or `adb shell input text 'Price:\$10'`.
-- **Submit / Enter:** `adb shell input keyevent 66`
-
-## Android Interaction Rules
-
-1. Always ensure text input fields have `"focused"` in their `"state"` list before entering text.
-2. If an element has `"scrollable"` in its `"interactions"` list, try scrolling it when looking for missing UI elements.
-3. Always scroll slowly when executing scroll inputs. The 5th argument to `adb
-   shell input swipe` controls scroll duration.
-4. Content may take time to load; if a `layout` is missing information after you take an action, wait a few seconds, then perform `layout --diff` to see if anything changes.
+After an authorized action, allow content to load and fetch a fresh layout.
+Do not use `--diff` to wait for or prove a change.

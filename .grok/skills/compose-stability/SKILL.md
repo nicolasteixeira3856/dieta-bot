@@ -1,38 +1,18 @@
 ---
 name: compose-stability
-description: Garante estabilidade de recomposição e alta performance em Jetpack Compose. Use ao criar UI States, Composables complexos, listas (LazyColumn) ou ao investigar lentidão de renderização.
+description: Review Compose state stability and recomposition in Dieta Bot when changing UiState, complex composables or lists, or investigating rendering delays.
 ---
 
-# compose-stability
+# Compose stability
 
-Orientações para garantir que o compilador do Jetpack Compose considere as classes estáveis e ative o *smart recomposition skipping*.
+Work within [AGENTS](../../../AGENTS.md) and the approved plan. Check actual state types and compiler/build configuration before prescribing annotations or dependencies.
 
-## Regras Fundamentais
+- Immutable state must remain immutable through its nested values. Use @Immutable only when that promise is true; use @Stable only when its change-notification contract is satisfied.
+- Kotlin List is a read-only interface, not proof of immutability. An annotated wrapper does not make a mutable backing collection immutable. Use defensive copies or existing immutable data structures as appropriate.
+- Preserve existing dependencies. Adding kotlinx.collections.immutable needs to be within the approved scope; it is not an automatic prerequisite.
+- Pass state and callbacks to children. Avoid mutable captures that invalidate the intended stability contract.
+- Use derivedStateOf when it reduces meaningful recompositions for frequently changing inputs, such as scrolling; do not wrap every calculation.
 
-1. **Anotar UI States**:
-   - Sempre anote classes de estado de UI com `@Immutable` ou `@Stable` (de `androidx.compose.runtime`).
-   ```kotlin
-   @Immutable
-   data class HomeUiState(
-       val eatenKcal: Int = 0,
-       val proteinG: Int = 0,
-       val logs: ImmutableList<MealLogItem> = persistentListOf(),
-       val isLoading: Boolean = false,
-   )
-   ```
+For compiler stability reports, first inspect the current Compose compiler configuration. The repository does not currently configure a reports/metrics destination; an arbitrary Gradle property is not evidence that reports were produced. Configure and verify reports only within a requested, approved performance investigation, then inspect the generated artifacts.
 
-2. **Coleções Imutáveis**:
-   - A biblioteca padrão do Kotlin `List<T>` é tratada como instável pelo Compose Compiler porque pode ser implementada por uma lista mutável (`ArrayList`).
-   - Use `kotlinx.collections.immutable.ImmutableList` ou passe listas embrulhadas em data classes anotadas com `@Immutable`.
-
-3. **Estabilidade de Lambdas**:
-   - Evite passar lambdas instáveis ou referências mutáveis dentro de loops ou `items(list)`.
-   - Prefira lambdas que invocam métodos diretos do ViewModel no destino de nível superior (`onLogClick = vm::onLogSelected`).
-
-4. **Derivação de Estado com `derivedStateOf`**:
-   - Quando um cálculo de estado derivado muda frequentemente (ex: posição de scroll), use `derivedStateOf { ... }` para evitar recomposições a cada pixel.
-
-5. **Auditoria com Compose Compiler Metrics**:
-   - Gerar relatórios de estabilidade:
-     `./gradlew.bat assembleDevRelease -PcomposeCompilerReports=true`
-   - Verificar classes marcadas como `unstable` em `build/compose_compiler/`.
+Validate changed behavior with the relevant dev tests. Changed UI also needs the visual workflow; stable annotations and passing tests do not prove a gold match.

@@ -1,20 +1,21 @@
 ---
 name: dieta-bot-android-feature
-description: Implement a feature in the Dieta Bot Android client. Use when the request is a screen, a rule, an API client, or day persistence. Folder apps/android.
+description: Implement a named approved Dieta Bot Android plan for a screen, domain rule, API client or local persistence, within apps/android.
 ---
 
-# dieta-bot-android-feature
+# Dieta Bot Android implementation
 
-Folder: `apps/android/`. Do not edit `server/` in this flow.
+Read [AGENTS](../../../AGENTS.md), [SDD](../../../docs/sdd/README.md), the [Android context](../../../docs/android/README.md) and the named approved plan. Planning alone does not authorize code. Check any prerequisite Stitch gate is completed before layout work.
 
-Order:
-1. Domain rule test (TDD).
-2. Repository / DataStore.
-3. ViewModel + UiState.
-4. Composable.
-5. `.\gradlew.bat test` and `compileDebugKotlin`.
-6. Emulator screenshot if UI changed.
+Keep server implementation outside this client delivery. Use domain rules, Room/repository boundaries, screen-scoped ViewModel + UiState, and Compose as needed by the feature; do not introduce layers or tests without a relevant behavior to validate.
 
-Parity: photo ≤1280 JPEG 70, header `X-Invite`, timeout 20s, home day 1 no chip.
+- Structured profile/day/meal state uses Room. DataStore is only a legacy import path; do not restore day-state JSON persistence.
+- Photo processing follows [ADR-018](../../../docs/android/adrs/ADR-018-foto-2048.md): apply rotation, longest side at most 2048 px without upscaling, JPEG q85, EXIF stripped, 16 MB guard.
+- Read [Chat behavior](../../../docs/produto/specifications/chat.md) and the [HTTP contract](../../../docs/api-contract.md). Client credentials are API_PUBLIC_URL + INVITE_CODE / X-Invite, never an OpenAI key.
+- Follow [NetworkModule](../../../apps/android/app/src/main/java/com/nutri/android/core/network/NetworkModule.kt): connect 20 s, read/write 60 s, overall call 65 s. Network failures use the Chat retry state; they are not low-confidence portion questions.
+- Home/Chat day-one chips depend on their matching specifications and golds; do not ban every chip.
+- Preserve flavor boundaries and dev-only telemetry. Events carry enums and numbers, never user text.
 
-Do not restore Flutter/RN. No Room in this cut (DataStore/JSON).
+From apps/android, run assembleDevRelease, testDevDebugUnitTest and verifyRoborazziDevDebug as required by the plan. Changed UI additionally needs fresh dark/light emulator captures, measured bounds and a written comparison with matching Stitch golds; use the visual skill.
+
+Record actual results, pending manual validation and plan lifecycle before the required scoped git delivery. Do not declare completion from compilation alone or include unrelated changes.

@@ -246,6 +246,12 @@ Criação, movimentação ou substituição:
 4. Specs, planos, validações.
 5. Links relativos e referências ao caminho antigo.
 
+## Shared workflow maintenance
+
+Scope: repository agent instructions and their supporting validation tools; no client or server implementation ownership. Existing product and architecture authorities remain unchanged.
+
+Plans: [maintenance index](plans/README.md). Completed: [SD1 — Repository skill alignment](plans/completed/sd1-skills-alignment.md), `Concluído`.
+
 ## Templates
 
 - [README de contexto](templates/context-readme.md)

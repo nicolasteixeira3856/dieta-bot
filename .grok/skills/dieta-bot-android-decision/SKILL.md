@@ -1,13 +1,17 @@
 ---
 name: dieta-bot-android-decision
-description: Decide whether a Dieta Bot idea is a feature, a hypothesis, or a constitution violation. Use before a new spec or code, or when the request reopens Flutter, RN, TDEE, a cap, or an extra screen.
+description: Evaluate a Dieta Bot product or architecture proposal before a specification or implementation plan, especially when it touches a frozen decision.
 ---
 
-# dieta-bot-android-decision
+# Dieta Bot decisions
 
-1. Read `AGENTS.md`. If the request touches a frozen decision, refuse and cite the line.
-2. A new feature needs 3 options A/B/C before code.
-3. Each idea in 3 lines: user in <15s / system returns / VALIDATED or HYPOTHESIS.
-4. Live stack is only `apps/android/` + `server/`. Flutter and RN are dead.
-5. Do not invent a screen outside splash O1 O2 T0 T1 T2 T3.
-6. ADR in `docs/decisions/` if the decision sticks.
+Start at the [documentation matrix](../../../docs/README.md), then read [AGENTS](../../../AGENTS.md), the owning context and [SDD precedence](../../../docs/sdd/README.md#precedência).
+
+- Explain whether the request implements an existing decision, proposes an unvalidated hypothesis, or changes a frozen decision. Cite the relevant source; offer alternatives only when they help resolve an actual open choice.
+- The latest explicit owner decision has precedence. If the owner intentionally changes a frozen decision, document the new specification and, when architectural, a successor ADR; do not reject the owner's request merely because the older rule was frozen.
+- Without such an owner decision, retain the current product boundaries. Use [ADR-012](../../../docs/produto/adrs/ADR-012-chat-home-perfil.md), its accepted successors, live specifications and Stitch gates rather than obsolete T0–T3 screen lists.
+- New ADRs belong to docs/<context>/adrs/. Accepted ADRs 001–011 stay unchanged in docs/decisions/.
+- Planning is documentary. Code starts only after explicit approval identifying the implementation plan. A design requiring new/changed golds first needs a separate owner-run Stitch gate completed in the Stitch context.
+- One agent; scope the delivery to its owner. Android and server implementation do not share a client goal. Flutter and RN remain retired.
+
+Do not invent a new screen, stack migration, TDEE integration or eat-back cap as a routine implementation choice.

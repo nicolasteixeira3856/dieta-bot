@@ -127,6 +127,8 @@ Engineering skills:
 android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · material3-expressive
 
 Official Google skills (npx or `android skills`) stay.
+Apply their recipes within the approved plan, current specifications, Stitch golds and stack pins. Examples do not authorize new screens, navigation migrations, SDK/dependency upgrades, new test frameworks, global skill installation or additional agents. Execute Play-policy checks sequentially under this repository's one-agent rule.
+After a skill change, synchronize all four complete trees and run `node tools/check-skills.mjs` (read-only; `--root <path>` supports fixture checks). It verifies inventories, bytes, retired names and concrete relative Markdown references; validate YAML metadata separately.
 Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar.
 
 ## How to work

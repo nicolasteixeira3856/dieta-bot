@@ -103,6 +103,8 @@ Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto
 
 ## Outros docs
 
+Shared workflow maintenance: [SD1 — Repository skill alignment](sdd/plans/completed/sd1-skills-alignment.md), `Concluído`; [SDD maintenance index](sdd/plans/README.md).
+
 | Arquivo | Papel |
 |---|---|
 | [api-contract.md](api-contract.md) | contrato HTTP vigente |
