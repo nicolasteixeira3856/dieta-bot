@@ -18,6 +18,7 @@ export const DARK_SCREENS = {
   o2: "c97ade760dcb4c3b8c55a80faab7510f",
   o3: "14440390e2d94582af1efa4e8aa4573b",
   o3t: "cb0d43cb5159426dae69f7c3d6a320bb",
+  o3s: "e315333953d848ba926bc1674adf6c7f",
   o4: "9b9a9ab5dd9e471f9ff600ef6273cc6a",
   home0: "9e798987e4794692a03d42e2fb7cb249",
   home1: "fad15337390b4638b5d51fdac191a010",
@@ -32,6 +33,7 @@ export const DARK_SCREENS = {
   chatG: "5e95d8451bf447989bd62a2e9dd38909",
   chatA: "242efa973e9e4bf38f570319af81eed3",
   cfg: "ffb8e640dff34e8b9015e4936f36ebe5",
+  cfgS: "8a05d4beabc04253a45e7b09e0975085",
   wipe: "f2797b013a714413ac252918753dffa9",
   push: "f9c469937daa43849a07deb36ac0610d"
 };
@@ -42,6 +44,7 @@ export const LIGHT_SCREENS = {
   o2: "8ab9ffbf98294b9c834d5c7c480f0419",
   o3: "87f1e6f1b9334faeae8f40f6cebf56e5",
   o3t: "57b1c448f8d0475591c8827f2ea04ff6",
+  o3s: "97623fec43ad4f7892c6790de8d73a97",
   o4: "9e763f0f8a6b4245894f38044e6d48f4",
   home0: "9f2849ad1ae9413f8ef23ae7777051a0",
   home1: "83adedc45ff1441ea398414b7f41dede",
@@ -56,6 +59,7 @@ export const LIGHT_SCREENS = {
   chatG: "c226508d6c9b4830952a42005f1cf2f4",
   chatA: "f2ea449a4ed44d439a35115d0ac1bd1e",
   cfg: "d582887ce63242a9ab48b882647ddbb9",
+  cfgS: "2cca2addc43b47a195cee2e2bfc3901a",
   wipe: "bacd8c4d917040d687ef6a4e9ddedad2",
   push: "038a997a4f2247c9a12da72aea01f73c"
 };
