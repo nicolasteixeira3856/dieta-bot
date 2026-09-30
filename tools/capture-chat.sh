@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Chat QA on a running emulator against tools/fake-chat-server.mjs (no OpenAI):
 # onboarding -> chat0 -> chatL -> (dark: timeout + retry) -> chatE -> chatT -> chatP -> Gravar -> chatG
-# -> Home ring -> compact -> chatX (A25: 2100 characters block send and photo; back to 2000 sends). Captures land in docs/qa/android/current/<theme>/.
+# -> Home ring -> compact -> chatX (A25: 2100 characters block send and photo; back to 2000 sends)
+# -> A29: routine over 3 past days -> chatS (Quase igual, Registrar) -> plan + Registrar assim -> chatR -> chatM.
+# Captures land in docs/qa/android/current/<theme>/. SCENES=v2 runs only onboarding + the A29 scenes.
 #
 # Prereqs: node tools/fake-chat-server.mjs running on the host (port 8765);
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
 #   AVD at gold geometry (wm size 780x1688, wm density 320); python3; curl.
-# Usage: tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -69,6 +71,7 @@ EOF
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 
+if [ "${SCENES:-all}" != v2 ]; then
 mode false
 tap 'resource-id="home-fab"' 1.5 && expect "FAB opens Chat" 'resource-id="chat"'
 shot chat0
@@ -261,6 +264,129 @@ tap 'resource-id="chat-send"' 3
 expect "2000 characters answered" 'resource-id="chat-actions"'
 len=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['textLen'])")
 if [ "$len" = 2000 ]; then echo "  ✓ fake got 2000 characters"; else echo "  ✗ fake got $len characters"; FAIL=1; fi
+fi
+
+# ------------------------------------------------------------------ A29: chatS, chatR, chatM (ST6)
+# The device clock moves (cmd alarm set-time, no root): 3 breakfasts on 3 past days make a strong
+# dynamic routine through the real flow (fake memory_updates -> Gravar -> memory.bin, Keystore key).
+# Then today at 08:10 (America/Sao_Paulo) the routine card shows (chatS); at 20:15 the plan (chatR)
+# and the memory chips (chatM) are captured on seeded threads, like seed_gold.
+fake_mode() { curl -s -X POST -d "$1" "$FAKE/__mode" >/dev/null; }
+set_clock() { # set_clock <days from today> <HH:MM in Sao Paulo>
+  local ms
+  ms=$("$PY" -c "
+import sys, datetime, zoneinfo
+sp = zoneinfo.ZoneInfo('America/Sao_Paulo')
+d = datetime.datetime.now(sp).date() + datetime.timedelta(days=int(sys.argv[1]))
+h, m = map(int, sys.argv[2].split(':'))
+print(int(datetime.datetime(d.year, d.month, d.day, h, m, tzinfo=sp).timestamp() * 1000))" "$1" "$2")
+  "$ADB" shell settings put global auto_time 0
+  "$ADB" shell cmd alarm set-time "$ms" >/dev/null
+}
+sql() { # sql <python body using c (sqlite3 connection) and today (iso)>
+  "$ADB" shell am force-stop $PKG
+  rm -f "$TMP"/nutri.db*
+  for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+  "$PY" - "$TMP/nutri.db" "$1" <<'EOF'
+import sqlite3, sys, time, datetime, zoneinfo
+c = sqlite3.connect(sys.argv[1])
+today = datetime.datetime.now(zoneinfo.ZoneInfo("America/Sao_Paulo")).date().isoformat()
+exec(sys.argv[2])
+c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
+EOF
+  "$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
+  "$ADB" shell chmod 644 /data/local/tmp/nutri.db
+  "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+}
+open_chat() { "$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3; tap 'resource-id="home-fab"' 1.5; }
+CLEAN='for t in ("chat_message", "day_digest", "meal_log", "slot_skip"): c.execute(f"delete from {t}")'
+
+echo "  A29 routine: 3 breakfasts on 3 past days"
+# Emulator clock and host clock can disagree by a day at midnight: both use Sao Paulo dates.
+sql "$CLEAN"
+fake_mode '{"routine": true}'
+for back in 3 2 1; do
+  set_clock "-$back" 08:10
+  open_chat
+  dump
+  if grep -q 'resource-id="chat-routine"' "$TMP/ui.xml"; then echo "  ✗ card before 3 days (day -$back)"; FAIL=1; else echo "  ✓ no card on day -$back"; fi
+  tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "cafe%sde%ssempre"; tap 'resource-id="chat-send"' 3
+  expect "day -$back: estimate with Gravar" 'resource-id="chat-record"'
+  [ "$back" = 3 ] && expect "day -3: Memória atualizada on the answer (leite)" 'resource-id="chat-memory-updated"'
+  [ "$back" = 1 ] && expect "day -1: origin chips (permanente + dinâmica)" 'chat-memory-permanent.*chat-memory-dynamic'
+  tap 'resource-id="chat-record"' 2
+  expect "day -$back: receipt + Memória atualizada (routine applied)" 'resource-id="chat-receipt-[0-9]+"'
+done
+facts=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print([(f['id'], f['days_seen']) for f in json.load(sys.stdin)['facts']])")
+echo "  facts sent on day -1: $facts"
+
+echo "  A29 chatS: today 08:10, café empty"
+set_clock 0 08:10
+fake_mode '{}'
+open_chat
+expect "routine card for Café da manhã" 'resource-id="chat-routine"'
+expect "card says O de sempre no Café da manhã?" 'O de sempre no Caf'
+expect "dynamic memory chip" 'resource-id="chat-memory-dynamic"'
+shot chatS
+before=$(calls)
+tap 'resource-id="chat-routine-edit"' 1.2
+dump
+case "$(grep -o 'text="[^"]*"[^>]*resource-id="chat-input"' "$TMP/ui.xml")" in *"2 ovos mexidos"*) echo "  ✓ Quase igual filled the composer";; *) echo "  ✗ composer not filled"; FAIL=1;; esac
+if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then echo "  ✓ keyboard open"; else echo "  ✗ keyboard closed"; FAIL=1; fi
+"$ADB" shell input keyevent 4; sleep 0.6
+tap 'resource-id="chat-routine-record"' 2
+expect "Registrar: receipt with Memória atualizada" 'resource-id="chat-memory-updated"'
+after=$(calls)
+if [ "$after" = "$before" ]; then echo "  ✓ Registrar made no POST"; else echo "  ✗ Registrar posted ($before -> $after)"; FAIL=1; fi
+dump; if grep -q 'resource-id="chat-routine"' "$TMP/ui.xml"; then echo "  ✗ card still there after Registrar"; FAIL=1; else echo "  ✓ card gone after Registrar"; fi
+logged=$(db "select m.name, l.kcal, l.p, l.carbs, l.fat, l.source from meal_log l join meal_slot m on m.id = l.slotId order by l.id desc limit 1")
+case "$logged" in *"Café da manhã', 440, 25, 38, 22, 'routine'"*) echo "  ✓ routine logged: $logged";; *) echo "  ✗ routine log: $logged"; FAIL=1;; esac
+
+echo "  A29 chatR: plan -> Registrar assim"
+set_clock 0 20:15
+sql "$CLEAN"
+fake_mode '{"plan": true}'
+open_chat
+tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "vou%sfazer%spizza"; tap 'resource-id="chat-send"' 3
+expect "plan: projected day panel" 'resource-id="chat-plan-panel"'
+expect "plan: Registrar assim" 'resource-id="chat-record-plan"'
+dump; if grep -q 'resource-id="chat-record"\|resource-id="chat-swap"' "$TMP/ui.xml"; then echo "  ✗ Gravar/Trocar on a plan"; FAIL=1; else echo "  ✓ no Gravar/Trocar/Pular"; fi
+tap 'resource-id="chat-record-plan"' 2
+expect "Registrar assim: receipt" 'resource-id="chat-receipt-[0-9]+"'
+logged=$(db "select m.name, l.kcal, l.source from meal_log l join meal_slot m on m.id = l.slotId")
+case "$logged" in *"Jantar', 420, 'user'"*) echo "  ✓ plan logged in Jantar: $logged";; *) echo "  ✗ plan log: $logged"; FAIL=1;; esac
+fake_mode '{}'
+
+# Gold thread: 1.640 kcal eaten (86P 152C 46G), ceiling 2.200, targets 167/223/74 (ST6 chatR).
+sql "$CLEAN"'
+slots = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+c.execute("update profile set ceilingMode=?, kcalSame=2200, eat=?, proteinTargetG=167, carbTargetG=223, fatTargetG=74", ("same", "zero"))
+c.execute("update day set workoutKcal=null")
+for slot, kcal, p, carbs, fat in [(slots[0], 440, 25, 38, 22), (slots[1], 820, 45, 76, 14), (slots[2], 380, 16, 38, 10)]:
+    c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "x", kcal, p, slot, carbs, fat, "user"))
+now = int(time.time() * 1000)
+reply = chr(10).join(["Para caber nas 560 kcal que sobram hoje:", "• 1 pão sírio (60 g)", "• 2 colheres de sopa de molho de tomate (30 g)",
+    "• 100 g de frango desfiado", "• 30 g de milho", "• 30 g de muçarela", "Monte e leve ao forno a 200 °C por 8 a 10 min.", "Total: ~420 kcal · 40P · 38C · 12G"])
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "Vou fazer uma pizza de pão sírio na janta. Quantas gramas de cada item?", now - 2000))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,intent) values(?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", reply, now - 1000, 420, 40, 38, 12, "high", slots[3], "plan"))
+'
+open_chat
+expect "gold plan: Dia 1.640 -> 2.060 de 2.200" '1\.640.*2\.060.*2\.200'
+shot chatR
+
+echo "  A29 chatM: memory chips"
+sql "$CLEAN"'
+first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
+now = int(time.time() * 1000)
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "Café da manhã igual ao de sempre, mas hoje com pão integral", now - 2000))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,intent,memoryUsedKinds,memoryUpdated) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", "Usei o seu café de sempre, com pão integral no lugar do francês e leite semidesnatado, como você costuma usar.", now - 1000, 430, 26, 36, 20, "high", first, "log", "permanent,dynamic", 1))
+'
+open_chat
+expect "chips in order" 'chat-memory-updated.*chat-memory-permanent.*chat-memory-dynamic'
+shot chatM
+"$ADB" shell settings put global auto_time 1
 
 rm -rf "$TMP"
 exit $FAIL

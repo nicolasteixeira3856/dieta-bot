@@ -2,6 +2,7 @@ package com.nutri.android.feature.chat
 
 import androidx.compose.runtime.Immutable
 import com.nutri.android.core.database.MealSlot
+import com.nutri.android.domain.ProjectedDay
 import com.nutri.android.domain.SlotSuggestions
 
 @Immutable
@@ -14,6 +15,28 @@ data class EstimateView(
     val slotQuestion: String?,
     /** Server follow-up when confidence is not high. */
     val question: String?,
+)
+
+/**
+ * Memory notices under a bubble (A29, chatM): `Memória atualizada` when this turn changed the memory,
+ * then the kinds of the facts the answer used. Informative only.
+ */
+@Immutable
+data class MemoryNotice(val updated: Boolean = false, val permanent: Boolean = false, val dynamic: Boolean = false) {
+    val any: Boolean get() = updated || permanent || dynamic
+}
+
+/** A strong routine for the empty slot of the hour (A29, chatS). Never stored, never sent. */
+@Immutable
+data class RoutineSuggestion(
+    val factId: String,
+    val slot: SlotRef,
+    val text: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    val permanent: Boolean,
 )
 
 @Immutable
@@ -42,6 +65,9 @@ sealed interface ChatItem {
         /** Item names to highlight in gold inside [text]. */
         val highlights: List<String> = emptyList(),
         val estimate: EstimateView? = null,
+        /** A plan of today (A29, chatR): the day projected with it, recomputed on every render. */
+        val plan: ProjectedDay? = null,
+        val memory: MemoryNotice = MemoryNotice(),
     ) : ChatItem {
         override val key = "a-$id"
     }
@@ -59,8 +85,15 @@ sealed interface ChatItem {
         val kcal: Int?,
         /** "Atualizado em": the slot's log was replaced (ADR-017). */
         val replaced: Boolean = false,
+        /** The record applied a routine to the memory (A28): `Memória atualizada` below it. */
+        val memoryUpdated: Boolean = false,
     ) : ChatItem {
         override val key = "r-$id"
+    }
+
+    /** `O de sempre no {slot}?` card at the end of the thread (chatS). UI only. */
+    data class Routine(val suggestion: RoutineSuggestion) : ChatItem {
+        override val key = "routine"
     }
 
     /** Static greeting of an empty day; never stored nor sent. */
@@ -108,6 +141,10 @@ data class ChatUiState(
     val attachment: String? = null,
     /** Snackbar text, shown once. */
     val notice: String? = null,
+    /** `O de sempre no {slot}?` (chatS), also drawn as the last thread item. */
+    val routine: RoutineSuggestion? = null,
+    /** Bumped by Quase igual: the composer takes focus, cursor at the end, keyboard open. */
+    val focusComposer: Int = 0,
 ) {
     val canSend: Boolean get() = (composer.isNotBlank() || attachment != null) && !sending && !composerTooLong
 
@@ -125,6 +162,8 @@ data class EstimateActions(
     /** Null when the suggested slot is not in the profile: only Trocar and Pular show. */
     val record: SlotRef?,
     val skip: SlotRef?,
+    /** A plan (chatR): one Registrar assim button instead of Gravar | Trocar | Pular. */
+    val plan: Boolean = false,
 )
 
 internal fun List<MealSlot>.refs() = sortedBy { it.minutesFromMidnight }

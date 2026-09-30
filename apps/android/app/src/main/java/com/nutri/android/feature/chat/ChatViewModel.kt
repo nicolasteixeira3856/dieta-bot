@@ -8,6 +8,7 @@ import com.nutri.android.core.database.slotsOfDay
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.InstantClock
+import com.nutri.android.core.database.budgetOn
 import com.nutri.android.core.database.metaOn
 import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.photo.PhotoFiles
@@ -22,9 +23,11 @@ import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.ChatText
 import com.nutri.android.domain.Fact
+import com.nutri.android.domain.Macros
 import com.nutri.android.domain.MemoryResult
 import com.nutri.android.domain.MemoryRules
 import com.nutri.android.domain.MemoryUpdate
+import com.nutri.android.domain.ProjectedDay
 import com.nutri.android.domain.RecordedMeal
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotClock
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -87,7 +91,19 @@ class ChatViewModel @Inject constructor(
         val attachment: String? = null,
         /** One-shot snackbar ("Foto grande demais."). */
         val notice: String? = null,
+        /** The first send of this screen hides the routine card until the Chat opens again (A29). */
+        val sentOnce: Boolean = false,
+        val focusComposer: Int = 0,
     )
+
+    /** Facts after expiration, for the routine card (A29). Reloaded after every memory change. */
+    private val facts = MutableStateFlow<List<Fact>>(emptyList())
+
+    /** Minute tick: the slot of the hour changes with the clock, not with Room. */
+    private val minute = MutableStateFlow(0L)
+
+    /** Routine cards already reported as shown on this screen. */
+    private val shownRoutines = mutableSetOf<String>()
 
     /** TakePicture target while the camera is open. */
     private var captureFile: File? = null
@@ -95,12 +111,29 @@ class ChatViewModel @Inject constructor(
     init {
         local.update { it.copy(openedAt = clock.now()) }
         viewModelScope.launch {
-            combine(repository.observeToday(), repository.observeMessages(), local) { d, m, l -> Triple(d, m, l) }
-                .collect { (d, m, l) ->
+            combine(repository.observeToday(), repository.observeMessages(), local, facts, minute) { d, m, l, f, _ -> Rendered(d, m, l, f) }
+                .collect { (d, m, l, f) ->
                     messages = m
-                    _uiState.value = render(d, m, l)
+                    _uiState.value = render(d, m, l, f)
                 }
         }
+        viewModelScope.launch { reloadFacts() }
+        viewModelScope.launch {
+            while (true) {
+                delay(MINUTE_MS - clock.now().toEpochMilli() % MINUTE_MS)
+                tick()
+            }
+        }
+    }
+
+    private data class Rendered(val d: DaySnapshot, val m: List<ChatMessageEntity>, val l: Local, val f: List<Fact>)
+
+    /** Re-evaluates what depends on the hour (the routine card). Called every minute. */
+    internal fun tick() = minute.update { it + 1 }
+
+    private suspend fun reloadFacts() {
+        // An unreadable memory shows no card.
+        facts.value = runCatching { memory.read(SaoPaulo.date(clock.now())).facts }.getOrDefault(emptyList())
     }
 
     /** Kept exactly as typed or pasted: nothing is cut (ADR-022). Over the limit the composer shows chatX. */
@@ -113,7 +146,7 @@ class ChatViewModel @Inject constructor(
         val text = local.value.composer.trim()
         val photo = local.value.attachment
         if (text.isEmpty() && photo == null || local.value.pending != null || local.value.composerTooLong) return
-        local.update { it.copy(composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, failed = false) }
+        local.update { it.copy(composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, failed = false, sentOnce = true) }
         viewModelScope.launch { post(text, photo) }
     }
 
@@ -263,6 +296,7 @@ class ChatViewModel @Inject constructor(
         if (updates.isEmpty()) return false
         val result = runCatching { memory.apply(updates, SaoPaulo.date(clock.now()), recorded) }.getOrNull() ?: return false
         memoryChanged(result)
+        reloadFacts()
         return result.changed
     }
 
@@ -312,7 +346,7 @@ class ChatViewModel @Inject constructor(
      * A slot that already has a log today asks first and replaces (ADR-017): never two logs by the Chat.
      */
     fun record(estimateId: Long, slotId: Long) {
-        val estimate = messages.firstOrNull { it.id == estimateId && it.isLogEstimate } ?: return
+        val estimate = messages.firstOrNull { it.id == estimateId && it.isRecordable } ?: return
         local.update { it.copy(sheetFor = null, sheetSelection = null) }
         viewModelScope.launch {
             val today = repository.observeToday().first()
@@ -349,7 +383,7 @@ class ChatViewModel @Inject constructor(
     /** Substituir: today's log(s) of the slot become this estimate, in one transaction. */
     fun confirmReplace() {
         val confirm = local.value.replaceConfirm ?: return
-        val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.isLogEstimate } ?: return
+        val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.isRecordable } ?: return
         local.update { it.copy(replaceConfirm = null) }
         viewModelScope.launch {
             if (repository.observeToday().first().slotsOfDay.none { it.id == confirm.slot.id }) return@launch
@@ -394,6 +428,71 @@ class ChatViewModel @Inject constructor(
         it.copy(sheetFor = estimateId, sheetSelection = preset)
     }
 
+    /**
+     * Registrar assim (chatR): the plan goes through Gravar in its suggested slot, Substituir
+     * included (ADR-017). Without a slot of the day, Trocar opens with nothing picked.
+     */
+    fun recordPlan(estimateId: Long) {
+        val actions = _uiState.value.actions?.takeIf { it.estimateId == estimateId && it.plan } ?: return
+        val slot = actions.record
+        if (slot != null) record(estimateId, slot.id) else local.update { it.copy(sheetFor = estimateId, sheetSelection = null) }
+    }
+
+    // ------------------------------------------------------------------ routine suggestion (A29)
+
+    /**
+     * Registrar (chatS): the routine as is, in its slot. No POST. Receipt like Gravar, the routine
+     * reinforced with this record.
+     */
+    fun recordRoutine() {
+        val suggestion = _uiState.value.routine ?: return
+        viewModelScope.launch {
+            val slot = suggestion.slot
+            val today = repository.observeToday().first()
+            // The card only exists for an empty slot; a record that raced it wins.
+            if (today.slotsOfDay.none { it.id == slot.id } || today.logs.any { it.slotId == slot.id } || slot.id in today.skippedSlotIds) return@launch
+            repository.addLog(
+                window = "",
+                text = suggestion.text,
+                kcal = suggestion.kcal,
+                p = suggestion.p,
+                stable = true,
+                slotId = slot.id,
+                carbs = suggestion.c,
+                fat = suggestion.g,
+                source = SOURCE_ROUTINE,
+            )
+            val meal = RecordedMeal(slot.id.toString(), suggestion.kcal, suggestion.p, suggestion.c, suggestion.g)
+            val result = runCatching { memory.reinforceRoutine(suggestion.factId, meal, SaoPaulo.date(clock.now())) }.getOrNull()
+            result?.let { memoryChanged(it) }
+            reloadFacts()
+            repository.insertMessage(
+                role = "logged",
+                text = slot.name,
+                estimateKcal = suggestion.kcal,
+                estimateSlotId = slot.id,
+                memoryUpdated = result?.changed == true,
+            )
+            routineEvent("record")
+            telemetry.event(TelemetryEvents.MEAL_SAVED, mapOf("from" to SOURCE_ROUTINE, "has_photo" to false, "kcal" to suggestion.kcal))
+        }
+    }
+
+    /** Quase igual: the routine text replaces the composer, focused, cursor at the end. Nothing recorded. */
+    fun editRoutine() {
+        val suggestion = _uiState.value.routine ?: return
+        local.update {
+            it.copy(
+                composer = suggestion.text,
+                composerTooLong = ChatText.tooLong(suggestion.text),
+                focusComposer = it.focusComposer + 1,
+            )
+        }
+        routineEvent("edit")
+    }
+
+    private fun routineEvent(action: String) = telemetry.event(TelemetryEvents.ROUTINE_SUGGESTION, mapOf("action" to action))
+
     fun selectInSheet(slotId: Long) = local.update { it.copy(sheetSelection = slotId) }
 
     fun closeSheet() = local.update { it.copy(sheetFor = null, sheetSelection = null) }
@@ -424,12 +523,22 @@ class ChatViewModel @Inject constructor(
 
     // ------------------------------------------------------------------ render
 
-    private fun render(d: DaySnapshot, all: List<ChatMessageEntity>, l: Local): ChatUiState {
+    private fun render(d: DaySnapshot, all: List<ChatMessageEntity>, l: Local, facts: List<Fact>): ChatUiState {
         val now = clock.now()
         val today = SaoPaulo.date(now)
+        val todayIso = today.toString()
         val slots = d.slotsOfDay.refs()
         val slotById = slots.associateBy { it.id }
+        val eaten = Macros(d.logs.sumOf { it.kcal }, d.logs.sumOf { it.p }, d.logs.sumOf { it.carbs }, d.logs.sumOf { it.fat })
+        val budget = d.budgetOn(today)
+        val targets = Macros(0, d.proteinTargetG, d.carbTargetG, d.fatTargetG)
         val sorted = all.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
+        val project = { m: ChatMessageEntity ->
+            val plan = Macros(m.estimateKcal ?: 0, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
+            // A recorded plan is already inside the day: it is counted once, not projected on top.
+            val base = if (recordedPlan(m, sorted)) eaten.minus(plan) else eaten
+            ProjectedDay.of(budget, base, plan, targets)
+        }
         val items = mutableListOf<ChatItem>()
         var lastDate: String? = null
         // The wipe marker only cuts the prompt; it is never drawn.
@@ -449,14 +558,15 @@ class ChatViewModel @Inject constructor(
                     slotName = m.text,
                     slotTime = m.estimateSlotId?.let { slotById[it]?.time },
                     kcal = m.estimateKcal,
+                    memoryUpdated = m.memoryUpdated,
                 )
-                else -> assistant(m, time, slotById)
+                // Only today's plans project: an old plan has no day to land on.
+                else -> assistant(m, time, slotById, plan = if (m.isPlanEstimate && m.date == todayIso) project(m) else null)
             }
             if (m.role == "assistant" && m.isLogEstimate) {
                 m.estimateQuestion?.takeIf { it.isNotBlank() }?.let { items += ChatItem.Question(m.id, it, time) }
             }
         }
-        val todayIso = today.toString()
 
         val emptyDay = visible.none { it.date == todayIso } && l.pending == null
         if (emptyDay) {
@@ -471,21 +581,24 @@ class ChatViewModel @Inject constructor(
 
         val nowMinutes = SlotClock.minutesFromMidnight(now)
         val current = SlotClock.current(slots, nowMinutes) { it.minutes }
-        val lastEstimate = sorted.lastOrNull { it.role == "assistant" && it.isLogEstimate && it.date == todayIso }
+        // A log and a plan share the rule: only the last one without a receipt has actions (A29).
+        val lastEstimate = sorted.lastOrNull { it.role == "assistant" && it.isRecordable && it.date == todayIso }
         val closed = lastEstimate == null || sorted.any { it.createdAtEpochMs >= lastEstimate.createdAtEpochMs && it.id != lastEstimate.id && it.role in RECEIPTS }
         val actions = if (closed || l.pending != null) null else {
             val record = lastEstimate!!.estimateSlotId?.let { slotById[it] }
-            EstimateActions(lastEstimate.id, record = record, skip = record ?: current)
+            EstimateActions(lastEstimate.id, record = record, skip = record ?: current, plan = lastEstimate.isPlanEstimate)
         }
+        val routine = if (l.sentOnce || l.pending != null) null else routineFor(current, d, facts)
+        routine?.let { items += ChatItem.Routine(it) }
+        routine?.takeIf { shownRoutines.add(it.factId + "@" + it.slot.id) }?.let { routineEvent("shown") }
         val meta = d.metaOn(today)
-        val eaten = d.logs.sumOf { it.kcal }
         return ChatUiState(
             items = items,
             composer = l.composer,
             composerTooLong = l.composerTooLong,
             sending = l.pending != null && !l.failed,
             emptyDay = emptyDay,
-            metaRemaining = (meta - eaten).coerceAtLeast(0),
+            metaRemaining = (meta - eaten.kcal).coerceAtLeast(0),
             metaTotal = meta,
             actions = actions,
             slots = slots,
@@ -497,10 +610,44 @@ class ChatViewModel @Inject constructor(
             sheetSelection = l.sheetSelection,
             skipConfirm = l.skipConfirm,
             replaceConfirm = l.replaceConfirm,
+            routine = routine,
+            focusComposer = l.focusComposer,
         )
     }
 
-    private fun assistant(m: ChatMessageEntity, time: String, slotById: Map<Long, SlotRef>) = ChatItem.Assistant(
+    /** The plan's own receipt: the first receipt after it, before any other estimate, is a record (not a skip). */
+    private fun recordedPlan(plan: ChatMessageEntity, sorted: List<ChatMessageEntity>): Boolean = sorted
+        .dropWhile { it.id != plan.id }
+        .drop(1)
+        .firstOrNull { it.role in RECEIPTS || it.role == "assistant" && it.isRecordable }
+        ?.role.let { it == "logged" || it == ROLE_REPLACED }
+
+    private fun Macros.minus(o: Macros) =
+        Macros((kcal - o.kcal).coerceAtLeast(0), (p - o.p).coerceAtLeast(0), (c - o.c).coerceAtLeast(0), (g - o.g).coerceAtLeast(0))
+
+    /**
+     * chatS (ADR-023 decision 8): the slot of the hour has no record and no skip today, and a strong
+     * routine of that slot exists ([MemoryRules.isStrongRoutine]). Several: the one seen on more days.
+     */
+    private fun routineFor(current: SlotRef?, d: DaySnapshot, facts: List<Fact>): RoutineSuggestion? {
+        current ?: return null
+        if (d.logs.any { it.slotId == current.id } || current.id in d.skippedSlotIds) return null
+        val fact = facts
+            .filter { MemoryRules.isStrongRoutine(it) && it.slot == current.id.toString() }
+            .maxWithOrNull(compareBy<Fact>({ it.days.size }, { it.permanent })) ?: return null
+        return RoutineSuggestion(
+            factId = fact.id,
+            slot = current,
+            text = fact.text,
+            kcal = fact.kcal ?: 0,
+            p = fact.p ?: 0,
+            c = fact.c ?: 0,
+            g = fact.g ?: 0,
+            permanent = fact.permanent,
+        )
+    }
+
+    private fun assistant(m: ChatMessageEntity, time: String, slotById: Map<Long, SlotRef>, plan: ProjectedDay?) = ChatItem.Assistant(
         id = m.id,
         text = m.text,
         time = time,
@@ -515,6 +662,10 @@ class ChatViewModel @Inject constructor(
                 slotQuestion = m.estimateSlotId?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" },
                 question = m.estimateQuestion,
             )
+        },
+        plan = plan,
+        memory = m.memoryUsedKinds.orEmpty().split(',').let { kinds ->
+            MemoryNotice(updated = m.memoryUpdated, permanent = MemoryRules.PERMANENT in kinds, dynamic = MemoryRules.DYNAMIC in kinds)
         },
     )
 
@@ -580,6 +731,18 @@ class ChatViewModel @Inject constructor(
         /** An estimate the user can record: intent "log", or null (old row or server before S11). */
         private val ChatMessageEntity.isLogEstimate: Boolean
             get() = estimateKcal != null && (intent == null || intent == "log")
+
+        /** A plan with its estimate (chatR): recorded by Registrar assim (A29). */
+        private val ChatMessageEntity.isPlanEstimate: Boolean
+            get() = estimateKcal != null && intent == "plan"
+
+        private val ChatMessageEntity.isRecordable: Boolean
+            get() = isLogEstimate || isPlanEstimate
+
+        /** meal_log.source of a Registrar on the routine card. */
+        const val SOURCE_ROUTINE = "routine"
+
+        private const val MINUTE_MS = 60_000L
         private val TIME = DateTimeFormatter.ofPattern("HH:mm")
         private val DAY = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
 

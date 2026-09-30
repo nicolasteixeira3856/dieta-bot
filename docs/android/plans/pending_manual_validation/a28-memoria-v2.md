@@ -6,7 +6,7 @@
 - Data: 30/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/memory`, `core/network/ChatModels.kt`, `core/database` — Room v5 → v6, `feature/chat/ChatViewModel.kt`, `feature/chat/PromptBuilder.kt`, `app/src/dev/…/feature/devtools/DevMemoryScreen.kt`)
-- Pré-requisitos: [A27](a27-chat-v2-texto-intencao.md) concluído (Room v5, `meal_text`). [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md) no ar. Aceita o [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisão 4). **Sem gate Stitch**: o selo e os chips são do [A29](../a29-chat-v2-interface.md); a tela dev não tem gold ([ADR-019](../../../produto/adrs/ADR-019-ferramentas-dev.md)).
+- Pré-requisitos: [A27](a27-chat-v2-texto-intencao.md) concluído (Room v5, `meal_text`). [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md) no ar. Aceita o [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisão 4). **Sem gate Stitch**: o selo e os chips são do [A29](a29-chat-v2-interface.md); a tela dev não tem gold ([ADR-019](../../../produto/adrs/ADR-019-ferramentas-dev.md)).
 
 ## Gate de autorização
 
@@ -125,7 +125,7 @@ Constantes: `PERMANENT_MAX = 30`, `DYNAMIC_MAX = 40`, `DYNAMIC_TTL_DAYS = 21`, `
 
 ## Fora de escopo
 
-- Selo `Memória atualizada`, chips de origem, sugestão da rotina: [A29](../a29-chat-v2-interface.md) (gold do [ST6](../../../stitch/plans/completed/st6-chat-v2.md)).
+- Selo `Memória atualizada`, chips de origem, sugestão da rotina: [A29](a29-chat-v2-interface.md) (gold do [ST6](../../../stitch/plans/completed/st6-chat-v2.md)).
 - Memória visível ao usuário final fora do dev (ADR-023: até o dono decidir).
 - Server: [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md).
 

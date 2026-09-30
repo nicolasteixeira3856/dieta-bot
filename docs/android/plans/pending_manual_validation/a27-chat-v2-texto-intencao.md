@@ -59,7 +59,7 @@ Vale para Gravar, Confirmar do Trocar e Substituir. A linha de memória do A8 us
 ### 4. Intenção
 
 - `intent` gravado na mensagem da IA.
-- Ações (Gravar/Trocar/Pular) só para estimativa com `intent` `log` ou null. `plan` com estimativa: a estimativa fica guardada (para o "Registrar assim" do [A29](../a29-chat-v2-interface.md)), mas a bolha aparece sem barra de ações e sem card. `question`: só a bolha.
+- Ações (Gravar/Trocar/Pular) só para estimativa com `intent` `log` ou null. `plan` com estimativa: a estimativa fica guardada (para o "Registrar assim" do [A29](a29-chat-v2-interface.md)), mas a bolha aparece sem barra de ações e sem card. `question`: só a bolha.
 - A pergunta de esclarecimento (bolha de pergunta do A19) só aparece em `log`.
 - Telemetria `chat_result`: novo parâmetro `intent` (enum).
 
@@ -96,8 +96,8 @@ Vale para Gravar, Confirmar do Trocar e Substituir. A linha de memória do A8 us
 
 ## Fora de escopo
 
-- Memória v2, `facts`, selo e chips: [A28](a28-memoria-v2.md), [A29](../a29-chat-v2-interface.md).
-- Card do plano, dia projetado e "Registrar assim": [A29](../a29-chat-v2-interface.md).
+- Memória v2, `facts`, selo e chips: [A28](a28-memoria-v2.md), [A29](a29-chat-v2-interface.md).
+- Card do plano, dia projetado e "Registrar assim": [A29](a29-chat-v2-interface.md).
 - Server: [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md).
 
 ## Riscos e controles

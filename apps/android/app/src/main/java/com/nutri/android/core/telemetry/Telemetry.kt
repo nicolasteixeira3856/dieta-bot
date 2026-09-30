@@ -41,6 +41,9 @@ object TelemetryEvents {
     /** A28: count per applied memory operation + permanent/dynamic totals. Numbers only. */
     const val MEMORY_CHANGED = "memory_changed"
 
+    /** A29: routine card of the Chat, `action` = shown | record | edit. Enum only. */
+    const val ROUTINE_SUGGESTION = "routine_suggestion"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 

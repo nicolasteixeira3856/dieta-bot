@@ -207,6 +207,31 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatX_light() = check("chatX", dark = false, region = COMPOSER_TOO_LONG, gateRegion = false) { Chat(ChatFixtures.chatX) }
 
+    /**
+     * A29 (ST6): plan with the projected day and Registrar assim. The plan bubble and the bar are gated
+     * (PLAN_BUBBLE); the whole screen is reported: its header, user bubble and composer mic carry the
+     * chatE-generation delta (~1.3 points) on a text-dense screen.
+     */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatR_dark() = check("chatR", dark = true, region = PLAN_BUBBLE, reportOnly = true) { Chat(ChatFixtures.chatR) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatR_light() = check("chatR", dark = false, region = PLAN_BUBBLE, reportOnly = true) { Chat(ChatFixtures.chatR) }
+
+    /** A29 (ST6): Memória atualizada + origin chips. chatE generation: whole screen gated. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatM_dark() = check("chatM", dark = true) { Chat(ChatFixtures.chatM) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatM_light() = check("chatM", dark = false) { Chat(ChatFixtures.chatM) }
+
+    /** A29 (ST6): chatS is a copy of chat0 (other header): only the routine card is gated (ROUTINE_CARD). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatS_dark() = check("chatS", dark = true, region = ROUTINE_CARD) { Chat(ChatFixtures.chatS) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatS_light() = check("chatS", dark = false, region = ROUTINE_CARD) { Chat(ChatFixtures.chatS) }
+
     /** Dark chatG gold is a 2560x2048 desktop render: not comparable, light only. chatF (photo) is A6. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
@@ -476,6 +501,8 @@ class StitchGoldTest {
             "chatX",
             // homeW (A22): only the sheet is gated (WORKOUT_SHEET_*).
             "homeW",
+            // chatS is a copy of chat0 too (A29): only the routine card is gated (ROUTINE_CARD).
+            "chatS",
         )
 
         /** homeW sheet, top edge to 40 dp above the page end (home pill), in gold px (x0, y0, x1, y1). Same as tools/diff-gold.mjs. */
@@ -490,6 +517,12 @@ class StitchGoldTest {
 
         /** chatX composer (5 lines, red border) and "Texto muito longo" in gold px (x0, y0, x1, y1). */
         private val COMPOSER_TOO_LONG = intArrayOf(32, 1344, 748, 1668)
+
+        /** chatR: "Dieta Bot AI" label, plan bubble with the day panel, time and Registrar assim, in gold px (x0, y0, x1, y1). */
+        private val PLAN_BUBBLE = intArrayOf(32, 556, 748, 1540)
+
+        /** chatS routine card (title to buttons, 1 px border) in gold px (x0, y0, x1, y1). */
+        private val ROUTINE_CARD = intArrayOf(32, 798, 748, 1302)
         private val ROOT = File("../../..")
         private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")

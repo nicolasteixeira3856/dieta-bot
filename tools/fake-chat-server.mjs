@@ -11,6 +11,10 @@
 // (the replace flow on a taken slot, ADR-017). Every /__mode call resets what it does not name.
 // A25: /__calls reports `textLen`, the code points of the last turn text; above 2000 answers 422
 // like the server (ADR-022, S9).
+// A29: POST /__mode {"plan": true} answers the chatR plan (intent "plan", suggested slot "Jan…").
+// {"routine": true} answers the usual breakfast (intent "log", slot "Caf…") with memory_updates: a
+// routine "cafe" (add, or reinforce of the stored one) and, once, a permanent "leite" preference;
+// memory_used echoes every fact id the request carried. /__calls reports the facts it got.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -20,6 +24,9 @@ let hang = false;
 let fallback = false;
 let slotPrefix = "Caf";
 let kcalOverride = null;
+let plan = false;
+let routine = false;
+let lastFacts = [];
 let lastRequestId = "";
 let calls = 0;
 let compacts = 0;
@@ -56,11 +63,13 @@ http.createServer(async (req, res) => {
     fallback = Boolean(mode.fallback);
     slotPrefix = mode.slot ?? "Caf";
     kcalOverride = mode.kcal ?? null;
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, calls }));
+    plan = Boolean(mode.plan);
+    routine = Boolean(mode.routine);
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -69,6 +78,7 @@ http.createServer(async (req, res) => {
     if (hang) return; // never answers
     const input = JSON.parse(body || "{}");
     lastMemory = input.memory ?? "";
+    if (!input.compact) lastFacts = input.facts ?? [];
     if (!input.compact) textLen = [...(input.text ?? "")].length;
     if (textLen > 2000) {
       res.writeHead(422, { "content-type": "application/json" }).end(JSON.stringify({ detail: "text_too_long" }));
@@ -97,6 +107,52 @@ http.createServer(async (req, res) => {
       return;
     }
     const slots = input.profile?.slots ?? [];
+    if (plan) {
+      const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: [
+          "Para caber nas 560 kcal que sobram hoje:",
+          "• 1 pão sírio (60 g)",
+          "• 2 colheres de sopa de molho de tomate (30 g)",
+          "• 100 g de frango desfiado",
+          "• 30 g de milho",
+          "• 30 g de muçarela",
+          "Monte e leve ao forno a 200 °C por 8 a 10 min.",
+          "Total: ~420 kcal · 40P · 38C · 12G",
+        ].join(String.fromCharCode(10)),
+        intent: "plan",
+        estimate: {
+          kcal: 420, p: 40, c: 38, g: 12, confidence: "high", question: null,
+          items: [{ name: "pão sírio", g: 60, kcal: 160 }], suggested_slot: jantar ? jantar.id : null,
+          meal_text: "Pizza de pão sírio: 60 g pão sírio, 30 g molho de tomate, 100 g frango, 30 g milho, 30 g muçarela",
+        },
+        digest: null, model: "gpt-6-luna",
+      }));
+      return;
+    }
+    if (routine) {
+      const cafe = slots.find((s) => s.name.startsWith("Caf")) ?? slots[0];
+      const text = "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite semidesnatado, café";
+      const stored = lastFacts.find((f) => f.category === "routine" && f.key === "cafe");
+      const updates = [stored
+        ? { op: "reinforce", id: stored.id, kind: stored.kind, category: "routine", key: "cafe", text, slot: cafe.id }
+        : { op: "add", id: null, kind: "dynamic", category: "routine", key: "cafe", text, slot: cafe.id }];
+      if (!lastFacts.some((f) => f.key === "leite")) {
+        updates.push({ op: "add", id: null, kind: "permanent", category: "preference", key: "leite", text: "Usa leite semidesnatado", slot: null });
+      }
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: "Usei o seu café de sempre, com pão integral no lugar do francês e leite semidesnatado, como você costuma usar.",
+        intent: "log",
+        estimate: {
+          kcal: 440, p: 25, c: 38, g: 22, confidence: "high", question: null,
+          items: [{ name: "2 ovos mexidos", g: 100, kcal: 180 }], suggested_slot: cafe ? cafe.id : null, meal_text: text,
+        },
+        memory_used: lastFacts.map((f) => f.id),
+        memory_updates: updates,
+        digest: null, model: "gpt-6-luna",
+      }));
+      return;
+    }
     const slot = slots.find((s) => s.name.startsWith(slotPrefix)) ?? slots[0];
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
       reply: "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:",

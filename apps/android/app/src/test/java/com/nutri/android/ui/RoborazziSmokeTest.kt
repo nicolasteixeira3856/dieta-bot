@@ -98,6 +98,27 @@ class RoborazziSmokeTest {
     @Test
     fun chatA_light() = chat(dark = false, ChatFixtures.chatA, "chatA")
 
+    /** A29: plan with the projected day and Registrar assim (chatR). */
+    @Test
+    fun chatR_dark() = chat(dark = true, ChatFixtures.chatR, "chatR")
+
+    @Test
+    fun chatR_light() = chat(dark = false, ChatFixtures.chatR, "chatR")
+
+    /** A29: Memória atualizada + origin chips (chatM). */
+    @Test
+    fun chatM_dark() = chat(dark = true, ChatFixtures.chatM, "chatM")
+
+    @Test
+    fun chatM_light() = chat(dark = false, ChatFixtures.chatM, "chatM")
+
+    /** A29: routine suggestion card on an empty day (chatS). */
+    @Test
+    fun chatS_dark() = chat(dark = true, ChatFixtures.chatS, "chatS")
+
+    @Test
+    fun chatS_light() = chat(dark = false, ChatFixtures.chatS, "chatS")
+
     private fun chat(dark: Boolean, ui: com.nutri.android.feature.chat.ChatUiState, name: String) {
         com.nutri.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_A_PHOTO)
         composeTestRule.setContent {

@@ -43,12 +43,13 @@ const FOOTER = 260; // 130 dp: CTA + gradient + nav
 // lock screen and the card (A7). Reported, never gated.
 // chatA: a copy of chat0 (same other header), only its composer is new (A19). chatX too (A25).
 // homeW: a 1350 dp page with the sheet at its bottom; only the sheet is compared (A22).
-const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatA", "chatX", "push", "homeW"]);
+// chatS: a copy of chat0 too; only the routine card is compared (A29).
+const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatA", "chatX", "push", "homeW", "chatS"]);
 // Parts of a conflict gold that are gated on their own (gold px box x0, y0, x1, y1; best
 // vertical offset). chatF: the photo bubble (A6); the rest of chatF is the chatG generation.
 // chatA: the composer with the attached thumbnail (A19). chatX: the 5-line composer with the red
-// border and "Texto muito longo" (A25).
-const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668] };
+// border and "Texto muito longo" (A25). chatS: the routine card, title to buttons (A29).
+const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668], chatS: [32, 798, 748, 1302] };
 // Bottom-anchored regions, per theme: the gold bottom is matched to the capture bottom first.
 // homeW: the "Treino de hoje" sheet, top edge to 40 dp above the page end (home pill, A22).
 const BOTTOM_REGIONS = { homeW: { dark: [0, 2012, 780, 2620], light: [0, 2026, 780, 2644] } };

@@ -10,20 +10,21 @@ import com.nutri.android.domain.WeekdayWeekendCeiling
 import java.time.LocalDate
 
 /** Effective ceiling of [date]: base ceiling for that weekday + workout credit. reservedUpcoming = 0. */
-fun DaySnapshot.metaOn(date: LocalDate): Int = BudgetCalculator().calculate(
-    BudgetInput(
-        date = date,
-        profile = ceilingProfile(),
-        policy = when (eat) {
-            "partial" -> CreditPolicy.PARTIAL
-            "full" -> CreditPolicy.FULL
-            else -> CreditPolicy.ZERO
-        },
-        percent = pct,
-        workoutKcal = workoutKcal,
-        reservedUpcoming = 0,
-    ),
-).effectiveCeiling
+fun DaySnapshot.metaOn(date: LocalDate): Int = BudgetCalculator().calculate(budgetOn(date)).effectiveCeiling
+
+/** Profile, eat-back policy and workout of [date] as the [BudgetCalculator] input (eaten = 0). */
+fun DaySnapshot.budgetOn(date: LocalDate): BudgetInput = BudgetInput(
+    date = date,
+    profile = ceilingProfile(),
+    policy = when (eat) {
+        "partial" -> CreditPolicy.PARTIAL
+        "full" -> CreditPolicy.FULL
+        else -> CreditPolicy.ZERO
+    },
+    percent = pct,
+    workoutKcal = workoutKcal,
+    reservedUpcoming = 0,
+)
 
 fun DaySnapshot.ceilingProfile(): CeilingProfile = when (ceilingMode) {
     "weekdayWeekend" -> WeekdayWeekendCeiling(kcalWeekday, kcalWeekend)

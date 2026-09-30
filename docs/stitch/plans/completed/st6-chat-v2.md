@@ -5,7 +5,7 @@
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
 - Executa: [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8)
-- Bloqueia: [A29 Chat v2: interface](../../../android/plans/a29-chat-v2-interface.md)
+- Bloqueia: [A29 Chat v2: interface](../../../android/plans/pending_manual_validation/a29-chat-v2-interface.md)
 
 Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 

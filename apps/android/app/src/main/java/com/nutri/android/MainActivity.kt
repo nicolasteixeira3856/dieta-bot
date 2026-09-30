@@ -262,6 +262,9 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                     onPhotoSheetClose = vm::closePhotoSheet,
                     onNoticeShown = vm::dismissNotice,
                     onRemoveAttachment = vm::removeAttachment,
+                    onRecordPlan = vm::recordPlan,
+                    onRoutineRecord = vm::recordRoutine,
+                    onRoutineEdit = vm::editRoutine,
                 )
             }
             composable<RouteConfig> {

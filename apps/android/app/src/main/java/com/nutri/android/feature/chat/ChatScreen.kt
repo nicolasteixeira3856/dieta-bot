@@ -73,6 +73,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -146,6 +151,11 @@ fun ChatScreen(
     onNoticeShown: () -> Unit = {},
     /** chatA: ✕ on the composer thumbnail. */
     onRemoveAttachment: () -> Unit = {},
+    /** chatR: Registrar assim on a plan. */
+    onRecordPlan: (estimateId: Long) -> Unit = {},
+    /** chatS: Registrar | Quase igual on the routine card. */
+    onRoutineRecord: () -> Unit = {},
+    onRoutineEdit: () -> Unit = {},
 ) {
     val p = LocalPalette.current
     Box(
@@ -161,11 +171,11 @@ fun ChatScreen(
         // Stitch: backdrop-blur behind the sheet and the skip dialog.
         Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding().imePadding()) {
             Header(onBack)
-            Thread(ui, onRetry, Modifier.weight(1f))
+            Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, onCamera)
-            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto, onRemoveAttachment)
+            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto, onRemoveAttachment, onRecordPlan)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
@@ -216,30 +226,33 @@ private fun Header(onBack: () -> Unit) {
 // ----------------------------------------------------------------------------- thread
 
 @Composable
-private fun Thread(ui: ChatUiState, onRetry: () -> Unit, modifier: Modifier) {
+private fun Thread(ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> Unit, onRoutineEdit: () -> Unit, modifier: Modifier) {
     val list = rememberLazyListState()
     LaunchedEffect(ui.items.size) { if (ui.items.isNotEmpty()) list.animateScrollToItem(ui.items.lastIndex) }
     LazyColumn(
         modifier.fillMaxWidth().testTag("chat-thread"),
         state = list,
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 15.dp, bottom = 8.dp),
+        // Bottom 2 dp: with the footer 8 dp, the last time sits 10 dp above the action bar (chatR).
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 15.dp, bottom = 2.dp),
     ) {
         itemsIndexed(ui.items, key = { _, it -> it.key }) { i, item ->
-            // 16 dp between items; the question hugs its estimate (chatE).
+            // 16 dp between items; the question hugs its estimate (chatE); the routine card sits
+            // 12 dp under the meta card (chatS).
             val gap = when {
                 i == 0 -> 0.dp
                 item is ChatItem.Question -> 5.dp
+                item is ChatItem.Routine -> 12.dp
                 else -> 16.dp
             }
             Box(Modifier.padding(top = gap)) {
-                ThreadItem(item, ui, onRetry)
+                ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit)
             }
         }
     }
 }
 
 @Composable
-private fun ThreadItem(item: ChatItem, ui: ChatUiState, onRetry: () -> Unit) {
+private fun ThreadItem(item: ChatItem, ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> Unit, onRoutineEdit: () -> Unit) {
     when (item) {
         is ChatItem.DateSeparator -> DatePill(item.label)
         is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it) } ?: UserBubble(item)
@@ -249,6 +262,7 @@ private fun ThreadItem(item: ChatItem, ui: ChatUiState, onRetry: () -> Unit) {
         is ChatItem.Greeting -> Greeting(item, ui)
         ChatItem.Loading -> LoadingBubble()
         ChatItem.Failed -> FailedBubble(onRetry)
+        is ChatItem.Routine -> RoutineSuggestionCard(item.suggestion, onRoutineRecord, onRoutineEdit)
     }
 }
 
@@ -322,7 +336,12 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
                 .padding(16.dp)
                 .testTag("chat-bot-${item.id}"),
         ) {
-            Text(highlighted(item.text, item.highlights, p.gold), style = DietaBotType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 21.sp, letterSpacing = 0.sp), color = p.text)
+            if (item.plan != null) {
+                PlanText(item.text)
+                PlanPanel(item.plan)
+            } else {
+                Text(highlighted(item.text, item.highlights, p.gold), style = DietaBotType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 21.sp, letterSpacing = 0.sp), color = p.text)
+            }
             item.estimate?.let { e ->
                 EstimateCard(e)
                 e.slotQuestion?.let { q ->
@@ -334,6 +353,7 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
                 }
             }
         }
+        MemoryChips(item.memory)
         // With a follow-up question the time moves under the question bubble (chatE).
         if (item.estimate?.question.isNullOrBlank()) {
             Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
@@ -446,7 +466,7 @@ private fun MacroBox(label: String, value: String, color: Color, modifier: Modif
 private fun ReceiptCard(item: ChatItem.Receipt) {
     val p = LocalPalette.current
     val tone = if (item.skipped) p.dim else p.good
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(
             Modifier
                 .widthIn(max = 270.dp)
@@ -487,6 +507,7 @@ private fun ReceiptCard(item: ChatItem.Receipt) {
                 }
             }
         }
+        MemoryChips(MemoryNotice(updated = item.memoryUpdated), horizontal = Alignment.CenterHorizontally)
     }
 }
 
@@ -625,6 +646,7 @@ private fun Footer(
     onAskSkip: (SlotRef) -> Unit,
     onPhoto: () -> Unit,
     onRemoveAttachment: () -> Unit,
+    onRecordPlan: (Long) -> Unit,
 ) {
     val p = LocalPalette.current
     Column(
@@ -635,7 +657,7 @@ private fun Footer(
             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 11.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        ui.actions?.let { ActionBar(it, onRecord, onSwap, onAskSkip) }
+        ui.actions?.let { if (it.plan) PlanBar(it) { onRecordPlan(it.estimateId) } else ActionBar(it, onRecord, onSwap, onAskSkip) }
         Composer(ui, onComposer, onSend, onPhoto, onRemoveAttachment)
     }
 }
@@ -661,6 +683,28 @@ private fun ActionBar(actions: EstimateActions, onRecord: (Long, Long) -> Unit, 
             if (i > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(p.line))
             Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center, content = segment)
         }
+    }
+}
+
+/** chatR: one Registrar assim in the place of Gravar | Trocar | Pular, same bar. */
+@Composable
+private fun PlanBar(actions: EstimateActions, onClick: () -> Unit) {
+    val p = LocalPalette.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(p.card)
+            .border(1.dp, p.line, RoundedCornerShape(18.dp))
+            .dietaClick(Haptic.Confirm, onClick = onClick)
+            .testTag("chat-record-plan"),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = p.text, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text("Registrar assim", style = DietaBotType.labelMd.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
     }
 }
 
@@ -744,6 +788,23 @@ private fun ComposerRow(
     val p = LocalPalette.current
     val buttonDp = metrics.buttonDp
     val blocked = ui.composerTooLong
+    // Text set from outside (chip, Quase igual) lands with the cursor at its end.
+    // Only a change of ui.composer itself counts: while a keystroke travels through the VM, the
+    // field is ahead of it and must not be reset.
+    var field by remember { mutableStateOf(TextFieldValue(ui.composer)) }
+    val external = remember { arrayOf(ui.composer) }
+    if (ui.composer != external[0]) {
+        external[0] = ui.composer
+        if (ui.composer != field.text) field = TextFieldValue(ui.composer, TextRange(ui.composer.length))
+    }
+    val focus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(ui.focusComposer) {
+        if (ui.focusComposer > 0) {
+            focus.requestFocus()
+            keyboard?.show()
+        }
+    }
     Row(Modifier.fillMaxWidth(), verticalAlignment = if (metrics.bottomAligned) Alignment.Bottom else Alignment.CenterVertically) {
         Box(
             Modifier
@@ -758,8 +819,11 @@ private fun ComposerRow(
             Icon(Icons.Outlined.PhotoCamera, contentDescription = "Enviar foto", tint = if (blocked) p.dim else p.muted, modifier = Modifier.size(19.dp))
         }
         BasicTextField(
-            value = ui.composer,
-            onValueChange = onComposer,
+            value = field,
+            onValueChange = {
+                field = it
+                if (it.text != ui.composer) onComposer(it.text)
+            },
             // Enter inserts a line break; only the arrow sends (A18).
             singleLine = false,
             maxLines = 5,
@@ -767,7 +831,7 @@ private fun ComposerRow(
             textStyle = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
             cursorBrush = SolidColor(p.gold),
             onTextLayout = { onLines(it.lineCount) },
-            modifier = Modifier.weight(1f).padding(start = metrics.textStartDp.dp, end = metrics.textEndDp.dp).testTag("chat-input"),
+            modifier = Modifier.weight(1f).padding(start = metrics.textStartDp.dp, end = metrics.textEndDp.dp).focusRequester(focus).testTag("chat-input"),
             decorationBox = { inner ->
                 Box {
                     if (ui.composer.isEmpty()) {

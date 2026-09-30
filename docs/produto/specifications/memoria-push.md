@@ -8,9 +8,7 @@ Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md):
 
 Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no flavor dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST. Push por dia da semana e edição de refeições em grupos vigentes desde o [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
 
-## Mudanças decididas, ainda não vigentes (ADR-023)
-
-- No Chat, o usuário vê o selo `Memória atualizada` e os chips de origem ([A29](../../android/plans/a29-chat-v2-interface.md)). O app já guarda, por mensagem, `memoryUpdated` e `memoryUsedKinds` (A28).
+O que o usuário vê da memória, desde o [A29](../../android/plans/pending_manual_validation/a29-chat-v2-interface.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisões 7 e 8): selo `Memória atualizada`, chips de origem e o card da rotina no Chat (regras 8 e 9 abaixo; [chat](chat.md) regras 17 e 18).
 
 ## Contexto e objetivo
 
@@ -33,6 +31,8 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 5. Quando: preferência, porção e todo `replace`/`remove` na resposta; `add`/`reinforce` de rotina só quando **aquela** estimativa é gravada (Gravar, Confirmar do Trocar, Substituir), com slot e kcal/P/C/G do registro. Estimativa não gravada não vira hábito. A mensagem com pelo menos uma mudança aplicada ganha `memoryUpdated` (a da IA, ou o recibo do registro); `memory_used` vira `memoryUsedKinds`. Nada de linha por Gravar nem `Respondeu "…"`.
 6. Sobrevive `wipeToday`. Morre no uninstall.
 7. Só no dev (A23, A28): o editor mostra um fato por linha (`P1 | preference | leite | Leite semidesnatado`; rotina com `slot=` e `440 kcal 25P 38C 22G`) e, só leitura, `Permanente n/30 · Dinâmica n/40` e `visto n dias · último dd/MM`. Edita texto, `key` e categoria e aceita `novo | …` (permanente). Mesmos limites. Linha removida é recusada com o número da linha e nada é salvo: esquecer é pelo Chat.
+8. O usuário vê a memória só no Chat, sem tela própria nem toque para editar: `Memória atualizada` abaixo da resposta (ou do recibo) quando o app aplicou uma mudança naquele turno; `Memória permanente` / `Memória dinâmica` quando a resposta usou fatos desse tipo (`memoryUsedKinds`).
+9. Rotina forte do slot da hora vazio vira o card `O de sempre no {slot}?` ([chat](chat.md) regra 18). **Registrar** grava com os números da rotina (`source` `routine`) e reforça a rotina com esse registro (entra hoje nos dias); **Quase igual** só preenche o composer. O card não vai ao server.
 
 ## Regras — foto
 
@@ -79,6 +79,7 @@ Comportamento: `produto`. Client: `android`.
 - [A7 (Concluído)](../../android/plans/completed/a7-push.md)
 - [A8 (Concluído)](../../android/plans/completed/a8-memoria.md)
 - [A28 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a28-memoria-v2.md)
+- [A29 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a29-chat-v2-interface.md)
 
 ## Critérios de aceite funcionais
 
