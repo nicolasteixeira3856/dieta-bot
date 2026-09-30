@@ -1,0 +1,28 @@
+{
+  "gate": "ST7",
+  "keep": ["Chat Dieta Bot", "Hoje, 25 de setembro"],
+  "coherence": { "exceptions": [], "known": [] },
+  "screens": [
+    {
+      "gold": "chatE",
+      "keep": ["Dieta Bot AI", "ENERGIA TOTAL", "Gravar café", "Trocar", "Pular"],
+      "checks": [
+        { "type": "text",
+          "has": ["2 pães franceses com 2 ovos mexidos", "ENERGIA TOTAL", "Deseja registrar essa refeição no", "Gravar café", "Trocar", "Pular", "20:15"],
+          "not": ["Os pães tinham manteiga ou requeijão?", "IA ATIVA"] }
+      ]
+    },
+    {
+      "gold": "chatQ",
+      "keep": ["Dieta Bot AI", "Forçar estimativa"],
+      "checks": [
+        { "type": "text",
+          "has": ["Jantei macarrão com frango ao molho branco", "O molho branco levou creme de leite ou requeijão?", "Creme de leite, prato fundo", "O frango foi grelhado ou empanado?", "Forçar estimativa"],
+          "not": ["ENERGIA TOTAL", "Gravar", "Trocar", "Pular", "Deseja registrar", "Os pães tinham manteiga ou requeijão?", "IA ATIVA"] },
+        { "type": "fits", "text": "Forçar estimativa", "maxHeight": 24 },
+        { "type": "fits", "text": "O frango foi grelhado ou empanado?" },
+        { "type": "gap", "a": "Creme de leite, prato fundo", "b": "Forçar estimativa", "min": 60 }
+      ]
+    }
+  ]
+}

@@ -92,6 +92,7 @@ cd server
 
 ### Planos e validacao
 
+- [S13 aguardando aprovacao](plans/s13-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa (`clarify_rounds`, `force_estimate`, `question` no topo), trava de 3 rodadas no codigo ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)); opt-in, cliente legado inalterado.
 - [S10 concluido](plans/completed/s10-avaliacao-chat.md) — avaliador do Chat com casos reais (`server/evals/`); linha de base `none` 52,4% (11/21) ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md)).
 - [S12 concluido](plans/completed/s12-slot-nomeado.md) — slot da refeicao: o nome dito pelo usuario vence a semelhanca com uma refeicao ja gravada; avaliador 29/29 (7 casos `slot` 5/5); no ar no dev; aprovado pelo dono em 30/09/2026.
 - [S11 concluido](plans/completed/s11-chat-v2.md) — Chat v2: intencao, `meal_text`, memoria em fatos, `recent`, `remaining_kcal`; avaliador 22/22, effort `none` mantido; no ar no dev; aprovado pelo dono em 30/09/2026.

@@ -4,6 +4,10 @@
 
 The target [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit contract](../../content-policy/specifications/identity-and-audit.md) are awaiting the named CP plan approvals. They cover moderation, semantic scope, fallback checks, optional installation header and minimal audit; none is claimed as implemented by this planning update. CP2/CP3 must reconcile this live specification and the HTTP contract during delivery.
 
+## Proposed: questions before the estimate (ADR-026)
+
+[S13](../plans/s13-perguntas-antes-da-estimativa.md), awaiting approval, adds optional `clarify_rounds` and `force_estimate` to the request and a top-level `question` to the response. With `clarify_rounds`, a `log` turn with doubts returns the question without an estimate; the server releases the estimate after 3 rounds, on a repeated question or on `force_estimate`. Requests without `clarify_rounds` keep rule 4 below. Not implemented yet.
+
 ## Estado
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).

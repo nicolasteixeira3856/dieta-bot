@@ -120,6 +120,8 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
+Aguardando aprovação: [A30 Perguntas antes da estimativa, Forçar estimativa](plans/a30-perguntas-antes-da-estimativa.md) ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)); pré-requisitos [S13](../server/plans/s13-perguntas-antes-da-estimativa.md) no dev e [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) (concluído em 30/09/2026).
+
 Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27, A28 e A29 concluídos (aprovado pelo dono em 30/09/2026):
 
 - [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/completed/a27-chat-v2-texto-intencao.md) — Room v5; concluído
