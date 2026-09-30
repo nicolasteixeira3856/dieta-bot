@@ -4,7 +4,7 @@
 - Data: 30/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py`, `server/main.py`, `server/shaping.py`, `server/config.py`, `server/evals/cases/`, `server/tests/`
-- Pré-requisitos: [S10](s10-avaliacao-chat.md) concluído (avaliador e linha de base). Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2, 3, 4, 5 e 6, parte server).
+- Pré-requisitos: [S10](completed/s10-avaliacao-chat.md) concluído (avaliador e linha de base). Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2, 3, 4, 5 e 6, parte server).
 
 ## Gate de autorização
 

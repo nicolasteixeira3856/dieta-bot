@@ -1,0 +1,128 @@
+{
+  "id": "total-sem-comida",
+  "since": "v1",
+  "tags": [
+    "s8",
+    "consolidated"
+  ],
+  "request": {
+    "local_time": "2026-09-30T21:50:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 2165,
+      "eaten_p": 116,
+      "eaten_c": 254,
+      "eaten_g": 73,
+      "workout_kcal": null,
+      "remaining_kcal": -165,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, café sem açúcar",
+          "kcal": 430,
+          "p": 24,
+          "c": 38,
+          "g": 20
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "150 g de mamão",
+          "kcal": 65,
+          "p": 1,
+          "c": 16,
+          "g": 0
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "arroz (150 g), feijão (100 g), frango grelhado (150 g), salada de alface e tomate",
+          "kcal": 620,
+          "p": 52,
+          "c": 70,
+          "g": 12
+        },
+        {
+          "id": "4",
+          "status": "eaten",
+          "text": "1 iogurte natural, 100 g de morango",
+          "kcal": 150,
+          "p": 7,
+          "c": 20,
+          "g": 5
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "eaten",
+          "text": "4 esfihas abertas (queijo, frango, calabresa e chocolate)",
+          "kcal": 900,
+          "p": 32,
+          "c": 110,
+          "g": 36
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "Na ceia comi 4 esfihas abertas: queijo, frango, calabresa e chocolate"
+      },
+      {
+        "role": "assistant",
+        "text": "Ceia com 4 esfihas abertas, cerca de 900 kcal."
+      }
+    ],
+    "text": "corrige, minha ceia deu uns 1300 kcal no total",
+    "image_b64": null,
+    "compact": false
+  },
+  "expect": {
+    "estimate": "absent"
+  }
+}

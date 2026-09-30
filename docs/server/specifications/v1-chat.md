@@ -15,7 +15,7 @@ O [S11](../plans/s11-chat-v2.md) implementa o [ADR-023](../../produto/adrs/ADR-0
 - Entrada opcional: `facts` (memória em fatos; presente = cliente v2), `recent` (refeições dos últimos 7 dias), `day.remaining_kcal`.
 - Saída: `intent` (`log` | `plan` | `question`), `estimate.meal_text`, `memory_updates`, `memory_used`.
 - Cliente legado (sem `facts`): `memory` em texto como hoje; `plan` volta com `estimate: null`.
-- `reasoning.effort` decidido pelo avaliador `server/evals/` ([S10](../plans/s10-avaliacao-chat.md)): `low` só se ganhar ≥ 10 p.p. com p95 ≤ 20 s.
+- `reasoning.effort` decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)): `low` só se ganhar ≥ 10 p.p. com p95 ≤ 20 s.
 
 ## Contexto e objetivo
 

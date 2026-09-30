@@ -38,8 +38,8 @@ API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula tet
 
 ## Cobertura documental atual
 
-Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) concluidos. [S8](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) pendente aprovacao manual.
+Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`.
+[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) e [S10](plans/completed/s10-avaliacao-chat.md) concluidos. [S8](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) pendente aprovacao manual.
 
 ## Como usar esta documentacao
 
@@ -56,6 +56,23 @@ Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. `/v1/chat` pede sa
 
 Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
+## Avaliacao do Chat (S10)
+
+Roda na maquina do dono, nunca no server. Chave `OPENAI_API_KEY` do `.env` da raiz; nunca impressa.
+
+```bash
+cd server
+.venv/Scripts/python -m evals.run --effort none low --repeat 3
+.venv/Scripts/python -m evals.run --effort none --repeat 1 --only cafe-resposta-leite,cabe-acai
+.venv/Scripts/python -m evals.run --tag memory
+```
+
+- Casos: `server/evals/cases/<id>.json` (`id`, `since` v1/v2, `tags`, `request` = corpo `ChatIn`, `expect`). Expectativas em `server/evals/checks.py`; campo v2 ausente na saida = `n/a`.
+- Mesmo codigo da rota (`_chat_text`, `LlmClient.chat_json`, `shape_chat`), sem HTTP. No maximo 3 chamadas simultaneas.
+- Aprovado: todas as expectativas aplicaveis em pelo menos 2 de 3 repeticoes.
+- Relatorio no terminal e em `logs/evals/<data-hora>-<effort>.json` (fora do git).
+- Caso novo: situacao do log (`./tools/pull-conversations.ps1 -Download`), texto reescrito a mao. Log bruto e texto de tester nunca entram no git.
+
 ## Indice
 
 ### Especificacoes
@@ -71,7 +88,7 @@ Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
 ### Planos e validacao
 
-- [S10 aguardando aprovacao](plans/s10-avaliacao-chat.md) — avaliador do Chat com casos reais (`server/evals/`) e linha de base ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md)).
+- [S10 concluido](plans/completed/s10-avaliacao-chat.md) — avaliador do Chat com casos reais (`server/evals/`); linha de base `none` 52,4% (11/21) ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md)).
 - [S11 aguardando aprovacao](plans/s11-chat-v2.md) — Chat v2: intencao, `meal_text`, memoria em fatos, `recent`, `remaining_kcal`, decisao `none` x `low`.
 - [S9 concluido](plans/completed/s9-limite-texto-2000.md) — `/v1/chat` aceita `text` e `messages[].text` ate 2000 caracteres ([ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md)); no ar no dev.
 - [S8 pendente aprovacao manual](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — saida estruturada (`json_schema` strict), slot sugerido, refeicao consolidada, total sem comida sem estimate, corpo 24 MB; no ar no dev; falta o dono ver "Gravar cafe" no APK 0.0.2.

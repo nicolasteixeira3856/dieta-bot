@@ -170,7 +170,14 @@ def wrap_history(history_text: str) -> str:
 
 
 class LlmClient:
-    def __init__(self, api_key: str, transport: httpx2.BaseTransport | None = None) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        transport: httpx2.BaseTransport | None = None,
+        effort: str = "none",
+    ) -> None:
+        # reasoning.effort: the route keeps "none"; the evaluator (S10) passes others.
+        self._effort = effort
         self._http: httpx2.Client | None = None
         self._openai: OpenAI | None = None
         if not api_key:
@@ -254,7 +261,7 @@ class LlmClient:
         try:
             response = self._openai.responses.create(
                 model=MODEL,
-                reasoning={"effort": "none"},
+                reasoning={"effort": self._effort},
                 instructions=instructions,
                 input=[{"role": "user", "content": content}],
                 timeout=TIMEOUT_SECONDS,
