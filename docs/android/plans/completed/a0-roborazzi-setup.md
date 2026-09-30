@@ -13,7 +13,7 @@
 
 ## Revisão de escopo (26/09/2026)
 
-Decisão do dono após revisão da entrega: o A0 fica restrito a **regressão visual** (a tela contra o próprio baseline gravado). A comparação contra o Stitch Gold sai deste plano e passa aos planos de feature, começando pelo [A2](../a2-onboarding-perfil.md).
+Decisão do dono após revisão da entrega: o A0 fica restrito a **regressão visual** (a tela contra o próprio baseline gravado). A comparação contra o Stitch Gold sai deste plano e passa aos planos de feature, começando pelo [A2](a2-onboarding-perfil.md).
 
 Motivos registrados na revisão:
 

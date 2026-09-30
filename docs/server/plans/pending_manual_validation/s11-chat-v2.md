@@ -224,7 +224,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 ### Pendente (manual, dono)
 
 - Validação 4: no APK 0.0.3, sem update, perguntar "vou fazer pizza de pão sírio, quantas gramas de cada item?" → resposta com gramas e total, **sem card**. Depois disso: `Concluído` e `completed/`.
-- O [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) continua `Proposto` (contexto `produto`); este plano não muda o estado dele.
+- O [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) foi aceito pelo dono em 30/09/2026, depois desta entrega.
 
 ## Encerramento
 
