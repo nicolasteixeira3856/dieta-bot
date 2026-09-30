@@ -116,9 +116,9 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026), aguardando aprovação:
+Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27 implementado, aguardando validação manual; A28 e A29 aguardando aprovação:
 
-- [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/a27-chat-v2-texto-intencao.md)
+- [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) — Room v5; pendente aprovação manual
 - [A28 Memória v2: fatos permanentes e dinâmicos](plans/a28-memoria-v2.md)
 - [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/a29-chat-v2-interface.md) — depende do gate concluído [ST6](../stitch/plans/completed/st6-chat-v2.md)
 

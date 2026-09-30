@@ -303,6 +303,8 @@ class DayRepository @Inject constructor(
         estimateSlotId: Long? = null,
         estimateQuestion: String? = null,
         estimateItems: List<String> = emptyList(),
+        estimateMealText: String? = null,
+        intent: String? = null,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -322,8 +324,19 @@ class DayRepository @Inject constructor(
                     estimateSlotId = estimateSlotId,
                     estimateQuestion = estimateQuestion,
                     estimateItems = estimateItems.takeIf { it.isNotEmpty() }?.joinToString(ITEM_SEPARATOR),
+                    estimateMealText = estimateMealText,
+                    intent = intent,
                 ),
             )
+        }
+    }
+
+    /** meal_log of the [RECENT_DAYS] days before today (America/Sao_Paulo), for the Chat `recent` (A27). */
+    suspend fun recentLogs(): List<MealLogEntity> {
+        importOnce()
+        val today = SaoPaulo.date(clock.now())
+        return withContext(Dispatchers.IO) {
+            db.mealLogDao().getBetween(today.minusDays(RECENT_DAYS).toString(), today.minusDays(1).toString())
         }
     }
 
@@ -499,6 +512,7 @@ class DayRepository @Inject constructor(
 
     companion object {
         private const val MESSAGE_DAYS = 60
+        const val RECENT_DAYS = 7L
 
         /** chat_message role written by [wipeToday]. Never rendered, never sent. */
         const val ROLE_WIPED = "wiped"

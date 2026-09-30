@@ -191,6 +191,7 @@ class ChatViewModel @Inject constructor(
         val snapshot = repository.observeToday().first()
         var digests = repository.digestsToday()
         val memoryText = memory.read()
+        val recentLogs = repository.recentLogs()
         // Open clarifying question of the last estimate: this send is the user's answer (A8).
         val asked = openQuestion(SaoPaulo.date(sentAt).toString())
         val image = photo?.let { photos.base64(it) }
@@ -199,7 +200,7 @@ class ChatViewModel @Inject constructor(
             local.update { it.copy(failed = true) }
             return
         }
-        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText)
+        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText, recentLogs = recentLogs)
         if (turn.needsCompact) {
             // A failed compact never fails the turn: nothing stored, the newest 12 raw go as they are
             // and the next send tries again.
@@ -207,7 +208,7 @@ class ChatViewModel @Inject constructor(
             if (!digest.isNullOrBlank()) {
                 repository.upsertDigest(digest)
                 digests = repository.digestsToday()
-                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText)
+                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText, recentLogs = recentLogs)
             }
         }
         // The photo rides only on the turn, never on the compact request.
@@ -222,7 +223,7 @@ class ChatViewModel @Inject constructor(
             telemetry.nonFatal(ChatFallback(requestIds.last, hasPhoto = photo != null))
             chatResult("fallback")
         } else {
-            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence)
+            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence, intent = out.intent)
         }
         val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
@@ -238,16 +239,20 @@ class ChatViewModel @Inject constructor(
             estimateSlotId = suggested,
             estimateQuestion = out.estimate?.question,
             estimateItems = out.estimate?.items?.map { it.name }.orEmpty(),
+            estimateMealText = out.estimate?.mealText?.trim()?.takeIf { it.isNotEmpty() },
+            intent = out.intent?.takeIf { it in INTENTS },
         )
         local.update { it.copy(pending = null, pendingPhoto = null, failed = false) }
         asked?.let { memory.append("Respondeu \"$it\": $text") }
     }
 
-    private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null) {
+    private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null, intent: String? = null) {
         val params = buildMap<String, Any> {
             put("outcome", outcome)
             put("has_estimate", hasEstimate)
             confidence?.let { put("confidence", it) }
+            // Enum only: an unknown value never leaves the device as free text.
+            if (outcome == "ok") put("intent", intent?.takeIf { it in INTENTS } ?: "none")
         }
         telemetry.event(TelemetryEvents.CHAT_RESULT, params)
     }
@@ -256,7 +261,7 @@ class ChatViewModel @Inject constructor(
     private fun openQuestion(todayIso: String): String? {
         val sorted = messages.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
         val last = sorted.lastOrNull { it.role == "assistant" && it.date == todayIso } ?: return null
-        val question = last.estimateQuestion?.takeIf { last.estimateKcal != null && it.isNotBlank() } ?: return null
+        val question = last.estimateQuestion?.takeIf { last.isLogEstimate && it.isNotBlank() } ?: return null
         val closed = sorted.any { it.id != last.id && it.createdAtEpochMs >= last.createdAtEpochMs && it.role in RECEIPTS }
         return if (closed) null else question
     }
@@ -266,7 +271,7 @@ class ChatViewModel @Inject constructor(
      * A slot that already has a log today asks first and replaces (ADR-017): never two logs by the Chat.
      */
     fun record(estimateId: Long, slotId: Long) {
-        val estimate = messages.firstOrNull { it.id == estimateId && it.estimateKcal != null } ?: return
+        val estimate = messages.firstOrNull { it.id == estimateId && it.isLogEstimate } ?: return
         local.update { it.copy(sheetFor = null, sheetSelection = null) }
         viewModelScope.launch {
             val today = repository.observeToday().first()
@@ -297,7 +302,7 @@ class ChatViewModel @Inject constructor(
     /** Substituir: today's log(s) of the slot become this estimate, in one transaction. */
     fun confirmReplace() {
         val confirm = local.value.replaceConfirm ?: return
-        val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.estimateKcal != null } ?: return
+        val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.isLogEstimate } ?: return
         local.update { it.copy(replaceConfirm = null) }
         viewModelScope.launch {
             if (repository.observeToday().first().slotsOfDay.none { it.id == confirm.slot.id }) return@launch
@@ -394,7 +399,7 @@ class ChatViewModel @Inject constructor(
                 )
                 else -> assistant(m, time, slotById)
             }
-            if (m.role == "assistant" && m.estimateKcal != null) {
+            if (m.role == "assistant" && m.isLogEstimate) {
                 m.estimateQuestion?.takeIf { it.isNotBlank() }?.let { items += ChatItem.Question(m.id, it, time) }
             }
         }
@@ -413,7 +418,7 @@ class ChatViewModel @Inject constructor(
 
         val nowMinutes = SlotClock.minutesFromMidnight(now)
         val current = SlotClock.current(slots, nowMinutes) { it.minutes }
-        val lastEstimate = sorted.lastOrNull { it.role == "assistant" && it.estimateKcal != null && it.date == todayIso }
+        val lastEstimate = sorted.lastOrNull { it.role == "assistant" && it.isLogEstimate && it.date == todayIso }
         val closed = lastEstimate == null || sorted.any { it.createdAtEpochMs >= lastEstimate.createdAtEpochMs && it.id != lastEstimate.id && it.role in RECEIPTS }
         val actions = if (closed || l.pending != null) null else {
             val record = lastEstimate!!.estimateSlotId?.let { slotById[it] }
@@ -447,7 +452,8 @@ class ChatViewModel @Inject constructor(
         text = m.text,
         time = time,
         highlights = m.itemNames,
-        estimate = m.estimateKcal?.let {
+        // A plan keeps its estimate in Room (A29) but shows only the bubble: no card, no actions.
+        estimate = m.estimateKcal?.takeIf { m.isLogEstimate }?.let {
             EstimateView(
                 kcal = it,
                 p = m.estimateP ?: 0,
@@ -463,11 +469,36 @@ class ChatViewModel @Inject constructor(
         .filter { it.role == "user" && it.createdAtEpochMs <= estimate.createdAtEpochMs && it.id < estimate.id }
         .maxByOrNull { it.id }
 
-    /** Timeline text: what the user wrote; with a photo, the AI description (spec rule 12). */
+    /**
+     * Timeline text (spec rule 12, A27): the server meal_text; else the first user message of the
+     * estimate's chain, never an answer to a question (a photo gives the AI text); else the item names.
+     */
     private fun descriptionOf(estimate: ChatMessageEntity): String {
-        val user = userBefore(estimate)
-        return if (user != null && user.photoPath == null && user.text.isNotBlank()) user.text else estimate.text
+        estimate.estimateMealText?.takeIf { it.isNotBlank() }?.let { return it }
+        val user = chainStart(estimate)
+        if (user != null) {
+            if (user.photoPath != null) return estimate.text
+            if (user.text.isNotBlank()) return user.text
+        }
+        return estimate.itemNames.joinToString(", ").ifBlank { estimate.text }
     }
+
+    /**
+     * Walks back from the user message right before [estimate]: while it answers a question (the
+     * assistant message right before it had estimateQuestion), steps to the user message before that one.
+     * A receipt or a wipe in between ends the chain.
+     */
+    private fun chainStart(estimate: ChatMessageEntity): ChatMessageEntity? {
+        val thread = messages
+            .filter { it.date == estimate.date }
+            .sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
+        var i = thread.indexOfFirst { it.id == estimate.id } - 1
+        if (thread.getOrNull(i)?.role != "user") return userBefore(estimate)
+        while (thread.getOrNull(i - 1).asked() && thread.getOrNull(i - 2)?.role == "user") i -= 2
+        return thread[i]
+    }
+
+    private fun ChatMessageEntity?.asked() = this?.role == "assistant" && !estimateQuestion.isNullOrBlank()
 
     private fun timeOf(epochMs: Long) = Instant.ofEpochMilli(epochMs).atZone(SaoPaulo.zone).format(TIME)
 
@@ -480,6 +511,13 @@ class ChatViewModel @Inject constructor(
 
         /** Rows that close the last estimate: its actions go away. A wipe closes it too. */
         private val RECEIPTS = setOf("logged", ROLE_REPLACED, "skipped", DayRepository.ROLE_WIPED)
+
+        /** server/shaping.py intents (S11). */
+        private val INTENTS = setOf("log", "plan", "question")
+
+        /** An estimate the user can record: intent "log", or null (old row or server before S11). */
+        private val ChatMessageEntity.isLogEstimate: Boolean
+            get() = estimateKcal != null && (intent == null || intent == "log")
         private val TIME = DateTimeFormatter.ofPattern("HH:mm")
         private val DAY = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
 

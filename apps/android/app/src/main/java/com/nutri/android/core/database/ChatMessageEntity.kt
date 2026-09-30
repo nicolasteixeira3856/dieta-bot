@@ -27,6 +27,10 @@ data class ChatMessageEntity(
     val estimateQuestion: String? = null,
     /** Item names joined by [ITEM_SEPARATOR]. */
     val estimateItems: String? = null,
+    /** Server meal_text (A27): the text Gravar records. Null on old rows and old servers. */
+    val estimateMealText: String? = null,
+    /** "log" | "plan" | "question" (A27). Null = old row or old server, handled as "log". */
+    val intent: String? = null,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

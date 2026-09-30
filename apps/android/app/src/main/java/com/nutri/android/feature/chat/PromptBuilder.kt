@@ -3,6 +3,8 @@ package com.nutri.android.feature.chat
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayDigestEntity
 import com.nutri.android.core.database.DayRepository
+import com.nutri.android.core.database.MealLogEntity
+import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.slotsOn
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.metaOn
@@ -10,6 +12,7 @@ import com.nutri.android.core.network.ChatDay
 import com.nutri.android.core.network.ChatDaySlot
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatProfile
+import com.nutri.android.core.network.ChatRecentMeal
 import com.nutri.android.core.network.ChatSlot
 import com.nutri.android.core.network.ChatTurn
 import com.nutri.android.domain.ChatText
@@ -20,12 +23,15 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
- * Turn prompt (spec chat rule 8): profile + memory + day snapshot + <= 2 digests + <= 12 raw
- * messages of today since the last digest. The snapshot never compacts.
+ * Turn prompt (spec chat rule 8): profile + memory + day snapshot + meals of the last 7 days +
+ * <= 2 digests + <= 12 raw messages of today since the last digest. The snapshot never compacts.
  */
 object PromptBuilder {
     const val MAX_RAW = 12
     const val MAX_DIGESTS = 2
+    const val MAX_RECENT = 42
+    const val MAX_RECENT_TEXT = 240
+    const val OTHERS = "Outros"
     private val ROLES = setOf("user", "assistant")
 
     /**
@@ -45,6 +51,8 @@ object PromptBuilder {
         compactEnabled: Boolean = COMPACT_ENABLED,
         /** MemoryStore text (A8). Never the profile: that goes in its own block. */
         memory: String = "",
+        /** meal_log rows of the days before today (A27); today and older than 7 days are dropped. */
+        recentLogs: List<MealLogEntity> = emptyList(),
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -58,6 +66,7 @@ object PromptBuilder {
                 messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, ChatText.clip(turnText(it))) },
                 text = ChatText.clip(text),
                 compact = false,
+                recent = recent(recentLogs, day.slots, today),
             ),
             needsCompact = compactEnabled && raw.size >= MAX_RAW,
         )
@@ -85,6 +94,40 @@ object PromptBuilder {
             .sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
     }
 
+    /**
+     * The 7 days before [today], oldest first; inside a day by slot time, "Outros" last.
+     * A null or deleted slot goes as slot_id null, "Outros". At most [MAX_RECENT]: the newest stay.
+     */
+    fun recent(logs: List<MealLogEntity>, slots: List<MealSlot>, today: LocalDate): List<ChatRecentMeal> {
+        val from = today.minusDays(DayRepository.RECENT_DAYS).toString()
+        val to = today.toString()
+        val slotById = slots.associateBy { it.id }
+        return logs
+            .filter { it.date >= from && it.date < to }
+            .sortedWith(
+                compareBy<MealLogEntity>({ it.date }, { it.slotId?.let(slotById::get)?.minutesFromMidnight ?: Int.MAX_VALUE }, { it.id }),
+            )
+            .takeLast(MAX_RECENT)
+            .map { log ->
+                val slot = log.slotId?.let(slotById::get)
+                ChatRecentMeal(
+                    date = log.date,
+                    slotId = slot?.id?.toString(),
+                    slotName = slot?.name ?: OTHERS,
+                    text = clip(log.text, MAX_RECENT_TEXT),
+                    kcal = log.kcal,
+                    p = log.p,
+                    c = log.carbs,
+                    g = log.fat,
+                )
+            }
+    }
+
+    private fun clip(text: String, max: Int): String {
+        if (text.codePointCount(0, text.length) <= max) return text
+        return text.substring(0, text.offsetByCodePoints(0, max))
+    }
+
     private fun profile(day: DaySnapshot, today: LocalDate) = ChatProfile(
         ceilingKcal = day.metaOn(today),
         pTarget = day.proteinTargetG,
@@ -102,6 +145,7 @@ object PromptBuilder {
     private fun snapshot(day: DaySnapshot, today: LocalDate) = ChatDay(
         date = today.toString(),
         eatenKcal = day.logs.sumOf { it.kcal },
+        remainingKcal = day.metaOn(today) - day.logs.sumOf { it.kcal },
         eatenP = day.logs.sumOf { it.p },
         eatenC = day.logs.sumOf { it.carbs },
         eatenG = day.logs.sumOf { it.fat },
