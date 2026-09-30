@@ -153,7 +153,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 
 ## Fora de escopo
 
-- Client: [A27](../../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/a28-memoria-v2.md), [A29](../../../android/plans/a29-chat-v2-interface.md).
+- Client: [A27](../../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/pending_manual_validation/a28-memoria-v2.md), [A29](../../../android/plans/a29-chat-v2-interface.md).
 - Aplicar a memória, promoção, expiração e limites: são do client (o server é stateless).
 - Troca de modelo. `/v1/estimate` e `/v1/fit`.
 

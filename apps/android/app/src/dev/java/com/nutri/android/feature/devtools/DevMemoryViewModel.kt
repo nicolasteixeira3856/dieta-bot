@@ -7,10 +7,11 @@ import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
-import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.network.ChatProfile
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.domain.CreditPolicy
+import com.nutri.android.domain.Memory
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.workoutCredit
 import com.nutri.android.feature.chat.PromptBuilder
@@ -31,25 +32,28 @@ import kotlinx.serialization.json.Json
 data class DevMemoryUiState(
     val loaded: Boolean = false,
     val profileText: String = "",
+    /** One fact per line ([FactText]). */
     val memoryText: String = "",
+    /** Read-only: `Permanente 3/30 · Dinâmica 5/40`. */
+    val memorySummary: String = "",
+    /** Read-only, one line per fact: `P1 · visto 3 dias · último 29/09`. */
+    val memorySeen: String = "",
     /** DAY block of the next turn, read-only. */
     val dayText: String = "",
     val error: String? = null,
     /** teto_kcal changed: the Config wipe dialog is up. */
     val wipeConfirm: Boolean = false,
     val saved: Boolean = false,
-) {
-    val memoryLength: Int get() = memoryText.length
-}
+)
 
 /**
- * A23 (ADR-019, dev only): the profile and memory of the next POST /v1/chat, edited and saved.
- * Nothing is deleted: an empty memory, a removed key or a removed slot is refused.
+ * A23 (ADR-019, dev only): the profile and memory facts (A28) of the next POST /v1/chat, edited
+ * and saved. Nothing is deleted: a removed fact, a removed key or a removed slot is refused.
  */
 @HiltViewModel
 class DevMemoryViewModel @Inject constructor(
     private val repository: DayRepository,
-    private val memory: MemoryStore,
+    private val memory: FactMemory,
     private val clock: InstantClock,
     private val telemetry: Telemetry,
 ) : ViewModel() {
@@ -59,18 +63,22 @@ class DevMemoryViewModel @Inject constructor(
     private var day = DaySnapshot()
     private var current: ChatProfile? = null
     private var pending: ChatProfile? = null
+    private var shown = Memory()
+    private var pendingMemory: Memory? = null
 
     init {
         viewModelScope.launch {
             day = repository.observeToday().first()
-            val text = memory.read()
+            shown = memory.read(today())
             // Same builder as the Chat: what is shown is what the next turn sends.
-            val body = PromptBuilder.build(day, emptyList(), emptyList(), "", clock.now(), memory = text).body
+            val body = PromptBuilder.build(day, emptyList(), emptyList(), "", clock.now(), facts = shown.facts).body
             current = body.profile
             _uiState.value = DevMemoryUiState(
                 loaded = true,
                 profileText = ProfileText.format(body.profile),
-                memoryText = body.memory,
+                memoryText = FactText.format(shown.facts),
+                memorySummary = FactText.summary(shown.facts),
+                memorySeen = shown.facts.joinToString("\n", transform = FactText::seen),
                 dayText = dayJson.encodeToString(body.day),
             )
         }
@@ -84,7 +92,11 @@ class DevMemoryViewModel @Inject constructor(
     fun save() {
         val ui = _uiState.value
         val before = current ?: return
-        if (ui.memoryText.isBlank()) return fail(EMPTY_MEMORY)
+        val slotIds = day.slots.map { it.id.toString() }.toSet()
+        pendingMemory = when (val r = FactText.parse(ui.memoryText, shown, today(), slotIds)) {
+            is FactText.Result.Error -> return fail(r.message)
+            is FactText.Result.Ok -> r.memory
+        }
         val edited = when (val r = ProfileText.parse(ui.profileText, before)) {
             is ProfileText.Result.Error -> return fail(r.message)
             is ProfileText.Result.Ok -> r.profile
@@ -113,9 +125,9 @@ class DevMemoryViewModel @Inject constructor(
 
     private fun commit(edited: ChatProfile, wipe: Boolean) {
         val before = current ?: return
-        val text = _uiState.value.memoryText
+        val facts = pendingMemory ?: return
         viewModelScope.launch {
-            if (!memory.replace(text)) return@launch fail(EMPTY_MEMORY)
+            if (facts != shown) memory.replaceAll(facts)
             val (eat, pct) = ProfileText.eatAndPct(edited.eatBack)
             if (edited.eatBack != before.eatBack) repository.saveEatBack(eat, pct ?: day.pct)
             if (listOf(edited.pTarget, edited.cTarget, edited.gTarget) != listOf(before.pTarget, before.cTarget, before.gTarget)) {
@@ -125,7 +137,12 @@ class DevMemoryViewModel @Inject constructor(
             if (wipe) changeCeiling(baseCeiling(edited))
             telemetry.event(
                 DEV_MEMORY_SAVED,
-                mapOf("memory_len_bucket" to lengthBucket(text.length), "profile_changed" to (edited != before)),
+                mapOf(
+                    "permanent" to facts.facts.count { it.permanent },
+                    "dynamic" to facts.facts.count { !it.permanent },
+                    "memory_changed" to (facts != shown),
+                    "profile_changed" to (edited != before),
+                ),
             )
             _uiState.update { it.copy(saved = true) }
         }
@@ -168,18 +185,12 @@ class DevMemoryViewModel @Inject constructor(
 
     private fun fail(message: String) = _uiState.update { it.copy(error = message) }
 
+    private fun today(): LocalDate = SaoPaulo.date(clock.now())
+
     private fun minutesOf(time: String) = time.substringBefore(':').toInt() * 60 + time.substringAfter(':').toInt()
 
     companion object {
         const val DEV_MEMORY_SAVED = "dev_memory_saved"
-        const val EMPTY_MEMORY = "Memória vazia não é salva."
         private val dayJson = Json { prettyPrint = true; explicitNulls = false }
-
-        /** Memory length as a bucket (max 4000): the text never leaves through telemetry. */
-        fun lengthBucket(length: Int): String = when {
-            length < 1000 -> "<1000"
-            length < 3000 -> "1000-2999"
-            else -> ">=3000"
-        }
     }
 }

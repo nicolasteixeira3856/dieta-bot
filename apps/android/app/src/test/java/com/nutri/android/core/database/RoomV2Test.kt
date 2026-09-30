@@ -52,8 +52,8 @@ class RoomV2Test {
     }
 
     @Test
-    fun databaseIsVersion5() {
-        assertThat(db.openHelper.readableDatabase.version).isEqualTo(5)
+    fun databaseIsVersion6() {
+        assertThat(db.openHelper.readableDatabase.version).isEqualTo(6)
     }
 
     @Test

@@ -4,7 +4,7 @@
 - Data: 30/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat/*`, `domain/BudgetCalculator.kt` (só leitura), `domain/SlotClock.kt` (só leitura), `core/memory` (leitura da rotina), testes e capturas)
-- Pré-requisitos: **[ST6](../../stitch/plans/completed/st6-chat-v2.md) em `stitch/plans/completed/`** (golds `chatR`, `chatM`, `chatS`). [A27](pending_manual_validation/a27-chat-v2-texto-intencao.md) e [A28](a28-memoria-v2.md) concluídos. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8). **Último plano da série Chat v2.**
+- Pré-requisitos: **[ST6](../../stitch/plans/completed/st6-chat-v2.md) em `stitch/plans/completed/`** (golds `chatR`, `chatM`, `chatS`). [A27](pending_manual_validation/a27-chat-v2-texto-intencao.md) e [A28](pending_manual_validation/a28-memoria-v2.md) concluídos. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8). **Último plano da série Chat v2.**
 
 ## Gate de autorização
 
@@ -97,7 +97,7 @@ Os três estados visuais novos do Chat, sobre os dados que o A27 e o A28 já gua
 - Tela de memória para o usuário final (ADR-023: só dev).
 - Tocar num chip para ver ou editar a memória.
 - Sugestão de rotina por push.
-- Server e regras de memória: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), [A28](a28-memoria-v2.md).
+- Server e regras de memória: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), [A28](pending_manual_validation/a28-memoria-v2.md).
 
 ## Riscos e controles
 

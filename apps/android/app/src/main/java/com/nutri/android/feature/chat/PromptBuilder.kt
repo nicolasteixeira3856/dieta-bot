@@ -10,12 +10,14 @@ import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.metaOn
 import com.nutri.android.core.network.ChatDay
 import com.nutri.android.core.network.ChatDaySlot
+import com.nutri.android.core.network.ChatFact
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatProfile
 import com.nutri.android.core.network.ChatRecentMeal
 import com.nutri.android.core.network.ChatSlot
 import com.nutri.android.core.network.ChatTurn
 import com.nutri.android.domain.ChatText
+import com.nutri.android.domain.Fact
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotSuggestions
 import java.time.Instant
@@ -23,7 +25,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
- * Turn prompt (spec chat rule 8): profile + memory + day snapshot + meals of the last 7 days +
+ * Turn prompt (spec chat rule 8): profile + memory facts + day snapshot + meals of the last 7 days +
  * <= 2 digests + <= 12 raw messages of today since the last digest. The snapshot never compacts.
  */
 object PromptBuilder {
@@ -49,8 +51,8 @@ object PromptBuilder {
         text: String,
         now: Instant,
         compactEnabled: Boolean = COMPACT_ENABLED,
-        /** MemoryStore text (A8). Never the profile: that goes in its own block. */
-        memory: String = "",
+        /** FactMemory after expiration (A28). Always sent, even empty: the server treats the app as v2. */
+        facts: List<Fact> = emptyList(),
         /** meal_log rows of the days before today (A27); today and older than 7 days are dropped. */
         recentLogs: List<MealLogEntity> = emptyList(),
     ): Turn {
@@ -60,13 +62,14 @@ object PromptBuilder {
             body = ChatIn(
                 localTime = now.atZone(SaoPaulo.zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
                 profile = profile(day, today),
-                memory = memory,
+                memory = "",
                 day = snapshot(day, today),
                 digests = digests.sortedBy { it.createdAtEpochMs }.takeLast(MAX_DIGESTS).map { it.text },
                 messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, ChatText.clip(turnText(it))) },
                 text = ChatText.clip(text),
                 compact = false,
                 recent = recent(recentLogs, day.slots, today),
+                facts = chatFacts(facts, day.slotsOn(today).map { it.id.toString() }.toSet()),
             ),
             needsCompact = compactEnabled && raw.size >= MAX_RAW,
         )
@@ -77,6 +80,23 @@ object PromptBuilder {
         m.photoPath == null -> m.text
         m.text.isBlank() -> "[foto]"
         else -> "[foto] ${m.text}"
+    }
+
+    /**
+     * days_seen / last_seen from the stored days. A routine slot that is not a slot of today goes as
+     * null: the server accepts only profile slots.
+     */
+    fun chatFacts(facts: List<Fact>, todaySlots: Set<String>): List<ChatFact> = facts.map {
+        ChatFact(
+            id = it.id,
+            kind = it.kind,
+            category = it.category,
+            key = it.key,
+            text = it.text,
+            slot = it.slot?.takeIf { slot -> slot in todaySlots },
+            daysSeen = it.days.size,
+            lastSeen = it.lastSeen,
+        )
     }
 
     /** compact=true request: only the raw block to summarise (spec rule 9). */

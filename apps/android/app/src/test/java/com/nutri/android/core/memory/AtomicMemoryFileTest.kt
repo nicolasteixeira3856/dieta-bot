@@ -3,8 +3,10 @@ package com.nutri.android.core.memory
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.nutri.android.domain.MemoryUpdate
 import java.io.File
 import java.io.IOException
+import java.time.LocalDate
 import javax.crypto.KeyGenerator
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -43,13 +45,13 @@ class AtomicMemoryFileTest {
     }
 
     @Test
-    fun storeReplace_keepsCipherAndAtomicFile() = runBlocking<Unit> {
-        val store = MemoryStore(file())
-        store.append("Almoço: frango (600 kcal)")
-        assertThat(store.replace("Jantar: sopa de legumes (350 kcal)")).isTrue()
+    fun factMemory_keepsCipherAndAtomicFile() = runBlocking<Unit> {
+        val today = LocalDate.parse("2026-09-30")
+        val memory = FactMemory(file())
+        memory.apply(listOf(MemoryUpdate("add", null, "permanent", "preference", "leite", "Leite semidesnatado")), today)
 
-        assertThat(file().read()).isEqualTo("Jantar: sopa de legumes (350 kcal)")
-        assertThat(String(bin.readBytes(), Charsets.UTF_8)).doesNotContain("sopa")
+        assertThat(FactMemory(file()).read(today).facts.single().text).isEqualTo("Leite semidesnatado")
+        assertThat(String(bin.readBytes(), Charsets.UTF_8)).doesNotContain("semidesnatado")
         assertThat(File(dir, "memory.bin.new").exists()).isFalse()
     }
 
@@ -94,56 +96,28 @@ class AtomicMemoryFileTest {
     }
 
     @Test
-    fun migration_movesLegacyThenDeletesIt() {
-        legacy.text = "Almoço: PF (780 kcal)"
-        assertThat(file().read()).isEqualTo("Almoço: PF (780 kcal)")
-        assertThat(legacy.exists()).isFalse()
-        assertThat(bin.exists()).isTrue()
-        assertThat(file().read()).isEqualTo("Almoço: PF (780 kcal)")
-    }
-
-    @Test
-    fun migration_failedWriteKeepsLegacy_unreadableLegacyIsDropped() {
-        legacy.text = "Almoço: PF (780 kcal)"
-        val broken = object : MemoryCipher by cipher {
-            override fun encrypt(plain: ByteArray): ByteArray = throw IOException("keystore")
-        }
-        assertThat(file(broken).read()).isEqualTo("Almoço: PF (780 kcal)")
-        assertThat(legacy.exists()).isTrue()
-        assertThat(bin.exists()).isFalse()
-
-        legacy.failRead = true
+    fun legacyA8File_isDeletedUnread_memoryStartsEmpty() = runBlocking<Unit> {
+        legacy.present = true
         assertThat(file().read()).isNull()
         assertThat(legacy.exists()).isFalse()
+        assertThat(FactMemory(file()).read(LocalDate.parse("2026-09-30")).facts).isEmpty()
     }
 
     @Test
-    fun leftoverLegacyAfterMigrationCrash_newFileWins() {
+    fun leftoverLegacy_doesNotTouchMemoryBin() {
         file().write("nova")
-        legacy.text = "velha"
+        legacy.present = true
         assertThat(file().read()).isEqualTo("nova")
         assertThat(legacy.exists()).isFalse()
     }
 
-    @Test
-    fun memoryStore_onAtomicFile_endToEnd() = runBlocking<Unit> {
-        val store = MemoryStore(file())
-        repeat(60) { store.append("Jantar: sopa de legumes número $it (320 kcal)") }
-        val text = MemoryStore(file()).read()
-        assertThat(text.length).isAtMost(MemoryStore.MAX_CHARS)
-        assertThat(text.lines().last()).contains("número 59 ")
-    }
-
     private class FakeLegacy : LegacyMemory {
-        var text: String? = null
-        var failRead = false
+        var present = false
 
-        override fun exists() = text != null
-
-        override fun read(): String = if (failRead) throw IOException("tink") else text!!
+        override fun exists() = present
 
         override fun delete() {
-            text = null
+            present = false
         }
     }
 }

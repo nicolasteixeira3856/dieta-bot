@@ -12,7 +12,7 @@ import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.DietaBotDatabase
 import com.nutri.android.core.memory.FakeMemoryFile
-import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.photo.FakePhotoFiles
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
@@ -47,7 +47,7 @@ class ChatCompactTest {
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
     private val memoryFile = FakeMemoryFile()
-    private val memory = MemoryStore(memoryFile)
+    private val memory = FactMemory(memoryFile)
     private val photos = FakePhotoFiles()
     private val clock = TickingClock(Instant.parse("2026-09-25T12:00:00-03:00"))
     private val requests = mutableListOf<ChatIn>()

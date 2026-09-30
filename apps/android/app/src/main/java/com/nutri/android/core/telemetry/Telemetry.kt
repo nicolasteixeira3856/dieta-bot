@@ -38,6 +38,9 @@ object TelemetryEvents {
     const val ONBOARDING_COMPLETE = "onboarding_complete"
     const val PUSH_ACTION = "push_action"
 
+    /** A28: count per applied memory operation + permanent/dynamic totals. Numbers only. */
+    const val MEMORY_CHANGED = "memory_changed"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 

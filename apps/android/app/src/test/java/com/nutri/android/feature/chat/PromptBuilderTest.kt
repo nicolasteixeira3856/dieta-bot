@@ -1,6 +1,10 @@
 package com.nutri.android.feature.chat
 
 import com.google.common.truth.Truth.assertThat
+import com.nutri.android.core.network.ChatFact
+import com.nutri.android.core.network.ChatIn
+import com.nutri.android.domain.Fact
+import kotlinx.serialization.json.Json
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayDigestEntity
 import com.nutri.android.core.database.MealLogEntity
@@ -168,5 +172,29 @@ class PromptBuilderTest {
         val over = PromptBuilder.build(HomeFixtures.homeX.copy(kcalSame = 2000), emptyList(), emptyList(), "x", now).body.day
         assertThat(over.remainingKcal).isEqualTo(2000 - 2280)
         assertThat(PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x", now).body.recent).isEmpty()
+    }
+
+    @Test
+    fun `facts go with days_seen and last_seen, memory text empty, unknown slot as null`() {
+        val facts = listOf(
+            Fact("P1", "permanent", "preference", "leite", "Leite semidesnatado", source = "explicit", days = listOf("2026-09-20", "2026-09-24"), created = "2026-09-20"),
+            Fact("D2", "dynamic", "routine", "cafe", "2 ovos", slot = "1", source = "observed", days = listOf("2026-09-25"), created = "2026-09-25", kcal = 440),
+            Fact("D3", "dynamic", "routine", "ceia", "chá", slot = "99", source = "observed", days = listOf("2026-09-25"), created = "2026-09-25"),
+        )
+        val body = PromptBuilder.build(HomeFixtures.home1, emptyList(), emptyList(), "oi", now, facts = facts).body
+        assertThat(body.memory).isEmpty()
+        assertThat(body.facts).containsExactly(
+            ChatFact("P1", "permanent", "preference", "leite", "Leite semidesnatado", null, daysSeen = 2, lastSeen = "2026-09-24"),
+            ChatFact("D2", "dynamic", "routine", "cafe", "2 ovos", "1", daysSeen = 1, lastSeen = "2026-09-25"),
+            ChatFact("D3", "dynamic", "routine", "ceia", "chá", null, daysSeen = 1, lastSeen = "2026-09-25"),
+        ).inOrder()
+    }
+
+    @Test
+    fun `empty memory still sends facts, the v2 marker`() {
+        val body = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "oi", now).body
+        val json = Json.encodeToString(ChatIn.serializer(), body)
+        assertThat(json).contains("\"facts\":[]")
+        assertThat(json).doesNotContain("\"memory\"")
     }
 }

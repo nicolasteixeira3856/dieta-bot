@@ -14,7 +14,7 @@ import androidx.room.TypeConverters
         ChatMessageEntity::class,
         DayDigestEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(DietaBotConverters::class)

@@ -1,5 +1,6 @@
 package com.nutri.android.core.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -31,6 +32,13 @@ data class ChatMessageEntity(
     val estimateMealText: String? = null,
     /** "log" | "plan" | "question" (A27). Null = old row or old server, handled as "log". */
     val intent: String? = null,
+    /** Routine add/reinforce of this answer (A28), JSON of ChatMemoryUpdate: applied only when it is recorded. */
+    val pendingMemory: String? = null,
+    /** memory_used resolved at answer time (A28): "permanent", "dynamic" or "permanent,dynamic". */
+    val memoryUsedKinds: String? = null,
+    /** At least one memory change was applied with this row: the answer, or the receipt of a record (A28). */
+    @ColumnInfo(defaultValue = "0")
+    val memoryUpdated: Boolean = false,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

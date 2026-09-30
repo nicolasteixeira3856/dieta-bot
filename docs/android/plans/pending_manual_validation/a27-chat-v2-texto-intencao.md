@@ -38,7 +38,7 @@ E mandar ao server o histórico dos últimos 7 dias e o que sobra no dia, para o
 - `ChatEstimate.mealText: String? = null` (`meal_text`).
 - `ChatIn.recent: List<ChatRecentMeal> = emptyList()` e `ChatDay.remainingKcal: Int? = null` (`remaining_kcal`).
 - `ChatRecentMeal(date, slotId: String?, slotName, text, kcal, p, c, g)`.
-- **Não** manda `facts` ainda: para o server, este client continua "legado" na memória (texto `memory` como hoje) até o [A28](../a28-memoria-v2.md). Consequência aceita: até o A28, plano chega com `estimate: null` (gramas e total no texto).
+- **Não** manda `facts` ainda: para o server, este client continua "legado" na memória (texto `memory` como hoje) até o [A28](a28-memoria-v2.md). Consequência aceita: até o A28, plano chega com `estimate: null` (gramas e total no texto).
 
 ### 2. Room v4 → v5 (`chat_message`)
 
@@ -96,7 +96,7 @@ Vale para Gravar, Confirmar do Trocar e Substituir. A linha de memória do A8 us
 
 ## Fora de escopo
 
-- Memória v2, `facts`, selo e chips: [A28](../a28-memoria-v2.md), [A29](../a29-chat-v2-interface.md).
+- Memória v2, `facts`, selo e chips: [A28](a28-memoria-v2.md), [A29](../a29-chat-v2-interface.md).
 - Card do plano, dia projetado e "Registrar assim": [A29](../a29-chat-v2-interface.md).
 - Server: [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md).
 

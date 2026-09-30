@@ -29,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,9 +39,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,7 +55,6 @@ import com.nutri.android.core.designsystem.DietaBotShapes
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.dietaClick
-import com.nutri.android.core.memory.MemoryStore
 import com.nutri.android.feature.config.Group
 import com.nutri.android.feature.config.SettingRow
 import com.nutri.android.feature.config.WipeDialog
@@ -161,17 +165,18 @@ fun DevMemoryScreen(
                     Text(it, style = DietaBotType.bodyMd, color = p.bad, modifier = Modifier.padding(top = 8.dp).testTag("dev-memory-error"))
                 }
                 Label("Perfil")
-                Field(ui.profileText, onProfile, "dev-profile-field", minHeight = 180)
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-                    Label("Memória", Modifier.weight(1f))
+                Field(ui.profileText, onProfile, "dev-profile-field", minHeight = 180, loaded = ui.loaded)
+                Label("Memória")
+                Text(ui.memorySummary, style = DietaBotType.labelMd, color = p.muted, modifier = Modifier.testTag("dev-memory-count"))
+                if (ui.memorySeen.isNotEmpty()) {
                     Text(
-                        "${ui.memoryLength}/${MemoryStore.MAX_CHARS}",
-                        style = DietaBotType.labelMd,
-                        color = if (ui.memoryLength > MemoryStore.MAX_CHARS) p.bad else p.muted,
-                        modifier = Modifier.padding(bottom = 8.dp).testTag("dev-memory-count"),
+                        ui.memorySeen,
+                        style = mono.copy(color = p.muted),
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp).testTag("dev-memory-seen"),
                     )
                 }
-                Field(ui.memoryText, onMemory, "dev-memory-field", minHeight = 260)
+                Spacer(Modifier.height(8.dp))
+                Field(ui.memoryText, onMemory, "dev-memory-field", minHeight = 260, loaded = ui.loaded)
                 Label("Dia (próximo turno)")
                 Text(ui.dayText, style = mono.copy(color = p.muted), modifier = Modifier.fillMaxWidth().testTag("dev-day"))
             }
@@ -192,12 +197,23 @@ private fun Label(text: String, modifier: Modifier = Modifier) {
     )
 }
 
+/**
+ * The text lives here, synchronously, and is pushed to the ViewModel on every change; [loaded]
+ * resets it once with the loaded value. The A23 field read its value back from the StateFlow one
+ * frame late, a known way for the IME to re-apply its buffer over the text: probable cause of the
+ * memory shown twice, glued at the last line, seen on 30/09 (A28).
+ */
 @Composable
-private fun Field(value: String, onChange: (String) -> Unit, tag: String, minHeight: Int) {
+private fun Field(value: String, onChange: (String) -> Unit, tag: String, minHeight: Int, loaded: Boolean) {
     val p = LocalPalette.current
+    var field by remember(loaded) { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
     BasicTextField(
-        value = value,
-        onValueChange = onChange,
+        value = field,
+        onValueChange = {
+            val changed = it.text != field.text
+            field = it
+            if (changed) onChange(it.text)
+        },
         textStyle = mono.copy(color = p.text),
         cursorBrush = SolidColor(p.gold),
         modifier = Modifier

@@ -1,10 +1,12 @@
 # Plano — A28 Memória v2: fatos permanentes e dinâmicos
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual
+- Aprovado: 30/09/2026 ("Aprovo o plano `docs/android/plans/a28-memoria-v2.md`. Implemente o plano aprovado.")
+- Implementado: 30/09/2026
 - Data: 30/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/memory`, `core/network/ChatModels.kt`, `core/database` — Room v5 → v6, `feature/chat/ChatViewModel.kt`, `feature/chat/PromptBuilder.kt`, `app/src/dev/…/feature/devtools/DevMemoryScreen.kt`)
-- Pré-requisitos: [A27](pending_manual_validation/a27-chat-v2-texto-intencao.md) concluído (Room v5, `meal_text`). [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md) no ar. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisão 4). **Sem gate Stitch**: o selo e os chips são do [A29](a29-chat-v2-interface.md); a tela dev não tem gold ([ADR-019](../../produto/adrs/ADR-019-ferramentas-dev.md)).
+- Pré-requisitos: [A27](a27-chat-v2-texto-intencao.md) concluído (Room v5, `meal_text`). [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md) no ar. Aceita o [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisão 4). **Sem gate Stitch**: o selo e os chips são do [A29](../a29-chat-v2-interface.md); a tela dev não tem gold ([ADR-019](../../../produto/adrs/ADR-019-ferramentas-dev.md)).
 
 ## Gate de autorização
 
@@ -20,8 +22,8 @@ A memória deixa de ser um diário e vira uma lista curta de fatos que cresce e 
 
 ## Fontes de verdade
 
-- [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) decisão 4, [ADR-019](../../produto/adrs/ADR-019-ferramentas-dev.md).
-- [memoria-push](../../produto/specifications/memoria-push.md), [api-contract.md](../../api-contract.md) (depois do S11).
+- [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) decisão 4, [ADR-019](../../../produto/adrs/ADR-019-ferramentas-dev.md).
+- [memoria-push](../../../produto/specifications/memoria-push.md), [api-contract.md](../../../api-contract.md) (depois do S11).
 
 ## Escopo de implementação
 
@@ -84,7 +86,7 @@ Constantes: `PERMANENT_MAX = 30`, `DYNAMIC_MAX = 40`, `DYNAMIC_TTL_DAYS = 21`, `
 
 - A área **Memória** mostra um fato por linha, editável: `P1 | preference | leite | Leite semidesnatado`. Rotina: `D2 | routine | cafe | slot=1 | 2 ovos mexidos, … | 440 kcal 25P 38C 22G`.
 - Acima dela, só leitura: `Permanente 3/30 · Dinâmica 5/40` e, por fato, `visto {n} dias · último {data}`.
-- Salvar: mesmas regras de limite e tamanho. Pode editar texto, `key`, tipo e adicionar linha nova (`novo | preference | queijo | Queijo minas`). **Não apaga** ([ADR-019](../../produto/adrs/ADR-019-ferramentas-dev.md)): linha removida é recusada com o número da linha, e nada é salvo. Esquecer um fato é pelo Chat ("esquece X").
+- Salvar: mesmas regras de limite e tamanho. Pode editar texto, `key`, tipo e adicionar linha nova (`novo | preference | queijo | Queijo minas`). **Não apaga** ([ADR-019](../../../produto/adrs/ADR-019-ferramentas-dev.md)): linha removida é recusada com o número da linha, e nada é salvo. Esquecer um fato é pelo Chat ("esquece X").
 - Conferir a duplicação que o dono viu em 30/09 (o texto da memória aparece duas vezes, colado em "(65 kcal)Café:"): se vier do editor, corrigir aqui e registrar a causa.
 
 ### 7. Telemetria
@@ -123,9 +125,9 @@ Constantes: `PERMANENT_MAX = 30`, `DYNAMIC_MAX = 40`, `DYNAMIC_TTL_DAYS = 21`, `
 
 ## Fora de escopo
 
-- Selo `Memória atualizada`, chips de origem, sugestão da rotina: [A29](a29-chat-v2-interface.md) (gold do [ST6](../../stitch/plans/completed/st6-chat-v2.md)).
+- Selo `Memória atualizada`, chips de origem, sugestão da rotina: [A29](../a29-chat-v2-interface.md) (gold do [ST6](../../../stitch/plans/completed/st6-chat-v2.md)).
 - Memória visível ao usuário final fora do dev (ADR-023: até o dono decidir).
-- Server: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md).
+- Server: [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md).
 
 ## Riscos e controles
 
@@ -146,3 +148,49 @@ Constantes: `PERMANENT_MAX = 30`, `DYNAMIC_MAX = 40`, `DYNAMIC_TTL_DAYS = 21`, `
 Depois da implementação, registre resultados reais e aplique o ciclo de vida em `docs/sdd/README.md`, incluindo a entrega git (§ 6).
 
 Só declaração explícita do dono cancelando este plano permite `Cancelado` e a pasta `plans/cancelled/`.
+
+## Resultados reais (30/09/2026)
+
+### O que foi feito
+
+- `domain/MemoryRules.kt` (Kotlin puro): `Fact`, `Memory`, `MemoryUpdate`, `RecordedMeal`, `MemoryResult` e as regras da seção 2 com as constantes do plano. `MemoryResult.changed` conta só mudanças vindas da IA (expiração sozinha não marca a mensagem).
+- `core/memory/FactMemory.kt` substitui `MemoryStore` (`read(today)`, `apply`, `reinforceRoutine`, `replaceAll`). JSON `{"v":2,"next":{"P","D"},"facts":[…]}` no mesmo `memory.bin` cifrado e atômico; grava só quando a memória mudou. Conteúdo que não é `v: 2` → vazio.
+- `LegacyMemory`: o `memory.txt` do A8 agora é apagado sem ser lido (a memória v2 começa vazia; não há conversão). Com isso o `EncryptedFile` saiu do código e a dependência `androidx.security:security-crypto` foi removida do `build.gradle.kts` e do catálogo.
+- `ChatIn.facts` (sempre presente, `[]` inclusive), `ChatFact`, `ChatMemoryUpdate`, `ChatOut.memoryUpdates`/`memoryUsed`. `memory` vai `""` (omitido no JSON).
+- `PromptBuilder.build(facts = …)`: `days_seen`, `last_seen`; `slot` de rotina que não é slot de hoje vai `null` (o server recusa slot fora do `profile.slots`).
+- `ChatViewModel`: preferência/porção e todo `replace`/`remove` na resposta; `add`/`reinforce` de rotina em `pendingMemory` e aplicados em Gravar, Confirmar do Trocar e Substituir, com slot e kcal/P/C/G do registro. `memoryUpdated` na IA ou no recibo; `memoryUsedKinds` resolvido contra os fatos enviados. Saíram a linha `Respondeu "…"`, as linhas `{slot}: …` e o `openQuestion`.
+- Room v6: `MIGRATION_5_6` (3 `ADD COLUMN`), schema `6.json` exportado.
+- Telemetria `memory_changed`: `add`, `reinforce`, `replace`, `remove`, `promote`, `expire`, `permanent`, `dynamic` (só números), emitida quando alguma contagem > 0.
+- Editor dev: `FactText` (formato do plano; `novo | …` entra como permanente `explicit`), `Permanente n/30 · Dinâmica n/40` e `visto n dias · último dd/MM` só leitura. Recusa com número da linha: id desconhecido ou repetido, categoria, chave/texto vazios ou acima do limite, chave repetida, rotina sem `slot=`, slot inexistente, limites 30/40 e **linha removida** (número da linha original). Telemetria `dev_memory_saved` passou a `permanent`, `dynamic`, `memory_changed`, `profile_changed`.
+
+### Decisões de implementação (dentro do plano)
+
+- "Tipo" editável no editor = `category` (a coluna da linha). `kind` segue o prefixo do id e muda só pelas regras (promoção, contradição, `replace` com `kind: permanent`).
+- `add permanent` sobre uma dinâmica de mesma `key` sem vaga na permanente: o fato fica dinâmico com o texto novo (a contradição vale; a troca de tipo espera vaga, como a promoção por dias).
+- Rotina cujo slot foi apagado na Config continua salvável no editor sem mudança; só um `slot=` novo ou alterado precisa existir (achado do teste `slotsByWeekday…`).
+- Promoção e contradição de dinâmica → permanente trocam o id (`D…` → `P…`), porque o server valida o prefixo pelo `kind`. Um `pendingMemory` antigo que aponte para o id velho é ignorado (id sumido).
+
+### Duplicação vista pelo dono em 30/09
+
+Veio do editor dev (A23). O campo `BasicTextField(String)` lia o valor de volta do `StateFlow` um frame depois (`collectAsStateWithLifecycle`); esse atraso é uma causa conhecida do IME reaplicar o buffer sobre o texto recém-carregado, o que bate com a memória inteira repetida e colada na última linha ("(65 kcal)Café:"). O `MemoryStore.replace` então gravava as linhas coladas. **Causa provável, não reproduzida no emulador.** Correção: o texto do campo vive no próprio Composable (`TextFieldValue`, síncrono), é reiniciado só quando a tela carrega (`loaded`) e cada mudança sobe para o ViewModel. O formato novo (um fato por linha, id obrigatório, id repetido recusado) também impede salvar uma duplicação.
+
+### Validação automatizada
+
+- `:app:testDevDebugUnitTest`: **308 testes, 0 falhas**. Novos ou reescritos: `MemoryRulesTest` (20: cada linha da tabela, contradição, sem vaga, promoção com e sem vaga, expiração no dia 22, limite 40, rotina forte), `FactMemoryTest` (6: texto antigo → vazio e reescrito, formato JSON, nada aplicado não grava, expiração, `reinforceRoutine`), `AtomicMemoryFileTest` (cifra e gravação atômica com `FactMemory`; `memory.txt` apagado sem leitura), `ChatViewModelTest` (preferência na resposta marca a IA; rotina só no Gravar marca o recibo + `memory_changed`; estimativa pulada não reforça; `memory_used` → `permanent` / `permanent,dynamic` / id desconhecido ignorado; nenhuma linha `Respondeu`; wipe mantém a memória), `PromptBuilderTest` (`facts` com `days_seen`/`last_seen`, slot fora de hoje → `null`, `"facts":[]` no JSON, sem `memory`), `MigrationV5V6Test`, `FactTextTest` (8), `DevMemoryViewModelTest` (9).
+- `:app:verifyRoborazziDevDebug`: verde (Chat sem mudança visual).
+- `:app:assembleDevRelease`: verde.
+
+### Validação no emulador (dev release, server de dev)
+
+1. Instalado **por cima** do 0.0.3-dev (A27) com memória de texto antiga (4 linhas `Respondeu`/`Almoço:`/`Cafe:`): o editor dev mostra `Permanente 0/30 · Dinâmica 0/40` e campo vazio; Home, logs e perfil intactos (migração 5 → 6 num arquivo real).
+2. "Sempre uso leite semidesnatado": **na primeira vez o modelo respondeu `memory_updates: []`** (o digest do dia já dizia que o usuário usa semidesnatado); o app mandou v2 corretamente (`MEMORY: permanent 0/30, dynamic 0/40` no log de conversa). "Lembra que eu sempre uso leite semidesnatado" → `P1 | preference | leite | Sempre usa leite semidesnatado.` no editor.
+3. "tomei um café com leite agora" → não perguntou o tipo de leite (perguntou só o volume); resposta com `memory_used: ["P1"]`. `memoryUsedKinds` não é legível no build release (Room sem `run-as`); o mapeamento está coberto pelo `ChatViewModelTest`.
+4. "Agora uso leite integral" → `P1` com o texto novo, mesmo id.
+5. "Esquece o leite" → `Permanente 0/30`, `P1` saiu.
+6. Rotina: "no café comi 2 ovos mexidos e 1 pão francês como sempre" → o modelo **não** propôs rotina nesse turno; a memória continua vazia antes de qualquer registro (correto). O caminho Gravar → rotina, 3 dias e promoção no 5º não foi exercido no aparelho: a imagem do emulador é `user` (sem root) e mudar a data pelo app Configurações é mudança de configuração de sistema, que o agente não faz. Coberto por `MemoryRulesTest` e `ChatViewModelTest`.
+
+### Pendente (dono)
+
+- Uma semana de uso real olhando o editor dev (validação 4): rotina aparecendo só após Gravar, 3 dias → rotina forte, 5 dias → `P…` `promoted`, dinâmica sumindo após 21 dias.
+- Café gravado em dias seguidos no emulador com a data avançada (validação 3, último item), se o dono quiser antes da semana real.
+- Para o server (fora deste goal): o modelo nem sempre propõe `add` numa frase explícita quando o digest já contém o fato, e não propôs rotina na primeira observação de um café. Candidatos a caso no `server/evals/` (S10/S11).
