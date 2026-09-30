@@ -1,0 +1,75 @@
+{
+  "id": "slot-noturno-cafe-14h",
+  "since": "v2",
+  "tags": [
+    "log",
+    "slot"
+  ],
+  "request": {
+    "local_time": "2026-09-30T14:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1740,
+      "p_target": 131,
+      "c_target": 174,
+      "g_target": 58,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Jantar",
+          "time": "03:00"
+        },
+        {
+          "id": "2",
+          "name": "Café",
+          "time": "14:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 650,
+      "eaten_p": 32,
+      "eaten_c": 80,
+      "eaten_g": 20,
+      "workout_kcal": null,
+      "remaining_kcal": 1090,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "1 prato de macarrão com carne moída",
+          "kcal": 650,
+          "p": 32,
+          "c": 80,
+          "g": 20
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "2 ovos mexidos e 1 pão francês",
+    "image_b64": null,
+    "compact": false,
+    "facts": []
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "2"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "id": "slot-correcao-faltou",
+  "since": "v2",
+  "tags": [
+    "log",
+    "slot",
+    "consolidated"
+  ],
+  "request": {
+    "local_time": "2026-09-30T13:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 620,
+      "eaten_p": 42,
+      "eaten_c": 60,
+      "eaten_g": 20,
+      "workout_kcal": null,
+      "remaining_kcal": 1380,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "arroz (150 g), feijão (100 g), bife (120 g)",
+          "kcal": 620,
+          "p": 42,
+          "c": 60,
+          "g": 20
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "faltou dizer que tinha farofa",
+    "image_b64": null,
+    "compact": false,
+    "facts": []
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "3",
+    "meal_text_has": [
+      "bife",
+      "farofa"
+    ]
+  }
+}
