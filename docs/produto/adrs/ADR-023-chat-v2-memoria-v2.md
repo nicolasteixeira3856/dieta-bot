@@ -67,7 +67,7 @@ O "mesmo de ontem" deixa de depender da memória. Todo turno leva `recent`: as r
 ### 6. Avaliação e `reasoning.effort`
 
 - Nasce um conjunto de avaliação do Chat no `server/evals/`, com casos escritos a partir do log de conversa do dev ([ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md)). Cada feedback do dono vira caso novo.
-- O prompt novo roda com `none` e com `low`, 3 repetições por caso. **`low` é adotado** se tiver pelo menos 10 pontos percentuais a mais de casos aprovados e latência p95 ≤ 20 s. Senão, fica `none`. O resultado é registrado no plano [S11](../../server/plans/s11-chat-v2.md). Se `low` vencer, o S11 atualiza a linha LLM do `AGENTS.md` e a spec [v1-chat](../../server/specifications/v1-chat.md).
+- O prompt novo roda com `none` e com `low`, 3 repetições por caso. **`low` é adotado** se tiver pelo menos 10 pontos percentuais a mais de casos aprovados e latência p95 ≤ 20 s. Senão, fica `none`. O resultado é registrado no plano [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md). Se `low` vencer, o S11 atualiza a linha LLM do `AGENTS.md` e a spec [v1-chat](../../server/specifications/v1-chat.md).
 
 ### 7. Avisos de memória no Chat
 
@@ -126,6 +126,6 @@ Um único gate Stitch, [ST6](../../stitch/plans/st6-chat-v2.md), cria `chatR`, `
 
 - Especificações afetadas: [chat](../specifications/chat.md), [memoria-push](../specifications/memoria-push.md), [v1-chat](../../server/specifications/v1-chat.md), [api-contract](../../api-contract.md).
 - ADRs relacionados: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), [ADR-017](ADR-017-registro-consolidado.md), [ADR-019](ADR-019-ferramentas-dev.md).
-- Planos: [S10](../../server/plans/completed/s10-avaliacao-chat.md), [S11](../../server/plans/s11-chat-v2.md), [A27](../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../android/plans/a28-memoria-v2.md), [ST6](../../stitch/plans/st6-chat-v2.md), [A29](../../android/plans/a29-chat-v2-interface.md).
+- Planos: [S10](../../server/plans/completed/s10-avaliacao-chat.md), [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), [A27](../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../android/plans/a28-memoria-v2.md), [ST6](../../stitch/plans/st6-chat-v2.md), [A29](../../android/plans/a29-chat-v2-interface.md).
 
 Depois de aceito, este ADR não se edita. Mudança posterior exige ADR novo que declare a substituição.

@@ -101,7 +101,8 @@
     ],
     "text": "comi tudo sim",
     "image_b64": null,
-    "compact": false
+    "compact": false,
+    "facts": []
   },
   "expect": {
     "intent": "log",

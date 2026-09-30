@@ -8,14 +8,7 @@ Desde o [S8](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md
 
 Desde o [S9](../plans/completed/s9-limite-texto-2000.md) (29/09/2026): `text` e `messages[].text` até 2000 caracteres ([ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)).
 
-## Mudanças decididas, ainda não vigentes (ADR-023)
-
-O [S11](../plans/s11-chat-v2.md) implementa o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md). Até lá, valem as regras numeradas.
-
-- Entrada opcional: `facts` (memória em fatos; presente = cliente v2), `recent` (refeições dos últimos 7 dias), `day.remaining_kcal`.
-- Saída: `intent` (`log` | `plan` | `question`), `estimate.meal_text`, `memory_updates`, `memory_used`.
-- Cliente legado (sem `facts`): `memory` em texto como hoje; `plan` volta com `estimate: null`.
-- `reasoning.effort` decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)): `low` só se ganhar ≥ 10 p.p. com p95 ≤ 20 s.
+Desde o [S11](../plans/pending_manual_validation/s11-chat-v2.md) (30/09/2026, [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)): intenção (`log` | `plan` | `question`), `estimate.meal_text`, memória em fatos (`facts`), `recent` (7 dias), `day.remaining_kcal`, `memory_updates` e `memory_used`. Tudo aditivo: cliente legado (sem `facts`) continua funcionando. `reasoning.effort` fica `none`, decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)).
 
 ## Contexto e objetivo
 
@@ -41,15 +34,29 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 ## Regras funcionais
 
 1. Auth igual estimate. 401 se X-Invite falhar.
-2. Modelo gpt-6-luna, reasoning.effort=none. store=false.
-3. Prompt do turno = instructions fixas + bloco perfil + memoria + day + digests + messages (≤12) + text atual + imagem opcional. As instructions vêm primeiro e são idênticas entre turnos (cache de prompt). O `day` leva, por slot gravado, `kcal`, P/C/G e `text`.
-4. Instructions: estimar se o user registrou comida; responder duvida; nunca gravar sozinho; sugerir slot pelo horario local vs slots do perfil; 1 pergunta específica (porção, tamanho, preparo) se confidence ≠ high. A refeição da fala é a que ela nomeia, senão a da fala anterior do user, senão a do horário. Completar, corrigir ou remover comida de um slot `eaten` → estimate da **refeição inteira** (itens gravados + mudança) com aquele slot, e o reply diz que substitui. Resposta a pergunta → reestima a mesma refeição, mesmo slot. Outro dia ("ontem") → estima se pedido, e o reply avisa que grava hoje.
+2. Modelo gpt-6-luna, reasoning.effort=none (`config.REASONING_EFFORT`; `low` só se ganhar ≥ 10 p.p. no avaliador com p95 ≤ 20 s — ADR-023). store=false.
+3. Prompt do turno = instructions fixas + `PROFILE` + `MEMORY` + `DAY` + `RECENT` + `DIGESTS` + `HISTORY` (≤12) + mensagem atual + imagem opcional. As instructions vêm primeiro e são idênticas entre turnos (cache de prompt). O `day` leva, por slot gravado, `kcal`, P/C/G e `text`, e `remaining_kcal` quando o app manda.
+   - Cliente v2 (`facts` presente, mesmo vazio): `MEMORY: permanent {n}/30, dynamic {n}/40` e uma linha por fato: `{id} {category}[ slot={slot}] {key}: {text} (seen {n} days[, last {data}])`. O texto `memory` é ignorado.
+   - Cliente legado (sem `facts`): `MEMORY: {memory}` como antes.
+   - `RECENT` (qualquer cliente, quando vier): uma linha por refeição, `{data} {dia da semana} {slot_id} {slot_name}: "{text}" {kcal}kcal {p}P {c}C {g}G`; `slot_id` null = `Outros`.
+3a. Intenção: `log` (comeu ou está comendo, ou responde a pergunta sobre essa refeição), `plan` (vai comer, quer montar, pede quantidades, pergunta se cabe) ou `question` (sem comida a estimar). Dúvida: passado = `log`; futuro, condicional ou pedido de quantidade = `plan`. Estimate em `log` e `plan`; null em `question`.
+3b. `meal_text`: a refeição inteira em pt-BR com as correções da conversa, sem comentário, ≤ 160 caracteres. Nunca a resposta do usuário sozinha.
+3c. Plano: `reply` com gramas por item, preparo em até 3 linhas se receita, total `kcal · P · C · G`; cabe em `remaining_kcal` quando possível, senão diz quanto passa. Não faz a conta do dia. Não pergunta: assume e diz o que assumiu (`question` null).
+3d. Histórico: "o mesmo de ontem", "igual ao almoço de segunda" → usa a linha de `RECENT` daquele dia e slot. Sem registro que case → estimate null e pergunta o que foi.
+3e. Memória: fato que responde a incerteza é usado, não vira pergunta, e o id vai em `memory_used`. `memory_updates` (≤ 5 por turno): frase explícita de hábito → `add` permanente (ou `replace` do fato de mesma `key`); "esquece X" → `remove`; marca/tipo/porção num `log` → `reinforce` ou `add` dinâmico; refeição que casa rotina → `reinforce`; hábito novo → `add` dinâmico `routine` com slot. Nunca refeição avulsa, números do dia ou saúde. Permanente 30/30 + frase nova → sem `add`; o `reply` pergunta "Minha memória fixa está cheia. Esqueço {fato menos visto}?".
+3f. O `reply` nunca diz que registrou: quem registra é o usuário, no app.
+4. Instructions: estimar se o user registrou comida; responder duvida; nunca gravar sozinho; sugerir slot pelo horario local vs slots do perfil; 1 pergunta específica (porção, tamanho, preparo) se confidence ≠ high, e só uma por refeição: respondida, confidence high e sem pergunta nova. kcal/P/C/G são o total da refeição inteira (soma dos itens). A refeição da fala é a que ela nomeia, senão a da fala anterior do user, senão a do horário. Completar, corrigir ou remover comida de um slot `eaten` → estimate da **refeição inteira** (itens gravados + mudança) com aquele slot, e o reply diz que substitui. Resposta a pergunta → reestima a mesma refeição, mesmo slot. Outro dia ("ontem") → estima se pedido, e o reply avisa que grava hoje.
 4a. Total de kcal sem comida ("comi 1220 kcal"), mesmo com o slot gravado → `estimate: null` e o reply pergunta o que foi comido. Nunca estimate com p, c e g todos zero; P/C/G coerentes com kcal; sem conseguir estimar → null, nunca zeros.
 5. OUT sempre JSON. O server pede ao modelo `text.format` `json_schema` strict (`chat_turn`: todo campo obrigatório, nulo explícito; compact usa o schema `digest`):
    - reply: string (prosa pt-BR)
-   - estimate: {kcal,p,c,g,confidence,question,items,suggested_slot} ou null se nao houver comida nesta fala
+   - intent: `log` | `plan` | `question`
+   - estimate: {kcal,p,c,g,confidence,question,items,suggested_slot,meal_text} ou null (`question`)
+   - memory_updates: lista de {op,id,kind,category,key,text,slot}; `id` e `memory_used` com enum dos ids de `facts` (sem fatos: `id` só null, `memory_used` string livre)
+   - memory_used: lista de ids de fatos
    - digest: string ou null
    - model: gpt-6-luna
+5a. Shaping (S11): `intent` inválido → deduzido (estimate = `log`, senão `question`); `question` com estimate → estimate descartado; `plan` → `question` null; `meal_text` vazio → itens (`{name} {g} g`, vírgulas), acima de 160 corta na última vírgula. `memory_updates`: descarta op/kind/category inválidos, `id` desconhecido em `reinforce`/`replace`/`remove`, `add` com `id`, `routine` sem slot válido, `key` ou `text` vazio; corta `text` 160 e `key` 40; no máximo 5. `memory_used`: só ids de `facts`, sem repetição, no máximo 10.
+5b. Cliente legado (sem `facts`): `memory_updates` e `memory_used` vazios; `intent: plan` → `estimate: null` (sem card no APK ≤ 0.0.3; gramas e total no `reply`).
 6. suggested_slot = id de um slot do profile.slots (enum no schema, montado por request; perfil sem slots → só `null`). Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id. Defesa no shaping: aceita `"1"`, `1` e `{"id": 1}`, normaliza para string e descarta id fora do perfil.
 6a. confidence ≠ high sem `question` → `"Alguma porção foi diferente do que considerei?"` (`CHAT_FALLBACK_QUESTION`).
 7. compact=true: Luna recebe so as messages (delimitadas, sem foto) e devolve digest ≤400 tokens (corte em 1600 chars), pt-BR, fatos (comida, kcal/P citados nas falas, slot, pulou), sem conselho. OUT: reply "", estimate null. messages vazio → 422 `compact_needs_messages` sem chamar a Luna. Falha → 200 com digest null.
@@ -92,6 +99,12 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 status do slot: `empty` | `eaten` | `skipped`.
 messages[].role: `user` | `assistant`. Sem system.
 
+Campos opcionais do S11 (ADR-023), limites → 422:
+
+- `facts`: ≤ 70 itens `{id, kind, category, key, text, slot, days_seen, last_seen}`; `id` `[PD][0-9]{1,4}`; `kind` `permanent` | `dynamic`; `category` `preference` | `portion` | `routine`; `key` ≤ 40; `text` ≤ 160; `slot` id do perfil ou null; `days_seen` ≥ 0; `last_seen` data ISO ou null. Presente (mesmo vazio) = cliente v2.
+- `recent`: ≤ 42 itens `{date, slot_id, slot_name, text, kcal, p, c, g}`; `text` ≤ 240; `date` ISO; `slot_id` null = "Outros".
+- `day.remaining_kcal`: inteiro ou null (teto efetivo − comido, pode ser negativo).
+
 ## Estados e falhas
 
 - 401 invite.
@@ -114,6 +127,7 @@ messages[].role: `user` | `assistant`. Sem system.
 - [ADR-012](../../produto/adrs/ADR-012-chat-home-perfil.md)
 - [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)
 - [ADR-015](../adrs/ADR-015-log-conversa-dev.md)
+- [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)
 - [api-contract.md](../../api-contract.md) ate S2 atualizar
 
 ## Planos relacionados
@@ -122,6 +136,8 @@ messages[].role: `user` | `assistant`. Sem system.
 - [S2](../plans/completed/s2-v1-chat.md)
 - [S3 (Concluido)](../plans/completed/s3-compact.md)
 - [S8 (Pendente aprovação manual)](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)
+- [S10 (Concluído)](../plans/completed/s10-avaliacao-chat.md) — avaliador `server/evals/`
+- [S11 (Pendente aprovação manual)](../plans/pending_manual_validation/s11-chat-v2.md) — Chat v2
 
 ## Criterios de aceite funcionais
 

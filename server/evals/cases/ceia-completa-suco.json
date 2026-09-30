@@ -112,7 +112,8 @@
     "messages": [],
     "text": "Na ceia também tomei um copo de 300 ml de suco de laranja",
     "image_b64": null,
-    "compact": false
+    "compact": false,
+    "facts": []
   },
   "expect": {
     "intent": "log",

@@ -106,7 +106,8 @@
     "messages": [],
     "text": "À noite vou fazer uma pizza no pão sírio: frango desfiado, muçarela e molho de tomate. Quantos gramas de cada coisa eu uso? O pão é sempre 1 unidade.",
     "image_b64": null,
-    "compact": false
+    "compact": false,
+    "facts": []
   },
   "expect": {
     "intent": "plan",

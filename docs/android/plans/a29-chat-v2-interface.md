@@ -97,7 +97,7 @@ Os três estados visuais novos do Chat, sobre os dados que o A27 e o A28 já gua
 - Tela de memória para o usuário final (ADR-023: só dev).
 - Tocar num chip para ver ou editar a memória.
 - Sugestão de rotina por push.
-- Server e regras de memória: [S11](../../server/plans/s11-chat-v2.md), [A28](a28-memoria-v2.md).
+- Server e regras de memória: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), [A28](a28-memoria-v2.md).
 
 ## Riscos e controles
 

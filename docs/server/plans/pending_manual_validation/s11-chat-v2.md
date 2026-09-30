@@ -1,10 +1,10 @@
 # Plano — S11 Chat v2 no server: intenção, texto da refeição, memória estruturada e histórico recente
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual
 - Data: 30/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py`, `server/main.py`, `server/shaping.py`, `server/config.py`, `server/evals/cases/`, `server/tests/`
-- Pré-requisitos: [S10](completed/s10-avaliacao-chat.md) concluído (avaliador e linha de base). Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2, 3, 4, 5 e 6, parte server).
+- Pré-requisitos: [S10](../completed/s10-avaliacao-chat.md) concluído (avaliador e linha de base). Aceita o [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2, 3, 4, 5 e 6, parte server).
 
 ## Gate de autorização
 
@@ -20,8 +20,8 @@ O `/v1/chat` passa a classificar a intenção, devolver o texto consolidado da r
 
 ## Fontes de verdade
 
-- [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-015](../adrs/ADR-015-log-conversa-dev.md).
-- [v1-chat](../specifications/v1-chat.md), [api-contract.md](../../api-contract.md).
+- [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-015](../../adrs/ADR-015-log-conversa-dev.md).
+- [v1-chat](../../specifications/v1-chat.md), [api-contract.md](../../../api-contract.md).
 
 ## Escopo de implementação
 
@@ -49,7 +49,7 @@ RECENT:
 2026-09-29 1 Café: "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite, café" 440kcal 25P 38C 22G
 ```
 
-Cliente legado: `MEMORY: <texto>` como hoje. `RECENT` e `remaining_kcal` entram sempre que vierem, em qualquer cliente (o [A27](../../android/plans/a27-chat-v2-texto-intencao.md) manda os dois antes da memória v2).
+Cliente legado: `MEMORY: <texto>` como hoje. `RECENT` e `remaining_kcal` entram sempre que vierem, em qualquer cliente (o [A27](../../../android/plans/a27-chat-v2-texto-intencao.md) manda os dois antes da memória v2).
 
 ### 3. Instruções (`_CHAT_INSTRUCTIONS`, reescritas em inglês)
 
@@ -115,7 +115,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 1. Casos `v2` do S10 com as expectativas completas. Casos novos para o que surgir na implementação.
 2. `python -m evals.run --effort none low --repeat 3`.
 3. Regra do ADR-023: **`low`** se ganhar pelo menos 10 pontos percentuais de aprovação e tiver p95 ≤ 20 s; senão **`none`**. O vencedor vira o padrão de `LlmClient` (`config.REASONING_EFFORT`).
-4. Se `low` vencer: linha LLM do `AGENTS.md` (`reasoning.effort=low`), [v1-chat](../specifications/v1-chat.md) regra 2 e `docs/server/README.md`.
+4. Se `low` vencer: linha LLM do `AGENTS.md` (`reasoning.effort=low`), [v1-chat](../../specifications/v1-chat.md) regra 2 e `docs/server/README.md`.
 5. Meta: todos os casos dos grupos "Texto da refeição" e "Intenção" aprovados no effort escolhido. Caso que continuar falhando fica listado em Resultados, com o `raw_output`, e é reportado ao dono antes do deploy.
 
 ### 7. Testes (`server/tests/test_chat.py`)
@@ -136,7 +136,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 ### 9. Contrato e specs
 
 - `docs/api-contract.md` (§ POST /v1/chat): campos de entrada e saída novos, limites, cliente legado.
-- [v1-chat](../specifications/v1-chat.md): regras 3–6 e a seção "Mudanças aprovadas (ADR-023)" vira regra vigente.
+- [v1-chat](../../specifications/v1-chat.md): regras 3–6 e a seção "Mudanças aprovadas (ADR-023)" vira regra vigente.
 
 ## Arquivos e áreas afetadas
 
@@ -153,7 +153,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 
 ## Fora de escopo
 
-- Client: [A27](../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../android/plans/a28-memoria-v2.md), [A29](../../android/plans/a29-chat-v2-interface.md).
+- Client: [A27](../../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/a28-memoria-v2.md), [A29](../../../android/plans/a29-chat-v2-interface.md).
 - Aplicar a memória, promoção, expiração e limites: são do client (o server é stateless).
 - Troca de modelo. `/v1/estimate` e `/v1/fit`.
 
@@ -171,6 +171,60 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 - "Sempre uso leite semidesnatado" → `add` permanente `leite`. Com esse fato na memória, o café não pergunta o tipo de leite e `memory_used` tem o id.
 - APK 0.0.3 continua funcionando e para de mostrar card em plano.
 - Effort escolhido pelo avaliador e registrado.
+
+## Resultados (30/09/2026)
+
+### Entregue
+
+- `ChatIn`: `facts` (≤ 70, presente = cliente v2), `recent` (≤ 42), `day.remaining_kcal`, com os limites da seção 1 (422). `slot` de fato fora do perfil → 422.
+- `_chat_text`: `MEMORY` com contagem e linhas de fato (v2) ou texto (legado), `remaining_kcal` no `DAY`, `RECENT` entre `DAY` e `DIGESTS`. Cliente legado sem `recent`/`remaining_kcal` gera o prompt de antes, byte a byte.
+- `_CHAT_INSTRUCTIONS` reescritas em inglês com todas as regras do S8 e as 8 da seção 3.
+- `chat_turn` strict com `intent`, `meal_text`, `memory_updates` e `memory_used`; enum de ids montado por request.
+- `shape_chat` com as regras da seção 5 e do cliente legado. `fail_chat` e `text_only_chat` devolvem os campos novos vazios (`intent: question`).
+- `config.REASONING_EFFORT = "none"` como padrão do `LlmClient`.
+- Casos: os `v2` passam a mandar `facts: []` (cliente v2); novo `legado-plano-sem-card` (corpo do 0.0.3, plano → sem card). 22 casos.
+
+### Decisões de implementação (cobertas pelo plano, registradas aqui)
+
+- **Dia da semana no `RECENT`** (`2026-09-28 segunda 3 Almoço: …`): com `none`, "igual ao almoço de segunda" falhava 0/3 por não converter data em dia da semana. Com o dia na linha, 3/3.
+- **Duas regras a mais no prompt**, das falhas do avaliador: kcal/P/C/G são o total da refeição inteira, soma dos itens (a ceia com suco voltava 900 ou 103 kcal com itens somando 1035); uma pergunta por refeição: respondida, `confidence` high e sem pergunta nova (regra "One question" do `AGENTS.md`).
+- **Plano não pergunta:** o shaping zera `question` em `plan`, sem o `CHAT_FALLBACK_QUESTION`.
+- **Avaliador:** expectativa nova `question_not` (termo que não pode estar na pergunta). `memoria-evita-pergunta-leite` usa `question_not: ["leite"]` no lugar de `question: absent`: o caso mede se o fato do leite evita a pergunta do leite; uma pergunta sobre a manteiga é legítima.
+- Schema strict no pior caso real: 70 fatos (enum de 70 ids) + 42 `recent` aceitos pela API, 4,3 s, `memory_used: ["P1"]`. O plano B não foi necessário.
+
+### Avaliação `none` × `low` (seção 6)
+
+`python -m evals.run --effort none low --repeat 3`, 22 casos, prompt final (30/09/2026 12:27):
+
+| effort | aprovados | p50 | p95 | tokens/chamada (entrada · cache · saída · raciocínio) | custo da rodada |
+|---|---|---|---|---|---|
+| `none` | **22/22 (100%)** | 2,5 s | 3,5 s | 2236 · 1888 · 168 · 0 | US$ 0,0091 |
+| `low` | 22/22 (100%) | 3,0 s | 5,2 s | 2236 · 1919 · 235 · 66 | US$ 0,0111 |
+
+- Linha de base do S10 (prompt antigo, `none`): 11/21 (52,4%).
+- **Decisão: `none`.** `low` não ganha 10 p.p. (0 p.p.). `REASONING_EFFORT` fica `none`; `AGENTS.md` sem mudança.
+- Rodadas intermediárias (mesmo conjunto): 1ª `none` 20/22, `low` 21/22 (falhas: ceia com kcal ≠ soma, pergunta repetida no café, pergunta da manteiga); 2ª `none` 20/22, `low` 21/22 (falhas: pergunta repetida no café, "segunda" sem data). As correções acima levaram as duas a 22/22.
+- Meta da seção 6.5: todos os casos de "Texto da refeição" e "Intenção" aprovados com `none`. Nenhum caso falhando para reportar.
+- Tokens de entrada: 1086 → 2236 por chamada (fatos, `recent` e instruções maiores), ~85% em cache. Custo aceito no ADR-023.
+
+### Deploy e verificação real (seção 8)
+
+- `pytest -q`: 95 passed, 63 subtests.
+- `./tools/deploy-gcp.ps1`: `/health` 200 `{"ok": true, "model": "gpt-6-luna"}`.
+- Requests reais no server de dev (`X-App-Env: s11-check`):
+  - `s11-legacy-pizza-plano` (corpo do 0.0.3, sem `facts` nem `remaining_kcal`): 200, `intent: plan`, **`estimate: null`**, `memory_updates: []`, `memory_used: []`; `reply` com gramas, preparo e "Total aproximado: 490 kcal · P 48 g · C 39 g · G 14 g".
+  - `s11-v2-cafe-leite` (café igual ao de ontem + "Uso sempre leite semidesnatado"): 200, `intent: log`, `meal_text` "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite semidesnatado, 100 ml de café sem açúcar", 430 kcal, slot 1, `question` null, `memory_updates` `add permanent preference leite`.
+  - `s11-v2-pizza-plano`: 200, `intent: plan`, estimate 495 kcal slot 5 sem `question`, `reply` com gramas, preparo e "Total estimado: 495 kcal · P 47 g · C 39 g · G 15 g", cabendo nos 735 kcal restantes.
+
+### Contrato e specs
+
+- `docs/api-contract.md` § POST /v1/chat: campos de entrada e saída, limites, cliente legado. Corrigida a linha antiga "text do /v1/chat ≤ 1000" (vale 2000 desde o S9).
+- [v1-chat](../../specifications/v1-chat.md): regras 2–5b vigentes; a seção "Mudanças decididas" virou estado vigente.
+
+### Pendente (manual, dono)
+
+- Validação 4: no APK 0.0.3, sem update, perguntar "vou fazer pizza de pão sírio, quantas gramas de cada item?" → resposta com gramas e total, **sem card**. Depois disso: `Concluído` e `completed/`.
+- O [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) continua `Proposto` (contexto `produto`); este plano não muda o estado dele.
 
 ## Encerramento
 

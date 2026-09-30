@@ -5,7 +5,7 @@ Content-Type: application/json
 
 Rate limits: 30 req/minute per IP + invite on `/v1/estimate`, `/v1/fit`, and `/v1/chat`. Returns HTTP 429 `{"detail": "rate_limit_exceeded"}` when limit is exceeded.
 Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length` > 24 MB (25,165,824 bytes) enforced at the ASGI layer. It covers the photo cap plus JSON; a photo over the cap is still `photo_too_large` (S8).
-Field lengths: `text` field in `/v1/estimate`, `/v1/fit`, and `/v1/chat` has a maximum length of 1,000 characters. Returns HTTP 422 when exceeded.
+Field lengths: `text` in `/v1/estimate` and `/v1/fit` has a maximum length of 1,000 characters; `/v1/chat` limits are listed in its section. Returns HTTP 422 when exceeded.
 Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as meal data.
 
 Request id: optional request header `X-Request-Id` (`[A-Za-z0-9-]{1,64}`). The server reuses it, or generates a UUID when it is missing or invalid, and always returns it in the `X-Request-Id` response header, on every route and status. Optional request headers `X-App-Version` and `X-App-Env` are only recorded. None of them changes the JSON body.
@@ -89,6 +89,27 @@ Constraints:
 - `text` and `messages[].text` max 2000 characters (code points; S9, ADR-022).
 - `compact`: `false` = normal chat turn. `true` = summarise `messages` (S3), see below.
 
+Optional fields (S11, ADR-023). Every one is optional; out of limits → HTTP 422:
+```json
+{
+  "facts": [
+    {"id": "P1", "kind": "permanent", "category": "preference", "key": "leite",
+     "text": "Leite semidesnatado", "slot": null, "days_seen": 5, "last_seen": "2026-09-29"},
+    {"id": "D2", "kind": "dynamic", "category": "routine", "key": "cafe",
+     "text": "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite", "slot": "1", "days_seen": 3, "last_seen": "2026-09-30"}
+  ],
+  "recent": [
+    {"date": "2026-09-29", "slot_id": "1", "slot_name": "Café", "text": "2 ovos mexidos, 1 pão francês",
+     "kcal": 440, "p": 25, "c": 38, "g": 22}
+  ],
+  "day": {"remaining_kcal": 640}
+}
+```
+- `facts`: ≤ 70 items. `id` matches `[PD][0-9]{1,4}`. `kind` `permanent` | `dynamic`. `category` `preference` | `portion` | `routine`. `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`.
+- **v2 client** = `facts` present (even `[]`): the facts replace `memory` in the prompt. **Legacy client** = no `facts`: `memory` (text) goes to the prompt as before.
+- `recent`: meals recorded in the last 7 days, ≤ 42 items, `text` ≤ 240, `date` ISO, `slot_id` `null` = "Outros". Any client may send it.
+- `day.remaining_kcal`: integer or `null`, effective ceiling − eaten, computed by the app (may be negative). Any client may send it.
+
 OUT
 ```json
 {
@@ -104,18 +125,27 @@ OUT
       {"name": "pao", "g": 100, "kcal": 270},
       {"name": "ovo", "g": 100, "kcal": 180}
     ],
-    "suggested_slot": "cafe"
+    "suggested_slot": "cafe",
+    "meal_text": "2 pães, 2 ovos"
   },
+  "intent": "log",
+  "memory_updates": [],
+  "memory_used": [],
   "digest": null,
   "model": "gpt-6-luna"
 }
 ```
-- `estimate`: `null` if the user message is not food (e.g. general question, greeting, explanation).
+- `intent` (S11): `log` (ate or is eating), `plan` (will eat, asks quantities or if it fits) or `question` (nothing to estimate).
+- `estimate`: present for `log` and `plan`, `null` for `question`. A `plan` never carries a `question`.
+- `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, ≤ 160 characters. The app records this text.
+- `memory_updates` (v2 client only, else `[]`): at most 5 proposals `{op, id, kind, category, key, text, slot}`, `op` `add` | `reinforce` | `replace` | `remove`. `add` has `id: null`; the others carry an id from `facts`. `slot` is set only for `routine`. The app decides and applies them; the server stores nothing.
+- `memory_used` (v2 client only, else `[]`): ids from `facts` the reply relied on, unique, at most 10.
+- Legacy client: `intent: plan` returns `estimate: null` (no record card on APK ≤ 0.0.3; grams and total stay in `reply`).
 - The server asks the model for structured output (`json_schema` strict). `suggested_slot` is an enum of the `profile.slots` ids plus `null`.
 - `suggested_slot`: always a string id from `profile.slots` or `null`. The server normalises `1` / `{"id": 1}` to `"1"` and discards any other value to `null`.
 - A message that completes or corrects a meal whose slot is `eaten` returns the estimate of the **whole meal** with that slot (ADR-017). A calorie total without food returns `estimate: null`.
 - `question`: exists only if `confidence != high`. Missing → `"Alguma porção foi diferente do que considerei?"`.
-- Model answered plain text (no JSON): that text is the `reply`, `estimate: null`. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "estimate": null, "digest": null}`.
+- Model answered plain text (no JSON): that text is the `reply`, `estimate: null`. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.
 - `model`: always `gpt-6-luna`.
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.

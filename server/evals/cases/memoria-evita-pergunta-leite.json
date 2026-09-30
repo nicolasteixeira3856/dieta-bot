@@ -170,7 +170,9 @@
       330,
       520
     ],
-    "question": "absent",
+    "question_not": [
+      "leite"
+    ],
     "memory_used_has": [
       "P1"
     ],

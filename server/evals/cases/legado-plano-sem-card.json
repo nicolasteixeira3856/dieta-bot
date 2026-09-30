@@ -1,12 +1,13 @@
 {
-  "id": "janta-o-que-como",
-  "since": "v2",
+  "id": "legado-plano-sem-card",
+  "since": "v1",
   "tags": [
     "plan",
-    "intent"
+    "intent",
+    "legacy"
   ],
   "request": {
-    "local_time": "2026-09-30T17:30:00-03:00",
+    "local_time": "2026-09-30T16:30:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -104,20 +105,15 @@
     },
     "digests": [],
     "messages": [],
-    "text": "o que eu como na janta hoje?",
+    "text": "Hoje à noite vou montar um wrap de atum com alface e requeijão light. Me passa as gramas de cada item?",
     "image_b64": null,
-    "compact": false,
-    "facts": []
+    "compact": false
   },
   "expect": {
     "intent": "plan",
-    "estimate": "present",
-    "suggested_slot": "5",
-    "kcal_range": [
-      200,
-      800
-    ],
+    "estimate": "absent",
     "reply_has": [
+      "atum",
       "kcal"
     ],
     "reply_not": [

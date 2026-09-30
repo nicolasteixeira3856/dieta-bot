@@ -100,7 +100,8 @@
     ],
     "text": "uns 150 g de arroz e o bife tinha uns 120 g",
     "image_b64": null,
-    "compact": false
+    "compact": false,
+    "facts": []
   },
   "expect": {
     "intent": "log",

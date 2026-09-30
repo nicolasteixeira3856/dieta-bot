@@ -11,7 +11,7 @@ Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-tela
 
 ## ⛔ Bloqueio do dono — prompt para o Stitch
 
-Este passo é manual e trava o A29. São três telas novas, cada uma uma cópia de uma tela existente: três prompts, cada um enviado duas vezes (dark e light). Pode rodar em qualquer ordem e em paralelo com o [S10](../../server/plans/completed/s10-avaliacao-chat.md), o [S11](../../server/plans/s11-chat-v2.md), o [A27](../../android/plans/a27-chat-v2-texto-intencao.md) e o [A28](../../android/plans/a28-memoria-v2.md).
+Este passo é manual e trava o A29. São três telas novas, cada uma uma cópia de uma tela existente: três prompts, cada um enviado duas vezes (dark e light). Pode rodar em qualquer ordem e em paralelo com o [S10](../../server/plans/completed/s10-avaliacao-chat.md), o [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), o [A27](../../android/plans/a27-chat-v2-texto-intencao.md) e o [A28](../../android/plans/a28-memoria-v2.md).
 
 ### Prompt 6.1 — tela nova: resposta de plano com o dia projetado (`chatR`)
 

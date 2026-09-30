@@ -4,9 +4,23 @@ from __future__ import annotations
 
 from typing import Any
 
-from config import CHAT_FALLBACK_QUESTION, DIGEST_MAX_CHARS, FALLBACK_QUESTION, MODEL
+from config import (
+    CHAT_FALLBACK_QUESTION,
+    DIGEST_MAX_CHARS,
+    FACT_KEY_MAX,
+    FACT_TEXT_MAX,
+    FALLBACK_QUESTION,
+    MEAL_TEXT_MAX,
+    MEMORY_UPDATES_MAX,
+    MEMORY_USED_MAX,
+    MODEL,
+)
 
 CHAT_FALLBACK_REPLY = "nao deu pra estimar"
+CHAT_INTENTS = ("log", "plan", "question")
+MEMORY_OPS = ("add", "reinforce", "replace", "remove")
+FACT_KINDS = ("permanent", "dynamic")
+FACT_CATEGORIES = ("preference", "portion", "routine")
 
 
 def shape_estimate(payload: dict[str, Any]) -> dict[str, Any]:
@@ -80,8 +94,12 @@ def shape_chat(
     payload: dict[str, Any],
     *,
     valid_slot_ids: set[str] | list[str] | None = None,
+    fact_ids: list[str] | None = None,
 ) -> dict[str, Any]:
+    """fact_ids None = legacy client (no facts in the request): no memory fields, plan without card."""
     valid_ids = set(valid_slot_ids) if valid_slot_ids else set()
+    legacy = fact_ids is None
+    known_facts = set(fact_ids or [])
 
     reply = payload.get("reply")
     if not isinstance(reply, str) or not reply.strip():
@@ -90,42 +108,16 @@ def shape_chat(
         reply = reply.strip()
 
     raw_estimate = payload.get("estimate")
+    intent = payload.get("intent")
+    if intent not in CHAT_INTENTS:
+        intent = "log" if isinstance(raw_estimate, dict) else "question"
+
     estimate: dict[str, Any] | None = None
-    if isinstance(raw_estimate, dict):
-        try:
-            confidence = _confidence(raw_estimate.get("confidence"))
-        except (TypeError, ValueError):
-            confidence = "medium"
-
-        suggested_slot = _slot_id(raw_estimate.get("suggested_slot"), valid_ids)
-
-        raw_items = raw_estimate.get("items")
-        items = []
-        if isinstance(raw_items, list):
-            for it in raw_items:
-                if isinstance(it, dict):
-                    items.append(_item(it))
-
-        question = raw_estimate.get("question")
-        if confidence != "high":
-            clean_question = (
-                question.strip()
-                if isinstance(question, str) and question.strip()
-                else CHAT_FALLBACK_QUESTION
-            )
-        else:
-            clean_question = None
-
-        estimate = {
-            "kcal": _number_or_zero(raw_estimate.get("kcal")),
-            "p": _number_or_zero(raw_estimate.get("p")),
-            "c": _number_or_zero(raw_estimate.get("c")),
-            "g": _number_or_zero(raw_estimate.get("g")),
-            "confidence": confidence,
-            "question": clean_question,
-            "items": items,
-            "suggested_slot": suggested_slot,
-        }
+    if isinstance(raw_estimate, dict) and intent != "question":
+        estimate = _chat_estimate(raw_estimate, valid_ids, plan=intent == "plan")
+    if legacy and intent == "plan":
+        # APK <= 0.0.3 shows a card for any estimate: grams and total stay in the reply.
+        estimate = None
 
     raw_digest = payload.get("digest")
     digest = (
@@ -136,10 +128,116 @@ def shape_chat(
 
     return {
         "reply": reply,
+        "intent": intent,
         "estimate": estimate,
+        "memory_updates": [] if legacy else _memory_updates(payload.get("memory_updates"), known_facts, valid_ids),
+        "memory_used": [] if legacy else _memory_used(payload.get("memory_used"), known_facts),
         "digest": digest,
         "model": MODEL,
     }
+
+
+def _chat_estimate(raw: dict[str, Any], valid_ids: set[str], *, plan: bool) -> dict[str, Any]:
+    try:
+        confidence = _confidence(raw.get("confidence"))
+    except (TypeError, ValueError):
+        confidence = "medium"
+
+    items = [_item(it) for it in raw.get("items") or [] if isinstance(it, dict)] if isinstance(
+        raw.get("items"), list
+    ) else []
+
+    question = raw.get("question")
+    if confidence == "high" or plan:
+        # A plan never asks (ADR-023 decision 3).
+        clean_question = None
+    else:
+        clean_question = (
+            question.strip()
+            if isinstance(question, str) and question.strip()
+            else CHAT_FALLBACK_QUESTION
+        )
+
+    return {
+        "kcal": _number_or_zero(raw.get("kcal")),
+        "p": _number_or_zero(raw.get("p")),
+        "c": _number_or_zero(raw.get("c")),
+        "g": _number_or_zero(raw.get("g")),
+        "confidence": confidence,
+        "question": clean_question,
+        "items": items,
+        "suggested_slot": _slot_id(raw.get("suggested_slot"), valid_ids),
+        "meal_text": _meal_text(raw.get("meal_text"), items),
+    }
+
+
+def _meal_text(value: Any, items: list[dict[str, Any]]) -> str:
+    text = value.strip() if isinstance(value, str) else ""
+    if not text:
+        text = ", ".join(f"{it['name']} {_grams(it['g'])} g" for it in items if it["name"])
+    return _cut_at_comma(text, MEAL_TEXT_MAX)
+
+
+def _grams(value: int | float) -> str:
+    return str(int(value)) if float(value).is_integer() else str(value)
+
+
+def _cut_at_comma(text: str, limit: int) -> str:
+    """Over the limit: cut at the last comma before it; no comma, a plain cut."""
+    if len(text) <= limit:
+        return text
+    head = text[:limit]
+    comma = head.rfind(",")
+    return (head[:comma] if comma > 0 else head).strip()
+
+
+def _memory_updates(raw: Any, known_facts: set[str], valid_slots: set[str]) -> list[dict[str, Any]]:
+    """The app applies them; drop anything it could not apply safely (S11 § 5)."""
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for update in raw:
+        if len(out) == MEMORY_UPDATES_MAX:
+            break
+        if not isinstance(update, dict):
+            continue
+        op = update.get("op")
+        kind = update.get("kind")
+        category = update.get("category")
+        if op not in MEMORY_OPS or kind not in FACT_KINDS or category not in FACT_CATEGORIES:
+            continue
+        fact_id = update.get("id")
+        if op == "add":
+            if fact_id is not None:
+                continue
+        elif fact_id not in known_facts:
+            continue
+        slot = _slot_id(update.get("slot"), valid_slots)
+        if category == "routine" and slot is None:
+            continue
+        key = update.get("key").strip() if isinstance(update.get("key"), str) else ""
+        text = update.get("text").strip() if isinstance(update.get("text"), str) else ""
+        if not key or not text:
+            continue
+        out.append(
+            {
+                "op": op,
+                "id": fact_id,
+                "kind": kind,
+                "category": category,
+                "key": key[:FACT_KEY_MAX],
+                "text": text[:FACT_TEXT_MAX],
+                "slot": slot if category == "routine" else None,
+            }
+        )
+    return out
+
+
+def _memory_used(raw: Any, known_facts: set[str]) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    used = [fid for fid in dict.fromkeys(v for v in raw if isinstance(v, str)) if fid in known_facts]
+    return used[:MEMORY_USED_MAX]
 
 
 def text_only_chat(text: str) -> dict[str, Any]:
@@ -149,7 +247,10 @@ def text_only_chat(text: str) -> dict[str, Any]:
         return fail_chat()
     return {
         "reply": reply,
+        "intent": "question",
         "estimate": None,
+        "memory_updates": [],
+        "memory_used": [],
         "digest": None,
         "model": MODEL,
     }
@@ -158,7 +259,10 @@ def text_only_chat(text: str) -> dict[str, Any]:
 def fail_chat() -> dict[str, Any]:
     return {
         "reply": CHAT_FALLBACK_REPLY,
+        "intent": "question",
         "estimate": None,
+        "memory_updates": [],
+        "memory_used": [],
         "digest": None,
         "model": MODEL,
     }
