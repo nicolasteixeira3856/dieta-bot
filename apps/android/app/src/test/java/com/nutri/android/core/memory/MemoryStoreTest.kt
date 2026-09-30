@@ -40,4 +40,31 @@ class MemoryStoreTest {
         store.append("nova")
         assertThat(file.text).isEqualTo("linha antiga\nnova")
     }
+
+    @Test
+    fun replace_rewritesWithAppendRules_andCutsAt4000() = runBlocking<Unit> {
+        val file = FakeMemoryFile("antiga 1\nantiga 2")
+        val store = MemoryStore(file)
+
+        assertThat(store.replace("  nova\tlinha  \n\n" + "x".repeat(1000))).isTrue()
+        assertThat(store.read().lines()).containsExactly("nova linha", "x".repeat(MemoryStore.MAX_LINE_CHARS)).inOrder()
+
+        val many = (0 until 50).joinToString("\n") { "fato número $it com texto suficiente para passar do limite de quatro mil caracteres no total da memória" }
+        assertThat(store.replace(many)).isTrue()
+        val text = store.read()
+        assertThat(text.length).isAtMost(MemoryStore.MAX_CHARS)
+        assertThat(text.lines().last()).contains("número 49 ")
+        assertThat(text).doesNotContain("número 0 ")
+    }
+
+    @Test
+    fun replace_emptyIsRefused_nothingWritten() = runBlocking<Unit> {
+        val file = FakeMemoryFile("fica")
+        val store = MemoryStore(file)
+
+        assertThat(store.replace("")).isFalse()
+        assertThat(store.replace(" \n\t\n ")).isFalse()
+        assertThat(file.writes).isEqualTo(0)
+        assertThat(store.read()).isEqualTo("fica")
+    }
 }

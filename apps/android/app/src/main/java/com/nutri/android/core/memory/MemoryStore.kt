@@ -17,8 +17,9 @@ interface MemoryFile {
 
 /**
  * Short memory sent as `memory` in every POST /v1/chat (spec memoria-push). One line per fact,
- * oldest first. Grows only through [append]: after Gravar or an answered assumption. There is
- * no clear: wipeToday keeps it, uninstall removes it (filesDir, allowBackup=false).
+ * oldest first. Grows through [append]: after Gravar or an answered assumption. The dev editor
+ * (A23) rewrites it with [replace]. There is no clear: wipeToday keeps it, uninstall removes it
+ * (filesDir, allowBackup=false).
  */
 @Singleton
 class MemoryStore @Inject constructor(private val file: MemoryFile) {
@@ -28,13 +29,28 @@ class MemoryStore @Inject constructor(private val file: MemoryFile) {
 
     /** Adds one line; the oldest lines leave while the text is over [MAX_CHARS]. */
     suspend fun append(line: String) {
-        val clean = line.replace(Regex("\\s+"), " ").trim().take(MAX_LINE_CHARS)
+        val clean = clean(line)
         if (clean.isEmpty()) return
-        mutex.withLock {
-            val lines = (load() + clean).toMutableList()
-            while (lines.size > 1 && lines.joinToString("\n").length > MAX_CHARS) lines.removeAt(0)
-            withContext(Dispatchers.IO) { file.write(lines.joinToString("\n")) }
-        }
+        mutex.withLock { store(load() + clean) }
+    }
+
+    /**
+     * A23 dev editor: the whole text becomes [text], same line rules and [MAX_CHARS] cut as
+     * [append]. Never a delete: a text with no line is refused (false) and nothing is written.
+     */
+    suspend fun replace(text: String): Boolean {
+        val lines = text.lines().map(::clean).filter { it.isNotEmpty() }
+        if (lines.isEmpty()) return false
+        mutex.withLock { store(lines) }
+        return true
+    }
+
+    private fun clean(line: String) = line.replace(Regex("\\s+"), " ").trim().take(MAX_LINE_CHARS)
+
+    private suspend fun store(all: List<String>) {
+        val lines = all.toMutableList()
+        while (lines.size > 1 && lines.joinToString("\n").length > MAX_CHARS) lines.removeAt(0)
+        withContext(Dispatchers.IO) { file.write(lines.joinToString("\n")) }
     }
 
     private suspend fun load(): List<String> = withContext(Dispatchers.IO) {

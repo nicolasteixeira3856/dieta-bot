@@ -24,6 +24,7 @@ Numbers first. Dry tone. No coach. No slogan.
 - Photo on Chat from day 1. Client sends the photo as JPEG q85, longest side ≤ 2048 px, EXIF stripped (ADR-018). ≤16 MB guard. Server estimates and deletes.
 - Disclaimer: estimate, not advice.
 - Screens: ADR-012 (splash, O1, O2, O3, O4, Home [home0, home1, homeX], Chat [chat0, chatL, chatE, chatT, chatP, chatF, chatG], Config [cfg, wipe], Push). Nothing else.
+- Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.nutri.hide_dev_tools=1` for the cfg capture.
 
 ## Splash
 

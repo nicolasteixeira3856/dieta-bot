@@ -20,6 +20,10 @@ ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
+# A23 (ADR-019): hide the dev-only "Memória da IA (dev)" row so cfg matches the gold. Cleared on exit.
+"$ADB" shell setprop debug.nutri.hide_dev_tools 1
+trap '"$ADB" shell setprop debug.nutri.hide_dev_tools 0' EXIT
+
 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
@@ -77,6 +81,7 @@ sleep 3
 tap 'resource-id="home-config"' && expect "gear opens Config" 'resource-id="cfg"'
 expect "ceiling row 2000 kcal" 'text="2000 kcal"'
 expect "no workout: credit 0" 'Crédito atual: 0 kcal'
+dump; if grep -q 'resource-id="cfg-dev-memory"' "$TMP/ui.xml"; then echo "  ✗ dev row hidden"; FAIL=1; else echo "  ✓ dev row hidden"; fi
 shot cfg
 
 # Slot rename: relabels, no wipe.
