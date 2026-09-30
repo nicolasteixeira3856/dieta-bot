@@ -123,7 +123,7 @@ Constantes: `PERMANENT_MAX = 30`, `DYNAMIC_MAX = 40`, `DYNAMIC_TTL_DAYS = 21`, `
 
 ## Fora de escopo
 
-- Selo `Memória atualizada`, chips de origem, sugestão da rotina: [A29](a29-chat-v2-interface.md) (gold do [ST6](../../stitch/plans/st6-chat-v2.md)).
+- Selo `Memória atualizada`, chips de origem, sugestão da rotina: [A29](a29-chat-v2-interface.md) (gold do [ST6](../../stitch/plans/completed/st6-chat-v2.md)).
 - Memória visível ao usuário final fora do dev (ADR-023: até o dono decidir).
 - Server: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md).
 
