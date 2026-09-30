@@ -1,10 +1,11 @@
 # Plano — A21 Seletor de horário em rodas
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual
+- Aprovado: 29/09/2026 (owner approval naming this plan).
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/designsystem`, `feature/onboarding`, `feature/config`)
-- Pré-requisitos: **[ST3](../../stitch/plans/completed/st3-seletor-horario.md) em `stitch/plans/completed/`** (gold `o3t`). [A20](pending_manual_validation/a20-polimento-geral.md) concluído (botões e toque do design system).
+- Pré-requisitos: **[ST3](../../../stitch/plans/completed/st3-seletor-horario.md) em `stitch/plans/completed/`** (gold `o3t`). [A20](a20-polimento-geral.md) concluído (botões e toque do design system).
 
 ## Gate de autorização
 
@@ -20,7 +21,7 @@ Trocar o `TimePicker` de relógio do Material por rodas de hora e minuto, no est
 
 ## Fontes de verdade
 
-- Gold `o3t` (dark + light). [ADR-020](../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md).
+- Gold `o3t` (dark + light). [ADR-020](../../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md).
 
 ## Escopo de implementação
 
@@ -63,7 +64,7 @@ Trocar o `TimePicker` de relógio do Material por rodas de hora e minuto, no est
 
 ## Fora de escopo
 
-- Refeições por dia: [A24](a24-refeicoes-por-dia.md).
+- Refeições por dia: [A24](../a24-refeicoes-por-dia.md).
 - Formato 12 h.
 
 ## Riscos e controles
@@ -77,3 +78,8 @@ Trocar o `TimePicker` de relógio do Material por rodas de hora e minuto, no est
 ## Encerramento
 
 Registre resultados e aplique o ciclo de vida de `docs/sdd/README.md`, com a entrega git (§ 6).
+
+
+## Validation
+
+Implementation and automated evidence: [A21 validation](../../validation/a21-seletor-horario.md). Owner validation remains pending: choose 07:30 and 21:45 comfortably on the physical device.

@@ -78,6 +78,13 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 
 ### Regressão
 
+A21 `o3t`: the ST3 gold is 780×2206, while the emulator capture is 780×1688.
+`diff-gold.mjs` aligns the complete centered dialog by half the height difference,
+then gates its border, title, five wheel rows and both actions at the same 2%
+limit and 0.8–1.25 content-presence ratio. The unchanged underlying O3 is checked
+separately; its ST4 meal-distribution changes belong to A24. Gold inputs remain
+read-only.
+
 Baseline Roborazzi (render JVM contra ele mesmo) em `apps/android/app/src/test/snapshots/`: `recordRoborazziDevDebug` grava, `verifyRoborazziDevDebug` falha em divergência. Não é comparação com o gold.
 
 > **Sem screenshot comparado e validado contra o Stitch, a UI NÃO está pronta.**

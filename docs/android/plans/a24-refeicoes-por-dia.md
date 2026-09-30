@@ -4,7 +4,7 @@
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/database` — Room v3 → v4, `domain`, `feature/onboarding`, `feature/config`, `feature/home`, `feature/chat/PromptBuilder.kt`, `core/push`)
-- Pré-requisitos: **[ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md) em `stitch/plans/completed/`** (golds `o3`, `o3s`, `cfgS`). [A21](a21-seletor-horario.md) concluído (O3 com o seletor novo). Aceita o [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md). **Último plano do lote.**
+- Pré-requisitos: **[ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md) em `stitch/plans/completed/`** (golds `o3`, `o3s`, `cfgS`). [A21](pending_manual_validation/a21-seletor-horario.md) concluído (O3 com o seletor novo). Aceita o [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md). **Último plano do lote.**
 
 ## Gate de autorização
 

@@ -72,7 +72,7 @@ import com.nutri.android.feature.onboarding.MacroCard
 import com.nutri.android.feature.onboarding.ModeGroup
 import com.nutri.android.feature.onboarding.PctField
 import com.nutri.android.feature.onboarding.SlotCard
-import com.nutri.android.feature.onboarding.SlotTimeDialog
+import com.nutri.android.core.designsystem.TimeWheelDialog
 import com.nutri.android.feature.workout.WorkoutField
 
 private val CardShape = RoundedCornerShape(16.dp)
@@ -380,7 +380,8 @@ private fun SlotsEditor(d: ConfigDraft, a: ConfigActions) {
         }
     }
     if (picking in d.slots.indices) {
-        SlotTimeDialog(
+        TimeWheelDialog(
+            title = d.slots[picking].name.ifBlank { "Refeição ${picking + 1}" },
             minutes = d.slots[picking].minutes,
             onDismiss = { picking = -1 },
             onConfirm = { a.onSlotTime(picking, it); picking = -1 },

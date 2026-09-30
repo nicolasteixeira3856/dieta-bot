@@ -95,7 +95,7 @@ Os ajustes de layout do feedback que não precisam de Stitch.
 ## Fora de escopo
 
 - Qualquer mudança de gold ou de tela nova.
-- Seletor de horário: [A21](../a21-seletor-horario.md).
+- Seletor de horário: [A21](../pending_manual_validation/a21-seletor-horario.md).
 
 ## Riscos e controles
 
