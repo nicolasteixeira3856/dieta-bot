@@ -4,6 +4,10 @@
 
 [Content handling](../../content-policy/specifications/content-policy.md) proposes fixed scope/safety replies through existing Chat bubbles, with no estimate or memory mutation on refusal. This is pending CP2 approval and implementation, not current behavior. Photos, meal intent and approved layouts remain unchanged. Any future legal acceptance/reporting UI requires its own approved scope and applicable Stitch gate.
 
+## Proposed: questions before the estimate (ADR-026)
+
+[ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md) proposes that a `log` with doubts shows only question bubbles (all doubts at once, at most 3 rounds, enforced by the server) and no estimate until they are settled, with **Forçar estimativa** from the second question (`chatQ`), and removes the question bubble from `chatE`. Awaiting [S13](../../server/plans/s13-perguntas-antes-da-estimativa.md), [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) and [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md); rule 14 below remains current behavior until A30 ships.
+
 ## Estado
 
 Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).
