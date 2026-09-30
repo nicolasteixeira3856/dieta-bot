@@ -1,6 +1,7 @@
 package com.nutri.android.core.push
 
 import android.content.Context
+import com.nutri.android.core.database.slotsOfDay
 import com.nutri.android.core.database.DayRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -29,7 +30,7 @@ class PushSync @Inject constructor(
             repository.observeToday()
                 .map { day ->
                     Triple(
-                        day.onboardingDone to day.slots.map { Triple(it.id, it.name, it.minutesFromMidnight) },
+                        (day.onboardingDone to day.date) to day.slotsOfDay,
                         day.logs.mapNotNull { it.slotId }.toSet(),
                         day.skippedSlotIds,
                     )

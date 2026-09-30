@@ -1,6 +1,7 @@
 package com.nutri.android.feature.home
 
 import androidx.compose.runtime.Immutable
+import com.nutri.android.core.database.slotsOn
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.MealLog
 import com.nutri.android.core.database.metaOn
@@ -92,17 +93,17 @@ object HomePanelMapper {
             protein = MacroLine(day.logs.sumOf { it.p }, day.proteinTargetG),
             carbs = MacroLine(day.logs.sumOf { it.carbs }, day.carbTargetG),
             fat = MacroLine(day.logs.sumOf { it.fat }, day.fatTargetG),
-            timeline = timeline(day, meta),
-            slotCount = day.slots.size,
+            timeline = timeline(day, meta, today),
+            slotCount = day.slotsOn(today).size,
             workoutKcal = day.workoutKcal,
             workoutCredit = stored.credit,
             workoutEditor = workoutDraft?.let { stored.copy(input = it) },
         )
     }
 
-    private fun timeline(day: DaySnapshot, meta: Int): List<TimelineSlot> {
-        val known = day.slots.map { it.id }.toSet()
-        val slots = day.slots.sortedBy { it.minutesFromMidnight }
+    private fun timeline(day: DaySnapshot, meta: Int, today: LocalDate): List<TimelineSlot> {
+        val known = day.slotsOn(today).map { it.id }.toSet()
+        val slots = day.slotsOn(today).sortedBy { it.minutesFromMidnight }
         val lastFilled = slots.indexOfLast { s -> s.id in day.skippedSlotIds || day.logs.any { it.slotId == s.id } }
         var running = 0
         val out = slots.mapIndexed { i, slot ->

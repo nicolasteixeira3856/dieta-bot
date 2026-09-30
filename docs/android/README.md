@@ -44,7 +44,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b) e memória cifrada (A8) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
+Client vivo. Room v4 (refeições por dia, A24): profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b) e memória cifrada (A8) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
 
 ## Flavors
 
@@ -105,7 +105,7 @@ Client vivo. Room v3: profile, day, meal_log, meal_slot, slot_skip, chat_message
 
 ### Especificacoes
 
-Nenhuma especificacao criada ate o momento.
+[Room v4](specifications/room-v2.md).
 
 ### ADRs
 
@@ -116,11 +116,11 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Lote do feedback (29/09/2026); A23 e A24 aguardam aprovação:
+Lote do feedback (29/09/2026); A23 aguarda aprovação; A24 aguarda validação manual:
 
 - [A21 seletor de horário em rodas (Pendente aprovação manual: escolher 07:30 e 21:45 no aparelho)](plans/pending_manual_validation/a21-seletor-horario.md)
 - [A23 editor de memória e perfil (dev)](plans/a23-editor-memoria-dev.md)
-- [A24 refeições por dia da semana](plans/a24-refeicoes-por-dia.md) — gate ST4, por último
+- [A24 refeições por dia da semana](plans/pending_manual_validation/a24-refeicoes-por-dia.md) — implementado; atualização pelo dono + tester pendente
 
 - [A22 treino na Home (Pendente aprovação manual: informar 350 kcal na Home e ver a meta subir)](plans/pending_manual_validation/a22-treino-home.md)
 - [A25 composer: limite de 2000 caracteres com estado de erro (Pendente aprovação manual: colar texto longo no APK)](plans/pending_manual_validation/a25-limite-texto-composer.md)

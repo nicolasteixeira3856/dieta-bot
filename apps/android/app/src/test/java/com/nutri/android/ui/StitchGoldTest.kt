@@ -90,11 +90,23 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun o2_light() = check("o2", dark = false) { O2() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1103dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1239dp-xhdpi")
     fun o3_dark() = check("o3", dark = true, fullPage = true) { O3() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1103dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1239dp-xhdpi")
     fun o3_light() = check("o3", dark = false, fullPage = true) { O3() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1224dp-xhdpi")
+    fun o3s_dark() = check("o3s", dark = true, fullPage = true) { O3S() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1225dp-xhdpi")
+    fun o3s_light() = check("o3s", dark = false, fullPage = true) { O3S() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h918dp-xhdpi")
+    fun cfgS_dark() = check("cfgS", dark = true, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { CfgS() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h884dp-xhdpi")
+    fun cfgS_light() = check("cfgS", dark = false, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun o4_dark() = check("o4", dark = true) { O4() }
@@ -231,6 +243,19 @@ class StitchGoldTest {
     @Composable private fun O2() = EatScreen(GOLD_STATE, {}, {}, {}, {})
 
     @Composable private fun O3() = SlotsScreen(GOLD_STATE, {}, { _, _ -> }, { _, _ -> }, {}, {})
+
+    @Composable private fun O3S() = SlotsScreen(
+        GOLD_STATE.copy(
+            slots = listOf(SlotDraft(name = "Café da manhã", minutes = 570), SlotDraft(name = "Almoço", minutes = 810), SlotDraft(name = "Jantar", minutes = 1230)),
+            slotSchedule = com.nutri.android.feature.onboarding.SlotScheduleDraft(mode = "split", index = 1),
+        ), {}, { _, _ -> }, { _, _ -> }, {}, {},
+    )
+
+    @Composable private fun CfgS() = ConfigScreen(ConfigMapper.map(
+        CFG_DAY.copy(slotMode = "split", slots = CFG_DAY.slots.map { it.copy(days = 31) } +
+            listOf(MealSlot(5, "Café da manhã", 570, 96), MealSlot(6, "Almoço", 810, 96), MealSlot(7, "Jantar", 1230, 96))),
+        LocalDate.parse("2026-09-25"),
+    ), ConfigActions())
 
     @Composable private fun O4() = MacrosScreen(GOLD_STATE, {}, {}, {}, {}, {})
 

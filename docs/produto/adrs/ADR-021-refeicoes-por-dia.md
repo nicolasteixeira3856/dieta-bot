@@ -1,6 +1,6 @@
 # ADR-021 — Refeições por dia da semana
 
-- Estado: Proposto (aceito junto com a aprovação do ST4)
+- Estado: Aceito (ST4 concluído; A24 aprovado explicitamente pelo dono em 29/09/2026)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o [ADR-012](ADR-012-chat-home-perfil.md), regra 4 ("N refeições nomeadas com horário", uma lista para a semana toda), e a regra 3 da [perfil-onboarding](../specifications/perfil-onboarding.md).
@@ -34,7 +34,7 @@ Mesma mecânica que o usuário já conhece do teto. O caso comum (Seg–Sex / S�
 
 ### Negativas
 
-- Migração do Room (coluna de dias por refeição). Risco para os testers atuais; o plano [A24](../../android/plans/a24-refeicoes-por-dia.md) testa a migração com o banco real de um tester.
+- Migração do Room (coluna de dias por refeição). Risco para os testers atuais; o plano [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md) testa a migração com o banco real de um tester.
 - Golds ([ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md)): `o3` alterado (tags de modo), `o3s` novo (etapa de um grupo) e `cfgS` novo (Config com grupos). A edição pela Config reusa a tela da O3 com o cabeçalho da Config, sem gold próprio.
 
 ## Alternativas consideradas
@@ -44,6 +44,6 @@ Mesma mecânica que o usuário já conhece do teto. O caso comum (Seg–Sex / S�
 
 ## Relações
 
-- Gate: [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md). Implementação: [A24](../../android/plans/a24-refeicoes-por-dia.md).
+- Gate: [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md). Implementação: [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
 
 Depois de aceito, este ADR não se edita.

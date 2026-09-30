@@ -5,12 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.InstantClock
-import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.ceilingProfile
 import com.nutri.android.domain.CreditPolicy
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotSuggestions
 import com.nutri.android.domain.workoutCredit
+import com.nutri.android.feature.onboarding.SlotScheduleDraft
+import com.nutri.android.domain.SlotModes
 import com.nutri.android.feature.onboarding.SlotDraft
 import com.nutri.android.feature.workout.WorkoutEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,7 +51,7 @@ class ConfigViewModel @Inject constructor(
         }
     }
 
-    /** Opens a sheet with the stored values. */
+    /** Opens an editor with the stored values. */
     fun open(editor: ConfigEditor) = local.update { Local(editor = editor, draft = ConfigMapper.draftOf(day)) }
 
     fun close() = local.update { it.copy(editor = null) }
@@ -83,6 +84,24 @@ class ConfigViewModel @Inject constructor(
     fun setSlotName(index: Int, name: String) = editSlot(index) { it.copy(name = name.take(40)) }
     fun setSlotTime(index: Int, minutes: Int) = editSlot(index) { it.copy(minutes = minutes.coerceIn(0, 1439)) }
 
+    fun openSlotGroup(index: Int) = local.update {
+        val draft = ConfigMapper.draftOf(day)
+        val schedule = draft.slotSchedule.copy(index = index.coerceIn(0, draft.slotSchedule.groups.lastIndex))
+        Local(editor = ConfigEditor.SLOTS, draft = draft.copy(slotSchedule = schedule, slots = schedule.slots))
+    }
+    fun setSlotMode(mode: String) = changeSchedule { it.requestMode(mode) }
+    fun confirmSlotMode() = changeSchedule { it.confirmMode() }
+    fun cancelSlotMode() = changeSchedule { it.copy(pendingMode = null) }
+    fun copyPreviousSlots() = changeSchedule { it.copyPrevious() }
+    fun previousSlotGroup() {
+        if (local.value.draft.slotSchedule.index == 0) close()
+        else changeSchedule { it.copy(index = it.index - 1) }
+    }
+    private fun changeSchedule(change: (SlotScheduleDraft) -> SlotScheduleDraft) = edit {
+        val schedule = change(it.slotSchedule.withSlots(it.slots))
+        it.copy(slotSchedule = schedule, slots = schedule.slots)
+    }
+
     // Workout
     fun setWorkout(v: String) = edit { it.copy(workoutField = WorkoutEditorState.clean(v)) }
 
@@ -95,6 +114,11 @@ class ConfigViewModel @Inject constructor(
         val editor = l.editor ?: return
         val draft = l.draft
         if (!draft.valid(editor)) return
+        if (editor == ConfigEditor.SLOTS && !draft.slotSchedule.last) {
+            changeSchedule { it.copy(index = it.index + 1) }
+            return
+        }
+        if (editor == ConfigEditor.SLOTS && !draft.slotSchedule.withSlots(draft.slots).valid) return
         if (editor == ConfigEditor.CEILING) {
             local.update {
                 if (ceilingChanged(draft)) it.copy(editor = null, wipeConfirm = true) else it.copy(editor = null)
@@ -111,8 +135,8 @@ class ConfigViewModel @Inject constructor(
                     draft.fatField.toIntOrNull() ?: 0,
                 )
                 ConfigEditor.SLOTS -> repository.saveSlots(
-                    draft.slots.map { MealSlot(id = it.id, name = it.name.trim(), minutesFromMidnight = it.minutes) }
-                        .sortedBy { it.minutesFromMidnight },
+                    draft.slotSchedule.withSlots(draft.slots).meals(),
+                    draft.slotSchedule.mode,
                 )
                 ConfigEditor.WORKOUT -> repository.setWorkout(draft.workoutField.toIntOrNull())
                 ConfigEditor.CEILING -> Unit
@@ -180,6 +204,12 @@ object ConfigMapper {
                 CreditPolicy.FULL -> "100%"
             },
             macrosValue = "${day.proteinTargetG}g · ${day.carbTargetG}g · ${day.fatTargetG}g",
+            slotMode = day.slotMode,
+            slotGroups = SlotModes.groups(day.slotMode).map { group ->
+                val rows = day.slots.filter { it.days == group.days }.sortedBy { it.minutesFromMidnight }
+                ConfigSlotRow(group.days.toLong(), group.label, if (rows.isEmpty()) "0 refeições" else
+                    "${rows.size} refeições · ${SlotSuggestions.format(rows.first().minutesFromMidnight)} a ${SlotSuggestions.format(rows.last().minutesFromMidnight)}")
+            },
             slots = day.slots.sortedBy { it.minutesFromMidnight }
                 .map { ConfigSlotRow(it.id, it.name, SlotSuggestions.format(it.minutesFromMidnight)) },
             workoutValue = day.workoutKcal?.let { "$it kcal" } ?: NO_WORKOUT,
@@ -198,8 +228,8 @@ object ConfigMapper {
         proteinField = day.proteinTargetG.toString(),
         carbField = day.carbTargetG.toString(),
         fatField = day.fatTargetG.toString(),
-        slots = day.slots.sortedBy { it.minutesFromMidnight }
-            .map { SlotDraft(id = it.id, name = it.name, minutes = it.minutesFromMidnight) },
+        slotSchedule = SlotScheduleDraft.stored(day.slotMode, day.slots),
+        slots = SlotScheduleDraft.stored(day.slotMode, day.slots).slots,
         workoutField = day.workoutKcal?.toString().orEmpty(),
     )
 

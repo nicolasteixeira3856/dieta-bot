@@ -109,6 +109,18 @@ class HomePanelMapperTest {
         // The stored value drives the row until Salvar.
         assertThat(ui.workoutCredit).isEqualTo(100)
     }
+    @Test fun saturdayTimelineContainsOnlyWeekendAndPreservesOtherLogs() {
+        val day = HomeFixtures.day().copy(
+            slotMode = "split",
+            slots = listOf(MealSlot(1, "Útil", 450, 31), MealSlot(2, "Sábado", 570, 96)),
+            logs = listOf(MealLog("", "ovo", 380, 22, true, slotId = 1)),
+        )
+        val ui = HomePanelMapper.map(day, LocalDate.parse("2026-09-26"))
+        assertThat(ui.slotCount).isEqualTo(1)
+        assertThat(ui.timeline.map { it.name }).containsExactly("Sábado", "Outros").inOrder()
+        assertThat(ui.consumed).isEqualTo(380)
+    }
+
 }
 
 object HomeFixtures {
@@ -150,4 +162,5 @@ object HomeFixtures {
     /** A22 golds: "350 kcal · +175 na meta" and "200 kcal · +100 na meta" with the pill still at 2000. */
     val home1Workout = home1.copy(kcalSame = 1825, eat = "partial", pct = 50, workoutKcal = 350)
     val homeXWorkout = homeX.copy(kcalSame = 1900, eat = "partial", pct = 50, workoutKcal = 200)
+
 }

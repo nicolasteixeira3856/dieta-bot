@@ -65,10 +65,10 @@ sealed interface OnboardingBar {
     /** O1: continuous progress only. */
     data class Continuous(val fraction: Float) : OnboardingBar
 
-    /** O2: back + "NUTRI INTAKE", continuous thin progress. */
+    /** O2: back + "DIETA BOT INTAKE", continuous thin progress. */
     data class IntakeContinuous(val fraction: Float) : OnboardingBar
 
-    /** O3: back + "NUTRI INTAKE", 4 segments. */
+    /** O3: back + "DIETA BOT INTAKE", 4 segments. */
     data class IntakeSegments(val filled: Int) : OnboardingBar
 
     /** O4: round back + wordmark + help, 4 segments. */
@@ -86,6 +86,7 @@ fun OnboardingFrame(
     contentTop: Dp = 16.dp,
     ctaJakarta: Boolean = false,
     ctaWeight: FontWeight? = null,
+    header: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val p = LocalPalette.current
@@ -96,7 +97,7 @@ fun OnboardingFrame(
             .topGlow(p.gold),
     ) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
-            TopBar(bar, onBack)
+            if (header != null) header() else TopBar(bar, onBack)
             Column(
                 Modifier
                     .weight(1f)
@@ -203,7 +204,7 @@ private fun IntakeRow(onBack: (() -> Unit)?, modifier: Modifier = Modifier) {
             )
         }
         Text(
-            "NUTRI INTAKE",
+            "DIETA BOT INTAKE",
             style = DietaBotType.labelCaps.copy(fontWeight = FontWeight.W700, letterSpacing = 0.2.em),
             color = if (p.isDark) p.dim else p.text,
             modifier = Modifier.align(Alignment.Center),

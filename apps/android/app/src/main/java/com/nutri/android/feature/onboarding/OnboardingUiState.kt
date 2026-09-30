@@ -10,7 +10,6 @@ data class SlotDraft(
     val minutes: Int,
 )
 
-@Immutable
 data class OnboardingUiState(
     // O1
     val sex: String = "",
@@ -30,6 +29,7 @@ data class OnboardingUiState(
     val pct: String = "50",
     // O3
     val slots: List<SlotDraft> = SlotSuggestions.defaultTimes(4).map { SlotDraft(minutes = it) },
+    val slotSchedule: SlotScheduleDraft = SlotScheduleDraft(),
     // O4
     val proteinField: String = "150",
     val carbField: String = "200",
@@ -45,7 +45,7 @@ data class OnboardingUiState(
         get() = sex.isNotEmpty() && ceilingFields().all { (it.toIntOrNull() ?: 0) > 0 }
 
     val o3Valid: Boolean
-        get() = slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
+        get() = slotSchedule.pendingMode == null && slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
 
     val o4Valid: Boolean
         get() = listOf(proteinField, carbField, fatField).all { it.toIntOrNull() != null }

@@ -1,10 +1,10 @@
 # Plano — A24 Refeições por dia da semana
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/database` — Room v3 → v4, `domain`, `feature/onboarding`, `feature/config`, `feature/home`, `feature/chat/PromptBuilder.kt`, `core/push`)
-- Pré-requisitos: **[ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md) em `stitch/plans/completed/`** (golds `o3`, `o3s`, `cfgS`). [A21](pending_manual_validation/a21-seletor-horario.md) concluído (O3 com o seletor novo). Aceita o [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md). **Último plano do lote.**
+- Pré-requisitos: **[ST4](../../../stitch/plans/completed/st4-refeicoes-por-dia.md) em `stitch/plans/completed/`** (golds `o3`, `o3s`, `cfgS`). [A21](a21-seletor-horario.md) concluído (O3 com o seletor novo). Aceita o [ADR-021](../../../produto/adrs/ADR-021-refeicoes-por-dia.md). **Último plano do lote.**
 
 ## Gate de autorização
 
@@ -89,3 +89,5 @@ Refeições diferentes por dia da semana, no mesmo esquema de modos do teto, sem
 ## Encerramento
 
 Registre resultados e aplique o ciclo de vida de `docs/sdd/README.md`, com a entrega git (§ 6).
+
+Implementation evidence: [A24 validation](../../validation/a24-refeicoes-por-dia.md). Owner + tester App Tester update remains pending; automated success does not complete that step.
