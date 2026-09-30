@@ -120,7 +120,7 @@ Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md),
 
 - [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/a27-chat-v2-texto-intencao.md)
 - [A28 Memória v2: fatos permanentes e dinâmicos](plans/a28-memoria-v2.md)
-- [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/a29-chat-v2-interface.md) — depende do gate [ST6](../stitch/plans/st6-chat-v2.md)
+- [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/a29-chat-v2-interface.md) — depende do gate concluído [ST6](../stitch/plans/completed/st6-chat-v2.md)
 
 Lote do feedback (29/09/2026); A24 aguarda validação manual:
 

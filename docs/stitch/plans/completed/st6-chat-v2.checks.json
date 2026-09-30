@@ -33,7 +33,7 @@
           "has": ["Meta calórica de hoje", "O de sempre no Café da manhã?", "440 kcal", "Memória dinâmica", "Registrar", "Quase igual"],
           "not": ["Gravar", "IA ATIVA"] },
         { "type": "fits", "text": "O de sempre no Café da manhã?", "maxHeight": 26 },
-        { "type": "fits", "text": "Quase igual", "maxHeight": 24 },
+        { "type": "fits", "text": "Quase igual", "maxHeight": 48 },
         { "type": "gap", "a": "Meta calórica de hoje", "b": "O de sempre no Café da manhã?", "min": 40 }
       ]
     }

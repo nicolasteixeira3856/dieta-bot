@@ -1,17 +1,17 @@
 # Gate Stitch — ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)
 
-- Estado: Aguardando o dono no Stitch
+- Estado: Concluído
 - Data: 30/09/2026
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
-- Executa: [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8)
-- Bloqueia: [A29 Chat v2: interface](../../android/plans/a29-chat-v2-interface.md)
+- Executa: [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8)
+- Bloqueia: [A29 Chat v2: interface](../../../android/plans/a29-chat-v2-interface.md)
 
-Nomes das telas: títulos exatos do Stitch ([tabela](../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
+Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 
 ## ⛔ Bloqueio do dono — prompt para o Stitch
 
-Este passo é manual e trava o A29. São três telas novas, cada uma uma cópia de uma tela existente: três prompts, cada um enviado duas vezes (dark e light). Pode rodar em qualquer ordem e em paralelo com o [S10](../../server/plans/completed/s10-avaliacao-chat.md), o [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), o [A27](../../android/plans/a27-chat-v2-texto-intencao.md) e o [A28](../../android/plans/a28-memoria-v2.md).
+Este passo é manual e trava o A29. São três telas novas, cada uma uma cópia de uma tela existente: três prompts, cada um enviado duas vezes (dark e light). Pode rodar em qualquer ordem e em paralelo com o [S10](../../../server/plans/completed/s10-avaliacao-chat.md), o [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md), o [A27](../../../android/plans/a27-chat-v2-texto-intencao.md) e o [A28](../../../android/plans/a28-memoria-v2.md).
 
 ### Prompt 6.1 — tela nova: resposta de plano com o dia projetado (`chatR`)
 
@@ -165,7 +165,7 @@ Depois de enviar: o card fica entre o card da meta e os chips de sugestão, com 
 
 ## Verificação (agente)
 
-Começa quando o dono avisa que rodou os prompts. Checagens do gate: [`st6-chat-v2.checks.json`](st6-chat-v2.checks.json) ([tipos](../README.md#verificação-automática-sv1)).
+Começa quando o dono avisa que rodou os prompts. Checagens do gate: [`st6-chat-v2.checks.json`](st6-chat-v2.checks.json) ([tipos](../../README.md#verificação-automática-sv1)).
 
 1. `node tools/verify-stitch.mjs st6 --report --out <scratchpad>/stitch-report.html`: acha as seis telas pelo título exato, confere as checagens a 390 px, a coerência dark × light e as imagens, e gera o relatório. Responde `PASSOU` ou `NÃO PASSOU`.
 2. `NÃO PASSOU` (inclusive título diferente): **para**, manda o relatório ao dono numa mensagem só e deixa o estado `Aguardando o dono no Stitch`.
@@ -175,17 +175,17 @@ Começa quando o dono avisa que rodou os prompts. Checagens do gate: [`st6-chat-
 
 ### Checklist
 
-- [ ] `chatR`: bolha do usuário com o pedido da pizza — `text has "Vou fazer uma pizza de pão sírio"`
-- [ ] `chatR`: texto da IA com as gramas e o total — `text has "100 g de frango desfiado"`, `"Total: ~420 kcal"`
-- [ ] `chatR`: painel do dia com 1.640 → 2.060 de 2.200 e a linha de macros — `text has "1.640"`, `"2.060"`, `"2.200"`, `"126/167"`
-- [ ] `chatR`: sem "ENERGIA TOTAL", sem pergunta, sem Gravar/Trocar/Pular — `text not`
-- [ ] `chatR`: botão único "Registrar assim", largura total — `fits "Registrar assim"` / relatório
-- [ ] `chatM`: três chips abaixo da bolha da IA, na ordem Memória atualizada, permanente, dinâmica — `text has`, `fits` / relatório
-- [ ] `chatM`: check em gold só no "Memória atualizada"; os outros em muted — relatório
-- [ ] `chatM`: Gravar café, Trocar e Pular mantidos; sem bolha de pergunta — `text has` / `text not`
-- [ ] `chatS`: card entre a meta e os chips de sugestão, com título, texto, números, chip "Memória dinâmica" e os dois botões — `text has`, `gap` / relatório
-- [ ] `chatS`: "Registrar" no estilo CTA do tema (dark `#f3f5f7` sobre `#111`, light `#111111` com texto `#f3f5f7`); "Quase igual" secundário — relatório
-- [ ] Tokens do `AGENTS.md`, cores semânticas P/C/G, gold só como acento, raio 14 nos cards e chips. Light e dark coerentes — relatório + coerência automática
+- [x] `chatR`: bolha do usuário com o pedido da pizza — `text has "Vou fazer uma pizza de pão sírio"`
+- [x] `chatR`: texto da IA com as gramas e o total — `text has "100 g de frango desfiado"`, `"Total: ~420 kcal"`
+- [x] `chatR`: painel do dia com 1.640 → 2.060 de 2.200 e a linha de macros — `text has "1.640"`, `"2.060"`, `"2.200"`, `"126/167"`
+- [x] `chatR`: sem "ENERGIA TOTAL", sem pergunta, sem Gravar/Trocar/Pular — `text not`
+- [x] `chatR`: botão único "Registrar assim", largura total — `fits "Registrar assim"` / relatório
+- [x] `chatM`: três chips abaixo da bolha da IA, na ordem Memória atualizada, permanente, dinâmica — `text has`, `fits` / relatório
+- [x] `chatM`: check em gold só no "Memória atualizada"; os outros em muted — relatório
+- [x] `chatM`: Gravar café, Trocar e Pular mantidos; sem bolha de pergunta — `text has` / `text not`
+- [x] `chatS`: card entre a meta e os chips de sugestão, com título, texto, números, chip "Memória dinâmica" e os dois botões — `text has`, `gap` / relatório
+- [x] `chatS`: "Registrar" no estilo CTA do tema (dark `#f3f5f7` sobre `#111`, light `#111111` com texto `#f3f5f7`); "Quase igual" secundário — relatório
+- [x] Tokens do `AGENTS.md`, cores semânticas P/C/G, gold só como acento, raio 14 nos cards e chips. Light e dark coerentes — relatório + coerência automática
 
 Depois do checklist verde:
 
@@ -204,3 +204,5 @@ Nada em `apps/` ou `server/`.
 ## Registro
 
 - 30/09/2026 — Gate criado. Aguardando o dono.
+- 30/09/2026 — Verificação 1: `NÃO PASSOU`. As seis telas foram achadas pelo título exato; textos, gaps e imagens ok. `checks.json` corrigido: `fits "Quase igual"` passa a `maxHeight: 48`, porque o rótulo é texto direto do botão `h-12` e a checagem media o botão (48 px, conforme o prompt), não a linha. Pendências do dono: (1) `chatS` light usa o ícone `autorenew` no chip "Memória dinâmica"; o dark e os dois `chatM` usam `sync` (falha de coerência); (2) `chatR` dark pinta o ícone check-circle de "Registrar assim" em verde proteína `#4ec994`; o prompt pede a cor do texto principal, e o light já usa `#14161a` (visto no relatório). Chips do `chatM` em coluna: aceito, porque os três não cabem na largura da bolha, e os dois temas estão iguais.
+- 30/09/2026 — Verificação 2: o dono trocou o ícone do chip no `chatS` light para `sync` e o check-circle do `chatR` dark para `#f3f5f7`. `verify-stitch st6`: `PASSOU`; conferi as seis telas renderizadas. IDs novos em `tools/export-stitch.mjs`, `export-stitch --only chatR,chatM,chatS` e `check-stitch` verdes (27 por tema). Listas de golds e índices atualizados. Concluído.

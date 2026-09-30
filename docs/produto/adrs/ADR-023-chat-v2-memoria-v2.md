@@ -85,7 +85,7 @@ O "mesmo de ontem" deixa de depender da memória. Todo turno leva `recent`: as r
 
 ### 9. Gate
 
-Um único gate Stitch, [ST6](../../stitch/plans/st6-chat-v2.md), cria `chatR`, `chatM` e `chatS` nos dois temas.
+Um único gate Stitch, [ST6](../../stitch/plans/completed/st6-chat-v2.md), cria `chatR`, `chatM` e `chatS` nos dois temas.
 
 ## Motivação
 
@@ -126,6 +126,6 @@ Um único gate Stitch, [ST6](../../stitch/plans/st6-chat-v2.md), cria `chatR`, `
 
 - Especificações afetadas: [chat](../specifications/chat.md), [memoria-push](../specifications/memoria-push.md), [v1-chat](../../server/specifications/v1-chat.md), [api-contract](../../api-contract.md).
 - ADRs relacionados: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), [ADR-017](ADR-017-registro-consolidado.md), [ADR-019](ADR-019-ferramentas-dev.md).
-- Planos: [S10](../../server/plans/completed/s10-avaliacao-chat.md), [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), [A27](../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../android/plans/a28-memoria-v2.md), [ST6](../../stitch/plans/st6-chat-v2.md), [A29](../../android/plans/a29-chat-v2-interface.md).
+- Planos: [S10](../../server/plans/completed/s10-avaliacao-chat.md), [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md), [A27](../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../android/plans/a28-memoria-v2.md), [ST6](../../stitch/plans/completed/st6-chat-v2.md), [A29](../../android/plans/a29-chat-v2-interface.md).
 
 Depois de aceito, este ADR não se edita. Mudança posterior exige ADR novo que declare a substituição.

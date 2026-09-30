@@ -4,7 +4,7 @@
 - Data: 30/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat/*`, `domain/BudgetCalculator.kt` (só leitura), `domain/SlotClock.kt` (só leitura), `core/memory` (leitura da rotina), testes e capturas)
-- Pré-requisitos: **[ST6](../../stitch/plans/st6-chat-v2.md) em `stitch/plans/completed/`** (golds `chatR`, `chatM`, `chatS`). [A27](a27-chat-v2-texto-intencao.md) e [A28](a28-memoria-v2.md) concluídos. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8). **Último plano da série Chat v2.**
+- Pré-requisitos: **[ST6](../../stitch/plans/completed/st6-chat-v2.md) em `stitch/plans/completed/`** (golds `chatR`, `chatM`, `chatS`). [A27](a27-chat-v2-texto-intencao.md) e [A28](a28-memoria-v2.md) concluídos. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8). **Último plano da série Chat v2.**
 
 ## Gate de autorização
 
@@ -26,7 +26,7 @@ Os três estados visuais novos do Chat, sobre os dados que o A27 e o A28 já gua
 
 ## Fontes de verdade
 
-- Golds `chatR`, `chatM`, `chatS` (dark e light) do [ST6](../../stitch/plans/st6-chat-v2.md).
+- Golds `chatR`, `chatM`, `chatS` (dark e light) do [ST6](../../stitch/plans/completed/st6-chat-v2.md).
 - [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [chat](../../produto/specifications/chat.md).
 - Tokens do `AGENTS.md`, skills `dieta-bot-android-ui`, `material3-expressive`, `dieta-bot-android-visual`.
 

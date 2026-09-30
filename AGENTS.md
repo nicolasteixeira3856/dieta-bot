@@ -95,10 +95,11 @@ Folder law:
 - Do not compare against `_legacy`
 - No PNG/JPG may sit in the `docs/qa/` root
 
-Gold filenames (24 per theme):
+Gold filenames (27 per theme):
 splash.png · o1.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
 home0.png · home1.png · homeX.png · homeW.png
 chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png · chatX.png
+chatR.png · chatM.png · chatS.png
 cfg.png · cfgS.png · wipe.png · push.png
 
 Splash is a cold start, not a freeze. Do not treat a visible splash as a crash.
