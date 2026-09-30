@@ -1,5 +1,7 @@
 # HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat
 
+Planning notice (2026-09-30): [content handling](content-policy/specifications/content-policy.md) and [identity/audit](content-policy/specifications/identity-and-audit.md) propose controls and additive headers/errors through CP2/CP3. They are not implemented by this documentation update. The deployed contract below remains the baseline; prompt markers alone are not proof of semantic scope enforcement.
+
 Auth: header `X-Invite: $INVITE_CODE` (constant-time validation, HTTP 401 `{"detail": "unauthorized"}` if missing or mismatch).
 Content-Type: application/json
 

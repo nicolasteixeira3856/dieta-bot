@@ -1,5 +1,9 @@
 # android
 
+## Planned content-policy work
+
+[CP4](../content-policy/plans/cp4-android-installation-identity.md), awaiting approval, proposes a private installation UUID and API-only header under [identity/audit policy](../content-policy/specifications/identity-and-audit.md). No account, Firebase identifier, new screen, Room migration or implemented identity change is implied. Server and GCP work have separate plans in the [content-policy order](../content-policy/plans/README.md).
+
 ## Proposito
 
 Client nativo. Compose, Room, navegacao, foto, push.

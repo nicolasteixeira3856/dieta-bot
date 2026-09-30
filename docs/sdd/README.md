@@ -47,6 +47,12 @@ Comportamento visível: job, telas, copy, onboarding, slots, o que entra no prom
 
 `stitch`. Prompts que o dono executa no Stitch `Nutri` e a conferência dos golds resultantes. Não tem código de app. Ver [Gate Stitch](#gate-stitch).
 
+### Cross-cutting policy
+
+Owner-authorized on 2026-09-30: [content-policy](../content-policy/README.md) owns content policy, correlation/audit requirements, incident procedures and their delivery plans. It does not replace the code ownership of server, Android or infrastructure.
+
+Each plan declares one executable folder boundary. A client goal never edits server code; a server goal never edits client/infra code. Related specifications, indexes and validation evidence may be updated with their owning delivery. A documentation-only `/goal` is permitted for an explicitly approved documentation plan and does not authorize production code. Existing code plans are not duplicated in multiple contexts.
+
 ## Estrutura de um contexto
 
 Todo contexto começa por um `README.md`. O resto é opcional e só existe com conteúdo:
@@ -60,13 +66,14 @@ docs/<contexto>/
 │   ├── README.md
 │   ├── completed/
 │   ├── pending_manual_validation/
-│   └── cancelled/
+│   ├── cancelled/
+│   └── out_of_scope/
 └── validation/
 ```
 
 O README declara: propósito, tipo, ownership de código, escopo, fora de escopo, fronteiras, cobertura, estado, ordem de leitura, índice.
 
-Não crie diretórios vazios. `completed/`, `pending_manual_validation/` e `cancelled/` nascem no primeiro plano que precisar delas.
+Não crie diretórios vazios. `completed/`, `pending_manual_validation/`, `cancelled/` e `out_of_scope/` nascem no primeiro plano que precisar delas.
 
 ## Responsabilidade dos artefatos
 
@@ -157,7 +164,7 @@ Template: [plano de gate Stitch](templates/stitch-gate.md).
 
 ## Criação de um novo contexto
 
-1. Nome em `snake_case`.
+1. Nome em `snake_case`. Owner-requested exception: `content-policy` (2026-09-30).
 2. `docs/<contexto>/README.md` a partir do template.
 3. Ownership, fronteiras, cobertura inicial.
 4. Só os diretórios dos artefatos atuais.
@@ -182,6 +189,7 @@ Template: [plano de gate Stitch](templates/stitch-gate.md).
 | Código feito, validação manual pendente | `Pendente aprovação manual` | `plans/pending_manual_validation/<plano>.md` |
 | Implementação e validações concluídas | `Concluído` | `plans/completed/<plano>.md` |
 | Cancelado pelo dono | `Cancelado` | `plans/cancelled/<plano>.md` |
+| Deferred from the current cut by owner decision, with an explicit reason | `Fora de escopo` | `plans/out_of_scope/<plano>.md` |
 
 Regras:
 
@@ -194,7 +202,7 @@ Regras:
 
 ### Limpeza segura das pastas de estado
 
-Após mover um plano, confira `plans/completed/`, `plans/pending_manual_validation/` e `plans/cancelled/` no contexto afetado. Remova somente diretórios desse conjunto que estejam vazios, inclusive de ocultos.
+Após mover um plano, confira `plans/completed/`, `plans/pending_manual_validation/`, `plans/cancelled/` e `plans/out_of_scope/` no contexto afetado. Remova somente diretórios desse conjunto que estejam vazios, inclusive de ocultos.
 
 - Confira o caminho. Tem que estar no escopo autorizado.
 - Use remoção de diretório vazio (`rmdir` / `Path.rmdir()`), sem recursão e sem apagar os pais. Se deixar de estar vazio, pare.
@@ -214,6 +222,18 @@ Só declaração explícita do dono, identificando o plano. Ausência de aprova�
 4. Atualize índices e links.
 
 Crie `cancelled/` só quando houver plano cancelado para guardar. Cancelar não faz rollback de código.
+
+### Fora de escopo
+
+Owner-authorized lifecycle state added on 2026-09-30. Use it for a future delivery explicitly excluded from the current cut for a recorded financial, business, technical or legal reason. It is not `Cancelado`, `Concluído`, a missing approval, or an excuse to hide unfinished required work.
+
+1. Record `Fora de escopo`, date, owning context, the owner's decision/constraint, specific reason, residual risk and conditions for reconsideration. The owner may authorize a defined class of deferrals; record that authority without requiring a duplicate confirmation for every plan in that class.
+2. Place the plan in `plans/out_of_scope/`, retaining its ID, scope and history. Create the directory only when it contains a plan. Update context/global indexes, dependencies and relative links.
+3. Exclude it from active execution order. Do not implement it or start `/goal` from that state. Deferral does not waive a legal duty or make a dependent delivery complete; any required deferred capability remains an explicit rollout blocker.
+4. Reactivate only on an explicit owner decision: refresh scope, assumptions, costs, dependencies and validation; preserve the dated deferral history; move the same ID to `plans/` as `Aguardando aprovação`; update all links and obtain explicit approval of that active plan before code. One owner message can reactivate and approve a fully reviewed, named plan when its scope is already concrete.
+5. If implementation has already started, do not relabel the whole plan to hide incomplete work. Record delivered/remaining work and obtain an explicit owner scope decision; split a separately identified future plan when necessary. Moving a document does not roll back code.
+
+Template: [deferred plan](templates/out-of-scope-plan.md). Safe empty-directory cleanup applies to `out_of_scope/` under the same rules as the other state directories.
 
 ## ADRs
 
@@ -258,5 +278,6 @@ Plans: [maintenance index](plans/README.md). Completed: [SD1 — Repository skil
 - [Especificação](templates/specification.md)
 - [ADR](templates/adr.md)
 - [Plano](templates/plan.md)
+- [Deferred plan — Fora de escopo](templates/out-of-scope-plan.md)
 - [Plano de gate Stitch](templates/stitch-gate.md)
 - [Matriz de validação](templates/validation-matrix.md)

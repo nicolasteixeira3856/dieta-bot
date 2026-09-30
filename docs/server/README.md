@@ -1,5 +1,9 @@
 # server
 
+## Planned content-policy work
+
+[Content policy](../content-policy/README.md) owns the new policy proposals. [CP2](../content-policy/plans/cp2-server-content-controls.md) and [CP3](../content-policy/plans/cp3-server-safety-audit.md) would change only server code; [CP5](../content-policy/plans/cp5-gcp-trusted-ingress.md) owns GCP configuration/activation separately. All await approval. [ADR-025](../content-policy/adrs/ADR-025-safety-correlation-audit.md) proposes partial succession of ADR-015; raw-log behavior described below remains the current implementation until delivery. No moderation, safety-identifier or trustworthy-IP rollout is claimed yet.
+
 ## Proposito
 
 API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula teto. Nao guarda o dia.

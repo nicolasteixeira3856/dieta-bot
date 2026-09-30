@@ -1,5 +1,9 @@
 # produto
 
+## Planned content-policy work
+
+[Content policy](../content-policy/README.md) proposes scope refusals, safety handling and privacy/incident procedures. [ADR-024](../content-policy/adrs/ADR-024-content-safety-boundaries.md) is proposed, not accepted; current Chat behavior below remains deployed. The [plan sequence](../content-policy/plans/README.md) adds no screen and preserves meal formulas/photos. Public legal publication/acceptance or age-related UX requires separate product planning and any applicable Stitch gate.
+
 ## Proposito
 
 Comportamento visivel do Dieta Bot: job, telas, copy, onboarding, slots, o que entra no prompt da IA.
