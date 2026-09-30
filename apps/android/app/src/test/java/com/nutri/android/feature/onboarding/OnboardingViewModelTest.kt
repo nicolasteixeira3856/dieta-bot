@@ -194,4 +194,27 @@ class OnboardingViewModelTest {
         withTimeout(5_000) { vm.uiState.first { it.loaded } }
         return vm
     }
+
+    @Test fun splitGroupsAdvanceBackCopyAndFinishWithoutDuplicatedIds() = runBlocking<Unit> {
+        val vm = loadedVm()
+        vm.setSlotMode("split")
+        vm.setSlotCount(2)
+        vm.setSlotName(0, "Café")
+        vm.setSlotName(1, "Jantar")
+        var next = false
+        vm.nextSlotGroup { next = true }
+        assertThat(next).isFalse()
+        assertThat(vm.uiState.value.slotSchedule.index).isEqualTo(1)
+        vm.copyPreviousSlots()
+        assertThat(vm.uiState.value.slots.map { it.name }).containsExactly("Café", "Jantar").inOrder()
+        vm.setSlotTime(0, 570)
+        vm.previousSlotGroup {}
+        assertThat(vm.uiState.value.slots[0].minutes).isNotEqualTo(570)
+        vm.nextSlotGroup {}
+        assertThat(vm.uiState.value.slots[0].minutes).isEqualTo(570)
+        vm.nextSlotGroup { next = true }
+        assertThat(next).isTrue()
+        assertThat(vm.uiState.value.slotSchedule.valid).isTrue()
+    }
+
 }

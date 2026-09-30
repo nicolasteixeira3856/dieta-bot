@@ -98,4 +98,19 @@ class PromptBuilderTest {
         val emoji = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "🍚".repeat(2000), now).body
         assertThat(emoji.text).isEqualTo("🍚".repeat(2000))
     }
+
+    @Test fun saturdayProfileAndSnapshotOnlyContainWeekendSlots() {
+        val day = HomeFixtures.home1.copy(
+            slotMode = "split",
+            slots = listOf(
+                com.nutri.android.core.database.MealSlot(1, "Útil", 450, 31),
+                com.nutri.android.core.database.MealSlot(2, "Fim de semana", 570, 96),
+            ),
+        )
+        val body = PromptBuilder.build(day, emptyList(), emptyList(), "café", Instant.parse("2026-09-26T12:00:00Z")).body
+        assertThat(body.profile.slots.map { it.id }).containsExactly("2")
+        assertThat(body.day.slots.map { it.id }).containsExactly("2")
+        assertThat(body.day.eatenKcal).isEqualTo(day.logs.sumOf { it.kcal })
+    }
+
 }

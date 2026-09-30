@@ -4,7 +4,7 @@
 
 Vigente desde o [A4](../../android/plans/completed/a4-home-painel.md): painel conforme Stitch gold home1 (canônico). Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): no fim da rolagem o disclaimer fica inteiro acima do FAB (48 dp de respiro, medido no gold home1, + inset de navegação). Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md): linha "Treino de hoje" abaixo dos macros e sheet do treino (gold homeW, gate [ST2](../../stitch/plans/completed/st2-home-treino.md)).
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): slots do dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Vigente desde o A24 (29/09/2026): slots do dia da semana ([A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 
@@ -24,7 +24,7 @@ Relógio do dia. Registro mora no Chat.
 1. Anel grande = kcal **consumidas** no dia (não o restante), progresso sobre a meta do dia (teto efetivo com crédito de treino). Pílula "Meta {n} kcal". Acima da meta: anel `bad` + "Meta excedida (+{n} kcal)".
 2. Linha P C G = consumido/alvo. Estouro usa token `bad`.
 3. Cabeçalho `DIA {n}` (dias desde o primeiro dia) + data `{d} de {mês}` pt-BR, America/Sao_Paulo.
-4. Timeline: um bloco por slot do perfil, ordem da hora. Slot com logs: cada linha é o texto gravado (descrição da IA se veio de foto) + kcal, e um resumo consolidado `{kcal} kcal · {P}P · {C}C · {G}G`; nó ✓ (câmera se veio de foto). Slot skip: "Refeição pulada". Slot vazio: "Nenhum registro · Toque para pular"; tap abre confirmação "Pular {nome}?". O 1º slot vazio depois do último preenchido fica em destaque. O slot em que o acumulado passa da meta (e os seguintes com log) ficam em `bad`. Logs sem slot: bloco "Outros" no fim.
+4. Timeline: um bloco por slot cujo bitmask days contém o dia corrente em America/Sao_Paulo, ordem da hora. Slot com logs: cada linha é o texto gravado (descrição da IA se veio de foto) + kcal, e um resumo consolidado `{kcal} kcal · {P}P · {C}C · {G}G`; nó ✓ (câmera se veio de foto). Slot skip: "Refeição pulada". Slot vazio: "Nenhum registro · Toque para pular"; tap abre confirmação "Pular {nome}?". O 1º slot vazio depois do último preenchido fica em destaque. O slot em que o acumulado passa da meta (e os seguintes com log) ficam em `bad`. Logs sem slot ou associados a um slot que não pertence ao dia: bloco "Outros" no fim. Editar refeições nunca apaga esses logs.
 5. Um registro por refeição: gravar pelo Chat num slot com registro pede confirmação e substitui ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)). Registros duplicados de antes do A18 continuam somando.
 6. Config: ícone no topo direito → tela Config.
 7. FAB canto inferior direito → Chat. Único caminho de registro.

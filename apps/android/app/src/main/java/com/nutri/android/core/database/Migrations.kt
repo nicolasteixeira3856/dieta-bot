@@ -3,6 +3,14 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v3 -> v4: existing schedules keep their IDs and apply every day. */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `meal_slot` ADD COLUMN `days` INTEGER NOT NULL DEFAULT 127")
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `slotMode` TEXT NOT NULL DEFAULT 'same'")
+    }
+}
+
 /** v2 -> v3: estimate slot, question and item names on chat_message (A5). */
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {

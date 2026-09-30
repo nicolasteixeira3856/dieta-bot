@@ -245,6 +245,31 @@ class ConfigViewModelTest {
         collector.cancel()
     }
 
+    @Test fun modeChangeIsStagedUntilLastGroupAndKeepsTodayHistory() = runBlocking<Unit> {
+        vm.open(ConfigEditor.SLOTS)
+        vm.setSlotMode("split")
+        assertThat(vm.uiState.value.draft.slotSchedule.pendingMode).isEqualTo("split")
+        vm.cancelSlotMode()
+        assertThat(vm.uiState.value.draft.slotSchedule.mode).isEqualTo("same")
+        vm.setSlotMode("split")
+        vm.confirmSlotMode()
+        vm.setSlotCount(2)
+        vm.setSlotName(0, "Café")
+        vm.setSlotName(1, "Jantar")
+        vm.save()
+        assertThat(vm.uiState.value.draft.slotSchedule.index).isEqualTo(1)
+        assertThat(repo.observeToday().first().slotMode).isEqualTo("same")
+        vm.copyPreviousSlots()
+        vm.setSlotTime(0, 570)
+        vm.save()
+        awaitUi { it.slotMode == "split" && it.editor == null }
+        val stored = repo.observeToday().first()
+        assertThat(stored.slots.map { it.days }).containsExactly(31, 31, 96, 96)
+        assertThat(stored.logs).hasSize(1)
+        assertThat(repo.observeMessages().first()).hasSize(1)
+        assertThat(stored.slots.single { it.days == 96 && it.name == "Café" }.minutesFromMidnight).isEqualTo(570)
+    }
+
     private suspend fun awaitHome(home: HomePanelViewModel, predicate: (HomePanelUiState) -> Boolean) {
         withTimeout(5_000) { home.uiState.first(predicate) }
     }

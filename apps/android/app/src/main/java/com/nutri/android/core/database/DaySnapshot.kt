@@ -16,10 +16,12 @@ data class MealSlot(
     val id: Long = 0,
     val name: String,
     val minutesFromMidnight: Int,
+    val days: Int = 127,
 )
 
 data class DaySnapshot(
     val date: String = "",
+    val slotMode: String = "same",
     val ceilingMode: String = "same",
     val kcalSame: Int = 2000,
     val kcalWeekday: Int = 2000,
@@ -43,3 +45,10 @@ data class DaySnapshot(
     val slots: List<MealSlot> = emptyList(),
     val skippedSlotIds: Set<Long> = emptySet(),
 )
+
+/** Configuration retains the complete week; daily consumers select their date. */
+fun DaySnapshot.slotsOn(date: java.time.LocalDate): List<MealSlot> =
+    com.nutri.android.domain.SlotsOfDay.select(slots, date) { it.days }
+
+val DaySnapshot.slotsOfDay: List<MealSlot>
+    get() = date.takeIf { it.isNotBlank() }?.let { slotsOn(java.time.LocalDate.parse(it)) } ?: slots

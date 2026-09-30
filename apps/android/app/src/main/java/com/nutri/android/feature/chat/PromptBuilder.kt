@@ -3,6 +3,7 @@ package com.nutri.android.feature.chat
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayDigestEntity
 import com.nutri.android.core.database.DayRepository
+import com.nutri.android.core.database.slotsOn
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.metaOn
 import com.nutri.android.core.network.ChatDay
@@ -94,7 +95,7 @@ object PromptBuilder {
             "full" -> "full"
             else -> "zero"
         },
-        slots = day.slots.sortedBy { it.minutesFromMidnight }
+        slots = day.slotsOn(today).sortedBy { it.minutesFromMidnight }
             .map { ChatSlot(it.id.toString(), it.name, SlotSuggestions.format(it.minutesFromMidnight)) },
     )
 
@@ -105,7 +106,7 @@ object PromptBuilder {
         eatenC = day.logs.sumOf { it.carbs },
         eatenG = day.logs.sumOf { it.fat },
         workoutKcal = day.workoutKcal,
-        slots = day.slots.sortedBy { it.minutesFromMidnight }.map { slot ->
+        slots = day.slotsOn(today).sortedBy { it.minutesFromMidnight }.map { slot ->
             val logs = day.logs.filter { it.slotId == slot.id }
             when {
                 logs.isNotEmpty() -> ChatDaySlot(

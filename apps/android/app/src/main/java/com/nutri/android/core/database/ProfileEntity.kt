@@ -8,6 +8,8 @@ import androidx.room.PrimaryKey
 data class ProfileEntity(
     @PrimaryKey
     val id: Int = 1,
+    @ColumnInfo(defaultValue = "'same'")
+    val slotMode: String = "same",
     val ceilingMode: String = "same",
     val kcalSame: Int = 2000,
     val kcalWeekday: Int = 2000,

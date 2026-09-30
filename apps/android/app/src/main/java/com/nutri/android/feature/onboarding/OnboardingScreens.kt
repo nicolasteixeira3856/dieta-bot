@@ -517,24 +517,35 @@ fun SlotsScreen(
     onTime: (Int, Int) -> Unit,
     onBack: () -> Unit,
     onContinue: () -> Unit,
+    onMode: (String) -> Unit = {},
+    onCopy: () -> Unit = {},
+    onConfirmMode: () -> Unit = {},
+    onCancelMode: () -> Unit = {},
+    configHeader: (@Composable () -> Unit)? = null,
+    ctaLabel: String = "Continuar",
+    ctaTag: String = "o3-continue",
+    tag: String = "o3",
 ) {
+    androidx.activity.compose.BackHandler(onBack = onBack)
     var picking by remember { mutableIntStateOf(-1) }
     Box(Modifier.then(if (picking in ui.slots.indices) Modifier.blur(8.dp) else Modifier)) {
         OnboardingFrame(
             bar = OnboardingBar.IntakeSegments(filled = 3),
-            cta = "Continuar",
+            cta = ctaLabel,
             ctaEnabled = ui.o3Valid,
             onCta = onContinue,
             onBack = onBack,
-            ctaTag = "o3-continue",
+            ctaTag = ctaTag,
             contentTop = 12.dp,
+            header = configHeader,
         ) {
-            Eyebrow("ONBOARDING 3/4", "ROTINA", sectionAccent = false)
+            if (configHeader == null) Eyebrow("ONBOARDING 3/4", "ROTINA", sectionAccent = false)
             ScreenTitle("Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.", titleLine = 37.5f)
             Spacer(Modifier.height(24.dp))
+            SlotScheduleControls(ui.slotSchedule, onMode, onCopy, tag)
             // A15 (Stitch gold): stepper 46 dp tall (36 dp pills, 5 dp inset), 10 dp under the label, 28 dp above the cards.
             SectionLabel("Quantidade de refeições", bottom = 10.dp)
-            CountStepper(ui.slots.size, onCount, itemHeight = 36.dp, inset = 5.dp)
+            CountStepper(ui.slots.size, onCount, tag = tag, itemHeight = 36.dp, inset = 5.dp)
             Spacer(Modifier.height(28.dp))
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 ui.slots.forEachIndexed { i, slot ->
@@ -543,7 +554,8 @@ fun SlotsScreen(
                         slot = slot,
                         onName = { onName(i, it) },
                         onPickTime = { picking = i },
-                        pad = 15.dp, // A15: Stitch gold card is 2 dp taller than the Config one.
+                        tag = tag,
+                        pad = if (ui.slotSchedule.mode == "same") 15.dp else 14.dp, // ST4 group cards use the 14 dp inset.
                     )
                 }
             }
@@ -556,6 +568,7 @@ fun SlotsScreen(
             )
         }
     }
+    SlotModeConfirmation(ui.slotSchedule, onConfirmMode, onCancelMode)
     if (picking in ui.slots.indices) {
         TimeWheelDialog(
             title = ui.slots[picking].name.ifBlank { "Refeição ${picking + 1}" },

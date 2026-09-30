@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.nutri.android.core.database.slotsOfDay
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.domain.PushPlan
@@ -39,7 +40,7 @@ class SlotAlarmScheduler @Inject constructor(
         val day = repository.observeToday().first()
         val now = clock.now()
         val due = PushPlan.alarms(
-            slots = day.slots.map { PushSlot(it.id, it.name, it.minutesFromMidnight) },
+            slots = day.slotsOfDay.map { PushSlot(it.id, it.name, it.minutesFromMidnight) },
             loggedSlotIds = day.logs.mapNotNull { it.slotId }.toSet(),
             skippedSlotIds = day.skippedSlotIds,
             dayDate = runCatching { LocalDate.parse(day.date) }.getOrNull(),

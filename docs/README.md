@@ -40,7 +40,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 | [018](android/adrs/ADR-018-foto-2048.md) | android | foto reduzida a 2048 px no client (aceito) |
 | [019](produto/adrs/ADR-019-ferramentas-dev.md) | produto | telas de ferramenta só no dev, sem gold (proposto) |
 | [020](produto/adrs/ADR-020-estados-novos-chat-home-horario.md) | produto | golds novos `chatA`, `homeW`, `o3t` (proposto) |
-| [021](produto/adrs/ADR-021-refeicoes-por-dia.md) | produto | refeições por dia da semana (proposto) |
+| [021](produto/adrs/ADR-021-refeicoes-por-dia.md) | produto | refeições por dia da semana (aceito) |
 | [022](produto/adrs/ADR-022-limite-texto-chat.md) | produto | mensagem do Chat até 2000 caracteres, estado de erro `chatX` (aceito) |
 
 ## Planos aguardando aprovação
@@ -54,7 +54,7 @@ Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um
 3. ✅ [ST1](stitch/plans/completed/st1-chat.md) → ✅ [A19 chat visual](android/plans/pending_manual_validation/a19-chat-visual.md) — implementado, anexar e enviar no APK pendente de validação manual.
 4. ✅ [ST2](stitch/plans/completed/st2-home-treino.md) → ✅ [A22 treino na Home](android/plans/pending_manual_validation/a22-treino-home.md) — implementado, informar o treino pela Home no APK pendente de validação manual.
 5. ✅ [ST3](stitch/plans/completed/st3-seletor-horario.md) → [A21 seletor de horário](android/plans/pending_manual_validation/a21-seletor-horario.md) — implementado; validação manual de 07:30 e 21:45 pendente.
-6. ✅ [ST4](stitch/plans/completed/st4-refeicoes-por-dia.md) → [A24 refeições por dia](android/plans/a24-refeicoes-por-dia.md) — por último.
+6. ✅ [ST4](stitch/plans/completed/st4-refeicoes-por-dia.md) → [A24 refeições por dia](android/plans/pending_manual_validation/a24-refeicoes-por-dia.md) — implementado, pendente aprovação manual.
 
 Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto-chat.md)). Independe do lote acima:
 
