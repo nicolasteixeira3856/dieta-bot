@@ -15,6 +15,21 @@ data class ChatIn(
     val text: String,
     @SerialName("image_b64") val imageB64: String? = null,
     val compact: Boolean = false,
+    /** Meals of the 7 days before today (S11). No `facts` yet: memory stays the legacy text until A28. */
+    val recent: List<ChatRecentMeal> = emptyList(),
+)
+
+/** slotId null = "Outros" (orphan or deleted slot). */
+@Serializable
+data class ChatRecentMeal(
+    val date: String,
+    @SerialName("slot_id") val slotId: String?,
+    @SerialName("slot_name") val slotName: String,
+    val text: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
 )
 
 @Serializable
@@ -38,6 +53,8 @@ data class ChatDay(
     @SerialName("eaten_c") val eatenC: Int = 0,
     @SerialName("eaten_g") val eatenG: Int = 0,
     @SerialName("workout_kcal") val workoutKcal: Int? = null,
+    /** Effective ceiling - eaten; may be negative (S11). */
+    @SerialName("remaining_kcal") val remainingKcal: Int? = null,
     val slots: List<ChatDaySlot> = emptyList(),
 )
 
@@ -67,11 +84,15 @@ data class ChatEstimate(
     val question: String? = null,
     val items: List<ItemOut> = emptyList(),
     @SerialName("suggested_slot") val suggestedSlot: String? = null,
+    /** The whole meal as corrected by the conversation (S11). The app records this text. */
+    @SerialName("meal_text") val mealText: String? = null,
 )
 
 @Serializable
 data class ChatOut(
     val reply: String = "",
+    /** "log" | "plan" | "question"; null = server before S11, handled as today. */
+    val intent: String? = null,
     val estimate: ChatEstimate? = null,
     val digest: String? = null,
     val model: String = "",

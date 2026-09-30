@@ -13,6 +13,10 @@ interface MealLogDao {
     @Query("SELECT * FROM meal_log WHERE date = :date ORDER BY id ASC")
     suspend fun getByDate(date: String): List<MealLogEntity>
 
+    /** Inclusive ISO dates. */
+    @Query("SELECT * FROM meal_log WHERE date >= :from AND date <= :to ORDER BY date ASC, id ASC")
+    suspend fun getBetween(from: String, to: String): List<MealLogEntity>
+
     @Insert
     suspend fun insert(row: MealLogEntity)
 

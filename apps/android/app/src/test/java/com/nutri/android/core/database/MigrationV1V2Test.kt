@@ -51,11 +51,11 @@ class MigrationV1V2Test {
         }
 
         val db = Room.databaseBuilder(context, DietaBotDatabase::class.java, dbFile.absolutePath)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .allowMainThreadQueries()
             .build()
         try {
-            assertThat(db.openHelper.readableDatabase.version).isEqualTo(4)
+            assertThat(db.openHelper.readableDatabase.version).isEqualTo(5)
 
             val profile = db.profileDao().get()!!
             assertThat(profile.kcalSame).isEqualTo(1850)
@@ -97,11 +97,11 @@ class MigrationV1V2Test {
     fun emptyV1_migrates() {
         createV1 { }
         val db = Room.databaseBuilder(context, DietaBotDatabase::class.java, dbFile.absolutePath)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .allowMainThreadQueries()
             .build()
         try {
-            assertThat(db.openHelper.readableDatabase.version).isEqualTo(4)
+            assertThat(db.openHelper.readableDatabase.version).isEqualTo(5)
         } finally {
             db.close()
         }
@@ -116,7 +116,7 @@ class MigrationV1V2Test {
             )
         }
         val db = Room.databaseBuilder(context, DietaBotDatabase::class.java, dbFile.absolutePath)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .allowMainThreadQueries()
             .build()
         try {

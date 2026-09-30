@@ -4,7 +4,7 @@
 - Data: 30/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat/*`, `domain/BudgetCalculator.kt` (só leitura), `domain/SlotClock.kt` (só leitura), `core/memory` (leitura da rotina), testes e capturas)
-- Pré-requisitos: **[ST6](../../stitch/plans/completed/st6-chat-v2.md) em `stitch/plans/completed/`** (golds `chatR`, `chatM`, `chatS`). [A27](a27-chat-v2-texto-intencao.md) e [A28](a28-memoria-v2.md) concluídos. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8). **Último plano da série Chat v2.**
+- Pré-requisitos: **[ST6](../../stitch/plans/completed/st6-chat-v2.md) em `stitch/plans/completed/`** (golds `chatR`, `chatM`, `chatS`). [A27](pending_manual_validation/a27-chat-v2-texto-intencao.md) e [A28](a28-memoria-v2.md) concluídos. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 3, 7 e 8). **Último plano da série Chat v2.**
 
 ## Gate de autorização
 

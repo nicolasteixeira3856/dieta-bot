@@ -3,6 +3,7 @@ package com.nutri.android.feature.chat
 import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayDigestEntity
+import com.nutri.android.core.database.MealLogEntity
 import com.nutri.android.feature.home.HomeFixtures
 import java.time.Instant
 import org.junit.Test
@@ -113,4 +114,59 @@ class PromptBuilderTest {
         assertThat(body.day.eatenKcal).isEqualTo(day.logs.sumOf { it.kcal })
     }
 
+    private fun log(id: Long, date: String, slotId: Long?, text: String = "r$id", kcal: Int = 100) =
+        MealLogEntity(id = id, date = date, text = text, kcal = kcal, p = 10, slotId = slotId, carbs = 12, fat = 4)
+
+    @Test
+    fun `recent - 7 days before today, oldest first, slot time order, Outros last`() {
+        val logs = listOf(
+            log(1, "2026-09-25", 1), // today: out
+            log(2, "2026-09-17", 1), // 8 days ago: out
+            log(3, "2026-09-18", 4, "jantar 18"),
+            log(4, "2026-09-24", 4, "jantar ontem"),
+            log(5, "2026-09-24", null, "sem slot"),
+            log(6, "2026-09-24", 1, "café ontem"),
+            log(7, "2026-09-24", 99, "slot apagado"),
+            log(8, "2026-09-18", 2, "almoço 18"),
+        )
+        val recent = PromptBuilder.build(HomeFixtures.home1, emptyList(), emptyList(), "igual ontem", now, recentLogs = logs).body.recent
+        assertThat(recent.map { it.text })
+            .containsExactly("almoço 18", "jantar 18", "café ontem", "jantar ontem", "sem slot", "slot apagado").inOrder()
+        val cafe = recent[2]
+        assertThat(cafe.date).isEqualTo("2026-09-24")
+        assertThat(cafe.slotId).isEqualTo("1")
+        assertThat(cafe.slotName).isEqualTo(HomeFixtures.home1.slots.first { it.id == 1L }.name)
+        assertThat(listOf(cafe.kcal, cafe.p, cafe.c, cafe.g)).containsExactly(100, 10, 12, 4).inOrder()
+        assertThat(recent.takeLast(2).map { it.slotId to it.slotName }).containsExactly(null to "Outros", null to "Outros")
+    }
+
+    @Test
+    fun `recent - text cut at 240 code points, at most 42 items and the newest stay`() {
+        val long = PromptBuilder.build(
+            HomeFixtures.home0, emptyList(), emptyList(), "x", now,
+            recentLogs = listOf(log(1, "2026-09-24", 1, "🍚".repeat(300))),
+        ).body.recent.single()
+        assertThat(long.text).isEqualTo("🍚".repeat(240))
+
+        val many = (1..50).map { i -> log(i.toLong(), "2026-09-${18 + (i - 1) / 8}", null, "r$i") }
+        val recent = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x", now, recentLogs = many).body.recent
+        assertThat(recent).hasSize(42)
+        assertThat(recent.first().text).isEqualTo("r9")
+        assertThat(recent.last().text).isEqualTo("r50")
+    }
+
+    @Test
+    fun `remaining_kcal is effective ceiling minus eaten, with and without workout, may be negative`() {
+        fun remaining(eat: String, workout: Int?) = PromptBuilder.build(
+            HomeFixtures.home1.copy(kcalSame = 2000, eat = eat, pct = 40, workoutKcal = workout), emptyList(), emptyList(), "x", now,
+        ).body.day.remainingKcal
+        // home1 eats 1300.
+        assertThat(remaining("zero", 300)).isEqualTo(700)
+        assertThat(remaining("partial", 300)).isEqualTo(820)
+        assertThat(remaining("full", 300)).isEqualTo(1000)
+        assertThat(remaining("full", null)).isEqualTo(700)
+        val over = PromptBuilder.build(HomeFixtures.homeX.copy(kcalSame = 2000), emptyList(), emptyList(), "x", now).body.day
+        assertThat(over.remainingKcal).isEqualTo(2000 - 2280)
+        assertThat(PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x", now).body.recent).isEmpty()
+    }
 }

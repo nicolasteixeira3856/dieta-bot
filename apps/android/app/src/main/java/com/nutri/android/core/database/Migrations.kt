@@ -3,6 +3,14 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v4 -> v5: meal text and intent of the Chat estimate (A27). Old rows stay null. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `estimateMealText` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `intent` TEXT")
+    }
+}
+
 /** v3 -> v4: existing schedules keep their IDs and apply every day. */
 val MIGRATION_3_4 = object : Migration(3, 4) {
     override fun migrate(db: SupportSQLiteDatabase) {

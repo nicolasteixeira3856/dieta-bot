@@ -10,6 +10,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
+import com.nutri.android.core.database.MealLogEntity
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.DietaBotDatabase
 import com.nutri.android.core.memory.FakeMemoryFile
@@ -623,7 +624,7 @@ class ChatViewModelTest {
         assertThat(telemetry.params(TelemetryEvents.CHAT_SEND))
             .containsExactly(mapOf("has_photo" to false, "text_len" to "20-100"))
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high"))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high", "intent" to "none"))
         assertThat(telemetry.nonFatals).isEmpty()
         val allValues = telemetry.events.flatMap { it.second.values }.map { it.toString() } + telemetry.breadcrumbs
         assertThat(allValues.none { it.contains("pães") || it.contains("ovos") }).isTrue()
@@ -652,5 +653,157 @@ class ChatViewModelTest {
 
         assertThat(telemetry.params(TelemetryEvents.MEAL_SAVED))
             .containsExactly(mapOf("from" to "chat", "has_photo" to false, "kcal" to 380))
+    }
+
+    // ------------------------------------------------------------------ A27: meal text and intent
+
+    private suspend fun sendAndAwaitReply(vm: ChatViewModel, text: String) {
+        val before = vm.uiState.value.items.count { it is ChatItem.Assistant }
+        vm.setComposer(text)
+        vm.send()
+        vm.await { !it.sending && it.items.count { i -> i is ChatItem.Assistant } > before }
+    }
+
+    private fun cafeOut(slot: Long, question: String?, mealText: String?, intent: String? = "log") = ChatOut(
+        reply = "Café de ontem: 2 ovos mexidos, pão francês e leite.",
+        intent = intent,
+        estimate = ChatEstimate(
+            kcal = 430.0, p = 25.0, c = 38.0, g = 20.0,
+            confidence = if (question == null) "high" else "medium",
+            question = question,
+            items = listOf(ItemOut("2 ovos mexidos"), ItemOut("pão francês"), ItemOut("200 ml leite")),
+            suggestedSlot = slot.toString(),
+            mealText = mealText,
+        ),
+        model = "gpt-6-luna",
+    )
+
+    /** Café igual ao de ontem → pergunta do leite → resposta → Gravar. */
+    private suspend fun cafeWithMilkAnswer(vm: ChatViewModel, mealText: String?): Long {
+        val cafe = slotIds().first()
+        answer = { cafeOut(cafe, "O leite era integral ou desnatado?", mealText = null) }
+        sendAndAwaitReply(vm, "café igual ao de ontem")
+        answer = { cafeOut(cafe, question = null, mealText = mealText) }
+        sendAndAwaitReply(vm, "Sempre uso leite semi desnatado")
+        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+        return cafe
+    }
+
+    @Test
+    fun gravarAfterAnswer_recordsServerMealText_notTheAnswer() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val meal = "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite semidesnatado"
+        cafeWithMilkAnswer(vm, mealText = meal)
+
+        assertThat(repo.observeToday().first().logs.single().text).isEqualTo(meal)
+        withTimeout(5_000) { while (!memory.read().contains("Café da manhã:")) kotlinx.coroutines.delay(10) }
+        assertThat(memory.read()).contains("Café da manhã: $meal (430 kcal)")
+        val stored = repo.observeMessages().first().last { it.role == "assistant" }
+        assertThat(stored.estimateMealText).isEqualTo(meal)
+        assertThat(stored.intent).isEqualTo("log")
+    }
+
+    @Test
+    fun gravarAfterAnswer_withoutMealText_recordsFirstMessageOfTheChain() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        cafeWithMilkAnswer(vm, mealText = null)
+        assertThat(repo.observeToday().first().logs.single().text).isEqualTo("café igual ao de ontem")
+    }
+
+    @Test
+    fun oldServer_blankMealText_recordsTheUserText() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val cafe = slotIds().first()
+        answer = { cafeOut(cafe, question = null, mealText = "  ", intent = null) }
+        sendAndAwaitReply(vm, "o de sempre")
+        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+        assertThat(repo.observeToday().first().logs.single().text).isEqualTo("o de sempre")
+    }
+
+    @Test
+    fun photoOnly_withoutMealText_recordsTheAiText() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val almoco = slotIds()[1]
+        answer = { estimateOut(almoco.toString()).copy(reply = "Prato feito com frango, arroz e feijão.") }
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/pf.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/1"))
+        vm.await { it.attachment != null }
+        vm.send()
+        vm.await { it.actions != null }
+        vm.record(vm.uiState.value.actions!!.estimateId, almoco)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+        val log = repo.observeToday().first().logs.single()
+        assertThat(log.text).isEqualTo("Prato feito com frango, arroz e feijão.")
+        assertThat(log.source).isEqualTo("photo")
+    }
+
+    @Test
+    fun planWithEstimate_showsOnlyTheBubble_estimateKeptInRoom() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val jantar = slotIds()[3]
+        answer = {
+            cafeOut(jantar, question = "Vai usar muçarela?", mealText = "pizza de pão sírio", intent = "plan")
+                .copy(reply = "Pão sírio 80 g, muçarela 60 g, tomate 50 g. Total: 495 kcal · 47P · 39C · 15G.")
+        }
+        sendAndAwaitReply(vm, "vou fazer pizza de pão sírio, quantas gramas?")
+
+        val ui = vm.uiState.value
+        assertThat(ui.actions).isNull()
+        assertThat(ui.items.filterIsInstance<ChatItem.Question>()).isEmpty()
+        val bot = ui.items.filterIsInstance<ChatItem.Assistant>().single()
+        assertThat(bot.estimate).isNull()
+        assertThat(bot.text).startsWith("Pão sírio 80 g")
+        val stored = repo.observeMessages().first().single { it.role == "assistant" }
+        assertThat(stored.intent).isEqualTo("plan")
+        assertThat(stored.estimateKcal).isEqualTo(430)
+        assertThat(stored.estimateMealText).isEqualTo("pizza de pão sírio")
+        // Record is refused for a plan even if called directly.
+        vm.record(stored.id, jantar)
+        assertThat(repo.observeToday().first().logs).isEmpty()
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "medium", "intent" to "plan"))
+        // The next message is not the answer to a question of the plan: no memory line.
+        answer = { ChatOut(reply = "Ok.", intent = "question", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "e se for com frango?")
+        assertThat(memory.read()).isEmpty()
+    }
+
+    @Test
+    fun planAfterOpenLog_keepsTheLogActions() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val cafe = slotIds().first()
+        answer = { cafeOut(cafe, question = null, mealText = "café", intent = "log") }
+        sendAndAwaitReply(vm, "comi o café")
+        val logId = vm.uiState.value.actions!!.estimateId
+        answer = { cafeOut(cafe, question = null, mealText = "pizza", intent = "plan") }
+        sendAndAwaitReply(vm, "vou fazer pizza?")
+        assertThat(vm.uiState.value.actions!!.estimateId).isEqualTo(logId)
+        val cards = vm.uiState.value.items.filterIsInstance<ChatItem.Assistant>().map { it.estimate != null }
+        assertThat(cards).containsExactly(true, false).inOrder()
+    }
+
+    @Test
+    fun questionIntent_isOnlyTheBubble() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { ChatOut(reply = "Banana média tem uns 90 kcal.", intent = "question", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "quantas calorias tem uma banana?")
+        assertThat(vm.uiState.value.actions).isNull()
+        assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.Assistant>().single().estimate).isNull()
+    }
+
+    @Test
+    fun send_carriesRecentMealsAndRemainingKcal() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val cafe = slotIds().first()
+        db.mealLogDao().insert(MealLogEntity(date = "2026-09-24", text = "café de ontem", kcal = 440, p = 25, slotId = cafe, carbs = 38, fat = 22))
+        db.mealLogDao().insert(MealLogEntity(date = "2026-09-17", text = "velho", kcal = 1))
+        sendAndAwaitReply(vm, "café igual ao de ontem")
+        val body = requests.single()
+        assertThat(body.recent.map { it.text }).containsExactly("café de ontem")
+        assertThat(body.recent.single().slotName).isEqualTo("Café da manhã")
+        assertThat(body.day.remainingKcal).isEqualTo(2000)
     }
 }

@@ -49,7 +49,7 @@ RECENT:
 2026-09-29 1 Café: "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite, café" 440kcal 25P 38C 22G
 ```
 
-Cliente legado: `MEMORY: <texto>` como hoje. `RECENT` e `remaining_kcal` entram sempre que vierem, em qualquer cliente (o [A27](../../../android/plans/a27-chat-v2-texto-intencao.md) manda os dois antes da memória v2).
+Cliente legado: `MEMORY: <texto>` como hoje. `RECENT` e `remaining_kcal` entram sempre que vierem, em qualquer cliente (o [A27](../../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) manda os dois antes da memória v2).
 
 ### 3. Instruções (`_CHAT_INSTRUCTIONS`, reescritas em inglês)
 
@@ -153,7 +153,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 
 ## Fora de escopo
 
-- Client: [A27](../../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/a28-memoria-v2.md), [A29](../../../android/plans/a29-chat-v2-interface.md).
+- Client: [A27](../../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/a28-memoria-v2.md), [A29](../../../android/plans/a29-chat-v2-interface.md).
 - Aplicar a memória, promoção, expiração e limites: são do client (o server é stateless).
 - Troca de modelo. `/v1/estimate` e `/v1/fit`.
 
