@@ -1,6 +1,6 @@
 # Plano — S10 Avaliação do Chat com casos reais
 
-- Estado: Aguardando aprovação
+- Estado: Concluído
 - Data: 30/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/evals/` (novo), `server/tests/` (teste do avaliador)
@@ -116,6 +116,54 @@ Conjunto inicial (mínimo 20 casos), cobrindo:
 - `python -m evals.run` roda os casos com `none` e `low` e gera o relatório.
 - Pelo menos 20 casos, cobrindo todos os grupos da tabela.
 - Linha de base registrada neste plano.
+
+## Resultados (30/09/2026)
+
+### Entregue
+
+- `server/evals/run.py`, `server/evals/checks.py`, `server/evals/__init__.py`; `LlmClient(effort=...)` com padrão `none` (rota inalterada, coberta por teste).
+- 21 casos em `server/evals/cases/`, cobrindo os 5 grupos da tabela: texto da refeição (3), intenção (6), histórico (2), memória (7), travas do S8 (3). 7 `v1`, 14 `v2`.
+- Expectativas: as do formato acima mais `memory_updates_not` (mudança que não pode aparecer: refeição avulsa, contradição, memória cheia) e `reply_has` (termo-chave, nunca frase). Termos comparados sem caixa e sem acento.
+- Tokens lidos de `response.usage` por um transport que só observa a resposta. Custo com a tabela padrão do gpt-6-luna (US$ 0,10 entrada, 0,01 entrada em cache, 0,50 saída por 1M tokens; raciocínio cobra como saída), em constantes de `run.py`.
+- Relatório com data e hora no nome (`logs/evals/<AAAA-MM-DD-HHMMSS>-<effort>.json`), para uma rodada parcial não sobrescrever outra.
+- Coleta: `./tools/pull-conversations.ps1 -Download` (log de 28/09 a 30/09, em `logs/`, fora do git). Situações do café com a resposta do leite, da pizza de pão sírio (plano e registro), do suco na ceia, do total sem comida, do "ontem", da foto e do iogurte Nuv, reescritas à mão.
+
+### Linha de base — prompt atual, `effort=none`, 3 repetições (30/09/2026 12:03)
+
+`python -m evals.run --effort none --repeat 3`
+
+- **Total: 11/21 aprovados (52,4%)**, 0 `n/a`.
+- Por tag: `consolidated` 2/2, `s8` 3/3, `meal_text` 3/4, `log` 7/11, `intent` 3/6, `question` 3/6, `memory` 3/8, `history` 0/2, `plan` 0/3.
+- Latência p50 2,2 s, p95 4,5 s. Tokens por chamada: entrada 1086 (575 em cache), saída 114, raciocínio 0. Custo da rodada (63 chamadas): US$ 0,0072.
+
+| Caso | Resultado | Motivo |
+|---|---|---|
+| `cabe-acai` | falha 0/3 | estimate presente sem intenção: vira card de registro (plano tratado como `log`) |
+| `pizza-pao-sirio-plano` | falha 0/3 | mesmo defeito do plano; o `reply` não traz o total em kcal |
+| `janta-o-que-como` | falha 0/3 | sugere prato sem estimate e sem kcal no `reply` |
+| `cafe-resposta-leite` | falha 0/3 | depois da resposta sobre o leite, pergunta de novo (manteiga) |
+| `memoria-evita-pergunta-leite` | falha 0/3 | pergunta a manteiga; o fato do leite não chega ao prompt (v1 ignora `facts`) |
+| `mesmo-cafe-ontem-recent` | falha 0/3 | sem `recent` no prompt: não sabe o café de ontem e pede a refeição |
+| `igual-almoco-segunda` | falha 0/3 | idem, almoço de segunda |
+| `memoria-contradicao-leite` | falha 1/3 | "agora uso leite integral" vira reestimativa do café gravado |
+| `memoria-esquece-pao` | falha 0/3 | "esquece o pão" vira reestimativa do café gravado |
+| `memoria-cheia` | falha 0/3 | não existe memória fixa cheia no v1 |
+
+Aprovados: `almoco-resposta-peso`, `ceia-completa-suco`, `comi-pizza-pao-sirio`, `duvida-whey`, `foto-no-historico`, `memoria-refeicao-avulsa`, `memoria-reforco-iogurte`, `memoria-sempre-leite`, `ontem-grava-hoje`, `saudacao`, `total-sem-comida`. Nos casos `v2`, `meal_text_*`, `memory_updates_*` e `memory_used_has` ficaram `n/a` (campos do S11), então o número mede só o que o contrato v1 mostra.
+
+Variação entre rodadas iguais: duas rodadas anteriores deram 10/21; `memoria-sempre-leite` oscila (em uma rodada o modelo estimou um café). O S11 compara `none` × `low` nas mesmas 3 repetições.
+
+Smoke `--effort none low --repeat 1 --only saudacao,cabe-acai`: as duas rodaram; `low` usou 122 tokens de raciocínio por chamada, p95 6,8 s.
+
+Ajuste de caso durante a linha de base: `memoria-reforco-iogurte` tinha faixa 120–260 kcal; 110 kcal (1 iogurte Nuv + 120 g de morango) é plausível, a faixa foi para 90–260 antes da rodada registrada.
+
+### Validação
+
+1. `server/.venv/Scripts/python -m pytest -q`: 76 passed, 46 subtests (suíte anterior + `test_evals.py`: aprovado, falha em cada uma das 12 expectativas, `n/a` de v2 em saída v1, intenção deduzida, regra 2 de 3, casos válidos no `ChatIn`, rodada com transport fake incluindo tokens, custo, `effort=low` enviado, erro sem vazar a chave, rota ainda em `none`).
+2. Linha de base executada e registrada acima.
+3. Nenhum texto de tester nem trecho do log: `git grep -i -E "nicolas|icaro|@gmail|teixeira" -- server/evals` vazio; nenhuma janela de 30 caracteres dos textos dos casos aparece no `input_text`/`raw_output` do log (zero ocorrências, depois de reescrever frases genéricas de comida que coincidiam).
+
+Sem validação manual prevista: `Concluído`.
 
 ## Encerramento
 
