@@ -53,3 +53,5 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 Depois da implementação, registre resultados reais e aplique o ciclo de vida em `docs/sdd/README.md`.
 
 Só declaração explícita do dono cancelando este plano permite `Cancelado` e a pasta `plans/cancelled/`.
+
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../README.md#fora-de-escopo). Record the reason, residual risk and re-entry conditions; do not treat missing approval or incomplete implementation as deferral.

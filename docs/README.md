@@ -15,6 +15,14 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
+## Content policy — planning, 2026-09-30
+
+| Context | Type | Code ownership | Specifications | Proposed ADRs | Plans | Validation |
+| --- | --- | --- | --- | --- | --- | --- |
+| [content-policy](content-policy/README.md) | Cross-cutting policy | One folder per plan: server, Android or GCP infra | [Content handling](content-policy/specifications/content-policy.md), [identity/audit](content-policy/specifications/identity-and-audit.md) | [024](content-policy/adrs/ADR-024-content-safety-boundaries.md), [025](content-policy/adrs/ADR-025-safety-correlation-audit.md) — proposed, not accepted | [CP1 → CP2 → CP3 → CP4 → CP5 → CP6](content-policy/plans/README.md), all awaiting approval | [Matrix](content-policy/validation/README.md) |
+
+[CP7 — Specialized detection](content-policy/plans/out_of_scope/cp7-specialist-detection.md) is `Fora de escopo` for financial/business reasons. It is excluded from execution order; general moderation does not replace its coverage. The owner-authorized [SDD state](sdd/README.md#fora-de-escopo) preserves the reason and requires explicit reactivation. This documentation delivery does not implement or approve CP plans.
+
 ## ADRs vigentes
 
 Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.

@@ -1,5 +1,9 @@
 # Especificacao — POST /v1/chat
 
+## Proposed content-policy overlay
+
+The target [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit contract](../../content-policy/specifications/identity-and-audit.md) are awaiting the named CP plan approvals. They cover moderation, semantic scope, fallback checks, optional installation header and minimal audit; none is claimed as implemented by this planning update. CP2/CP3 must reconcile this live specification and the HTTP contract during delivery.
+
 ## Estado
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).

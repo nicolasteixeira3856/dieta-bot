@@ -1,5 +1,9 @@
 # Especificação — Chat
 
+## Proposed content-policy overlay
+
+[Content handling](../../content-policy/specifications/content-policy.md) proposes fixed scope/safety replies through existing Chat bubbles, with no estimate or memory mutation on refusal. This is pending CP2 approval and implementation, not current behavior. Photos, meal intent and approved layouts remain unchanged. Any future legal acceptance/reporting UI requires its own approved scope and applicable Stitch gate.
+
 ## Estado
 
 Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).

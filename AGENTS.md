@@ -136,6 +136,7 @@ Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-l
 ## How to work
 
 Implementation follows `docs/sdd/README.md`. Matrix: `docs/README.md`.
+Content safety planning lives in `docs/content-policy/`; each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
 Planning is documentation only. Code starts only after an explicit approval that names the plan file.
 `/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.
 New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/decisions/`.

@@ -6,7 +6,7 @@
 
 ## Tipo e ownership
 
-- Tipo: `<produto|client|contrato_http>`.
+- Tipo: `<produto|client|contrato_http|cross-cutting policy>`.
 - Código principal: `<paths>`.
 - Consumidores: `<paths ou contextos>`.
 
@@ -37,6 +37,8 @@ Antes de planejar ou implementar:
 1. <ordem de leitura local>;
 2. confira planos ativos, validações pendentes e cancelamentos;
 3. confira o código atual.
+
+Also inspect any `plans/out_of_scope/` entries and their residual risks. Deferred plans are not active `/goal` candidates; follow [SDD](../README.md#fora-de-escopo) for explicit reactivation.
 
 ## Estado atual
 
