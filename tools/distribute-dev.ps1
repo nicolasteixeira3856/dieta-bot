@@ -11,7 +11,7 @@
      writes N+1 (never reuses or lowers a number); otherwise ships N as recorded (first run: 0.0.1).
   3. testDevDebugUnitTest, then assembleDevRelease.
   4. Checks the APK: signer CN=Nutri (A9) with apksigner, versionName 0.0.N-dev / versionCode N with aapt2.
-  5. firebase appdistribution:distribute to the "owner" group of nutri-bot-dev.
+  5. firebase appdistribution:distribute to the "testers" group of nutri-bot-dev.
      Release notes = "Dieta Bot 0.0.N" + blank line + the -Notes file.
   6. Prepends "## 0.0.N - DD/MM/AAAA" (em dash) + the notes to apps/android/CHANGELOG.md.
      Commit "chore(release): 0.0.N-dev" (version.properties + CHANGELOG.md) + tag dev-v0.0.N, push both.
@@ -26,7 +26,7 @@ param(
     [string]$Notes,
     [string]$FirebaseProject = "nutri-bot-dev",
     [string]$FirebaseApp = "1:823717355877:android:d01b29a0b20b0674bd818c",
-    [string]$Group = "owner"
+    [string]$Group = "testers"
 )
 
 # Continue, not Stop: Windows PowerShell 5.1 turns native stderr (Gradle, npx) into terminating
