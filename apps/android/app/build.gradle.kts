@@ -158,7 +158,6 @@ dependencies {
     implementation(libs.datastore)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.security.crypto)
     ksp(libs.room.compiler)
 
     // A11: Firebase only in dev. prod gets NoopTelemetry (src/prod) and no Firebase classes.

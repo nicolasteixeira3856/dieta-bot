@@ -14,19 +14,23 @@ import com.nutri.android.core.database.MealLogEntity
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.DietaBotDatabase
 import com.nutri.android.core.memory.FakeMemoryFile
-import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.photo.FakePhotoFiles
 import com.nutri.android.core.network.ChatEstimate
 import com.nutri.android.core.network.ChatIn
+import com.nutri.android.core.network.ChatMemoryUpdate
 import com.nutri.android.core.network.ChatOut
 import com.nutri.android.core.network.ItemOut
 import com.nutri.android.core.telemetry.ChatFallback
 import com.nutri.android.core.telemetry.FakeTelemetry
 import com.nutri.android.core.telemetry.RequestIds
 import com.nutri.android.core.telemetry.TelemetryEvents
+import com.nutri.android.domain.MemoryUpdate
+import com.nutri.android.domain.RecordedMeal
 import java.io.File
 import java.io.IOException
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,7 +59,8 @@ class ChatViewModelTest {
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
     private val memoryFile = FakeMemoryFile()
-    private val memory = MemoryStore(memoryFile)
+    private val memory = FactMemory(memoryFile)
+    private val today = LocalDate.parse("2026-09-25")
     private val photos = FakePhotoFiles()
     private var now = Instant.parse("2026-09-25T08:10:00-03:00")
     private val clock = InstantClock { now }
@@ -251,8 +256,8 @@ class ChatViewModelTest {
         assertThat(receipt.slotName).isEqualTo("Jantar")
         assertThat(receipt.slotTime).isEqualTo("20:00")
         assertThat(receipt.kcal).isEqualTo(1220)
-        withTimeout(5_000) { while (!memory.read().contains("atualizado")) kotlinx.coroutines.delay(10) }
-        assertThat(memory.read()).endsWith("Jantar (atualizado): também tomei 2 copos de suco (1220 kcal)")
+        // No A8 line on Substituir: without memory_updates the memory is untouched (A28).
+        assertThat(memoryFile.writes).isEqualTo(0)
         assertThat(requests).hasSize(2)
     }
 
@@ -322,53 +327,145 @@ class ChatViewModelTest {
         assertThat(requests).isEmpty()
     }
 
+    private fun update(op: String, id: String?, kind: String, category: String, key: String, text: String, slot: String? = null) =
+        ChatMemoryUpdate(op, id, kind, category, key, text, slot)
+
+    private suspend fun storedAssistant() = repo.observeMessages().first().last { it.role == "assistant" }
+
     @Test
-    fun gravar_appendsOneMemoryLine_nextPostCarriesIt() = runBlocking<Unit> {
+    fun preference_appliedOnTheAnswer_marksTheAssistant_nextPostCarriesFacts() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
-        val cafe = slotIds().first()
-        answer = { estimateOut(cafe.toString()) }
-        sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
+        answer = {
+            ChatOut(
+                reply = "Anotado: leite semidesnatado.",
+                intent = "question",
+                memoryUpdates = listOf(update("add", null, "permanent", "preference", "leite", "Leite semidesnatado")),
+                model = "gpt-6-luna",
+            )
+        }
+        sendAndAwaitReply(vm, "Sempre uso leite semidesnatado")
+
+        // v2 client: facts always present, even empty; no legacy memory text.
+        assertThat(requests.single().facts).isEmpty()
         assertThat(requests.single().memory).isEmpty()
-        // A send with no Gravar and no question does not touch the memory.
-        assertThat(memoryFile.writes).isEqualTo(0)
+        val p1 = memory.read(today).facts.single()
+        assertThat(p1.id).isEqualTo("P1")
+        assertThat(p1.kind).isEqualTo("permanent")
+        assertThat(storedAssistant().memoryUpdated).isTrue()
+        assertThat(storedAssistant().pendingMemory).isNull()
+        assertThat(repo.observeMessages().first().single { it.role == "user" }.memoryUpdated).isFalse()
 
-        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
-        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
-        withTimeout(5_000) { while (memoryFile.writes == 0) kotlinx.coroutines.delay(10) }
-        assertThat(memory.read()).isEqualTo("Café da manhã: 2 pães franceses com 2 ovos mexidos (380 kcal)")
-
-        vm.setComposer("e um café")
-        vm.send()
-        withTimeout(5_000) { while (requests.size < 2) kotlinx.coroutines.delay(10) }
-        assertThat(requests.last().memory).contains("Café da manhã: 2 pães franceses com 2 ovos mexidos (380 kcal)")
+        answer = { ChatOut(reply = "ok", intent = "question", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "café com leite")
+        val fact = requests.last().facts!!.single()
+        assertThat(fact.id).isEqualTo("P1")
+        assertThat(fact.daysSeen).isEqualTo(1)
+        assertThat(fact.lastSeen).isEqualTo("2026-09-25")
+        assertThat(storedAssistant().memoryUpdated).isFalse()
     }
 
     @Test
-    fun answerToAssumption_appendsMemoryLine() = runBlocking<Unit> {
+    fun routine_onlyOnGravar_marksTheReceipt() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val cafe = slotIds().first()
+        answer = {
+            estimateOut(cafe.toString()).copy(
+                memoryUpdates = listOf(update("add", null, "dynamic", "routine", "cafe", "2 pães franceses e 2 ovos", cafe.toString())),
+            )
+        }
+        sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
+        assertThat(memory.read(today).facts).isEmpty()
+        assertThat(memoryFile.writes).isEqualTo(0)
+        assertThat(storedAssistant().pendingMemory).contains("\"routine\"")
+        assertThat(storedAssistant().memoryUpdated).isFalse()
+
+        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
+        val routine = memory.read(today).facts.single()
+        assertThat(routine.id).isEqualTo("D1")
+        assertThat(routine.slot).isEqualTo(cafe.toString())
+        assertThat(listOf(routine.kcal, routine.p, routine.c, routine.g)).containsExactly(380, 22, 36, 16).inOrder()
+        val rows = repo.observeMessages().first()
+        assertThat(rows.single { it.role == "logged" }.memoryUpdated).isTrue()
+        assertThat(rows.single { it.role == "assistant" }.memoryUpdated).isFalse()
+        assertThat(telemetry.params(TelemetryEvents.MEMORY_CHANGED).single()).containsExactly(
+            "add", 1, "reinforce", 0, "replace", 0, "remove", 0, "promote", 0, "expire", 0, "permanent", 0, "dynamic", 1,
+        )
+    }
+
+    @Test
+    fun estimateNotRecorded_doesNotReinforceTheRoutine() = runBlocking<Unit> {
+        val cafe = slotIds().first()
+        memory.apply(
+            listOf(MemoryUpdate("add", null, "dynamic", "routine", "cafe", "pão com ovo", cafe.toString())),
+            today.minusDays(1),
+            RecordedMeal(cafe.toString(), 300, 15, 30, 12),
+        )
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = {
+            estimateOut(cafe.toString()).copy(
+                memoryUpdates = listOf(update("reinforce", "D1", "dynamic", "routine", "cafe", "pão com ovo", cafe.toString())),
+            )
+        }
+        sendAndAwait(vm, "pão com ovo")
+        vm.askSkip(vm.uiState.value.actions!!.skip!!)
+        vm.confirmSkip()
+        vm.await { it.actions == null }
+
+        val fact = memory.read(today).facts.single()
+        assertThat(fact.days).containsExactly("2026-09-24")
+        assertThat(fact.kcal).isEqualTo(300)
+        assertThat(repo.observeMessages().first().none { it.memoryUpdated }).isTrue()
+    }
+
+    @Test
+    fun memoryUsed_resolvedToKinds_unknownIgnored() = runBlocking<Unit> {
+        memory.apply(
+            listOf(
+                MemoryUpdate("add", null, "permanent", "preference", "leite", "Leite semidesnatado"),
+                MemoryUpdate("add", null, "dynamic", "portion", "arroz", "4 colheres de arroz"),
+            ),
+            today,
+        )
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { ChatOut(reply = "ok", intent = "question", memoryUsed = listOf("P1", "D77"), model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "café com leite")
+        assertThat(storedAssistant().memoryUsedKinds).isEqualTo("permanent")
+
+        answer = { ChatOut(reply = "ok", intent = "question", memoryUsed = listOf("D1", "P1"), model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "arroz com leite")
+        assertThat(storedAssistant().memoryUsedKinds).isEqualTo("permanent,dynamic")
+
+        answer = { ChatOut(reply = "ok", intent = "question", memoryUsed = listOf("P9"), model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "oi")
+        assertThat(storedAssistant().memoryUsedKinds).isNull()
+    }
+
+    @Test
+    fun answerToAssumption_writesNoRespondeuLine() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
         answer = {
             estimateOut(null).copy(estimate = estimateOut(null).estimate!!.copy(confidence = "medium", question = "O pão era francês ou de forma?"))
         }
         sendAndAwait(vm, "pão com ovo")
-        assertThat(memory.read()).isEmpty()
 
         answer = { ChatOut(reply = "Anotado.", model = "gpt-6-luna") }
-        vm.setComposer("francês")
-        vm.send()
-        withTimeout(5_000) { while (memoryFile.writes == 0) kotlinx.coroutines.delay(10) }
-        assertThat(memory.read()).isEqualTo("Respondeu \"O pão era francês ou de forma?\": francês")
+        sendAndAwaitReply(vm, "francês")
+        assertThat(memoryFile.writes).isEqualTo(0)
+        assertThat(memory.read(today).facts).isEmpty()
     }
 
     @Test
     fun wipeToday_keepsMemory() = runBlocking<Unit> {
-        memory.append("Café da manhã: pão com ovo (300 kcal)")
+        memory.apply(listOf(MemoryUpdate("add", null, "permanent", "preference", "leite", "Leite semidesnatado")), today)
         repo.wipeToday()
         val vm = ChatViewModel(repo, service, clock, memory, photos)
         answer = { ChatOut(reply = "oi", model = "gpt-6-luna") }
         vm.setComposer("oi")
         vm.send()
         withTimeout(5_000) { while (requests.isEmpty()) kotlinx.coroutines.delay(10) }
-        assertThat(requests.single().memory).isEqualTo("Café da manhã: pão com ovo (300 kcal)")
+        assertThat(requests.single().facts!!.single().text).isEqualTo("Leite semidesnatado")
         assertThat(memoryFile.writes).isEqualTo(1)
     }
 
@@ -697,8 +794,6 @@ class ChatViewModelTest {
         cafeWithMilkAnswer(vm, mealText = meal)
 
         assertThat(repo.observeToday().first().logs.single().text).isEqualTo(meal)
-        withTimeout(5_000) { while (!memory.read().contains("Café da manhã:")) kotlinx.coroutines.delay(10) }
-        assertThat(memory.read()).contains("Café da manhã: $meal (430 kcal)")
         val stored = repo.observeMessages().first().last { it.role == "assistant" }
         assertThat(stored.estimateMealText).isEqualTo(meal)
         assertThat(stored.intent).isEqualTo("log")
@@ -765,10 +860,10 @@ class ChatViewModelTest {
         assertThat(repo.observeToday().first().logs).isEmpty()
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
             .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "medium", "intent" to "plan"))
-        // The next message is not the answer to a question of the plan: no memory line.
+        // No memory line for a plan or its follow-up (A28: only memory_updates change the memory).
         answer = { ChatOut(reply = "Ok.", intent = "question", model = "gpt-6-luna") }
         sendAndAwaitReply(vm, "e se for com frango?")
-        assertThat(memory.read()).isEmpty()
+        assertThat(memoryFile.writes).isEqualTo(0)
     }
 
     @Test

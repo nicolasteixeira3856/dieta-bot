@@ -12,11 +12,12 @@ Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte si
 
 Intenção (`log` / `plan` / `question`), texto gravado = `meal_text` e histórico de 7 dias no prompt desde o [A27](../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md); server: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md)): regras 4, 5, 8, 12 e 14.
 
+Memória em fatos no prompt (`facts`), `memory_updates` aplicados pelo app e origem por mensagem desde o [A28](../../android/plans/pending_manual_validation/a28-memoria-v2.md): regras 8 e 12.
+
 ## Mudanças decididas, ainda não vigentes (ADR-023)
 
 O [ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) (30/09/2026) muda este Chat. As regras abaixo só passam a valer quando cada plano for implementado. Até lá, vale o texto das regras numeradas.
 
-- **Prompt do turno** (regra 8): a memória em fatos ([A28](../../android/plans/a28-memoria-v2.md)).
 - **Plano** (`chatR`): painel do dia projetado calculado pelo app e botão Registrar assim ([A29](../../android/plans/a29-chat-v2-interface.md)).
 - **Avisos de memória** (`chatM`): `Memória atualizada` e chips `Memória permanente` / `Memória dinâmica` ([A29](../../android/plans/a29-chat-v2-interface.md)).
 - **Sugestão da rotina** (`chatS`): `O de sempre no {slot}?` com Registrar e Quase igual ([A29](../../android/plans/a29-chat-v2-interface.md)).
@@ -42,11 +43,11 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 5. Tap Gravar (ou Confirmar no Trocar): slot sem registro hoje → `addLog` local com o último estimate (kcal, p, c, g, texto da regra 12). Slot com registro → confirmação no layout do `chatP`: `Substituir {slot}?`, `{slot} tem {kcal antigo} kcal. Fica com {kcal novo} kcal.`, **Substituir** | **Outra refeição** (fecha e abre o Trocar sem seleção). Substituir troca os registros de hoje daquele slot pelo novo numa transação ([ADR-017](../adrs/ADR-017-registro-consolidado.md)). Back ou toque fora só fecha. Sem novo POST.
 6. Sem tap: número não entra no contador.
 7. Pular: status skipped no slot. Sem kcal. Gravar, Substituir e Pular deixam um recibo na conversa (“Registrado em {slot} · {hora} +{kcal} kcal”, “Atualizado em {slot} · {hora} {kcal} kcal”); recibos não vão ao server.
-8. Perfil e snapshot só incluem slots do dia em America/Sao_Paulo (ADR-021/A24), assim como sugestão da hora, Trocar e Pular. Logs de slots de outros grupos continuam nos totais. Prompt do turno: perfil + memória ≤ 1,3 k tok + snapshot Room (slots, kcal, P/C/G, pulou, saldo, `remaining_kcal` = teto efetivo − comido, pode ser negativo) + `recent` (registros dos 7 dias antes de hoje, mais antigo primeiro, no dia pela hora do slot; slot apagado ou nulo = `Outros`; texto ≤ 240; ≤ 42, ficam os mais recentes) + ≤ 2 digest + ≤ 12 raw do dia.
+8. Perfil e snapshot só incluem slots do dia em America/Sao_Paulo (ADR-021/A24), assim como sugestão da hora, Trocar e Pular. Logs de slots de outros grupos continuam nos totais. Prompt do turno: perfil + memória em fatos (`facts`, ≤ 30 permanentes + ≤ 40 dinâmicos, regras em [memoria-push](memoria-push.md)) + snapshot Room (slots, kcal, P/C/G, pulou, saldo, `remaining_kcal` = teto efetivo − comido, pode ser negativo) + `recent` (registros dos 7 dias antes de hoje, mais antigo primeiro, no dia pela hora do slot; slot apagado ou nulo = `Outros`; texto ≤ 240; ≤ 42, ficam os mais recentes) + ≤ 2 digest + ≤ 12 raw do dia.
 9. Ao fechar 12 raw desde o último digest: próximo POST manda `compact=true`. Resumo substitui o bloco. Máx 2 digest. Terceiro bloco substitui o digest mais velho.
 10. Snapshot do dia não compacta.
 11. Dia SP vira: digest some do prompt. UI do fio 60 d continua com separador de data.
-12. Texto da timeline ao gravar: o `meal_text` da estimativa (a refeição inteira, corrigida pela conversa). Sem `meal_text`: a primeira mensagem do usuário da cadeia daquela estimativa, pulando as respostas a perguntas (mensagem logo depois de uma estimativa com pergunta); se essa mensagem tem foto, a descrição que a IA devolveu. Nada disso: nomes dos itens. Nunca a resposta a uma pergunta. A linha de memória do Gravar usa o mesmo texto.
+12. Texto da timeline ao gravar: o `meal_text` da estimativa (a refeição inteira, corrigida pela conversa). Sem `meal_text`: a primeira mensagem do usuário da cadeia daquela estimativa, pulando as respostas a perguntas (mensagem logo depois de uma estimativa com pergunta); se essa mensagem tem foto, a descrição que a IA devolveu. Nada disso: nomes dos itens. Nunca a resposta a uma pergunta. Gravar não escreve linha de memória: aplica a rotina que a IA propôs para aquela estimativa, se houver.
 13. O client deste corte chama `POST /v1/chat`. Não chama `/v1/estimate` nem `/v1/fit` a partir do Chat.
 14. 1 pergunta se confiança ≠ alto (só em `log`), numa bolha própria logo abaixo da estimativa (barra gold à esquerda, ícone de ajuda, texto em cor primária). O horário fica só nela. Assunção pergunta 1×.
 15. Dia sem mensagens: saudação fixa, cartão “Meta calórica de hoje” (restante / meta) e chips de sugestão que preenchem o composer. Com foto anexada, os chips somem. Nada disso é gravado nem enviado.

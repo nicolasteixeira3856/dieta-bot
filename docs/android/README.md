@@ -44,7 +44,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Client vivo. Room v4 (refeições por dia, A24): profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b) e memória cifrada (A8) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
+Client vivo. Room v6 (refeições por dia, A24; Chat v2, A27; memória por mensagem, A28): profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b), memória cifrada em fatos (A8b, A28) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
 
 ## Flavors
 
@@ -105,7 +105,7 @@ Client vivo. Room v4 (refeições por dia, A24): profile, day, meal_log, meal_sl
 
 ### Especificacoes
 
-[Room v4](specifications/room-v2.md).
+[Room v6](specifications/room-v2.md).
 
 ### ADRs
 
@@ -116,10 +116,10 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27 implementado, aguardando validação manual; A28 e A29 aguardando aprovação:
+Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27 e A28 implementados, aguardando validação manual; A29 aguardando aprovação:
 
 - [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) — Room v5; pendente aprovação manual
-- [A28 Memória v2: fatos permanentes e dinâmicos](plans/a28-memoria-v2.md)
+- [A28 Memória v2: fatos permanentes e dinâmicos](plans/pending_manual_validation/a28-memoria-v2.md) — Room v6; pendente aprovação manual (uma semana de uso olhando o editor dev)
 - [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/a29-chat-v2-interface.md) — depende do gate concluído [ST6](../stitch/plans/completed/st6-chat-v2.md)
 
 Lote do feedback (29/09/2026); A24 aguarda validação manual:

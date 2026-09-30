@@ -3,6 +3,15 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v5 -> v6: memory v2 per message (A28). Old rows: nothing pending, nothing used, not updated. */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `pendingMemory` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `memoryUsedKinds` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `memoryUpdated` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 /** v4 -> v5: meal text and intent of the Chat estimate (A27). Old rows stay null. */
 val MIGRATION_4_5 = object : Migration(4, 5) {
     override fun migrate(db: SupportSQLiteDatabase) {

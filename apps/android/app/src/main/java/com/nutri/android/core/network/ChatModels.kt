@@ -15,8 +15,38 @@ data class ChatIn(
     val text: String,
     @SerialName("image_b64") val imageB64: String? = null,
     val compact: Boolean = false,
-    /** Meals of the 7 days before today (S11). No `facts` yet: memory stays the legacy text until A28. */
+    /** Meals of the 7 days before today (S11). */
     val recent: List<ChatRecentMeal> = emptyList(),
+    /**
+     * Memory v2 (A28). Present, even empty, = v2 client: the server reads these instead of [memory]
+     * and answers memory_updates / memory_used. Null only to talk as a legacy client.
+     */
+    val facts: List<ChatFact>? = null,
+)
+
+/** A memory fact as the server sees it (api-contract). slot is a profile slot id or null. */
+@Serializable
+data class ChatFact(
+    val id: String,
+    val kind: String,
+    val category: String,
+    val key: String,
+    val text: String,
+    val slot: String?,
+    @SerialName("days_seen") val daysSeen: Int,
+    @SerialName("last_seen") val lastSeen: String?,
+)
+
+/** op: "add" | "reinforce" | "replace" | "remove". id is null only on add. */
+@Serializable
+data class ChatMemoryUpdate(
+    val op: String,
+    val id: String? = null,
+    val kind: String,
+    val category: String,
+    val key: String = "",
+    val text: String = "",
+    val slot: String? = null,
 )
 
 /** slotId null = "Outros" (orphan or deleted slot). */
@@ -94,6 +124,10 @@ data class ChatOut(
     /** "log" | "plan" | "question"; null = server before S11, handled as today. */
     val intent: String? = null,
     val estimate: ChatEstimate? = null,
+    /** At most 5 proposals; the app applies them with MemoryRules (A28). */
+    @SerialName("memory_updates") val memoryUpdates: List<ChatMemoryUpdate> = emptyList(),
+    /** Fact ids the reply relied on. */
+    @SerialName("memory_used") val memoryUsed: List<String> = emptyList(),
     val digest: String? = null,
     val model: String = "",
 )

@@ -12,11 +12,14 @@ import com.nutri.android.core.database.DietaBotDatabase
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.memory.FakeMemoryFile
-import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.telemetry.FakeTelemetry
+import com.nutri.android.domain.MemoryUpdate
+import com.nutri.android.domain.RecordedMeal
 import com.nutri.android.feature.chat.PromptBuilder
 import java.io.File
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +47,9 @@ class DevMemoryViewModelTest {
     private lateinit var store: DataStore<Preferences>
     private lateinit var repo: DayRepository
     private lateinit var memoryFile: FakeMemoryFile
-    private lateinit var memory: MemoryStore
+    private lateinit var memory: FactMemory
+    private val today = LocalDate.parse("2026-09-25")
+    private var cafe = 0L
     private lateinit var vm: DevMemoryViewModel
     private val telemetry = FakeTelemetry()
 
@@ -70,10 +75,17 @@ class DevMemoryViewModelTest {
             ),
         )
         repo.setWorkout(400)
-        val cafe = repo.observeToday().first().slots.first().id
+        cafe = repo.observeToday().first().slots.first().id
         repo.addLog("", "2 ovos", 380, 22, true, slotId = cafe)
-        memoryFile = FakeMemoryFile("Café: 2 ovos (380 kcal)\nNão come glúten")
-        memory = MemoryStore(memoryFile)
+        memoryFile = FakeMemoryFile()
+        memory = FactMemory(memoryFile)
+        memory.apply(listOf(MemoryUpdate("add", null, "permanent", "preference", "gluten", "Não come glúten")), today.minusDays(2))
+        memory.apply(
+            listOf(MemoryUpdate("add", null, "dynamic", "routine", "cafe", "2 ovos mexidos", cafe.toString())),
+            today,
+            RecordedMeal(cafe.toString(), 380, 22, 4, 16),
+        )
+        memoryFile.writes = 0
         vm = DevMemoryViewModel(repo, memory, clock, telemetry)
         awaitUi { it.loaded }
     }
@@ -87,9 +99,16 @@ class DevMemoryViewModelTest {
 
     @Test
     fun shows_theProfileAndMemoryOfTheNextPost() = runBlocking<Unit> {
-        val body = PromptBuilder.build(repo.observeToday().first(), emptyList(), emptyList(), "x", clock.now(), memory = memory.read()).body
+        val facts = memory.read(today).facts
+        val body = PromptBuilder.build(repo.observeToday().first(), emptyList(), emptyList(), "x", clock.now(), facts = facts).body
         val ui = vm.uiState.value
-        assertThat(ui.memoryText).isEqualTo(body.memory)
+        assertThat(ui.memoryText).isEqualTo(
+            "P1 | preference | gluten | Não come glúten\n" +
+                "D1 | routine | cafe | slot=$cafe | 2 ovos mexidos | 380 kcal 22P 4C 16G",
+        )
+        assertThat(body.facts!!.map { it.id }).containsExactly("P1", "D1").inOrder()
+        assertThat(ui.memorySummary).isEqualTo("Permanente 1/30 · Dinâmica 1/40")
+        assertThat(ui.memorySeen).isEqualTo("P1 · visto 1 dia · último 23/09\nD1 · visto 1 dia · último 25/09")
         assertThat(ui.profileText).isEqualTo(ProfileText.format(body.profile))
         // 2000 base + 50% of 400.
         assertThat(ui.profileText).startsWith("teto_kcal=2200\n")
@@ -97,17 +116,38 @@ class DevMemoryViewModelTest {
     }
 
     @Test
-    fun emptyMemory_isRefused_nothingSaved() = runBlocking<Unit> {
-        vm.setMemory("  \n ")
+    fun removedFact_isRefusedWithItsLine_nothingSaved() = runBlocking<Unit> {
+        vm.setMemory(vm.uiState.value.memoryText.lines().first())
         vm.save()
-        assertThat(vm.uiState.value.error).isEqualTo("Memória vazia não é salva.")
+        assertThat(vm.uiState.value.error).isEqualTo("Linha 2: remover não é permitido (D1). Esquecer é pelo Chat.")
         assertThat(vm.uiState.value.saved).isFalse()
+        assertThat(memoryFile.writes).isEqualTo(0)
+
+        vm.setMemory("")
+        vm.save()
+        assertThat(vm.uiState.value.error).isEqualTo("Linha 1: remover não é permitido (P1). Esquecer é pelo Chat.")
+        assertThat(memoryFile.writes).isEqualTo(0)
+    }
+
+    @Test
+    fun oldTextMemory_showsEmpty_profileStillSaves() = runBlocking<Unit> {
+        memoryFile = FakeMemoryFile("Café: 2 ovos (380 kcal)\nNão come glúten")
+        memory = FactMemory(memoryFile)
+        vm = DevMemoryViewModel(repo, memory, clock, telemetry)
+        awaitUi { it.loaded }
+        assertThat(vm.uiState.value.memoryText).isEmpty()
+        assertThat(vm.uiState.value.memorySummary).isEqualTo("Permanente 0/30 · Dinâmica 0/40")
+
+        vm.setProfile(vm.uiState.value.profileText.replace("proteina_g=150", "proteina_g=160"))
+        vm.save()
+        awaitUi { it.saved }
+        assertThat(repo.observeToday().first().proteinTargetG).isEqualTo(160)
         assertThat(memoryFile.writes).isEqualTo(0)
     }
 
     @Test
     fun removedKey_isRefused_nothingSaved() = runBlocking<Unit> {
-        vm.setMemory("nova memória")
+        vm.setMemory(vm.uiState.value.memoryText.replace("Não come glúten", "Não come glúten nem lactose"))
         vm.setProfile(vm.uiState.value.profileText.replace("gordura_g=67\n", "").replace("proteina_g=150", "proteina_g=170"))
         vm.save()
         assertThat(vm.uiState.value.error).isEqualTo("Falta gordura_g: remover não é permitido.")
@@ -117,7 +157,11 @@ class DevMemoryViewModelTest {
 
     @Test
     fun editWithoutCeiling_savesMemoryAndProfile_noWipe() = runBlocking<Unit> {
-        vm.setMemory("Café: 2 ovos (380 kcal)\nNão come glúten nem lactose")
+        vm.setMemory(
+            vm.uiState.value.memoryText
+                .replace("preference | gluten | Não come glúten", "preference | gluten | Não come glúten nem lactose")
+                .replace("| 380 kcal 22P 4C 16G", "| 400 kcal 22P 8C 16G") + "\nnovo | preference | queijo | Queijo minas",
+        )
         vm.setProfile(
             vm.uiState.value.profileText
                 .replace("proteina_g=150", "proteina_g=170")
@@ -127,7 +171,16 @@ class DevMemoryViewModelTest {
         vm.save()
         awaitUi { it.saved }
 
-        assertThat(memory.read()).isEqualTo("Café: 2 ovos (380 kcal)\nNão come glúten nem lactose")
+        val facts = memory.read(today).facts
+        assertThat(facts.map { it.id to it.text }).containsExactly(
+            "P1" to "Não come glúten nem lactose",
+            "D1" to "2 ovos mexidos",
+            "P2" to "Queijo minas",
+        ).inOrder()
+        assertThat(facts[1].kcal).isEqualTo(400)
+        assertThat(facts[1].days).containsExactly("2026-09-25")
+        assertThat(facts[2].source).isEqualTo("explicit")
+        assertThat(facts[2].days).containsExactly("2026-09-25")
         val day = repo.observeToday().first()
         assertThat(day.proteinTargetG).isEqualTo(170)
         assertThat(day.eat).isEqualTo("full")
@@ -136,12 +189,12 @@ class DevMemoryViewModelTest {
         assertThat(day.kcalSame).isEqualTo(2000)
         assertThat(day.logs).hasSize(1)
         val params = telemetry.params(DevMemoryViewModel.DEV_MEMORY_SAVED).single()
-        assertThat(params).containsExactly("memory_len_bucket", "<1000", "profile_changed", true)
+        assertThat(params).containsExactly("permanent", 2, "dynamic", 1, "memory_changed", true, "profile_changed", true)
     }
 
     @Test
     fun changedCeiling_asksWipe_cancelStoresNothing() = runBlocking<Unit> {
-        vm.setMemory("outra memória")
+        vm.setMemory(vm.uiState.value.memoryText + "\nnovo | portion | arroz | 4 colheres")
         vm.setProfile(vm.uiState.value.profileText.replace("teto_kcal=2200", "teto_kcal=2000"))
         vm.save()
         assertThat(vm.uiState.value.wipeConfirm).isTrue()

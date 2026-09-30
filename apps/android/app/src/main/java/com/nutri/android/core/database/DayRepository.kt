@@ -305,6 +305,9 @@ class DayRepository @Inject constructor(
         estimateItems: List<String> = emptyList(),
         estimateMealText: String? = null,
         intent: String? = null,
+        pendingMemory: String? = null,
+        memoryUsedKinds: String? = null,
+        memoryUpdated: Boolean = false,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -326,6 +329,9 @@ class DayRepository @Inject constructor(
                     estimateItems = estimateItems.takeIf { it.isNotEmpty() }?.joinToString(ITEM_SEPARATOR),
                     estimateMealText = estimateMealText,
                     intent = intent,
+                    pendingMemory = pendingMemory,
+                    memoryUsedKinds = memoryUsedKinds,
+                    memoryUpdated = memoryUpdated,
                 ),
             )
         }

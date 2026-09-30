@@ -9,10 +9,11 @@ import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.InstantClock
 import com.nutri.android.core.database.metaOn
-import com.nutri.android.core.memory.MemoryStore
+import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.photo.PhotoFiles
 import com.nutri.android.core.photo.PhotoResult
 import com.nutri.android.core.network.ChatIn
+import com.nutri.android.core.network.ChatMemoryUpdate
 import com.nutri.android.core.network.ChatOut
 import com.nutri.android.core.telemetry.ChatFallback
 import com.nutri.android.core.telemetry.NoopTelemetry
@@ -20,6 +21,11 @@ import com.nutri.android.core.telemetry.RequestIds
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
 import com.nutri.android.domain.ChatText
+import com.nutri.android.domain.Fact
+import com.nutri.android.domain.MemoryResult
+import com.nutri.android.domain.MemoryRules
+import com.nutri.android.domain.MemoryUpdate
+import com.nutri.android.domain.RecordedMeal
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotClock
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +43,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 
 /** The only network call of the Chat (spec rule 13: no /v1/estimate, no /v1/fit). */
 fun interface ChatService {
@@ -48,7 +56,7 @@ class ChatViewModel @Inject constructor(
     private val repository: DayRepository,
     private val service: ChatService,
     private val clock: InstantClock,
-    private val memory: MemoryStore,
+    private val memory: FactMemory,
     private val photos: PhotoFiles,
     private val telemetry: Telemetry = NoopTelemetry,
     private val requestIds: RequestIds = RequestIds(),
@@ -190,17 +198,16 @@ class ChatViewModel @Inject constructor(
         val today = messages.filter { it.date == SaoPaulo.date(sentAt).toString() }
         val snapshot = repository.observeToday().first()
         var digests = repository.digestsToday()
-        val memoryText = memory.read()
+        // An unreadable memory never blocks the turn: it goes empty.
+        val facts = runCatching { memory.read(SaoPaulo.date(sentAt)).facts }.getOrDefault(emptyList())
         val recentLogs = repository.recentLogs()
-        // Open clarifying question of the last estimate: this send is the user's answer (A8).
-        val asked = openQuestion(SaoPaulo.date(sentAt).toString())
         val image = photo?.let { photos.base64(it) }
         if (photo != null && image == null) {
             chatResult("error")
             local.update { it.copy(failed = true) }
             return
         }
-        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText, recentLogs = recentLogs)
+        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs)
         if (turn.needsCompact) {
             // A failed compact never fails the turn: nothing stored, the newest 12 raw go as they are
             // and the next send tries again.
@@ -208,7 +215,7 @@ class ChatViewModel @Inject constructor(
             if (!digest.isNullOrBlank()) {
                 repository.upsertDigest(digest)
                 digests = repository.digestsToday()
-                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, memory = memoryText, recentLogs = recentLogs)
+                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs)
             }
         }
         // The photo rides only on the turn, never on the compact request.
@@ -228,6 +235,9 @@ class ChatViewModel @Inject constructor(
         val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
         repository.insertMessage(role = "user", text = text, photoPath = photo)
+        // Preference, portion and every replace/remove apply now; a routine waits for its record (A28).
+        val (routine, immediate) = out.memoryUpdates.partition { it.waitsForRecord }
+        val updated = applyMemory(immediate.map { it.toDomain() }, recorded = null)
         repository.insertMessage(
             role = "assistant",
             text = out.reply,
@@ -241,9 +251,49 @@ class ChatViewModel @Inject constructor(
             estimateItems = out.estimate?.items?.map { it.name }.orEmpty(),
             estimateMealText = out.estimate?.mealText?.trim()?.takeIf { it.isNotEmpty() },
             intent = out.intent?.takeIf { it in INTENTS },
+            pendingMemory = routine.takeIf { it.isNotEmpty() }?.let { memoryJson.encodeToString(UPDATES, it) },
+            memoryUsedKinds = usedKinds(out.memoryUsed, facts),
+            memoryUpdated = updated,
         )
         local.update { it.copy(pending = null, pendingPhoto = null, failed = false) }
-        asked?.let { memory.append("Respondeu \"$it\": $text") }
+    }
+
+    /** Applies [updates]; true when at least one changed the memory. A failed write changes nothing. */
+    private suspend fun applyMemory(updates: List<MemoryUpdate>, recorded: RecordedMeal?): Boolean {
+        if (updates.isEmpty()) return false
+        val result = runCatching { memory.apply(updates, SaoPaulo.date(clock.now()), recorded) }.getOrNull() ?: return false
+        memoryChanged(result)
+        return result.changed
+    }
+
+    /** Routine add/reinforce stored with the estimate: they count only now that it was recorded. */
+    private suspend fun applyPending(estimate: ChatMessageEntity, slotId: Long): Boolean {
+        val pending = estimate.pendingMemory ?: return false
+        val updates = runCatching { memoryJson.decodeFromString(UPDATES, pending) }.getOrDefault(emptyList())
+        val meal = RecordedMeal(
+            slot = slotId.toString(),
+            kcal = estimate.estimateKcal ?: 0,
+            p = estimate.estimateP ?: 0,
+            c = estimate.estimateC ?: 0,
+            g = estimate.estimateG ?: 0,
+        )
+        return applyMemory(updates.map { it.toDomain() }, meal)
+    }
+
+    private fun memoryChanged(result: MemoryResult) {
+        if (result.counts.values.none { it > 0 }) return
+        val params = buildMap<String, Any> {
+            MemoryRules.OPS.forEach { put(it, result.counts[it] ?: 0) }
+            put("permanent", result.memory.facts.count { it.permanent })
+            put("dynamic", result.memory.facts.count { !it.permanent })
+        }
+        telemetry.event(TelemetryEvents.MEMORY_CHANGED, params)
+    }
+
+    /** memory_used ids as the kinds they had when the answer came; an unknown id is ignored. */
+    private fun usedKinds(ids: List<String>, facts: List<Fact>): String? {
+        val kinds = ids.mapNotNull { id -> facts.firstOrNull { it.id == id }?.kind }.toSet()
+        return listOf(MemoryRules.PERMANENT, MemoryRules.DYNAMIC).filter { it in kinds }.joinToString(",").ifEmpty { null }
     }
 
     private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null, intent: String? = null) {
@@ -255,15 +305,6 @@ class ChatViewModel @Inject constructor(
             if (outcome == "ok") put("intent", intent?.takeIf { it in INTENTS } ?: "none")
         }
         telemetry.event(TelemetryEvents.CHAT_RESULT, params)
-    }
-
-    /** Question of the last estimate of today when nothing closed it yet (no receipt, no wipe). */
-    private fun openQuestion(todayIso: String): String? {
-        val sorted = messages.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
-        val last = sorted.lastOrNull { it.role == "assistant" && it.date == todayIso } ?: return null
-        val question = last.estimateQuestion?.takeIf { last.isLogEstimate && it.isNotBlank() } ?: return null
-        val closed = sorted.any { it.id != last.id && it.createdAtEpochMs >= last.createdAtEpochMs && it.role in RECEIPTS }
-        return if (closed) null else question
     }
 
     /**
@@ -293,9 +334,15 @@ class ChatViewModel @Inject constructor(
                 fat = estimate.estimateG ?: 0,
                 source = sourceOf(estimate),
             )
-            repository.insertMessage(role = "logged", text = slot.name, estimateKcal = estimate.estimateKcal, estimateSlotId = slot.id)
+            val updated = applyPending(estimate, slot.id)
+            repository.insertMessage(
+                role = "logged",
+                text = slot.name,
+                estimateKcal = estimate.estimateKcal,
+                estimateSlotId = slot.id,
+                memoryUpdated = updated,
+            )
             mealSaved(estimate)
-            memory.append("${slot.name}: ${descriptionOf(estimate)} (${estimate.estimateKcal ?: 0} kcal)")
         }
     }
 
@@ -315,9 +362,15 @@ class ChatViewModel @Inject constructor(
                 fat = estimate.estimateG ?: 0,
                 source = sourceOf(estimate),
             )
-            repository.insertMessage(role = ROLE_REPLACED, text = confirm.slot.name, estimateKcal = estimate.estimateKcal, estimateSlotId = confirm.slot.id)
+            val updated = applyPending(estimate, confirm.slot.id)
+            repository.insertMessage(
+                role = ROLE_REPLACED,
+                text = confirm.slot.name,
+                estimateKcal = estimate.estimateKcal,
+                estimateSlotId = confirm.slot.id,
+                memoryUpdated = updated,
+            )
             mealSaved(estimate)
-            memory.append("${confirm.slot.name} (atualizado): ${descriptionOf(estimate)} (${estimate.estimateKcal ?: 0} kcal)")
         }
     }
 
@@ -511,6 +564,15 @@ class ChatViewModel @Inject constructor(
 
         /** Rows that close the last estimate: its actions go away. A wipe closes it too. */
         private val RECEIPTS = setOf("logged", ROLE_REPLACED, "skipped", DayRepository.ROLE_WIPED)
+
+        private val memoryJson = Json { ignoreUnknownKeys = true }
+        private val UPDATES = ListSerializer(ChatMemoryUpdate.serializer())
+
+        /** Routine add/reinforce: applied only when the estimate is recorded (ADR-023). */
+        private val ChatMemoryUpdate.waitsForRecord: Boolean
+            get() = category == MemoryRules.ROUTINE && (op == MemoryRules.ADD || op == MemoryRules.REINFORCE)
+
+        private fun ChatMemoryUpdate.toDomain() = MemoryUpdate(op, id, kind, category, key, text, slot)
 
         /** server/shaping.py intents (S11). */
         private val INTENTS = setOf("log", "plan", "question")

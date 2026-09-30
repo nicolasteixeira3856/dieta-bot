@@ -2,7 +2,7 @@
 
 ## Estado
 
-Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `filesDir/memory.bin` cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), ≤ 4000 chars, 1 linha por Gravar ou assunção respondida, enviada em `memory` em todo POST /v1/chat. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria; desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) reduzida a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto. Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): Salvar/Cancelar do mesmo tamanho nos sheets, toque com ripple + vibração e a copy dos sheets abaixo.
+Memória vigente desde o [A28](../../android/plans/pending_manual_validation/a28-memoria-v2.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisão 4): fatos permanentes e dinâmicos em `filesDir/memory.bin`, cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), enviados em `facts` em todo POST /v1/chat. A memória de texto do [A8](../../android/plans/completed/a8-memoria.md) foi apagada na atualização. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria; desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) reduzida a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto. Desde o [A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md): Salvar/Cancelar do mesmo tamanho nos sheets, toque com ripple + vibração e a copy dos sheets abaixo.
 
 Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md): o treino do dia também pode ser informado pela Home, com o mesmo editor.
 
@@ -10,13 +10,7 @@ Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no f
 
 ## Mudanças decididas, ainda não vigentes (ADR-023)
 
-O [ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) (30/09/2026) substitui as regras 2–4 da memória quando o [A28](../../android/plans/a28-memoria-v2.md) for implementado. Até lá, vale o texto de "Regras — memória".
-
-- Memória = fatos estruturados (`preference`, `portion`, `routine`), cifrados no mesmo arquivo. **Permanente** (≤ 30; frase explícita ou promoção; só sai por pedido explícito) e **dinâmica** (≤ 40; observada; sai com 21 dias sem aparecer).
-- Promoção: 5 dias diferentes em 21. Contradição substitui na hora. Permanente cheia → a IA pergunta o que esquecer.
-- Rotina só conta quando a refeição é gravada. Nada de linha por Gravar nem `Respondeu "…"`.
-- Memória de texto antiga apagada na atualização; a nova começa vazia para todo mundo.
-- Visível só no editor dev. No Chat, o usuário vê o selo `Memória atualizada` e os chips de origem ([A29](../../android/plans/a29-chat-v2-interface.md)).
+- No Chat, o usuário vê o selo `Memória atualizada` e os chips de origem ([A29](../../android/plans/a29-chat-v2-interface.md)). O app já guarda, por mensagem, `memoryUpdated` e `memoryUsedKinds` (A28).
 
 ## Contexto e objetivo
 
@@ -32,12 +26,13 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 
 ## Regras — memória
 
-1. Arquivo interno criptografado (AES-256-GCM, chave no Android Keystore). Gravação atômica: crash no meio de uma gravação mantém a memória anterior. Não vai ao server além do campo `memory` do POST.
-2. Conteúdo: gostos, marcas, assunções confirmadas, o que costuma pular. Sem transcrição.
-3. Teto ~1,3 k tok junto com o perfil. O que não ocorre cede lugar ao que ocorre.
-4. Atualiza quando o user confirma Gravar (`{slot}: {descrição} ({kcal} kcal)`), Substituir (`{slot} (atualizado): {descrição} ({kcal} kcal)`) ou quando responde assunção (`Respondeu "{pergunta}": {resposta}`). Não a cada prosa. Acima de 4000 chars, as linhas mais velhas saem.
-5. Sobrevive `wipeToday`. Morre no uninstall.
-6. Só no dev (A23): o editor substitui o texto inteiro com as mesmas regras (linha limpa, ≤ 240 chars por linha, corte em 4000). Texto vazio é recusado (`Memória vazia não é salva.`): ferramenta não apaga.
+1. Arquivo interno criptografado (AES-256-GCM, chave no Android Keystore). Gravação atômica: crash no meio de uma gravação mantém a memória anterior. Conteúdo JSON `{"v": 2, "next": {"P", "D"}, "facts": [...]}`; o que não é `v: 2` é lido como memória vazia. Não vai ao server além do campo `facts` do POST (`days_seen`, `last_seen`; slot de rotina fora dos slots de hoje vai `null`).
+2. Fato: `id` estável (`P{n}` permanente, `D{n}` dinâmico, nunca reutilizado), `category` `preference` | `portion` | `routine`, `key` ≤ 40, `text` ≤ 160, `slot` (só rotina), `source` `explicit` | `promoted` | `observed`, dias distintos em que apareceu (só os dos últimos 21) e, na rotina, kcal/P/C/G do último registro.
+3. A IA só propõe (`memory_updates`, ≤ 5 por turno); o app aplica com regras fixas. `add permanent`: mesma `key` → vira esse fato, permanente, com o texto novo (contradição); senão novo `P{n}` se houver vaga (≤ 30), sem vaga é ignorado. `add dynamic`: mesma `key` → reforço; senão novo `D{n}`; acima de 40 sai a dinâmica vista há mais tempo. `reinforce`: hoje entra nos dias; dinâmica troca o texto, permanente não. `replace`: troca o texto; com `kind: permanent` numa dinâmica, vira permanente se houver vaga. `remove`: apaga (pedido explícito).
+4. Promoção: dinâmica com ≥ 5 dias nos últimos 21 vira permanente (`promoted`), só com vaga. Expiração: dias fora dos 21 saem a cada leitura; dinâmica sem dia sai; permanente nunca expira. Rotina forte (A29): permanente, ou dinâmica com ≥ 3 dias, com slot e kcal.
+5. Quando: preferência, porção e todo `replace`/`remove` na resposta; `add`/`reinforce` de rotina só quando **aquela** estimativa é gravada (Gravar, Confirmar do Trocar, Substituir), com slot e kcal/P/C/G do registro. Estimativa não gravada não vira hábito. A mensagem com pelo menos uma mudança aplicada ganha `memoryUpdated` (a da IA, ou o recibo do registro); `memory_used` vira `memoryUsedKinds`. Nada de linha por Gravar nem `Respondeu "…"`.
+6. Sobrevive `wipeToday`. Morre no uninstall.
+7. Só no dev (A23, A28): o editor mostra um fato por linha (`P1 | preference | leite | Leite semidesnatado`; rotina com `slot=` e `440 kcal 25P 38C 22G`) e, só leitura, `Permanente n/30 · Dinâmica n/40` e `visto n dias · último dd/MM`. Edita texto, `key` e categoria e aceita `novo | …` (permanente). Mesmos limites. Linha removida é recusada com o número da linha e nada é salvo: esquecer é pelo Chat.
 
 ## Regras — foto
 
@@ -83,9 +78,10 @@ Comportamento: `produto`. Client: `android`.
 - [A18 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)
 - [A7 (Concluído)](../../android/plans/completed/a7-push.md)
 - [A8 (Concluído)](../../android/plans/completed/a8-memoria.md)
+- [A28 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a28-memoria-v2.md)
 
 ## Critérios de aceite funcionais
 
-- Memória ≤ 1,3 k tok no prefixo (aprox. chars/4).
+- Memória ≤ 30 fatos permanentes + ≤ 40 dinâmicos, texto ≤ 160 por fato.
 - Push não dispara se o slot já foi gravado ou pulado.
 - Wipe do teto não apaga dias anteriores nem o arquivo de memória.
