@@ -57,6 +57,7 @@ class CheckTests(unittest.TestCase):
             "suggested_slot": "1",
             "kcal_range": [380, 520],
             "question": "absent",
+            "question_not": ["leite"],
             "meal_text_has": ["ovo", "PAO", "leite"],
             "meal_text_not": ["Sempre uso"],
             "memory_updates_has": [{"op": "add", "kind": "permanent", "key": "leite"}],
@@ -88,6 +89,7 @@ class CheckTests(unittest.TestCase):
             "suggested_slot": "2",
             "kcal_range": [100, 200],
             "question": "absent",
+            "question_not": ["qual"],
             "meal_text_has": ["ovo"],
             "meal_text_not": ["sempre uso"],
             "memory_updates_has": [{"op": "add", "key": "leite"}],
@@ -182,7 +184,12 @@ class RunTests(unittest.TestCase):
     def test_run_effort_with_fake_transport(self) -> None:
         payload = {
             "reply": "Jantar com pizza de pão sírio.",
-            "estimate": {**V1_LOG["estimate"], "kcal": 520, "suggested_slot": "5"},
+            "estimate": {
+                **V1_LOG["estimate"],
+                "kcal": 520,
+                "suggested_slot": "5",
+                "meal_text": "1 pão sírio, frango desfiado 120 g, muçarela 40 g",
+            },
             "digest": None,
         }
         seen: list[dict[str, Any]] = []
@@ -199,7 +206,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(report["pass_rate"], {"passed": 1, "failed": 0, "na": 0, "rate": 100.0})
         case = report["cases"][0]
         self.assertEqual((case["status"], case["passes"]), (PASS, 3))
-        self.assertEqual(case["na_checks"], ["meal_text_has"])
+        self.assertEqual(case["na_checks"], [])
         self.assertEqual(report["tokens"], {"input": 3000, "cached_input": 1200, "output": 600, "reasoning": 150})
         expected = (1800 * run.PRICE_INPUT + 1200 * run.PRICE_CACHED_INPUT + 600 * run.PRICE_OUTPUT) / 1e6
         self.assertAlmostEqual(report["cost_usd"], round(expected, 4))

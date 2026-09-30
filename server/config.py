@@ -17,10 +17,23 @@ MAX_BODY_BYTES = 24 * 1024 * 1024
 RATE_LIMIT_ESTIMATE = "30/minute"
 RATE_LIMIT_FIT = "30/minute"
 RATE_LIMIT_CHAT = "30/minute"
+# reasoning.effort of every call (ADR-023 decision 6, chosen by the S11 evaluator).
+REASONING_EFFORT = "none"
 FALLBACK_QUESTION = "descreve em 1 linha"
 CHAT_FALLBACK_QUESTION = "Alguma porção foi diferente do que considerei?"
 # Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
 DIGEST_MAX_CHARS = 1600
+# Chat v2 (ADR-023). Memory facts and recent meals come from the app; the server is stateless.
+FACTS_MAX = 70
+MEMORY_PERMANENT_MAX = 30
+MEMORY_DYNAMIC_MAX = 40
+FACT_KEY_MAX = 40
+FACT_TEXT_MAX = 160
+RECENT_MAX = 42
+RECENT_TEXT_MAX = 240
+MEAL_TEXT_MAX = 160
+MEMORY_UPDATES_MAX = 5
+MEMORY_USED_MAX = 10
 # Dev conversation log (ADR-015): on only when CONVERSATION_LOG_PATH is set.
 CONVERSATION_LOG_MAX_BYTES = 20 * 1024 * 1024
 CONVERSATION_LOG_BACKUPS = 5

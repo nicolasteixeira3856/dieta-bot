@@ -106,7 +106,8 @@
     "messages": [],
     "text": "cabe um açaí de 300 ml agora?",
     "image_b64": null,
-    "compact": false
+    "compact": false,
+    "facts": []
   },
   "expect": {
     "intent": "plan",

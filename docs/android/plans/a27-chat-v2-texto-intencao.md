@@ -4,7 +4,7 @@
 - Data: 30/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/network/ChatModels.kt`, `core/database` — Room v4 → v5, `feature/chat/ChatViewModel.kt`, `feature/chat/PromptBuilder.kt`, `feature/chat/ChatUiState.kt`)
-- Pré-requisitos: [S11](../../server/plans/s11-chat-v2.md) no ar no server de dev. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2 e 5, parte client). **Sem gate Stitch**: nenhuma tela ou estado visual novo.
+- Pré-requisitos: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md) no ar no server de dev. Aceita o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2 e 5, parte client). **Sem gate Stitch**: nenhuma tela ou estado visual novo.
 
 ## Gate de autorização
 
@@ -98,7 +98,7 @@ Vale para Gravar, Confirmar do Trocar e Substituir. A linha de memória do A8 us
 
 - Memória v2, `facts`, selo e chips: [A28](a28-memoria-v2.md), [A29](a29-chat-v2-interface.md).
 - Card do plano, dia projetado e "Registrar assim": [A29](a29-chat-v2-interface.md).
-- Server: [S11](../../server/plans/s11-chat-v2.md).
+- Server: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md).
 
 ## Riscos e controles
 

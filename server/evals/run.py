@@ -115,9 +115,13 @@ def run_once(
         try:
             try:
                 payload = llm.chat_json(
-                    user_text=_chat_text(body), image_b64=None, slot_ids=slot_ids, trace=trace
+                    user_text=_chat_text(body),
+                    image_b64=None,
+                    slot_ids=slot_ids,
+                    fact_ids=body.fact_ids or [],
+                    trace=trace,
                 )
-                output = shape_chat(payload, valid_slot_ids=slot_ids)
+                output = shape_chat(payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids)
             except TextOnlyOutput as exc:
                 output = text_only_chat(exc.text)
             break

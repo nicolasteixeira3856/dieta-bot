@@ -23,6 +23,7 @@ KNOWN = (
     "meal_text_has",
     "meal_text_not",
     "question",
+    "question_not",
     "memory_updates_has",
     "memory_updates_not",
     "memory_used_has",
@@ -74,6 +75,10 @@ def _check(
         question = estimate.get("question") if estimate else None
         got = "present" if isinstance(question, str) and question.strip() else "absent"
         return _result(got == want, f"got {got}" + (f": {question}" if got == "present" else ""))
+
+    if key == "question_not":
+        question = estimate.get("question") if estimate else None
+        return _terms(False, want, question if isinstance(question, str) else "")
 
     if key == "suggested_slot":
         if estimate is None:

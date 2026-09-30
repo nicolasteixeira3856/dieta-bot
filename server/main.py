@@ -11,23 +11,31 @@ import time
 import uuid
 from collections.abc import Callable
 from contextlib import asynccontextmanager
+from datetime import date
 from typing import Any, Literal
 
 import httpx2
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from config import (
+    FACT_KEY_MAX,
+    FACT_TEXT_MAX,
+    FACTS_MAX,
     MAX_BODY_BYTES,
+    MEMORY_DYNAMIC_MAX,
+    MEMORY_PERMANENT_MAX,
     MODEL,
     PHOTO_MAX_B64_CHARS,
     RATE_LIMIT_CHAT,
     RATE_LIMIT_ESTIMATE,
     RATE_LIMIT_FIT,
+    RECENT_MAX,
+    RECENT_TEXT_MAX,
     load_settings,
 )
 from conversation_log import ConversationLog, now_iso
@@ -109,6 +117,8 @@ class DayIn(BaseModel):
     eaten_c: float = 0
     eaten_g: float = 0
     workout_kcal: float | None = None
+    # ADR-023: effective ceiling - eaten, computed by the app. May be negative.
+    remaining_kcal: int | None = None
     slots: list[DaySlotIn] = Field(default_factory=list)
 
 
@@ -121,16 +131,58 @@ class ChatMessageIn(BaseModel):
     text: str = Field(..., max_length=CHAT_TEXT_MAX)
 
 
+class FactIn(BaseModel):
+    """One memory fact (ADR-023). The app owns and applies them."""
+
+    id: str = Field(..., pattern=r"^[PD][0-9]{1,4}$")
+    kind: Literal["permanent", "dynamic"]
+    category: Literal["preference", "portion", "routine"]
+    key: str = Field(..., max_length=FACT_KEY_MAX)
+    text: str = Field(..., max_length=FACT_TEXT_MAX)
+    slot: str | None = None
+    days_seen: int = Field(default=0, ge=0)
+    last_seen: date | None = None
+
+
+class RecentMealIn(BaseModel):
+    """A meal recorded in the last 7 days (ADR-023). slot_id null = "Outros"."""
+
+    date: date
+    slot_id: str | None = None
+    slot_name: str | None = None
+    text: str = Field(..., max_length=RECENT_TEXT_MAX)
+    kcal: float
+    p: float
+    c: float
+    g: float
+
+
 class ChatIn(BaseModel):
     local_time: str | None = None
     profile: ProfileIn
     memory: str = ""
+    # ADR-023: facts present (even empty) = v2 client. Absent = legacy client, memory text.
+    facts: list[FactIn] | None = Field(default=None, max_length=FACTS_MAX)
+    recent: list[RecentMealIn] = Field(default_factory=list, max_length=RECENT_MAX)
     day: DayIn
     digests: list[str] = Field(default_factory=list, max_length=2)
     messages: list[ChatMessageIn] = Field(default_factory=list, max_length=12)
     text: str = Field(..., max_length=CHAT_TEXT_MAX)
     image_b64: str | None = None
     compact: bool = False
+
+    @model_validator(mode="after")
+    def _fact_slots_in_profile(self) -> "ChatIn":
+        slot_ids = {s.id for s in self.profile.slots}
+        for fact in self.facts or []:
+            if fact.slot is not None and fact.slot not in slot_ids:
+                raise ValueError("fact slot not in profile")
+        return self
+
+    @property
+    def fact_ids(self) -> list[str] | None:
+        """None for a legacy client."""
+        return None if self.facts is None else [f.id for f in self.facts]
 
 
 def reject_photo(image_b64: str | None) -> str | None:
@@ -323,11 +375,13 @@ def create_app(
                     user_text=_chat_text(body),
                     image_b64=image,
                     slot_ids=[s.id for s in body.profile.slots],
+                    fact_ids=body.fact_ids or [],
                     trace=trace,
                 ),
                 lambda payload: shape_chat(
                     payload,
                     valid_slot_ids=[s.id for s in body.profile.slots],
+                    fact_ids=body.fact_ids,
                 ),
                 fail_chat,
                 is_fallback=lambda result: result.get("reply") == CHAT_FALLBACK_REPLY,
@@ -424,16 +478,25 @@ def _chat_text(body: ChatIn) -> str:
         f"eat_back={body.profile.eat_back}, slots=[{slots_desc}]"
     )
 
-    if body.memory:
+    if body.facts is not None:
+        lines.extend(_memory_lines(body.facts))
+    elif body.memory:
         lines.append(f"MEMORY: {body.memory}")
 
     day_slots = ", ".join(_day_slot(s) for s in body.day.slots)
+    remaining = (
+        f"remaining_kcal={body.day.remaining_kcal}, " if body.day.remaining_kcal is not None else ""
+    )
     lines.append(
-        f"DAY: date={body.day.date}, local_time={body.local_time or 'unknown'}, "
+        f"DAY: date={body.day.date}, local_time={body.local_time or 'unknown'}, {remaining}"
         f"eaten_kcal={body.day.eaten_kcal}, eaten_p={body.day.eaten_p}, "
         f"eaten_c={body.day.eaten_c}, eaten_g={body.day.eaten_g}, "
         f"workout_kcal={body.day.workout_kcal}, slots=[{day_slots}]"
     )
+
+    if body.recent:
+        lines.append("RECENT:")
+        lines.extend(_recent_line(meal) for meal in body.recent)
 
     if body.digests:
         lines.append("DIGESTS:")
@@ -455,6 +518,39 @@ def _chat_text(body: ChatIn) -> str:
     )
 
     return "\n".join(lines)
+
+
+def _memory_lines(facts: list[FactIn]) -> list[str]:
+    """ADR-023: counts first (the model sees a full permanent memory), then one line per fact."""
+    permanent = sum(1 for f in facts if f.kind == "permanent")
+    lines = [
+        f"MEMORY: permanent {permanent}/{MEMORY_PERMANENT_MAX}, "
+        f"dynamic {len(facts) - permanent}/{MEMORY_DYNAMIC_MAX}"
+    ]
+    for fact in facts:
+        slot = f" slot={fact.slot}" if fact.slot is not None else ""
+        last = f", last {fact.last_seen.isoformat()}" if fact.last_seen else ""
+        lines.append(
+            f"{fact.id} {fact.category}{slot} {fact.key}: {fact.text} (seen {fact.days_seen} days{last})"
+        )
+    return lines
+
+
+# pt-BR weekday, so "igual ao almoço de segunda" finds its RECENT line without date math.
+_WEEKDAYS = ("segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo")
+
+
+def _recent_line(meal: RecentMealIn) -> str:
+    slot = f"{meal.slot_id} {meal.slot_name or ''}".strip() if meal.slot_id is not None else "Outros"
+    return (
+        f"{meal.date.isoformat()} {_WEEKDAYS[meal.date.weekday()]} {slot}: "
+        f"{json.dumps(meal.text, ensure_ascii=False)} "
+        f"{_num(meal.kcal)}kcal {_num(meal.p)}P {_num(meal.c)}C {_num(meal.g)}G"
+    )
+
+
+def _num(value: float) -> str:
+    return str(int(value)) if float(value).is_integer() else str(round(value, 1))
 
 
 def _day_slot(slot: DaySlotIn) -> str:
