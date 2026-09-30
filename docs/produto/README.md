@@ -59,6 +59,7 @@ Nenhuma especificacao criada ate o momento.
 - [ADR-020](adrs/ADR-020-estados-novos-chat-home-horario.md) — golds novos `chatA`, `homeW`, `o3t` (proposto).
 - [ADR-021](adrs/ADR-021-refeicoes-por-dia.md) — refeições por dia da semana (aceito).
 - [ADR-022](adrs/ADR-022-limite-texto-chat.md) — mensagem do Chat até 2000 caracteres, estado de erro (aceito).
+- [ADR-023](adrs/ADR-023-chat-v2-memoria-v2.md) — Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica) (proposto).
 
 Historico em `docs/decisions/` (ver [matriz](../README.md)).
 

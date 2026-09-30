@@ -8,6 +8,16 @@ Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md):
 
 Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no flavor dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST. Push por dia da semana e edição de refeições em grupos vigentes desde o [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
 
+## Mudanças decididas, ainda não vigentes (ADR-023)
+
+O [ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) (30/09/2026) substitui as regras 2–4 da memória quando o [A28](../../android/plans/a28-memoria-v2.md) for implementado. Até lá, vale o texto de "Regras — memória".
+
+- Memória = fatos estruturados (`preference`, `portion`, `routine`), cifrados no mesmo arquivo. **Permanente** (≤ 30; frase explícita ou promoção; só sai por pedido explícito) e **dinâmica** (≤ 40; observada; sai com 21 dias sem aparecer).
+- Promoção: 5 dias diferentes em 21. Contradição substitui na hora. Permanente cheia → a IA pergunta o que esquecer.
+- Rotina só conta quando a refeição é gravada. Nada de linha por Gravar nem `Respondeu "…"`.
+- Memória de texto antiga apagada na atualização; a nova começa vazia para todo mundo.
+- Visível só no editor dev. No Chat, o usuário vê o selo `Memória atualizada` e os chips de origem ([A29](../../android/plans/a29-chat-v2-interface.md)).
+
 ## Contexto e objetivo
 
 Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada.

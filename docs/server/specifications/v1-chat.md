@@ -8,6 +8,15 @@ Desde o [S8](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md
 
 Desde o [S9](../plans/completed/s9-limite-texto-2000.md) (29/09/2026): `text` e `messages[].text` até 2000 caracteres ([ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)).
 
+## Mudanças decididas, ainda não vigentes (ADR-023)
+
+O [S11](../plans/s11-chat-v2.md) implementa o [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md). Até lá, valem as regras numeradas.
+
+- Entrada opcional: `facts` (memória em fatos; presente = cliente v2), `recent` (refeições dos últimos 7 dias), `day.remaining_kcal`.
+- Saída: `intent` (`log` | `plan` | `question`), `estimate.meal_text`, `memory_updates`, `memory_used`.
+- Cliente legado (sem `facts`): `memory` em texto como hoje; `plan` volta com `estimate: null`.
+- `reasoning.effort` decidido pelo avaliador `server/evals/` ([S10](../plans/s10-avaliacao-chat.md)): `low` só se ganhar ≥ 10 p.p. com p95 ≤ 20 s.
+
 ## Contexto e objetivo
 
 O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda perfil + snapshot do dia + ate 12 msgs + foto opcional. O server devolve prosa + estimate estruturado + slot sugerido. Stateless. Nao grava o dia.

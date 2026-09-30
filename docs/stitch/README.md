@@ -59,12 +59,15 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 | `chatG` | Confirmação pós-gravação com recibo duplo-check (V2 Expressive) | Confirmação pós-gravação com recibo duplo-check (V2 Light) |
 | `chatA` | Chat com foto anexada (V2 Expressive) | Chat com foto anexada (V2 Light) |
 | `chatX` | Chat com texto longo demais (V2 Expressive) | Chat com texto longo demais (V2 Light) |
+| `chatR` | Chat com plano de refeição (V2 Expressive) | Chat com plano de refeição (V2 Light) |
+| `chatM` | Chat com memória atualizada (V2 Expressive) | Chat com memória atualizada (V2 Light) |
+| `chatS` | Chat com sugestão da rotina (V2 Expressive) | Chat com sugestão da rotina (V2 Light) |
 | `cfg` | Configurações do perfil e dia (V2 Expressive) | Configurações do perfil e dia (V2 Light) |
 | `cfgS` | Configurações com refeições por dia (V2 Expressive) | Configurações com refeições por dia (V2 Light) |
 | `wipe` | Reiniciar registros de hoje - Diálogo Wipe (V2 Expressive) | Reiniciar registros de hoje - Diálogo Wipe (V2 Light) |
 | `push` | Notificação do sistema - Lembrete de refeição (V2 Expressive) | Notificação do sistema - Lembrete de refeição (V2 Light) |
 
-Títulos lidos pelo MCP do Stitch (`list_screens`) em 29/09/2026.
+Títulos lidos pelo MCP do Stitch (`list_screens`) em 29/09/2026. `chatR`, `chatM` e `chatS`: títulos finais definidos pelo [ST6](plans/st6-chat-v2.md), telas ainda não criadas.
 
 ## Verificação automática (SV1)
 
@@ -102,7 +105,7 @@ Não há "aprovação" de gate: o prompt já é o que foi decidido nos ADRs. O d
 
 ## Estado atual
 
-ST1 e ST2 concluídos (29/09/2026). Três gates esperando o dono, cada um já com o seu `checks.json`. Ferramenta [SV1](plans/completed/sv1-verificacao-automatica.md) concluída: verificar com `node tools/verify-stitch.mjs st<n> --report`. Antes de verificar um gate, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
+ST1–ST5 concluídos (29/09/2026). [ST6](plans/st6-chat-v2.md) esperando o dono (30/09/2026), já com o seu `checks.json`. Ferramenta [SV1](plans/completed/sv1-verificacao-automatica.md) concluída: verificar com `node tools/verify-stitch.mjs st<n> --report`. Antes de verificar um gate, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
 
 ## Índice
 
@@ -114,5 +117,6 @@ ST1 e ST2 concluídos (29/09/2026). Três gates esperando o dono, cada um já co
 4. ✅ [ST4 Refeições por dia da semana (`o3s`, `cfgS`)](plans/completed/st4-refeicoes-por-dia.md) — concluído; libera [A24](../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
 5. ✅ [ST5 Chat: texto longo demais no composer (`chatX`)](plans/completed/st5-chat-texto-longo.md) — concluído; libera [A25](../android/plans/pending_manual_validation/a25-limite-texto-composer.md).
 6. ✅ [SV1 Verificação automática dos gates](plans/completed/sv1-verificacao-automatica.md) — concluído; `tools/verify-stitch.mjs`, usado na verificação do ST3–ST5.
+7. ⛔ [ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)](plans/st6-chat-v2.md) — aguardando o dono no Stitch; bloqueia [A29](../android/plans/a29-chat-v2-interface.md).
 
-ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md).
+ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md).
