@@ -116,9 +116,9 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Aguardando aprovação (lote do feedback, 29/09/2026):
+Lote do feedback (29/09/2026); A23 e A24 aguardam aprovação:
 
-- [A21 seletor de horário em rodas](plans/a21-seletor-horario.md) — gate ST3
+- [A21 seletor de horário em rodas (Pendente aprovação manual: escolher 07:30 e 21:45 no aparelho)](plans/pending_manual_validation/a21-seletor-horario.md)
 - [A23 editor de memória e perfil (dev)](plans/a23-editor-memoria-dev.md)
 - [A24 refeições por dia da semana](plans/a24-refeicoes-por-dia.md) — gate ST4, por último
 

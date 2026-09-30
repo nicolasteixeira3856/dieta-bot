@@ -52,6 +52,10 @@ const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], cha
 // Bottom-anchored regions, per theme: the gold bottom is matched to the capture bottom first.
 // homeW: the "Treino de hoje" sheet, top edge to 40 dp above the page end (home pill, A22).
 const BOTTOM_REGIONS = { homeW: { dark: [0, 2012, 780, 2620], light: [0, 2026, 780, 2644] } };
+// ST3 is a centered dialog on a 1103 dp export. At 844 dp it moves by half the
+// height difference. Gate the complete dialog (border, title, wheels, actions),
+// with the unchanged 2% threshold; the underlying O3 has its own comparison.
+const CENTER_REGIONS = { o3t: { dark: [48, 710, 732, 1498], light: [48, 722, 732, 1486] } };
 // Regions reported, not gated: light chatA / chatX draw the composer on the page colour (chat0
 // generation) while the canonical light chatE uses the card colour.
 const REGION_REPORT_ONLY = new Set(["light/chatA", "light/chatX"]);
@@ -113,8 +117,9 @@ function score(app, gold, goldTop, dy, y0, y1) {
 }
 
 /** Blurred diff of a gold box against the app, best vertical offset in ±64 dp. */
-function regionScore(app, gold, [x0, y0, x1, y1], shift = 0) {
+function regionScore(app, gold, [x0, y0, x1, y1], shift = 0, onBest = null) {
   let best = Infinity;
+  let bestDy = shift;
   for (let dy = shift - 128; dy <= shift + 128; dy += 2) {
     let differ = 0;
     let total = 0;
@@ -130,9 +135,27 @@ function regionScore(app, gold, [x0, y0, x1, y1], shift = 0) {
         if (m > TOLERANCE) differ++;
       }
     }
-    if (total > 0) best = Math.min(best, (100 * differ) / total);
+    if (total > 0 && (100 * differ) / total < best) {
+      best = (100 * differ) / total;
+      bestDy = dy;
+    }
   }
+  onBest?.(bestDy);
   return best;
+}
+
+/** Dialog content presence, using its surface at the left midpoint as background. */
+function dialogInk(img, [x0, y0, x1, y1], dy = 0) {
+  const sample = (Math.round((y0 + y1) / 2) + dy) * img.w + x0 + 8;
+  const bg = img.planes.map((p) => p[sample]);
+  let count = 0;
+  for (let y = y0 + 16; y < y1 - 16; y++) for (let x = x0 + 16; x < x1 - 16; x++) {
+    const ay = y + dy;
+    if (ay < 0 || ay >= img.h) continue;
+    const at = ay * img.w + x;
+    if (img.planes.some((p, c) => Math.abs(p[at] - bg[c]) > TOLERANCE)) count++;
+  }
+  return count;
 }
 
 /** Pixels that stand out from the page background (median of the compared rows). */
@@ -185,6 +208,16 @@ for (const key of ids) {
   }
   const app = blurred(appRaw);
   const gold = blurred(goldRaw);
+  const center = CENTER_REGIONS[id]?.[theme];
+  if (center) {
+    let bestDy = 0;
+    const part = regionScore(app, gold, center, Math.round((appRaw.h - goldRaw.h) / 2), (dy) => { bestDy = dy; });
+    const inkRatio = dialogInk(app, center, bestDy) / Math.max(1, dialogInk(gold, center));
+    const partOk = part <= max && inkRatio >= 0.8 && inkRatio <= 1.25;
+    if (!partOk) failed = true;
+    console.log(`  ${partOk ? "✓" : "✗"} ${key} centered dialog ${part.toFixed(2)}% ink ${inkRatio.toFixed(2)} (max ${max}%, ink 0.8-1.25)`);
+    continue;
+  }
   // 844 dp phone inside a 884 dp page: 20 dp bands. Full-page golds (O3) have no band.
   const goldTop = goldRaw.h === 1768 ? 40 : 0;
   // Content is top-anchored (status bar height varies), the CTA footer is bottom-anchored

@@ -32,12 +32,9 @@ import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -47,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -75,6 +73,7 @@ import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.rememberHaptic
+import com.nutri.android.core.designsystem.TimeWheelDialog
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
 import kotlin.math.roundToInt
@@ -520,43 +519,46 @@ fun SlotsScreen(
     onContinue: () -> Unit,
 ) {
     var picking by remember { mutableIntStateOf(-1) }
-    OnboardingFrame(
-        bar = OnboardingBar.IntakeSegments(filled = 3),
-        cta = "Continuar",
-        ctaEnabled = ui.o3Valid,
-        onCta = onContinue,
-        onBack = onBack,
-        ctaTag = "o3-continue",
-        contentTop = 12.dp,
-    ) {
-        Eyebrow("ONBOARDING 3/4", "ROTINA", sectionAccent = false)
-        ScreenTitle("Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.", titleLine = 37.5f)
-        Spacer(Modifier.height(24.dp))
-        // A15 (Stitch gold): stepper 46 dp tall (36 dp pills, 5 dp inset), 10 dp under the label, 28 dp above the cards.
-        SectionLabel("Quantidade de refeições", bottom = 10.dp)
-        CountStepper(ui.slots.size, onCount, itemHeight = 36.dp, inset = 5.dp)
-        Spacer(Modifier.height(28.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            ui.slots.forEachIndexed { i, slot ->
-                SlotCard(
-                    index = i,
-                    slot = slot,
-                    onName = { onName(i, it) },
-                    onPickTime = { picking = i },
-                    pad = 15.dp, // A15: Stitch gold card is 2 dp taller than the Config one.
-                )
+    Box(Modifier.then(if (picking in ui.slots.indices) Modifier.blur(8.dp) else Modifier)) {
+        OnboardingFrame(
+            bar = OnboardingBar.IntakeSegments(filled = 3),
+            cta = "Continuar",
+            ctaEnabled = ui.o3Valid,
+            onCta = onContinue,
+            onBack = onBack,
+            ctaTag = "o3-continue",
+            contentTop = 12.dp,
+        ) {
+            Eyebrow("ONBOARDING 3/4", "ROTINA", sectionAccent = false)
+            ScreenTitle("Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.", titleLine = 37.5f)
+            Spacer(Modifier.height(24.dp))
+            // A15 (Stitch gold): stepper 46 dp tall (36 dp pills, 5 dp inset), 10 dp under the label, 28 dp above the cards.
+            SectionLabel("Quantidade de refeições", bottom = 10.dp)
+            CountStepper(ui.slots.size, onCount, itemHeight = 36.dp, inset = 5.dp)
+            Spacer(Modifier.height(28.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                ui.slots.forEachIndexed { i, slot ->
+                    SlotCard(
+                        index = i,
+                        slot = slot,
+                        onName = { onName(i, it) },
+                        onPickTime = { picking = i },
+                        pad = 15.dp, // A15: Stitch gold card is 2 dp taller than the Config one.
+                    )
+                }
             }
+            InfoNote(
+                Icons.Outlined.NotificationsActive,
+                "Você poderá ajustar intervalos, adicionar refeições intermediárias ou desativar alertas a qualquer momento.",
+                Modifier.padding(top = 20.dp),
+                infoLine = 16.5f,
+                infoTracking = 0.05f,
+            )
         }
-        InfoNote(
-            Icons.Outlined.NotificationsActive,
-            "Você poderá ajustar intervalos, adicionar refeições intermediárias ou desativar alertas a qualquer momento.",
-            Modifier.padding(top = 20.dp),
-            infoLine = 16.5f,
-            infoTracking = 0.05f,
-        )
     }
     if (picking in ui.slots.indices) {
-        SlotTimeDialog(
+        TimeWheelDialog(
+            title = ui.slots[picking].name.ifBlank { "Refeição ${picking + 1}" },
             minutes = ui.slots[picking].minutes,
             onDismiss = { picking = -1 },
             onConfirm = { onTime(picking, it); picking = -1 },
@@ -683,25 +685,6 @@ private fun bandIcon(minutes: Int): ImageVector = when (SlotSuggestions.bandOf(m
     SlotBand.LUNCH -> Icons.Outlined.LunchDining
     SlotBand.DINNER -> Icons.Outlined.DinnerDining
     SlotBand.NIGHT -> Icons.Outlined.Bedtime
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun SlotTimeDialog(minutes: Int, onDismiss: () -> Unit, onConfirm: (Int) -> Unit) {
-    val p = LocalPalette.current
-    val state = rememberTimePickerState(initialHour = minutes / 60, initialMinute = minutes % 60, is24Hour = true)
-    val haptic = rememberHaptic()
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = p.card,
-        confirmButton = {
-            TextButton(onClick = { haptic(Haptic.Light); onConfirm(state.hour * 60 + state.minute) }) { Text("OK", color = p.gold) }
-        },
-        dismissButton = { TextButton(onClick = { haptic(Haptic.Light); onDismiss() }) { Text("Cancelar", color = p.muted) } },
-        text = {
-            TimePicker(state = state)
-        },
-    )
 }
 
 // ---------------------------------------------------------------- O4

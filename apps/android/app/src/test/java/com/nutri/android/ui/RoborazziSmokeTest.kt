@@ -3,6 +3,8 @@ package com.nutri.android.ui
 import android.app.Application
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.onNodeWithTag
+import com.nutri.android.core.designsystem.TimeWheelDialog
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.nutri.android.core.designsystem.DietaBotTheme
@@ -36,6 +38,19 @@ class RoborazziSmokeTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    @Test fun o3t_dark() = timeWheel(dark = true)
+    @Test fun o3t_light() = timeWheel(dark = false)
+
+    private fun timeWheel(dark: Boolean) {
+        composeTestRule.setContent {
+            DietaBotTheme(darkTheme = dark) { TimeWheelDialog("Café da manhã", 450, {}, {}) }
+        }
+        composeTestRule.onNodeWithTag("time-wheel-dialog").captureRoboImage(
+            filePath = "src/test/snapshots/${if (dark) "dark" else "light"}/o3t.png",
+            roborazziOptions = RoborazziOptions(compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f)),
+        )
+    }
 
     @Test
     fun splash_dark() {
