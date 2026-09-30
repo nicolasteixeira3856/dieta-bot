@@ -1,0 +1,41 @@
+{
+  "gate": "ST6",
+  "keep": ["Chat Dieta Bot", "Hoje, 25 de setembro"],
+  "coherence": { "exceptions": [], "known": [] },
+  "screens": [
+    {
+      "gold": "chatR",
+      "keep": ["Dieta Bot AI", "Registrar assim"],
+      "checks": [
+        { "type": "text",
+          "has": ["Vou fazer uma pizza de pão sírio", "100 g de frango desfiado", "Total: ~420 kcal", "1.640", "2.060", "2.200", "126/167", "Registrar assim"],
+          "not": ["ENERGIA TOTAL", "Gravar", "Trocar", "Pular", "Os pães tinham manteiga ou requeijão?", "IA ATIVA"] },
+        { "type": "fits", "text": "Registrar assim", "maxHeight": 24 },
+        { "type": "fits", "text": "126/167" }
+      ]
+    },
+    {
+      "gold": "chatM",
+      "keep": ["ENERGIA TOTAL", "Gravar café", "Trocar", "Pular"],
+      "checks": [
+        { "type": "text",
+          "has": ["Café da manhã igual ao de sempre", "Memória atualizada", "Memória permanente", "Memória dinâmica", "Gravar café", "Trocar", "Pular"],
+          "not": ["Os pães tinham manteiga ou requeijão?", "IA ATIVA"] },
+        { "type": "fits", "text": "Memória atualizada", "maxHeight": 32 },
+        { "type": "fits", "text": "Memória dinâmica", "maxHeight": 32 }
+      ]
+    },
+    {
+      "gold": "chatS",
+      "keep": ["Meta calórica de hoje"],
+      "checks": [
+        { "type": "text",
+          "has": ["Meta calórica de hoje", "O de sempre no Café da manhã?", "440 kcal", "Memória dinâmica", "Registrar", "Quase igual"],
+          "not": ["Gravar", "IA ATIVA"] },
+        { "type": "fits", "text": "O de sempre no Café da manhã?", "maxHeight": 26 },
+        { "type": "fits", "text": "Quase igual", "maxHeight": 24 },
+        { "type": "gap", "a": "Meta calórica de hoje", "b": "O de sempre no Café da manhã?", "min": 40 }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,17 @@ Pergunta em bolha própria, bolhas iguais, sem "IA ATIVA" e foto como anexo com 
 
 Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso, desde o [A25](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md) ([ADR-022](../adrs/ADR-022-limite-texto-chat.md); server: [S9](../../server/plans/completed/s9-limite-texto-2000.md); gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
 
+## Mudanças decididas, ainda não vigentes (ADR-023)
+
+O [ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) (30/09/2026) muda este Chat. As regras abaixo só passam a valer quando cada plano for implementado. Até lá, vale o texto das regras numeradas.
+
+- **Intenção** `log` / `plan` / `question`: só `log` mostra Gravar/Trocar/Pular ([A27](../../android/plans/a27-chat-v2-texto-intencao.md)).
+- **Texto gravado** = `meal_text` da IA (a refeição inteira), nunca a resposta a uma pergunta. Substitui a regra 12 ([A27](../../android/plans/a27-chat-v2-texto-intencao.md)).
+- **Prompt do turno** (regra 8) ganha `recent` (refeições dos últimos 7 dias, sem hoje), `day.remaining_kcal` e a memória em fatos ([A27](../../android/plans/a27-chat-v2-texto-intencao.md), [A28](../../android/plans/a28-memoria-v2.md)).
+- **Plano** (`chatR`): painel do dia projetado calculado pelo app e botão Registrar assim ([A29](../../android/plans/a29-chat-v2-interface.md)).
+- **Avisos de memória** (`chatM`): `Memória atualizada` e chips `Memória permanente` / `Memória dinâmica` ([A29](../../android/plans/a29-chat-v2-interface.md)).
+- **Sugestão da rotina** (`chatS`): `O de sempre no {slot}?` com Registrar e Quase igual ([A29](../../android/plans/a29-chat-v2-interface.md)).
+
 ## Contexto e objetivo
 
 Toda interação com a IA. Registro só depois do tap no chip.

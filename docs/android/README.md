@@ -116,6 +116,12 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
+Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026), aguardando aprovação:
+
+- [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/a27-chat-v2-texto-intencao.md)
+- [A28 Memória v2: fatos permanentes e dinâmicos](plans/a28-memoria-v2.md)
+- [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/a29-chat-v2-interface.md) — depende do gate [ST6](../stitch/plans/st6-chat-v2.md)
+
 Lote do feedback (29/09/2026); A24 aguarda validação manual:
 
 - [A21 seletor de horário em rodas (Pendente aprovação manual: escolher 07:30 e 21:45 no aparelho)](plans/pending_manual_validation/a21-seletor-horario.md)
