@@ -8,7 +8,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
-| [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum ([ADR-023](produto/adrs/ADR-023-chat-v2-memoria-v2.md) proposto) | [qa/](qa/) |
+| [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A27](android/plans/a27-chat-v2-texto-intencao.md), [A28](android/plans/a28-memoria-v2.md) e [A29](android/plans/a29-chat-v2-interface.md) aguardando aprovação; [A21](android/plans/pending_manual_validation/a21-seletor-horario.md) e [A24](android/plans/pending_manual_validation/a24-refeicoes-por-dia.md) pendentes de validação manual; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12, A23, A26](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
 | [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST6](stitch/plans/st6-chat-v2.md) aguardando o dono; [ST1–ST5](stitch/README.md#planos) concluídos; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S11](server/plans/pending_manual_validation/s11-chat-v2.md), [S8](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) e [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendentes aprovação manual; [S1, S4, S2, S3, S5, S7, S9, S10](server/plans/completed/) concluídos | `server/tests/` |
@@ -39,10 +39,10 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 | [017](produto/adrs/ADR-017-registro-consolidado.md) | produto | um registro por refeição, confirmação ao substituir (aceito) |
 | [018](android/adrs/ADR-018-foto-2048.md) | android | foto reduzida a 2048 px no client (aceito) |
 | [019](produto/adrs/ADR-019-ferramentas-dev.md) | produto | telas de ferramenta só no dev, sem gold (aceito) |
-| [020](produto/adrs/ADR-020-estados-novos-chat-home-horario.md) | produto | golds novos `chatA`, `homeW`, `o3t` (proposto) |
+| [020](produto/adrs/ADR-020-estados-novos-chat-home-horario.md) | produto | golds novos `chatA`, `homeW`, `o3t` (aceito) |
 | [021](produto/adrs/ADR-021-refeicoes-por-dia.md) | produto | refeições por dia da semana (aceito) |
 | [022](produto/adrs/ADR-022-limite-texto-chat.md) | produto | mensagem do Chat até 2000 caracteres, estado de erro `chatX` (aceito) |
-| [023](produto/adrs/ADR-023-chat-v2-memoria-v2.md) | produto | Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica), golds `chatR`, `chatM`, `chatS` (proposto) |
+| [023](produto/adrs/ADR-023-chat-v2-memoria-v2.md) | produto | Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica), golds `chatR`, `chatM`, `chatS` (aceito) |
 
 ## Planos aguardando aprovação
 

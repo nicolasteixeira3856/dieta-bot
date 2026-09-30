@@ -32,12 +32,12 @@ function Invoke-Remote([string]$cmd) {
     if ($LASTEXITCODE -ne 0) { throw "remote command failed: $cmd" }
 }
 
-# 1. Package server/ (no tests, venv, caches) + infra/gcp/.
+# 1. Package server/ (no tests, evals, venv, caches) + infra/gcp/.
 $pkg = Join-Path $env:TEMP "nutri-deploy.tgz"
 if (Test-Path $pkg) { Remove-Item $pkg -Force }
 Push-Location $root
 try {
-    tar -czf $pkg --exclude=tests --exclude=.venv --exclude=__pycache__ --exclude=.pytest_cache server infra/gcp
+    tar -czf $pkg --exclude=tests --exclude=evals --exclude=.venv --exclude=__pycache__ --exclude=.pytest_cache server infra/gcp
     if ($LASTEXITCODE -ne 0) { throw "tar failed" }
 } finally { Pop-Location }
 

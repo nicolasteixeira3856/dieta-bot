@@ -1,6 +1,6 @@
 # ADR-012 — Chat é tela; Home é contador; perfil nomeado
 
-- Estado: Proposto
+- Estado: Aceito (em vigor desde os planos A0–A5 e A12, concluídos; registrado em 30/09/2026)
 - Data: 2026-09-25
 - Contexto: `produto`
 - Substitui: parcialmente `AGENTS.md` (Chat sheet, Home com composer, onboarding 2 telas, foto ≤1280 JPEG 70, telas só splash O1 O2 T0 T1 T2 T3, FAB proibido). Não substitui ADR 010 (Room) nem 011 (tap grava). ADR 011 continua para T2/T3 até o plano A5 remover essas rotas.

@@ -43,8 +43,8 @@ Limites encontrados:
 ## Fontes de verdade
 
 - `AGENTS.md` § Visual QA e § Skills.
-- [ADR-008](../../decisions/008-visual-qa.md) e [ADR-009](../../decisions/009-visual-match.md) (lei de pastas e match visual; não mudam).
-- [docs/qa/README.md](../../qa/README.md) § Loop de Implementação Visual e § Gate.
+- [ADR-008](../../../decisions/008-visual-qa.md) e [ADR-009](../../../decisions/009-visual-match.md) (lei de pastas e match visual; não mudam).
+- [docs/qa/README.md](../../../qa/README.md) § Loop de Implementação Visual e § Gate.
 
 ## Escopo de implementação
 

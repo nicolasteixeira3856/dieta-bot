@@ -64,7 +64,7 @@ Trocar o `TimePicker` de relógio do Material por rodas de hora e minuto, no est
 
 ## Fora de escopo
 
-- Refeições por dia: [A24](../a24-refeicoes-por-dia.md).
+- Refeições por dia: [A24](a24-refeicoes-por-dia.md).
 - Formato 12 h.
 
 ## Riscos e controles

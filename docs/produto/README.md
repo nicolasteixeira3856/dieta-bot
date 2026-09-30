@@ -54,12 +54,12 @@ Nenhuma especificacao criada ate o momento.
 
 - [ADR-012](adrs/ADR-012-chat-home-perfil.md) — Chat tela, Home painel, perfil nomeado.
 - [ADR-016](adrs/ADR-016-nome-dieta-bot.md) — nome "Dieta Bot".
-- [ADR-017](adrs/ADR-017-registro-consolidado.md) — um registro por refeição (proposto).
+- [ADR-017](adrs/ADR-017-registro-consolidado.md) — um registro por refeição (aceito).
 - [ADR-019](adrs/ADR-019-ferramentas-dev.md) — telas de ferramenta só no dev (aceito com o A23).
-- [ADR-020](adrs/ADR-020-estados-novos-chat-home-horario.md) — golds novos `chatA`, `homeW`, `o3t` (proposto).
+- [ADR-020](adrs/ADR-020-estados-novos-chat-home-horario.md) — golds novos `chatA`, `homeW`, `o3t` (aceito).
 - [ADR-021](adrs/ADR-021-refeicoes-por-dia.md) — refeições por dia da semana (aceito).
 - [ADR-022](adrs/ADR-022-limite-texto-chat.md) — mensagem do Chat até 2000 caracteres, estado de erro (aceito).
-- [ADR-023](adrs/ADR-023-chat-v2-memoria-v2.md) — Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica) (proposto).
+- [ADR-023](adrs/ADR-023-chat-v2-memoria-v2.md) — Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica) (aceito).
 
 Historico em `docs/decisions/` (ver [matriz](../README.md)).
 
