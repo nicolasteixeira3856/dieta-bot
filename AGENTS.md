@@ -147,7 +147,7 @@ Stitch gate: a layout change that needs a new or changed gold is a manual owner 
 Stitch screen names: every instruction to the owner (select, duplicate, rename) and every screen named inside a prompt uses the exact Stitch screen title (e.g. "Estimate com botões de ação (V2 Expressive)"), never the gold id (`chatE`), which may only appear in parentheses. `V2 Expressive` = dark, `V2 Light` = light; one ready-to-paste prompt block per theme. New screens get their final title in the gate. Title ↔ gold id table: `docs/stitch/README.md` § Nomes das telas.
 
 Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1`.
-It ships the signed dev release APK through Firebase App Distribution (group `owner`, installed via Firebase App Tester).
+It ships the signed dev release APK through Firebase App Distribution (group `testers`: owner + Icaro, installed via Firebase App Tester).
 Release notes are a human changelog in pt-BR written by the agent (what changed for the tester: Novidades / Correções / Ajustes), never a raw `git log`. Pass it with `-Notes <file.md>` (required; scratchpad file). The script rejects hashes and commit prefixes and prepends the notes to `apps/android/CHANGELOG.md` in the `chore(release)` commit.
 The version bumps by itself (0.0.N → 0.0.N+1) and is recorded as a commit + tag `dev-v0.0.N`.
 Never edit `apps/android/version.properties` by hand. Never reuse a number. Until 1.0.0 (its own plan).
