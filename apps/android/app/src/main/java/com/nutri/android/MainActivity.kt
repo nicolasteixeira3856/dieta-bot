@@ -186,8 +186,12 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onCount = vm::setSlotCount,
                         onName = vm::setSlotName,
                         onTime = vm::setSlotTime,
-                        onBack = { nav.popBackStack() },
-                        onContinue = { nav.navigate(RouteMacros) },
+                        onMode = vm::setSlotMode,
+                        onCopy = vm::copyPreviousSlots,
+                        onConfirmMode = vm::confirmSlotMode,
+                        onCancelMode = vm::cancelSlotMode,
+                        onBack = { vm.previousSlotGroup { nav.popBackStack() } },
+                        onContinue = { vm.nextSlotGroup { nav.navigate(RouteMacros) } },
                     )
                 }
                 composable<RouteMacros> { entry ->
@@ -284,6 +288,12 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onSlotCount = vm::setSlotCount,
                         onSlotName = vm::setSlotName,
                         onSlotTime = vm::setSlotTime,
+                        onSlotMode = vm::setSlotMode,
+                        onConfirmSlotMode = vm::confirmSlotMode,
+                        onCancelSlotMode = vm::cancelSlotMode,
+                        onCopySlots = vm::copyPreviousSlots,
+                        onPreviousSlots = vm::previousSlotGroup,
+                        onOpenSlotGroup = vm::openSlotGroup,
                         onWorkout = vm::setWorkout,
                     )
                 }

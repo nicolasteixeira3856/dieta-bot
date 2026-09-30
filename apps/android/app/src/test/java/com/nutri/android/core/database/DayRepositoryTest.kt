@@ -156,4 +156,22 @@ class DayRepositoryTest {
         private val DAY_D: Instant = Instant.parse("2026-03-15T15:00:00-03:00")
         private val DAY_D_PLUS_1: Instant = Instant.parse("2026-03-16T15:00:00-03:00")
     }
+    @Test fun changingMealGroupsKeepsLogsChatSkipsAndDigest() = runBlocking<Unit> {
+        val repository = repository()
+        repository.saveSlots(listOf(MealSlot(name = "Café", minutesFromMidnight = 450), MealSlot(name = "Jantar", minutesFromMidnight = 1200)))
+        val slots = repository.observeToday().first().slots
+        repository.addLog("", "2 ovos", 380, 22, true, slotId = slots[0].id)
+        repository.addSkip(slots[1].id)
+        repository.insertMessage("user", "2 ovos")
+        repository.upsertDigest("memória do dia")
+        repository.saveSlots(slots.map { it.copy(days = 31) } +
+            listOf(MealSlot(name = "Café sábado", minutesFromMidnight = 570, days = 96)), "split")
+        val day = repository.observeToday().first()
+        assertThat(day.slotMode).isEqualTo("split")
+        assertThat(day.logs.single().slotId).isEqualTo(slots[0].id)
+        assertThat(day.skippedSlotIds).containsExactly(slots[1].id)
+        assertThat(repository.digestsToday()).hasSize(1)
+        assertThat(repository.observeMessages().first()).hasSize(1)
+    }
+
 }

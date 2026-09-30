@@ -166,7 +166,7 @@ class RoborazziSmokeTest {
         )
     }
 
-    /** A20: slots sheet copy. */
+    /** A24: full-screen meal editor replacing the former slots sheet. */
     @Test
     fun cfgSlots_dark() = cfgSheet(dark = true, ConfigEditor.SLOTS, "cfgSlots")
 

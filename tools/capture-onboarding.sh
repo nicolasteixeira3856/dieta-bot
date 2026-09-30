@@ -5,7 +5,7 @@
 #
 # Prereqs: devDebug APK installed; python3; AVD at gold geometry:
 #   adb shell wm size 780x1688 && adb shell wm density 320
-# Usage: tools/capture-onboarding.sh dark|light
+# Usage (multiple devices): ANDROID_SERIAL=emulator-5554 tools/capture-onboarding.sh dark|light
 # Then:  node tools/diff-gold.mjs
 set -u
 THEME="${1:?dark|light}"
@@ -121,9 +121,47 @@ EOF
 "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
 "$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e nutri_tela o3 >/dev/null
 sleep 2
+shot o3
 tap o3-time-0
 shot o3t
 tap time-wheel-cancel
+# A24: use a real stored grouped profile; reach the second step through Continue.
+"$ADB" shell am force-stop $PKG
+for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/nutri.db" <<'EOF'
+import sqlite3, sys
+c = sqlite3.connect(sys.argv[1])
+c.execute("update profile set slotMode='split'")
+c.execute("update meal_slot set days=31")
+c.executemany("insert into meal_slot(name,minutesFromMidnight,sortOrder,days) values(?,?,?,96)",
+              [("Café da manhã",570,4),("Almoço",810,5),("Jantar",1230,6)])
+c.commit()
+c.execute("pragma wal_checkpoint(TRUNCATE)")
+c.execute("pragma journal_mode=DELETE")
+c.close()
+EOF
+"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e nutri_tela o3 >/dev/null
+sleep 2
+tap o3-continue
+shot o3s
+# Restore the original same-every-day fixture for callers such as capture-config.sh.
+"$ADB" shell am force-stop $PKG
+for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/nutri.db" <<'EOF'
+import sqlite3, sys
+c = sqlite3.connect(sys.argv[1])
+c.execute("delete from meal_slot where days=96")
+c.execute("update meal_slot set days=127")
+c.execute("update profile set slotMode='same'")
+c.commit()
+c.execute("pragma wal_checkpoint(TRUNCATE)")
+c.execute("pragma journal_mode=DELETE")
+c.close()
+EOF
+"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
 "$ADB" shell am force-stop $PKG
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 2

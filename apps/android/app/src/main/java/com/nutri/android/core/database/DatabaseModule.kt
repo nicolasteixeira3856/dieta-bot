@@ -21,7 +21,7 @@ object DatabaseModule {
     @Singleton
     fun database(@ApplicationContext context: Context): DietaBotDatabase =
         Room.databaseBuilder(context, DietaBotDatabase::class.java, "nutri.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
 
     @Provides

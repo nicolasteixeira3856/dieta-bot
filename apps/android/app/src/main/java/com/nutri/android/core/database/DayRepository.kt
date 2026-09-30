@@ -9,6 +9,11 @@ import com.nutri.android.domain.SaoPaulo
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -29,20 +34,27 @@ class DayRepository @Inject constructor(
     private val importMutex = Mutex()
     private var imported = false
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     fun observeToday(): Flow<DaySnapshot> = flow {
-        importOnce()
-        val today = todayIso()
-        emitAll(
-            combine(
-                db.profileDao().observe(),
-                db.dayDao().observe(today),
-                db.mealLogDao().observeByDate(today),
-                db.mealSlotDao().observeAll(),
-                db.slotSkipDao().observeByDate(today),
-            ) { profile, day, logs, slots, skips ->
-                snapshotOf(today, profile, day, logs, slots, skips)
-            },
-        )
+        while (currentCoroutineContext().isActive) {
+            emit(todayIso())
+            delay(30_000)
+        }
+    }.distinctUntilChanged().flatMapLatest { today ->
+        flow {
+            importOnce()
+            emitAll(
+                combine(
+                    db.profileDao().observe(),
+                    db.dayDao().observe(today),
+                    db.mealLogDao().observeByDate(today),
+                    db.mealSlotDao().observeAll(),
+                    db.slotSkipDao().observeByDate(today),
+                ) { profile, day, logs, slots, skips ->
+                    snapshotOf(today, profile, day, logs, slots, skips)
+                },
+            )
+        }
     }
 
     /** Body and macro fields left null keep the stored value. */
@@ -254,7 +266,9 @@ class DayRepository @Inject constructor(
      * Replace all: the stored set becomes [slots], ordered as given.
      * Slots with id != 0 are updated in place so their logs keep slotId.
      */
-    suspend fun saveSlots(slots: List<MealSlot>) {
+    suspend fun saveSlots(slots: List<MealSlot>, slotMode: String? = null) {
+        require(slots.all { it.days in 1..127 }) { "days out of 1..127" }
+        require(slotMode == null || slotMode in setOf("same", "split", "each"))
         require(slots.all { it.minutesFromMidnight in 0..1439 }) { "minutesFromMidnight out of 0..1439" }
         importOnce()
         withContext(Dispatchers.IO) {
@@ -266,11 +280,13 @@ class DayRepository @Inject constructor(
                             name = slot.name,
                             minutesFromMidnight = slot.minutesFromMidnight,
                             sortOrder = index,
+                            days = slot.days,
                         ),
                     )
                     if (slot.id != 0L) slot.id else rowId
                 }
                 db.mealSlotDao().deleteAllExcept(keep)
+                if (slotMode != null) updateProfile { it.copy(slotMode = slotMode) }
             }
         }
     }
@@ -443,6 +459,7 @@ class DayRepository @Inject constructor(
         } ?: List(7) { 2000 }
         return DaySnapshot(
             date = date,
+            slotMode = profile?.slotMode ?: "same",
             ceilingMode = profile?.ceilingMode ?: "same",
             kcalSame = profile?.kcalSame ?: 2000,
             kcalWeekday = profile?.kcalWeekday ?: 2000,
@@ -475,7 +492,7 @@ class DayRepository @Inject constructor(
                     source = row.source,
                 )
             },
-            slots = slots.map { MealSlot(id = it.id, name = it.name, minutesFromMidnight = it.minutesFromMidnight) },
+            slots = slots.map { MealSlot(id = it.id, name = it.name, minutesFromMidnight = it.minutesFromMidnight, days = it.days) },
             skippedSlotIds = skips.mapTo(mutableSetOf()) { it.slotId },
         )
     }

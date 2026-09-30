@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.nutri.android.MainActivity
 import com.nutri.android.R
+import com.nutri.android.core.database.slotsOfDay
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.designsystem.DietaBotHex
 import com.nutri.android.core.telemetry.NoopTelemetry
@@ -35,7 +36,7 @@ class PushHandler @Inject constructor(
     /** Slot alarm fired: notify only when the slot is still empty (spec rule 2). */
     suspend fun onSlot(slotId: Long): Boolean {
         val day = repository.observeToday().first()
-        val slot = day.slots.firstOrNull { it.id == slotId } ?: return false
+        val slot = day.slotsOfDay.firstOrNull { it.id == slotId } ?: return false
         val logged = day.logs.mapNotNull { it.slotId }.toSet()
         if (!day.onboardingDone || !PushPlan.shouldNotify(slotId, logged, day.skippedSlotIds)) return false
         val shown = notify(slotId, slot.name)
@@ -45,6 +46,7 @@ class PushHandler @Inject constructor(
 
     /** "Pular" on the notification: skip status, notification and alarm gone (spec rule 4). */
     suspend fun onSkip(slotId: Long) {
+        if (repository.observeToday().first().slotsOfDay.none { it.id == slotId }) return
         repository.addSkip(slotId)
         NotificationManagerCompat.from(context).cancel(notificationId(slotId))
         scheduler.cancel(slotId)

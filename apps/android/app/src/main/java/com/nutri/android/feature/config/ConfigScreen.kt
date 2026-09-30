@@ -38,10 +38,7 @@ import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -65,14 +62,14 @@ import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.Palette
 import com.nutri.android.core.designsystem.SheetActions
 import com.nutri.android.core.designsystem.dietaClick
-import com.nutri.android.feature.onboarding.CountStepper
+import com.nutri.android.feature.onboarding.SlotsScreen
+import com.nutri.android.feature.onboarding.OnboardingUiState
+import com.nutri.android.domain.SlotModes
 import com.nutri.android.feature.onboarding.EatCard
 import com.nutri.android.feature.onboarding.KcalField
 import com.nutri.android.feature.onboarding.MacroCard
 import com.nutri.android.feature.onboarding.ModeGroup
 import com.nutri.android.feature.onboarding.PctField
-import com.nutri.android.feature.onboarding.SlotCard
-import com.nutri.android.core.designsystem.TimeWheelDialog
 import com.nutri.android.feature.workout.WorkoutField
 
 private val CardShape = RoundedCornerShape(16.dp)
@@ -117,9 +114,17 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
                     Divider()
                     SettingRow("Macronutrientes (P · C · G)", ui.macrosValue, "cfg-macros") { actions.onOpen(ConfigEditor.MACROS) }
                 }
-                SectionLabel("Horários das refeições")
+                if (ui.slotMode == "same") SectionLabel("Horários das refeições")
+                else Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    SectionLabel("Horários das refeições")
+                    Text(SlotModes.labels.first { it.first == ui.slotMode }.second, style = DietaBotType.labelMd.copy(fontSize = 12.sp), color = p.dim, modifier = Modifier.padding(top = 26.dp, bottom = 11.dp))
+                }
                 Group {
-                    ui.slots.forEachIndexed { i, slot ->
+                    if (ui.slotMode != "same") ui.slotGroups.forEachIndexed { i, group ->
+                        if (i > 0) Divider()
+                        SettingRow(group.name, "", "cfg-group-$i", detail = group.time) { actions.onOpenSlotGroup(i) }
+                    }
+                    else ui.slots.forEachIndexed { i, slot ->
                         if (i > 0) Divider()
                         SettingRow(slot.name, slot.time, "cfg-slot-$i") { actions.onOpen(ConfigEditor.SLOTS) }
                     }
@@ -137,7 +142,21 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
                 extra()
             }
         }
-        ui.editor?.let { EditSheet(it, ui, actions) }
+        if (ui.editor == ConfigEditor.SLOTS) {
+            val d = ui.draft
+            // Same O3 editor, Config header and final save; no new destination.
+            SlotsScreen(
+                ui = OnboardingUiState(slots = d.slots, slotSchedule = d.slotSchedule),
+                onCount = actions.onSlotCount, onName = actions.onSlotName, onTime = actions.onSlotTime,
+                onBack = actions.onPreviousSlots, onContinue = actions.onSave,
+                onMode = actions.onSlotMode, onCopy = actions.onCopySlots,
+                onConfirmMode = actions.onConfirmSlotMode, onCancelMode = actions.onCancelSlotMode,
+                configHeader = { Header(actions.onPreviousSlots) },
+                ctaLabel = if (d.slotSchedule.last) "Salvar" else "Continuar",
+                ctaTag = "cfg-save",
+                tag = "cfg",
+            )
+        } else ui.editor?.let { EditSheet(it, ui, actions) }
         if (ui.wipeConfirm) WipeDialog(actions.onConfirmWipe, actions.onCancelWipe)
     }
 }
@@ -309,7 +328,7 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
                 ConfigEditor.CEILING -> CeilingEditor(ui.draft, a)
                 ConfigEditor.EAT_BACK -> EatBackEditor(ui.draft, a)
                 ConfigEditor.MACROS -> MacrosEditor(ui.draft, a)
-                ConfigEditor.SLOTS -> SlotsEditor(ui.draft, a)
+                ConfigEditor.SLOTS -> Unit // Full-screen editor is rendered by ConfigScreen.
                 // A22: same editor as the Home sheet (homeW).
                 ConfigEditor.WORKOUT -> WorkoutField(ui.draft.workoutEditor, a.onWorkout, tag = "cfg-workout", autoFocus = true)
             }
@@ -370,26 +389,6 @@ private fun MacrosEditor(d: ConfigDraft, a: ConfigActions) {
         MacroCard("Proteína", "4 kcal/g", d.proteinField, p.protein, a.onProtein, "cfg-protein")
         MacroCard("Carboidrato", "4 kcal/g", d.carbField, p.carbs, a.onCarb, "cfg-carb")
         MacroCard("Gordura", "9 kcal/g", d.fatField, p.fat, a.onFat, "cfg-fat")
-    }
-}
-
-@Composable
-private fun SlotsEditor(d: ConfigDraft, a: ConfigActions) {
-    var picking by remember { mutableIntStateOf(-1) }
-    CountStepper(d.slots.size, a.onSlotCount, tag = "cfg")
-    Spacer(Modifier.height(16.dp))
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        d.slots.forEachIndexed { i, slot ->
-            SlotCard(i, slot, { a.onSlotName(i, it) }, { picking = i }, tag = "cfg")
-        }
-    }
-    if (picking in d.slots.indices) {
-        TimeWheelDialog(
-            title = d.slots[picking].name.ifBlank { "Refeição ${picking + 1}" },
-            minutes = d.slots[picking].minutes,
-            onDismiss = { picking = -1 },
-            onConfirm = { a.onSlotTime(picking, it); picking = -1 },
-        )
     }
 }
 

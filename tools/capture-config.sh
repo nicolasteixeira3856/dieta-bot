@@ -4,8 +4,8 @@
 # Confirmar wipes today's meal_log only -> back to Home. Captures land in docs/qa/android/current/<theme>/.
 #
 # Prereqs: devDebug APK installed; AVD at gold geometry (wm size 780x1688, wm density 320); python3.
-# Usage: tools/capture-config.sh dark|light      Then: node tools/diff-gold.mjs dark/cfg dark/wipe ...
-set -u
+# Usage (multiple devices): ANDROID_SERIAL=emulator-5554 tools/capture-config.sh dark|light      Then: node tools/diff-gold.mjs dark/cfg dark/wipe ...
+set -uo pipefail
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
 export ADB MSYS_NO_PATHCONV=1 PYTHONIOENCODING=utf-8
@@ -24,7 +24,7 @@ FAIL=0
 "$ADB" shell setprop debug.nutri.hide_dev_tools 1
 trap '"$ADB" shell setprop debug.nutri.hide_dev_tools 0' EXIT
 
-bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1 || exit 1
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 # The prompt may already be on screen from the onboarding relaunch: restart so Home opens clean.
@@ -44,7 +44,7 @@ EOF
 tap() { dump; local xy; xy=$(at "$1"); [ -z "$xy" ] && { echo "  ✗ not found: $1"; FAIL=1; return 1; }; "$ADB" shell input tap $xy; sleep "${2:-1}"; }
 expect() { dump; if grep -qE "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo "  ✗ $1"; FAIL=1; fi; }
 hide_kb() { if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then "$ADB" shell input keyevent 4; sleep 0.6; fi; }
-type_into() { tap "resource-id=\"$1\"" 0.5; for _ in 1 2 3 4 5 6; do "$ADB" shell input keyevent 67; done; [ -n "$2" ] && "$ADB" shell input text "$2"; sleep 0.3; hide_kb; }
+type_into() { tap "resource-id=\"$1\"" 0.5; "$ADB" shell input keyevent 123; for _ in 1 2 3 4 5 6; do "$ADB" shell input keyevent 67; done; [ -n "$2" ] && "$ADB" shell input text "$2"; sleep 0.3; hide_kb; }
 shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
 pull_db() {
   rm -f "$TMP"/nutri.db*
@@ -115,6 +115,34 @@ check "today's logs wiped" "select count(*) from meal_log" 0
 check "chat kept" "select count(*) from chat_message where role='user'" 1
 check "wipe marker written" "select count(*) from chat_message where role='wiped'" 1
 check "profile kept" "select onboardingDone from profile" 1
+
+# A24 grouped Config fixture keeps the log/chat history; verify the group editor does too.
+"$ADB" shell am force-stop $PKG
+pull_db
+"$PY" - "$TMP/nutri.db" <<'EOF'
+import sqlite3, sys
+c = sqlite3.connect(sys.argv[1])
+c.execute("update profile set slotMode='split',kcalSame=2000")
+c.execute("update meal_slot set days=31")
+first = c.execute("select id from meal_slot order by sortOrder limit 1").fetchone()[0]
+c.execute("update meal_slot set name='Café da manhã' where id=?", (first,))
+c.executemany("insert into meal_slot(name,minutesFromMidnight,sortOrder,days) values(?,?,?,96)",
+              [("Café da manhã",570,4),("Almoço",810,5),("Jantar",1230,6)])
+c.commit()
+c.execute("pragma wal_checkpoint(TRUNCATE)")
+c.execute("pragma journal_mode=DELETE")
+c.close()
+EOF
+"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
+sleep 2
+tap 'resource-id="home-config"'
+shot cfgS
+tap 'resource-id="cfg-group-1"'
+expect "weekend full-screen editor" 'text="Sáb e Dom"'
+tap 'resource-id="cfg-save"'
+check "group save preserves chat" "select count(*) from chat_message where role='user'" 1
 
 "$ADB" shell input keyevent 4; sleep 0.8
 expect "back returns Home" 'resource-id="home"'

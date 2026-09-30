@@ -50,8 +50,9 @@ class OnboardingViewModel @Inject constructor(
                     dayFields = day.kcalDays.map { it.toString() }.let { if (it.size == 7) it else List(7) { "2000" } },
                     eat = day.eat,
                     pct = day.pct.toString(),
+                    slotSchedule = SlotScheduleDraft.stored(day.slotMode, day.slots),
                     slots = if (day.slots.size >= SlotSuggestions.MIN_SLOTS) {
-                        day.slots.map { SlotDraft(id = it.id, name = it.name, minutes = it.minutesFromMidnight) }
+                        SlotScheduleDraft.stored(day.slotMode, day.slots).slots
                     } else {
                         current.slots
                     },
@@ -109,6 +110,30 @@ class OnboardingViewModel @Inject constructor(
         state.copy(slots = state.slots.toMutableList().also { it[index] = change(it[index]) })
     }
 
+    fun setSlotMode(mode: String) = changeSchedule { it.requestMode(mode) }
+    fun confirmSlotMode() = changeSchedule { it.confirmMode() }
+    fun cancelSlotMode() = changeSchedule { it.copy(pendingMode = null) }
+    fun copyPreviousSlots() = changeSchedule { it.copyPrevious() }
+
+    fun nextSlotGroup(onLast: () -> Unit) {
+        val state = _uiState.value
+        if (!state.o3Valid) return
+        if (state.slotSchedule.last) {
+            changeSchedule { it }
+            onLast()
+        } else changeSchedule { it.copy(index = it.index + 1) }
+    }
+
+    fun previousSlotGroup(onFirst: () -> Unit) {
+        if (_uiState.value.slotSchedule.index == 0) onFirst()
+        else changeSchedule { it.copy(index = it.index - 1) }
+    }
+
+    private fun changeSchedule(change: (SlotScheduleDraft) -> SlotScheduleDraft) = _uiState.update {
+        val schedule = change(it.slotSchedule.withSlots(it.slots))
+        it.copy(slotSchedule = schedule, slots = schedule.slots)
+    }
+
     // O4
     /** Called when O4 opens. Prefills 30/40/30 of day-1 ceiling unless the user edited macros. */
     fun enterMacros() = _uiState.update { state ->
@@ -130,12 +155,12 @@ class OnboardingViewModel @Inject constructor(
     /** Slots first, profile last: onboardingDone=1 only once everything is stored. */
     fun completeOnboarding(onSuccess: () -> Unit) {
         val state = _uiState.value
-        if (!state.o1Valid || !state.o3Valid || !state.o4Valid) return
+        if (!state.o1Valid || !state.slotSchedule.withSlots(state.slots).valid || !state.o4Valid) return
         viewModelScope.launch {
             val today = SaoPaulo.date(clock.now()).toString()
             repository.saveSlots(
-                state.slots.map { MealSlot(id = it.id, name = it.name.trim(), minutesFromMidnight = it.minutes) }
-                    .sortedBy { it.minutesFromMidnight },
+                state.slotSchedule.withSlots(state.slots).meals(),
+                state.slotSchedule.mode,
             )
             repository.saveProfile(
                 ceilingMode = state.ceilingMode,

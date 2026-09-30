@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nutri.android.core.database.ChatMessageEntity
+import com.nutri.android.core.database.slotsOfDay
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.InstantClock
@@ -223,7 +224,7 @@ class ChatViewModel @Inject constructor(
         } else {
             chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence)
         }
-        val slots = snapshot.slots.map { it.id }.toSet()
+        val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
         repository.insertMessage(role = "user", text = text, photoPath = photo)
         repository.insertMessage(
@@ -269,7 +270,7 @@ class ChatViewModel @Inject constructor(
         local.update { it.copy(sheetFor = null, sheetSelection = null) }
         viewModelScope.launch {
             val today = repository.observeToday().first()
-            val slot = today.slots.refs().firstOrNull { it.id == slotId } ?: return@launch
+            val slot = today.slotsOfDay.refs().firstOrNull { it.id == slotId } ?: return@launch
             val taken = today.logs.filter { it.slotId == slotId }
             if (taken.isNotEmpty()) {
                 val confirm = ReplaceConfirm(estimateId, slot, oldKcal = taken.sumOf { it.kcal }, newKcal = estimate.estimateKcal ?: 0)
@@ -299,6 +300,7 @@ class ChatViewModel @Inject constructor(
         val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.estimateKcal != null } ?: return
         local.update { it.copy(replaceConfirm = null) }
         viewModelScope.launch {
+            if (repository.observeToday().first().slotsOfDay.none { it.id == confirm.slot.id }) return@launch
             repository.replaceSlotLog(
                 slotId = confirm.slot.id,
                 text = descriptionOf(estimate),
@@ -355,6 +357,7 @@ class ChatViewModel @Inject constructor(
         val slot = local.value.skipConfirm ?: return
         local.update { it.copy(skipConfirm = null) }
         viewModelScope.launch {
+            if (repository.observeToday().first().slotsOfDay.none { it.id == slot.id }) return@launch
             repository.addSkip(slot.id)
             repository.insertMessage(role = "skipped", text = slot.name, estimateSlotId = slot.id)
             telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat"))
@@ -366,7 +369,7 @@ class ChatViewModel @Inject constructor(
     private fun render(d: DaySnapshot, all: List<ChatMessageEntity>, l: Local): ChatUiState {
         val now = clock.now()
         val today = SaoPaulo.date(now)
-        val slots = d.slots.refs()
+        val slots = d.slotsOfDay.refs()
         val slotById = slots.associateBy { it.id }
         val sorted = all.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
         val items = mutableListOf<ChatItem>()

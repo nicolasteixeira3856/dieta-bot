@@ -6,9 +6,7 @@ Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `fil
 
 Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md): o treino do dia também pode ser informado pela Home, com o mesmo editor.
 
-Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no flavor dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST.
-
-Mudanças planejadas (29/09/2026, aguardando aprovação): push por dia da semana ([A24](../../android/plans/a24-refeicoes-por-dia.md)).
+Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no flavor dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST. Push por dia da semana e edição de refeições em grupos vigentes desde o [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
 
 ## Contexto e objetivo
 
@@ -40,23 +38,23 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 
 ## Regras — Config
 
-1. Edita teto (3 modos) e slots (nome + hora, 2–6) à vontade.
+1. Edita teto (3 modos) e slots (nome + hora, 2–6 por grupo) à vontade. Modo das refeições independente do teto: Todos os dias, Seg–Sex · Sáb–Dom, Cada dia. same mantém as linhas individuais da Config; os outros mostram uma linha por grupo com quantidade e intervalo. Toque abre editor em tela cheia, com cabeçalho da Config e o mesmo passo a passo, cópia e confirmação de descarte da O3.
 2. Campo “treino hoje” kcal. Null = crédito 0. Some no rollover SP. Também pode ser informado pela Home (linha "Treino de hoje", [home-timeline](home-timeline.md) regra 11): mesmo campo `day.workoutKcal`, mesmo editor (campo 28 pt + linha de crédito ao vivo), mesma validação.
 3. Política eat-back 0% / % / 100%.
 4. Alvos P/C/G editáveis.
 5. Mudou teto: diálogo “Reiniciar registros de hoje?”. Default sim. Confirmar → `wipeToday` (meal_log + skip + digest de hoje). Cancelar → teto não é salvo. Chat UI fica. Prompt do dia recomeça: `wipeToday` grava em `chat_message` um marcador `wiped` (nunca desenhado, nunca enviado) e o prompt só leva raw depois dele.
-6. Mudou só nome/hora: relabela. Não apaga logs.
+6. Mudou nome/hora, modo ou dias: não apaga logs. IDs mantidos continuam associados; logs sem slot do dia vão para "Outros" (ADR-021 regra 7).
 7. Back → Home.
 8. Copy dos sheets ([A20](../../android/plans/pending_manual_validation/a20-polimento-geral.md)): "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
-9. Todo sheet termina no par `Salvar` / `Cancelar`: dois botões pill de largura total e 52 dp. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema.
+9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar`: dois botões pill de largura total e 52 dp. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema.
 
 ## Regras — push
 
-1. Exact alarm no horário de cada slot do perfil.
+1. Exact alarm no horário de cada slot do dia corrente em America/Sao_Paulo (inexato quando a permissão não permite exato).
 2. Só dispara se o slot ainda não tem log nem skip.
 3. Copy: “{nome}. Ainda não registrou.”
 4. Ações: Registrar → Chat. Pular → skip + cancela o alarm daquele slot.
-5. Fds: os slots que o user cadastrou. Não cair para “só almoço + janta” se ele cadastrou mais.
+5. Fds: só os slots cujo days inclui sábado/domingo. Não cair para “só almoço + janta” se ele cadastrou mais. Reagendamento às 00:05 SP, no boot, ao iniciar e ao editar; o fluxo em execução troca o dia em até 30 s. Alarmes de grupos removidos são cancelados.
 6. Sem Firebase.
 
 ## Fronteiras e ownership

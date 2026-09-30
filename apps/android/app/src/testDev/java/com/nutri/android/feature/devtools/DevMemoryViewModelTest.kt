@@ -183,6 +183,34 @@ class DevMemoryViewModelTest {
         assertThat(day.kcalWeekend).isEqualTo(2500)
     }
 
+    @Test
+    fun slotsByWeekday_editTodays_keepTheRestOfTheWeek() = runBlocking<Unit> {
+        // A24: Mon-Fri (31) and Sat-Sun (96) groups. Today is a Friday.
+        repo.saveSlots(
+            listOf(
+                MealSlot(name = "Café da manhã", minutesFromMidnight = 450, days = 31),
+                MealSlot(name = "Jantar", minutesFromMidnight = 1200, days = 31),
+                MealSlot(name = "Brunch", minutesFromMidnight = 630, days = 96),
+            ),
+            slotMode = "split",
+        )
+        vm = DevMemoryViewModel(repo, memory, clock, telemetry)
+        awaitUi { it.loaded && it.profileText.contains("refeicao.2=Jantar 20:00") }
+        assertThat(vm.uiState.value.profileText).doesNotContain("Brunch")
+
+        vm.setProfile(vm.uiState.value.profileText.replace("Jantar 20:00", "Janta 20:30"))
+        vm.save()
+        awaitUi { it.saved }
+
+        val day = repo.observeToday().first()
+        assertThat(day.slotMode).isEqualTo("split")
+        assertThat(day.slots.map { Triple(it.name, it.minutesFromMidnight, it.days) }).containsExactly(
+            Triple("Café da manhã", 450, 31),
+            Triple("Brunch", 630, 96),
+            Triple("Janta", 1230, 31),
+        ).inOrder()
+    }
+
     private suspend fun awaitUi(predicate: (DevMemoryUiState) -> Boolean) {
         withTimeout(5_000) { vm.uiState.first(predicate) }
     }

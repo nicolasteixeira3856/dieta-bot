@@ -6,6 +6,7 @@ import android.content.Intent
 import com.google.common.truth.Truth.assertThat
 import com.nutri.android.core.database.MealSlot
 import java.time.Instant
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Test
@@ -97,4 +98,22 @@ class SlotAlarmSchedulerTest : PushTestBase() {
         scheduler().resync()
         assertThat(slotAlarms().keys).containsExactly(slotIds[3])
     }
+
+    @Test fun rolloverToSaturdayCancelsWeekdayAlarmsAndSchedulesWeekendOnly() = runBlocking<Unit> {
+        repo.saveSlots(
+            listOf(MealSlot(name = "Útil", minutesFromMidnight = 450, days = 31),
+                MealSlot(name = "Fim de semana", minutesFromMidnight = 570, days = 96)), "split",
+        )
+        val slots = repo.observeToday().first().slots
+        val weekday = slots.single { it.days == 31 }.id
+        val weekend = slots.single { it.days == 96 }.id
+        val s = scheduler()
+        s.resync()
+        assertThat(slotAlarms().keys).containsExactly(weekday)
+        now = Instant.parse("2026-09-26T06:00:00-03:00")
+        s.resync()
+        assertThat(slotAlarms().keys).containsExactly(weekend)
+        assertThat(slotAlarms()[weekend]).isEqualTo(Instant.parse("2026-09-26T09:30:00-03:00").toEpochMilli())
+    }
+
 }

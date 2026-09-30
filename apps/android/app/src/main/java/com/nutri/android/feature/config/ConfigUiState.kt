@@ -2,6 +2,7 @@ package com.nutri.android.feature.config
 
 import androidx.compose.runtime.Immutable
 import com.nutri.android.domain.SlotSuggestions
+import com.nutri.android.feature.onboarding.SlotScheduleDraft
 import com.nutri.android.feature.onboarding.SlotDraft
 import com.nutri.android.feature.workout.WorkoutEditorState
 
@@ -12,7 +13,6 @@ enum class ConfigEditor { CEILING, EAT_BACK, MACROS, SLOTS, WORKOUT }
 data class ConfigSlotRow(val id: Long, val name: String, val time: String)
 
 /** Field values of the open sheet. Nothing reaches Room before Salvar (and the wipe dialog). */
-@Immutable
 data class ConfigDraft(
     val ceilingMode: String = "same",
     val sameField: String = "",
@@ -25,6 +25,7 @@ data class ConfigDraft(
     val carbField: String = "",
     val fatField: String = "",
     val slots: List<SlotDraft> = emptyList(),
+    val slotSchedule: SlotScheduleDraft = SlotScheduleDraft(),
     /** Empty = no workout today = credit 0. */
     val workoutField: String = "",
 ) {
@@ -42,12 +43,11 @@ data class ConfigDraft(
         ConfigEditor.CEILING -> ceilingFields().all { (it.toIntOrNull() ?: 0) > 0 }
         ConfigEditor.EAT_BACK -> eat != "partial" || (pct.toIntOrNull() ?: 0) > 0
         ConfigEditor.MACROS -> listOf(proteinField, carbField, fatField).all { it.toIntOrNull() != null }
-        ConfigEditor.SLOTS -> slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
+        ConfigEditor.SLOTS -> slotSchedule.pendingMode == null && slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
         ConfigEditor.WORKOUT -> true
     }
 }
 
-@Immutable
 data class ConfigUiState(
     val loaded: Boolean = false,
     /** Base ceiling of today, "2000 kcal". */
@@ -56,6 +56,8 @@ data class ConfigUiState(
     val eatBackValue: String = "",
     val macrosValue: String = "",
     val slots: List<ConfigSlotRow> = emptyList(),
+    val slotMode: String = "same",
+    val slotGroups: List<ConfigSlotRow> = emptyList(),
     /** "Nenhum informado" or "450 kcal". */
     val workoutValue: String = "",
     val creditKcal: Int = 0,
@@ -90,5 +92,11 @@ class ConfigActions(
     val onSlotCount: (Int) -> Unit = {},
     val onSlotName: (Int, String) -> Unit = { _, _ -> },
     val onSlotTime: (Int, Int) -> Unit = { _, _ -> },
+    val onSlotMode: (String) -> Unit = {},
+    val onConfirmSlotMode: () -> Unit = {},
+    val onCancelSlotMode: () -> Unit = {},
+    val onCopySlots: () -> Unit = {},
+    val onPreviousSlots: () -> Unit = {},
+    val onOpenSlotGroup: (Int) -> Unit = {},
     val onWorkout: (String) -> Unit = {},
 )

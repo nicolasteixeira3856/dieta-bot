@@ -121,12 +121,7 @@ class DevMemoryViewModel @Inject constructor(
             if (listOf(edited.pTarget, edited.cTarget, edited.gTarget) != listOf(before.pTarget, before.cTarget, before.gTarget)) {
                 repository.saveMacroTargets(edited.pTarget, edited.cTarget, edited.gTarget)
             }
-            if (edited.slots != before.slots) {
-                repository.saveSlots(
-                    edited.slots.map { MealSlot(it.id.toLong(), it.name, minutesOf(it.time)) }
-                        .sortedBy { it.minutesFromMidnight },
-                )
-            }
+            if (edited.slots != before.slots) repository.saveSlots(weekWith(edited))
             if (wipe) changeCeiling(baseCeiling(edited))
             telemetry.event(
                 DEV_MEMORY_SAVED,
@@ -158,6 +153,17 @@ class DevMemoryViewModel @Inject constructor(
             kcalWeekend = if (day.ceilingMode == "weekdayWeekend" && weekend) base else day.kcalWeekend,
             kcalDays = day.kcalDays.mapIndexed { i, v -> if (day.ceilingMode == "seven" && i == today.dayOfWeek.value - 1) base else v },
         )
+    }
+
+    /**
+     * A24: the profile lists today's slots only, saveSlots replaces the whole week. Every stored
+     * slot stays with its days; today's ones take the edited name and time.
+     */
+    private fun weekWith(edited: ChatProfile): List<MealSlot> {
+        val byId = edited.slots.associateBy { it.id.toLong() }
+        return day.slots.map { slot ->
+            byId[slot.id]?.let { slot.copy(name = it.name, minutesFromMidnight = minutesOf(it.time)) } ?: slot
+        }.sortedBy { it.minutesFromMidnight }
     }
 
     private fun fail(message: String) = _uiState.update { it.copy(error = message) }

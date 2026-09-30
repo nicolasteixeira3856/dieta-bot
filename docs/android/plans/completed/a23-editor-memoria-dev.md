@@ -104,7 +104,13 @@ Registre resultados e aplique o ciclo de vida de `docs/sdd/README.md`, com a ent
 3. Emulador próprio (`Small_Phone`, `emulator-5580`, `-read-only`; o `emulator-5554` do outro agente não foi usado): Config mostra a linha no fim; `Salvar` com memória vazia mostra `Memória vazia não é salva.`; digitar `Nao come gluten a23-teste-editor` e salvar → `Salvo.` e volta à Config; reabrir mostra a linha. Mensagem no Chat → `tools/pull-conversations.ps1 -RequestId 99ec8bc6-c1b3-4dc3-be7c-d3638b9f974b` mostra `MEMORY: Nao come gluten a23-teste-editor` no prompt do server de dev; a resposta cita o glúten. Tela conferida nos temas escuro e claro (ferramenta, sem gold).
 4. `ADB=<emulator-5580> tools/capture-config.sh dark`: `✓ dev row hidden`, `cfg` capturado e `node tools/diff-gold.mjs dark/cfg` = 0,40 % (limite 2 %). Duas checagens do script falham (`empty workout: Nenhum informado`, `workout null`) e falham igual com o APK da `origin/master`: não é do A23. As capturas não foram versionadas neste plano (a tela nova não tem gold).
 
+### Merge com o A24 (29/09/2026, autorizado pelo dono)
+
+- Conflitos de texto resolvidos em `tools/capture-config.sh` (mantidos o `setprop` do A23 e o `|| exit 1` do A24), `docs/android/README.md` e `memoria-push.md` (estados dos dois planos). Matriz de `docs/README.md` corrigida: A24 pendente de validação manual.
+- Ajuste ao A24: o perfil mostra só as refeições de hoje (`slotsOn`), mas `saveSlots` substitui a semana inteira. O editor agora aplica nome e horário editados sobre todas as refeições gravadas, mantendo `days` e o `slotMode`; nenhuma refeição de outro dia é apagada. Teste `slotsByWeekday_editTodays_keepTheRestOfTheWeek`.
+- A `origin/master` do A24 (a0b1ba1) não compilava: `ConfigScreen.kt` usa `remember` sem o import (conferido num worktree limpo). O import volta nesta entrega.
+- Depois do merge: `testDevDebugUnitTest`, `verifyRoborazziDevDebug` e `assembleDevRelease` verdes, sem falhas (o `o3` também passa). Varredura do prod repetida: zero ocorrências de `devtools`, `DevMemory`, `Memória da IA`, `dev_memory_saved`, `hide_dev_tools`.
+
 ### Pendências fora do escopo
 
-- `StitchGoldTest.o3_*` vermelho na master (A21).
-- `capture-config.sh`: apagar o treino no sheet grava 0 em vez de nulo (editor do A22).
+- `capture-config.sh`: apagar o treino no sheet grava 0 em vez de nulo (editor do A22; falha igual na master antes do A23).
