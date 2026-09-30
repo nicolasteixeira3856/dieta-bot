@@ -54,7 +54,7 @@ Mantém o ID atual para o uso diário, mas deixa o prod com um ID "sujo". Rejeit
 
 ## Relações
 
-- Planos: [A9](../plans/completed/a9-assinatura-release.md), [A10](../plans/completed/a10-flavors-dev-prod.md), [A11](../plans/pending_manual_validation/a11-firebase-dev.md).
+- Planos: [A9](../plans/completed/a9-assinatura-release.md), [A10](../plans/completed/a10-flavors-dev-prod.md), [A11](../plans/completed/a11-firebase-dev.md).
 - ADRs relacionados: [ADR-013](../../server/adrs/ADR-013-gcp-host.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), [002](../../decisions/002-android-client.md).
 - Contextos consumidores: [server](../../server/README.md) (header `X-Request-Id`).
 

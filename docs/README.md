@@ -9,9 +9,9 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | Contexto | Tipo | Código | Spec viva | ADR local | Plano ativo | Validação |
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md) | nenhum | [qa/](qa/) |
-| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A27](android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md), [A28](android/plans/pending_manual_validation/a28-memoria-v2.md) e [A29](android/plans/pending_manual_validation/a29-chat-v2-interface.md) pendentes de validação manual; [A21](android/plans/pending_manual_validation/a21-seletor-horario.md) e [A24](android/plans/pending_manual_validation/a24-refeicoes-por-dia.md) pendentes de validação manual; [A11, A17, A18](android/plans/pending_manual_validation/) pendentes de aprovação manual; [A0 arch, tokens, Roborazzi, A1, A2, A3, A4, A5, A5b, A6, A7, A8, A8b, A10, A12, A23, A26](android/plans/completed/) concluídos | [qa/android/](qa/android/) |
+| [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A0 arch, tokens, Roborazzi, A1–A29](android/plans/completed/) concluídos (A11, A17–A22, A24, A25, A27–A29 aprovado pelo dono em 30/09/2026); nenhum plano aberto | [qa/android/](qa/android/) |
 | [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1–ST6](stitch/README.md#planos) concluídos; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S12](server/plans/pending_manual_validation/s12-slot-nomeado.md), [S11](server/plans/pending_manual_validation/s11-chat-v2.md), [S8](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) e [S6](server/plans/pending_manual_validation/s6-log-conversa-dev.md) pendentes aprovação manual; [S1, S4, S2, S3, S5, S7, S9, S10](server/plans/completed/) concluídos | `server/tests/` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S1–S12](server/plans/completed/) concluídos (S6, S8, S11, S12 aprovado pelo dono em 30/09/2026); nenhum plano aberto | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -54,39 +54,11 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 ## Planos aguardando aprovação
 
-Ordem de `/goal` depois da frase de aprovação:
-
-Chat v2 + Memória v2 (30/09/2026, [ADR-023](produto/adrs/ADR-023-chat-v2-memoria-v2.md)). O ST6 está concluído (golds do A29 prontos).
-
-1. [S10 avaliador do Chat com casos reais](server/plans/completed/s10-avaliacao-chat.md) — concluído; linha de base 52,4% (11/21).
-2. [S11 Chat v2 no server](server/plans/pending_manual_validation/s11-chat-v2.md) — no ar no dev; avaliador 22/22 com `none` (effort mantido); falta o dono ver o plano sem card no APK 0.0.3.
-3. [A27 Chat v2 no app: texto da refeição, intenção, histórico de 7 dias](android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) — implementado (Room v5); falta o dono repetir café com resposta e pizza "vou fazer" no APK distribuído. Bom ponto para um build de teste.
-4. [A28 Memória v2 no app](android/plans/pending_manual_validation/a28-memoria-v2.md) — implementado (Room v6, memória em fatos, memória antiga apagada); falta uma semana de uso real olhando o editor dev. Build de teste.
-5. ✅ [ST6 golds `chatR`, `chatM`, `chatS`](stitch/plans/completed/st6-chat-v2.md) — concluído; golds exportados.
-6. [A29 Chat v2: plano, avisos de memória, sugestão da rotina](android/plans/pending_manual_validation/a29-chat-v2-interface.md) — implementado; capturas batem com `chatR`, `chatM`, `chatS`; falta o dono usar por alguns dias no APK distribuído. Build de teste.
-
-Lote do feedback dos testers (29/09/2026). A ordem respeita as dependências; um gate Stitch (⛔) é passo do dono, não aprovação.
-
-1. ✅ [A20 polimento: toque/vibração, botões dos sheets, respiro, Config](android/plans/pending_manual_validation/a20-polimento-geral.md) — implementado, vibração pendente de validação manual.
-2. ✅ [A23 editor de memória e perfil (dev)](android/plans/completed/a23-editor-memoria-dev.md) — concluído.
-3. ✅ [ST1](stitch/plans/completed/st1-chat.md) → ✅ [A19 chat visual](android/plans/pending_manual_validation/a19-chat-visual.md) — implementado, anexar e enviar no APK pendente de validação manual.
-4. ✅ [ST2](stitch/plans/completed/st2-home-treino.md) → ✅ [A22 treino na Home](android/plans/pending_manual_validation/a22-treino-home.md) — implementado, informar o treino pela Home no APK pendente de validação manual.
-5. ✅ [ST3](stitch/plans/completed/st3-seletor-horario.md) → [A21 seletor de horário](android/plans/pending_manual_validation/a21-seletor-horario.md) — implementado; validação manual de 07:30 e 21:45 pendente.
-6. ✅ [ST4](stitch/plans/completed/st4-refeicoes-por-dia.md) → [A24 refeições por dia](android/plans/pending_manual_validation/a24-refeicoes-por-dia.md) — implementado, pendente aprovação manual.
-
-Limite de texto do Chat (29/09/2026, [ADR-022](produto/adrs/ADR-022-limite-texto-chat.md)). Independe do lote acima:
-
-1. ✅ [ST5](stitch/plans/completed/st5-chat-texto-longo.md) → ✅ [A25 composer: limite de 2000 com estado de erro](android/plans/pending_manual_validation/a25-limite-texto-composer.md) — implementado, colar texto longo no APK pendente de validação manual. O [S9](server/plans/completed/s9-limite-texto-2000.md) já está no ar.
-
+Nenhum. Chat v2 + Memória v2 ([ADR-023](produto/adrs/ADR-023-chat-v2-memoria-v2.md): S10, S11, S12, A27, A28, ST6, A29), o lote do feedback dos testers (A19–A24, ST1–ST4) e o limite de texto ([ADR-022](produto/adrs/ADR-022-limite-texto-chat.md): ST5, A25, S9) estão concluídos.
 
 ## Planos pendentes de aprovação manual
 
-1. [A11 Firebase Crashlytics + Analytics no dev](android/plans/pending_manual_validation/a11-firebase-dev.md) — Crashlytics e Analytics validados no emulador; Analytics ativado no console; falta o dono instalar o APK e usar por 1 dia.
-2. [S6 log de conversa no server de dev](server/plans/pending_manual_validation/s6-log-conversa-dev.md) — no ar; o "nao deu para estimar" já foi explicado pelo log (29/09, virou o S8); falta o dono aprovar.
-3. [S8 chat: JSON garantido, slot sugerido, refeição consolidada](server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — no ar no dev (29/09); 64 testes e 4 replays do log OK; falta o dono ver "Gravar café" no APK 0.0.2.
-4. [A17 changelog humano no deploy](android/plans/pending_manual_validation/a17-changelog-deploy.md) — `-Notes` obrigatório e validado antes do build; falta o primeiro deploy real com notas no App Tester e seção no `CHANGELOG.md`.
-5. [A18 chat: refeição consolidada, Enter, foto 2048 px](android/plans/pending_manual_validation/a18-chat-registro-foto.md) — substituir com confirmação, Enter pula linha, foto 2048 px q85 sem EXIF; unit, Roborazzi e emulador OK; falta o dono repetir esfihas + suco no APK distribuído.
-6. [A25 composer: limite de 2000 com estado de erro](android/plans/pending_manual_validation/a25-limite-texto-composer.md) — nada é cortado; acima de 2000 borda vermelha e "Texto muito longo", enviar e câmera desligados; unit, gold e emulador OK; falta o dono colar um texto longo no APK distribuído.
+Nenhum. Em 30/09/2026 o dono aprovou todos os que estavam pendentes: [A11](android/plans/completed/a11-firebase-dev.md), [A17](android/plans/completed/a17-changelog-deploy.md), [A18](android/plans/completed/a18-chat-registro-foto.md), [A19](android/plans/completed/a19-chat-visual.md), [A20](android/plans/completed/a20-polimento-geral.md), [A21](android/plans/completed/a21-seletor-horario.md), [A22](android/plans/completed/a22-treino-home.md), [A24](android/plans/completed/a24-refeicoes-por-dia.md), [A25](android/plans/completed/a25-limite-texto-composer.md), [A27](android/plans/completed/a27-chat-v2-texto-intencao.md), [A28](android/plans/completed/a28-memoria-v2.md), [A29](android/plans/completed/a29-chat-v2-interface.md), [S6](server/plans/completed/s6-log-conversa-dev.md), [S8](server/plans/completed/s8-chat-json-slot-consolidado.md), [S11](server/plans/completed/s11-chat-v2.md) e [S12](server/plans/completed/s12-slot-nomeado.md).
 
 ## Planos concluídos
 

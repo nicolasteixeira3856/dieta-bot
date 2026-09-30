@@ -1,6 +1,7 @@
 # Plano — S12 Slot da refeição: o nome vence a semelhança com o registro
 
-- Estado: Pendente aprovação manual (aprovado e implementado em 30/09/2026)
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 30/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py` (`_CHAT_INSTRUCTIONS`), `server/evals/cases/`
@@ -43,7 +44,7 @@ Quando a comida da resposta repete a de um slot gravado e a conversa daquele slo
 ## Fontes de verdade
 
 - [v1-chat](../../specifications/v1-chat.md) regras 4 e 6, [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md), [chat](../../../produto/specifications/chat.md) regra 4.
-- [S10](../completed/s10-avaliacao-chat.md) (avaliador), [S11](s11-chat-v2.md) (instruções atuais).
+- [S10](s10-avaliacao-chat.md) (avaliador), [S11](s11-chat-v2.md) (instruções atuais).
 
 ## Escopo de implementação
 

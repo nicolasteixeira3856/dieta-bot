@@ -1,6 +1,7 @@
 # Plano — A20 Polimento: feedback de toque, botões dos sheets, respiro de scroll, Config
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Aprovado: 29/09/2026 ("Aprovo o plano `docs/android/plans/a20-polimento-geral.md`. Implemente o plano aprovado.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`
@@ -95,7 +96,7 @@ Os ajustes de layout do feedback que não precisam de Stitch.
 ## Fora de escopo
 
 - Qualquer mudança de gold ou de tela nova.
-- Seletor de horário: [A21](../pending_manual_validation/a21-seletor-horario.md).
+- Seletor de horário: [A21](a21-seletor-horario.md).
 
 ## Riscos e controles
 

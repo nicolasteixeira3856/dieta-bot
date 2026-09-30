@@ -1,6 +1,7 @@
 # Plano — A21 Seletor de horário em rodas
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Aprovado: 29/09/2026 (owner approval naming this plan).
 - Data: 29/09/2026
 - Contexto proprietário: `android`

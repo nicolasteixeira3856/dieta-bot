@@ -43,7 +43,7 @@ API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula tet
 ## Cobertura documental atual
 
 Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) e [S10](plans/completed/s10-avaliacao-chat.md) concluidos. [S8](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md), [S11](plans/pending_manual_validation/s11-chat-v2.md) e [S12](plans/pending_manual_validation/s12-slot-nomeado.md) pendentes aprovacao manual.
+[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) e [S10](plans/completed/s10-avaliacao-chat.md) concluidos. [S8](plans/completed/s8-chat-json-slot-consolidado.md), [S11](plans/completed/s11-chat-v2.md) e [S12](plans/completed/s12-slot-nomeado.md) pendentes aprovacao manual.
 
 ## Como usar esta documentacao
 
@@ -56,7 +56,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. `/v1/chat` pede saida estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil) e texto sem JSON vira `reply` ([S8](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)). Corpo ate 24 MB (`MAX_BODY_BYTES`). `text` e `messages[].text` do `/v1/chat` ate 2000 caracteres ([S9](plans/completed/s9-limite-texto-2000.md)). Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. Chat v2 ([S11](plans/pending_manual_validation/s11-chat-v2.md), ADR-023): `intent`, `meal_text`, memoria em fatos (`facts`), `recent`, `remaining_kcal`, `memory_updates`, `memory_used`; cliente sem `facts` = legado (plano sem card). `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md).
+Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. `/v1/chat` pede saida estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil) e texto sem JSON vira `reply` ([S8](plans/completed/s8-chat-json-slot-consolidado.md)). Corpo ate 24 MB (`MAX_BODY_BYTES`). `text` e `messages[].text` do `/v1/chat` ate 2000 caracteres ([S9](plans/completed/s9-limite-texto-2000.md)). Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. Chat v2 ([S11](plans/completed/s11-chat-v2.md), ADR-023): `intent`, `meal_text`, memoria em fatos (`facts`), `recent`, `remaining_kcal`, `memory_updates`, `memory_used`; cliente sem `facts` = legado (plano sem card). `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md).
 
 Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
@@ -93,12 +93,12 @@ cd server
 ### Planos e validacao
 
 - [S10 concluido](plans/completed/s10-avaliacao-chat.md) — avaliador do Chat com casos reais (`server/evals/`); linha de base `none` 52,4% (11/21) ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md)).
-- [S12 pendente aprovacao manual](plans/pending_manual_validation/s12-slot-nomeado.md) — slot da refeicao: o nome dito pelo usuario vence a semelhanca com uma refeicao ja gravada; avaliador 29/29 (7 casos `slot` 5/5); no ar no dev; falta o dono repetir o "cafe igual ao de ontem" no APK.
-- [S11 pendente aprovacao manual](plans/pending_manual_validation/s11-chat-v2.md) — Chat v2: intencao, `meal_text`, memoria em fatos, `recent`, `remaining_kcal`; avaliador 22/22, effort `none` mantido; no ar no dev; falta o dono ver o plano sem card no APK 0.0.3.
+- [S12 concluido](plans/completed/s12-slot-nomeado.md) — slot da refeicao: o nome dito pelo usuario vence a semelhanca com uma refeicao ja gravada; avaliador 29/29 (7 casos `slot` 5/5); no ar no dev; aprovado pelo dono em 30/09/2026.
+- [S11 concluido](plans/completed/s11-chat-v2.md) — Chat v2: intencao, `meal_text`, memoria em fatos, `recent`, `remaining_kcal`; avaliador 22/22, effort `none` mantido; no ar no dev; aprovado pelo dono em 30/09/2026.
 - [S9 concluido](plans/completed/s9-limite-texto-2000.md) — `/v1/chat` aceita `text` e `messages[].text` ate 2000 caracteres ([ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md)); no ar no dev.
-- [S8 pendente aprovacao manual](plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) — saida estruturada (`json_schema` strict), slot sugerido, refeicao consolidada, total sem comida sem estimate, corpo 24 MB; no ar no dev; falta o dono ver "Gravar cafe" no APK 0.0.2.
+- [S8 concluido](plans/completed/s8-chat-json-slot-consolidado.md) — saida estruturada (`json_schema` strict), slot sugerido, refeicao consolidada, total sem comida sem estimate, corpo 24 MB; no ar no dev; aprovado pelo dono em 30/09/2026.
 - [S7 concluido](plans/completed/s7-rename-prompt.md) — "Dieta Bot" no prompt do Chat.
-- [S6 pendente aprovacao manual](plans/pending_manual_validation/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; o "nao deu" ja foi explicado pelo log (29/09); falta o dono aprovar.
+- [S6 concluido](plans/completed/s6-log-conversa-dev.md) — log de conversa no server de dev + `X-Request-Id`; o "nao deu" ja foi explicado pelo log (29/09); aprovado pelo dono em 30/09/2026.
 - [S5 concluido](plans/completed/s5-gcp-deploy.md) — deploy GCP e2-micro + Caddy.
 - [S1 concluido](plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16 MB.
 - [S4 concluido](plans/completed/s4-security-hardening.md) — hardening de seguranca (rate limiting, constant time auth, payload limit).

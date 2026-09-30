@@ -1,7 +1,7 @@
 # A21 — Meal time wheel validation
 
 Date: 2026-09-29 (America/Sao_Paulo).
-Plan: [A21](../plans/pending_manual_validation/a21-seletor-horario.md).
+Plan: [A21](../plans/completed/a21-seletor-horario.md).
 Design prerequisite: [completed ST3](../../stitch/plans/completed/st3-seletor-horario.md).
 
 ## Implementation
@@ -106,4 +106,4 @@ test was disabled. The wheel dialog has its own passing ST3 comparison.
 ## Pending owner validation
 
 Choose 07:30 and 21:45 comfortably on the physical device. This subjective check
-has not been performed by the agent. The plan remains `Pendente aprovação manual`.
+has not been performed by the agent. The owner approved the plan on 30/09/2026; it is `Concluído`.

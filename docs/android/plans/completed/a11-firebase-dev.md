@@ -1,10 +1,11 @@
 # Plano — A11 Firebase Crashlytics + Analytics no flavor dev
 
-- Estado: Pendente aprovação manual (passos 23–25: app no celular, uso de 1 dia, leitura pelo agente)
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 28/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (Gradle, `src/main` interface de telemetria + interceptor, `src/dev` Firebase, `src/prod` no-op), `.mcp.json`, `.gitignore`, docs. Fora do repo: projeto Firebase `nutri-bot-dev`.
-- Pré-requisitos: [A10](../completed/a10-flavors-dev-prod.md) concluído (ADR-014 aceito). [S6](../../../server/plans/pending_manual_validation/s6-log-conversa-dev.md) recomendado antes, mas não obrigatório: sem ele, o `X-Request-Id` do app só aparece no Firebase.
+- Pré-requisitos: [A10](a10-flavors-dev-prod.md) concluído (ADR-014 aceito). [S6](../../../server/plans/completed/s6-log-conversa-dev.md) recomendado antes, mas não obrigatório: sem ele, o `X-Request-Id` do app só aparece no Firebase.
 
 ## Gate de autorização
 

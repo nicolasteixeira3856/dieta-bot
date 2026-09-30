@@ -1,6 +1,7 @@
 # Plano — A24 Refeições por dia da semana
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`core/database` — Room v3 → v4, `domain`, `feature/onboarding`, `feature/config`, `feature/home`, `feature/chat/PromptBuilder.kt`, `core/push`)

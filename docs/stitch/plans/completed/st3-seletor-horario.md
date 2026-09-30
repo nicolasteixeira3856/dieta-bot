@@ -5,7 +5,7 @@
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
 - Executa: [ADR-020](../../../produto/adrs/ADR-020-estados-novos-chat-home-horario.md)
-- Bloqueia: [A21 Seletor de horário](../../../android/plans/pending_manual_validation/a21-seletor-horario.md); é pré-requisito do [ST4](st4-refeicoes-por-dia.md).
+- Bloqueia: [A21 Seletor de horário](../../../android/plans/completed/a21-seletor-horario.md); é pré-requisito do [ST4](st4-refeicoes-por-dia.md).
 
 Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 

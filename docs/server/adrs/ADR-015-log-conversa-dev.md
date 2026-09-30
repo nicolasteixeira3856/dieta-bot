@@ -46,7 +46,7 @@ Não tem a saída crua nem o prompt montado. Rejeitada ([ADR-014](../../android/
 
 ## Relações
 
-- Plano: [S6](../plans/pending_manual_validation/s6-log-conversa-dev.md).
+- Plano: [S6](../plans/completed/s6-log-conversa-dev.md).
 - Especificações afetadas: [api-contract.md](../../api-contract.md) (header opcional `X-Request-Id`).
 - ADRs relacionados: [ADR-013](ADR-013-gcp-host.md), [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md).
 

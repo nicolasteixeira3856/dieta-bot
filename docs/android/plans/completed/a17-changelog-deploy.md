@@ -1,6 +1,7 @@
 # Plano — A17 Changelog humano no deploy de teste
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Aprovado: 29/09/2026 ("Aprovo o plano `docs/android/plans/a17-changelog-deploy.md`. Implemente o plano aprovado.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`

@@ -4,7 +4,7 @@
 - Data: 28/09/2026
 - Contexto proprietário: `android` (também toca docs, skills e `AGENTS.md`)
 - Código afetado: `apps/android/`, `tools/` (comentários e textos esperados), `AGENTS.md`, `SETUP.md`, `docs/` vivos, skills (`.agents`, `.grok`, `.hermes`), golds `docs/qa/stitch/`. `server/` **não** (é o [S7](../../../server/plans/completed/s7-rename-prompt.md)).
-- Pré-requisitos: [A12](../completed/a12-remover-legado-t123.md) concluído (menos arquivos para renomear). [ADR-016](../../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito junto com a aprovação.
+- Pré-requisitos: [A12](a12-remover-legado-t123.md) concluído (menos arquivos para renomear). [ADR-016](../../../produto/adrs/ADR-016-nome-dieta-bot.md) aceito junto com a aprovação.
 
 ## Gate de autorização
 

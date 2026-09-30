@@ -1,6 +1,7 @@
 # Plano — S8 Chat: JSON garantido, slot sugerido e refeição consolidada
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 29/09/2026 (aprovado e implementado em 29/09/2026)
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py`, `server/shaping.py`, `server/main.py`, `server/config.py`, `server/tests/`
@@ -105,7 +106,7 @@ Acrescentar, em inglês, no bloco fixo (prefixo estável, bom para o cache autom
 
 ## Fora de escopo
 
-- UI do client (pergunta em bolha, confirmação de substituir): [A18](../../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) e [A19](../../../android/plans/pending_manual_validation/a19-chat-visual.md).
+- UI do client (pergunta em bolha, confirmação de substituir): [A18](../../../android/plans/completed/a18-chat-registro-foto.md) e [A19](../../../android/plans/completed/a19-chat-visual.md).
 - `/v1/estimate` e `/v1/fit`.
 - Troca de modelo ou de `reasoning.effort`.
 

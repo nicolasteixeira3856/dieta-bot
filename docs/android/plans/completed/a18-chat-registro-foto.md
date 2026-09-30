@@ -1,11 +1,12 @@
 # Plano — A18 Chat: refeição consolidada, teclado e foto 2048 px
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Aprovado: 29/09/2026 ("Aprovo o plano `docs/android/plans/a18-chat-registro-foto.md`. Implemente o plano aprovado.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat`, `core/photo`, `domain/PhotoGate.kt`, `core/database` repository)
-- Pré-requisitos: [S8](../../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) no ar (slot sugerido e estimativa da refeição inteira). Aceita o [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md) e o [ADR-018](../../adrs/ADR-018-foto-2048.md).
+- Pré-requisitos: [S8](../../../server/plans/completed/s8-chat-json-slot-consolidado.md) no ar (slot sugerido e estimativa da refeição inteira). Aceita o [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md) e o [ADR-018](../../adrs/ADR-018-foto-2048.md).
 
 ## Gate de autorização
 
