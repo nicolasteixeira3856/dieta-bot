@@ -1,5 +1,8 @@
 package com.nutri.android.feature.chat
 
+import com.nutri.android.domain.Macros
+import com.nutri.android.domain.ProjectedDay
+
 /** States drawn in the Stitch chat golds (Café 07:30 ... Jantar 20:00, 25 de setembro). */
 object ChatFixtures {
     private val slots = listOf(
@@ -77,4 +80,61 @@ object ChatFixtures {
         slots = slots,
         currentSlotId = 2,
     )
+
+    /** chatR (ST6): a plan with the day projected by the app and one Registrar assim. */
+    val chatR = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(7, "Vou fazer uma pizza de pão sírio na janta. Quantas gramas de cada item?", "20:15"),
+            ChatItem.Assistant(
+                id = 8,
+                text = "Para caber nas 560 kcal que sobram hoje:\n" +
+                    "• 1 pão sírio (60 g)\n" +
+                    "• 2 colheres de sopa de molho de tomate (30 g)\n" +
+                    "• 100 g de frango desfiado\n" +
+                    "• 30 g de milho\n" +
+                    "• 30 g de muçarela\n" +
+                    "Monte e leve ao forno a 200 °C por 8 a 10 min.\n" +
+                    "Total: ~420 kcal · 40P · 38C · 12G",
+                time = "20:15",
+                plan = ProjectedDay(1640, Macros(2060, 126, 190, 58), 2200, Macros(0, 167, 223, 74)),
+            ),
+        ),
+        emptyDay = false,
+        actions = EstimateActions(8, record = slots[3], skip = slots[3], plan = true),
+        slots = slots,
+        currentSlotId = 4,
+    )
+
+    /** chatM (ST6): the memory changed this turn and the answer used both memories. */
+    val chatM = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(9, "Café da manhã igual ao de sempre, mas hoje com pão integral", "20:15"),
+            ChatItem.Assistant(
+                id = 10,
+                text = "Usei o seu café de sempre, com pão integral no lugar do francês e leite semidesnatado, como você costuma usar.",
+                time = "20:15",
+                estimate = EstimateView(430, 26, 36, 20, "Deseja registrar essa refeição no Café da manhã?", null),
+                memory = MemoryNotice(updated = true, permanent = true, dynamic = true),
+            ),
+        ),
+        emptyDay = false,
+        actions = EstimateActions(10, record = slots[0], skip = slots[0]),
+        slots = slots,
+        currentSlotId = 4,
+    )
+
+    /** chatS (ST6): empty day at breakfast time, the usual breakfast suggested. */
+    private val routine = RoutineSuggestion(
+        factId = "D1",
+        slot = slots[0],
+        text = "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite semidesnatado, café",
+        kcal = 440,
+        p = 25,
+        c = 38,
+        g = 22,
+        permanent = false,
+    )
+    val chatS = chat0.copy(items = chat0.items + ChatItem.Routine(routine), routine = routine, currentSlotId = 1)
 }
