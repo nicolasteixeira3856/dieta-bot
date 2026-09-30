@@ -43,6 +43,17 @@ class AtomicMemoryFileTest {
     }
 
     @Test
+    fun storeReplace_keepsCipherAndAtomicFile() = runBlocking<Unit> {
+        val store = MemoryStore(file())
+        store.append("Almoço: frango (600 kcal)")
+        assertThat(store.replace("Jantar: sopa de legumes (350 kcal)")).isTrue()
+
+        assertThat(file().read()).isEqualTo("Jantar: sopa de legumes (350 kcal)")
+        assertThat(String(bin.readBytes(), Charsets.UTF_8)).doesNotContain("sopa")
+        assertThat(File(dir, "memory.bin.new").exists()).isFalse()
+    }
+
+    @Test
     fun missing_readsNull() {
         assertThat(file().read()).isNull()
     }

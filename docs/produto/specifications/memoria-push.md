@@ -6,7 +6,7 @@ Memória vigente desde o [A8](../../android/plans/completed/a8-memoria.md): `fil
 
 Desde o [A22](../../android/plans/pending_manual_validation/a22-treino-home.md): o treino do dia também pode ser informado pela Home, com o mesmo editor.
 
-Mudanças planejadas (29/09/2026, aguardando aprovação): editor de memória só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md), [A23](../../android/plans/a23-editor-memoria-dev.md)). Push por dia da semana e edição de refeições em grupos vigentes desde o [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
+Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no flavor dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST. Push por dia da semana e edição de refeições em grupos vigentes desde o [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
 
 ## Contexto e objetivo
 
@@ -27,6 +27,7 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 3. Teto ~1,3 k tok junto com o perfil. O que não ocorre cede lugar ao que ocorre.
 4. Atualiza quando o user confirma Gravar (`{slot}: {descrição} ({kcal} kcal)`), Substituir (`{slot} (atualizado): {descrição} ({kcal} kcal)`) ou quando responde assunção (`Respondeu "{pergunta}": {resposta}`). Não a cada prosa. Acima de 4000 chars, as linhas mais velhas saem.
 5. Sobrevive `wipeToday`. Morre no uninstall.
+6. Só no dev (A23): o editor substitui o texto inteiro com as mesmas regras (linha limpa, ≤ 240 chars por linha, corte em 4000). Texto vazio é recusado (`Memória vazia não é salva.`): ferramenta não apaga.
 
 ## Regras — foto
 

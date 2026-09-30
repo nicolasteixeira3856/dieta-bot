@@ -55,6 +55,8 @@ import com.nutri.android.feature.config.ConfigViewModel
 import com.nutri.android.core.telemetry.NoopTelemetry
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
+import com.nutri.android.flavor.FlavorConfigRows
+import com.nutri.android.flavor.flavorDestinations
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.serialization.Serializable
@@ -295,8 +297,10 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onWorkout = vm::setWorkout,
                     )
                 }
-                ConfigScreen(ui, actions)
+                ConfigScreen(ui, actions) { FlavorConfigRows(nav) }
             }
+            // ADR-019: dev-only tool routes (A23). prod adds none.
+            flavorDestinations(nav)
         }
     }
 }

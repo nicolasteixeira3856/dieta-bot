@@ -1,6 +1,6 @@
 # ADR-019 — Telas de ferramenta só no flavor dev
 
-- Estado: Proposto (aceito junto com a aprovação do A23)
+- Estado: Aceito (29/09/2026, com a aprovação do A23)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o `AGENTS.md` ("Screens: ADR-012 … Nothing else", "No screenshot, UI is not done"), só para telas que existem apenas no flavor `dev`.
@@ -15,7 +15,7 @@ O dono quer ver e editar, pelo celular, a memória e o perfil que o app manda pa
 2. Ferramenta não entra na lista do ADR-012, não tem gold no Stitch e não passa pelo loop de captura vs gold.
 3. Ferramenta usa o tema e os tokens do app (`AGENTS.md` § Tokens), sem scroll horizontal. O flavor `prod` não pode ter nenhuma classe, rota ou texto dela.
 4. Ferramenta nunca apaga dados. Editar e salvar pode.
-5. A primeira ferramenta é o editor de memória e perfil ([A23](../../android/plans/a23-editor-memoria-dev.md)), aberto por uma linha extra na Config do dev.
+5. A primeira ferramenta é o editor de memória e perfil ([A23](../../android/plans/completed/a23-editor-memoria-dev.md)), aberto por uma linha extra na Config do dev.
 
 ## Motivação
 

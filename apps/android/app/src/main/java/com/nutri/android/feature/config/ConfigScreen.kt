@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -76,9 +77,12 @@ private val CardShape = RoundedCornerShape(16.dp)
 /** Stitch cfg: secondary copy is text at ~78% in dark (#c0c7d0), the muted token in light. */
 private fun Palette.secondary(): Color = if (isDark) text.copy(alpha = 0.78f) else muted
 
-/** Config (ADR-012 cfg + wipe). Rows open edit sheets; a new ceiling asks before wiping today. */
+/**
+ * Config (ADR-012 cfg + wipe). Rows open edit sheets; a new ceiling asks before wiping today.
+ * [extra] goes after the wipe note: flavor rows (A23 dev tools, ADR-019), empty in prod.
+ */
 @Composable
-fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions) {
+fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable ColumnScope.() -> Unit = {}) {
     val p = LocalPalette.current
     Box(
         Modifier
@@ -135,6 +139,7 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions) {
                     ) { actions.onOpen(ConfigEditor.WORKOUT) }
                 }
                 WipeNote()
+                extra()
             }
         }
         if (ui.editor == ConfigEditor.SLOTS) {
@@ -198,7 +203,7 @@ private fun SectionLabel(text: String, top: Dp = 26.dp) {
 }
 
 @Composable
-private fun Group(content: @Composable ColumnScope.() -> Unit) {
+internal fun Group(content: @Composable ColumnScope.() -> Unit) {
     val p = LocalPalette.current
     Column(
         Modifier
@@ -216,7 +221,7 @@ private fun Divider() {
 }
 
 @Composable
-private fun SettingRow(
+internal fun SettingRow(
     title: String,
     value: String,
     tag: String,
@@ -390,7 +395,7 @@ private fun MacrosEditor(d: ConfigDraft, a: ConfigActions) {
 // ----------------------------------------------------------------------------- wipe
 
 @Composable
-private fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
+internal fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
     val p = LocalPalette.current
     BackHandler(onBack = onCancel)
     // Stitch wipe: near-black/80 dark, text colour/40 light (same scrim as chatP).
