@@ -1,0 +1,70 @@
+{
+  "id": "slot-noturno-jantei",
+  "since": "v2",
+  "tags": [
+    "log",
+    "slot"
+  ],
+  "request": {
+    "local_time": "2026-09-30T03:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1740,
+      "p_target": 131,
+      "c_target": 174,
+      "g_target": 58,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Jantar",
+          "time": "03:00"
+        },
+        {
+          "id": "2",
+          "name": "Café",
+          "time": "14:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 1740,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "jantei um prato de macarrão com carne moída",
+    "image_b64": null,
+    "compact": false,
+    "facts": []
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "1"
+  }
+}

@@ -1,10 +1,10 @@
 # Plano — S12 Slot da refeição: o nome vence a semelhança com o registro
 
-- Estado: Aguardando aprovação
+- Estado: Pendente aprovação manual (aprovado e implementado em 30/09/2026)
 - Data: 30/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py` (`_CHAT_INSTRUCTIONS`), `server/evals/cases/`
-- Pré-requisitos: [S11](pending_manual_validation/s11-chat-v2.md) no ar no server de dev (instruções e avaliador atuais). Sem mudança de contrato, schema ou client.
+- Pré-requisitos: [S11](s11-chat-v2.md) no ar no server de dev (instruções e avaliador atuais). Sem mudança de contrato, schema ou client.
 
 ## Gate de autorização
 
@@ -16,7 +16,7 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 ## Objetivo
 
-O `suggested_slot` segue o que o usuário disse da refeição, com os nomes e horários do perfil dele, mesmo que a comida seja parecida com uma refeição já gravada no dia. A regra de refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)) só vale quando a mensagem se refere à refeição gravada.
+O `suggested_slot` segue o que o usuário disse da refeição, com os nomes e horários do perfil dele, mesmo que a comida seja parecida com uma refeição já gravada no dia. A regra de refeição consolidada ([ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md)) só vale quando a mensagem se refere à refeição gravada.
 
 ## Diagnóstico (30/09/2026, validação do A27)
 
@@ -42,14 +42,14 @@ Quando a comida da resposta repete a de um slot gravado e a conversa daquele slo
 
 ## Fontes de verdade
 
-- [v1-chat](../specifications/v1-chat.md) regras 4 e 6, [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [chat](../../produto/specifications/chat.md) regra 4.
-- [S10](completed/s10-avaliacao-chat.md) (avaliador), [S11](pending_manual_validation/s11-chat-v2.md) (instruções atuais).
+- [v1-chat](../../specifications/v1-chat.md) regras 4 e 6, [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md), [chat](../../../produto/specifications/chat.md) regra 4.
+- [S10](../completed/s10-avaliacao-chat.md) (avaliador), [S11](s11-chat-v2.md) (instruções atuais).
 
 ## Escopo de implementação
 
 ### 0. Confirmar com o log real
 
-Antes de mudar o prompt: ler no log de conversa do dev ([S6](pending_manual_validation/s6-log-conversa-dev.md)) o turno de 30/09/2026 ~15:55 do emulador e conferir se o prompt enviado bate com o cenário reproduzido (histórico do almoço + pergunta do café). Se não bater, parar e reportar antes de seguir.
+Antes de mudar o prompt: ler no log de conversa do dev ([S6](s6-log-conversa-dev.md)) o turno de 30/09/2026 ~15:55 do emulador e conferir se o prompt enviado bate com o cenário reproduzido (histórico do almoço + pergunta do café). Se não bater, parar e reportar antes de seguir.
 
 ### 1. Instruções (`_CHAT_INSTRUCTIONS`, em inglês)
 
@@ -80,7 +80,7 @@ As expectativas usadas (`suggested_slot`, `reply_not`, `meal_text_has`) já exis
 
 ### 3. Spec e contrato
 
-- [v1-chat](../specifications/v1-chat.md) regras 4 e 6: a ordem de prioridade acima e "nomes e horários só do PROFILE".
+- [v1-chat](../../specifications/v1-chat.md) regras 4 e 6: a ordem de prioridade acima e "nomes e horários só do PROFILE".
 - `docs/api-contract.md`: sem mudança de campo. Só a frase do `suggested_slot` se ela citar a ordem.
 
 ## Arquivos e áreas afetadas
@@ -121,3 +121,34 @@ As expectativas usadas (`suggested_slot`, `reply_not`, `meal_text_has`) já exis
 Depois da implementação, registre resultados reais e aplique o ciclo de vida em `docs/sdd/README.md`, incluindo a entrega git (§ 6).
 
 Só declaração explícita do dono cancelando este plano permite `Cancelado` e a pasta `plans/cancelled/`.
+
+## Resultados (30/09/2026)
+
+### 0. Log real
+
+`./tools/pull-conversations.ps1 -Download`, request `9fc7f37a-5ddd-46b1-9b0d-113fad55af0d` (0.0.3-dev, 15:55:25): HISTORY com a conversa do almoço ("almocei 2 ovos mexidos e 1 pao frances" → "com manteiga") e "cafe igual ao de ontem" → "O que você comeu ou bebeu?"; mensagem "2 ovos mexidos, 1 pao frances e 200 ml de leite"; DAY com o slot 1 (Almoço) `eaten` com o mesmo texto. Saída: `suggested_slot` "1" e "substituindo o almoço já registrado". Bate com o cenário. Diferença: no perfil real o Cafe é às **20:00** (não 07:30), e o erro aconteceu assim mesmo: o caso `slot-cafe-20h` reproduz o prompt real; o `slot-cafe-repete-almoco` fica com 07:30, como previsto.
+
+### 1. Instruções
+
+`_CHAT_INSTRUCTIONS` (`server/llm.py`): `suggested_slot` com prioridade 1–4 explícita e "nomes e horários só do PROFILE"; regra consolidada estrita ("refere-se à refeição gravada" = nomeia o slot ou acréscimo/correção explícito sem nomear outra refeição; comida parecida não basta, e o reply não fala em substituir).
+
+Dois ajustes antes do deploy, previstos em Riscos:
+
+- `slot-correcao-faltou` saiu 3/5: o slot estava certo, mas quando o modelo perguntava a porção da farofa, ele a deixava fora de `items`/`meal_text`. A instrução antiga também falhava (4/5 no mesmo teste). Frase nova: "An added food always enters items, kcal and meal_text, with an assumed portion even if you ask about it." → 5/5.
+- `ceia-completa-suco` caiu para 1/3 na suíte ("Na ceia também tomei suco" virou refeição nova só com o suco). A regra estrita passou a dar o exemplo: nomear o slot gravado é referir-se a ele ("na ceia também tomei suco, with Ceia eaten"). → 5/5 e 3/3 na suíte.
+
+### 2. Avaliador
+
+7 casos `slot` em `server/evals/cases/slot-*.json` (cliente v2, `facts: []`), como na tabela. `slot-cafe-*` também exigem `meal_text_has: ["ovo", "leite"]`; `slot-jantei-igual-almoco` também `reply_not: ["substitu"]`. `checks.py` sem mudança.
+
+### Validação executada
+
+1. `pytest -q` (em `server/`) → **95 passed**, 70 subtests. ✅
+2. `python -m evals.run --effort none --tag slot --repeat 5` → **7/7, cada caso 5/5** (`logs/evals/2026-09-30-162936-none.json`). ✅
+3. `python -m evals.run --effort none --repeat 3` → **29/29 (100%)**, os 22 antigos aprovados, `ceia-completa-suco` e `almoco-resposta-peso` 3/3; p50 2,7 s, p95 4,0 s, ~2,4k tokens de entrada por chamada (2,2k em cache) (`logs/evals/2026-09-30-163059-none.json`). ✅
+4. `./tools/deploy-gcp.ps1` → `/health` 200 (`gpt-6-luna`). `slot-cafe-repete-almoco` 5× no server de dev (`X-Request-Id: s12-cafe-1..5`) → `suggested_slot` "3" (Cafe) **5/5**, nenhum reply com "substitu". ✅
+5. Manual (dono): **pendente**. No APK atual, repetir almoço gravado com ovos e pão → "café igual ao de ontem" → resposta com os mesmos itens → a barra mostra "Gravar Cafe".
+
+Não testado no avaliador: "tomei um café" às 16:00 (café bebida × refeição). Nenhum caso atual mostrou confusão; fica para um caso novo se aparecer no log.
+
+`docs/api-contract.md` não cita a ordem do `suggested_slot`: sem mudança.

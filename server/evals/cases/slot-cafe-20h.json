@@ -1,0 +1,108 @@
+{
+  "id": "slot-cafe-20h",
+  "since": "v2",
+  "tags": [
+    "log",
+    "slot",
+    "consolidated"
+  ],
+  "request": {
+    "local_time": "2026-09-30T15:55:25-03:00",
+    "profile": {
+      "ceiling_kcal": 1740,
+      "p_target": 131,
+      "c_target": 174,
+      "g_target": 58,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "2",
+          "name": "Jantar",
+          "time": "20:00"
+        },
+        {
+          "id": "3",
+          "name": "Cafe",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 400,
+      "eaten_p": 18,
+      "eaten_c": 31,
+      "eaten_g": 22,
+      "workout_kcal": null,
+      "remaining_kcal": 1340,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "almocei 2 ovos mexidos e 1 pao frances",
+          "kcal": 400,
+          "p": 18,
+          "c": 31,
+          "g": 22
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "almocei 2 ovos mexidos e 1 pao frances"
+      },
+      {
+        "role": "assistant",
+        "text": "Estimativa do almoço: 2 ovos mexidos e 1 pão francês, cerca de 340 kcal · 18 g P · 31 g C · 16 g G. Considerei os ovos preparados sem óleo ou manteiga."
+      },
+      {
+        "role": "user",
+        "text": "com manteiga"
+      },
+      {
+        "role": "assistant",
+        "text": "Considerando manteiga nos ovos: o almoço fica em cerca de 400 kcal · 18 g P · 31 g C · 22 g G. Usei aproximadamente 7 g de manteiga."
+      },
+      {
+        "role": "user",
+        "text": "cafe igual ao de ontem"
+      },
+      {
+        "role": "assistant",
+        "text": "Não encontrei um café de ontem no histórico recente. O que você comeu ou bebeu?"
+      }
+    ],
+    "text": "2 ovos mexidos, 1 pão francês e 200 ml de leite",
+    "image_b64": null,
+    "compact": false,
+    "facts": []
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "3",
+    "meal_text_has": [
+      "ovo",
+      "leite"
+    ],
+    "reply_not": [
+      "substitu"
+    ]
+  }
+}
