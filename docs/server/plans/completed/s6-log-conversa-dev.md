@@ -1,6 +1,7 @@
 # Plano — S6 Log de conversa no server de dev
 
-- Estado: Pendente aprovação manual (passo 8.4: dono reproduz o "nao deu para estimar")
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 28/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/` (`config.py`, `main.py`, `llm.py`, módulo novo `conversation_log.py`, testes), `infra/gcp/compose.yml`, `tools/pull-conversations.ps1` (novo), `.gitignore`, docs.
@@ -98,7 +99,7 @@ Cada chamada ao LLM no server de dev deixa uma linha JSON com entrada, saída cr
 ## Fora de escopo
 
 - Qualquer mudança no JSON do contrato, no prompt ou no shaping.
-- Envio do `X-Request-Id` pelo app (vem no [A11](../../../android/plans/pending_manual_validation/a11-firebase-dev.md)); até lá, o server gera o id.
+- Envio do `X-Request-Id` pelo app (vem no [A11](../../../android/plans/completed/a11-firebase-dev.md)); até lá, o server gera o id.
 - Cloud Logging, Firestore, retenção por tempo, dashboard.
 
 ## Riscos e controles

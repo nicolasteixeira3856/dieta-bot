@@ -80,7 +80,7 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 ## Fora de escopo
 
-- Flavors ([A10](../completed/a10-flavors-dev-prod.md)), Firebase ([A11](../pending_manual_validation/a11-firebase-dev.md)).
+- Flavors ([A10](a10-flavors-dev-prod.md)), Firebase ([A11](a11-firebase-dev.md)).
 - R8/minify, AAB, Play Console, Play App Signing.
 - Incremento de `versionCode`.
 

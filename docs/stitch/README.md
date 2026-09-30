@@ -111,12 +111,12 @@ ST1–ST5 concluídos (29/09/2026); [ST6](plans/completed/st6-chat-v2.md) conclu
 
 ### Planos
 
-1. ✅ [ST1 Chat: bolhas, pergunta separada, anexo (`chatA`)](plans/completed/st1-chat.md) — concluído; libera [A19](../android/plans/pending_manual_validation/a19-chat-visual.md) (implementado).
-2. ✅ [ST2 Home: atalho de treino (`homeW`)](plans/completed/st2-home-treino.md) — concluído; libera [A22](../android/plans/pending_manual_validation/a22-treino-home.md).
-3. ✅ [ST3 Seletor de horário em rodas (`o3t`)](plans/completed/st3-seletor-horario.md) — concluído; libera [A21](../android/plans/pending_manual_validation/a21-seletor-horario.md).
-4. ✅ [ST4 Refeições por dia da semana (`o3s`, `cfgS`)](plans/completed/st4-refeicoes-por-dia.md) — concluído; libera [A24](../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md).
-5. ✅ [ST5 Chat: texto longo demais no composer (`chatX`)](plans/completed/st5-chat-texto-longo.md) — concluído; libera [A25](../android/plans/pending_manual_validation/a25-limite-texto-composer.md).
+1. ✅ [ST1 Chat: bolhas, pergunta separada, anexo (`chatA`)](plans/completed/st1-chat.md) — concluído; libera [A19](../android/plans/completed/a19-chat-visual.md) (implementado).
+2. ✅ [ST2 Home: atalho de treino (`homeW`)](plans/completed/st2-home-treino.md) — concluído; libera [A22](../android/plans/completed/a22-treino-home.md).
+3. ✅ [ST3 Seletor de horário em rodas (`o3t`)](plans/completed/st3-seletor-horario.md) — concluído; libera [A21](../android/plans/completed/a21-seletor-horario.md).
+4. ✅ [ST4 Refeições por dia da semana (`o3s`, `cfgS`)](plans/completed/st4-refeicoes-por-dia.md) — concluído; libera [A24](../android/plans/completed/a24-refeicoes-por-dia.md).
+5. ✅ [ST5 Chat: texto longo demais no composer (`chatX`)](plans/completed/st5-chat-texto-longo.md) — concluído; libera [A25](../android/plans/completed/a25-limite-texto-composer.md).
 6. ✅ [SV1 Verificação automática dos gates](plans/completed/sv1-verificacao-automatica.md) — concluído; `tools/verify-stitch.mjs`, usado na verificação do ST3–ST5.
-7. ✅ [ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)](plans/completed/st6-chat-v2.md) — concluído; libera [A29](../android/plans/pending_manual_validation/a29-chat-v2-interface.md).
+7. ✅ [ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)](plans/completed/st6-chat-v2.md) — concluído; libera [A29](../android/plans/completed/a29-chat-v2-interface.md).
 
 ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md).

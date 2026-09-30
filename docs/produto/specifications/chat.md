@@ -8,17 +8,17 @@
 
 Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).
 
-Um registro por refeição com confirmação ao substituir, Enter pula linha e foto 2048 px desde o [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [ADR-018](../../android/adrs/ADR-018-foto-2048.md); server: [S8](../../server/plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)): regras 3, 5 e 7 e "Estados e falhas".
+Um registro por refeição com confirmação ao substituir, Enter pula linha e foto 2048 px desde o [A18](../../android/plans/completed/a18-chat-registro-foto.md) ([ADR-017](../adrs/ADR-017-registro-consolidado.md), [ADR-018](../../android/adrs/ADR-018-foto-2048.md); server: [S8](../../server/plans/completed/s8-chat-json-slot-consolidado.md)): regras 3, 5 e 7 e "Estados e falhas".
 
-Pergunta em bolha própria, bolhas iguais, sem "IA ATIVA" e foto como anexo com preview desde o [A19](../../android/plans/pending_manual_validation/a19-chat-visual.md) (gate [ST1](../../stitch/plans/completed/st1-chat.md)): regras 2, 3, 14 e 15.
+Pergunta em bolha própria, bolhas iguais, sem "IA ATIVA" e foto como anexo com preview desde o [A19](../../android/plans/completed/a19-chat-visual.md) (gate [ST1](../../stitch/plans/completed/st1-chat.md)): regras 2, 3, 14 e 15.
 
-Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso, desde o [A25](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md) ([ADR-022](../adrs/ADR-022-limite-texto-chat.md); server: [S9](../../server/plans/completed/s9-limite-texto-2000.md); gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
+Limite de 2000 caracteres com estado de erro (`Texto muito longo`), sem corte silencioso, desde o [A25](../../android/plans/completed/a25-limite-texto-composer.md) ([ADR-022](../adrs/ADR-022-limite-texto-chat.md); server: [S9](../../server/plans/completed/s9-limite-texto-2000.md); gate [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md)): regra 3 e "Estados e falhas".
 
-Intenção (`log` / `plan` / `question`), texto gravado = `meal_text` e histórico de 7 dias no prompt desde o [A27](../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md); server: [S11](../../server/plans/pending_manual_validation/s11-chat-v2.md)): regras 4, 5, 8, 12 e 14.
+Intenção (`log` / `plan` / `question`), texto gravado = `meal_text` e histórico de 7 dias no prompt desde o [A27](../../android/plans/completed/a27-chat-v2-texto-intencao.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md); server: [S11](../../server/plans/completed/s11-chat-v2.md)): regras 4, 5, 8, 12 e 14.
 
-Memória em fatos no prompt (`facts`), `memory_updates` aplicados pelo app e origem por mensagem desde o [A28](../../android/plans/pending_manual_validation/a28-memoria-v2.md): regras 8 e 12.
+Memória em fatos no prompt (`facts`), `memory_updates` aplicados pelo app e origem por mensagem desde o [A28](../../android/plans/completed/a28-memoria-v2.md): regras 8 e 12.
 
-Plano com dia projetado e Registrar assim (`chatR`), avisos de memória (`chatM`) e sugestão da rotina (`chatS`) desde o [A29](../../android/plans/pending_manual_validation/a29-chat-v2-interface.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisões 3, 7 e 8; gate [ST6](../../stitch/plans/completed/st6-chat-v2.md)): regras 4, 5, 7, 16, 17 e 18.
+Plano com dia projetado e Registrar assim (`chatR`), avisos de memória (`chatM`) e sugestão da rotina (`chatS`) desde o [A29](../../android/plans/completed/a29-chat-v2-interface.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisões 3, 7 e 8; gate [ST6](../../stitch/plans/completed/st6-chat-v2.md)): regras 4, 5, 7, 16, 17 e 18.
 
 ## Contexto e objetivo
 
@@ -77,12 +77,12 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 
 - [A5 (Concluído)](../../android/plans/completed/a5-chat.md)
 - [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
-- [A18 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md)
-- [A19 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a19-chat-visual.md)
-- [A25 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md)
-- [A27 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md)
-- [A28 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a28-memoria-v2.md)
-- [A29 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a29-chat-v2-interface.md)
+- [A18 (Concluído)](../../android/plans/completed/a18-chat-registro-foto.md)
+- [A19 (Concluído)](../../android/plans/completed/a19-chat-visual.md)
+- [A25 (Concluído)](../../android/plans/completed/a25-limite-texto-composer.md)
+- [A27 (Concluído)](../../android/plans/completed/a27-chat-v2-texto-intencao.md)
+- [A28 (Concluído)](../../android/plans/completed/a28-memoria-v2.md)
+- [A29 (Concluído)](../../android/plans/completed/a29-chat-v2-interface.md)
 - `docs/server/plans/completed/s2-v1-chat.md`
 - [S3 (Concluído)](../../server/plans/completed/s3-compact.md)
 

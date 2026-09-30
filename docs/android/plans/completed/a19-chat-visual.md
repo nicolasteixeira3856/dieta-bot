@@ -1,6 +1,7 @@
 # Plano — A19 Chat: pergunta em bolha própria, bolhas iguais, anexo com preview
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 29/09/2026
 - Contexto proprietário: `android`
 - Código afetado: `apps/android/` (`feature/chat`)

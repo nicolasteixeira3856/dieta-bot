@@ -4,7 +4,7 @@
 
 Vigente desde o [A2](../../android/plans/completed/a2-onboarding-perfil.md): splash + O1-O4 conforme Stitch gold, perfil completo em Room v2.
 
-Horário em diálogo com rodas vigente desde 29/09/2026 ([A21](../../android/plans/pending_manual_validation/a21-seletor-horario.md), gate [ST3](../../stitch/plans/completed/st3-seletor-horario.md)). Vigente desde o A24: refeições por dia da semana na O3 em etapas ([ADR-021](../adrs/ADR-021-refeicoes-por-dia.md), [A24](../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md), gate [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md)).
+Horário em diálogo com rodas vigente desde 29/09/2026 ([A21](../../android/plans/completed/a21-seletor-horario.md), gate [ST3](../../stitch/plans/completed/st3-seletor-horario.md)). Vigente desde o A24: refeições por dia da semana na O3 em etapas ([ADR-021](../adrs/ADR-021-refeicoes-por-dia.md), [A24](../../android/plans/completed/a24-refeicoes-por-dia.md), gate [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md)).
 
 ## Contexto e objetivo
 

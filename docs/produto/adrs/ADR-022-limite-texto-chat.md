@@ -7,7 +7,7 @@
 
 ## Contexto
 
-O composer corta o texto em 1000 caracteres sem avisar ([A5](../../android/plans/completed/a5-chat.md)): quem cola um texto maior perde o fim e não sabe. O server recusa `text` acima de 1000 com 422. O composer não tem limite de linhas: o `maxLines = 5` do [A18](../../android/plans/pending_manual_validation/a18-chat-registro-foto.md) só limita a altura da caixa, que rola por dentro.
+O composer corta o texto em 1000 caracteres sem avisar ([A5](../../android/plans/completed/a5-chat.md)): quem cola um texto maior perde o fim e não sabe. O server recusa `text` acima de 1000 com 422. O composer não tem limite de linhas: o `maxLines = 5` do [A18](../../android/plans/completed/a18-chat-registro-foto.md) só limita a altura da caixa, que rola por dentro.
 
 ## Decisão
 
@@ -48,7 +48,7 @@ Custo: o histórico leva até 12 mensagens. O pior caso passa de ~12 k para ~24 
 
 ## Relações
 
-- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md), [A25](../../android/plans/pending_manual_validation/a25-limite-texto-composer.md).
+- Planos: [S9](../../server/plans/completed/s9-limite-texto-2000.md), [ST5](../../stitch/plans/completed/st5-chat-texto-longo.md), [A25](../../android/plans/completed/a25-limite-texto-composer.md).
 - Specs: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md).
 
 Depois de aceito, este ADR não se edita.

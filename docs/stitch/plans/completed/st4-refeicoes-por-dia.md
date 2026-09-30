@@ -6,7 +6,7 @@
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
 - Executa: [ADR-021](../../../produto/adrs/ADR-021-refeicoes-por-dia.md)
 - Pré-requisito: [ST3](st3-seletor-horario.md) `Concluído` (a tela da O3 precisa estar estável antes).
-- Bloqueia: [A24 Refeições por dia](../../../android/plans/pending_manual_validation/a24-refeicoes-por-dia.md)
+- Bloqueia: [A24 Refeições por dia](../../../android/plans/completed/a24-refeicoes-por-dia.md)
 
 Nomes das telas: títulos exatos do Stitch ([tabela](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Cada prompt tem um bloco para o tema escuro (`V2 Expressive`) e outro para o claro (`V2 Light`).
 

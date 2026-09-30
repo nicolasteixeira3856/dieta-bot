@@ -1,10 +1,11 @@
 # Plano — S11 Chat v2 no server: intenção, texto da refeição, memória estruturada e histórico recente
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Data: 30/09/2026
 - Contexto proprietário: `server`
 - Código afetado: `server/llm.py`, `server/main.py`, `server/shaping.py`, `server/config.py`, `server/evals/cases/`, `server/tests/`
-- Pré-requisitos: [S10](../completed/s10-avaliacao-chat.md) concluído (avaliador e linha de base). Aceita o [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2, 3, 4, 5 e 6, parte server).
+- Pré-requisitos: [S10](s10-avaliacao-chat.md) concluído (avaliador e linha de base). Aceita o [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) (decisões 1, 2, 3, 4, 5 e 6, parte server).
 
 ## Gate de autorização
 
@@ -49,7 +50,7 @@ RECENT:
 2026-09-29 1 Café: "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite, café" 440kcal 25P 38C 22G
 ```
 
-Cliente legado: `MEMORY: <texto>` como hoje. `RECENT` e `remaining_kcal` entram sempre que vierem, em qualquer cliente (o [A27](../../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) manda os dois antes da memória v2).
+Cliente legado: `MEMORY: <texto>` como hoje. `RECENT` e `remaining_kcal` entram sempre que vierem, em qualquer cliente (o [A27](../../../android/plans/completed/a27-chat-v2-texto-intencao.md) manda os dois antes da memória v2).
 
 ### 3. Instruções (`_CHAT_INSTRUCTIONS`, reescritas em inglês)
 
@@ -153,7 +154,7 @@ Mantém todas as regras do S8 (refeição consolidada, total sem comida, 4/4/9, 
 
 ## Fora de escopo
 
-- Client: [A27](../../../android/plans/pending_manual_validation/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/pending_manual_validation/a28-memoria-v2.md), [A29](../../../android/plans/pending_manual_validation/a29-chat-v2-interface.md).
+- Client: [A27](../../../android/plans/completed/a27-chat-v2-texto-intencao.md), [A28](../../../android/plans/completed/a28-memoria-v2.md), [A29](../../../android/plans/completed/a29-chat-v2-interface.md).
 - Aplicar a memória, promoção, expiração e limites: são do client (o server é stateless).
 - Troca de modelo. `/v1/estimate` e `/v1/fit`.
 

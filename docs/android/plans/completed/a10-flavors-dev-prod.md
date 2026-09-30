@@ -88,7 +88,7 @@ Todas as chaves ficam no `apps/android/local.properties` (não versionado). O pa
 
 ## Fora de escopo
 
-- Firebase ([A11](../pending_manual_validation/a11-firebase-dev.md)), servidor de prod, ícone diferente para dev, `versionCode` automático, buildTypes extras (staging).
+- Firebase ([A11](a11-firebase-dev.md)), servidor de prod, ícone diferente para dev, `versionCode` automático, buildTypes extras (staging).
 - Migrar os dados do app antigo para o dev (não há export; o dono aceitou perder).
 
 ## Riscos e controles

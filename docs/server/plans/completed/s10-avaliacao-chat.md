@@ -16,7 +16,7 @@ Se a implementação revelar decisão não coberta, pare, atualize os artefatos 
 
 ## Objetivo
 
-Um avaliador que roda o prompt do Chat contra o modelo real, com casos escritos a partir do uso real, e mede taxa de acerto, latência e tokens por `reasoning.effort`. Este plano entrega o avaliador, os casos e a **linha de base** do prompt atual. A comparação `none` × `low` com o prompt novo é do [S11](../pending_manual_validation/s11-chat-v2.md).
+Um avaliador que roda o prompt do Chat contra o modelo real, com casos escritos a partir do uso real, e mede taxa de acerto, latência e tokens por `reasoning.effort`. Este plano entrega o avaliador, os casos e a **linha de base** do prompt atual. A comparação `none` × `low` com o prompt novo é do [S11](s11-chat-v2.md).
 
 ## Fontes de verdade
 
@@ -101,7 +101,7 @@ Conjunto inicial (mínimo 20 casos), cobrindo:
 
 ## Fora de escopo
 
-- Mudança de prompt, de contrato ou do effort da rota: [S11](../pending_manual_validation/s11-chat-v2.md).
+- Mudança de prompt, de contrato ou do effort da rota: [S11](s11-chat-v2.md).
 - Deploy: o avaliador roda na máquina do dono, não no server.
 - Avaliação de `/v1/estimate` e `/v1/fit`.
 

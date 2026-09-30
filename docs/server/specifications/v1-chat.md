@@ -8,13 +8,13 @@ The target [content policy](../../content-policy/specifications/content-policy.m
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
 
-Desde o [S8](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md) (29/09/2026): saída estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil), texto sem JSON vira `reply`, refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)), total sem comida sem estimate, `MAX_BODY_BYTES` 24 MB.
+Desde o [S8](../plans/completed/s8-chat-json-slot-consolidado.md) (29/09/2026): saída estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil), texto sem JSON vira `reply`, refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)), total sem comida sem estimate, `MAX_BODY_BYTES` 24 MB.
 
 Desde o [S9](../plans/completed/s9-limite-texto-2000.md) (29/09/2026): `text` e `messages[].text` até 2000 caracteres ([ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)).
 
-Desde o [S11](../plans/pending_manual_validation/s11-chat-v2.md) (30/09/2026, [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)): intenção (`log` | `plan` | `question`), `estimate.meal_text`, memória em fatos (`facts`), `recent` (7 dias), `day.remaining_kcal`, `memory_updates` e `memory_used`. Tudo aditivo: cliente legado (sem `facts`) continua funcionando. `reasoning.effort` fica `none`, decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)).
+Desde o [S11](../plans/completed/s11-chat-v2.md) (30/09/2026, [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)): intenção (`log` | `plan` | `question`), `estimate.meal_text`, memória em fatos (`facts`), `recent` (7 dias), `day.remaining_kcal`, `memory_updates` e `memory_used`. Tudo aditivo: cliente legado (sem `facts`) continua funcionando. `reasoning.effort` fica `none`, decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)).
 
-Desde o [S12](../plans/pending_manual_validation/s12-slot-nomeado.md) (30/09/2026): o `suggested_slot` segue a refeição nomeada pelo usuário (na mensagem ou na fala que ela responde), mesmo com comida igual à de um slot gravado; a refeição consolidada só vale quando a mensagem se refere à refeição gravada.
+Desde o [S12](../plans/completed/s12-slot-nomeado.md) (30/09/2026): o `suggested_slot` segue a refeição nomeada pelo usuário (na mensagem ou na fala que ela responde), mesmo com comida igual à de um slot gravado; a refeição consolidada só vale quando a mensagem se refere à refeição gravada.
 
 ## Contexto e objetivo
 
@@ -141,10 +141,10 @@ Campos opcionais do S11 (ADR-023), limites → 422:
 - [S1](../plans/completed/s1-timeout-photo-cap.md)
 - [S2](../plans/completed/s2-v1-chat.md)
 - [S3 (Concluido)](../plans/completed/s3-compact.md)
-- [S8 (Pendente aprovação manual)](../plans/pending_manual_validation/s8-chat-json-slot-consolidado.md)
+- [S8 (Concluído)](../plans/completed/s8-chat-json-slot-consolidado.md)
 - [S10 (Concluído)](../plans/completed/s10-avaliacao-chat.md) — avaliador `server/evals/`
-- [S11 (Pendente aprovação manual)](../plans/pending_manual_validation/s11-chat-v2.md) — Chat v2
-- [S12 (Pendente aprovação manual)](../plans/pending_manual_validation/s12-slot-nomeado.md) — slot nomeado vence a semelhança
+- [S11 (Concluído)](../plans/completed/s11-chat-v2.md) — Chat v2
+- [S12 (Concluído)](../plans/completed/s12-slot-nomeado.md) — slot nomeado vence a semelhança
 
 ## Criterios de aceite funcionais
 

@@ -2,7 +2,7 @@
 
 ## Status and ownership
 
-Android owns the database. Room v4 extends the shipped v3 schema through [A24](../plans/pending_manual_validation/a24-refeicoes-por-dia.md) and [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md). The historical filename remains stable for incoming links. Room v5 adds the Chat meal text and intent through [A27](../plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) ([ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)). Room v6 adds per-message memory v2 metadata through [A28](../plans/pending_manual_validation/a28-memoria-v2.md). Exported schemas 1–6 live in `apps/android/app/schemas/`.
+Android owns the database. Room v4 extends the shipped v3 schema through [A24](../plans/completed/a24-refeicoes-por-dia.md) and [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md). The historical filename remains stable for incoming links. Room v5 adds the Chat meal text and intent through [A27](../plans/completed/a27-chat-v2-texto-intencao.md) ([ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)). Room v6 adds per-message memory v2 metadata through [A28](../plans/completed/a28-memoria-v2.md). Exported schemas 1–6 live in `apps/android/app/schemas/`.
 
 `DietaBotDatabase` contains `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message` and `day_digest`. Structured daily state stays in Room; DataStore is only a legacy import path. No destructive migration fallback.
 
@@ -35,4 +35,4 @@ Android owns the database. Room v4 extends the shipped v3 schema through [A24](.
 
 - [Room decision 010](../../decisions/010-room.md)
 - [ADR-012](../../produto/adrs/ADR-012-chat-home-perfil.md), [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-021](../../produto/adrs/ADR-021-refeicoes-por-dia.md)
-- [A1](../plans/completed/a1-room-v2.md), [A24](../plans/pending_manual_validation/a24-refeicoes-por-dia.md), [A27](../plans/pending_manual_validation/a27-chat-v2-texto-intencao.md), [A28](../plans/pending_manual_validation/a28-memoria-v2.md)
+- [A1](../plans/completed/a1-room-v2.md), [A24](../plans/completed/a24-refeicoes-por-dia.md), [A27](../plans/completed/a27-chat-v2-texto-intencao.md), [A28](../plans/completed/a28-memoria-v2.md)

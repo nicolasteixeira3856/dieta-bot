@@ -1,6 +1,7 @@
 # Plano — A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina
 
-- Estado: Pendente aprovação manual
+- Estado: Concluído
+- Aprovação manual: 30/09/2026 (dono: "Quero que você passe todos os planos que estão pendentes de validação manual para completo.")
 - Aprovado: 30/09/2026 ("Aprovo o plano `docs/android/plans/a29-chat-v2-interface.md`. Implemente o plano aprovado.")
 - Implementado: 30/09/2026
 - Data: 30/09/2026
@@ -99,7 +100,7 @@ Os três estados visuais novos do Chat, sobre os dados que o A27 e o A28 já gua
 - Tela de memória para o usuário final (ADR-023: só dev).
 - Tocar num chip para ver ou editar a memória.
 - Sugestão de rotina por push.
-- Server e regras de memória: [S11](../../../server/plans/pending_manual_validation/s11-chat-v2.md), [A28](a28-memoria-v2.md).
+- Server e regras de memória: [S11](../../../server/plans/completed/s11-chat-v2.md), [A28](a28-memoria-v2.md).
 
 ## Riscos e controles
 

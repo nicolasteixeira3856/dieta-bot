@@ -67,7 +67,7 @@ Client vivo. Room v6 (refeições por dia, A24; Chat v2, A27; memória por mensa
 
 ## Telemetria
 
-[ADR-014](adrs/ADR-014-flavors-firebase-dev.md), [A11](plans/pending_manual_validation/a11-firebase-dev.md). Só no flavor dev.
+[ADR-014](adrs/ADR-014-flavors-firebase-dev.md), [A11](plans/completed/a11-firebase-dev.md). Só no flavor dev.
 
 - Firebase `nutri-bot-dev` ("Nutri Dev", plano Spark), app `1:823717355877:android:d01b29a0b20b0674bd818c` (`com.nutri.android.dev`). `app/src/dev/google-services.json` fica fora do git: sem ele, o build avisa e segue.
 - `core/telemetry/Telemetry` em `main`. dev → `FirebaseTelemetry` (Crashlytics + Analytics, sem Advertising ID); prod → `NoopTelemetry`, sem nenhuma classe Firebase no APK.
@@ -97,7 +97,7 @@ Client vivo. Room v6 (refeições por dia, A24; Chat v2, A27; memória por mensa
 [A16](plans/completed/a16-app-distribution.md). Build de teste para o celular do dono, sem cabo:
 
 - `./tools/distribute-dev.ps1 -Notes <arquivo.md>`: notas válidas → árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`nutri-bot-dev`, grupo `testers`) → `CHANGELOG.md` → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
-- `-Notes` ([A17](plans/pending_manual_validation/a17-changelog-deploy.md)): obrigatório fora do `-DryRun`. Changelog em pt-BR para o tester, escrito pelo agente a partir dos commits e planos desde a tag `dev-v0.0.*` anterior: o que ele nota no app, seções opcionais `### Novidades`, `### Correções`, `### Ajustes`, um item curto por linha. Sem nome de arquivo, id de plano, hash ou termo técnico. O script recusa arquivo ausente ou vazio, hash de commit, prefixo `feat:`/`fix(…):`/`chore:` e título `#`/`##`, sempre antes do build, sem queimar número. Arquivo temporário no scratchpad do agente.
+- `-Notes` ([A17](plans/completed/a17-changelog-deploy.md)): obrigatório fora do `-DryRun`. Changelog em pt-BR para o tester, escrito pelo agente a partir dos commits e planos desde a tag `dev-v0.0.*` anterior: o que ele nota no app, seções opcionais `### Novidades`, `### Correções`, `### Ajustes`, um item curto por linha. Sem nome de arquivo, id de plano, hash ou termo técnico. O script recusa arquivo ausente ou vazio, hash de commit, prefixo `feat:`/`fix(…):`/`chore:` e título `#`/`##`, sempre antes do build, sem queimar número. Arquivo temporário no scratchpad do agente.
 - Notas no App Tester: `Dieta Bot 0.0.N` + linha em branco + o arquivo. O mesmo texto entra no topo de [`apps/android/CHANGELOG.md`](../../apps/android/CHANGELOG.md) como `## 0.0.N — DD/MM/AAAA` (America/Sao_Paulo), no commit `chore(release)`.
 - `-DryRun`: faz o build e as conferências; não distribui, não commita, não faz push, e deixa a árvore limpa. Com `-Notes`, valida e mostra as notas.
 - Versão: `apps/android/version.properties` (`VERSION_PATCH=N`) → `versionName` `0.0.N` (+ `-dev` do flavor) e `versionCode` `N`. O Gradle falha se o arquivo faltar ou não for inteiro positivo.
@@ -120,22 +120,22 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27, A28 e A29 implementados, aguardando validação manual:
+Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27, A28 e A29 concluídos (aprovado pelo dono em 30/09/2026):
 
-- [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/pending_manual_validation/a27-chat-v2-texto-intencao.md) — Room v5; pendente aprovação manual
-- [A28 Memória v2: fatos permanentes e dinâmicos](plans/pending_manual_validation/a28-memoria-v2.md) — Room v6; pendente aprovação manual (uma semana de uso olhando o editor dev)
-- [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/pending_manual_validation/a29-chat-v2-interface.md) — golds do [ST6](../stitch/plans/completed/st6-chat-v2.md) batidos; pendente aprovação manual (uso real por alguns dias)
+- [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/completed/a27-chat-v2-texto-intencao.md) — Room v5; concluído
+- [A28 Memória v2: fatos permanentes e dinâmicos](plans/completed/a28-memoria-v2.md) — Room v6; concluído
+- [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/completed/a29-chat-v2-interface.md) — golds do [ST6](../stitch/plans/completed/st6-chat-v2.md) batidos; concluído
 
-Lote do feedback (29/09/2026); A24 aguarda validação manual:
+Lote do feedback (29/09/2026), concluído (aprovado pelo dono em 30/09/2026):
 
-- [A21 seletor de horário em rodas (Pendente aprovação manual: escolher 07:30 e 21:45 no aparelho)](plans/pending_manual_validation/a21-seletor-horario.md)
+- [A21 seletor de horário em rodas (Concluído)](plans/completed/a21-seletor-horario.md)
 - [A23 editor de memória e perfil (dev) (Concluído)](plans/completed/a23-editor-memoria-dev.md)
-- [A24 refeições por dia da semana](plans/pending_manual_validation/a24-refeicoes-por-dia.md) — implementado; atualização pelo dono + tester pendente
+- [A24 refeições por dia da semana](plans/completed/a24-refeicoes-por-dia.md) — concluído
 
-- [A22 treino na Home (Pendente aprovação manual: informar 350 kcal na Home e ver a meta subir)](plans/pending_manual_validation/a22-treino-home.md)
-- [A25 composer: limite de 2000 caracteres com estado de erro (Pendente aprovação manual: colar texto longo no APK)](plans/pending_manual_validation/a25-limite-texto-composer.md)
-- [A19 chat visual: pergunta em bolha, bolhas iguais, anexo com preview (Pendente aprovação manual: anexar e enviar no APK)](plans/pending_manual_validation/a19-chat-visual.md)
-- [A20 polimento geral (Pendente aprovação manual: vibração)](plans/pending_manual_validation/a20-polimento-geral.md)
+- [A22 treino na Home (Concluído)](plans/completed/a22-treino-home.md)
+- [A25 composer: limite de 2000 caracteres com estado de erro (Concluído)](plans/completed/a25-limite-texto-composer.md)
+- [A19 chat visual: pergunta em bolha, bolhas iguais, anexo com preview (Concluído)](plans/completed/a19-chat-visual.md)
+- [A20 polimento geral (Concluído)](plans/completed/a20-polimento-geral.md)
 - [A26 Android CLI no loop de QA visual (Concluído)](plans/completed/a26-android-cli-qa.md)
 - [A12 remover legado T1/T2/T3 (Concluído)](plans/completed/a12-remover-legado-t123.md)
 - [A13 rename visível "Dieta Bot" (Concluído)](plans/completed/a13-rename-dieta-bot.md)
@@ -144,9 +144,9 @@ Lote do feedback (29/09/2026); A24 aguarda validação manual:
 - [A16 Firebase App Distribution, versão 0.0.N (Concluído)](plans/completed/a16-app-distribution.md)
 - [A9 chave de assinatura do release (Concluído)](plans/completed/a9-assinatura-release.md)
 - [A10 flavors dev/prod (Concluído)](plans/completed/a10-flavors-dev-prod.md)
-- [A18 chat: refeição consolidada, Enter, foto 2048 px (Pendente aprovação manual: esfihas + suco no APK)](plans/pending_manual_validation/a18-chat-registro-foto.md)
-- [A17 changelog humano no deploy (Pendente aprovação manual: primeiro deploy real)](plans/pending_manual_validation/a17-changelog-deploy.md)
-- [A11 Firebase Crashlytics + Analytics no dev (Pendente aprovação manual)](plans/pending_manual_validation/a11-firebase-dev.md)
+- [A18 chat: refeição consolidada, Enter, foto 2048 px (Concluído)](plans/completed/a18-chat-registro-foto.md)
+- [A17 changelog humano no deploy (Concluído)](plans/completed/a17-changelog-deploy.md)
+- [A11 Firebase Crashlytics + Analytics no dev (Concluído)](plans/completed/a11-firebase-dev.md)
 
 - [A0 refatoracao arquitetural (Concluído)](plans/completed/a0-arch-refactor.md) (Feature-first, eliminacao de Java/kapt, navegacao limpa)
 - [A0 tokens Expressive (Concluído)](plans/completed/a0-tokens-expressive.md) (Tokens semanticos P/C/G, tipografia 34pt, ButtonGroup)

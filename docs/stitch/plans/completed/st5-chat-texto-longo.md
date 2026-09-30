@@ -5,7 +5,7 @@
 - Contexto proprietário: `stitch`
 - Projeto: Stitch `Nutri` (`6282733070135794645`)
 - Executa: [ADR-022](../../../produto/adrs/ADR-022-limite-texto-chat.md)
-- Bloqueia: [A25 limite de texto no composer](../../../android/plans/pending_manual_validation/a25-limite-texto-composer.md)
+- Bloqueia: [A25 limite de texto no composer](../../../android/plans/completed/a25-limite-texto-composer.md)
 
 ## ⛔ Bloqueio do dono — prompt para o Stitch
 

@@ -1,6 +1,6 @@
 # A24 validation — meals by weekday
 
-Plan: [A24](../plans/pending_manual_validation/a24-refeicoes-por-dia.md). Date: 2026-09-29. Status: automated implementation verified; owner + tester update pending.
+Plan: [A24](../plans/completed/a24-refeicoes-por-dia.md). Date: 2026-09-29. Status: automated implementation verified; owner + tester update pending.
 
 ## Automated checks
 
