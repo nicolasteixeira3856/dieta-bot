@@ -41,6 +41,7 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 |---|---|---|
 | `splash` | Nutri Splash Screen (V2 Expressive) | Nutri Splash Screen (V2 Light) |
 | `o1` | Onboarding 1/4 - Teto do dia (V2 Expressive) | Onboarding 1/4 - Teto do dia (V2 Light) |
+| `o1e` | Onboarding 1/4 - Teto do dia sem perfil (V2 Expressive) | Onboarding 1/4 - Teto do dia sem perfil (V2 Light) |
 | `o2` | Onboarding 2/4 - Compensação de treinos (V2 Expressive) | Onboarding 2/4 - Compensação de treinos (V2 Light) |
 | `o3` | Onboarding 3/4 - Distribuição das refeições (V2 Expressive) | Onboarding 3/4 - Distribuição das refeições (V2 Light) |
 | `o3t` | Onboarding 3/4 - Seletor de horário (V2 Expressive) | Onboarding 3/4 - Seletor de horário (V2 Light) |
@@ -68,7 +69,7 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 | `wipe` | Reiniciar registros de hoje - Diálogo Wipe (V2 Expressive) | Reiniciar registros de hoje - Diálogo Wipe (V2 Light) |
 | `push` | Notificação do sistema - Lembrete de refeição (V2 Expressive) | Notificação do sistema - Lembrete de refeição (V2 Light) |
 
-Títulos lidos pelo MCP do Stitch (`list_screens`) em 29/09/2026. `chatR`, `chatM` e `chatS`: telas criadas pelo [ST6](plans/completed/st6-chat-v2.md) em 30/09/2026. `chatQ`: tela criada pelo [ST7](plans/completed/st7-pergunta-antes-da-estimativa.md) em 30/09/2026.
+Títulos lidos pelo MCP do Stitch (`list_screens`) em 29/09/2026. `chatR`, `chatM` e `chatS`: telas criadas pelo [ST6](plans/completed/st6-chat-v2.md) em 30/09/2026. `chatQ`: tela criada pelo [ST7](plans/completed/st7-pergunta-antes-da-estimativa.md) em 30/09/2026. `o1e`: título final definido pelo [ST8](plans/st8-teto-sem-perfil.md) (01/10/2026); a tela nasce quando o dono rodar o gate.
 
 ## Verificação automática (SV1)
 
@@ -106,7 +107,7 @@ Não há "aprovação" de gate: o prompt já é o que foi decidido nos ADRs. O d
 
 ## Estado atual
 
-ST1–ST5 concluídos (29/09/2026); [ST6](plans/completed/st6-chat-v2.md) concluído (30/09/2026). [ST7](plans/completed/st7-pergunta-antes-da-estimativa.md) concluído (30/09/2026). Ferramenta [SV1](plans/completed/sv1-verificacao-automatica.md) concluída: verificar com `node tools/verify-stitch.mjs st<n> --report`. Antes de verificar um gate, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
+ST1–ST5 concluídos (29/09/2026); [ST6](plans/completed/st6-chat-v2.md) concluído (30/09/2026). [ST7](plans/completed/st7-pergunta-antes-da-estimativa.md) concluído (30/09/2026). [ST8](plans/st8-teto-sem-perfil.md) aguardando o dono no Stitch (01/10/2026). Ferramenta [SV1](plans/completed/sv1-verificacao-automatica.md) concluída: verificar com `node tools/verify-stitch.mjs st<n> --report`. Antes de verificar um gate, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
 
 ## Índice
 
@@ -120,5 +121,6 @@ ST1–ST5 concluídos (29/09/2026); [ST6](plans/completed/st6-chat-v2.md) conclu
 6. ✅ [SV1 Verificação automática dos gates](plans/completed/sv1-verificacao-automatica.md) — concluído; `tools/verify-stitch.mjs`, usado na verificação do ST3–ST5.
 7. ✅ [ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)](plans/completed/st6-chat-v2.md) — concluído; libera [A29](../android/plans/completed/a29-chat-v2-interface.md).
 8. ✅ [ST7 Pergunta antes da estimativa (`chatE` alterado, `chatQ`)](plans/completed/st7-pergunta-antes-da-estimativa.md) — concluído; libera [A30](../android/plans/completed/a30-perguntas-antes-da-estimativa.md).
+9. ⏳ [ST8 O1 antes do perfil (`o1e`)](plans/st8-teto-sem-perfil.md) — aguardando o dono no Stitch; libera [A31](../android/plans/a31-o1-perfil-obrigatorio-teclado.md).
 
 ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md).
