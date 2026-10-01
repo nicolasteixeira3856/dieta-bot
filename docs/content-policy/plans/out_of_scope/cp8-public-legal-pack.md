@@ -5,7 +5,7 @@
 - Owner: `content-policy`
 - Prospective delivery boundary: `docs/content-policy/` (documentation). Publication or acceptance UI needs its own Android plan and a Stitch gate.
 - Authority: owner decision on 2026-09-30 to keep only closed-test controls active and defer production work.
-- Reason: **the app is in a closed test** with two known testers, covered by the [CP1](../pending_manual_validation/cp1-closed-test-notice.md) notice. Public Terms, Privacy Policy and legal review are needed only for an open audience.
+- Reason: **the app is in a closed test** with two known testers, covered by the [CP1](../completed/cp1-closed-test-notice.md) notice. Public Terms, Privacy Policy and legal review are needed only for an open audience.
 - Production blocker: **yes**, [PG2](../../production-gate.md).
 
 This plan is not approved, implemented or cancelled. Do not run `/goal` while it remains out of scope.

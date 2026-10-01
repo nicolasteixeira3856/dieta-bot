@@ -1,6 +1,6 @@
 # Closed-test incident note
 
-Delivered by [CP1](../plans/pending_manual_validation/cp1-closed-test-notice.md) on 2026-10-01. One page for the owner. Closed test only; the production procedure belongs to [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) and [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md). Data locations: [data map](closed-test-data-map.md).
+Delivered by [CP1](../plans/completed/cp1-closed-test-notice.md) on 2026-10-01. One page for the owner. Closed test only; the production procedure belongs to [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) and [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md). Data locations: [data map](closed-test-data-map.md).
 
 ## 1. Ordinary off-topic use
 

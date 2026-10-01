@@ -20,7 +20,7 @@ Dev test builds through `tools/distribute-dev.ps1` (A16) and deploys with `tools
 
 | ID | Blocker | Plan | Why deferred | Closure evidence | State |
 | --- | --- | --- | --- | --- | --- |
-| PG1 | Closed-test content controls delivered | [CP1](plans/pending_manual_validation/cp1-closed-test-notice.md)–[CP5](plans/cp5-gcp-dev-ingress.md) | Active now | All five plans `Concluído` | Aberto |
+| PG1 | Closed-test content controls delivered | [CP1](plans/completed/cp1-closed-test-notice.md)–[CP5](plans/pending_manual_validation/cp5-gcp-dev-ingress.md) | Active now | All five plans `Concluído` | Aberto |
 | PG2 | Public legal pack reviewed and published | [CP8](plans/out_of_scope/cp8-public-legal-pack.md) | App in closed test | Reviewed pt-BR Terms/Privacy/acceptable use, legal checklist signed, publication and acceptance path delivered | Aberto |
 | PG3 | Production security journal, retention and containment | [CP9](plans/out_of_scope/cp9-production-audit-and-containment.md) | App in closed test | CP9 `Concluído`; ADR-015 raw conversation capture off in production | Aberto |
 | PG4 | Specialist illegal-image detection decision | [CP7](plans/out_of_scope/cp7-specialist-detection.md) | Budget | CP7 `Concluído`, or `Risco aceito` with counsel's written conclusion that it is not mandatory for the launch audience, dated and recorded here | Aberto |

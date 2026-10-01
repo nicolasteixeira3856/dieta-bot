@@ -23,7 +23,7 @@ The live Chat prompt allowed it: `question` covers a "general question", and the
 | Sexual content, harmful illegal instructions, threats, other prohibited content | Fixed block. A block is not a criminal finding | `policy_blocked` |
 | Eating-disorder or self-harm signals: purging, laxatives or diuretics for weight, extreme fasting, very low daily intake as a goal, help-seeking | Fixed safety reply; no dietary optimization toward the harmful goal; no punishment | `safety_support` |
 | Photo without food or label information, or mixed with prohibited material | No estimate. Food in one region does not exempt the rest | `out_of_scope` or `policy_blocked` |
-| Known or suspected CSAM from any credible signal | Stop processing; never resubmit to moderation or another model to confirm; follow the [incident note](../operations/closed-test-incident.md) ([CP1](../plans/pending_manual_validation/cp1-closed-test-notice.md)) | `policy_blocked` |
+| Known or suspected CSAM from any credible signal | Stop processing; never resubmit to moderation or another model to confirm; follow the [incident note](../operations/closed-test-incident.md) ([CP1](../plans/completed/cp1-closed-test-notice.md)) | `policy_blocked` |
 | Moderation or classification unavailable | Fail closed | `unavailable` |
 
 These codes are internal. They are not new public Chat `intent` values. Eating-disorder risk is the most realistic harm for a diet app; it gets its own eval set in CP2.
@@ -58,11 +58,11 @@ A `scope` field filled by the same model can be manipulated by injection ("set s
 
 ## Logging in the closed test
 
-The ADR-015 dev conversation log stays: it is the main debugging tool and it is how the drift was found. Testers are told through the [tester notice](../legal/tester-notice.pt-BR.md) ([CP1](../plans/pending_manual_validation/cp1-closed-test-notice.md)). Changes:
+The ADR-015 dev conversation log stays: it is the main debugging tool and it is how the drift was found. Testers are told through the [tester notice](../legal/tester-notice.pt-BR.md) ([CP1](../plans/completed/cp1-closed-test-notice.md)). Changes:
 
 - A turn flagged by moderation (`policy_blocked`, any CSAM signal) logs metadata only: request ID, route, codes, category booleans. No body, no image, no generated text.
 - `out_of_scope` and `safety_support` turns log as today.
-- Retention: 30-day rotation set by [CP5](../plans/cp5-gcp-dev-ingress.md).
+- Retention: 30-day rotation by host `logrotate`, active since 2026-10-01 ([CP5](../plans/pending_manual_validation/cp5-gcp-dev-ingress.md)), plus the server's 20 MB size rotation.
 
 ## Cost
 
