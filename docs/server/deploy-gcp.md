@@ -40,7 +40,7 @@ Na primeira conexão, o `gcloud` gera `~/.ssh/google_compute_engine` e grava a c
 
 ## Log de conversa (dev)
 
-[ADR-015](adrs/ADR-015-log-conversa-dev.md). Ligado pelo `infra/gcp/compose.yml` (`CONVERSATION_LOG_PATH=/data/conversations.jsonl`, volume `/opt/nutri/logs`, `chmod 700`). Uma linha JSON por chamada ao modelo; rotação de 20 MB × 5.
+[ADR-015](adrs/ADR-015-log-conversa-dev.md). Ligado pelo `infra/gcp/compose.yml` (`CONVERSATION_LOG_PATH=/data/conversations.jsonl`, volume `/opt/nutri/logs`, `chmod 700`). Uma linha JSON por chamada ao modelo. Rotação: 20 MB × 5 pelo servidor e 30 dias por idade pelo `logrotate` do host (`/etc/logrotate.d/nutri`, escrito pelo `startup.sh`; CP5).
 
 ```powershell
 ./tools/pull-conversations.ps1                  # últimas 20 linhas
@@ -50,11 +50,40 @@ Na primeira conexão, o `gcloud` gera `~/.ssh/google_compute_engine` e grava a c
 
 Campos: `ts`, `request_id`, `route`, `app_version`, `app_env`, `prompt`, `input_text`, `has_photo`, `photo_b64_chars`, `raw_output`, `error`, `response`, `fallback`, `latency_ms`. Nunca a foto, o convite ou a chave.
 
+## Ingress e logs (CP5)
+
+[CP5](../content-policy/plans/pending_manual_validation/cp5-gcp-dev-ingress.md). Só o Caddy publica portas (80/443); `api:8080` fica na rede `edge` do compose.
+
+- Rede `edge` com sub-rede fixa `172.30.53.0/28`. O uvicorn confia em `X-Forwarded-For` só dessa faixa (`--forwarded-allow-ips`). Nunca `*`, nem RFC1918 inteiro, nem em rollback.
+- O Caddy fica sem `trusted_proxies`: substitui o `X-Forwarded-For` do cliente pelo IP do par. `Forwarded` e `X-Real-IP` passam, mas o servidor não os lê.
+- Logs Docker: `json-file` 10 MB × 3 por container. Conferir: `sudo docker inspect --format '{{.Name}} {{.HostConfig.LogConfig.Config}}' $(sudo docker ps -q)`.
+- `conversations.jsonl`: `logrotate` diário, 30 arquivos, `maxage 30`, `copytruncate`. O `lastaction` apaga backups de tamanho do servidor (`.1`..`.5`) com mais de 30 dias. Dry run: `sudo logrotate -d /etc/logrotate.d/nutri`.
+- `startup.sh` mora no metadata da VM (cópia). Mudou o arquivo no repo:
+
+```powershell
+gcloud compute instances add-metadata nutri-api --zone us-east1-b --metadata-from-file startup-script=infra/gcp/startup.sh
+gcloud compute ssh nutri-api --zone us-east1-b --tunnel-through-iap --command "sudo google_metadata_script_runner startup"
+```
+
+## Segredo do safety identifier
+
+`SAFETY_ID_SECRET` (32 bytes aleatórios, hex) e `SERVER_ENV=dev` ficam no `.env` da raiz e chegam à VM por `./tools/deploy-gcp.ps1 -Env` (root:root 600). Nunca imprimir o valor, commitar, nem rodar `docker compose config` sem `-q` na VM (o resolvido expõe o `.env`). `/health` mostra `safety_id: on`.
+
+Trocar o segredo muda todos os pseudônimos (`safety_identifier`). Só com motivo (vazamento) e registro.
+
 ## Trocar o INVITE_CODE
 
-1. Gravar o novo valor na linha `INVITE_CODE=` do `.env` da raiz **e** na linha `dev.INVITE_CODE=` de `apps/android/local.properties`.
+Só se houver abuso observado ou vazamento do convite.
+
+1. Gravar o novo valor na linha `INVITE_CODE=` do `.env` da raiz **e** na linha `dev.INVITE_CODE=` de `apps/android/local.properties`. Não imprimir nem commitar.
 2. `./tools/deploy-gcp.ps1 -Env`.
-3. Rebuild e reinstalação do APK dev (`./gradlew.bat :app:assembleDevRelease`, `adb install -r app/build/outputs/apk/dev/release/app-dev-release.apk`).
+3. Novo build de teste pelo A16: `./tools/distribute-dev.ps1 -Notes <notas.md>` (versão sobe sozinha). Os testers atualizam pelo Firebase App Tester.
+4. Conferir: o convite antigo recebe 401 e o novo passa.
+
+```powershell
+# 401 esperado com o convite antigo (sem chamada ao modelo)
+Invoke-WebRequest -Method Post -Uri https://35-231-53-42.sslip.io/v1/estimate -Headers @{ "X-Invite" = "<antigo>" } -ContentType application/json -Body '{"text":"x"}' -UseBasicParsing
+```
 
 ## Desligar
 

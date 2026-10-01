@@ -1,3 +1,4 @@
+# No trusted_proxies (CP5): Caddy replaces any client X-Forwarded-For with the peer address.
 {$PUBLIC_HOST} {
 	encode gzip
 	reverse_proxy api:8080

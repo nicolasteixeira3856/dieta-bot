@@ -22,3 +22,25 @@ systemctl enable --now docker
 
 mkdir -p /opt/nutri /opt/nutri/logs
 chmod 700 /opt/nutri/logs
+
+# Dev conversation log: 30 days by age (CP5). copytruncate: the server keeps the file open
+# in append mode. lastaction also ages out the server's own size backups (.1 .. .5).
+cat > /etc/logrotate.d/nutri <<'LOGROTATE'
+/opt/nutri/logs/conversations.jsonl {
+	su root root
+	daily
+	rotate 30
+	maxage 30
+	dateext
+	dateformat -%Y%m%d
+	copytruncate
+	compress
+	delaycompress
+	missingok
+	notifempty
+	lastaction
+		find /opt/nutri/logs -maxdepth 1 -type f -name 'conversations.jsonl.[0-9]*' -mtime +30 -delete
+	endscript
+}
+LOGROTATE
+chmod 644 /etc/logrotate.d/nutri
