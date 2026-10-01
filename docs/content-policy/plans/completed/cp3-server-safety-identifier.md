@@ -1,6 +1,6 @@
 # CP3 — Server safety identifier
 
-- Status: Pendente aprovação manual
+- Status: Concluído (manual approval by the owner 2026-10-01: "Os planos estão todos aprovados, pode completar tudo.")
 - Approved: 2026-10-01 by the owner: "Aprovo o plano docs\content-policy\plans\cp3-server-safety-identifier.md. Analise e implemente o plano aprovado."
 - Date: 2026-09-30 (rescoped 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: server.
@@ -66,3 +66,7 @@ Implementation notes:
 Rollout: deployed to dev with `tools/deploy-gcp.ps1` (code only, `.env` untouched) on 2026-10-01. Smoke: `/health` → 200 `{"ok": true, "model": "gpt-6-luna", "safety_id": "off"}` (expected until CP5 provisions the secret); `POST /v1/estimate` with a valid invite and `X-Client-Instance-Id: not-a-uuid` → 400 `{"detail":"invalid_client_instance_id"}`, and an uppercase UUID → 400. No model call was made in the smoke.
 
 Manual pending: end-to-end correlation (same installation → same identifier in the dev log, different installations differ) with the CP4 APK and the CP5 secret, as V11/V16 in the [validation matrix](../../validation/README.md). Not run here: live model calls with an identifier (secret not provisioned; CP5 scope).
+
+## Manual approval (2026-10-01)
+
+End-to-end correlation verified in CP5 with the secret active and the dev 0.0.6 APK on an emulator: one installation kept the same `safety_identifier` across an app restart and an `api` container restart; a reinstall produced a different one; identifiers present on every chat turn in the dev log. Evidence: [CP5 results](cp5-gcp-dev-ingress.md#results-2026-10-01), V11/V12/V16. The owner then approved the plan.

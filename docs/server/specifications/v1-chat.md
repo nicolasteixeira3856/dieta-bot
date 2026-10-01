@@ -2,7 +2,7 @@
 
 ## Controles de conteúdo (CP2)
 
-Vigente desde o [CP2](../../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). Header de instalação opcional `X-Client-Instance-Id` e `safety_identifier` desde o [CP3](../../content-policy/plans/pending_manual_validation/cp3-server-safety-identifier.md) (01/10/2026, [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile), [contrato](../../api-contract.md)); auditoria segue no CP9.
+Vigente desde o [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). Header de instalação opcional `X-Client-Instance-Id` e `safety_identifier` desde o [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) (01/10/2026, [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile), [contrato](../../api-contract.md)); auditoria segue no CP9.
 
 ## Estado
 
@@ -18,7 +18,7 @@ Desde o [S12](../plans/completed/s12-slot-nomeado.md) (30/09/2026): o `suggested
 
 Desde o [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) (30/09/2026, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): perguntas antes da estimativa. Com `clarify_rounds` no request (cliente v3), um turno `log` com dúvida devolve só a pergunta (`estimate: null`, `question` no topo); o server libera a estimativa no código após 3 rodadas, em pergunta repetida ou com `force_estimate`. Sem `clarify_rounds`, a resposta é a mesma de antes do S13.
 
-Desde o [CP2](../../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) (30/09/2026): escopo do produto nas instructions, campo `scope` obrigatório no schema, resposta fixa fora do escopo, moderação OpenAI da entrada e da saída com falha fechada (regras 12–16).
+Desde o [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) (30/09/2026): escopo do produto nas instructions, campo `scope` obrigatório no schema, resposta fixa fora do escopo, moderação OpenAI da entrada e da saída com falha fechada (regras 12–16).
 
 ## Contexto e objetivo
 

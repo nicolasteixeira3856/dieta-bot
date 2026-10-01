@@ -2,7 +2,7 @@
 
 ## Planned content-policy work
 
-[CP4](../content-policy/plans/pending_manual_validation/cp4-android-installation-identity.md) is implemented (2026-10-01, `Pendente aprovação manual`): a private random installation UUID in `noBackupFilesDir`, sent as `X-Client-Instance-Id` only to the configured API origin's `v1/` routes (network interceptor, no cross-origin redirect), under [identity/audit policy](../content-policy/specifications/identity-and-audit.md). No account, Firebase identifier, new screen or Room migration. Server and GCP work have separate plans in the [content-policy order](../content-policy/plans/README.md).
+[CP4](../content-policy/plans/completed/cp4-android-installation-identity.md) is delivered in dev 0.0.6 (2026-10-01, `Concluído`): a private random installation UUID in `noBackupFilesDir`, sent as `X-Client-Instance-Id` only to the configured API origin's `v1/` routes (network interceptor, no cross-origin redirect), under [identity/audit policy](../content-policy/specifications/identity-and-audit.md). No account, Firebase identifier, new screen or Room migration. Server and GCP work have separate plans in the [content-policy order](../content-policy/plans/README.md).
 
 ## Proposito
 

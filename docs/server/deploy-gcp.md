@@ -52,7 +52,7 @@ Campos: `ts`, `request_id`, `route`, `app_version`, `app_env`, `prompt`, `input_
 
 ## Ingress e logs (CP5)
 
-[CP5](../content-policy/plans/pending_manual_validation/cp5-gcp-dev-ingress.md). Só o Caddy publica portas (80/443); `api:8080` fica na rede `edge` do compose.
+[CP5](../content-policy/plans/completed/cp5-gcp-dev-ingress.md). Só o Caddy publica portas (80/443); `api:8080` fica na rede `edge` do compose.
 
 - Rede `edge` com sub-rede fixa `172.30.53.0/28`. O uvicorn confia em `X-Forwarded-For` só dessa faixa (`--forwarded-allow-ips`). Nunca `*`, nem RFC1918 inteiro, nem em rollback.
 - O Caddy fica sem `trusted_proxies`: substitui o `X-Forwarded-For` do cliente pelo IP do par. `Forwarded` e `X-Real-IP` passam, mas o servidor não os lê.

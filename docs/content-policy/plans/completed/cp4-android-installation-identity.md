@@ -1,6 +1,6 @@
 # CP4 — Android installation identity
 
-- Status: Pendente aprovação manual
+- Status: Concluído (manual approval by the owner 2026-10-01: "Os planos estão todos aprovados, pode completar tudo.")
 - Approved: 2026-10-01 by the owner: "Aprovo o plano docs\content-policy\plans\cp4-android-installation-identity.md, analise e implemente o plano aprovado".
 - Date: 2026-09-30 (prerequisites refreshed 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: Android.
@@ -70,3 +70,7 @@ Implementation notes:
 - No setting, permission, Room migration, DataStore, Firebase identity or advertising identifier. No server, infra, `version.properties` or signing change.
 
 Manual pending (V15 emulator part, V11 CP4 part, V16 in CP5): on the distributed APK, restart/update keeps the id and a disposable fresh installation gets a different one, seen as the same/different `safety_identifier` in the dev log once CP5 provisions the secret. Not run here: the release APK is not debuggable, the identifier is only observable in the dev log after CP5, and no owner or tester installation was cleared. Distribution waits for the owner's test-build request (A16).
+
+## Manual approval (2026-10-01)
+
+Distributed as dev 0.0.6 through A16 on 2026-10-01. Verified in CP5 on an emulator with that APK: restart keeps the identity, uninstall/reinstall creates a new one (seen as the same/different `safety_identifier` in the dev log). Not run: the update path where an identity created by an earlier CP4 build survives an app update (V15); the owner approved without it. Evidence: [CP5 results](cp5-gcp-dev-ingress.md#results-2026-10-01).
