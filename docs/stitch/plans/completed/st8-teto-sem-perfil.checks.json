@@ -1,0 +1,71 @@
+{
+  "gate": "ST8",
+  "keep": [
+    "ONBOARDING 1/4",
+    "METABOLISMO",
+    "Teto do dia",
+    "Continuar"
+  ],
+  "coherence": {
+    "exceptions": [],
+    "known": []
+  },
+  "screens": [
+    {
+      "gold": "o1e",
+      "keep": [
+        "Homem",
+        "Mulher",
+        "IDADE, ALTURA E PESO",
+        "MODO DO TETO",
+        "META DIÁRIA",
+        "Preencha idade, altura e peso para ver a meta sugerida."
+      ],
+      "checks": [
+        {
+          "type": "text",
+          "has": [
+            "Teto do dia",
+            "Homem",
+            "Mulher",
+            "idade",
+            "altura",
+            "peso",
+            "Mesma meta todos os dias",
+            "Preencha idade, altura e peso para ver a meta sugerida.",
+            "Continuar"
+          ],
+          "not": [
+            "27",
+            "180",
+            "116",
+            "2000",
+            "Sugerido"
+          ]
+        },
+        {
+          "type": "fits",
+          "text": "Preencha idade, altura e peso para ver a meta sugerida."
+        },
+        {
+          "type": "gap",
+          "a": "Preencha idade, altura e peso para ver a meta sugerida.",
+          "b": "MODO DO TETO",
+          "min": 16,
+          "fix": "Keep at least 16px of space between the hint line \"Preencha idade, altura e peso para ver a meta sugerida.\" and the \"MODO DO TETO\" label below it."
+        },
+        {
+          "type": "visibleAbove",
+          "text": "Preencha idade, altura e peso para ver a meta sugerida.",
+          "fixed": "Continuar"
+        },
+        {
+          "type": "visibleAbove",
+          "text": "kcal",
+          "fixed": "Continuar",
+          "fix": "Make the screen taller so the whole \"META DIÁRIA\" field, with its \"kcal\" chip, ends at least 16px above the floating \"Continuar\" button and its bottom fade. Do not tighten any spacing."
+        }
+      ]
+    }
+  ]
+}

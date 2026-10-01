@@ -4,7 +4,7 @@
 - Date: 01/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`feature/onboarding/*`, tests and captures)
-- Prerequisites: **[ST8](../../stitch/plans/st8-teto-sem-perfil.md) in `stitch/plans/completed/`** (new gold `o1e`). Without it the implementation does not start.
+- Prerequisites: **[ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) in `stitch/plans/completed/`** (new gold `o1e`). Without it the implementation does not start.
 
 ## Authorization gate
 
@@ -49,7 +49,7 @@ Layout, tokens and measures from gold `o1e`:
 
 - `ModeGroup` with `enabled = ui.profileValid`: 38 % opacity, no click, selected radio as a `dim` ring without gold fill.
 - `KcalField` (all three modes) with `enabled = ui.profileValid`: 38 % opacity, not focusable; blank value shows `—` in `dim`.
-- Without a valid profile, the "Sugerido …" caption is replaced by the hint `Preencha idade, altura e peso para ver a meta sugerida.` in `muted`, info outline icon in `muted` (`testTag("o1-profile-hint")`).
+- Without a valid profile, the "Sugerido …" caption under the ceiling field is hidden and the hint `Preencha idade, altura e peso para ver a meta sugerida.` shows right below the body fields, above "MODO DO TETO", in `muted`, info outline icon in `muted` (`testTag("o1-profile-hint")`). The `o1e` gold is taller than one phone screen (ST8 prompt 8.2): the content scrolls, and `StitchGoldTest` renders `o1e` as a full-page capture, like O3.
 - Continuar uses the existing disabled `PillCta` (38 %), no change.
 - Body fields and the sex toggle stay enabled.
 

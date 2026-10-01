@@ -4,7 +4,7 @@
 - Date: 01/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`feature/chat/*`, `core/database/*` chat messages, Room v7, tests and captures)
-- Prerequisites: none. No new or changed gold: the paging indicator reuses the existing `LoadingIndicator` (owner decision of 01/10/2026). Independent of [ST8](../../stitch/plans/st8-teto-sem-perfil.md) / [A31](a31-o1-perfil-obrigatorio-teclado.md).
+- Prerequisites: none. No new or changed gold: the paging indicator reuses the existing `LoadingIndicator` (owner decision of 01/10/2026). Independent of [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) / [A31](a31-o1-perfil-obrigatorio-teclado.md).
 
 ## Authorization gate
 

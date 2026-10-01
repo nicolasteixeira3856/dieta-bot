@@ -15,6 +15,7 @@ export const STITCH_PROJECT_ID = "6282733070135794645";
 export const DARK_SCREENS = {
   splash: "5a803993e6834bdeb8e8b8e098a1226b",
   o1: "268a0d329a034b60b78545a722394dc7",
+  o1e: "a31e81c1467f492ba9db3d65e1290fa8",
   o2: "c97ade760dcb4c3b8c55a80faab7510f",
   o3: "14440390e2d94582af1efa4e8aa4573b",
   o3t: "cb0d43cb5159426dae69f7c3d6a320bb",
@@ -46,6 +47,7 @@ export const DARK_SCREENS = {
 export const LIGHT_SCREENS = {
   splash: "7a34dd2615cd4e2d850db7cac3803b5d",
   o1: "9f5820b4990f4c13b4b84a8860209bee",
+  o1e: "90b76571a765420a9f6f2011dc49fe17",
   o2: "8ab9ffbf98294b9c834d5c7c480f0419",
   o3: "87f1e6f1b9334faeae8f40f6cebf56e5",
   o3t: "57b1c448f8d0475591c8827f2ea04ff6",
@@ -129,9 +131,17 @@ export async function closeBrowser() {
   browser = null;
 }
 
+// Screens whose declared height is stale: the HTML frame is 100vh tall (844–932 CSS px) and the Stitch canvas
+// shows it taller than the 1768 px the API declares. Value = CSS height the canvas shows (ST8).
+const CSS_HEIGHT_OVERRIDE = {
+  a31e81c1467f492ba9db3d65e1290fa8: 925, // dark/o1e
+  "90b76571a765420a9f6f2011dc49fe17": 925 // light/o1e
+};
+
 // CSS height of a screen: the 2x pixel height Stitch declares, halved.
 export function screenCssHeight(screen) {
-  return Math.round(Number(screen.height || 1768) / 2);
+  const override = CSS_HEIGHT_OVERRIDE[screen.name?.split("/").pop()];
+  return override || Math.round(Number(screen.height || 1768) / 2);
 }
 
 // The one render shared by the exporter and the verifier (tools/verify-stitch.mjs): the screen HTML laid out
@@ -188,7 +198,9 @@ async function renderHtml(htmlUrl, dest, cssHeight) {
 
 // Screens whose full-size Stitch screenshot is stale (older than the HTML): always rendered from the HTML.
 const RENDER_FROM_HTML = new Set([
-  "cad05772505e480c997b722296b64473" // light/homeW: screenshot predates the ST2 row fix
+  "cad05772505e480c997b722296b64473", // light/homeW: screenshot predates the ST2 row fix
+  "a31e81c1467f492ba9db3d65e1290fa8", // dark/o1e: screenshot half-rendered (ST8)
+  "90b76571a765420a9f6f2011dc49fe17" // light/o1e: screenshot blank (ST8)
 ]);
 
 export async function exportOne(theme, name, screen, outDir) {
