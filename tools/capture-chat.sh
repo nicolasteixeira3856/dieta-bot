@@ -3,12 +3,14 @@
 # onboarding -> chat0 -> chatL -> (dark: timeout + retry) -> chatE -> chatT -> chatP -> Gravar -> chatG
 # -> Home ring -> compact -> chatX (A25: 2100 characters block send and photo; back to 2000 sends)
 # -> A29: routine over 3 past days -> chatS (Quase igual, Registrar) -> plan + Registrar assim -> chatR -> chatM.
-# Captures land in docs/qa/android/current/<theme>/. SCENES=v2 runs only onboarding + the A29 scenes.
+# -> A30: questions before the estimate, Forçar estimativa, 3-round cap -> chatQ.
+# Captures land in docs/qa/android/current/<theme>/. SCENES=v2 runs only onboarding + the A29 scenes;
+# SCENES=a30 only onboarding + the A30 scenes.
 #
 # Prereqs: node tools/fake-chat-server.mjs running on the host (port 8765);
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
 #   AVD at gold geometry (wm size 780x1688, wm density 320); python3; curl.
-# Usage: [SCENES=v2] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -71,7 +73,7 @@ EOF
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 
-if [ "${SCENES:-all}" != v2 ]; then
+if [ "${SCENES:-all}" = all ]; then
 mode false
 tap 'resource-id="home-fab"' 1.5 && expect "FAB opens Chat" 'resource-id="chat"'
 shot chat0
@@ -137,7 +139,7 @@ if "$ADB" exec-out run-as $PKG ls files/ | grep -q "memory.txt"; then echo "  �
 
 # Gold captures: the flow above is the functional check. The gold message has accents adb cannot
 # type, so the exact gold conversation is seeded and chatE / chatT / chatP are captured again.
-# chatE (ST1/A19) carries the follow-up question in its own bubble; chatT / chatP golds have none.
+# Since ST7/A30 chatE has no question bubble either: the questions come before the estimate (chatQ).
 seed_gold() { # seed_gold <question or empty>
 "$ADB" shell am force-stop $PKG
 rm -f "$TMP"/nutri.db*
@@ -169,10 +171,9 @@ EOF
 sleep 3
 tap 'resource-id="home-fab"' 1.5
 }
-seed_gold "Os pães tinham manteiga ou requeijão?"
-expect "follow-up question in its own bubble" 'resource-id="chat-question"'
-shot chatE
 seed_gold ""
+dump; if grep -q 'resource-id="chat-question"' "$TMP/ui.xml"; then echo "  ✗ question bubble under the estimate"; FAIL=1; else echo "  ✓ estimate without a question bubble"; fi
+shot chatE
 tap 'resource-id="chat-swap"'
 dump; last=$(grep -o 'resource-id="chat-sheet-slot-[0-9]*"' "$TMP/ui.xml" | tail -1)
 tap "$last" 0.6
@@ -266,7 +267,7 @@ len=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.s
 if [ "$len" = 2000 ]; then echo "  ✓ fake got 2000 characters"; else echo "  ✗ fake got $len characters"; FAIL=1; fi
 fi
 
-# ------------------------------------------------------------------ A29: chatS, chatR, chatM (ST6)
+# ------------------------------------------------------------------ helpers (A29, A30)
 # The device clock moves (cmd alarm set-time, no root): 3 breakfasts on 3 past days make a strong
 # dynamic routine through the real flow (fake memory_updates -> Gravar -> memory.bin, Keystore key).
 # Then today at 08:10 (America/Sao_Paulo) the routine card shows (chatS); at 20:15 the plan (chatR)
@@ -300,7 +301,79 @@ EOF
 }
 open_chat() { "$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3; tap 'resource-id="home-fab"' 1.5; }
 CLEAN='for t in ("chat_message", "day_digest", "meal_log", "slot_skip"): c.execute(f"delete from {t}")'
+clarify_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; c=json.load(sys.stdin)['clarify']; print(c['rounds'], c['force'])"; }
+say() { tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "$1"; tap 'resource-id="chat-send"' 3; }
+has() { dump; grep -q "resource-id=\"$1\"" "$TMP/ui.xml"; }
 
+if [ "${SCENES:-all}" != v2 ]; then
+# ------------------------------------------------------------------ A30: questions before the estimate (ST7)
+echo "  A30: question only, Forçar estimativa from the second"
+sql "$CLEAN"
+fake_mode '{"clarify": true}'
+open_chat
+say "jantei%smacarrao%scom%sfrango"
+expect "round 1: question bubble" 'resource-id="chat-question"'
+if has chat-bot-[0-9]*; then echo "  ✗ reply bubble on a question"; FAIL=1; else echo "  ✓ no reply bubble, no estimate"; fi
+if has chat-actions || has chat-force-estimate; then echo "  ✗ actions or Forçar on round 1"; FAIL=1; else echo "  ✓ round 1: no actions, no Forçar"; fi
+[ "$(clarify_sent)" = "0 False" ] && echo "  ✓ clarify_rounds 0 sent" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
+say "creme%sde%sleite"
+expect "round 2: Forçar estimativa" 'resource-id="chat-force-estimate"'
+[ "$(clarify_sent)" = "1 False" ] && echo "  ✓ clarify_rounds 1 sent" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
+before=$(calls)
+tap 'resource-id="chat-force-estimate"' 3
+expect "Forçar: estimate with actions" 'resource-id="chat-actions"'
+expect "Forçar: user message Pode estimar assim." 'Pode estimar assim\.'
+[ "$(clarify_sent)" = "2 True" ] && echo "  ✓ force_estimate sent at round 2" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
+[ "$(calls)" = "$((before + 1))" ] && echo "  ✓ one POST" || { echo "  ✗ calls $before -> $(calls)"; FAIL=1; }
+if has chat-force-estimate; then echo "  ✗ Forçar still shown"; FAIL=1; else echo "  ✓ Forçar gone"; fi
+
+echo "  A30: 3-round cap"
+sql "$CLEAN"
+open_chat
+say "jantei%smacarrao"
+say "creme%sde%sleite"
+say "grelhado"
+expect "round 3: still a question" 'resource-id="chat-force-estimate"'
+say "sem%squeijo"
+expect "4th turn: the estimate" 'resource-id="chat-actions"'
+[ "$(clarify_sent)" = "3 False" ] && echo "  ✓ clarify_rounds 3 sent" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
+tap 'resource-id="chat-record"' 2
+logged=$(db "select text from meal_log")
+case "$logged" in *[Jj]"antei macarrao"*) echo "  ✓ recorded the meal text, not an answer: $logged";; *) echo "  ✗ recorded: $logged"; FAIL=1;; esac
+fake_mode '{}'
+
+# Gold thread (accents adb cannot type): the dinner, two question-only turns, Forçar showing.
+sql "$CLEAN"'
+now = int(time.time() * 1000)
+q1 = "O molho branco levou creme de leite ou requeijão? E o macarrão, foi 1 prato raso ou fundo?"
+q2 = "O frango foi grelhado ou empanado?"
+rows = [("user", "Jantei macarrão com frango ao molho branco", None), ("assistant", "Entendi: macarrão com frango ao molho branco." + chr(10) + q1, q1),
+        ("user", "Creme de leite, prato fundo", None), ("assistant", "Entendi: macarrão com frango ao molho branco." + chr(10) + q2, q2)]
+for i, (role, text, q) in enumerate(rows):
+    c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateQuestion,intent) values(?,?,?,?,?,?)",
+              (today, role, text, now - (4 - i) * 1000, q, "log" if q else None))
+'
+open_chat
+expect "gold: two question bubbles" 'chat-question.*chat-question'
+expect "gold: Forçar estimativa" 'resource-id="chat-force-estimate"'
+shot chatQ
+
+# chatE gold after the questions: the estimate alone, no question bubble.
+sql "$CLEAN"'
+first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
+now = int(time.time() * 1000)
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,estimateItems,intent) values(?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000, 380, 22, 36, 16, "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", "log"))
+'
+open_chat
+expect "gold: estimate with actions" 'resource-id="chat-actions"'
+if has chat-question; then echo "  ✗ question bubble under the estimate"; FAIL=1; else echo "  ✓ no question bubble"; fi
+[ "${SCENES:-all}" = a30 ] && shot chatE
+fi
+
+# ------------------------------------------------------------------ A29: chatS, chatR, chatM (ST6)
+if [ "${SCENES:-all}" != a30 ]; then
 echo "  A29 routine: 3 breakfasts on 3 past days"
 # Emulator clock and host clock can disagree by a day at midnight: both use Sao Paulo dates.
 sql "$CLEAN"
@@ -386,6 +459,7 @@ c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal
 open_chat
 expect "chips in order" 'chat-memory-updated.*chat-memory-permanent.*chat-memory-dynamic'
 shot chatM
+fi
 "$ADB" shell settings put global auto_time 1
 
 rm -rf "$TMP"

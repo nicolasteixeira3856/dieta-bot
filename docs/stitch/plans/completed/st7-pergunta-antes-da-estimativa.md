@@ -5,7 +5,7 @@
 - Owning context: `stitch`
 - Project: Stitch `Nutri` (`6282733070135794645`)
 - Executes: [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) (decisions 1, 4 and 7)
-- Blocks: [A30 Questions before the estimate](../../../android/plans/a30-perguntas-antes-da-estimativa.md)
+- Blocks: [A30 Questions before the estimate](../../../android/plans/completed/a30-perguntas-antes-da-estimativa.md)
 
 Screen names: exact Stitch titles ([table](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Each prompt has one block for the dark theme (`V2 Expressive`) and one for light (`V2 Light`).
 
@@ -121,4 +121,4 @@ Nothing in `apps/` or `server/`.
 ## Log
 
 - 30/09/2026 — gate written; waiting for the owner.
-- 30/09/2026 — owner ran 7.1 and 7.2 in both themes. `node tools/verify-stitch.mjs st7 --report`: **PASSOU** (every check ok in both themes, dark × light coherent). Report reviewed: `chatE` keeps card, actions and composer, time right under the bubble; `chatQ` has two gold-bar question bubbles with help icon, no estimate, single full-width "Forçar estimativa" pill (fast-forward icon, no gold background) above the composer. New IDs: `chatQ` dark `14d834bd30cd40f7a58b36735e0aded9`, light `40bda18602174f2daee83f684e51f2bc`. `node tools/export-stitch.mjs --only chatE,chatQ` (chatE 0.76%/0.77% px changed; chatQ new) + `node tools/check-stitch.mjs`: 56 golds (28 + 28). Gold list updated in `AGENTS.md` and `docs/qa/README.md`. Unblocks [A30](../../../android/plans/a30-perguntas-antes-da-estimativa.md).
+- 30/09/2026 — owner ran 7.1 and 7.2 in both themes. `node tools/verify-stitch.mjs st7 --report`: **PASSOU** (every check ok in both themes, dark × light coherent). Report reviewed: `chatE` keeps card, actions and composer, time right under the bubble; `chatQ` has two gold-bar question bubbles with help icon, no estimate, single full-width "Forçar estimativa" pill (fast-forward icon, no gold background) above the composer. New IDs: `chatQ` dark `14d834bd30cd40f7a58b36735e0aded9`, light `40bda18602174f2daee83f684e51f2bc`. `node tools/export-stitch.mjs --only chatE,chatQ` (chatE 0.76%/0.77% px changed; chatQ new) + `node tools/check-stitch.mjs`: 56 golds (28 + 28). Gold list updated in `AGENTS.md` and `docs/qa/README.md`. Unblocks [A30](../../../android/plans/completed/a30-perguntas-antes-da-estimativa.md).

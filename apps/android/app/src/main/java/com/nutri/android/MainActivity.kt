@@ -265,6 +265,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                     onRecordPlan = vm::recordPlan,
                     onRoutineRecord = vm::recordRoutine,
                     onRoutineEdit = vm::editRoutine,
+                    onForceEstimate = vm::forceEstimate,
                 )
             }
             composable<RouteConfig> {

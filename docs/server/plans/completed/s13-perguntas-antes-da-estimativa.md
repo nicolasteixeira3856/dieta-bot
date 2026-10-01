@@ -5,7 +5,7 @@
 - Date: 30/09/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: none. Executes [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) decisions 1–3, 5 and 6. Opt-in by request field: no Android change needed to ship. Blocks [A30](../../../android/plans/a30-perguntas-antes-da-estimativa.md).
+- Prerequisites: none. Executes [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) decisions 1–3, 5 and 6. Opt-in by request field: no Android change needed to ship. Blocks [A30](../../../android/plans/completed/a30-perguntas-antes-da-estimativa.md).
 
 ## Authorization gate
 
@@ -147,4 +147,4 @@ For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_
 
 ### Pending
 
-- None for S13. The Android side (question-only turns, round count, Forçar estimativa) is [A30](../../../android/plans/a30-perguntas-antes-da-estimativa.md), which accepts ADR-026 on completion.
+- None for S13. The Android side (question-only turns, round count, Forçar estimativa) is [A30](../../../android/plans/completed/a30-perguntas-antes-da-estimativa.md), which accepts ADR-026 on completion.

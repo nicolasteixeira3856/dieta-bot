@@ -673,7 +673,7 @@ class ChatViewModelTest {
         val bot = items.indexOfFirst { it is ChatItem.Assistant }
         val question = items[bot + 1] as ChatItem.Question
         assertThat(question.text).isEqualTo("Os pães tinham manteiga ou requeijão?")
-        assertThat(question.estimateId).isEqualTo((items[bot] as ChatItem.Assistant).id)
+        assertThat(question.messageId).isEqualTo((items[bot] as ChatItem.Assistant).id)
         assertThat(question.time).isEqualTo((items[bot] as ChatItem.Assistant).time)
     }
 
@@ -711,7 +711,7 @@ class ChatViewModelTest {
         assertThat(fallback).isInstanceOf(ChatFallback::class.java)
         assertThat(fallback.message).isEqualTo("request_id=req-fallback has_photo=false")
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "fallback", "has_estimate" to false))
+            .containsExactly(mapOf("outcome" to "fallback", "has_estimate" to false, "question_only" to false))
     }
 
     @Test
@@ -725,7 +725,7 @@ class ChatViewModelTest {
         assertThat(telemetry.params(TelemetryEvents.CHAT_SEND))
             .containsExactly(mapOf("has_photo" to false, "text_len" to "20-100"))
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high", "intent" to "none"))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high", "intent" to "none", "question_only" to false))
         assertThat(telemetry.nonFatals).isEmpty()
         val allValues = telemetry.events.flatMap { it.second.values }.map { it.toString() } + telemetry.breadcrumbs
         assertThat(allValues.none { it.contains("pães") || it.contains("ovos") }).isTrue()
@@ -739,7 +739,7 @@ class ChatViewModelTest {
         sendAndAwait(vm, "pão")
 
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "error", "has_estimate" to false))
+            .containsExactly(mapOf("outcome" to "error", "has_estimate" to false, "question_only" to false))
     }
 
     @Test
@@ -864,7 +864,7 @@ class ChatViewModelTest {
         assertThat(stored.estimateKcal).isEqualTo(430)
         assertThat(stored.estimateMealText).isEqualTo("pizza de pão sírio")
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "medium", "intent" to "plan"))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "medium", "intent" to "plan", "question_only" to false))
 
         vm.recordPlan(stored.id)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
@@ -1135,5 +1135,167 @@ class ChatViewModelTest {
         assertThat(repo.observeToday().first().logs).isEmpty()
         assertThat(requests).isEmpty()
         assertThat(memoryFile.writes).isEqualTo(1) // only the seed
+    }
+
+    // ------------------------------------------------------------------ A30: questions before the estimate
+
+    private val dinner = "Jantei macarrão com frango ao molho branco"
+
+    private fun questionOut(question: String) = ChatOut(
+        reply = "Entendi: macarrão com frango ao molho branco.\n$question",
+        intent = "log",
+        estimate = null,
+        question = question,
+        model = "gpt-6-luna",
+    )
+
+    private fun dinnerOut(slot: Long, mealText: String?) = ChatOut(
+        reply = "Macarrão com frango grelhado ao molho branco.",
+        intent = "log",
+        estimate = ChatEstimate(
+            kcal = 820.0, p = 48.0, c = 92.0, g = 26.0, confidence = "medium",
+            items = listOf(ItemOut("macarrão"), ItemOut("frango grelhado")), suggestedSlot = slot.toString(), mealText = mealText,
+        ),
+        model = "gpt-6-luna",
+    )
+
+    /** Sends [text] (or Forçar estimativa when null) and waits for the answer: a new question or assistant item. */
+    private suspend fun turn(vm: ChatViewModel, text: String? = null) {
+        val before = vm.uiState.value.items.count { it is ChatItem.Assistant || it is ChatItem.Question }
+        if (text == null) {
+            vm.forceEstimate()
+        } else {
+            vm.setComposer(text)
+            vm.send()
+        }
+        vm.await { !it.sending && it.items.count { i -> i is ChatItem.Assistant || i is ChatItem.Question } > before }
+    }
+
+    @Test
+    fun questionOnly_isStoredWithoutEstimate_andDrawnAsItsQuestionBubble() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry, RequestIds())
+        answer = { questionOut("O frango foi grelhado ou empanado?") }
+        turn(vm, dinner)
+
+        assertThat(requests.single().clarifyRounds).isEqualTo(0)
+        assertThat(requests.single().forceEstimate).isFalse()
+        val stored = repo.observeMessages().first().last { it.role == "assistant" }
+        assertThat(stored.text).isEqualTo("Entendi: macarrão com frango ao molho branco.\nO frango foi grelhado ou empanado?")
+        assertThat(stored.estimateQuestion).isEqualTo("O frango foi grelhado ou empanado?")
+        assertThat(stored.intent).isEqualTo("log")
+        assertThat(stored.estimateKcal).isNull()
+
+        val ui = vm.uiState.value
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>()).isEmpty()
+        val question = ui.items.filterIsInstance<ChatItem.Question>().single()
+        assertThat(question.standalone).isTrue()
+        assertThat(question.text).isEqualTo("O frango foi grelhado ou empanado?")
+        assertThat(ui.actions).isNull()
+        // Round 1: no Forçar estimativa.
+        assertThat(ui.forceEstimate).isFalse()
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT).single())
+            .isEqualTo(mapOf("outcome" to "ok", "has_estimate" to false, "intent" to "log", "question_only" to true))
+    }
+
+    @Test
+    fun secondQuestion_showsForce_andForceSendsTheFlagOnce() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry, RequestIds())
+        val jantar = slotIds().last()
+        answer = { questionOut("O molho levou creme de leite?") }
+        turn(vm, dinner)
+        answer = { questionOut("O frango foi grelhado ou empanado?") }
+        turn(vm, "Creme de leite, prato fundo")
+
+        assertThat(requests.map { it.clarifyRounds }).containsExactly(0, 1).inOrder()
+        assertThat(vm.uiState.value.forceEstimate).isTrue()
+        // A draft in the composer stays where it is.
+        vm.setComposer("rascunho")
+        answer = { dinnerOut(jantar, "macarrão com frango grelhado ao molho branco") }
+        turn(vm)
+
+        val forced = requests.last()
+        assertThat(forced.text).isEqualTo(ChatViewModel.FORCE_TEXT)
+        assertThat(forced.forceEstimate).isTrue()
+        assertThat(forced.clarifyRounds).isEqualTo(2)
+        assertThat(telemetry.params(TelemetryEvents.CHAT_FORCE_ESTIMATE)).containsExactly(mapOf("round" to 2))
+        val ui = vm.uiState.value
+        assertThat(ui.forceEstimate).isFalse()
+        assertThat(ui.composer).isEqualTo("rascunho")
+        assertThat(ui.items.filterIsInstance<ChatItem.User>().last().text).isEqualTo("Pode estimar assim.")
+        // The estimate comes once, with no follow-up bubble under it.
+        val last = ui.items.last() as ChatItem.Assistant
+        assertThat(last.estimate!!.kcal).isEqualTo(820)
+        assertThat(ui.actions!!.record!!.name).isEqualTo("Jantar")
+    }
+
+    @Test
+    fun force_isHiddenWithAnAttachment_andWhileSending_andRetryKeepsTheFlag() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { questionOut("O molho levou creme de leite?") }
+        turn(vm, dinner)
+        answer = { questionOut("O frango foi grelhado ou empanado?") }
+        turn(vm, "Creme de leite")
+        assertThat(vm.uiState.value.forceEstimate).isTrue()
+
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/q.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/9"))
+        vm.await { it.attachment != null }
+        assertThat(vm.uiState.value.forceEstimate).isFalse()
+        vm.forceEstimate()
+        assertThat(requests).hasSize(2)
+        vm.removeAttachment()
+        vm.await { it.attachment == null && it.forceEstimate }
+
+        answer = { throw IOException("down") }
+        vm.forceEstimate()
+        vm.await { it.items.any { i -> i is ChatItem.Failed } }
+        assertThat(vm.uiState.value.forceEstimate).isFalse()
+        assertThat(requests.last().forceEstimate).isTrue()
+
+        val jantar = slotIds().last()
+        answer = { dinnerOut(jantar, "macarrão com frango") }
+        vm.retry()
+        vm.await { it.actions != null }
+        assertThat(requests.last().forceEstimate).isTrue()
+        assertThat(requests.last().text).isEqualTo(ChatViewModel.FORCE_TEXT)
+    }
+
+    @Test
+    fun threeRounds_thenEstimate_recordsMealText() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = slotIds().last()
+        answer = { questionOut("Q1?") }
+        turn(vm, dinner)
+        answer = { questionOut("Q2?") }
+        turn(vm, "R1")
+        answer = { questionOut("Q3?") }
+        turn(vm, "R2")
+        answer = { dinnerOut(jantar, "macarrão com frango grelhado ao molho branco") }
+        turn(vm, "R3")
+
+        assertThat(requests.map { it.clarifyRounds }).containsExactly(0, 1, 2, 3).inOrder()
+        assertThat(requests.none { it.forceEstimate }).isTrue()
+        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        vm.await { it.items.any { i -> i is ChatItem.Receipt } }
+        assertThat(repo.observeToday().first().logs.single().text).isEqualTo("macarrão com frango grelhado ao molho branco")
+    }
+
+    @Test
+    fun threeRounds_withoutMealText_recordsTheFirstMessage_neverAnAnswer() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = slotIds().last()
+        answer = { questionOut("Q1?") }
+        turn(vm, dinner)
+        answer = { questionOut("Q2?") }
+        turn(vm, "R1")
+        answer = { questionOut("Q3?") }
+        turn(vm, "R2")
+        answer = { dinnerOut(jantar, mealText = null) }
+        turn(vm, "R3")
+        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        vm.await { it.items.any { i -> i is ChatItem.Receipt } }
+        assertThat(repo.observeToday().first().logs.single().text).isEqualTo(dinner)
     }
 }

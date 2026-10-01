@@ -86,6 +86,8 @@ class ChatViewModel @Inject constructor(
         val openedAt: Instant? = null,
         /** JPEG of the pending send (A6). Stored in chat_message only after the server answers. */
         val pendingPhoto: String? = null,
+        /** The pending send is Forçar estimativa (A30): a retry keeps the flag. */
+        val pendingForce: Boolean = false,
         val photoSheet: Boolean = false,
         /** JPEG attached in the composer (chatA): leaves only on Enviar. One at a time. */
         val attachment: String? = null,
@@ -146,15 +148,27 @@ class ChatViewModel @Inject constructor(
         val text = local.value.composer.trim()
         val photo = local.value.attachment
         if (text.isEmpty() && photo == null || local.value.pending != null || local.value.composerTooLong) return
-        local.update { it.copy(composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, failed = false, sentOnce = true) }
+        local.update { it.copy(composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, pendingForce = false, failed = false, sentOnce = true) }
         viewModelScope.launch { post(text, photo) }
+    }
+
+    /**
+     * Forçar estimativa (A30): sends [FORCE_TEXT] with force_estimate through the normal send flow.
+     * Only while the button shows; the composer draft stays where it is.
+     */
+    fun forceEstimate() {
+        if (!_uiState.value.forceEstimate || local.value.pending != null) return
+        val round = PromptBuilder.clarifyRounds(messages.filter { it.date == SaoPaulo.date(clock.now()).toString() })
+        telemetry.event(TelemetryEvents.CHAT_FORCE_ESTIMATE, mapOf("round" to round))
+        local.update { it.copy(pending = FORCE_TEXT, pendingPhoto = null, pendingForce = true, failed = false, sentOnce = true) }
+        viewModelScope.launch { post(FORCE_TEXT, force = true) }
     }
 
     fun retry() {
         val text = local.value.pending ?: return
         if (!local.value.failed) return
         local.update { it.copy(failed = false) }
-        viewModelScope.launch { post(text, local.value.pendingPhoto) }
+        viewModelScope.launch { post(text, local.value.pendingPhoto, local.value.pendingForce) }
     }
 
     // ------------------------------------------------------------------ photo (A6)
@@ -222,7 +236,7 @@ class ChatViewModel @Inject constructor(
         captureFile?.let { photos.delete(it.path) }
     }
 
-    private suspend fun post(text: String, photo: String? = null) {
+    private suspend fun post(text: String, photo: String? = null, force: Boolean = false) {
         telemetry.event(
             TelemetryEvents.CHAT_SEND,
             mapOf("has_photo" to (photo != null), "text_len" to TelemetryEvents.lengthBucket(text.length)),
@@ -240,7 +254,7 @@ class ChatViewModel @Inject constructor(
             local.update { it.copy(failed = true) }
             return
         }
-        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs)
+        var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force)
         if (turn.needsCompact) {
             // A failed compact never fails the turn: nothing stored, the newest 12 raw go as they are
             // and the next send tries again.
@@ -248,12 +262,14 @@ class ChatViewModel @Inject constructor(
             if (!digest.isNullOrBlank()) {
                 repository.upsertDigest(digest)
                 digests = repository.digestsToday()
-                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs)
+                turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force)
             }
         }
         // The photo rides only on the turn, never on the compact request.
         val out = runCatching { service.chat(turn.body.copy(imageB64 = image)) }.getOrNull()
-        if (out == null || out.reply.isBlank() && out.estimate == null) {
+        // A question-only turn (A30): no estimate yet, the question is the answer.
+        val question = out?.question?.trim()?.takeIf { out.estimate == null && it.isNotEmpty() }
+        if (out == null || out.reply.isBlank() && out.estimate == null && question == null) {
             chatResult("error")
             local.update { it.copy(failed = true) }
             return
@@ -263,7 +279,7 @@ class ChatViewModel @Inject constructor(
             telemetry.nonFatal(ChatFallback(requestIds.last, hasPhoto = photo != null))
             chatResult("fallback")
         } else {
-            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence, intent = out.intent)
+            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence, intent = out.intent, questionOnly = question != null)
         }
         val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
@@ -273,22 +289,23 @@ class ChatViewModel @Inject constructor(
         val updated = applyMemory(immediate.map { it.toDomain() }, recorded = null)
         repository.insertMessage(
             role = "assistant",
-            text = out.reply,
+            // Question only: the server's history text (draft + question), sent back as is next turn.
+            text = out.reply.ifBlank { question.orEmpty() },
             estimateKcal = out.estimate?.kcal?.roundToInt(),
             estimateP = out.estimate?.p?.roundToInt(),
             estimateC = out.estimate?.c?.roundToInt(),
             estimateG = out.estimate?.g?.roundToInt(),
             estimateConfidence = out.estimate?.confidence,
             estimateSlotId = suggested,
-            estimateQuestion = out.estimate?.question,
+            estimateQuestion = question ?: out.estimate?.question,
             estimateItems = out.estimate?.items?.map { it.name }.orEmpty(),
             estimateMealText = out.estimate?.mealText?.trim()?.takeIf { it.isNotEmpty() },
-            intent = out.intent?.takeIf { it in INTENTS },
+            intent = if (question != null) "log" else out.intent?.takeIf { it in INTENTS },
             pendingMemory = routine.takeIf { it.isNotEmpty() }?.let { memoryJson.encodeToString(UPDATES, it) },
             memoryUsedKinds = usedKinds(out.memoryUsed, facts),
             memoryUpdated = updated,
         )
-        local.update { it.copy(pending = null, pendingPhoto = null, failed = false) }
+        local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false) }
     }
 
     /** Applies [updates]; true when at least one changed the memory. A failed write changes nothing. */
@@ -330,10 +347,11 @@ class ChatViewModel @Inject constructor(
         return listOf(MemoryRules.PERMANENT, MemoryRules.DYNAMIC).filter { it in kinds }.joinToString(",").ifEmpty { null }
     }
 
-    private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null, intent: String? = null) {
+    private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null, intent: String? = null, questionOnly: Boolean = false) {
         val params = buildMap<String, Any> {
             put("outcome", outcome)
             put("has_estimate", hasEstimate)
+            put("question_only", questionOnly)
             confidence?.let { put("confidence", it) }
             // Enum only: an unknown value never leaves the device as free text.
             if (outcome == "ok") put("intent", intent?.takeIf { it in INTENTS } ?: "none")
@@ -560,8 +578,10 @@ class ChatViewModel @Inject constructor(
                     kcal = m.estimateKcal,
                     memoryUpdated = m.memoryUpdated,
                 )
-                // Only today's plans project: an old plan has no day to land on.
-                else -> assistant(m, time, slotById, plan = if (m.isPlanEstimate && m.date == todayIso) project(m) else null)
+                // A30: a question before the estimate is only its question bubble (chatQ).
+                else -> if (PromptBuilder.isQuestionOnly(m)) {
+                    ChatItem.Question(m.id, m.estimateQuestion.orEmpty().trim(), time, standalone = true, memory = memoryOf(m))
+                } else assistant(m, time, slotById, plan = if (m.isPlanEstimate && m.date == todayIso) project(m) else null)
             }
             if (m.role == "assistant" && m.isLogEstimate) {
                 m.estimateQuestion?.takeIf { it.isNotBlank() }?.let { items += ChatItem.Question(m.id, it, time) }
@@ -588,6 +608,11 @@ class ChatViewModel @Inject constructor(
             val record = lastEstimate!!.estimateSlotId?.let { slotById[it] }
             EstimateActions(lastEstimate.id, record = record, skip = record ?: current, plan = lastEstimate.isPlanEstimate)
         }
+        // A30: from the second question in a row, Forçar estimativa takes the actions slot (chatQ).
+        val todayRows = sorted.filter { it.date == todayIso }
+        val forceEstimate = l.pending == null && l.attachment == null &&
+            todayRows.lastOrNull()?.let(PromptBuilder::isQuestionOnly) == true &&
+            PromptBuilder.clarifyRounds(todayRows) >= FORCE_FROM_ROUND
         val routine = if (l.sentOnce || l.pending != null) null else routineFor(current, d, facts)
         routine?.let { items += ChatItem.Routine(it) }
         routine?.takeIf { shownRoutines.add(it.factId + "@" + it.slot.id) }?.let { routineEvent("shown") }
@@ -600,7 +625,8 @@ class ChatViewModel @Inject constructor(
             emptyDay = emptyDay,
             metaRemaining = (meta - eaten.kcal).coerceAtLeast(0),
             metaTotal = meta,
-            actions = actions,
+            actions = actions.takeUnless { forceEstimate },
+            forceEstimate = forceEstimate,
             slots = slots,
             currentSlotId = current?.id,
             sheetFor = l.sheetFor,
@@ -664,10 +690,12 @@ class ChatViewModel @Inject constructor(
             )
         },
         plan = plan,
-        memory = m.memoryUsedKinds.orEmpty().split(',').let { kinds ->
-            MemoryNotice(updated = m.memoryUpdated, permanent = MemoryRules.PERMANENT in kinds, dynamic = MemoryRules.DYNAMIC in kinds)
-        },
+        memory = memoryOf(m),
     )
+
+    private fun memoryOf(m: ChatMessageEntity) = m.memoryUsedKinds.orEmpty().split(',').let { kinds ->
+        MemoryNotice(updated = m.memoryUpdated, permanent = MemoryRules.PERMANENT in kinds, dynamic = MemoryRules.DYNAMIC in kinds)
+    }
 
     private fun userBefore(estimate: ChatMessageEntity): ChatMessageEntity? = messages
         .filter { it.role == "user" && it.createdAtEpochMs <= estimate.createdAtEpochMs && it.id < estimate.id }
@@ -709,6 +737,12 @@ class ChatViewModel @Inject constructor(
     companion object {
         /** server/shaping.py CHAT_FALLBACK_REPLY: bad JSON, empty reply or model error on the server. */
         const val SERVER_FALLBACK_REPLY = "nao deu pra estimar"
+
+        /** User message of Forçar estimativa (A30). */
+        const val FORCE_TEXT = "Pode estimar assim."
+
+        /** Forçar estimativa shows from this question round on (owner decision, ADR-026). */
+        const val FORCE_FROM_ROUND = 2
 
         /** Receipt of Substituir (ADR-017). UI only, like "logged". */
         const val ROLE_REPLACED = "replaced"

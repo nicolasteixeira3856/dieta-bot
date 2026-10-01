@@ -84,12 +84,12 @@ class RoborazziSmokeTest {
         )
     }
 
-    /** A19: follow-up question in its own bubble (chatE). */
+    /** A30 (ST7): the estimate with no question bubble, time under it (chatE). */
     @Test
-    fun chatQuestion_dark() = chat(dark = true, ChatFixtures.chatE, "chatQuestion")
+    fun chatE_dark() = chat(dark = true, ChatFixtures.chatE, "chatE")
 
     @Test
-    fun chatQuestion_light() = chat(dark = false, ChatFixtures.chatE, "chatQuestion")
+    fun chatE_light() = chat(dark = false, ChatFixtures.chatE, "chatE")
 
     /** A19: photo attached in the composer, not sent (chatA). */
     @Test
@@ -118,6 +118,13 @@ class RoborazziSmokeTest {
 
     @Test
     fun chatS_light() = chat(dark = false, ChatFixtures.chatS, "chatS")
+
+    /** A30: second question before the estimate, Forçar estimativa (chatQ). */
+    @Test
+    fun chatQ_dark() = chat(dark = true, ChatFixtures.chatQ, "chatQ")
+
+    @Test
+    fun chatQ_light() = chat(dark = false, ChatFixtures.chatQ, "chatQ")
 
     private fun chat(dark: Boolean, ui: com.nutri.android.feature.chat.ChatUiState, name: String) {
         com.nutri.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_A_PHOTO)

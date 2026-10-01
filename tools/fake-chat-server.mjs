@@ -15,6 +15,9 @@
 // {"routine": true} answers the usual breakfast (intent "log", slot "Caf…") with memory_updates: a
 // routine "cafe" (add, or reinforce of the stored one) and, once, a permanent "leite" preference;
 // memory_used echoes every fact id the request carried. /__calls reports the facts it got.
+// A30: POST /__mode {"clarify": true} answers a dinner turn with a question only (estimate null,
+// `question` on top, like S13) while clarify_rounds < 3 and force_estimate is false; then the
+// estimate. /__calls reports the last clarify_rounds and force_estimate.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -26,6 +29,8 @@ let slotPrefix = "Caf";
 let kcalOverride = null;
 let plan = false;
 let routine = false;
+let clarify = false;
+let lastClarify = { rounds: null, force: false };
 let lastFacts = [];
 let lastRequestId = "";
 let calls = 0;
@@ -65,11 +70,12 @@ http.createServer(async (req, res) => {
     kcalOverride = mode.kcal ?? null;
     plan = Boolean(mode.plan);
     routine = Boolean(mode.routine);
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, calls }));
+    clarify = Boolean(mode.clarify);
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -80,6 +86,7 @@ http.createServer(async (req, res) => {
     lastMemory = input.memory ?? "";
     if (!input.compact) lastFacts = input.facts ?? [];
     if (!input.compact) textLen = [...(input.text ?? "")].length;
+    if (!input.compact) lastClarify = { rounds: input.clarify_rounds ?? null, force: Boolean(input.force_estimate) };
     if (textLen > 2000) {
       res.writeHead(422, { "content-type": "application/json" }).end(JSON.stringify({ detail: "text_too_long" }));
       return;
@@ -107,6 +114,19 @@ http.createServer(async (req, res) => {
       return;
     }
     const slots = input.profile?.slots ?? [];
+    const rounds = input.clarify_rounds;
+    if (clarify && Number.isInteger(rounds) && rounds < 3 && !input.force_estimate) {
+      const question = [
+        "O molho branco levou creme de leite ou requeijão? E o macarrão, foi 1 prato raso ou fundo?",
+        "O frango foi grelhado ou empanado?",
+        "O macarrão levou queijo por cima?",
+      ][rounds];
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: "Entendi: macarrão com frango ao molho branco." + String.fromCharCode(10) + question,
+        intent: "log", estimate: null, question, digest: null, model: "gpt-6-luna",
+      }));
+      return;
+    }
     if (plan) {
       const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({

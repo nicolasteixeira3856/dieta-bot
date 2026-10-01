@@ -119,6 +119,6 @@ ST1–ST5 concluídos (29/09/2026); [ST6](plans/completed/st6-chat-v2.md) conclu
 5. ✅ [ST5 Chat: texto longo demais no composer (`chatX`)](plans/completed/st5-chat-texto-longo.md) — concluído; libera [A25](../android/plans/completed/a25-limite-texto-composer.md).
 6. ✅ [SV1 Verificação automática dos gates](plans/completed/sv1-verificacao-automatica.md) — concluído; `tools/verify-stitch.mjs`, usado na verificação do ST3–ST5.
 7. ✅ [ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)](plans/completed/st6-chat-v2.md) — concluído; libera [A29](../android/plans/completed/a29-chat-v2-interface.md).
-8. ✅ [ST7 Pergunta antes da estimativa (`chatE` alterado, `chatQ`)](plans/completed/st7-pergunta-antes-da-estimativa.md) — concluído; libera [A30](../android/plans/a30-perguntas-antes-da-estimativa.md).
+8. ✅ [ST7 Pergunta antes da estimativa (`chatE` alterado, `chatQ`)](plans/completed/st7-pergunta-antes-da-estimativa.md) — concluído; libera [A30](../android/plans/completed/a30-perguntas-antes-da-estimativa.md).
 
 ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md).

@@ -55,6 +55,8 @@ object PromptBuilder {
         facts: List<Fact> = emptyList(),
         /** meal_log rows of the days before today (A27); today and older than 7 days are dropped. */
         recentLogs: List<MealLogEntity> = emptyList(),
+        /** Forçar estimativa (A30): the server releases the estimate now. */
+        forceEstimate: Boolean = false,
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -70,16 +72,50 @@ object PromptBuilder {
                 compact = false,
                 recent = recent(recentLogs, day.slots, today),
                 facts = chatFacts(facts, day.slotsOn(today).map { it.id.toString() }.toSet()),
+                clarifyRounds = clarifyRounds(todayMessages),
+                forceEstimate = forceEstimate,
             ),
             needsCompact = compactEnabled && raw.size >= MAX_RAW,
         )
     }
 
-    /** A photo message keeps a marker in the history; the image itself is sent only once (A6). */
-    private fun turnText(m: ChatMessageEntity): String = when {
-        m.photoPath == null -> m.text
-        m.text.isBlank() -> "[foto]"
-        else -> "[foto] ${m.text}"
+    /**
+     * A photo message keeps a marker in the history; the image itself is sent only once (A6).
+     * An estimate stored with its question (before A30) carries the question too, so the model sees
+     * what was asked. A question-only row already holds draft + question in [ChatMessageEntity.text].
+     */
+    private fun turnText(m: ChatMessageEntity): String {
+        val text = when {
+            m.photoPath == null -> m.text
+            m.text.isBlank() -> "[foto]"
+            else -> "[foto] ${m.text}"
+        }
+        val question = m.estimateQuestion?.takeIf { m.role == "assistant" && m.estimateKcal != null && it.isNotBlank() }
+        return if (question == null) text else "$text\n$question"
+    }
+
+    const val MAX_CLARIFY_ROUNDS = 3
+
+    /** Question-only assistant turn (A30): the server asked before estimating. */
+    fun isQuestionOnly(m: ChatMessageEntity): Boolean =
+        m.role == "assistant" && m.estimateKcal == null && !m.estimateQuestion.isNullOrBlank()
+
+    /**
+     * Question rounds already shown for the pending meal (A30): the question-only assistant messages at
+     * the end of [todayMessages], walking back over the user answers between them. An estimate, a
+     * receipt, a wipe or any other assistant message ends the walk; so does the start of the day.
+     * Capped at [MAX_CLARIFY_ROUNDS].
+     */
+    fun clarifyRounds(todayMessages: List<ChatMessageEntity>): Int {
+        var rounds = 0
+        for (m in todayMessages.sortedWith(compareByDescending<ChatMessageEntity> { it.createdAtEpochMs }.thenByDescending { it.id })) {
+            when {
+                m.role == "user" -> continue
+                isQuestionOnly(m) -> rounds++
+                else -> break
+            }
+        }
+        return rounds.coerceAtMost(MAX_CLARIFY_ROUNDS)
     }
 
     /**

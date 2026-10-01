@@ -22,6 +22,14 @@ data class ChatIn(
      * and answers memory_updates / memory_used. Null only to talk as a legacy client.
      */
     val facts: List<ChatFact>? = null,
+    /**
+     * Question rounds already shown for the pending meal, 0-3 (A30, ADR-026). Always sent: the server
+     * may answer a question only and releases the estimate after 3. No default on purpose: Json does not
+     * encode defaults, and an absent field makes the server treat the app as a legacy client.
+     */
+    @SerialName("clarify_rounds") val clarifyRounds: Int,
+    /** Forçar estimativa: the server releases the estimate now. */
+    @SerialName("force_estimate") val forceEstimate: Boolean = false,
 )
 
 /** A memory fact as the server sees it (api-contract). slot is a profile slot id or null. */
@@ -130,4 +138,6 @@ data class ChatOut(
     @SerialName("memory_used") val memoryUsed: List<String> = emptyList(),
     val digest: String? = null,
     val model: String = "",
+    /** Question before the estimate (A30): non-blank with estimate null = a question-only turn. */
+    val question: String? = null,
 )

@@ -49,7 +49,8 @@ const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "ch
 // vertical offset). chatF: the photo bubble (A6); the rest of chatF is the chatG generation.
 // chatA: the composer with the attached thumbnail (A19). chatX: the 5-line composer with the red
 // border and "Texto muito longo" (A25). chatS: the routine card, title to buttons (A29).
-const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668], chatS: [32, 798, 748, 1302] };
+// chatQ: the Forçar estimativa bar (A30), gated in both themes on top of the dark screen gate.
+const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668], chatS: [32, 798, 748, 1302], chatQ: [32, 1436, 748, 1544] };
 // Bottom-anchored regions, per theme: the gold bottom is matched to the capture bottom first.
 // homeW: the "Treino de hoje" sheet, top edge to 40 dp above the page end (home pill, A22).
 const BOTTOM_REGIONS = { homeW: { dark: [0, 2012, 780, 2620], light: [0, 2026, 780, 2644] } };
@@ -60,6 +61,10 @@ const CENTER_REGIONS = { o3t: { dark: [48, 710, 732, 1498], light: [48, 722, 732
 // Regions reported, not gated: light chatA / chatX draw the composer on the page colour (chat0
 // generation) while the canonical light chatE uses the card colour.
 const REGION_REPORT_ONLY = new Set(["light/chatA", "light/chatX"]);
+// Whole screens reported, not gated, in one theme. light/chatQ: the light gold draws the question
+// bubbles tighter than dark from the same ST7 prompt (line ~22 dp vs 24.5 dp, icon gap 10 vs 12 dp,
+// ~3 dp less padding); the app follows dark. Its Forçar estimativa bar stays gated (REGIONS).
+const SCREEN_REPORT_ONLY = new Set(["light/chatQ"]);
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -243,7 +248,7 @@ for (const key of ids) {
   const goldInk = ink(gold, goldTop, IGNORE_TOP, phone - FOOTER);
   const inkRatio = appInk / Math.max(1, goldInk);
   const inkOk = inkRatio >= 0.8 && inkRatio <= 1.25;
-  const conflict = GOLD_CONFLICTS.has(id);
+  const conflict = GOLD_CONFLICTS.has(id) || SCREEN_REPORT_ONLY.has(key);
   const ok = pct <= max && inkOk;
   if (!ok && !conflict) failed = true;
   const bottom = BOTTOM_REGIONS[id]?.[theme];
