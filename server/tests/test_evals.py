@@ -15,7 +15,7 @@ import httpx2
 from evals import run
 from evals.checks import FAIL, KNOWN, NA, PASS, case_status, evaluate, repetition_status
 from main import ChatIn
-from tests.test_api import FAKE_KEY, _envelope
+from tests.test_api import FAKE_KEY, _envelope, _is_moderation, _moderation
 
 V1_LOG = {
     "reply": "Café com 2 ovos e pão.",
@@ -100,6 +100,7 @@ class CheckTests(unittest.TestCase):
             "memory_used_has": ["P1"],
             "reply_has": ["ovo"],
             "reply_not": ["registrei"],
+            "refusal": "out_of_scope",
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)
@@ -149,6 +150,21 @@ class CheckTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             evaluate({"kcal": 1}, V1_LOG)
 
+    def test_refusal_check(self) -> None:
+        from shaping import REFUSAL_EATING, REFUSAL_OUT_OF_SCOPE
+
+        refused = {**_v2(), "reply": REFUSAL_OUT_OF_SCOPE, "estimate": None, "memory_updates": []}
+        self.assertEqual(_status({"refusal": "out_of_scope"}, refused), {"refusal": PASS})
+        self.assertEqual(_status({"refusal": "none"}, refused), {"refusal": FAIL})
+        self.assertEqual(_status({"refusal": ["none", "out_of_scope"]}, refused), {"refusal": PASS})
+        support = {**refused, "reply": REFUSAL_EATING}
+        self.assertEqual(_status({"refusal": "safety_support"}, support), {"refusal": PASS})
+        self.assertEqual(_status({"refusal": "none"}, _v2()), {"refusal": PASS})
+
+    def test_strict_case_needs_every_repetition(self) -> None:
+        self.assertEqual(case_status([PASS, PASS, FAIL], strict=True), FAIL)
+        self.assertEqual(case_status([PASS, PASS, PASS], strict=True), PASS)
+
     def test_two_of_three(self) -> None:
         self.assertEqual(case_status([PASS, PASS, FAIL]), PASS)
         self.assertEqual(case_status([PASS, FAIL, FAIL]), FAIL)
@@ -167,7 +183,9 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2", "v3"))
+                self.assertIn(case["since"], ("v1", "v2", "v3", "cp2"))
+                if case.get("image"):
+                    self.assertTrue((run.MEDIA_DIR / case["image"]).is_file())
                 self.assertTrue(case["tags"])
                 self.assertTrue(set(case["expect"]) <= set(KNOWN))
                 body = ChatIn.model_validate(case["request"])
@@ -212,8 +230,12 @@ class RunTests(unittest.TestCase):
             "digest": None,
         }
         seen: list[dict[str, Any]] = []
+        moderated: list[dict[str, Any]] = []
 
         def handler(request: httpx2.Request) -> httpx2.Response:
+            if _is_moderation(request):
+                moderated.append(json.loads(request.content))
+                return httpx2.Response(200, json=_moderation())
             seen.append(json.loads(request.content))
             return httpx2.Response(200, json=_usage_envelope(payload))
 
@@ -221,6 +243,8 @@ class RunTests(unittest.TestCase):
             "low", [self._case()], 3, FAKE_KEY, transport=httpx2.MockTransport(handler)
         )
         self.assertEqual(len(seen), 3)
+        # Full orchestration (CP2): input and output moderation around each generation.
+        self.assertEqual(len(moderated), 6)
         self.assertEqual({s["reasoning"]["effort"] for s in seen}, {"low"})
         self.assertEqual(report["pass_rate"], {"passed": 1, "failed": 0, "na": 0, "rate": 100.0})
         case = report["cases"][0]

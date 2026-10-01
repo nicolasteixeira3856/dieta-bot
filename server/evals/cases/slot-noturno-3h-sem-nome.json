@@ -65,6 +65,7 @@
   "expect": {
     "intent": "log",
     "estimate": "present",
-    "suggested_slot": "1"
+    "suggested_slot": "1",
+    "refusal": "none"
   }
 }

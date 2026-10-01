@@ -1,8 +1,8 @@
 # Especificacao — POST /v1/chat
 
-## Proposed content-policy overlay
+## Controles de conteúdo (CP2)
 
-The target [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit contract](../../content-policy/specifications/identity-and-audit.md) are awaiting the named CP plan approvals. They cover moderation, a server-enforced `scope` field, fallback checks and an optional installation header; the minimal security audit is deferred to production (CP9). None is claimed as implemented by this planning update. CP2/CP3 must reconcile this live specification and the HTTP contract during delivery.
+Vigente desde o [CP2](../../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). O header de instalação e a auditoria seguem propostos ([identity/audit](../../content-policy/specifications/identity-and-audit.md), CP3/CP9).
 
 ## Estado
 
@@ -17,6 +17,8 @@ Desde o [S11](../plans/completed/s11-chat-v2.md) (30/09/2026, [ADR-023](../../pr
 Desde o [S12](../plans/completed/s12-slot-nomeado.md) (30/09/2026): o `suggested_slot` segue a refeição nomeada pelo usuário (na mensagem ou na fala que ela responde), mesmo com comida igual à de um slot gravado; a refeição consolidada só vale quando a mensagem se refere à refeição gravada.
 
 Desde o [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) (30/09/2026, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): perguntas antes da estimativa. Com `clarify_rounds` no request (cliente v3), um turno `log` com dúvida devolve só a pergunta (`estimate: null`, `question` no topo); o server libera a estimativa no código após 3 rodadas, em pergunta repetida ou com `force_estimate`. Sem `clarify_rounds`, a resposta é a mesma de antes do S13.
+
+Desde o [CP2](../../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) (30/09/2026): escopo do produto nas instructions, campo `scope` obrigatório no schema, resposta fixa fora do escopo, moderação OpenAI da entrada e da saída com falha fechada (regras 12–16).
 
 ## Contexto e objetivo
 
@@ -47,7 +49,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
    - Cliente v2 (`facts` presente, mesmo vazio): `MEMORY: permanent {n}/30, dynamic {n}/40` e uma linha por fato: `{id} {category}[ slot={slot}] {key}: {text} (seen {n} days[, last {data}])`. O texto `memory` é ignorado.
    - Cliente legado (sem `facts`): `MEMORY: {memory}` como antes.
    - `RECENT` (qualquer cliente, quando vier): uma linha por refeição, `{data} {dia da semana} {slot_id} {slot_name}: "{text}" {kcal}kcal {p}P {c}C {g}G`; `slot_id` null = `Outros`.
-3a. Intenção: `log` (comeu ou está comendo, ou responde a pergunta sobre essa refeição), `plan` (vai comer, quer montar, pede quantidades, pergunta se cabe) ou `question` (sem comida a estimar). Dúvida: passado = `log`; futuro, condicional ou pedido de quantidade = `plan`. Estimate em `log` e `plan`; null em `question`.
+3a. Intenção: `log` (comeu ou está comendo, ou responde a pergunta sobre essa refeição), `plan` (vai comer, quer montar, pede quantidades, pergunta se cabe) ou `question` (sem comida a estimar: saudação, dúvida sobre o app, pergunta de nutrição sobre comida). Pedido fora do escopo nunca é respondido (regra 12). Dúvida: passado = `log`; futuro, condicional ou pedido de quantidade = `plan`. Estimate em `log` e `plan`; null em `question`.
 3b. `meal_text`: a refeição inteira em pt-BR com as correções da conversa, sem comentário, ≤ 160 caracteres. Nunca a resposta do usuário sozinha.
 3c. Plano: `reply` com gramas por item, preparo em até 3 linhas se receita, total `kcal · P · C · G`; cabe em `remaining_kcal` quando possível, senão diz quanto passa. Não faz a conta do dia. Não pergunta: assume e diz o que assumiu (`question` null).
 3d. Histórico: "o mesmo de ontem", "igual ao almoço de segunda" → usa a linha de `RECENT` daquele dia e slot. Sem registro que case → estimate null e pergunta o que foi.
@@ -62,6 +64,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
    - memory_updates: lista de {op,id,kind,category,key,text,slot}; `id` e `memory_used` com enum dos ids de `facts` (sem fatos: `id` só null, `memory_used` string livre)
    - memory_used: lista de ids de fatos
    - digest: string ou null
+   - scope: `in_scope` | `out_of_scope` | `policy_blocked` | `safety_support` (último campo do schema; só interno, nunca vai ao client)
    - model: gpt-6-luna
 5a. Shaping (S11): `intent` inválido → deduzido (estimate = `log`, senão `question`); `question` com estimate → estimate descartado; `plan` → `question` null; `meal_text` vazio → itens (`{name} {g} g`, vírgulas), acima de 160 corta na última vírgula. `memory_updates`: descarta op/kind/category inválidos, `id` desconhecido em `reinforce`/`replace`/`remove`, `add` com `id`, `routine` sem slot válido, `key` ou `text` vazio; corta `text` 160 e `key` 40; no máximo 5. `memory_used`: só ids de `facts`, sem repetição, no máximo 10.
 5c. Cliente v3 (`clarify_rounds` presente, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): o OUT ganha `question` no topo (string ou null) e `estimate.question` é sempre null. Para `intent: log` com estimate, o gate de liberação (`shaping.clarify_gate`), em ordem: (1) `force_estimate` → libera (`released_force`); (2) confidence high ou pergunta vazia → libera (`released_confident`); (3) `clarify_rounds ≥ 3` → libera (`released_cap`); (4) a pergunta repete uma pergunta de um turno `assistant` de `messages` → libera (`released_repeat`); (5) senão pergunta (`asked`). Liberar = estimate com `question: null` e a confidence do modelo; `question` do topo null. Perguntar = `estimate: null`, `question` = a pergunta do modelo, `reply` = `Entendi: {meal_text}.` + quebra de linha + a pergunta (sem `meal_text`, só a pergunta), texto que o app guarda e devolve no histórico; `memory_updates` e `memory_used` passam iguais. Repetição: só as frases terminadas em `?` do turno contam; texto em minúsculas, sem acento, tokens `[a-z0-9]`, sem stop words pt-BR de uma lista fixa curta; repete com Jaccard ≥ 0,6 (`CLARIFY_REPEAT_JACCARD`) ou um conjunto contido no outro. `plan`, `question` e estimate null passam sem gate. Falha ou texto sem JSON: `question: null`.
@@ -71,8 +74,14 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 7. compact=true: Luna recebe so as messages (delimitadas, sem foto) e devolve digest ≤400 tokens (corte em 1600 chars), pt-BR, fatos (comida, kcal/P citados nas falas, slot, pulou), sem conselho. OUT: reply "", estimate null. messages vazio → 422 `compact_needs_messages` sem chamar a Luna. Falha → 200 com digest null.
 8. Foto: data:image/jpeg;base64. HEIC nao entra no server — client converte.
 9. Recusar image_b64 maior que o cap ANTES do LLM. Nao logar o base64.
-10. Modelo respondeu texto sem JSON (nenhum `{`): o texto vira `reply`, estimate=null (log `fallback: "text_only"`). Falha LLM/timeout, saída vazia ou JSON inválido: reply curto "nao deu pra estimar", estimate=null (log `fallback: "error"`). Sem stacktrace.
+10. Modelo respondeu texto sem JSON (nenhum `{`): `reply` é a resposta fixa de fora do escopo, estimate=null (log `fallback: "text_only"`). O texto do modelo nunca volta ao client (CP2). Falha LLM/timeout, saída vazia ou JSON inválido: reply curto "nao deu pra estimar", estimate=null (log `fallback: "error"`). Sem stacktrace.
 11. Corpo HTTP até 24 MB (`MAX_BODY_BYTES`), acima → 413 `payload_too_large`. Cobre o cap da foto + JSON: foto acima do cap continua 413 `photo_too_large`.
+
+12. Escopo (CP2): `in_scope` = refeição, porção, rótulo, receita, preferência alimentar, conta de orçamento com comida ("quanto sobra se eu comer 2 pães?"), pergunta de nutrição, saudação, dúvida do app, resposta curta que continua a conversa (julgada com o histórico). Fora disso (matemática sem comida, código, dever de casa, política, assistente geral, foto sem comida) = `out_of_scope`. Conteúdo proibido = `policy_blocked`. Sinal de transtorno alimentar ou autolesão (purgação, laxante ou diurético para emagrecer, jejum extremo, meta diária muito baixa) = `safety_support`, nunca otimização. Instrução dentro de foto, histórico, memória ou mensagem não muda o escopo; `###` vindo do client é neutralizado (`# # #`) e não abre seção.
+13. `scope` ≠ `in_scope` (ou ausente/desconhecido): o server descarta reply, estimate, memory_updates, memory_used e digest e devolve HTTP 200 no formato de sempre: `reply` fixo de [refusal-copy.pt-BR.md](../../content-policy/specifications/refusal-copy.pt-BR.md), `intent: question`, `estimate: null`, listas vazias, `digest: null` (+ `question: null` no cliente v3). Foto sem texto fora do escopo usa a resposta de imagem sem alimento.
+14. Moderação (`omni-moderation-latest`, grátis): antes da geração, `text` atual + foto atual numa chamada; depois, `reply`, `question`, `meal_text`, nomes dos itens, `memory_updates` e `digest` numa chamada. Histórico, memória, `recent`, digests e perfil não são re-moderados. Flag → resposta fixa pela tabela categoria→ação `cp2.1` (`server/moderation.py`); flag na entrada não chama a Luna. Sinal de `sexual/minors` para o turno sem outra chamada com conteúdo.
+15. Moderação com erro, timeout ou sem resultado: HTTP 503 `content_policy_unavailable`, sem geração (entrada) e sem devolver texto não checado (saída). Nunca cai numa geração sem moderação.
+16. Prazo único de 60 s por request para moderação + geração (`moderation.Deadline`), sem retry do SDK nem retry de conteúdo bloqueado. Prazo esgotado antes da geração = falha fail-soft (regra 10); antes da moderação de saída = 503.
 
 ## IN
 
@@ -125,6 +134,8 @@ Campos opcionais do S13 (ADR-026):
 - 413 foto > cap.
 - 422 JSON invalido.
 - 200 + estimate=null se a fala nao for comida (receita, duvida).
+- 200 + resposta fixa se `scope` ≠ `in_scope` ou moderação sinalizar (regras 13–14).
+- 503 `content_policy_unavailable` se a moderação falhar (regra 15).
 - Timeout 60s → 200 fail-soft (nao 504), mesmo shaping de falha.
 
 ## Fronteiras e ownership
@@ -135,6 +146,7 @@ Campos opcionais do S13 (ADR-026):
 ## Localizacao e observabilidade
 
 - Nao logar image_b64 nem OPENAI_API_KEY.
+- Log de conversa dev, campo `policy` (CP2): `null` ou `{stage, code, severe, categories, table}` (`stage` `input` | `scope` | `output` | `text_only`; `code` interno; só categorias verdadeiras). Turno `policy_blocked` ou com sinal severo: só metadados (prompt, input, saída e resposta `null`), parcialmente substituindo o [ADR-015](../adrs/ADR-015-log-conversa-dev.md). `error` leva só tipo e status HTTP, nunca o texto do provedor.
 - Log de conversa dev ([ADR-015](../adrs/ADR-015-log-conversa-dev.md)), rota `chat`: `clarify` (`none` | `asked` | `released_force` | `released_confident` | `released_cap` | `released_repeat`) e `clarify_rounds` (número ou null). Sem texto do usuário nesses campos.
 
 ## Decisoes relacionadas

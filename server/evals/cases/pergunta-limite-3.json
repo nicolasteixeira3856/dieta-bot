@@ -182,6 +182,7 @@
     "estimate": "present",
     "top_question": "absent",
     "question": "absent",
-    "suggested_slot": "5"
+    "suggested_slot": "5",
+    "refusal": "none"
   }
 }

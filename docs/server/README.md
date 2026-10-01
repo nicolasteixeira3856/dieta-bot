@@ -1,8 +1,8 @@
 # server
 
-## Planned content-policy work
+## Content-policy work
 
-[Content policy](../content-policy/README.md) owns the new policy proposals. [CP2](../content-policy/plans/cp2-server-content-controls.md) and [CP3](../content-policy/plans/cp3-server-safety-identifier.md) would change only server code; [CP5](../content-policy/plans/cp5-gcp-dev-ingress.md) owns GCP configuration separately. All await approval. In the closed test the ADR-015 dev log stays, with metadata-only records for moderation-flagged turns ([ADR-024](../content-policy/adrs/ADR-024-content-safety-boundaries.md)); its retirement in production belongs to [CP9](../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md). No moderation or safety-identifier rollout is claimed yet. Production server work is subject to the [production gate](../content-policy/production-gate.md).
+[Content policy](../content-policy/README.md) owns the policy. [CP2](../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) is deployed to dev (2026-09-30, owner APK check pending): scope field, fixed refusals, moderation of input and output, fail closed ([ADR-024](../content-policy/adrs/ADR-024-content-safety-boundaries.md), accepted). [CP3](../content-policy/plans/cp3-server-safety-identifier.md) awaits approval; [CP5](../content-policy/plans/cp5-gcp-dev-ingress.md) owns GCP configuration separately. In the closed test the ADR-015 dev log stays, with metadata-only records for blocked turns; its retirement in production belongs to [CP9](../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md). No safety-identifier rollout is claimed yet. Production server work is subject to the [production gate](../content-policy/production-gate.md).
 
 ## Proposito
 
@@ -87,7 +87,7 @@ cd server
 ### ADRs
 
 - [ADR-013](adrs/ADR-013-gcp-host.md) — host GCP e2-micro (aceito).
-- [ADR-015](adrs/ADR-015-log-conversa-dev.md) — log de conversa no server de dev (aceito).
+- [ADR-015](adrs/ADR-015-log-conversa-dev.md) — log de conversa no server de dev (aceito; parcialmente substituído pelo [ADR-024](../content-policy/adrs/ADR-024-content-safety-boundaries.md): turno bloqueado só com metadados).
 - Historico: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
 
 ### Planos e validacao

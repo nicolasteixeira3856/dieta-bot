@@ -200,6 +200,7 @@
         "op": "reinforce",
         "id": "D3"
       }
-    ]
+    ],
+    "refusal": "none"
   }
 }

@@ -81,8 +81,9 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         timeout = captured[0].extensions["timeout"]
         self.assertEqual(TIMEOUT_SECONDS, 60.0)
         for part in ("connect", "read", "write", "pool"):
-            self.assertEqual(timeout[part], TIMEOUT_SECONDS, msg=str(timeout))
-            self.assertEqual(timeout[part], 60, msg=str(timeout))
+            # CP2: what is left of the shared 60 s deadline, after moderation.
+            self.assertLessEqual(timeout[part], TIMEOUT_SECONDS, msg=str(timeout))
+            self.assertGreater(timeout[part], TIMEOUT_SECONDS - 5, msg=str(timeout))
 
     async def test_question_only_when_confidence_is_not_high(self) -> None:
         high = {
@@ -311,7 +312,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(body["fits"])
 
     def _app(self, handler) -> object:
-        app = main.create_app(transport=httpx2.MockTransport(handler))
+        app = main.create_app(transport=_mock(handler))
         self._apps.append(app)
         return app
 
@@ -323,7 +324,52 @@ def _client(app: object) -> httpx.AsyncClient:
     )
 
 
+def _with_scope(text: str) -> str:
+    """Fixtures older than CP2 carry no scope: a JSON object without one is in_scope."""
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return text
+    if isinstance(data, dict) and "scope" not in data:
+        data = {"scope": "in_scope", **data}
+        return json.dumps(data, ensure_ascii=False)
+    return text
+
+
+def _moderation(flags: dict | None = None, results: int = 1) -> dict:
+    """A moderation response. flags: category → True; everything else False."""
+    names = [
+        "harassment", "harassment/threatening", "hate", "hate/threatening", "illicit",
+        "illicit/violent", "self-harm", "self-harm/intent", "self-harm/instructions", "sexual",
+        "sexual/minors", "violence", "violence/graphic",
+    ]
+    flags = flags or {}
+    result = {
+        "flagged": bool(flags),
+        "categories": {name: bool(flags.get(name)) for name in names},
+        "category_scores": {name: (0.99 if flags.get(name) else 0.0) for name in names},
+        "category_applied_input_types": {name: ["text"] for name in names},
+    }
+    return {"id": "modr_test", "model": "omni-moderation-latest", "results": [result] * results}
+
+
+def _is_moderation(request: httpx2.Request) -> bool:
+    return request.url.path.endswith("/moderations")
+
+
+def _mock(handler) -> httpx2.MockTransport:
+    """Model transport for route tests: moderation answers clean, the rest goes to handler."""
+
+    def route(request: httpx2.Request) -> httpx2.Response:
+        if _is_moderation(request):
+            return httpx2.Response(200, json=_moderation())
+        return handler(request)
+
+    return httpx2.MockTransport(route)
+
+
 def _envelope(text: str) -> dict:
+    text = _with_scope(text)
     return {
         "id": "resp_test",
         "object": "response",

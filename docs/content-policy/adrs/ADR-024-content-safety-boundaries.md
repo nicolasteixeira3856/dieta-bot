@@ -1,10 +1,10 @@
 # ADR-024 — Content safety boundaries
 
-- Status: Proposed; acceptance requires approval of [CP2](../plans/cp2-server-content-controls.md).
+- Status: Accepted, 2026-09-30, with the owner's named approval of [CP2](../plans/pending_manual_validation/cp2-server-content-controls.md): "Aprovo o plano docs/content-policy/plans/cp2-server-content-controls.md e a proposta ADR-024 vinculada. Implemente, valide e faça o deploy no dev somente do escopo desse plano."
 - Date: 2026-09-30 (revised 2026-09-30 for the closed-test cut)
 - Owner: `content-policy`
-- Supersedes on acceptance: the off-topic "general question" interpretation of Chat `question` and the raw text-only fallback in the live [Chat contract](../../server/specifications/v1-chat.md). Complements ADR-023; log/plan/question and meal behavior unchanged.
-- Partially supersedes [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md) on acceptance: moderation-flagged turns are logged as metadata only. Ordinary dev conversation logging stays during the closed test.
+- Supersedes: the off-topic "general question" interpretation of Chat `question` and the raw text-only fallback in the live [Chat contract](../../server/specifications/v1-chat.md). Complements ADR-023; log/plan/question and meal behavior unchanged.
+- Partially supersedes [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md): moderation-flagged turns are logged as metadata only. Ordinary dev conversation logging stays during the closed test.
 
 ## Context
 

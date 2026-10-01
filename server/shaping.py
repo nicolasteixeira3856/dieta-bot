@@ -20,8 +20,107 @@ from config import (
     MEMORY_USED_MAX,
     MODEL,
 )
+from moderation import (
+    IN_SCOPE,
+    OUT_OF_SCOPE,
+    POLICY_BLOCKED,
+    SAFETY_SUPPORT,
+    SCOPES,
+    SUPPORT_VIOLENCE,
+)
 
 CHAT_FALLBACK_REPLY = "nao deu pra estimar"
+
+# Fixed copy (docs/content-policy/specifications/refusal-copy.pt-BR.md, CP2). Never model text.
+REFUSAL_OUT_OF_SCOPE = "Posso ajudar com refeições, porções e o orçamento alimentar do dia."
+REFUSAL_BLOCKED = (
+    "Não posso analisar esse conteúdo. Envie uma descrição de refeição ou uma foto de alimentos."
+)
+REFUSAL_PHOTO = (
+    "Não identifiquei alimentos ou informações de um rótulo nessa imagem. "
+    "Envie outra foto ou descreva a refeição."
+)
+REFUSAL_EATING = (
+    "Não posso orientar práticas alimentares que possam causar dano. "
+    "Se quiser conversar com alguém agora, o CVV atende 24 horas pelo 188. "
+    "Procure também um profissional de saúde."
+)
+REFUSAL_VIOLENCE = (
+    "Não consigo atender essa situação pelo app. Se houver risco imediato, ligue 190 ou 192."
+)
+REFUSAL_REPLIES = (
+    REFUSAL_OUT_OF_SCOPE,
+    REFUSAL_BLOCKED,
+    REFUSAL_PHOTO,
+    REFUSAL_EATING,
+    REFUSAL_VIOLENCE,
+)
+
+
+def payload_scope(payload: dict[str, Any]) -> str:
+    """The model's scope field. Missing or unknown is out_of_scope: the server fails closed."""
+    scope = payload.get("scope")
+    return scope if scope in SCOPES else OUT_OF_SCOPE
+
+
+def refusal_reply(code: str, *, support: str | None = None, photo_only: bool = False) -> str:
+    """Fixed copy for a non-in_scope code. photo_only: a photo with no text."""
+    if code == POLICY_BLOCKED:
+        return REFUSAL_BLOCKED
+    if code == SAFETY_SUPPORT:
+        return REFUSAL_VIOLENCE if support == SUPPORT_VIOLENCE else REFUSAL_EATING
+    if code == IN_SCOPE:
+        raise ValueError("in_scope is not a refusal")
+    return REFUSAL_PHOTO if photo_only else REFUSAL_OUT_OF_SCOPE
+
+
+def refuse_chat(reply: str) -> dict[str, Any]:
+    """Chat refusal: the existing shape, intent question, nothing to record or remember."""
+    return {**fail_chat(), "reply": reply}
+
+
+def chat_output_texts(result: dict[str, Any]) -> list[str]:
+    """Generated text of a chat response, for output moderation (one batched call)."""
+    texts = [result.get("reply"), result.get("question"), result.get("digest")]
+    estimate = result.get("estimate")
+    if isinstance(estimate, dict):
+        texts.append(estimate.get("question"))
+        texts.append(
+            "\n".join(
+                [str(estimate.get("meal_text") or "")]
+                + [str(item.get("name") or "") for item in estimate.get("items") or []]
+            )
+        )
+    texts.append(
+        "\n".join(
+            f"{update.get('key')}: {update.get('text')}" for update in result.get("memory_updates") or []
+        )
+    )
+    return _texts(texts)
+
+
+def estimate_output_texts(result: dict[str, Any]) -> list[str]:
+    names = "\n".join(str(item.get("name") or "") for item in result.get("items") or [])
+    return _texts([result.get("question"), names])
+
+
+def fit_output_texts(result: dict[str, Any]) -> list[str]:
+    dishes = [result.get("dish"), *(result.get("options") or [])]
+    lines: list[str] = []
+    for dish in dishes:
+        if not isinstance(dish, dict):
+            continue
+        lines.append(str(dish.get("name") or ""))
+        lines.extend(f"{p.get('name')} {p.get('quantity')}" for p in dish.get("portions") or [])
+    return _texts([result.get("question"), "\n".join(lines)])
+
+
+def digest_output_texts(result: dict[str, Any]) -> list[str]:
+    return _texts([result.get("digest")])
+
+
+def _texts(values: list[Any]) -> list[str]:
+    return [value for value in values if isinstance(value, str) and value.strip()]
 CHAT_INTENTS = ("log", "plan", "question")
 MEMORY_OPS = ("add", "reinforce", "replace", "remove")
 FACT_KINDS = ("permanent", "dynamic")
@@ -328,19 +427,8 @@ def _question_tokens(text: str) -> set[str]:
 
 
 def text_only_chat(text: str) -> dict[str, Any]:
-    """The model answered without JSON: the text is the reply, no estimate."""
-    reply = text.strip()
-    if not reply:
-        return fail_chat()
-    return {
-        "reply": reply,
-        "intent": "question",
-        "estimate": None,
-        "memory_updates": [],
-        "memory_used": [],
-        "digest": None,
-        "model": MODEL,
-    }
+    """The model answered without JSON: fixed scope refusal. The raw text never returns (CP2)."""
+    return refuse_chat(REFUSAL_OUT_OF_SCOPE)
 
 
 def fail_chat() -> dict[str, Any]:

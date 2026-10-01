@@ -4,7 +4,7 @@
 - Date: 2026-09-30 (rescoped 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: server.
 - Delivery boundary: `server/`, plus related documentation/indexes.
-- Prerequisites: [CP2](cp2-server-content-controls.md) delivered. Approval accepts proposed [ADR-025](../adrs/ADR-025-safety-correlation-audit.md).
+- Prerequisites: [CP2](pending_manual_validation/cp2-server-content-controls.md) delivered. Approval accepts proposed [ADR-025](../adrs/ADR-025-safety-correlation-audit.md).
 
 ## History
 

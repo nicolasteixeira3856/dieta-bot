@@ -22,6 +22,7 @@ from tests.test_api import (
     _assert_not_on_disk,
     _client,
     _responds,
+    _mock,
 )
 
 
@@ -146,10 +147,12 @@ class PhotoCapTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("2 paes", captured[0].content.decode())
         timeout = captured[0].extensions["timeout"]
         for part in ("connect", "read", "write", "pool"):
-            self.assertEqual(timeout[part], 60, msg=str(timeout))
+            # CP2: what is left of the shared 60 s deadline, after moderation.
+            self.assertLessEqual(timeout[part], 60, msg=str(timeout))
+            self.assertGreater(timeout[part], 55, msg=str(timeout))
 
     def _app(self, handler) -> object:
-        app = main.create_app(transport=httpx2.MockTransport(handler))
+        app = main.create_app(transport=_mock(handler))
         self._apps.append(app)
         return app
 

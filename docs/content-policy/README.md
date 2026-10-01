@@ -16,9 +16,9 @@ Keep Dieta Bot within its meal-budgeting purpose without turning conversation lo
 
 ## Current state
 
-Planning only. Phase: **closed test** (dev flavor, invite, two testers via Firebase App Distribution).
+Phase: **closed test** (dev flavor, invite, two testers via Firebase App Distribution).
 
-The server has invite authentication, per-route rate limits, size checks and structured Chat output. It has no moderation, no `safety_identifier` and no dedicated audit. The live Chat prompt allows a "general question" under `question`, which caused the observed drift. Dev conversation logging (ADR-015) includes input and output. GCP runs Uvicorn with `--forwarded-allow-ips=*` behind Caddy with an unpublished API port; Caddy without `trusted_proxies` overwrites client `X-Forwarded-For`, so practical spoofing risk is low but the trust should be narrowed.
+[CP2](plans/pending_manual_validation/cp2-server-content-controls.md) is deployed to the dev server (2026-09-30, owner APK check pending): tightened scope instructions, a required `scope` field with fixed refusal copy, free OpenAI moderation of input and output that fails closed, and an eval set for off-topic, injection and eating-disorder cases. The server still has no `safety_identifier` and no dedicated audit (CP3, CP9). Dev conversation logging (ADR-015) includes input and output, except metadata-only lines for blocked turns. GCP runs Uvicorn with `--forwarded-allow-ips=*` behind Caddy with an unpublished API port; Caddy without `trusted_proxies` overwrites client `X-Forwarded-For`, so practical spoofing risk is low but the trust should be narrowed.
 
 A read-only inspection confirmed an off-topic quadratic-equation response on 2026-09-30 at 14:53 America/Sao_Paulo. No user log, IP, identifier or attachment is copied here. Evidence of scope drift, not of illegal activity.
 
@@ -52,7 +52,7 @@ Legal review and publication are not achieved by code. In the closed test, teste
 1. [SDD](../sdd/README.md), [AGENTS](../../AGENTS.md), and this context.
 2. [Production gate](production-gate.md).
 3. [Policy](specifications/content-policy.md), [identity and audit](specifications/identity-and-audit.md), [refusal copy](specifications/refusal-copy.pt-BR.md), [sources](sources.md).
-4. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md), both proposed.
+4. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) (accepted 2026-09-30) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md) (proposed).
 5. [Plan order](plans/README.md) and [validation matrix](validation/README.md).
 6. Current implementation in the owning folder before each approved delivery.
 
@@ -64,4 +64,4 @@ Closed test: CP2 → CP1 (any time before CP5) → CP3 → CP4 → CP5. Out of s
 
 Accepted owner constraints (2026-09-30): create and keep this context as the single home for user-content × AI safety; plan economical prevention and correlation; defer additional detection platforms (budget); add the SDD `Fora de escopo` state; keep only closed-test controls active; defer production plans with "app in closed test" as the reason; enforce them through the production gate.
 
-Proposed implementation choices are reviewable in the specifications and plans and are not deployed. Accept the relevant proposed ADR when approving its named plan.
+ADR-024 was accepted with the named approval of CP2 on 2026-09-30. Other proposed implementation choices are reviewable in the specifications and plans and are not deployed. Accept the relevant proposed ADR when approving its named plan.

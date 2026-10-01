@@ -9,7 +9,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 MODEL = "gpt-6-luna"
+# One deadline per request, shared by moderation and generation (CP2).
 TIMEOUT_SECONDS = 60.0
+# Free OpenAI moderation (CP2, ADR-024). Text and image, input and output.
+MODERATION_MODEL = "omni-moderation-latest"
 PHOTO_MAX_BYTES = 16 * 1024 * 1024
 PHOTO_MAX_B64_CHARS = 22_400_000
 # Covers PHOTO_MAX_B64_CHARS + JSON. The photo cap stays the 413 photo_too_large (S8).
