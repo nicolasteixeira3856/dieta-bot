@@ -13,6 +13,7 @@ import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -22,7 +23,7 @@ import retrofit2.Retrofit
 object NetworkModule {
     @Provides
     @Singleton
-    fun client(telemetry: Telemetry, ids: RequestIds): OkHttpClient = OkHttpClient.Builder()
+    fun client(telemetry: Telemetry, ids: RequestIds, installation: InstallationId): OkHttpClient = OkHttpClient.Builder()
         // Server timeout is 60 s (S1); the client waits as long, then shows "não deu".
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
@@ -31,20 +32,23 @@ object NetworkModule {
         .addInterceptor(InviteInterceptor(BuildConfig.INVITE_CODE))
         // A11: X-Request-Id on every call, matched by the dev server log (ADR-015).
         .addInterceptor(RequestIdInterceptor(telemetry, ids, BuildConfig.VERSION_NAME, BuildConfig.ENV))
+        // CP4: per hop, so a cross-origin redirect never carries the installation id.
+        .addNetworkInterceptor(InstallationIdInterceptor(apiBase().toHttpUrl(), installation))
         .build()
 
     @Provides
     @Singleton
     fun api(client: OkHttpClient): DietaBotApi {
         val json = Json { ignoreUnknownKeys = true }
-        val base = BuildConfig.API_PUBLIC_URL.let { if (it.endsWith("/")) it else "$it/" }
         return Retrofit.Builder()
-            .baseUrl(base)
+            .baseUrl(apiBase())
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(DietaBotApi::class.java)
     }
+
+    private fun apiBase(): String = BuildConfig.API_PUBLIC_URL.let { if (it.endsWith("/")) it else "$it/" }
 
     @Provides
     @Singleton
