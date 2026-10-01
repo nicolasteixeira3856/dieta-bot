@@ -20,6 +20,8 @@ Phase: **closed test** (dev flavor, invite, two testers via Firebase App Distrib
 
 [CP2](plans/pending_manual_validation/cp2-server-content-controls.md) is deployed to the dev server (2026-09-30, owner APK check pending): tightened scope instructions, a required `scope` field with fixed refusal copy, free OpenAI moderation of input and output that fails closed, and an eval set for off-topic, injection and eating-disorder cases. The server still has no `safety_identifier` and no dedicated audit (CP3, CP9). Dev conversation logging (ADR-015) includes input and output, except metadata-only lines for blocked turns. GCP runs Uvicorn with `--forwarded-allow-ips=*` behind Caddy with an unpublished API port; Caddy without `trusted_proxies` overwrites client `X-Forwarded-For`, so practical spoofing risk is low but the trust should be narrowed.
 
+[CP1](plans/pending_manual_validation/cp1-closed-test-notice.md) documents were delivered on 2026-10-01: [tester notice](legal/tester-notice.pt-BR.md), [data map](operations/closed-test-data-map.md) and [incident note](operations/closed-test-incident.md). Delivery to the two testers is pending (owner manual step).
+
 A read-only inspection confirmed an off-topic quadratic-equation response on 2026-09-30 at 14:53 America/Sao_Paulo. No user log, IP, identifier or attachment is copied here. Evidence of scope drift, not of illegal activity.
 
 ## Scope
@@ -52,9 +54,10 @@ Legal review and publication are not achieved by code. In the closed test, teste
 1. [SDD](../sdd/README.md), [AGENTS](../../AGENTS.md), and this context.
 2. [Production gate](production-gate.md).
 3. [Policy](specifications/content-policy.md), [identity and audit](specifications/identity-and-audit.md), [refusal copy](specifications/refusal-copy.pt-BR.md), [sources](sources.md).
-4. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) (accepted 2026-09-30) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md) (proposed).
-5. [Plan order](plans/README.md) and [validation matrix](validation/README.md).
-6. Current implementation in the owning folder before each approved delivery.
+4. Closed-test operations: [data map](operations/closed-test-data-map.md), [incident note](operations/closed-test-incident.md), [tester notice](legal/tester-notice.pt-BR.md).
+5. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) (accepted 2026-09-30) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md) (proposed).
+6. [Plan order](plans/README.md) and [validation matrix](validation/README.md).
+7. Current implementation in the owning folder before each approved delivery.
 
 ## Plan order
 
