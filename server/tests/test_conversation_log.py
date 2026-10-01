@@ -17,7 +17,8 @@ os.environ["LLM_MODEL"] = "gpt-nao-usar"
 import httpx2
 
 import main
-from tests.test_api import FAKE_KEY, INVITE, _client, _envelope, _explodes, _responds
+from tests.test_api import FAKE_KEY, INVITE, _client, _envelope, _explodes, _responds, _mock
+from shaping import REFUSAL_OUT_OF_SCOPE
 from tests.test_chat import _base_chat_payload
 
 PHOTO_SENTINEL = "UEhPVE9fU0VOVElORUxfTkFPX1BPREVfVkFaQVI" * 40
@@ -52,7 +53,7 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
             os.environ.pop("CONVERSATION_LOG_PATH", None)
         else:
             os.environ["CONVERSATION_LOG_PATH"] = log_path
-        app = main.create_app(transport=httpx2.MockTransport(handler))
+        app = main.create_app(transport=_mock(handler))
         self._apps.append(app)
         return app
 
@@ -79,7 +80,7 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(list(Path(self._tmp.name).iterdir()), [])
 
     async def test_success_logs_input_raw_output_and_response(self) -> None:
-        model = {"reply": "Registrei", "estimate": None, "digest": None}
+        model = {"scope": "in_scope", "reply": "Registrei", "estimate": None, "digest": None}
         app = self._app(_responds(model, []), str(self.path))
         response = await self._chat(
             app, headers={"X-App-Version": "1.0-dev", "X-App-Env": "dev"}, text="o que cabe hoje?"
@@ -98,10 +99,10 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(line["latency_ms"], int)
         self.assertTrue(line["ts"].endswith("-03:00"))
 
-    async def test_output_without_json_becomes_the_reply_and_marks_text_only(self) -> None:
+    async def test_output_without_json_is_the_scope_refusal_and_marks_text_only(self) -> None:
         app = self._app(_raw("Desculpe, nao consigo ajudar com isso."), str(self.path))
         response = await self._chat(app)
-        self.assertEqual(response.json()["reply"], "Desculpe, nao consigo ajudar com isso.")
+        self.assertEqual(response.json()["reply"], REFUSAL_OUT_OF_SCOPE)
         self.assertIsNone(response.json()["estimate"])
         [line] = self._lines()
         self.assertEqual(line["raw_output"], "Desculpe, nao consigo ajudar com isso.")

@@ -24,6 +24,7 @@ from tests.test_api import (
     MEAL,
     _client,
     _responds,
+    _mock,
 )
 
 
@@ -36,7 +37,7 @@ class SecurityTests(unittest.IsolatedAsyncioTestCase):
             app.state.llm.close()
 
     def _app(self, handler) -> Any:
-        app = main.create_app(transport=httpx2.MockTransport(handler))
+        app = main.create_app(transport=_mock(handler))
         self._apps.append(app)
         return app
 

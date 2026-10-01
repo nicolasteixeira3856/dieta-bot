@@ -170,6 +170,7 @@
     "meal_text_not": [
       "lasanha"
     ],
-    "question": "absent"
+    "question": "absent",
+    "refusal": "none"
   }
 }

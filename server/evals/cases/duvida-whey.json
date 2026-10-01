@@ -95,6 +95,7 @@
   },
   "expect": {
     "intent": "question",
-    "estimate": "absent"
+    "estimate": "absent",
+    "refusal": "none"
   }
 }

@@ -1,6 +1,6 @@
 # HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat
 
-Planning notice (2026-09-30): [content handling](content-policy/specifications/content-policy.md) and [identity/audit](content-policy/specifications/identity-and-audit.md) propose controls and additive headers/errors through CP2/CP3. They are not implemented by this documentation update. The deployed contract below remains the baseline; prompt markers alone are not proof of semantic scope enforcement.
+Content controls (CP2, 2026-09-30, [ADR-024](content-policy/adrs/ADR-024-content-safety-boundaries.md)): see [content handling](content-policy/specifications/content-policy.md). Every model route moderates the current user text and photo before generation and the generated text after it (OpenAI moderation, fail closed), and the model must classify `scope`. Errors added: HTTP 400 `{"detail": "content_policy_blocked"}` on `/v1/estimate` and `/v1/fit`; HTTP 503 `{"detail": "content_policy_unavailable"}` on every model route when moderation fails or times out. One 60-second deadline covers moderation and generation. The installation header of [identity/audit](content-policy/specifications/identity-and-audit.md) is still proposed (CP3).
 
 Auth: header `X-Invite: $INVITE_CODE` (constant-time validation, HTTP 401 `{"detail": "unauthorized"}` if missing or mismatch).
 Content-Type: application/json
@@ -8,10 +8,10 @@ Content-Type: application/json
 Rate limits: 30 req/minute per IP + invite on `/v1/estimate`, `/v1/fit`, and `/v1/chat`. Returns HTTP 429 `{"detail": "rate_limit_exceeded"}` when limit is exceeded.
 Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length` > 24 MB (25,165,824 bytes) enforced at the ASGI layer. It covers the photo cap plus JSON; a photo over the cap is still `photo_too_large` (S8).
 Field lengths: `text` in `/v1/estimate` and `/v1/fit` has a maximum length of 1,000 characters; `/v1/chat` limits are listed in its section. Returns HTTP 422 when exceeded.
-Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as meal data.
+Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as untrusted data. `###` inside client text is rewritten to `# # #`, so it cannot open or close a section.
 
 Request id: optional request header `X-Request-Id` (`[A-Za-z0-9-]{1,64}`). The server reuses it, or generates a UUID when it is missing or invalid, and always returns it in the `X-Request-Id` response header, on every route and status. Optional request headers `X-App-Version` and `X-App-Env` are only recorded. None of them changes the JSON body.
-Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error, final response, `fallback`: `false` | `"error"` | `"text_only"`, latency). Never the photo, the invite or the API key. Off by default.
+Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error type and HTTP status, final response, `fallback`: `false` | `"error"` | `"text_only"`, `policy`, latency). Never the photo, the invite, the API key or the provider's error text. A `policy_blocked` or severe turn keeps metadata only (CP2). Off by default.
 
 The server does not compute the ceiling. The app sends the budget on /fit.
 
@@ -40,6 +40,7 @@ OUT
 }
 ```
 `question` exists only if confidence != high.
+Out of scope, blocked or safety-support input (moderation or the model's `scope`): HTTP 400 `{"detail": "content_policy_blocked"}`, no zero-calorie placeholder.
 
 ## POST /v1/fit
 IN
@@ -54,6 +55,7 @@ IN
 ```
 OUT: dish with portions, fits true/false, 1 question, 2 options in surprise mode.
 Never offer a dish that blows the ceiling.
+Out of scope, blocked or safety-support input: HTTP 400 `{"detail": "content_policy_blocked"}`.
 
 ## POST /v1/chat
 IN
@@ -172,7 +174,9 @@ Quanto de macarrão? E o molho era com creme de leite ou requeijão?",
 - `reply` on a question-only turn is the history text: `Entendi: {meal_text}.` + newline + the question (no `meal_text`: the question alone). The app stores it and sends it back in `messages[]`; it does not display it.
 - The server releases the estimate (`estimate` present, `question: null`) when `force_estimate` is true, confidence is high or the model asked nothing, `clarify_rounds` is 3, or the question repeats one asked in an `assistant` turn of `messages`. A v3 client never gets the generic question above.
 - `plan`, `question` and `estimate: null` turns are unchanged, with `question: null`. Fallbacks carry `question: null`.
-- Model answered plain text (no JSON): that text is the `reply`, `estimate: null`. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.
+- Content refusal (CP2): the model's `scope` is not `in_scope`, or moderation flagged the input or the output. HTTP 200 in the normal shape: fixed pt-BR `reply` (e.g. `"Posso ajudar com refeições, porções e o orçamento alimentar do dia."`), `intent: "question"`, `estimate: null`, `memory_updates: []`, `memory_used: []`, `digest: null`, plus `question: null` for a v3 client. Copy: [refusal-copy.pt-BR.md](content-policy/specifications/refusal-copy.pt-BR.md). `scope` is never returned.
+- Moderation error or timeout: HTTP 503 `{"detail": "content_policy_unavailable"}`.
+- Model answered plain text (no JSON): the fixed out-of-scope `reply`, `estimate: null`. The model text is never returned. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.
 - `model`: always `gpt-6-luna`.
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.
@@ -192,4 +196,5 @@ OUT
 ```
 - `digest`: pt-BR prose, facts only (foods, kcal/P as stated, slot, skips), no advice. ≤ 400 tokens (capped at 1600 characters).
 - Model failure/timeout or empty digest: HTTP 200 with `"digest": null` (fail-soft). The client keeps its raw messages.
+- The digest is moderated before it returns; a flag returns `"digest": null`. History is not re-moderated. Moderation error: HTTP 503 `content_policy_unavailable`.
 - Stateless: the server returns the text; the client stores it (`day_digest`).

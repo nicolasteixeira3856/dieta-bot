@@ -28,7 +28,7 @@ from shaping import (
     repeats_question,
     shape_chat,
 )
-from tests.test_api import INVITE, _client, _explodes, _responds
+from tests.test_api import INVITE, _client, _explodes, _responds, _mock
 from tests.test_chat import _estimate, _fact, _v2_payload
 
 QUESTION = "Quanto de macarrão? E o molho era com creme de leite ou requeijão?"
@@ -228,7 +228,7 @@ class ClarifyRouteTests(unittest.IsolatedAsyncioTestCase):
         self._tmp.cleanup()
 
     async def _post(self, payload: dict[str, Any], handler) -> Any:
-        app = main.create_app(transport=httpx2.MockTransport(handler))
+        app = main.create_app(transport=_mock(handler))
         self._apps.append(app)
         async with _client(app) as client:
             return await client.post("/v1/chat", headers={"X-Invite": INVITE}, json=payload)

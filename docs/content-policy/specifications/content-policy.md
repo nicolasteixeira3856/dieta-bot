@@ -2,7 +2,9 @@
 
 ## Status and authority
 
-Proposed, not deployed. Delivered through [CP2](../plans/cp2-server-content-controls.md) and [ADR-024](../adrs/ADR-024-content-safety-boundaries.md). Product formulas, screens and the selected model stay unchanged.
+Closed-test profile: accepted ([ADR-024](../adrs/ADR-024-content-safety-boundaries.md)) and deployed to the dev server through [CP2](../plans/pending_manual_validation/cp2-server-content-controls.md) on 2026-09-30; the owner's manual APK check is pending. Product formulas, screens and the selected model stay unchanged.
+
+Implementation: `server/moderation.py` (moderation model `omni-moderation-latest`, category → action table version `cp2.1`), `server/main.py` (`guarded_turn`, `run_guarded`, shared `Deadline`), fixed copy in `server/shaping.py`. The model writes `scope` as the last key of the Chat schema; a missing or unknown value is `out_of_scope`.
 
 This file has two profiles. The **closed-test profile** is the current target. The **production profile** lists what must be added before production; it is deferred and enforced by the [production gate](../production-gate.md).
 

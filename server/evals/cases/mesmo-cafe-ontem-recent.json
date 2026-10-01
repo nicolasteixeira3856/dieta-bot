@@ -163,6 +163,7 @@
       "ovo",
       "pão"
     ],
-    "question": "absent"
+    "question": "absent",
+    "refusal": "none"
   }
 }

@@ -4,7 +4,7 @@
 - Date: 2026-09-30 (rescoped 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: server infrastructure.
 - Delivery boundary: `infra/gcp/`; related runbooks/indexes may be updated. No edits to `server/`, `apps/android/` or deployment tooling.
-- Prerequisites: [CP2](cp2-server-content-controls.md) and [CP3](cp3-server-safety-identifier.md) deployed; [CP4](cp4-android-installation-identity.md) automated acceptance; [CP1](cp1-closed-test-notice.md) notice delivered to the testers.
+- Prerequisites: [CP2](pending_manual_validation/cp2-server-content-controls.md) and [CP3](cp3-server-safety-identifier.md) deployed; [CP4](cp4-android-installation-identity.md) automated acceptance; [CP1](cp1-closed-test-notice.md) notice delivered to the testers.
 
 ## History
 

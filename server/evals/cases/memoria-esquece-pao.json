@@ -185,6 +185,7 @@
         "op": "remove",
         "id": "P2"
       }
-    ]
+    ],
+    "refusal": "none"
   }
 }
