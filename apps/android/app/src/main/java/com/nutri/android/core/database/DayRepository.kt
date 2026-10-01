@@ -346,11 +346,20 @@ class DayRepository @Inject constructor(
         }
     }
 
-    /** Thread for the UI: today and the previous 59 days. */
-    fun observeMessages(): Flow<List<ChatMessageEntity>> {
-        val from = SaoPaulo.date(clock.now()).minusDays(MESSAGE_DAYS - 1L).toString()
-        return db.chatMessageDao().observeSince(from)
-    }
+    /** Today and the previous 59 days, oldest first. */
+    fun observeMessages(): Flow<List<ChatMessageEntity>> = db.chatMessageDao().observeSince(messagesFrom())
+
+    /** Chat window (A32): the newest [limit] rows of the same 60 days, newest first. */
+    fun observeLatestMessages(limit: Int): Flow<List<ChatMessageEntity>> =
+        db.chatMessageDao().observeLatest(messagesFrom(), limit)
+
+    /** The whole conversation of [date] (ISO), oldest first: logic that must not depend on the window. */
+    suspend fun messagesOf(date: String): List<ChatMessageEntity> =
+        withContext(Dispatchers.IO) { db.chatMessageDao().getByDate(date) }
+
+    suspend fun message(id: Long): ChatMessageEntity? = withContext(Dispatchers.IO) { db.chatMessageDao().getById(id) }
+
+    private fun messagesFrom() = SaoPaulo.date(clock.now()).minusDays(MESSAGE_DAYS - 1L).toString()
 
     /** At most 2 digests per day. A 3rd overwrites the oldest (seq 1, then seq 2, ...). */
     suspend fun upsertDigest(text: String) {

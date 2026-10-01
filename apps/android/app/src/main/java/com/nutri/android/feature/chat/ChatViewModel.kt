@@ -39,12 +39,16 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
@@ -55,6 +59,7 @@ fun interface ChatService {
     suspend fun chat(body: ChatIn): ChatOut
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val repository: DayRepository,
@@ -66,10 +71,25 @@ class ChatViewModel @Inject constructor(
     private val requestIds: RequestIds = RequestIds(),
 ) : ViewModel() {
     private val local = MutableStateFlow(Local())
-    private val _uiState = MutableStateFlow(ChatUiState())
+    /** Not loaded until the first page arrives: the thread never draws empty and then fills (A32). */
+    private val _uiState = MutableStateFlow(ChatUiState(loaded = false))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private var messages: List<ChatMessageEntity> = emptyList()
+    /** Today's whole conversation, never the paged window: question rounds, actions, Forçar estimativa. */
+    private var todayMessages: List<ChatMessageEntity> = emptyList()
+
+    /** Rows asked of the window (A32): grows by [PAGE_SIZE] on [loadOlder]. */
+    private val pageLimit = MutableStateFlow(PAGE_SIZE)
+
+    /** Limit of the last window that arrived; below [pageLimit] = an older page is loading. */
+    private var windowLimit = 0
+    private var windowFull = false
+
+    /**
+     * The newest [limit] rows, oldest first, and today's whole conversation read with them: one Room
+     * observation, so the actions never arrive a frame before their bubble.
+     */
+    private data class Window(val limit: Int, val rows: List<ChatMessageEntity>, val today: List<ChatMessageEntity>)
 
     /** VM-only state: never in Room until the server answers (spec: failure leaves Room untouched). */
     private data class Local(
@@ -112,12 +132,28 @@ class ChatViewModel @Inject constructor(
 
     init {
         local.update { it.copy(openedAt = clock.now()) }
+        val day = minute.map { SaoPaulo.date(clock.now()).toString() }.distinctUntilChanged()
+        // Any chat_message write re-runs the window query (Room invalidates the table); today is read with it,
+        // cut at the window's newest id (ids grow with inserts): a row written in between waits for the next emission.
+        val window = combine(pageLimit, day, ::Pair).flatMapLatest { (limit, date) ->
+            repository.observeLatestMessages(limit).map { latest ->
+                val newest = latest.firstOrNull()?.id ?: 0L
+                Window(limit, latest.asReversed(), repository.messagesOf(date).filter { it.id <= newest })
+            }
+        }
         viewModelScope.launch {
-            combine(repository.observeToday(), repository.observeMessages(), local, facts, minute) { d, m, l, f, _ -> Rendered(d, m, l, f) }
-                .collect { (d, m, l, f) ->
-                    messages = m
-                    _uiState.value = render(d, m, l, f)
-                }
+            combine(repository.observeToday(), window, local, facts, combine(minute, pageLimit) { _, limit -> limit }) { d, w, l, f, limit ->
+                Rendered(d, w, l, f, limit)
+            }.collect { r ->
+                todayMessages = r.w.today
+                windowLimit = r.w.limit
+                windowFull = r.w.rows.size >= r.w.limit
+                _uiState.value = render(r.d, r.w.rows, r.w.today, r.l, r.f).copy(
+                    loaded = true,
+                    hasOlder = windowFull,
+                    loadingOlder = r.limit > r.w.limit,
+                )
+            }
         }
         viewModelScope.launch { reloadFacts() }
         viewModelScope.launch {
@@ -128,7 +164,22 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private data class Rendered(val d: DaySnapshot, val m: List<ChatMessageEntity>, val l: Local, val f: List<Fact>)
+    private data class Rendered(
+        val d: DaySnapshot,
+        val w: Window,
+        val l: Local,
+        val f: List<Fact>,
+        val limit: Int,
+    )
+
+    /**
+     * The thread reached its oldest drawn items: [PAGE_SIZE] more, within the 60 days. One page in
+     * flight at a time; nothing when the last window came back short (no older rows).
+     */
+    fun loadOlder() {
+        if (!windowFull || pageLimit.value > windowLimit) return
+        pageLimit.update { it + PAGE_SIZE }
+    }
 
     /** Re-evaluates what depends on the hour (the routine card). Called every minute. */
     internal fun tick() = minute.update { it + 1 }
@@ -158,7 +209,7 @@ class ChatViewModel @Inject constructor(
      */
     fun forceEstimate() {
         if (!_uiState.value.forceEstimate || local.value.pending != null) return
-        val round = PromptBuilder.clarifyRounds(messages.filter { it.date == SaoPaulo.date(clock.now()).toString() })
+        val round = PromptBuilder.clarifyRounds(todayMessages.filter { it.date == SaoPaulo.date(clock.now()).toString() })
         telemetry.event(TelemetryEvents.CHAT_FORCE_ESTIMATE, mapOf("round" to round))
         local.update { it.copy(pending = FORCE_TEXT, pendingPhoto = null, pendingForce = true, failed = false, sentOnce = true) }
         viewModelScope.launch { post(FORCE_TEXT, force = true) }
@@ -242,7 +293,7 @@ class ChatViewModel @Inject constructor(
             mapOf("has_photo" to (photo != null), "text_len" to TelemetryEvents.lengthBucket(text.length)),
         )
         val sentAt = clock.now()
-        val today = messages.filter { it.date == SaoPaulo.date(sentAt).toString() }
+        val today = repository.messagesOf(SaoPaulo.date(sentAt).toString())
         val snapshot = repository.observeToday().first()
         var digests = repository.digestsToday()
         // An unreadable memory never blocks the turn: it goes empty.
@@ -364,9 +415,11 @@ class ChatViewModel @Inject constructor(
      * A slot that already has a log today asks first and replaces (ADR-017): never two logs by the Chat.
      */
     fun record(estimateId: Long, slotId: Long) {
-        val estimate = messages.firstOrNull { it.id == estimateId && it.isRecordable } ?: return
         local.update { it.copy(sheetFor = null, sheetSelection = null) }
         viewModelScope.launch {
+            // By id, not from the window: an estimate scrolled out of the loaded page still records (A32).
+            val estimate = repository.message(estimateId)?.takeIf { it.isRecordable } ?: return@launch
+            val day = repository.messagesOf(estimate.date)
             val today = repository.observeToday().first()
             val slot = today.slotsOfDay.refs().firstOrNull { it.id == slotId } ?: return@launch
             val taken = today.logs.filter { it.slotId == slotId }
@@ -377,14 +430,14 @@ class ChatViewModel @Inject constructor(
             }
             repository.addLog(
                 window = "",
-                text = descriptionOf(estimate),
+                text = descriptionOf(estimate, day),
                 kcal = estimate.estimateKcal ?: 0,
                 p = estimate.estimateP ?: 0,
                 stable = true,
                 slotId = slot.id,
                 carbs = estimate.estimateC ?: 0,
                 fat = estimate.estimateG ?: 0,
-                source = sourceOf(estimate),
+                source = sourceOf(estimate, day),
             )
             val updated = applyPending(estimate, slot.id)
             repository.insertMessage(
@@ -394,25 +447,26 @@ class ChatViewModel @Inject constructor(
                 estimateSlotId = slot.id,
                 memoryUpdated = updated,
             )
-            mealSaved(estimate)
+            mealSaved(estimate, day)
         }
     }
 
     /** Substituir: today's log(s) of the slot become this estimate, in one transaction. */
     fun confirmReplace() {
         val confirm = local.value.replaceConfirm ?: return
-        val estimate = messages.firstOrNull { it.id == confirm.estimateId && it.isRecordable } ?: return
         local.update { it.copy(replaceConfirm = null) }
         viewModelScope.launch {
+            val estimate = repository.message(confirm.estimateId)?.takeIf { it.isRecordable } ?: return@launch
+            val day = repository.messagesOf(estimate.date)
             if (repository.observeToday().first().slotsOfDay.none { it.id == confirm.slot.id }) return@launch
             repository.replaceSlotLog(
                 slotId = confirm.slot.id,
-                text = descriptionOf(estimate),
+                text = descriptionOf(estimate, day),
                 kcal = estimate.estimateKcal ?: 0,
                 p = estimate.estimateP ?: 0,
                 carbs = estimate.estimateC ?: 0,
                 fat = estimate.estimateG ?: 0,
-                source = sourceOf(estimate),
+                source = sourceOf(estimate, day),
             )
             val updated = applyPending(estimate, confirm.slot.id)
             repository.insertMessage(
@@ -422,7 +476,7 @@ class ChatViewModel @Inject constructor(
                 estimateSlotId = confirm.slot.id,
                 memoryUpdated = updated,
             )
-            mealSaved(estimate)
+            mealSaved(estimate, day)
         }
     }
 
@@ -434,11 +488,12 @@ class ChatViewModel @Inject constructor(
 
     fun cancelReplace() = local.update { it.copy(replaceConfirm = null) }
 
-    private fun sourceOf(estimate: ChatMessageEntity) = if (userBefore(estimate)?.photoPath != null) "photo" else "user"
+    private fun sourceOf(estimate: ChatMessageEntity, day: List<ChatMessageEntity>) =
+        if (userBefore(estimate, day)?.photoPath != null) "photo" else "user"
 
-    private fun mealSaved(estimate: ChatMessageEntity) = telemetry.event(
+    private fun mealSaved(estimate: ChatMessageEntity, day: List<ChatMessageEntity>) = telemetry.event(
         TelemetryEvents.MEAL_SAVED,
-        mapOf("from" to "chat", "has_photo" to (userBefore(estimate)?.photoPath != null), "kcal" to (estimate.estimateKcal ?: 0)),
+        mapOf("from" to "chat", "has_photo" to (userBefore(estimate, day)?.photoPath != null), "kcal" to (estimate.estimateKcal ?: 0)),
     )
 
     fun openSheet(estimateId: Long) = local.update {
@@ -541,7 +596,8 @@ class ChatViewModel @Inject constructor(
 
     // ------------------------------------------------------------------ render
 
-    private fun render(d: DaySnapshot, all: List<ChatMessageEntity>, l: Local, facts: List<Fact>): ChatUiState {
+    /** [window]: the loaded page, oldest first (A32). [todayAll]: today's whole conversation. */
+    private fun render(d: DaySnapshot, window: List<ChatMessageEntity>, todayAll: List<ChatMessageEntity>, l: Local, facts: List<Fact>): ChatUiState {
         val now = clock.now()
         val today = SaoPaulo.date(now)
         val todayIso = today.toString()
@@ -550,17 +606,18 @@ class ChatViewModel @Inject constructor(
         val eaten = Macros(d.logs.sumOf { it.kcal }, d.logs.sumOf { it.p }, d.logs.sumOf { it.carbs }, d.logs.sumOf { it.fat })
         val budget = d.budgetOn(today)
         val targets = Macros(0, d.proteinTargetG, d.carbTargetG, d.fatTargetG)
-        val sorted = all.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
+        // Date pills, plans and memory notices: the window only. Actions and rounds: all of today.
+        val todayRows = todayAll.filter { it.date == todayIso }
         val project = { m: ChatMessageEntity ->
             val plan = Macros(m.estimateKcal ?: 0, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
             // A recorded plan is already inside the day: it is counted once, not projected on top.
-            val base = if (recordedPlan(m, sorted)) eaten.minus(plan) else eaten
+            val base = if (recordedPlan(m, todayRows)) eaten.minus(plan) else eaten
             ProjectedDay.of(budget, base, plan, targets)
         }
         val items = mutableListOf<ChatItem>()
         var lastDate: String? = null
         // The wipe marker only cuts the prompt; it is never drawn.
-        val visible = sorted.filter { it.role != DayRepository.ROLE_WIPED }
+        val visible = window.filter { it.role != DayRepository.ROLE_WIPED }
         for (m in visible) {
             if (m.date != lastDate) {
                 items += ChatItem.DateSeparator(dateLabel(LocalDate.parse(m.date), today))
@@ -588,7 +645,7 @@ class ChatViewModel @Inject constructor(
             }
         }
 
-        val emptyDay = visible.none { it.date == todayIso } && l.pending == null
+        val emptyDay = todayRows.none { it.role != DayRepository.ROLE_WIPED } && l.pending == null
         if (emptyDay) {
             if (lastDate != todayIso) items += ChatItem.DateSeparator(dateLabel(today, today))
             items += ChatItem.Greeting(timeOf((l.openedAt ?: now).toEpochMilli()))
@@ -602,14 +659,13 @@ class ChatViewModel @Inject constructor(
         val nowMinutes = SlotClock.minutesFromMidnight(now)
         val current = SlotClock.current(slots, nowMinutes) { it.minutes }
         // A log and a plan share the rule: only the last one without a receipt has actions (A29).
-        val lastEstimate = sorted.lastOrNull { it.role == "assistant" && it.isRecordable && it.date == todayIso }
-        val closed = lastEstimate == null || sorted.any { it.createdAtEpochMs >= lastEstimate.createdAtEpochMs && it.id != lastEstimate.id && it.role in RECEIPTS }
+        val lastEstimate = todayRows.lastOrNull { it.role == "assistant" && it.isRecordable }
+        val closed = lastEstimate == null || todayRows.any { it.createdAtEpochMs >= lastEstimate.createdAtEpochMs && it.id != lastEstimate.id && it.role in RECEIPTS }
         val actions = if (closed || l.pending != null) null else {
             val record = lastEstimate!!.estimateSlotId?.let { slotById[it] }
             EstimateActions(lastEstimate.id, record = record, skip = record ?: current, plan = lastEstimate.isPlanEstimate)
         }
         // A30: from the second question in a row, Forçar estimativa takes the actions slot (chatQ).
-        val todayRows = sorted.filter { it.date == todayIso }
         val forceEstimate = l.pending == null && l.attachment == null &&
             todayRows.lastOrNull()?.let(PromptBuilder::isQuestionOnly) == true &&
             PromptBuilder.clarifyRounds(todayRows) >= FORCE_FROM_ROUND
@@ -697,7 +753,8 @@ class ChatViewModel @Inject constructor(
         MemoryNotice(updated = m.memoryUpdated, permanent = MemoryRules.PERMANENT in kinds, dynamic = MemoryRules.DYNAMIC in kinds)
     }
 
-    private fun userBefore(estimate: ChatMessageEntity): ChatMessageEntity? = messages
+    /** [day]: the estimate's whole day, oldest first ([DayRepository.messagesOf]). */
+    private fun userBefore(estimate: ChatMessageEntity, day: List<ChatMessageEntity>): ChatMessageEntity? = day
         .filter { it.role == "user" && it.createdAtEpochMs <= estimate.createdAtEpochMs && it.id < estimate.id }
         .maxByOrNull { it.id }
 
@@ -705,9 +762,9 @@ class ChatViewModel @Inject constructor(
      * Timeline text (spec rule 12, A27): the server meal_text; else the first user message of the
      * estimate's chain, never an answer to a question (a photo gives the AI text); else the item names.
      */
-    private fun descriptionOf(estimate: ChatMessageEntity): String {
+    private fun descriptionOf(estimate: ChatMessageEntity, day: List<ChatMessageEntity>): String {
         estimate.estimateMealText?.takeIf { it.isNotBlank() }?.let { return it }
-        val user = chainStart(estimate)
+        val user = chainStart(estimate, day)
         if (user != null) {
             if (user.photoPath != null) return estimate.text
             if (user.text.isNotBlank()) return user.text
@@ -720,12 +777,10 @@ class ChatViewModel @Inject constructor(
      * assistant message right before it had estimateQuestion), steps to the user message before that one.
      * A receipt or a wipe in between ends the chain.
      */
-    private fun chainStart(estimate: ChatMessageEntity): ChatMessageEntity? {
-        val thread = messages
-            .filter { it.date == estimate.date }
-            .sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
+    private fun chainStart(estimate: ChatMessageEntity, day: List<ChatMessageEntity>): ChatMessageEntity? {
+        val thread = day.filter { it.date == estimate.date }
         var i = thread.indexOfFirst { it.id == estimate.id } - 1
-        if (thread.getOrNull(i)?.role != "user") return userBefore(estimate)
+        if (thread.getOrNull(i)?.role != "user") return userBefore(estimate, day)
         while (thread.getOrNull(i - 1).asked() && thread.getOrNull(i - 2)?.role == "user") i -= 2
         return thread[i]
     }
@@ -743,6 +798,9 @@ class ChatViewModel @Inject constructor(
 
         /** Forçar estimativa shows from this question round on (owner decision, ADR-026). */
         const val FORCE_FROM_ROUND = 2
+
+        /** Rows per page of the thread (A32). */
+        const val PAGE_SIZE = 20
 
         /** Receipt of Substituir (ADR-017). UI only, like "logged". */
         const val ROLE_REPLACED = "replaced"

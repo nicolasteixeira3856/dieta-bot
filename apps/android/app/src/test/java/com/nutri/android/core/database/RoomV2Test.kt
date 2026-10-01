@@ -52,8 +52,8 @@ class RoomV2Test {
     }
 
     @Test
-    fun databaseIsVersion6() {
-        assertThat(db.openHelper.readableDatabase.version).isEqualTo(6)
+    fun databaseIsVersion7() {
+        assertThat(db.openHelper.readableDatabase.version).isEqualTo(7)
     }
 
     @Test
@@ -218,6 +218,31 @@ class RoomV2Test {
         repo.insertMessage("user", "hoje", photoPath = "/tmp/x.jpg")
         val texts = repo.observeMessages().first().map { it.text }
         assertThat(texts).containsExactly("limite", "hoje").inOrder()
+    }
+
+    @Test
+    fun observeLatestMessages_pagesNewestFirst() = runBlocking<Unit> {
+        val repo = repository()
+        repeat(45) {
+            clock.instant = DAY_D.plusSeconds(it.toLong())
+            repo.insertMessage("user", "m$it")
+        }
+        assertThat(repo.observeLatestMessages(20).first().map { it.text }).isEqualTo((44 downTo 25).map { "m$it" })
+        assertThat(repo.observeLatestMessages(40).first().map { it.text }).isEqualTo((44 downTo 5).map { "m$it" })
+        assertThat(repo.observeLatestMessages(60).first()).hasSize(45)
+        clock.instant = DAY_D.plusSeconds(100)
+        repo.insertMessage("user", "nova")
+        assertThat(repo.observeLatestMessages(20).first().map { it.text }.take(2)).containsExactly("nova", "m44").inOrder()
+    }
+
+    @Test
+    fun observeLatestMessages_keeps60Days() = runBlocking<Unit> {
+        val repo = repository()
+        clock.instant = DAY_D.minusSeconds(60L * 86_400)
+        repo.insertMessage("user", "velha")
+        clock.instant = DAY_D
+        repo.insertMessage("user", "hoje")
+        assertThat(repo.observeLatestMessages(20).first().map { it.text }).containsExactly("hoje")
     }
 
     private fun repository() = DayRepository(db, clock, store)

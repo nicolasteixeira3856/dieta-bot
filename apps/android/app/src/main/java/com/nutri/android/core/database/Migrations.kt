@@ -3,6 +3,13 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v6 -> v7: index of the Chat newest-first page (A32). No data change. */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chat_message_createdAtEpochMs_id` ON `chat_message` (`createdAtEpochMs`, `id`)")
+    }
+}
+
 /** v5 -> v6: memory v2 per message (A28). Old rows: nothing pending, nothing used, not updated. */
 val MIGRATION_5_6 = object : Migration(5, 6) {
     override fun migrate(db: SupportSQLiteDatabase) {

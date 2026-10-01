@@ -69,11 +69,13 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
@@ -113,6 +115,7 @@ import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.Inter
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.designsystem.WaitIndicator
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.formatRemaining
 import com.nutri.android.domain.SlotBand
@@ -162,8 +165,23 @@ fun ChatScreen(
     onRoutineEdit: () -> Unit = {},
     /** chatQ: Forçar estimativa from the second question. */
     onForceEstimate: () -> Unit = {},
+    /** A32: the thread reached its oldest drawn items. */
+    onLoadOlder: () -> Unit = {},
 ) {
     val p = LocalPalette.current
+    // A32: camera button and photo chip close the keyboard first, so the photo sheet shows whole.
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val photo = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+        onPhoto()
+    }
+    val camera = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+        onCamera()
+    }
     Box(
         Modifier
             .fillMaxSize()
@@ -177,11 +195,11 @@ fun ChatScreen(
         // Stitch: backdrop-blur behind the sheet and the skip dialog.
         Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding().imePadding()) {
             Header(onBack)
-            Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, Modifier.weight(1f))
+            if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
-            if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, onCamera)
-            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto, onRemoveAttachment, onRecordPlan, onForceEstimate)
+            if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, camera)
+            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
@@ -231,21 +249,54 @@ private fun Header(onBack: () -> Unit) {
 
 // ----------------------------------------------------------------------------- thread
 
+/**
+ * A32: reversed list over the newest-first items, so the first frame is already the bottom of the
+ * conversation. Older pages are added at the far end and do not move the visible items.
+ */
 @Composable
-private fun Thread(ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> Unit, onRoutineEdit: () -> Unit, modifier: Modifier) {
+private fun Thread(
+    ui: ChatUiState,
+    onRetry: () -> Unit,
+    onRoutineRecord: () -> Unit,
+    onRoutineEdit: () -> Unit,
+    onLoadOlder: () -> Unit,
+    modifier: Modifier,
+) {
     val list = rememberLazyListState()
-    LaunchedEffect(ui.items.size) { if (ui.items.isNotEmpty()) list.animateScrollToItem(ui.items.lastIndex) }
+    val items = ui.newestFirst
+    val newest = items.firstOrNull()
+    val seen = remember { arrayOf(newest?.key) }
+    LaunchedEffect(newest?.key) {
+        if (newest == null || newest.key == seen[0]) return@LaunchedEffect
+        seen[0] = newest.key
+        // Follows only from the bottom or for the user's own send; scrolled up, nothing jumps.
+        val own = newest is ChatItem.Loading || newest is ChatItem.User && newest.pending
+        if (own || list.firstVisibleItemIndex <= 1) list.animateScrollToItem(0)
+    }
+    val nearOldest by remember {
+        derivedStateOf {
+            val info = list.layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
+            last >= info.totalItemsCount - 1 - OLDER_THRESHOLD
+        }
+    }
+    LaunchedEffect(nearOldest, ui.hasOlder, ui.loadingOlder) {
+        if (nearOldest && ui.hasOlder && !ui.loadingOlder) onLoadOlder()
+    }
     LazyColumn(
         modifier.fillMaxWidth().testTag("chat-thread"),
         state = list,
+        reverseLayout = true,
+        // A short thread still starts at the top, as in the golds.
+        verticalArrangement = Arrangement.Top,
         // Bottom 2 dp: with the footer 8 dp, the last time sits 10 dp above the action bar (chatR).
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 15.dp, bottom = 2.dp),
     ) {
-        itemsIndexed(ui.items, key = { _, it -> it.key }) { i, item ->
+        itemsIndexed(items, key = { _, it -> it.key }) { i, item ->
             // 16 dp between items; the question hugs its estimate (chatE); the routine card sits
-            // 12 dp under the meta card (chatS).
+            // 12 dp under the meta card (chatS). The oldest drawn item has none.
             val gap = when {
-                i == 0 -> 0.dp
+                i == items.lastIndex -> 0.dp
                 item is ChatItem.Question && !item.standalone -> 5.dp
                 item is ChatItem.Routine -> 12.dp
                 else -> 16.dp
@@ -254,8 +305,18 @@ private fun Thread(ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> 
                 ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit)
             }
         }
+        if (ui.loadingOlder) {
+            item(key = "loading-older") {
+                Box(Modifier.fillMaxWidth().padding(bottom = 16.dp), contentAlignment = Alignment.Center) {
+                    WaitIndicator(Modifier.testTag("chat-loading-older"))
+                }
+            }
+        }
     }
 }
+
+/** Older page requested when the oldest drawn item is this close to the end of the list. */
+private const val OLDER_THRESHOLD = 5
 
 @Composable
 private fun ThreadItem(item: ChatItem, ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> Unit, onRoutineEdit: () -> Unit) {

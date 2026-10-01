@@ -5,12 +5,13 @@
 # -> A29: routine over 3 past days -> chatS (Quase igual, Registrar) -> plan + Registrar assim -> chatR -> chatM.
 # -> A30: questions before the estimate, Forçar estimativa, 3-round cap -> chatQ.
 # Captures land in docs/qa/android/current/<theme>/. SCENES=v2 runs only onboarding + the A29 scenes;
-# SCENES=a30 only onboarding + the A30 scenes.
+# SCENES=a30 only onboarding + the A30 scenes; SCENES=a32 only onboarding + the A32 long-history scenes
+# (opens at the bottom, pages of 20 up to 60 days, no jump on a reply while scrolled up, camera closes the keyboard).
 #
 # Prereqs: node tools/fake-chat-server.mjs running on the host (port 8765);
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
 #   AVD at gold geometry (wm size 780x1688, wm density 320); python3; curl.
-# Usage: [SCENES=v2|a30] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30|a32] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -305,7 +306,7 @@ clarify_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; c=json.loa
 say() { tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "$1"; tap 'resource-id="chat-send"' 3; }
 has() { dump; grep -q "resource-id=\"$1\"" "$TMP/ui.xml"; }
 
-if [ "${SCENES:-all}" != v2 ]; then
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a30 ]; then
 # ------------------------------------------------------------------ A30: questions before the estimate (ST7)
 echo "  A30: question only, Forçar estimativa from the second"
 sql "$CLEAN"
@@ -322,6 +323,8 @@ expect "round 2: Forçar estimativa" 'resource-id="chat-force-estimate"'
 before=$(calls)
 tap 'resource-id="chat-force-estimate"' 3
 expect "Forçar: estimate with actions" 'resource-id="chat-actions"'
+# A32: the thread follows the newest reply; with the keyboard open the tall estimate fills the view.
+"$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }
 expect "Forçar: user message Pode estimar assim." 'Pode estimar assim\.'
 [ "$(clarify_sent)" = "2 True" ] && echo "  ✓ force_estimate sent at round 2" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
 [ "$(calls)" = "$((before + 1))" ] && echo "  ✓ one POST" || { echo "  ✗ calls $before -> $(calls)"; FAIL=1; }
@@ -372,8 +375,90 @@ if has chat-question; then echo "  ✗ question bubble under the estimate"; FAIL
 [ "${SCENES:-all}" = a30 ] && shot chatE
 fi
 
+# ------------------------------------------------------------------ A32: opens at the bottom, pages of 20, keyboard off
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a32 ]; then
+echo "  A32: long history (66 rows over 6 days + 3 rows 61 days back)"
+sql "$CLEAN"'
+now = int(time.time() * 1000)
+day = 86400000
+d0 = datetime.date.fromisoformat(today)
+for k in range(6):
+    date = (d0 - datetime.timedelta(days=5 - k)).isoformat()
+    for i in range(11):
+        c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)",
+                  (date, "user", "msg%02d" % (k * 11 + i), now - (5 - k) * day - (11 - i) * 60000))
+old = (d0 - datetime.timedelta(days=61)).isoformat()
+for i in range(3):
+    c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (old, "user", "velha%d" % i, now - 61 * day + i * 1000))
+'
+fake_mode '{}'
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+# First frame already at the bottom: a 3 s recording from the FAB tap (0.6 s in). screenrecord writes a
+# frame only when the screen changes; from 1.5 s (tap + 0.9 s, the navigation fade is over) every frame
+# must equal the last one in the thread area. The old scroll from the top still moved there (diff ~12).
+dump; fab=$(at 'resource-id="home-fab"')
+"$ADB" shell screenrecord --time-limit 3 /sdcard/a32-open.mp4 & rec=$!
+sleep 0.6; "$ADB" shell input tap $fab; wait $rec
+"$ADB" pull /sdcard/a32-open.mp4 "$TMP/a32-open.mp4" >/dev/null 2>&1
+ffmpeg -loglevel error -i "$TMP/a32-open.mp4" -vf fps=20 "$TMP/open%03d.png"
+moved=$("$PY" - "$TMP" <<'PYEOF'
+import glob, sys
+import numpy as np
+from PIL import Image
+frames = sorted(glob.glob(sys.argv[1] + "/open*.png"))
+def thread(f):
+    a = np.asarray(Image.open(f).convert("L"), dtype=float)
+    return a[int(a.shape[0] * 0.10):int(a.shape[0] * 0.80)]
+last = thread(frames[-1])
+print(round(max([float(np.abs(thread(f) - last).mean()) for f in frames[30:]] or [0.0]), 1))
+PYEOF
+)
+frames=$(ls "$TMP"/open*.png | wc -l)
+"$PY" -c "import sys; sys.exit(0 if float(sys.argv[1]) < 3 else 1)" "$moved"   && echo "  ✓ open: settled with the navigation fade, no scroll after it ($frames frames at 20 fps, diff $moved)"   || { echo "  ✗ open: the thread still moved after the fade (diff $moved)"; FAIL=1; }
+expect "open: newest message on screen" 'text="msg65"'
+seen_indicator=0
+for i in $(seq 1 40); do
+  "$ADB" shell input swipe 390 500 390 1400 120
+  dump
+  grep -q 'resource-id="chat-loading-older"' "$TMP/ui.xml" && seen_indicator=1
+  grep -q 'text="msg00"' "$TMP/ui.xml" && break
+done
+expect "scroll up: reaches the oldest row of the 60 days" 'text="msg00"'
+[ "$seen_indicator" = 1 ] && echo "  ✓ indicator seen while a page loaded" || echo "  · indicator not caught (Room answered before the dump)"
+for i in 1 2 3; do "$ADB" shell input swipe 390 500 390 1400 120; done
+dump; if grep -q 'text="velha' "$TMP/ui.xml"; then echo "  ✗ a row older than 60 days drawn"; FAIL=1; else echo "  ✓ stops at 60 days"; fi
+
+echo "  A32: a reply while scrolled up does not jump; a send at the bottom follows"
+open_chat
+fake_mode '{"delay": 8000}'
+say "dois%sovos"
+for i in 1 2 3; do "$ADB" shell input swipe 390 500 390 1400 120; done
+sleep 0.5; dump; top=$("$PY" -c "import re,sys; t=re.findall(r'text=\"(msg\d\d)\"', open(sys.argv[1], encoding='utf-8').read()); print(t[0] if t else '')" "$TMP/ui.xml")
+sleep 8
+dump
+if grep -q 'Identifiquei' "$TMP/ui.xml"; then echo "  ✗ the reply pulled the thread down"; FAIL=1; else echo "  ✓ scrolled up: the reply landed off screen"; fi
+[ -n "$top" ] && grep -q "text=\"$top\"" "$TMP/ui.xml" && echo "  ✓ $top still on screen" || { echo "  ✗ position moved (was $top)"; FAIL=1; }
+fake_mode '{}'
+open_chat
+expect "reopen: at the bottom with the reply" 'Identifiquei'
+say "pao%sde%squeijo"
+# Keyboard down: the tall reply plus its question fit the thread again.
+"$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }
+expect "send at the bottom: followed to the new reply" 'text="pao de queijo"'
+
+echo "  A32: camera closes the keyboard"
+tap 'resource-id="chat-input"' 1
+"$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && echo "  ✓ keyboard open" || { echo "  ✗ keyboard did not open"; FAIL=1; }
+tap 'resource-id="chat-photo"' 1
+"$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { echo "  ✗ keyboard still open with the sheet"; FAIL=1; } || echo "  ✓ keyboard closed"
+expect "photo sheet open" 'resource-id="chat-photo-sheet"'
+"$ADB" exec-out screencap -p > "$TMP/a32-photo-sheet.png"
+tap 'resource-id="chat-photo-cancel"' 1
+"$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { echo "  ✗ keyboard reopened on close"; FAIL=1; } || echo "  ✓ sheet closed, keyboard stays closed"
+fi
+
 # ------------------------------------------------------------------ A29: chatS, chatR, chatM (ST6)
-if [ "${SCENES:-all}" != a30 ]; then
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = v2 ]; then
 echo "  A29 routine: 3 breakfasts on 3 past days"
 # Emulator clock and host clock can disagree by a day at midnight: both use Sao Paulo dates.
 sql "$CLEAN"

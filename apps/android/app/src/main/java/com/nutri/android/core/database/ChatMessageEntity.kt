@@ -5,7 +5,8 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "chat_message", indices = [Index("date")])
+/** (createdAtEpochMs, id): the newest-first page of the Chat (A32, v7). */
+@Entity(tableName = "chat_message", indices = [Index("date"), Index("createdAtEpochMs", "id")])
 data class ChatMessageEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

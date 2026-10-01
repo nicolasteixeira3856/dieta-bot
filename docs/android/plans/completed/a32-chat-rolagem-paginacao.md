@@ -1,10 +1,10 @@
 # Plan — A32 Chat: opens at the bottom, reverse paging, keyboard off for the photo
 
-- Status: Aguardando aprovação
+- Status: Concluído
 - Date: 01/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`feature/chat/*`, `core/database/*` chat messages, Room v7, tests and captures)
-- Prerequisites: none. No new or changed gold: the paging indicator reuses the existing `LoadingIndicator` (owner decision of 01/10/2026). Independent of [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) / [A31](a31-o1-perfil-obrigatorio-teclado.md).
+- Prerequisites: none. No new or changed gold: the paging indicator reuses the existing `LoadingIndicator` (owner decision of 01/10/2026). Independent of [ST8](../../../stitch/plans/completed/st8-teto-sem-perfil.md) / [A31](../a31-o1-perfil-obrigatorio-teclado.md).
 
 ## Authorization gate
 
@@ -34,8 +34,8 @@ The Chat behaves like a messaging app: it opens already at the last message, wit
 
 ## Sources of truth
 
-- [chat](../../produto/specifications/chat.md) rules 3, 11 and 18; golds `chat0`, `chatE`, `chatQ`, `chatR`, `chatS` (no visual change expected).
-- [Room spec](../specifications/room-v2.md), [ADR-010](../../decisions/010-room.md).
+- [chat](../../../produto/specifications/chat.md) rules 3, 11 and 18; golds `chat0`, `chatE`, `chatQ`, `chatR`, `chatS` (no visual change expected).
+- [Room spec](../../specifications/room-v2.md), [ADR-010](../../../decisions/010-room.md).
 - Skills `dieta-bot-android-ui`, `room-ksp-coroutines`, `compose-stability`, `android-architecture`, `screenshot-testing`, `dieta-bot-android-visual`.
 
 ## Implementation scope
@@ -74,8 +74,8 @@ The VM uses `messages` today for more than drawing. After paging:
 
 ### 5. Specs
 
-- [chat](../../produto/specifications/chat.md): rule 3 (photo closes the keyboard), rule 11 (thread opens at the bottom; pages of 20 within 60 days with the indicator; no jump when scrolled up).
-- [Room spec](../specifications/room-v2.md): v7 index.
+- [chat](../../../produto/specifications/chat.md): rule 3 (photo closes the keyboard), rule 11 (thread opens at the bottom; pages of 20 within 60 days with the indicator; no jump when scrolled up).
+- [Room spec](../../specifications/room-v2.md): v7 index.
 
 ## Affected files
 
@@ -122,3 +122,28 @@ The VM uses `messages` today for more than drawing. After paging:
 After implementation, record real results and apply the lifecycle in `docs/sdd/README.md`, with the git delivery (§ 6).
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and the `plans/cancelled/` folder.
+
+## Results (01/10/2026)
+
+Approved by the owner on 01/10/2026 with the sentence of the authorization gate. No Stitch gate; no gold changed.
+
+Implemented:
+
+- Room v7: index `(createdAtEpochMs, id)` on `chat_message`, `MIGRATION_6_7` only creates it; schema `7.json` exported. DAO `observeLatest(fromDate, limit)` (newest first, `LIMIT`) and `getById`; repository `observeLatestMessages(limit)`, `messagesOf(date)`, `message(id)`. `observeMessages()` stays for the existing tests and readers.
+- `ChatViewModel`: `pageLimit` starts at 20; `loadOlder()` adds 20 only when the last window came back full and no page is in flight. One Room observation per window: every emission also reads today's whole conversation, cut at the window's newest id. Two separate Room flows (window and today) emitted out of step during the first test run, so the actions could arrive a frame before their bubble; reading both in one emission removed it. Today's rows feed actions, question rounds, Forçar estimativa, the empty-day greeting and plan projection. `post` reads today with `messagesOf`. Gravar and Substituir read the estimate by id and its day with `messagesOf(estimate.date)` (`descriptionOf`, `chainStart`, `userBefore`, photo source). `ChatUiState` gains `loaded`, `hasOlder`, `loadingOlder` and `newestFirst` (an `asReversed` view built once per state).
+- `ChatScreen`: the thread is composed after the first page (`loaded`). `LazyColumn(reverseLayout = true)` over `newestFirst`, with `verticalArrangement = Arrangement.Top`, so a short thread still starts at the top like the golds. Same gaps, with 0 dp on the oldest drawn item and the same content padding. Auto-scroll to index 0 only when the newest key changes and either the first visible index is ≤ 1 or the new item is the user's own send or its loading bubble. `loadOlder` fires when the last visible index is within 5 of the end; while `loadingOlder`, the existing `WaitIndicator` (`LoadingIndicator`) is centered at the visual top (`chat-loading-older`). The camera button and the `Tirar foto do prato` chip call `keyboard.hide()` and `clearFocus()` before their action. `MainActivity` wires `onLoadOlder`.
+- QA tools: `capture-chat.sh` gets `SCENES=a32`, also part of the full run. It seeds 66 rows over 6 days plus 3 rows 61 days back and checks the open with a 3 s `screenrecord`. From tap + 0.9 s (after the navigation fade) every frame must equal the last one in the thread area. Calibrated on a `master` build: diff 11.9 (the old scroll from the top), versus 0.0 on A32. Then: scroll up to the 60-day edge; a delayed reply while scrolled up; a send at the bottom; camera with the keyboard open. `fake-chat-server.mjs` gets `{"delay": ms}`. The A30 `Pode estimar assim.` check now closes the keyboard first (see below).
+
+Validation:
+
+1. `:app:testDevDebugUnitTest`: **384** tests, 0 failures. New: `MigrationV6V7Test` (v6 rows intact, index present); `RoomV2Test` window of 45 rows (20 → 40 → 45, newest first, an insert lands at the top, the 60-day edge); `ChatViewModelTest` paging (20, then 40, then 45 and `hasOlder` false, one page in flight, a send lands at the newest end), an estimate out of the window keeps its actions and records its chain start (the dinner, 820 kcal), and question rounds with 25 earlier rows today; `ChatThreadTest` (Compose) opens at the newest message, asks for an older page at the top, indicator while loading, and camera button and photo chip call `hide` before their action. ✅
+2. `:app:verifyRoborazziDevDebug` green with no baseline change: the reversed list moved no pixel. JVM `StitchGoldTest` is part of the same run. ✅
+3. `:app:assembleDevRelease` ✅
+4. Emulator (devDebug + fake server, 780×1688 @ 320 dpi), full `capture-chat.sh`, dark and light. Every A32 check ✓: open settled with no scroll (29 frames, diff 0.0); newest message on screen; scroll up reaches `msg00` and never draws the rows older than 60 days; a reply while scrolled up lands off screen with the same row still visible; reopen at the bottom with the reply; a send at the bottom follows to the new reply; keyboard open → camera → keyboard closed and photo sheet open → close the sheet → keyboard stays closed. The A30, A29 and A25 flows also pass. The loading indicator was not caught by `uiautomator`, because local Room answers before the dump. It is covered by `ChatThreadTest`. ⚠️ Not caused by A32: two old A8 checks of the full run fail on any build since A28 (memory.bin `NM` header after Gravar, and `POST memory` non-empty). A memory-less estimate no longer writes a memory line. They are left for a separate fix.
+5. Gold comparison (`node tools/diff-gold.mjs`): chatE 1.56% / 1.20% ✓, chatQ dark 1.21% ✓ (Forçar region 0.19%), chatQ light 5.99% (known A30 conflict, region 0.12% ✓), chat0 4.99% / 4.68% (known gold conflict, report only). Against the previous captures in `docs/qa/android/current/`, chat0 differs only in the date pill and the greeting time.
+
+Diff list (`chat0`, `chatE`, `chatQ`, both themes): no visual change. Layout, tokens, type sizes, radius, CTA, actions bar, Forçar bar and semantic macro colors match the previous captures. The short thread still starts below the header (`Arrangement.Top` with `reverseLayout`).
+
+Behavior note recorded for the owner: when a tall reply arrives with the user at the bottom, the thread now follows to the newest item, as in the plan. With the keyboard open, the estimate card can fill the view and the user's own message sits just above it. Before A32, a reply that replaced the loading bubble did not scroll, so the user's message stayed visible and the card ran below it.
+
+Emulator note: on this AVD, Gboard sometimes takes `adb` taps as stylus input and shows its floating toolbar instead of the keyboard, which covers the camera button. The camera check passed in the clean runs; the Compose test covers the order hide → photo deterministically.
