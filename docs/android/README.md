@@ -120,6 +120,11 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
+Ajustes de O1 e Chat (decisões do dono em 01/10/2026), aguardando aprovação, nesta ordem:
+
+- [A31 O1: perfil obrigatório e navegação pelo teclado](plans/a31-o1-perfil-obrigatorio-teclado.md) — depende do gate [ST8](../stitch/plans/st8-teto-sem-perfil.md) (gold `o1e`)
+- [A32 Chat: abre no fim, paginação reversa, teclado fecha na foto](plans/a32-chat-rolagem-paginacao.md) — sem gate; independente do A31
+
 Perguntas antes da estimativa ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), aceito): [A30 Perguntas antes da estimativa, Forçar estimativa](plans/completed/a30-perguntas-antes-da-estimativa.md) — golds `chatE` e `chatQ` do [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md); server [S13](../server/plans/completed/s13-perguntas-antes-da-estimativa.md); concluído em 30/09/2026.
 
 Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), 30/09/2026). A27, A28 e A29 concluídos (aprovado pelo dono em 30/09/2026):
