@@ -2,7 +2,7 @@
 
 ## Status
 
-Server side live on dev since 2026-10-01 ([CP3](../plans/pending_manual_validation/cp3-server-safety-identifier.md), `safety_id: off` until CP5 provisions the secret); Android header and GCP activation pending. Architecture: [ADR-025](../adrs/ADR-025-safety-correlation-audit.md) (accepted). Closed-test profile delivered by [CP3](../plans/pending_manual_validation/cp3-server-safety-identifier.md), [CP4](../plans/cp4-android-installation-identity.md) and [CP5](../plans/cp5-gcp-dev-ingress.md). Production profile deferred to [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md) and enforced by the [production gate](../production-gate.md).
+Server side live on dev since 2026-10-01 ([CP3](../plans/pending_manual_validation/cp3-server-safety-identifier.md), `safety_id: off` until CP5 provisions the secret); Android header implemented 2026-10-01 ([CP4](../plans/pending_manual_validation/cp4-android-installation-identity.md), not yet distributed); GCP activation pending. Architecture: [ADR-025](../adrs/ADR-025-safety-correlation-audit.md) (accepted). Closed-test profile delivered by [CP3](../plans/pending_manual_validation/cp3-server-safety-identifier.md), [CP4](../plans/pending_manual_validation/cp4-android-installation-identity.md) and [CP5](../plans/cp5-gcp-dev-ingress.md). Production profile deferred to [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md) and enforced by the [production gate](../production-gate.md).
 
 ## Closed-test profile
 

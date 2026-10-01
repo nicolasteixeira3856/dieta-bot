@@ -1,5 +1,8 @@
 package com.nutri.android.feature.chat
 
+import kotlinx.coroutines.delay
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import android.app.Application
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -211,6 +214,50 @@ class ChatViewModelTest {
         vm.await { it.actions != null }
         assertThat(repo.observeMessages().first().map { it.role }).containsExactly("user", "assistant").inOrder()
         assertThat(requests).hasSize(2)
+    }
+
+    /** CP2 refusal (HTTP 200, fixed reply): a plain bubble, no action card, no memory change (CP4 check). */
+    @Test
+    fun contentRefusal_isPlainBubble_withoutActionsOrMemory() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val refusal = "Posso ajudar com refeições, porções e o orçamento alimentar do dia."
+        answer = { ChatOut(reply = refusal, intent = "question", model = "gpt-6-luna") }
+        vm.setComposer("me conta uma piada")
+        vm.send()
+        vm.await { it.items.any { i -> i is ChatItem.Assistant } && !it.sending }
+
+        val ui = vm.uiState.value
+        val bot = ui.items.filterIsInstance<ChatItem.Assistant>().single()
+        assertThat(bot.text).isEqualTo(refusal)
+        assertThat(bot.estimate).isNull()
+        assertThat(bot.memory).isEqualTo(MemoryNotice())
+        assertThat(ui.actions).isNull()
+        assertThat(ui.items.filterIsInstance<ChatItem.Question>()).isEmpty()
+        assertThat(memoryFile.read()).isNull()
+        assertThat(repo.observeToday().first().logs).isEmpty()
+    }
+
+    /** CP2/CP3 400 and 503: the retry state, no raw code shown, no automatic retry (CP4 check). */
+    @Test
+    fun http400And503_showRetryState_withoutCodeOrAutoRetry() = runBlocking<Unit> {
+        listOf(400 to "invalid_client_instance_id", 503 to "moderation_unavailable").forEach { (code, detail) ->
+            requests.clear()
+            val vm = ChatViewModel(repo, service, clock, memory, photos)
+            answer = {
+                throw retrofit2.HttpException(
+                    retrofit2.Response.error<ChatOut>(code, """{"detail":"$detail"}""".toResponseBody("application/json".toMediaType())),
+                )
+            }
+            sendAndAwait(vm, "pão com ovo")
+            delay(200)
+
+            val ui = vm.uiState.value
+            assertThat(ui.items.last()).isEqualTo(ChatItem.Failed)
+            assertThat(ui.items.filterIsInstance<ChatItem.Assistant>()).isEmpty()
+            assertThat(ui.toString()).doesNotContain(detail)
+            assertThat(requests).hasSize(1)
+            assertThat(repo.observeMessages().first()).isEmpty()
+        }
     }
 
     /** A18 / ADR-017: 4 esfihas in the Jantar, then "também tomei suco" re-estimated as the whole meal. */

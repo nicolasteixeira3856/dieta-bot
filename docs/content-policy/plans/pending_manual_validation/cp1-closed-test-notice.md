@@ -55,7 +55,7 @@ Facts were read from the code at revision `bdc5251` (server logging, moderation,
 
 - The dev conversation log rotates by size today (20 MB × 6 files), not by age. The 30-day rotation is a [CP5](../cp5-gcp-dev-ingress.md) deliverable; the notice says it is not active yet and will be updated.
 - Docker logs (`api` access lines with client IP, `caddy`) have no size limit yet (CP5).
-- The installation pseudonym is not deployed ([CP3](cp3-server-safety-identifier.md)/[CP4](../cp4-android-installation-identity.md)); the notice describes it as coming in a next version.
+- The installation pseudonym is not deployed ([CP3](cp3-server-safety-identifier.md)/[CP4](cp4-android-installation-identity.md)); the notice describes it as coming in a next version.
 - `safety_support` and `out_of_scope` turns are logged in full; only `policy_blocked` turns are metadata-only.
 - Sent photos stay on the phone (app-private) until uninstall or clear-data; the server never writes them.
 - Contact is the owner through the channel that delivered the invite; no e-mail is published in the repo.
