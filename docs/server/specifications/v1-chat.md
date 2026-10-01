@@ -2,7 +2,7 @@
 
 ## Proposed content-policy overlay
 
-The target [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit contract](../../content-policy/specifications/identity-and-audit.md) are awaiting the named CP plan approvals. They cover moderation, semantic scope, fallback checks, optional installation header and minimal audit; none is claimed as implemented by this planning update. CP2/CP3 must reconcile this live specification and the HTTP contract during delivery.
+The target [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit contract](../../content-policy/specifications/identity-and-audit.md) are awaiting the named CP plan approvals. They cover moderation, a server-enforced `scope` field, fallback checks and an optional installation header; the minimal security audit is deferred to production (CP9). None is claimed as implemented by this planning update. CP2/CP3 must reconcile this live specification and the HTTP contract during delivery.
 
 ## Estado
 

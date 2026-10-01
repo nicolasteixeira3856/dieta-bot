@@ -20,9 +20,9 @@ Reviewed: 2026-09-30. Recheck the affected source before implementation or legal
 
 ## Cost assumptions
 
-No new detection vendor subscription. OpenAI moderation being free does not make the entire pipeline free: scope/output checks use the existing paid model, image processing has costs, and infrastructure/retention consume resources. CP2 records measured calls, token usage and latency; no price or legal guarantee is hardcoded into policy.
+No new detection vendor subscription. OpenAI moderation being free does not make the entire pipeline free: the closed-test profile keeps one paid generation call per turn (the `scope` field adds a few output tokens), image processing has costs, and infrastructure/retention consume resources. CP2 records measured calls, token usage and latency; no price or legal guarantee is hardcoded into policy. The spend ceiling in the closed test is the OpenAI project budget limit (CP5).
 
-## Legal questions for CP1
+## Legal questions for CP8
 
 - Operating person/entity, economic activity and Article 15 applicability; required fields and retention, including whether source-port evidence is available/required for the relevant attribution process.
 - Audience, access by minors, applicable age assurance and disclosure duties.

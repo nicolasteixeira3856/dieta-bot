@@ -2,53 +2,66 @@
 
 ## Purpose
 
-Keep Dieta Bot within its meal-budgeting purpose, reduce abusive text/image processing, and make incident handling traceable without turning conversation logs into an unrestricted content archive.
+Single home for every safety concern about user-supplied content reaching the AI: anything a user sends (text, photo, history, memory, profile fields, headers) that could be malicious or harmful. Covers scope drift, prompt injection, memory/digest poisoning, prohibited and illegal content, eating-disorder and self-harm risk, abuse of model cost, correlation of abusive requests, logging of that content, and incident handling.
+
+Keep Dieta Bot within its meal-budgeting purpose without turning conversation logs into an unrestricted content archive.
 
 ## Type and ownership
 
-- Type: cross-cutting policy, authorized by the owner on 2026-09-30.
+- Type: cross-cutting policy, authorized by the owner on 2026-09-30. The owner requires this folder to stay and to concentrate this topic; do not split it into other contexts or remove it.
 - Directory name: `content-policy`, explicitly requested by the owner; exception to the default snake_case naming convention.
-- Owns policy specifications, proposed architecture decisions, delivery plans and consolidated validation.
-- Each implementation plan has exactly one executable ownership boundary: `server/`, `apps/android/`, or `infra/gcp/`. Documentation-only plans own this context. Related specifications/indexes may be updated for that delivery; this does not authorize changing another code boundary.
-- [Server](../server/README.md) continues to own HTTP/LLM implementation, [Android](../android/README.md) owns the client, and [product](../produto/README.md) owns screens and meal behavior.
+- Owns policy specifications, proposed architecture decisions, delivery plans, the production gate and consolidated validation.
+- Each implementation plan has exactly one executable boundary: `server/`, `apps/android/` or `infra/gcp/`. Documentation-only plans own this context. Owning specs/indexes may be updated with a delivery; that does not authorize another code boundary.
+- [Server](../server/README.md) owns HTTP/LLM implementation, [Android](../android/README.md) owns the client, [product](../produto/README.md) owns screens and meal behavior.
 
 ## Current state
 
-Planning only. None of CP1–CP7 is implemented or approved for implementation by this documentation request.
+Planning only. Phase: **closed test** (dev flavor, invite, two testers via Firebase App Distribution).
 
-The inspected server has invite authentication, per-route rate limits, size checks and structured Chat output. It has no application moderation pipeline, no OpenAI safety identifier and no dedicated security audit. Dev conversation logging includes input context and output. The GCP configuration trusts forwarded headers with `--forwarded-allow-ips=*`. This is a configuration to verify and narrow, not proof that public header spoofing currently succeeds through Caddy.
+The server has invite authentication, per-route rate limits, size checks and structured Chat output. It has no moderation, no `safety_identifier` and no dedicated audit. The live Chat prompt allows a "general question" under `question`, which caused the observed drift. Dev conversation logging (ADR-015) includes input and output. GCP runs Uvicorn with `--forwarded-allow-ips=*` behind Caddy with an unpublished API port; Caddy without `trusted_proxies` overwrites client `X-Forwarded-For`, so practical spoofing risk is low but the trust should be narrowed.
 
-A read-only inspection confirmed an off-topic quadratic-equation response on 2026-09-30 at 14:53 America/Sao_Paulo. No user log, IP, identifier or attachment is copied into these documents. This is evidence of scope drift, not evidence of illegal activity.
+A read-only inspection confirmed an off-topic quadratic-equation response on 2026-09-30 at 14:53 America/Sao_Paulo. No user log, IP, identifier or attachment is copied here. Evidence of scope drift, not of illegal activity.
 
-## Scope and constraints
+## Scope
 
-- Scope enforcement; OpenAI text/image moderation; checking responses and proposed memory/digest changes.
-- Pseudonymous installation correlation with `safety_identifier`; trustworthy IP capture and minimal security events.
-- Bounded costs, timeouts and logs; tests for bypasses and false positives.
-- Reviewable legal/privacy documents and an incident procedure with explicit unresolved obligations.
-- Existing OpenAI integration only. Additional specialist detection providers are deferred for financial/business reasons in [CP7](plans/out_of_scope/cp7-specialist-detection.md).
-- Preserve photos from day one, the current model/effort, invite access, app screens, Room day state and Firebase boundaries. No new account system, paid moderation vendor, automatic criminal accusation or automatic authority report.
+Closed test (active plans):
+
+- Prompt scope fix, server-enforced `scope` field, fixed refusals, safe text-only fallback.
+- Free OpenAI text/image moderation on input and generated output; fail closed.
+- Eval sets for off-topic, injection and eating-disorder cases.
+- Installation pseudonym and HMAC `safety_identifier`.
+- Narrowed proxy trust, bounded log retention, invite rotation, OpenAI project budget limit.
+- Tester notice and one-page incident note.
+
+Production (deferred, blocking): public legal pack, security journal with retention and hold, context-wide moderation, in-app quotas and denylist, specialist detection decision, integrated readiness. See the [production gate](production-gate.md).
+
+Constraints: existing OpenAI integration only; photos from day one; current model/effort; invite access; app screens; Room day state; Firebase boundaries. No account system, paid moderation vendor, automatic criminal accusation or automatic authority report.
+
+## Production gate
+
+[production-gate.md](production-gate.md) lists what blocks production. Any agent that sees a production trigger must list the open blockers and refuse production work until they are closed there. [AGENTS.md](../../AGENTS.md) repeats the rule.
 
 ## Boundaries and residual risk
 
-An installation UUID is client-controlled, replaceable and spoofable. An IP can represent a VPN, proxy, carrier NAT or shared connection. Neither proves a person's identity or authorship. `safety_identifier` supports provider correlation, not authentication or guaranteed enforcement. Moderation has false negatives and false positives; this cut cannot claim complete illegal-image or CSAM detection.
+An installation UUID is client-controlled, replaceable and spoofable. An IP can be a VPN, proxy, carrier NAT or shared connection. Neither proves identity or authorship. `safety_identifier` supports provider correlation, not authentication. A model-filled `scope` field can be manipulated by injection. Moderation has false negatives and positives; this cut cannot claim illegal-image or CSAM detection.
 
-Legal review and user-facing publication/acceptance are not accomplished by implementing server code. CP1 prepares the material; CP6 records rollout readiness. Publishing legal documents, adding acceptance UI and opening public registration require their own approved scope and a Stitch gate if layout changes.
+Legal review and publication are not achieved by code. In the closed test, testers receive a notice (CP1); public text belongs to CP8.
 
 ## Reading order
 
 1. [SDD](../sdd/README.md), [AGENTS](../../AGENTS.md), and this context.
-2. [Policy](specifications/content-policy.md), [identity and audit](specifications/identity-and-audit.md), and [sources](sources.md).
-3. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md), both proposed.
-4. [Plan order](plans/README.md) and [validation matrix](validation/README.md).
-5. Current implementation in the owning folder before each approved delivery.
+2. [Production gate](production-gate.md).
+3. [Policy](specifications/content-policy.md), [identity and audit](specifications/identity-and-audit.md), [refusal copy](specifications/refusal-copy.pt-BR.md), [sources](sources.md).
+4. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md), both proposed.
+5. [Plan order](plans/README.md) and [validation matrix](validation/README.md).
+6. Current implementation in the owning folder before each approved delivery.
 
 ## Plan order
 
-CP1 → CP2 → CP3 → CP4 → CP5 → CP6. CP7 remains `Fora de escopo` and is not runnable. See the [plan index](plans/README.md) for approval commands, prerequisites and completion gates.
+Closed test: CP2 → CP1 (any time before CP5) → CP3 → CP4 → CP5. Out of scope: CP6, CP7, CP8, CP9. See the [plan index](plans/README.md).
 
 ## Decision status
 
-Accepted owner constraints: create this context; plan economical prevention/correlation; defer additional detection platforms for now; add the SDD `Fora de escopo` state and `out_of_scope/` directory.
+Accepted owner constraints (2026-09-30): create and keep this context as the single home for user-content × AI safety; plan economical prevention and correlation; defer additional detection platforms (budget); add the SDD `Fora de escopo` state; keep only closed-test controls active; defer production plans with "app in closed test" as the reason; enforce them through the production gate.
 
-Proposed implementation choices, including retention defaults, transport headers and classification behavior, are reviewable in the specifications and plans. They are not described as already deployed. Accept the relevant proposed ADR when approving its named implementation plan; preserve that acceptance date and scope.
+Proposed implementation choices are reviewable in the specifications and plans and are not deployed. Accept the relevant proposed ADR when approving its named plan.

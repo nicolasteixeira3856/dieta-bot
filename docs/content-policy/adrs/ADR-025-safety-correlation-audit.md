@@ -1,34 +1,36 @@
-# ADR-025 — Pseudonymous safety correlation and minimal audit
+# ADR-025 — Pseudonymous safety correlation
 
-- Status: Proposed; acceptance requires approval of [CP3](../plans/cp3-server-safety-audit.md).
-- Date: 2026-09-30
+- Status: Proposed; acceptance requires approval of [CP3](../plans/cp3-server-safety-identifier.md).
+- Date: 2026-09-30 (revised 2026-09-30 for the closed-test cut)
 - Owner: `content-policy`
-- Partially supersedes on acceptance: [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), routine raw conversation capture and size-only retention. Preserve that accepted ADR as history.
-- Complements: [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md); no identity/IP is added to Firebase.
+- Complements: [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md) (dev conversation log stays in the closed test) and [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md) (no identity or IP goes to Firebase).
+- Successor needed before production: the minimal security journal and the retirement of ADR-015 raw capture belong to [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md), which must propose its own ADR.
 
 ## Context
 
-The owner proposed safety identifiers and IP logging. The app has no verified accounts and shares an invite. Current dev logs retain user/model text but do not form a minimal, trustworthy incident audit.
+The owner asked for safety identifiers and IP logging. The app has no accounts and one shared invite. Two testers use it through Firebase App Distribution. OpenAI recommends a stable, privacy-preserving `safety_identifier`.
 
-## Proposed decision
+## Decision
 
-Follow [identity and audit](../specifications/identity-and-audit.md): private per-installation random UUID, server HMAC pseudonym, OpenAI `safety_identifier` on each Responses call, server event IDs and a dedicated restricted security journal. Capture a client IP only with known provenance. Keep existing clients working with explicitly non-stable legacy correlation.
+Closed-test profile of [identity and audit](../specifications/identity-and-audit.md):
 
-Disable routine raw conversation capture; enforce an explicit retention schedule, access controls and bounded resource use. CP1 establishes an incident procedure; statutory access records and legally preserved evidence are separate from routine diagnostics. Activation of trusted raw-IP logging is part of CP5, after its operational prerequisites.
+- Private per-installation random UUID on Android, sent as `X-Client-Instance-Id` to the API origin only.
+- Server-side HMAC pseudonym passed as `safety_identifier` on every Responses call and written to the dev log instead of the raw UUID.
+- IP provenance from Caddy; Uvicorn forwarded-header trust narrowed to the compose network.
+- Containment by invite rotation and the OpenAI project budget limit.
 
 ## Consequences
 
-- Correlates requests while avoiding direct identifiers in model input and provider safety fields.
-- Installation identity is resettable/spoofable; IP is shared/changeable. This does not identify a natural person or replace an account system.
-- Loses convenient raw-conversation debugging. Use synthetic reproductions and aggregate outcomes instead.
-- Introduces secret provisioning, retention/hold decisions and failure handling; rollout requires verified proxy behavior.
-- App daily wipe preserves installation identity. Reinstall/clear-data resets it. No cross-app tracking or anti-uninstall persistence.
+- Requests correlate per installation without direct identifiers reaching the provider.
+- Installation identity is resettable and spoofable; IP is shared and changeable. Neither identifies a person.
+- Introduces one secret to provision and preserve.
+- Full audit, retention schedule, denylist and in-app quotas are not delivered; they block production through the [production gate](../production-gate.md).
 
 ## Alternatives
 
-- Raw IP/email as provider safety identifier: unnecessary disclosure and weak identity semantics.
-- One identifier per shared invite: conflates all testers.
-- Verified accounts or device attestation: separate future business/architecture decision, not silently introduced.
-- Keep full chat logs indefinitely: disproportionate retention and additional exposure.
+- Raw IP or email as `safety_identifier`: unnecessary disclosure.
+- One identifier per shared invite: conflates testers.
+- Full security journal now: disproportionate for a two-tester closed test; deferred to CP9.
+- Verified accounts or device attestation: separate future decision.
 
-Accepted ADRs remain immutable. Acceptance of this proposal does not authorize implementation outside the named plan's folder.
+Accepted ADRs remain immutable. Acceptance does not authorize implementation outside the named plan's folder.

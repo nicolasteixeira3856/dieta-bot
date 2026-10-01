@@ -2,7 +2,7 @@
 
 ## Planned content-policy work
 
-[Content policy](../content-policy/README.md) owns the new policy proposals. [CP2](../content-policy/plans/cp2-server-content-controls.md) and [CP3](../content-policy/plans/cp3-server-safety-audit.md) would change only server code; [CP5](../content-policy/plans/cp5-gcp-trusted-ingress.md) owns GCP configuration/activation separately. All await approval. [ADR-025](../content-policy/adrs/ADR-025-safety-correlation-audit.md) proposes partial succession of ADR-015; raw-log behavior described below remains the current implementation until delivery. No moderation, safety-identifier or trustworthy-IP rollout is claimed yet.
+[Content policy](../content-policy/README.md) owns the new policy proposals. [CP2](../content-policy/plans/cp2-server-content-controls.md) and [CP3](../content-policy/plans/cp3-server-safety-identifier.md) would change only server code; [CP5](../content-policy/plans/cp5-gcp-dev-ingress.md) owns GCP configuration separately. All await approval. In the closed test the ADR-015 dev log stays, with metadata-only records for moderation-flagged turns ([ADR-024](../content-policy/adrs/ADR-024-content-safety-boundaries.md)); its retirement in production belongs to [CP9](../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md). No moderation or safety-identifier rollout is claimed yet. Production server work is subject to the [production gate](../content-policy/production-gate.md).
 
 ## Proposito
 
