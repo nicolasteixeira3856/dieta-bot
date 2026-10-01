@@ -40,6 +40,7 @@ from config import (
     load_settings,
 )
 from conversation_log import ConversationLog, now_iso
+from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
 from moderation import (
     IN_SCOPE,
@@ -233,8 +234,11 @@ def create_app(
     moderator = Moderator(api_key=settings.api_key, transport=transport)
     conversation_log = ConversationLog(
         settings.conversation_log_path,
-        redact=(settings.invite_code, settings.api_key),
+        redact=(settings.invite_code, settings.api_key, settings.safety_id_secret),
     )
+    safety_ids = SafetyIds(settings.safety_id_secret, settings.server_env)
+    if not safety_ids.enabled:
+        _LOG.warning("SAFETY_ID_SECRET not set: safety_identifier off")
 
     if limiter is None:
         limiter = Limiter(key_func=_rate_limit_key)
@@ -252,6 +256,7 @@ def create_app(
     app.state.invite_code = settings.invite_code
     app.state.limiter = limiter
     app.state.conversation_log = conversation_log
+    app.state.safety_ids = safety_ids
 
     @app.exception_handler(RateLimitExceeded)
     def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:
@@ -311,9 +316,19 @@ def create_app(
             record["latency_ms"] = round((time.monotonic() - started) * 1000)
             conversation_log.write(record)
 
+    def _safety_id(request: Request, instance_id: str | None) -> str | None:
+        """CP3: derived pseudonym, kept on request.state for the log record. Raw value never kept."""
+        try:
+            derived = safety_ids.derive(instance_id)
+        except InvalidInstanceId:
+            raise HTTPException(status_code=400, detail="invalid_client_instance_id") from None
+        request.state.safety_identifier = derived
+        return derived
+
     @app.get("/health")
     def health() -> Response:
-        body = '{"ok": true, "model": "' + MODEL + '"}'
+        safety_id = "on" if safety_ids.enabled else "off"
+        body = '{"ok": true, "model": "' + MODEL + '", "safety_id": "' + safety_id + '"}'
         return Response(content=body.encode("utf-8"), media_type="application/json")
 
     @app.post("/v1/estimate")
@@ -322,8 +337,11 @@ def create_app(
         request: Request,
         body: EstimateIn,
         x_invite: str | None = Header(default=None, alias="X-Invite"),
+        x_client_instance_id: str | None = Header(default=None, alias=INSTANCE_ID_HEADER),
     ) -> dict[str, Any]:
         _require_invite(x_invite, app.state.invite_code)
+        safety_id = _safety_id(request, x_client_instance_id)
+        x_client_instance_id = None
         image = body.image_b64
         body.image_b64 = None
         try:
@@ -343,7 +361,11 @@ def create_app(
                         input_texts=[user_text],
                         image=image,
                         generate=lambda timeout: llm.estimate_json(
-                            user_text=user_text, image_b64=image, trace=record, timeout=timeout
+                            user_text=user_text,
+                            image_b64=image,
+                            trace=record,
+                            timeout=timeout,
+                            safety_identifier=safety_id,
                         ),
                         shape=shape_estimate,
                         output_texts=estimate_output_texts,
@@ -361,8 +383,11 @@ def create_app(
         request: Request,
         body: FitIn,
         x_invite: str | None = Header(default=None, alias="X-Invite"),
+        x_client_instance_id: str | None = Header(default=None, alias=INSTANCE_ID_HEADER),
     ) -> dict[str, Any]:
         _require_invite(x_invite, app.state.invite_code)
+        safety_id = _safety_id(request, x_client_instance_id)
+        x_client_instance_id = None
         image = body.image_b64
         body.image_b64 = None
         try:
@@ -382,7 +407,11 @@ def create_app(
                         input_texts=[user_text],
                         image=image,
                         generate=lambda timeout: llm.fit_json(
-                            user_text=user_text, image_b64=image, trace=record, timeout=timeout
+                            user_text=user_text,
+                            image_b64=image,
+                            trace=record,
+                            timeout=timeout,
+                            safety_identifier=safety_id,
                         ),
                         shape=lambda payload: shape_fit(
                             payload, budget_kcal=body.budget.kcal, mode=body.mode
@@ -402,10 +431,13 @@ def create_app(
         request: Request,
         body: ChatIn,
         x_invite: str | None = Header(default=None, alias="X-Invite"),
+        x_client_instance_id: str | None = Header(default=None, alias=INSTANCE_ID_HEADER),
     ) -> dict[str, Any]:
         _require_invite(x_invite, app.state.invite_code)
+        safety_id = _safety_id(request, x_client_instance_id)
+        x_client_instance_id = None
         if body.compact:
-            return _compact(request, body)
+            return _compact(request, body, safety_id)
         image = body.image_b64
         body.image_b64 = None
         try:
@@ -415,13 +447,15 @@ def create_app(
                 request,
                 "chat",
                 image,
-                lambda record, deadline: chat_reply(llm, moderator, body, image, record, deadline),
+                lambda record, deadline: chat_reply(
+                    llm, moderator, body, image, record, deadline, safety_identifier=safety_id
+                ),
                 {"clarify": CLARIFY_NONE, "clarify_rounds": body.clarify_rounds},
             )
         finally:
             image = None
 
-    def _compact(request: Request, body: ChatIn) -> dict[str, Any]:
+    def _compact(request: Request, body: ChatIn, safety_id: str | None) -> dict[str, Any]:
         # Photo is ignored in compact: it never reaches the summary call.
         body.image_b64 = None
         if not body.messages:
@@ -440,7 +474,10 @@ def create_app(
                     input_texts=[],
                     image=None,
                     generate=lambda timeout: llm.digest_json(
-                        history_text=_history_text(body), trace=record, timeout=timeout
+                        history_text=_history_text(body),
+                        trace=record,
+                        timeout=timeout,
+                        safety_identifier=safety_id,
                     ),
                     shape=shape_digest,
                     output_texts=digest_output_texts,
@@ -569,6 +606,8 @@ def chat_reply(
     image: str | None,
     record: dict[str, Any],
     deadline: Deadline,
+    *,
+    safety_identifier: str | None = None,
 ) -> dict[str, Any]:
     """The whole /v1/chat turn (compact=false), without HTTP. The evaluator calls it too."""
 
@@ -597,6 +636,7 @@ def chat_reply(
                 fact_ids=body.fact_ids or [],
                 trace=record,
                 timeout=timeout,
+                safety_identifier=safety_identifier,
             ),
             shape=shape,
             output_texts=chat_output_texts,
@@ -639,11 +679,15 @@ def shape_chat_turn(body: ChatIn, payload: dict[str, Any]) -> tuple[dict[str, An
 
 
 def _new_record(request: Request, route: str, image: str | None) -> dict[str, Any]:
-    """One conversation-log line (ADR-015). Photo: presence and size only."""
+    """One conversation-log line (ADR-015). Photo: presence and size only.
+
+    safety_identifier (CP3): the derived pseudonym, never the raw installation UUID.
+    """
     return {
         "ts": now_iso(),
         "request_id": getattr(request.state, "request_id", None),
         "route": route,
+        "safety_identifier": getattr(request.state, "safety_identifier", None),
         "app_version": _short_header(request, "X-App-Version"),
         "app_env": _short_header(request, "X-App-Env"),
         "prompt": None,

@@ -4,7 +4,7 @@
 - Date: 2026-09-30 (prerequisites refreshed 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: Android.
 - Delivery boundary: `apps/android/`, plus related documentation/indexes.
-- Prerequisites: [CP3](cp3-server-safety-identifier.md) implemented and automated acceptance recorded. No layout/Stitch prerequisite because this delivery adds no UI.
+- Prerequisites: [CP3](pending_manual_validation/cp3-server-safety-identifier.md) implemented and automated acceptance recorded. No layout/Stitch prerequisite because this delivery adds no UI.
 
 ## Authorization and objective
 

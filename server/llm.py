@@ -400,6 +400,7 @@ class LlmClient:
 
     # trace (ADR-015): optional dict filled with prompt, input_text and raw_output. Never the photo.
     # timeout: what is left of the request deadline (CP2). One call, no SDK retry.
+    # safety_identifier (CP3, ADR-025): derived pseudonym or None. Request field, never in the prompt.
     def estimate_json(
         self,
         *,
@@ -407,6 +408,7 @@ class LlmClient:
         image_b64: str | None,
         trace: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
+        safety_identifier: str | None = None,
     ) -> dict[str, Any]:
         return self._complete(
             "estimate",
@@ -416,6 +418,7 @@ class LlmClient:
             trace,
             _ESTIMATE_FORMAT,
             timeout,
+            safety_identifier,
         )
 
     def fit_json(
@@ -425,9 +428,17 @@ class LlmClient:
         image_b64: str | None,
         trace: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
+        safety_identifier: str | None = None,
     ) -> dict[str, Any]:
         return self._complete(
-            "fit", _FIT_INSTRUCTIONS, wrap_user_input(user_text), image_b64, trace, _FIT_FORMAT, timeout
+            "fit",
+            _FIT_INSTRUCTIONS,
+            wrap_user_input(user_text),
+            image_b64,
+            trace,
+            _FIT_FORMAT,
+            timeout,
+            safety_identifier,
         )
 
     def chat_json(
@@ -439,6 +450,7 @@ class LlmClient:
         fact_ids: list[str] | None = None,
         trace: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
+        safety_identifier: str | None = None,
     ) -> dict[str, Any]:
         return self._complete(
             "chat",
@@ -448,6 +460,7 @@ class LlmClient:
             trace,
             chat_format(slot_ids, fact_ids),
             timeout,
+            safety_identifier,
         )
 
     def digest_json(
@@ -456,6 +469,7 @@ class LlmClient:
         history_text: str,
         trace: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
+        safety_identifier: str | None = None,
     ) -> dict[str, Any]:
         """compact=true: text only. A photo is never sent to the summary."""
         return self._complete(
@@ -466,6 +480,7 @@ class LlmClient:
             trace,
             _DIGEST_FORMAT,
             timeout,
+            safety_identifier,
         )
 
     def _complete(
@@ -477,6 +492,7 @@ class LlmClient:
         trace: dict[str, Any] | None,
         text_format: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
+        safety_identifier: str | None = None,
     ) -> dict[str, Any]:
         if trace is not None:
             trace["prompt"] = prompt
@@ -493,6 +509,8 @@ class LlmClient:
         if self._openai is None:
             raise RuntimeError("llm unavailable")
         extra: dict[str, Any] = {"text": {"format": text_format}} if text_format else {}
+        if safety_identifier:
+            extra["safety_identifier"] = safety_identifier
         try:
             response = self._openai.responses.create(
                 model=MODEL,
