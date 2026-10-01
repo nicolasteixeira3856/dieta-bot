@@ -112,6 +112,13 @@ Optional fields (S11, ADR-023). Every one is optional; out of limits → HTTP 42
 - `recent`: meals recorded in the last 7 days, ≤ 42 items, `text` ≤ 240, `date` ISO, `slot_id` `null` = "Outros". Any client may send it.
 - `day.remaining_kcal`: integer or `null`, effective ceiling − eaten, computed by the app (may be negative). Any client may send it.
 
+Optional fields (S13, ADR-026), out of limits → HTTP 422:
+```json
+{"clarify_rounds": 1, "force_estimate": false}
+```
+- `clarify_rounds`: integer 0–3, question rounds already shown for the pending meal. **v3 client** = `clarify_rounds` present: it renders question-only turns. Absent = the response is the same as before S13.
+- `force_estimate`: boolean, default `false`. The user tapped **Forçar estimativa**. Ignored without `clarify_rounds`.
+
 OUT
 ```json
 {
@@ -146,7 +153,25 @@ OUT
 - The server asks the model for structured output (`json_schema` strict). `suggested_slot` is an enum of the `profile.slots` ids plus `null`.
 - `suggested_slot`: always a string id from `profile.slots` or `null`. The server normalises `1` / `{"id": 1}` to `"1"` and discards any other value to `null`.
 - A message that completes or corrects a meal whose slot is `eaten` returns the estimate of the **whole meal** with that slot (ADR-017). A calorie total without food returns `estimate: null`.
-- `question`: exists only if `confidence != high`. Missing → `"Alguma porção foi diferente do que considerei?"`.
+- `question`: exists only if `confidence != high`. Missing → `"Alguma porção foi diferente do que considerei?"`. Clients without `clarify_rounds` only.
+
+v3 client (`clarify_rounds` present, S13): the OUT gains a top-level `question` (string or `null`) and `estimate.question` is always `null`. A `log` turn with a material doubt is a question-only turn:
+```json
+{
+  "reply": "Entendi: macarrão com frango ao molho branco.
+Quanto de macarrão? E o molho era com creme de leite ou requeijão?",
+  "intent": "log",
+  "estimate": null,
+  "question": "Quanto de macarrão? E o molho era com creme de leite ou requeijão?",
+  "memory_updates": [],
+  "memory_used": [],
+  "digest": null,
+  "model": "gpt-6-luna"
+}
+```
+- `reply` on a question-only turn is the history text: `Entendi: {meal_text}.` + newline + the question (no `meal_text`: the question alone). The app stores it and sends it back in `messages[]`; it does not display it.
+- The server releases the estimate (`estimate` present, `question: null`) when `force_estimate` is true, confidence is high or the model asked nothing, `clarify_rounds` is 3, or the question repeats one asked in an `assistant` turn of `messages`. A v3 client never gets the generic question above.
+- `plan`, `question` and `estimate: null` turns are unchanged, with `question: null`. Fallbacks carry `question: null`.
 - Model answered plain text (no JSON): that text is the `reply`, `estimate: null`. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.
 - `model`: always `gpt-6-luna`.
 

@@ -4,10 +4,6 @@
 
 The target [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit contract](../../content-policy/specifications/identity-and-audit.md) are awaiting the named CP plan approvals. They cover moderation, semantic scope, fallback checks, optional installation header and minimal audit; none is claimed as implemented by this planning update. CP2/CP3 must reconcile this live specification and the HTTP contract during delivery.
 
-## Proposed: questions before the estimate (ADR-026)
-
-[S13](../plans/s13-perguntas-antes-da-estimativa.md), awaiting approval, adds optional `clarify_rounds` and `force_estimate` to the request and a top-level `question` to the response. With `clarify_rounds`, a `log` turn with doubts returns the question without an estimate; the server releases the estimate after 3 rounds, on a repeated question or on `force_estimate`. Requests without `clarify_rounds` keep rule 4 below. Not implemented yet.
-
 ## Estado
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
@@ -19,6 +15,8 @@ Desde o [S9](../plans/completed/s9-limite-texto-2000.md) (29/09/2026): `text` e 
 Desde o [S11](../plans/completed/s11-chat-v2.md) (30/09/2026, [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)): intenção (`log` | `plan` | `question`), `estimate.meal_text`, memória em fatos (`facts`), `recent` (7 dias), `day.remaining_kcal`, `memory_updates` e `memory_used`. Tudo aditivo: cliente legado (sem `facts`) continua funcionando. `reasoning.effort` fica `none`, decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)).
 
 Desde o [S12](../plans/completed/s12-slot-nomeado.md) (30/09/2026): o `suggested_slot` segue a refeição nomeada pelo usuário (na mensagem ou na fala que ela responde), mesmo com comida igual à de um slot gravado; a refeição consolidada só vale quando a mensagem se refere à refeição gravada.
+
+Desde o [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) (30/09/2026, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): perguntas antes da estimativa. Com `clarify_rounds` no request (cliente v3), um turno `log` com dúvida devolve só a pergunta (`estimate: null`, `question` no topo); o server libera a estimativa no código após 3 rodadas, em pergunta repetida ou com `force_estimate`. Sem `clarify_rounds`, a resposta é a mesma de antes do S13.
 
 ## Contexto e objetivo
 
@@ -55,7 +53,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 3d. Histórico: "o mesmo de ontem", "igual ao almoço de segunda" → usa a linha de `RECENT` daquele dia e slot. Sem registro que case → estimate null e pergunta o que foi.
 3e. Memória: fato que responde a incerteza é usado, não vira pergunta, e o id vai em `memory_used`. `memory_updates` (≤ 5 por turno): frase explícita de hábito → `add` permanente (ou `replace` do fato de mesma `key`); "esquece X" → `remove`; marca/tipo/porção num `log` → `reinforce` ou `add` dinâmico; refeição que casa rotina → `reinforce`; hábito novo → `add` dinâmico `routine` com slot. Nunca refeição avulsa, números do dia ou saúde. Permanente 30/30 + frase nova → sem `add`; o `reply` pergunta "Minha memória fixa está cheia. Esqueço {fato menos visto}?".
 3f. O `reply` nunca diz que registrou: quem registra é o usuário, no app.
-4. Instructions: estimar se o user registrou comida; responder duvida; nunca gravar sozinho; sugerir slot pelo horario local vs slots do perfil; 1 pergunta específica (porção, tamanho, preparo) se confidence ≠ high, e só uma por refeição: respondida, confidence high e sem pergunta nova. kcal/P/C/G são o total da refeição inteira (soma dos itens). A refeição da fala, em ordem de prioridade: (1) a nomeada na mensagem atual (nome do slot do perfil ou palavra comum: café, almoço, jantar, lanche, ceia, "jantei", "almocei"); (2) senão, a nomeada na fala do user que esta mensagem responde ou continua ("cafe igual ao de ontem" → pergunta → resposta = café); (3) senão, a refeição gravada que a mensagem corrige; (4) senão, a do horário local. Refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)) só quando a mensagem se refere à refeição gravada: nomeia aquele slot, ou é acréscimo/correção explícito ("também", "faltou", "esqueci", "na verdade", "tirando", "era X e não Y") sem nomear outra refeição. Aí, slot `eaten` → estimate da **refeição inteira** (itens gravados + mudança, a comida acrescentada sempre entra, com porção assumida se houver pergunta) com aquele slot, e o reply diz que substitui. Comida igual ou parecida à gravada não basta: com outra refeição nomeada, é refeição nova daquele slot e o reply não fala em substituir. Resposta a pergunta → reestima a mesma refeição, mesmo slot. Outro dia ("ontem") → estima se pedido, e o reply avisa que grava hoje.
+4. Instructions: estimar se o user registrou comida; responder duvida; nunca gravar sozinho; sugerir slot pelo horario local vs slots do perfil; se confidence ≠ high, `question` lista todas as dúvidas da refeição numa mensagem só (no máximo 3 perguntas curtas, cada uma específica: porção, tamanho, preparo, ingrediente); depois de uma resposta, pergunta de novo só sobre comida que ficou sem porção nenhuma e muda a estimativa de forma material (quantidade de molho, óleo, creme, queijo ou tempero é assumida); senão confidence high e `question` null; nunca repete pergunta já feita no `HISTORY`; com confidence ≠ high, o `reply` diz numa linha curta o que assumiu. kcal/P/C/G são o total da refeição inteira (soma dos itens). A refeição da fala, em ordem de prioridade: (1) a nomeada na mensagem atual (nome do slot do perfil ou palavra comum: café, almoço, jantar, lanche, ceia, "jantei", "almocei"); (2) senão, a nomeada na fala do user que esta mensagem responde ou continua ("cafe igual ao de ontem" → pergunta → resposta = café); (3) senão, a refeição gravada que a mensagem corrige; (4) senão, a do horário local. Refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)) só quando a mensagem se refere à refeição gravada: nomeia aquele slot, ou é acréscimo/correção explícito ("também", "faltou", "esqueci", "na verdade", "tirando", "era X e não Y") sem nomear outra refeição. Aí, slot `eaten` → estimate da **refeição inteira** (itens gravados + mudança, a comida acrescentada sempre entra, com porção assumida se houver pergunta) com aquele slot, e o reply diz que substitui. Comida igual ou parecida à gravada não basta: com outra refeição nomeada, é refeição nova daquele slot e o reply não fala em substituir. Resposta a pergunta → reestima a mesma refeição, mesmo slot. Outro dia ("ontem") → estima se pedido, e o reply avisa que grava hoje.
 4a. Total de kcal sem comida ("comi 1220 kcal"), mesmo com o slot gravado → `estimate: null` e o reply pergunta o que foi comido. Nunca estimate com p, c e g todos zero; P/C/G coerentes com kcal; sem conseguir estimar → null, nunca zeros.
 5. OUT sempre JSON. O server pede ao modelo `text.format` `json_schema` strict (`chat_turn`: todo campo obrigatório, nulo explícito; compact usa o schema `digest`):
    - reply: string (prosa pt-BR)
@@ -66,9 +64,10 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
    - digest: string ou null
    - model: gpt-6-luna
 5a. Shaping (S11): `intent` inválido → deduzido (estimate = `log`, senão `question`); `question` com estimate → estimate descartado; `plan` → `question` null; `meal_text` vazio → itens (`{name} {g} g`, vírgulas), acima de 160 corta na última vírgula. `memory_updates`: descarta op/kind/category inválidos, `id` desconhecido em `reinforce`/`replace`/`remove`, `add` com `id`, `routine` sem slot válido, `key` ou `text` vazio; corta `text` 160 e `key` 40; no máximo 5. `memory_used`: só ids de `facts`, sem repetição, no máximo 10.
+5c. Cliente v3 (`clarify_rounds` presente, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): o OUT ganha `question` no topo (string ou null) e `estimate.question` é sempre null. Para `intent: log` com estimate, o gate de liberação (`shaping.clarify_gate`), em ordem: (1) `force_estimate` → libera (`released_force`); (2) confidence high ou pergunta vazia → libera (`released_confident`); (3) `clarify_rounds ≥ 3` → libera (`released_cap`); (4) a pergunta repete uma pergunta de um turno `assistant` de `messages` → libera (`released_repeat`); (5) senão pergunta (`asked`). Liberar = estimate com `question: null` e a confidence do modelo; `question` do topo null. Perguntar = `estimate: null`, `question` = a pergunta do modelo, `reply` = `Entendi: {meal_text}.` + quebra de linha + a pergunta (sem `meal_text`, só a pergunta), texto que o app guarda e devolve no histórico; `memory_updates` e `memory_used` passam iguais. Repetição: só as frases terminadas em `?` do turno contam; texto em minúsculas, sem acento, tokens `[a-z0-9]`, sem stop words pt-BR de uma lista fixa curta; repete com Jaccard ≥ 0,6 (`CLARIFY_REPEAT_JACCARD`) ou um conjunto contido no outro. `plan`, `question` e estimate null passam sem gate. Falha ou texto sem JSON: `question: null`.
 5b. Cliente legado (sem `facts`): `memory_updates` e `memory_used` vazios; `intent: plan` → `estimate: null` (sem card no APK ≤ 0.0.3; gramas e total no `reply`).
 6. suggested_slot = id de um slot do profile.slots (enum no schema, montado por request; perfil sem slots → só `null`). Ordem da regra 4. Nomes e horários só do PROFILE: nunca supor horário "normal" de refeição (Jantar às 03:00 é o Jantar). Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id. Defesa no shaping: aceita `"1"`, `1` e `{"id": 1}`, normaliza para string e descarta id fora do perfil.
-6a. confidence ≠ high sem `question` → `"Alguma porção foi diferente do que considerei?"` (`CHAT_FALLBACK_QUESTION`).
+6a. confidence ≠ high sem `question` → `"Alguma porção foi diferente do que considerei?"` (`CHAT_FALLBACK_QUESTION`). Só cliente sem `clarify_rounds`: o cliente v3 nunca recebe a pergunta genérica (pergunta vazia libera a estimativa, regra 5c).
 7. compact=true: Luna recebe so as messages (delimitadas, sem foto) e devolve digest ≤400 tokens (corte em 1600 chars), pt-BR, fatos (comida, kcal/P citados nas falas, slot, pulou), sem conselho. OUT: reply "", estimate null. messages vazio → 422 `compact_needs_messages` sem chamar a Luna. Falha → 200 com digest null.
 8. Foto: data:image/jpeg;base64. HEIC nao entra no server — client converte.
 9. Recusar image_b64 maior que o cap ANTES do LLM. Nao logar o base64.
@@ -115,6 +114,11 @@ Campos opcionais do S11 (ADR-023), limites → 422:
 - `recent`: ≤ 42 itens `{date, slot_id, slot_name, text, kcal, p, c, g}`; `text` ≤ 240; `date` ISO; `slot_id` null = "Outros".
 - `day.remaining_kcal`: inteiro ou null (teto efetivo − comido, pode ser negativo).
 
+Campos opcionais do S13 (ADR-026):
+
+- `clarify_rounds`: inteiro 0–3 (fora → 422), rodadas de pergunta já mostradas para a refeição pendente. Presente = cliente v3 (regra 5c).
+- `force_estimate`: booleano, padrão `false`. O usuário tocou **Forçar estimativa**. Ignorado sem `clarify_rounds`.
+
 ## Estados e falhas
 
 - 401 invite.
@@ -131,6 +135,7 @@ Campos opcionais do S11 (ADR-023), limites → 422:
 ## Localizacao e observabilidade
 
 - Nao logar image_b64 nem OPENAI_API_KEY.
+- Log de conversa dev ([ADR-015](../adrs/ADR-015-log-conversa-dev.md)), rota `chat`: `clarify` (`none` | `asked` | `released_force` | `released_confident` | `released_cap` | `released_repeat`) e `clarify_rounds` (número ou null). Sem texto do usuário nesses campos.
 
 ## Decisoes relacionadas
 
@@ -149,6 +154,7 @@ Campos opcionais do S11 (ADR-023), limites → 422:
 - [S10 (Concluído)](../plans/completed/s10-avaliacao-chat.md) — avaliador `server/evals/`
 - [S11 (Concluído)](../plans/completed/s11-chat-v2.md) — Chat v2
 - [S12 (Concluído)](../plans/completed/s12-slot-nomeado.md) — slot nomeado vence a semelhança
+- [S13 (Concluído)](../plans/completed/s13-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa, limite de 3 rodadas
 
 ## Criterios de aceite funcionais
 

@@ -6,7 +6,7 @@
 
 ## Proposed: questions before the estimate (ADR-026)
 
-[ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md) proposes that a `log` with doubts shows only question bubbles (all doubts at once, at most 3 rounds, enforced by the server) and no estimate until they are settled, with **Forçar estimativa** from the second question (`chatQ`), and removes the question bubble from `chatE`. Awaiting [S13](../../server/plans/s13-perguntas-antes-da-estimativa.md), [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) and [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md); rule 14 below remains current behavior until A30 ships.
+[ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md) proposes that a `log` with doubts shows only question bubbles (all doubts at once, at most 3 rounds, enforced by the server) and no estimate until they are settled, with **Forçar estimativa** from the second question (`chatQ`), and removes the question bubble from `chatE`. Server side done in [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md) (opt-in, on the dev server), gate [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) done; awaiting [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md); rule 14 below remains current behavior until A30 ships.
 
 ## Estado
 

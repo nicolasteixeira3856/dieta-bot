@@ -42,8 +42,8 @@ API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula tet
 
 ## Cobertura documental atual
 
-Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`.
-[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) e [S10](plans/completed/s10-avaliacao-chat.md) concluidos. [S8](plans/completed/s8-chat-json-slot-consolidado.md), [S11](plans/completed/s11-chat-v2.md) e [S12](plans/completed/s12-slot-nomeado.md) pendentes aprovacao manual.
+Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`, `server/tests/test_clarify.py`.
+[S1](plans/completed/s1-timeout-photo-cap.md), [S4](plans/completed/s4-security-hardening.md), [S2](plans/completed/s2-v1-chat.md), [S3](plans/completed/s3-compact.md) e [S5](plans/completed/s5-gcp-deploy.md) e [S10](plans/completed/s10-avaliacao-chat.md) concluidos. [S8](plans/completed/s8-chat-json-slot-consolidado.md), [S11](plans/completed/s11-chat-v2.md) e [S12](plans/completed/s12-slot-nomeado.md) aprovados pelo dono em 30/09/2026. [S13](plans/completed/s13-perguntas-antes-da-estimativa.md) concluido.
 
 ## Como usar esta documentacao
 
@@ -56,7 +56,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. `/v1/chat` pede saida estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil) e texto sem JSON vira `reply` ([S8](plans/completed/s8-chat-json-slot-consolidado.md)). Corpo ate 24 MB (`MAX_BODY_BYTES`). `text` e `messages[].text` do `/v1/chat` ate 2000 caracteres ([S9](plans/completed/s9-limite-texto-2000.md)). Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. Chat v2 ([S11](plans/completed/s11-chat-v2.md), ADR-023): `intent`, `meal_text`, memoria em fatos (`facts`), `recent`, `remaining_kcal`, `memory_updates`, `memory_used`; cliente sem `facts` = legado (plano sem card). `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md).
+Contrato /v1/estimate, /v1/fit e /v1/chat no ar. Timeout 60s. `/v1/chat` pede saida estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil) e texto sem JSON vira `reply` ([S8](plans/completed/s8-chat-json-slot-consolidado.md)). Corpo ate 24 MB (`MAX_BODY_BYTES`). `text` e `messages[].text` do `/v1/chat` ate 2000 caracteres ([S9](plans/completed/s9-limite-texto-2000.md)). Cap 16 MB JPEG; `image_b64` acima de 22_400_000 chars → HTTP 413 `photo_too_large` antes da Luna. Chat v2 ([S11](plans/completed/s11-chat-v2.md), ADR-023): `intent`, `meal_text`, memoria em fatos (`facts`), `recent`, `remaining_kcal`, `memory_updates`, `memory_used`; cliente sem `facts` = legado (plano sem card). `compact=true` devolve digest (S3). O client usa o compact desde o [A5b](../android/plans/completed/a5b-ligar-compact.md). Perguntas antes da estimativa ([S13](plans/completed/s13-perguntas-antes-da-estimativa.md), ADR-026): com `clarify_rounds` (cliente v3), turno `log` com duvida devolve so `question` (sem estimate); o gate `shaping.clarify_gate` libera a estimativa com 3 rodadas, pergunta repetida ou `force_estimate`; log de conversa ganha `clarify` e `clarify_rounds`.
 
 Keep-alive do uvicorn precisa ser >=60s. Docker nao muda neste plano.
 
@@ -71,8 +71,8 @@ cd server
 .venv/Scripts/python -m evals.run --tag memory
 ```
 
-- Casos: `server/evals/cases/<id>.json` (`id`, `since` v1/v2, `tags`, `request` = corpo `ChatIn`, `expect`). Expectativas em `server/evals/checks.py`; campo v2 ausente na saida = `n/a`.
-- Mesmo codigo da rota (`_chat_text`, `LlmClient.chat_json`, `shape_chat`), sem HTTP. No maximo 3 chamadas simultaneas.
+- Casos: `server/evals/cases/<id>.json` (`id`, `since` v1/v2/v3, `tags`, `request` = corpo `ChatIn`, `expect`). Expectativas em `server/evals/checks.py`; campo v2 ausente na saida = `n/a`.
+- Mesmo codigo da rota (`_chat_text`, `LlmClient.chat_json`, `shape_chat_turn` = `shape_chat` + gate do S13), sem HTTP. Casos v3 levam `clarify_rounds` no request; `top_question` (`present` | `absent` | lista de termos) e `top_question_not` olham a `question` do topo (`n/a` sem ela). No maximo 3 chamadas simultaneas.
 - Aprovado: todas as expectativas aplicaveis em pelo menos 2 de 3 repeticoes.
 - Relatorio no terminal e em `logs/evals/<data-hora>-<effort>.json` (fora do git).
 - Caso novo: situacao do log (`./tools/pull-conversations.ps1 -Download`), texto reescrito a mao. Log bruto e texto de tester nunca entram no git.
@@ -92,7 +92,7 @@ cd server
 
 ### Planos e validacao
 
-- [S13 aguardando aprovacao](plans/s13-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa (`clarify_rounds`, `force_estimate`, `question` no topo), trava de 3 rodadas no codigo ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)); opt-in, cliente legado inalterado.
+- [S13 concluido](plans/completed/s13-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa (`clarify_rounds`, `force_estimate`, `question` no topo), trava de 3 rodadas no codigo ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)); opt-in, cliente legado inalterado; avaliador 35/35; no ar no dev em 30/09/2026.
 - [S10 concluido](plans/completed/s10-avaliacao-chat.md) — avaliador do Chat com casos reais (`server/evals/`); linha de base `none` 52,4% (11/21) ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md)).
 - [S12 concluido](plans/completed/s12-slot-nomeado.md) — slot da refeicao: o nome dito pelo usuario vence a semelhanca com uma refeicao ja gravada; avaliador 29/29 (7 casos `slot` 5/5); no ar no dev; aprovado pelo dono em 30/09/2026.
 - [S11 concluido](plans/completed/s11-chat-v2.md) — Chat v2: intencao, `meal_text`, memoria em fatos, `recent`, `remaining_kcal`; avaliador 22/22, effort `none` mantido; no ar no dev; aprovado pelo dono em 30/09/2026.
@@ -105,4 +105,4 @@ cd server
 - [S4 concluido](plans/completed/s4-security-hardening.md) — hardening de seguranca (rate limiting, constant time auth, payload limit).
 - [S2 concluido](plans/completed/s2-v1-chat.md) — POST /v1/chat.
 - [S3 concluido](plans/completed/s3-compact.md) — compact digest.
-- Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`.
+- Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`, `server/tests/test_clarify.py`.

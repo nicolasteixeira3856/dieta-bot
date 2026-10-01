@@ -88,6 +88,6 @@ One Stitch gate, [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estima
 
 - Specifications affected: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md), [api-contract](../../api-contract.md).
 - Related ADRs: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-017](ADR-017-registro-consolidado.md), [ADR-023](ADR-023-chat-v2-memoria-v2.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md).
-- Plans: [S13](../../server/plans/s13-perguntas-antes-da-estimativa.md) → [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) → [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md).
+- Plans: [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md) → [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) → [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the supersession.

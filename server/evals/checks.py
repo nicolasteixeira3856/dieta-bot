@@ -24,6 +24,8 @@ KNOWN = (
     "meal_text_not",
     "question",
     "question_not",
+    "top_question",
+    "top_question_not",
     "memory_updates_has",
     "memory_updates_not",
     "memory_used_has",
@@ -78,6 +80,25 @@ def _check(
 
     if key == "question_not":
         question = estimate.get("question") if estimate else None
+        return _terms(False, want, question if isinstance(question, str) else "")
+
+    # ADR-026: top-level question of a question-only turn (v3 client). NA on an older output.
+    if key == "top_question":
+        if "question" not in output:
+            return _na("no top-level question in output")
+        question = output.get("question")
+        got = "present" if isinstance(question, str) and question.strip() else "absent"
+        if isinstance(want, list):
+            # A list of terms: present and mentioning every term (all doubts in one message).
+            if got == "absent":
+                return _result(False, "got absent")
+            return _terms(True, want, question)
+        return _result(got == want, f"got {got}" + (f": {question}" if got == "present" else ""))
+
+    if key == "top_question_not":
+        if "question" not in output:
+            return _na("no top-level question in output")
+        question = output.get("question")
         return _terms(False, want, question if isinstance(question, str) else "")
 
     if key == "suggested_slot":

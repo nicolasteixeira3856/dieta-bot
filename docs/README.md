@@ -11,7 +11,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui.
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [ADR-012](produto/adrs/ADR-012-chat-home-perfil.md); [ADR-026](produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) proposto | nenhum | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [room-v2](android/specifications/room-v2.md) | [ADR-014](android/adrs/ADR-014-flavors-firebase-dev.md) | [A0 arch, tokens, Roborazzi, A1–A29](android/plans/completed/) concluídos (A11, A17–A22, A24, A25, A27–A29 aprovado pelo dono em 30/09/2026); [A30](android/plans/a30-perguntas-antes-da-estimativa.md) aguardando aprovação | [qa/android/](qa/android/) |
 | [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [ST1–ST7](stitch/README.md#planos) concluídos; [SV1](stitch/plans/completed/sv1-verificacao-automatica.md) concluído | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S1–S12](server/plans/completed/) concluídos (S6, S8, S11, S12 aprovado pelo dono em 30/09/2026); [S13](server/plans/s13-perguntas-antes-da-estimativa.md) aguardando aprovação | `server/tests/` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [ADR-013](server/adrs/ADR-013-gcp-host.md), [ADR-015](server/adrs/ADR-015-log-conversa-dev.md) | [S1–S13](server/plans/completed/) concluídos (S6, S8, S11, S12 aprovado pelo dono em 30/09/2026; [S13](server/plans/completed/s13-perguntas-antes-da-estimativa.md) no ar no dev em 30/09/2026) | `server/tests/` |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
 
@@ -55,7 +55,7 @@ Fonte histórica: [`decisions/`](decisions/). Novos: `docs/<contexto>/adrs/`.
 
 ## Planos aguardando aprovação
 
-Perguntas antes da estimativa ([ADR-026](produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), 30/09/2026), nesta ordem: [S13](server/plans/s13-perguntas-antes-da-estimativa.md) (server, opt-in) ∥ [ST7](stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) (gate concluído: `chatE`, `chatQ`) → [A30](android/plans/a30-perguntas-antes-da-estimativa.md) (client).
+Perguntas antes da estimativa ([ADR-026](produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), 30/09/2026), nesta ordem: [S13](server/plans/completed/s13-perguntas-antes-da-estimativa.md) (server, opt-in, concluído e no ar no dev) ∥ [ST7](stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) (gate concluído: `chatE`, `chatQ`) → [A30](android/plans/a30-perguntas-antes-da-estimativa.md) (client).
 
 Concluídos: Chat v2 + Memória v2 ([ADR-023](produto/adrs/ADR-023-chat-v2-memoria-v2.md): S10, S11, S12, A27, A28, ST6, A29), o lote do feedback dos testers (A19–A24, ST1–ST4) e o limite de texto ([ADR-022](produto/adrs/ADR-022-limite-texto-chat.md): ST5, A25, S9) estão concluídos.
 

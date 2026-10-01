@@ -34,6 +34,9 @@ RECENT_TEXT_MAX = 240
 MEAL_TEXT_MAX = 160
 MEMORY_UPDATES_MAX = 5
 MEMORY_USED_MAX = 10
+# Questions before the estimate (ADR-026, S13). Release gate in shaping.clarify_gate.
+CLARIFY_MAX_ROUNDS = 3
+CLARIFY_REPEAT_JACCARD = 0.6
 # Dev conversation log (ADR-015): on only when CONVERSATION_LOG_PATH is set.
 CONVERSATION_LOG_MAX_BYTES = 20 * 1024 * 1024
 CONVERSATION_LOG_BACKUPS = 5
