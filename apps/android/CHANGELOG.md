@@ -2,6 +2,16 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.6 — 01/10/2026
+
+### Novidades
+
+- O app passa a mandar ao servidor um identificador anônimo desta instalação, como descrito no aviso do teste fechado. Ele serve só para ligar pedidos abusivos a uma instalação, sem nome, e-mail ou telefone. Fica no aparelho e some ao desinstalar ou limpar os dados do app.
+
+### Ajustes
+
+- Nenhuma tela mudou. Registrar refeição, foto e perguntas funcionam como antes.
+
 ## 0.0.5 — 30/09/2026
 
 ### Novidades
