@@ -117,6 +117,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 - [ADR-014](adrs/ADR-014-flavors-firebase-dev.md) — flavors dev/prod, Firebase só no dev (aceito).
 - [ADR-018](adrs/ADR-018-foto-2048.md) — foto reduzida a 2048 px no client (aceito com o A18).
+- [ADR-027](adrs/ADR-027-golds-divergentes.md) — QA visual quando os golds divergem (aceito em 01/10/2026, após o A31).
 
 ### Planos e validacao
 
