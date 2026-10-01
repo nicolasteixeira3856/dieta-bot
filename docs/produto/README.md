@@ -65,6 +65,7 @@ Nenhuma especificacao criada ate o momento.
 - [ADR-022](adrs/ADR-022-limite-texto-chat.md) — mensagem do Chat até 2000 caracteres, estado de erro (aceito).
 - [ADR-023](adrs/ADR-023-chat-v2-memoria-v2.md) — Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica) (aceito).
 - [ADR-026](adrs/ADR-026-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa, até 3 rodadas, Forçar estimativa (aceito com o A30; planos [S13](../server/plans/completed/s13-perguntas-antes-da-estimativa.md), [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md), [A30](../android/plans/completed/a30-perguntas-antes-da-estimativa.md)).
+- [ADR-028](adrs/ADR-028-registro-autonomo.md) — registro autônomo no Chat com recibo reversível (proposto; planos [S14](../server/plans/s14-registro-autonomo.md), [ST9](../stitch/plans/st9-registro-autonomo.md), [A34](../android/plans/a34-registro-autonomo.md); fora de escopo [A35](../android/plans/out_of_scope/a35-registro-retroativo.md)).
 
 Historico em `docs/decisions/` (ver [matriz](../README.md)).
 

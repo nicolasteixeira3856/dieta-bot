@@ -92,6 +92,7 @@ cd server
 
 ### Planos e validacao
 
+- [S14 aguardando aprovacao](plans/s14-registro-autonomo.md) — marca `record` (`auto` | `ask` | `none`), intencao `skip`, `record_intent` e `meal_day` para o cliente v4 (`auto_record`) ([ADR-028](../produto/adrs/ADR-028-registro-autonomo.md), proposto); opt-in, cliente legado e v3 inalterados; libera o [A34](../android/plans/a34-registro-autonomo.md).
 - [S13 concluido](plans/completed/s13-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa (`clarify_rounds`, `force_estimate`, `question` no topo), trava de 3 rodadas no codigo ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)); opt-in, cliente legado inalterado; avaliador 35/35; no ar no dev em 30/09/2026.
 - [S10 concluido](plans/completed/s10-avaliacao-chat.md) — avaliador do Chat com casos reais (`server/evals/`); linha de base `none` 52,4% (11/21) ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md)).
 - [S12 concluido](plans/completed/s12-slot-nomeado.md) — slot da refeicao: o nome dito pelo usuario vence a semelhanca com uma refeicao ja gravada; avaliador 29/29 (7 casos `slot` 5/5); no ar no dev; aprovado pelo dono em 30/09/2026.
