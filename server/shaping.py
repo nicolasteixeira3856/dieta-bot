@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
+from collections.abc import Iterable
 from typing import Any
 
 from config import (
     CHAT_FALLBACK_QUESTION,
+    CLARIFY_MAX_ROUNDS,
+    CLARIFY_REPEAT_JACCARD,
     DIGEST_MAX_CHARS,
     FACT_KEY_MAX,
     FACT_TEXT_MAX,
@@ -238,6 +243,88 @@ def _memory_used(raw: Any, known_facts: set[str]) -> list[str]:
         return []
     used = [fid for fid in dict.fromkeys(v for v in raw if isinstance(v, str)) if fid in known_facts]
     return used[:MEMORY_USED_MAX]
+
+
+# Log values of the release gate (ADR-026, S13). "none" = the gate did not apply.
+CLARIFY_NONE = "none"
+CLARIFY_ASKED = "asked"
+CLARIFY_RELEASED_FORCE = "released_force"
+CLARIFY_RELEASED_CONFIDENT = "released_confident"
+CLARIFY_RELEASED_CAP = "released_cap"
+CLARIFY_RELEASED_REPEAT = "released_repeat"
+
+# Dropped before comparing questions. Short and fixed on purpose (S13 § 4).
+_STOP_WORDS = frozenset(
+    "a o as os um uma uns umas de do da dos das e ou em no na nos nas ao aos com sem por "
+    "para pra pro que qual quais quanto quanta quantos quantas como foi era eram tinha tem "
+    "voce vc voces se me te seu sua seus suas isso esse essa este esta mais ja la".split()
+)
+_TOKEN = re.compile(r"[a-z0-9]+")
+_QUESTION_SENTENCE = re.compile(r"[^.?!\n]*\?")
+
+
+def clarify_gate(
+    result: dict[str, Any],
+    payload: dict[str, Any],
+    *,
+    clarify_rounds: int,
+    force_estimate: bool,
+    history: Iterable[tuple[str, str]],
+) -> tuple[dict[str, Any], str]:
+    """v3 client (clarify_rounds present): a log with a material doubt becomes a question-only turn.
+
+    result is the shape_chat output; payload the raw model JSON (its question, never the fallback).
+    history is (role, text) of the request messages. Returns (response, clarify log value).
+    """
+    out = {**result, "question": None}
+    estimate = out.get("estimate")
+    if out.get("intent") != "log" or not isinstance(estimate, dict):
+        if isinstance(estimate, dict):
+            out["estimate"] = {**estimate, "question": None}
+        return out, CLARIFY_NONE
+
+    raw_estimate = payload.get("estimate") if isinstance(payload.get("estimate"), dict) else {}
+    raw_question = raw_estimate.get("question")
+    question = raw_question.strip() if isinstance(raw_question, str) else ""
+
+    if force_estimate:
+        clarify = CLARIFY_RELEASED_FORCE
+    elif estimate.get("confidence") == "high" or not question:
+        clarify = CLARIFY_RELEASED_CONFIDENT
+    elif clarify_rounds >= CLARIFY_MAX_ROUNDS:
+        clarify = CLARIFY_RELEASED_CAP
+    elif any(role == "assistant" and repeats_question(question, text) for role, text in history):
+        clarify = CLARIFY_RELEASED_REPEAT
+    else:
+        meal_text = str(estimate.get("meal_text") or "").strip().rstrip(".")
+        out["reply"] = f"Entendi: {meal_text}.\n{question}" if meal_text else question
+        out["estimate"] = None
+        out["question"] = question
+        return out, CLARIFY_ASKED
+
+    out["estimate"] = {**estimate, "question": None}
+    return out, clarify
+
+
+def repeats_question(question: str, assistant_text: str) -> bool:
+    """True when question repeats one already asked in an assistant turn.
+
+    Only the question sentences of the turn (ending in ?) count. Token Jaccard at or above
+    CLARIFY_REPEAT_JACCARD, or one token set containing the other, is a repeat.
+    """
+    new = _question_tokens(question)
+    asked = _question_tokens(" ".join(_QUESTION_SENTENCE.findall(assistant_text)))
+    if not new or not asked:
+        return False
+    if new <= asked or asked <= new:
+        return True
+    return len(new & asked) / len(new | asked) >= CLARIFY_REPEAT_JACCARD
+
+
+def _question_tokens(text: str) -> set[str]:
+    decomposed = unicodedata.normalize("NFKD", text.casefold())
+    plain = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+    return {token for token in _TOKEN.findall(plain) if token not in _STOP_WORDS}
 
 
 def text_only_chat(text: str) -> dict[str, Any]:

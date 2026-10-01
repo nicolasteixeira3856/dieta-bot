@@ -1,10 +1,11 @@
 # Plan — S13 Questions before the estimate, 3-round hard stop
 
-- Status: Awaiting approval
+- Status: Concluído
+- Approval: 30/09/2026 (owner: "Aprovo o plano docs/server/plans/s13-perguntas-antes-da-estimativa.md. Implemente o plano aprovado.")
 - Date: 30/09/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: none. Executes [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) decisions 1–3, 5 and 6. Opt-in by request field: no Android change needed to ship. Blocks [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md).
+- Prerequisites: none. Executes [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) decisions 1–3, 5 and 6. Opt-in by request field: no Android change needed to ship. Blocks [A30](../../../android/plans/a30-perguntas-antes-da-estimativa.md).
 
 ## Authorization gate
 
@@ -20,7 +21,7 @@ If implementation reveals an uncovered decision, stop, update the artifacts and 
 
 ## Sources of truth
 
-- [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [v1-chat](../specifications/v1-chat.md), [api-contract](../../api-contract.md).
+- [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [v1-chat](../../specifications/v1-chat.md), [api-contract](../../../api-contract.md).
 - Skill `fastapi-security` (input limits, LLM input boundaries).
 
 ## Implementation scope
@@ -68,7 +69,7 @@ For a v3 client, `intent = log` and an estimate present, decide `ask` or `releas
 
 ### 5. Observability
 
-- Dev conversation log ([ADR-015](../adrs/ADR-015-log-conversa-dev.md)): add `clarify` (enum above, or `none`) and `clarify_rounds` (number). No user text in new fields.
+- Dev conversation log ([ADR-015](../../adrs/ADR-015-log-conversa-dev.md)): add `clarify` (enum above, or `none`) and `clarify_rounds` (number). No user text in new fields.
 
 ### 6. Evaluator (`server/evals/`)
 
@@ -88,12 +89,12 @@ For a v3 client, `intent = log` and an estimate present, decide `ask` or `releas
 - `server/main.py`, `server/llm.py`, `server/shaping.py`, `server/config.py`, `server/conversation_log.py`.
 - `server/evals/checks.py`, `server/evals/cases/*.json` (new files only).
 - `server/tests/test_chat.py`, new `server/tests/test_clarify.py`.
-- Docs in the same delivery: [v1-chat](../specifications/v1-chat.md) rules 4, 5, 6a and IN/OUT; [api-contract](../../api-contract.md) `/v1/chat`; server README; this plan's result.
+- Docs in the same delivery: [v1-chat](../../specifications/v1-chat.md) rules 4, 5, 6a and IN/OUT; [api-contract](../../../api-contract.md) `/v1/chat`; server README; this plan's result.
 
 ## Planned validation
 
 1. `pytest server/tests` green, with unit tests for the gate table (each row), the repetition function (accents, stop words, paraphrase below threshold), `clarify_rounds` 422 bounds, legacy path unchanged (snapshot of an existing request/response).
-2. `python -m server.evals.run` with 3 repetitions: all new cases pass ≥ 2/3; existing cases no regression vs [S12](completed/s12-slot-nomeado.md) (29/29).
+2. `python -m server.evals.run` with 3 repetitions: all new cases pass ≥ 2/3; existing cases no regression vs [S12](s12-slot-nomeado.md) (29/29).
 3. Deploy to the dev server (`tools/deploy-gcp.ps1`), then one real v3 request by `curl` with `X-Request-Id: s13-*` and the log line checked for `clarify`.
 
 ## Out of scope
@@ -121,4 +122,29 @@ After implementation, record real results and apply the lifecycle in `docs/sdd/R
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and `plans/cancelled/`.
 
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../sdd/README.md#fora-de-escopo).
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../../sdd/README.md#fora-de-escopo).
+
+## Results (30/09/2026)
+
+### Implemented
+
+- `ChatIn.clarify_rounds` (0–3, 422 outside) and `force_estimate`; `config.CLARIFY_MAX_ROUNDS = 3`, `CLARIFY_REPEAT_JACCARD = 0.6`.
+- `shaping.clarify_gate` (table § 4, in order) and `shaping.repeats_question`; `main.shape_chat_turn` = `shape_chat` + gate for a v3 client, shared by the route and the evaluator. v3 fallbacks (error, text only) carry `question: null`.
+- `_CHAT_INSTRUCTIONS`: "One question per meal" replaced by § 3. The `LOG:` sentence that asked "one specific question about the biggest uncertainty" now asks for every open doubt (at most 3 short questions), so the two rules do not contradict.
+- Dev conversation log: `clarify` and `clarify_rounds` on every `chat` line (`none` / `null` for a legacy client).
+- Evaluator: `top_question` (`present` | `absent` | list of terms = present and naming every term, used by `pergunta-todas-de-uma-vez`), `top_question_not`; 6 `since: v3` cases with tag `clarify`.
+
+### Implementation details within the plan
+
+- Repetition compares the new question with the **question sentences** (ending in `?`) of each assistant turn, not with the whole turn. A whole estimate reply ("…200 ml de leite…") would otherwise contain a short new question ("Qual o leite?") and release it as a false repeat.
+- First full run: `pergunta-resposta-libera` 0/3. After the answer, the model asked a sub-detail ("quanto creme de leite?"). The § 3 line "ask again only about what is still unknown and changes the estimate materially" was made concrete: "only about a food the answers left with no portion at all … After an answer, amounts of sauce, oil, cream, cheese or seasoning are assumed, never asked." Then 3/3.
+
+### Validation
+
+1. `pytest server/tests`: 120 passed (85 subtests). `test_clarify.py`: each gate row, ask reply format, plan/question/null untouched, repetition (accents, stop words, subset, paraphrase below threshold, question sentences only, empty), `clarify_rounds` −1/4 → 422 and 0/3 → 200, legacy snapshot byte for byte (checked against `master` before S13), legacy fallback question kept, v3 fallback `question: null`, log fields.
+2. `python -m evals.run --effort none --repeat 3` (final prompt, report `logs/evals/2026-09-30-210107-none.json`): **35/35** (100%). New cases 6/6, each 3/3: `pergunta-antes-jantar`, `pergunta-todas-de-uma-vez`, `pergunta-resposta-libera`, `pergunta-sem-repetir`, `pergunta-limite-3`, `pergunta-forcada`. Existing 29/29, no regression vs S12 (`ceia-completa-suco` and `ontem-grava-hoje` 2/3). Latency p50 2212 ms, p95 2847 ms. US$ 0.0138 for 105 calls.
+3. `tools/deploy-gcp.ps1` (code only): `/health` 200. Real v3 request (`pergunta-antes-jantar` body, `clarify_rounds: 0`, `X-Request-Id: s13-check-1`): `intent: log`, `estimate: null`, `question` "A porção de macarrão e frango foi aproximadamente essa?", `reply` `Entendi: …` + the question. Log line: `"clarify": "asked", "clarify_rounds": 0`.
+
+### Pending
+
+- None for S13. The Android side (question-only turns, round count, Forçar estimativa) is [A30](../../../android/plans/a30-perguntas-antes-da-estimativa.md), which accepts ADR-026 on completion.

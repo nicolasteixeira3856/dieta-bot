@@ -1,0 +1,163 @@
+{
+  "id": "pergunta-todas-de-uma-vez",
+  "since": "v3",
+  "tags": [
+    "log",
+    "clarify"
+  ],
+  "request": {
+    "local_time": "2026-09-30T12:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "almocei um bife com batata",
+    "image_b64": null,
+    "compact": false,
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-09-28",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 tapioca com queijo, café com leite",
+        "kcal": 360,
+        "p": 14,
+        "c": 50,
+        "g": 11
+      },
+      {
+        "date": "2026-09-28",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "arroz (150 g), feijão (100 g), frango grelhado (150 g), salada de alface",
+        "kcal": 620,
+        "p": 52,
+        "c": 70,
+        "g": 12
+      },
+      {
+        "date": "2026-09-28",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 3 ovos com espinafre",
+        "kcal": 300,
+        "p": 21,
+        "c": 4,
+        "g": 22
+      },
+      {
+        "date": "2026-09-29",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, 100 ml de café sem açúcar",
+        "kcal": 430,
+        "p": 24,
+        "c": 38,
+        "g": 20
+      },
+      {
+        "date": "2026-09-29",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "1 pedaço pequeno de lasanha à bolonhesa, 100 g de arroz, salada de beterraba",
+        "kcal": 690,
+        "p": 30,
+        "c": 80,
+        "g": 26
+      },
+      {
+        "date": "2026-09-29",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 banana, 30 g de aveia",
+        "kcal": 215,
+        "p": 6,
+        "c": 45,
+        "g": 3
+      }
+    ],
+    "clarify_rounds": 0
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "absent",
+    "top_question": [
+      "bife",
+      "batata"
+    ]
+  }
+}

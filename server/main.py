@@ -23,6 +23,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from config import (
+    CLARIFY_MAX_ROUNDS,
     FACT_KEY_MAX,
     FACT_TEXT_MAX,
     FACTS_MAX,
@@ -42,6 +43,8 @@ from conversation_log import ConversationLog, now_iso
 from llm import LlmClient, TextOnlyOutput
 from shaping import (
     CHAT_FALLBACK_REPLY,
+    CLARIFY_NONE,
+    clarify_gate,
     fail_chat,
     fail_digest,
     fail_estimate,
@@ -170,6 +173,10 @@ class ChatIn(BaseModel):
     text: str = Field(..., max_length=CHAT_TEXT_MAX)
     image_b64: str | None = None
     compact: bool = False
+    # ADR-026: present = v3 client (question-only turns). Rounds already shown for the pending meal.
+    clarify_rounds: int | None = Field(default=None, ge=0, le=CLARIFY_MAX_ROUNDS)
+    # Ignored unless clarify_rounds is present.
+    force_estimate: bool = False
 
     @model_validator(mode="after")
     def _fact_slots_in_profile(self) -> "ChatIn":
@@ -267,8 +274,12 @@ def create_app(
         fail: Callable[[], dict[str, Any]],
         is_fallback: Callable[[dict[str, Any]], bool] | None = None,
         text_only: Callable[[str], dict[str, Any]] | None = None,
+        log_fields: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Log fallback (ADR-015 / S8): False | "error" | "text_only"."""
+        """Log fallback (ADR-015 / S8): False | "error" | "text_only".
+
+        log_fields: extra record fields, read when the line is written (shape may update them).
+        """
         record = _new_record(request, route, image)
         started = time.monotonic()
         try:
@@ -295,6 +306,8 @@ def create_app(
             return result
         finally:
             record["latency_ms"] = round((time.monotonic() - started) * 1000)
+            if log_fields:
+                record.update(log_fields)
             conversation_log.write(record)
 
     @app.get("/health")
@@ -367,6 +380,18 @@ def create_app(
         try:
             if reject_photo(image) == "too_large":
                 raise HTTPException(status_code=413, detail="photo_too_large")
+            log_fields = {"clarify": CLARIFY_NONE, "clarify_rounds": body.clarify_rounds}
+
+            def shape(payload: dict[str, Any]) -> dict[str, Any]:
+                result, log_fields["clarify"] = shape_chat_turn(body, payload)
+                return result
+
+            def v3(result: dict[str, Any]) -> dict[str, Any]:
+                # A v3 client always gets the top-level question, null on a fallback.
+                if body.clarify_rounds is not None:
+                    result.setdefault("question", None)
+                return result
+
             return _llm_call(
                 request,
                 "chat",
@@ -378,14 +403,11 @@ def create_app(
                     fact_ids=body.fact_ids or [],
                     trace=trace,
                 ),
-                lambda payload: shape_chat(
-                    payload,
-                    valid_slot_ids=[s.id for s in body.profile.slots],
-                    fact_ids=body.fact_ids,
-                ),
-                fail_chat,
+                shape,
+                lambda: v3(fail_chat()),
                 is_fallback=lambda result: result.get("reply") == CHAT_FALLBACK_REPLY,
-                text_only=text_only_chat,
+                text_only=lambda text: v3(text_only_chat(text)),
+                log_fields=log_fields,
             )
         finally:
             image = None
@@ -405,6 +427,21 @@ def create_app(
         )
 
     return app
+
+
+def shape_chat_turn(body: ChatIn, payload: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    """shape_chat, then the release gate for a v3 client (ADR-026). Returns (response, clarify)."""
+    slot_ids = [s.id for s in body.profile.slots]
+    result = shape_chat(payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids)
+    if body.clarify_rounds is None:
+        return result, CLARIFY_NONE
+    return clarify_gate(
+        result,
+        payload,
+        clarify_rounds=body.clarify_rounds,
+        force_estimate=body.force_estimate,
+        history=[(m.role, m.text) for m in body.messages],
+    )
 
 
 def _new_record(request: Request, route: str, image: str | None) -> dict[str, Any]:

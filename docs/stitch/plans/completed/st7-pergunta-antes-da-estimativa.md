@@ -11,7 +11,7 @@ Screen names: exact Stitch titles ([table](../../README.md#nomes-das-telas-regra
 
 ## ⛔ Owner blocker — Stitch prompts
 
-This step is manual and blocks A30. Two prompts, each sent twice (dark and light). Run 7.1 first: it duplicates the screen that 7.2 then edits. It can run in parallel with [S13](../../../server/plans/s13-perguntas-antes-da-estimativa.md).
+This step is manual and blocks A30. Two prompts, each sent twice (dark and light). Run 7.1 first: it duplicates the screen that 7.2 then edits. It can run in parallel with [S13](../../../server/plans/completed/s13-perguntas-antes-da-estimativa.md).
 
 ### Prompt 7.1 — new screen: second question with Forçar estimativa (`chatQ`)
 

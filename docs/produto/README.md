@@ -64,7 +64,7 @@ Nenhuma especificacao criada ate o momento.
 - [ADR-021](adrs/ADR-021-refeicoes-por-dia.md) — refeições por dia da semana (aceito).
 - [ADR-022](adrs/ADR-022-limite-texto-chat.md) — mensagem do Chat até 2000 caracteres, estado de erro (aceito).
 - [ADR-023](adrs/ADR-023-chat-v2-memoria-v2.md) — Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica) (aceito).
-- [ADR-026](adrs/ADR-026-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa, até 3 rodadas, Forçar estimativa (proposto; planos [S13](../server/plans/s13-perguntas-antes-da-estimativa.md), [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md), [A30](../android/plans/a30-perguntas-antes-da-estimativa.md)).
+- [ADR-026](adrs/ADR-026-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa, até 3 rodadas, Forçar estimativa (proposto; planos [S13](../server/plans/completed/s13-perguntas-antes-da-estimativa.md), [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md), [A30](../android/plans/a30-perguntas-antes-da-estimativa.md)).
 
 Historico em `docs/decisions/` (ver [matriz](../README.md)).
 

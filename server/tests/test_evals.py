@@ -83,6 +83,7 @@ class CheckTests(unittest.TestCase):
             reply="Registrei o café.",
         )
         output["estimate"]["question"] = "Qual leite?"
+        output["question"] = "Qual leite?"
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -90,6 +91,8 @@ class CheckTests(unittest.TestCase):
             "kcal_range": [100, 200],
             "question": "absent",
             "question_not": ["qual"],
+            "top_question": "absent",
+            "top_question_not": ["leite"],
             "meal_text_has": ["ovo"],
             "meal_text_not": ["sempre uso"],
             "memory_updates_has": [{"op": "add", "key": "leite"}],
@@ -121,6 +124,22 @@ class CheckTests(unittest.TestCase):
         # One applicable check decides the repetition.
         self.assertEqual(repetition_status(evaluate({**expect, "estimate": "present"}, V1_LOG)), PASS)
 
+    def test_top_question_checks(self) -> None:
+        """S13: top-level question of a v3 output; NA on an output without the field."""
+        asked = {**V1_QUESTION, "intent": "log", "question": "Qual o tamanho do bife? E a batata, frita?"}
+        released = {**_v2(), "question": None}
+        self.assertEqual(_status({"top_question": "present"}, asked), {"top_question": PASS})
+        self.assertEqual(_status({"top_question": ["bife", "batata"]}, asked), {"top_question": PASS})
+        self.assertEqual(_status({"top_question": ["bife", "arroz"]}, asked), {"top_question": FAIL})
+        self.assertEqual(_status({"top_question": ["bife"]}, released), {"top_question": FAIL})
+        self.assertEqual(_status({"top_question": "absent"}, released), {"top_question": PASS})
+        self.assertEqual(_status({"top_question_not": ["leite"]}, asked), {"top_question_not": PASS})
+        self.assertEqual(_status({"top_question_not": ["BATATA"]}, asked), {"top_question_not": FAIL})
+        self.assertEqual(
+            _status({"top_question": "absent", "top_question_not": ["x"]}, _v2()),
+            {"top_question": NA, "top_question_not": NA},
+        )
+
     def test_v1_intent_is_deduced_from_estimate(self) -> None:
         self.assertEqual(_status({"intent": "log"}, V1_LOG), {"intent": PASS})
         self.assertEqual(_status({"intent": "plan"}, V1_LOG), {"intent": FAIL})
@@ -148,7 +167,7 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2"))
+                self.assertIn(case["since"], ("v1", "v2", "v3"))
                 self.assertTrue(case["tags"])
                 self.assertTrue(set(case["expect"]) <= set(KNOWN))
                 body = ChatIn.model_validate(case["request"])

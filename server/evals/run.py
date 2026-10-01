@@ -4,7 +4,7 @@ Inside server/, with the .venv:
 
     python -m evals.run --effort none low --repeat 3 [--only id,...] [--tag tag]
 
-Same code as the route (_chat_text, LlmClient.chat_json, shape_chat), no HTTP.
+Same code as the route (_chat_text, LlmClient.chat_json, shape_chat_turn), no HTTP.
 Key: OPENAI_API_KEY from the repo-root .env via config.load_settings(). Never printed.
 Report: terminal + logs/evals/<date>-<effort>.json (outside git).
 """
@@ -28,8 +28,8 @@ from openai import RateLimitError
 from config import MODEL, load_settings
 from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status
 from llm import LlmClient, TextOnlyOutput
-from main import ChatIn, _chat_text
-from shaping import fail_chat, shape_chat, text_only_chat
+from main import ChatIn, _chat_text, shape_chat_turn
+from shaping import fail_chat, text_only_chat
 
 SERVER = Path(__file__).resolve().parent.parent
 CASES_DIR = Path(__file__).resolve().parent / "cases"
@@ -121,7 +121,7 @@ def run_once(
                     fact_ids=body.fact_ids or [],
                     trace=trace,
                 )
-                output = shape_chat(payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids)
+                output, _ = shape_chat_turn(body, payload)
             except TextOnlyOutput as exc:
                 output = text_only_chat(exc.text)
             break
@@ -139,6 +139,8 @@ def run_once(
             error = f"{type(exc).__name__}: {message}"
             output = fail_chat()
             break
+    if body.clarify_rounds is not None:
+        output.setdefault("question", None)
     latency_ms = round((time.monotonic() - started) * 1000)
     checks = evaluate(case["expect"], output)
     return {

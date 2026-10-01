@@ -4,7 +4,7 @@
 - Date: 30/09/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`core/network/ChatModels.kt`, `feature/chat/*`, `core/telemetry` events, tests and captures)
-- Prerequisites: **[S13](../../server/plans/s13-perguntas-antes-da-estimativa.md) deployed on the dev server** and **[ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) in `stitch/plans/completed/`** (golds `chatE` edited, `chatQ` new). Executes [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) decisions 1, 3, 4 and 5; accepts ADR-026 on completion.
+- Prerequisites: **[S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md) deployed on the dev server** and **[ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) in `stitch/plans/completed/`** (golds `chatE` edited, `chatQ` new). Executes [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) decisions 1, 3, 4 and 5; accepts ADR-026 on completion.
 
 ## Authorization gate
 
