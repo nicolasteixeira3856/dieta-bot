@@ -1,16 +1,26 @@
 # GCP VM stack (ADR-013). Runs from /opt/nutri: server/, infra/gcp/, .env.
 # PUBLIC_HOST=<a-b-c-d>.sslip.io docker compose -f infra/gcp/compose.yml up -d --build
+
+# Docker json-file logs, bounded (CP5): 10 MB x 3 per container.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   api:
     build: ../../server
     env_file: ../../.env
     # Dev conversation log (ADR-015). Read with tools/pull-conversations.ps1.
+    # Age rotation (30 days) is host logrotate, written by startup.sh.
     environment:
       CONVERSATION_LOG_PATH: /data/conversations.jsonl
     volumes:
       - /opt/nutri/logs:/data
     # No published port: only Caddy reaches 8080.
     # keep-alive >= 60s (server README); proxy headers so the rate limit sees the client IP.
+    # Trust X-Forwarded-For only from the edge network below (CP5). Never "*".
     command:
       - uvicorn
       - main:app
@@ -21,7 +31,10 @@ services:
       - --timeout-keep-alive
       - "75"
       - --proxy-headers
-      - --forwarded-allow-ips=*
+      - --forwarded-allow-ips=172.30.53.0/28
+    networks:
+      - edge
+    logging: *logging
     restart: unless-stopped
 
   caddy:
@@ -35,9 +48,19 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - edge
+    logging: *logging
     depends_on:
       - api
     restart: unless-stopped
+
+# Fixed subnet: the only range uvicorn trusts for forwarded headers.
+networks:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.53.0/28
 
 volumes:
   caddy_data:

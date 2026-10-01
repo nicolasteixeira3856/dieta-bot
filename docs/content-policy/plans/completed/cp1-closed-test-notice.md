@@ -1,6 +1,6 @@
 # CP1 — Closed-test notice and incident note
 
-- Status: Pendente aprovação manual (approved by the owner 2026-10-01; documents delivered 2026-10-01; tester delivery pending)
+- Status: Concluído (approved by the owner 2026-10-01; documents delivered 2026-10-01; notice delivered to both testers 2026-10-01, confirmed by the owner during the CP5 goal)
 - Date: 2026-09-30 (rescoped 2026-09-30 for the closed test)
 - Owner: `content-policy`
 - Delivery boundary: `docs/content-policy/` (documentation only; related indexes may be updated).
@@ -53,9 +53,9 @@ Delivered artifacts:
 
 Facts were read from the code at revision `bdc5251` (server logging, moderation, compose, Caddyfile, `tools/pull-conversations.ps1`, Android Room, memory and photo storage, telemetry). Findings that the notice states honestly instead of claiming the planned state:
 
-- The dev conversation log rotates by size today (20 MB × 6 files), not by age. The 30-day rotation is a [CP5](../cp5-gcp-dev-ingress.md) deliverable; the notice says it is not active yet and will be updated.
+- The dev conversation log rotates by size today (20 MB × 6 files), not by age. The 30-day rotation is a [CP5](../pending_manual_validation/cp5-gcp-dev-ingress.md) deliverable; the notice says it is not active yet and will be updated.
 - Docker logs (`api` access lines with client IP, `caddy`) have no size limit yet (CP5).
-- The installation pseudonym is not deployed ([CP3](cp3-server-safety-identifier.md)/[CP4](cp4-android-installation-identity.md)); the notice describes it as coming in a next version.
+- The installation pseudonym is not deployed ([CP3](../pending_manual_validation/cp3-server-safety-identifier.md)/[CP4](../pending_manual_validation/cp4-android-installation-identity.md)); the notice describes it as coming in a next version.
 - `safety_support` and `out_of_scope` turns are logged in full; only `policy_blocked` turns are metadata-only.
 - Sent photos stay on the phone (app-private) until uninstall or clear-data; the server never writes them.
 - Contact is the owner through the channel that delivered the invite; no e-mail is published in the repo.
@@ -67,7 +67,7 @@ Facts were read from the code at revision `bdc5251` (server logging, moderation,
 | Language: notice pt-BR, technical files English | PASS |
 | Relative links in `docs/content-policy/` | PASS — checked with a local script |
 | `git diff --check` | PASS |
-| Notice delivered to both testers | PENDING — owner manual step below |
+| Notice delivered to both testers | PASS — owner confirmed 2026-10-01 (table below) |
 
 ## Tester delivery (owner manual step)
 
@@ -75,7 +75,7 @@ The owner sends [tester-notice.pt-BR.md](../../legal/tester-notice.pt-BR.md) ver
 
 | Tester | Date delivered | Channel kind |
 | --- | --- | --- |
-| Tester 1 | PENDING | — |
-| Tester 2 | PENDING | — |
+| Tester 1 | 2026-10-01 | Not recorded |
+| Tester 2 | 2026-10-01 | Not recorded |
 
 When both rows have a date: set Status to `Concluído`, move this file to `plans/completed/`, update V17 and the plan index.

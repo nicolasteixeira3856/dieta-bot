@@ -2,17 +2,17 @@
 
 Rescoped by the owner on 2026-09-30: the app is in a closed test. Active plans cover only that phase. Production work is deferred to `out_of_scope/` and enforced by the [production gate](../production-gate.md).
 
-CP2 is `Pendente aprovação manual` (implemented and deployed to dev on 2026-09-30, owner APK check pending). CP1 is `Pendente aprovação manual` (documents delivered 2026-10-01, tester delivery pending). CP3 is `Pendente aprovação manual` (implemented and deployed to dev on 2026-10-01, `safety_id: off` until CP5; end-to-end correlation pending CP4/CP5). CP4 is `Pendente aprovação manual` (implemented 2026-10-01, automated tests pass; installation check on the distributed APK pending, CP5 verifies correlation). The other active plans are `Aguardando aprovação`. Creating them does not approve implementation. One agent and one plan/code boundary per `/goal`, following [SDD](../../sdd/README.md).
+CP2 is `Pendente aprovação manual` (implemented and deployed to dev on 2026-09-30, owner APK check pending). CP1 is `Concluído` (documents delivered and notice sent to both testers on 2026-10-01). CP3 is `Pendente aprovação manual` (implemented and deployed to dev on 2026-10-01, `safety_id: on` since CP5; end-to-end correlation verified on an emulator with dev 0.0.6 by CP5, owner approval pending). CP4 is `Pendente aprovação manual` (implemented 2026-10-01, automated tests pass; distributed as dev 0.0.6; CP5 verified restart and reinstall on an emulator, owner approval pending). CP5 is `Pendente aprovação manual` (deployed to dev on 2026-10-01; OpenAI budget limit pending, owner). Creating them does not approve implementation. One agent and one plan/code boundary per `/goal`, following [SDD](../../sdd/README.md).
 
 ## Active (closed test)
 
 | Order | Plan | Delivery boundary | Dependency / result |
 | --- | --- | --- | --- |
 | 1 | [CP2 — Server content controls](pending_manual_validation/cp2-server-content-controls.md) | `server/` | None. Fixes the off-topic drift: tightened prompt, `scope` field, fixed refusals, free moderation, evals. Deployed to dev 2026-09-30; `Pendente aprovação manual`. |
-| 2 | [CP1 — Closed-test notice and incident note](pending_manual_validation/cp1-closed-test-notice.md) | `docs/content-policy/` | None; can run any time before CP5. [Tester notice](../legal/tester-notice.pt-BR.md), [data map](../operations/closed-test-data-map.md), [incident note](../operations/closed-test-incident.md) delivered 2026-10-01; `Pendente aprovação manual` until the owner confirms delivery to both testers. |
+| 2 | [CP1 — Closed-test notice and incident note](completed/cp1-closed-test-notice.md) | `docs/content-policy/` | None; can run any time before CP5. [Tester notice](../legal/tester-notice.pt-BR.md), [data map](../operations/closed-test-data-map.md), [incident note](../operations/closed-test-incident.md) delivered and sent to both testers 2026-10-01; `Concluído`. |
 | 3 | [CP3 — Server safety identifier](pending_manual_validation/cp3-server-safety-identifier.md) | `server/` | CP2. Optional installation header, HMAC `safety_identifier`. Deployed to dev 2026-10-01; `Pendente aprovação manual`. |
 | 4 | [CP4 — Android installation identity](pending_manual_validation/cp4-android-installation-identity.md) | `apps/android/` | CP3. Private UUID and API-only header. No new screen. |
-| 5 | [CP5 — GCP dev ingress and log hygiene](cp5-gcp-dev-ingress.md) | `infra/gcp/` | CP2, CP3 deployed; CP4 accepted; CP1 notice delivered. Narrow proxy trust, log rotation, secret, budget limit, invite rotation runbook. |
+| 5 | [CP5 — GCP dev ingress and log hygiene](pending_manual_validation/cp5-gcp-dev-ingress.md) | `infra/gcp/` | CP2, CP3 deployed; CP4 accepted; CP1 notice delivered. Narrow proxy trust, log rotation, secret, budget limit, invite rotation runbook. Deployed to dev 2026-10-01; `Pendente aprovação manual` (budget limit). |
 
 ## Out of scope
 

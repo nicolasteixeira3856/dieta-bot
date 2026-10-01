@@ -1,6 +1,6 @@
 # Content-policy validation
 
-Status: CP2 rows run on 2026-09-30 (evidence in the [CP2 plan](../plans/pending_manual_validation/cp2-server-content-controls.md#results-2026-09-30)); CP1 documentation checks run on 2026-10-01 (evidence in the [CP1 plan](../plans/pending_manual_validation/cp1-closed-test-notice.md#results-2026-10-01)); CP3 server checks run on 2026-10-01 (evidence in the [CP3 plan](../plans/pending_manual_validation/cp3-server-safety-identifier.md#results-2026-10-01)); CP4 Android unit checks run on 2026-10-01 (evidence in the [CP4 plan](../plans/pending_manual_validation/cp4-android-installation-identity.md#results-2026-10-01)); other runtime checks are NOT RUN. Existing protections and read-only findings do not count as delivered CP plans. Never commit live request bodies, user photos, IPs or pseudonyms here.
+Status: CP2 rows run on 2026-09-30 (evidence in the [CP2 plan](../plans/pending_manual_validation/cp2-server-content-controls.md#results-2026-09-30)); CP1 documentation checks run on 2026-10-01 (evidence in the [CP1 plan](../plans/completed/cp1-closed-test-notice.md#results-2026-10-01)); CP3 server checks run on 2026-10-01 (evidence in the [CP3 plan](../plans/pending_manual_validation/cp3-server-safety-identifier.md#results-2026-10-01)); CP4 Android unit checks run on 2026-10-01 (evidence in the [CP4 plan](../plans/pending_manual_validation/cp4-android-installation-identity.md#results-2026-10-01)); CP5 dev activation checks run on 2026-10-01 (evidence in the [CP5 plan](../plans/pending_manual_validation/cp5-gcp-dev-ingress.md#results-2026-10-01)). Existing protections and read-only findings do not count as delivered CP plans. Never commit live request bodies, user photos, IPs or pseudonyms here.
 
 ## Closed-test matrix
 
@@ -13,16 +13,16 @@ Status: CP2 rows run on 2026-09-30 (evidence in the [CP2 plan](../plans/pending_
 | V05 | Severe categories and modality coverage | Mocked verdicts; no negative inference on unsupported image categories | CP2 | PASS — mocked verdicts; a clean image verdict is never read as a minors check (text-only category) |
 | V06 | Known/suspected CSAM signal | No further content-bearing call; metadata-only log; CP1 note followed | CP1/CP2 | CP2 part PASS (mocked); CP1 note PASS — synthetic walkthrough 2026-10-01 |
 | V07 | Provider refusal, invalid JSON, text-only fallback, moderation timeout | Fixed safe output; no estimate/memory; no fail-open | CP2 | PASS — fake-transport tests |
-| V08 | Estimate/fit/chat/compact and current APK | Every route covered; compatible refusal shapes | CP2 | Routes PASS (tests, dev smoke); current APK: owner check PENDING |
+| V08 | Estimate/fit/chat/compact and current APK | Every route covered; compatible refusal shapes | CP2 | Routes PASS (tests, dev smoke); dev 0.0.6 on emulator PASS 2026-10-01 (CP5: refusal copy, no card); owner check PENDING |
 | V09 | Eating-disorder set (low intake goal, purging, laxatives, fasting) | `safety_support` copy; never optimization | CP2 | PASS — evals 3/3 strict |
 | V10 | Legitimate eval baseline; latency/tokens | No regression; one generation call per turn | CP2 | PASS — 35/35 baseline cases; p50 +600 ms |
-| V11 | Stable/new/missing/invalid installation ID | Identifier semantics; no raw UUID in provider payload or log | CP3/CP4 | CP3 part PASS — fake-transport tests (missing, invalid, same/different ID, no raw UUID/IP in payload or log), dev smoke 400; CP4 part PASS (unit) — canonical v4, stable on recreation, new on missing/corrupt; distributed-APK check PENDING |
-| V12 | All Responses calls including compact | Same identifier; none on moderation | CP3 | PASS — serialized SDK requests (fake transport); live check with the secret in CP5 |
-| V13 | Proxy spoofing, IPv6, direct 8080 access, container recreation | Rate-limit address not client-controlled; 8080 closed | CP5 | NOT RUN |
-| V14 | Log rotation (Docker and conversation log) | Config visible; rotation dry run | CP5 | NOT RUN |
-| V15 | Daily wipe/update/reinstall/redirect/telemetry | Identity lifecycle and destination restriction | CP4 | Unit PASS — wipe keeps, recreation keeps, clear-data resets, cross-origin redirect drops, no telemetry; emulator update/reinstall PENDING |
-| V16 | Integrated APK and API | No card/memory on refusal; meal/photo usable; correlation in dev log | CP5 | NOT RUN |
-| V17 | Tester notice delivered; incident walkthrough | Dated owner confirmation; three synthetic cases | CP1 | Walkthrough PASS (2026-10-01, [incident note](../operations/closed-test-incident.md#4-synthetic-walkthrough-2026-10-01)); tester delivery PENDING |
+| V11 | Stable/new/missing/invalid installation ID | Identifier semantics; no raw UUID in provider payload or log | CP3/CP4 | CP3 part PASS — fake-transport tests, dev smoke 400; CP4 part PASS (unit); distributed APK 0.0.6 on emulator PASS 2026-10-01 (CP5): same pseudonym across app and server restart, new pseudonym after reinstall |
+| V12 | All Responses calls including compact | Same identifier; none on moderation | CP3 | PASS — serialized SDK requests (fake transport); live: identifier on every chat turn in the dev log, 2026-10-01 (CP5) |
+| V13 | Proxy spoofing, IPv6, direct 8080 access, container recreation | Rate-limit address not client-controlled; 8080 closed | CP5 | PASS 2026-10-01 — 35 public requests with spoofed `X-Forwarded-For` (chains, IPv6, duplicates), `Forwarded`, `X-Real-IP` share one rate-limit bucket (429 from the 31st), repeated after container recreation; public 8080 times out; only Caddy publishes ports |
+| V14 | Log rotation (Docker and conversation log) | Config visible; rotation dry run | CP5 | PASS 2026-10-01 — `docker inspect` shows `json-file` 10m × 3 on both containers; `logrotate -d` parses the 30-day rule; `logrotate.timer` active |
+| V15 | Daily wipe/update/reinstall/redirect/telemetry | Identity lifecycle and destination restriction | CP4 | Unit PASS; emulator with distributed 0.0.6 PASS 2026-10-01 — restart keeps, reinstall resets; update path (id created by an earlier CP4 build) PENDING |
+| V16 | Integrated APK and API | No card/memory on refusal; meal/photo usable; correlation in dev log | CP5 | PASS 2026-10-01 on emulator with dev 0.0.6 — meal estimate, photo → questions → estimate, math → fixed refusal without card, correlation in dev log; tester check PENDING |
+| V17 | Tester notice delivered; incident walkthrough | Dated owner confirmation; three synthetic cases | CP1 | PASS — walkthrough 2026-10-01; notice delivered to both testers 2026-10-01 (owner) |
 
 ## Production matrix (deferred)
 
@@ -50,4 +50,4 @@ Planning delivery, 2026-09-30: read-only inspection of server, Android network/c
 
 Rescope delivery, 2026-09-30: closed-test cut and production gate. Results recorded in the delivery commit message and PR.
 
-CP1 delivery, 2026-10-01: tester notice, data map and incident note; synthetic walkthrough of three cases; relative links checked; `git diff --check` passed. Tester delivery pending (owner).
+CP1 delivery, 2026-10-01: tester notice, data map and incident note; synthetic walkthrough of three cases; relative links checked; `git diff --check` passed. Tester delivery confirmed by the owner on 2026-10-01.
