@@ -6,6 +6,7 @@
 - Prospective executable boundary: `server/`; any independent infrastructure/client integration needs a separate plan.
 - Authority: owner instruction on 2026-09-30 to plan within current scope/budget and allow future implementations in `out_of_scope/`.
 - Reason: financial and business scope. Additional specialized detection platforms may not fit the present operating budget/capacity.
+- Production blocker: **decision required**, [PG4](../../production-gate.md). Closes by implementation, or by `Risco aceito` with counsel's written conclusion recorded in the production gate.
 - This plan is not approved, implemented, cancelled or runnable with `/goal`.
 
 ## Future objective

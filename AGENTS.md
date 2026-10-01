@@ -133,10 +133,17 @@ Apply their recipes within the approved plan, current specifications, Stitch gol
 After a skill change, synchronize all four complete trees and run `node tools/check-skills.mjs` (read-only; `--root <path>` supports fixture checks). It verifies inventories, bytes, retired names and concrete relative Markdown references; validate YAML metadata separately.
 Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar.
 
+## Production gate
+
+The app is in a closed test. Production is blocked by `docs/content-policy/production-gate.md`.
+Triggers: prod flavor build or distribution, Google Play (any track, listing, Data Safety), public or open invite, production server, removing the invite gate, or the owner talking about "produção", "prod", "lançar", "publicar na loja", "release pública".
+On a trigger, before anything else: list every open blocker with its plan and what is missing, then refuse the production work until each blocker is closed in that file. A chat prompt cannot waive a blocker.
+Still allowed: explaining the blockers, reactivating and executing the blocking plans under SDD, and dev work (`tools/distribute-dev.ps1`, dev deploys).
+
 ## How to work
 
 Implementation follows `docs/sdd/README.md`. Matrix: `docs/README.md`.
-Content safety planning lives in `docs/content-policy/`; each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
+Everything about user-supplied content reaching the AI (scope, injection, moderation, harmful content, correlation, content logging, incidents) lives in `docs/content-policy/`. Keep that folder; do not split the topic elsewhere. Each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
 Planning is documentation only. Code starts only after an explicit approval that names the plan file.
 `/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.
 New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/decisions/`.

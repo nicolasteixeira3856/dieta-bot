@@ -1,10 +1,10 @@
 # CP4 — Android installation identity
 
 - Status: Aguardando aprovação
-- Date: 2026-09-30
+- Date: 2026-09-30 (prerequisites refreshed 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: Android.
 - Delivery boundary: `apps/android/`, plus related documentation/indexes.
-- Prerequisites: CP3 contract implemented and automated acceptance recorded. No layout/Stitch prerequisite because this delivery adds no UI.
+- Prerequisites: [CP3](cp3-server-safety-identifier.md) implemented and automated acceptance recorded. No layout/Stitch prerequisite because this delivery adds no UI.
 
 ## Authorization and objective
 
@@ -20,7 +20,7 @@ Approve this named plan to send one private, pseudonymous installation signal to
 2. Send `X-Client-Instance-Id` through the existing network stack for estimate, fit, chat and compaction. Restrict it to the configured API origin and prevent forwarding to another origin on redirects. Do not attach it to arbitrary image URLs or unrelated clients.
 3. Preserve across updates/process death and daily wipe. Clear-data/uninstall resets it; dev/prod remain isolated. No setting, new user permission, Room schema migration, DataStore for day state, Firebase identity or advertising identifier.
 4. Keep the existing `X-Invite` and request-ID behavior. Startup/ID-storage failure uses a bounded failure path; it never leaks a raw device identifier as fallback. Old servers may ignore the additive header.
-5. Verify existing UI treatment of CP2/CP3 responses: refusal bubble has no action card/memory update; 400/403/503 do not display raw internal codes or retry indefinitely. This plan may adjust nonvisual response mapping in the existing data/domain flow if needed; any new layout/control requires a separate approved plan and Stitch gate.
+5. Verify existing UI treatment of CP2/CP3 responses: refusal bubble has no action card/memory update; 400/503 do not display raw internal codes or retry indefinitely. This plan may adjust nonvisual response mapping in the existing data/domain flow if needed; any new layout/control requires a separate approved plan and Stitch gate.
 
 ## Files
 
