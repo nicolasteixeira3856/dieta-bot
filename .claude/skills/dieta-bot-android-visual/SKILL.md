@@ -15,6 +15,7 @@ Read [AGENTS](../../../AGENTS.md), the [QA workflow](../../../docs/qa/README.md)
 6. Layout JSON does not prove colors, font sizes, radius or CTA appearance. Check these visually against the gold/tokens; use screen capture --annotate only as a diagnostic fallback for visually located elements.
 7. Write the required diff list: layout, tokens, type size, radius, ButtonGroup, CTA, timeline, semantic macros, and measured bounds for changed elements.
 8. Run node tools/diff-gold.mjs <theme>/<id>; preserve the existing 2% gate and its current region/report-only behavior. Report known gold conflicts explicitly; do not lower thresholds or treat a report-only region as a passing assertion.
+   When golds disagree with each other or with the plan, apply [ADR-027](../../../docs/android/adrs/ADR-027-golds-divergentes.md) instead of stopping: a state gold keeps its own geometry and the base gold is untouched; dark/light drift takes the average when both pass; plan/spec/token values win over a gold's rendering and go into the diff list; disabled dimming uses a save layer. Only a future approved plan changes these rules.
 9. Check the approved day-one Home and Chat states, including Chat suggestion chips, the Home Chat FAB and consolidated entries. Fail on default Material colors, coaching, missing timeline or incorrect tokens/layout.
 10. Iterate and recapture until the applicable comparisons pass. Ignore only the system/font-raster differences allowed by AGENTS. A cold-start splash is expected, not evidence of a freeze.
 
