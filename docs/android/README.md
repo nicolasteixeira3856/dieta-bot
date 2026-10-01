@@ -48,7 +48,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Estado atual
 
-Client vivo. Room v6 (refeições por dia, A24; Chat v2, A27; memória por mensagem, A28): profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b), memória cifrada em fatos (A8b, A28) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
+Client vivo. Room v7 (refeições por dia, A24; Chat v2, A27; memória por mensagem, A28; índice da página do Chat, A32): profile, day, meal_log, meal_slot, slot_skip, chat_message, day_digest. Home painel (A4). Chat (A5) com compact (A5b), memória cifrada em fatos (A8b, A28) e foto (A6); Config com wipe e treino do dia (A3). Push por slot (A7).
 
 ## Flavors
 
@@ -109,7 +109,7 @@ Client vivo. Room v6 (refeições por dia, A24; Chat v2, A27; memória por mensa
 
 ### Especificacoes
 
-[Room v6](specifications/room-v2.md).
+[Room v7](specifications/room-v2.md).
 
 ### ADRs
 
@@ -120,10 +120,10 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Ajustes de O1 e Chat (decisões do dono em 01/10/2026), aguardando aprovação, nesta ordem:
+Ajustes de O1 e Chat (decisões do dono em 01/10/2026):
 
-- [A31 O1: perfil obrigatório e navegação pelo teclado](plans/a31-o1-perfil-obrigatorio-teclado.md) — gate [ST8](../stitch/plans/completed/st8-teto-sem-perfil.md) concluído (gold `o1e`)
-- [A32 Chat: abre no fim, paginação reversa, teclado fecha na foto](plans/a32-chat-rolagem-paginacao.md) — sem gate; independente do A31
+- [A31 O1: perfil obrigatório e navegação pelo teclado](plans/a31-o1-perfil-obrigatorio-teclado.md) — gate [ST8](../stitch/plans/completed/st8-teto-sem-perfil.md) concluído (gold `o1e`); aguardando aprovação
+- [A32 Chat: abre no fim, paginação reversa, teclado fecha na foto](plans/completed/a32-chat-rolagem-paginacao.md) — Room v7; concluído em 01/10/2026
 
 Perguntas antes da estimativa ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), aceito): [A30 Perguntas antes da estimativa, Forçar estimativa](plans/completed/a30-perguntas-antes-da-estimativa.md) — golds `chatE` e `chatQ` do [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md); server [S13](../server/plans/completed/s13-perguntas-antes-da-estimativa.md); concluído em 30/09/2026.
 

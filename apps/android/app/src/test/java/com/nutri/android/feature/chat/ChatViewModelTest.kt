@@ -1345,4 +1345,81 @@ class ChatViewModelTest {
         vm.await { it.items.any { i -> i is ChatItem.Receipt } }
         assertThat(repo.observeToday().first().logs.single().text).isEqualTo(dinner)
     }
+
+    // ------------------------------------------------------------------ A32: paging
+
+    /** [count] user rows of today, one second apart, from [now]. */
+    private suspend fun filler(count: Int, prefix: String = "f") {
+        val at = now
+        repeat(count) {
+            now = at.plusSeconds(it.toLong())
+            repo.insertMessage("user", "$prefix$it")
+        }
+        now = at.plusSeconds(count.toLong())
+    }
+
+    private fun ChatUiState.userTexts() = items.filterIsInstance<ChatItem.User>().map { it.text }
+
+    @Test
+    fun paging_last20First_thenOlderPagesOf20() = runBlocking<Unit> {
+        filler(45, "m")
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val first = vm.await { it.loaded && it.items.isNotEmpty() }
+        assertThat(first.userTexts()).isEqualTo((25..44).map { "m$it" })
+        assertThat(first.hasOlder).isTrue()
+
+        vm.loadOlder()
+        // One page in flight: a second call before it arrives asks nothing more.
+        vm.loadOlder()
+        val second = vm.await { it.userTexts().size >= 40 && !it.loadingOlder }
+        assertThat(second.userTexts()).isEqualTo((5..44).map { "m$it" })
+        assertThat(second.hasOlder).isTrue()
+
+        vm.loadOlder()
+        val all = vm.await { it.userTexts().size == 45 && !it.loadingOlder }
+        assertThat(all.hasOlder).isFalse()
+        vm.loadOlder()
+        assertThat(vm.uiState.value.userTexts()).hasSize(45)
+
+        // A new message lands at the newest end of the window.
+        sendAndAwait(vm, "2 ovos")
+        assertThat(vm.uiState.value.userTexts().last()).isEqualTo("2 ovos")
+    }
+
+    @Test
+    fun estimateOutsideTheWindow_keepsItsActions_andRecordsItsChainStart() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = slotIds().last()
+        answer = { questionOut("Q1?") }
+        turn(vm, dinner)
+        answer = { dinnerOut(jantar, mealText = null) }
+        turn(vm, "R1")
+        val estimateId = vm.uiState.value.actions!!.estimateId
+        filler(25)
+        val ui = vm.await { it.userTexts().lastOrNull() == "f24" }
+        // Drawn: only the newest 20 rows; the estimate is out of the window, its actions are not.
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>()).isEmpty()
+        assertThat(ui.actions!!.estimateId).isEqualTo(estimateId)
+
+        vm.record(estimateId, jantar)
+        vm.await { it.items.any { i -> i is ChatItem.Receipt } }
+        val log = repo.observeToday().first().logs.single()
+        assertThat(log.text).isEqualTo(dinner)
+        assertThat(log.kcal).isEqualTo(820)
+    }
+
+    @Test
+    fun clarifyRounds_countTodayEvenBeyondTheWindow() = runBlocking<Unit> {
+        filler(25)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { questionOut("Q1?") }
+        turn(vm, dinner)
+        answer = { questionOut("Q2?") }
+        turn(vm, "R1")
+        // Over 12 raw rows today: compact requests go too; only the turns count here.
+        val turns = requests.filter { it.text == dinner || it.text == "R1" }
+        assertThat(turns.map { it.clarifyRounds }).containsExactly(0, 1).inOrder()
+        assertThat(vm.uiState.value.forceEstimate).isTrue()
+        assertThat(vm.uiState.value.emptyDay).isFalse()
+    }
 }

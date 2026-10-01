@@ -156,7 +156,16 @@ data class ChatUiState(
     val routine: RoutineSuggestion? = null,
     /** Bumped by Quase igual: the composer takes focus, cursor at the end, keyboard open. */
     val focusComposer: Int = 0,
+    /** The first page arrived: until then the thread is not composed (A32). */
+    val loaded: Boolean = true,
+    /** The last page came back full: older rows may exist within the 60 days. */
+    val hasOlder: Boolean = false,
+    /** A page of older rows is on its way: indicator at the visual top. */
+    val loadingOlder: Boolean = false,
 ) {
+    /** [items] newest first for the reversed thread: a view, built once per state, not per frame. */
+    val newestFirst: List<ChatItem> = items.asReversed()
+
     val canSend: Boolean get() = (composer.isNotBlank() || attachment != null) && !sending && !composerTooLong
 
     /** Camera / gallery: off while sending and in the chatX state. */

@@ -18,12 +18,15 @@
 // A30: POST /__mode {"clarify": true} answers a dinner turn with a question only (estimate null,
 // `question` on top, like S13) while clarify_rounds < 3 and force_estimate is false; then the
 // estimate. /__calls reports the last clarify_rounds and force_estimate.
+// A32: POST /__mode {"delay": 4000} answers each turn (not compacts) that many ms later, so a reply
+// can land while the thread is scrolled up.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
 
 const port = Number(process.argv[2] ?? 8765);
 let hang = false;
+let delayMs = 0;
 let fallback = false;
 let slotPrefix = "Caf";
 let kcalOverride = null;
@@ -65,6 +68,7 @@ http.createServer(async (req, res) => {
   if (req.method === "POST" && req.url === "/__mode") {
     const mode = JSON.parse(body || "{}");
     hang = Boolean(mode.hang);
+    delayMs = Number(mode.delay ?? 0);
     fallback = Boolean(mode.fallback);
     slotPrefix = mode.slot ?? "Caf";
     kcalOverride = mode.kcal ?? null;
@@ -83,6 +87,7 @@ http.createServer(async (req, res) => {
     lastRequestId = req.headers["x-request-id"] ?? "";
     if (hang) return; // never answers
     const input = JSON.parse(body || "{}");
+    if (delayMs > 0 && !input.compact) await new Promise((r) => setTimeout(r, delayMs));
     lastMemory = input.memory ?? "";
     if (!input.compact) lastFacts = input.facts ?? [];
     if (!input.compact) textLen = [...(input.text ?? "")].length;
