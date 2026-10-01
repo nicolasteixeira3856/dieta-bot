@@ -131,6 +131,7 @@ Chat v2 + Memória v2 ([ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md),
 
 - [A27 Chat v2: texto da refeição, intenção e histórico de 7 dias](plans/completed/a27-chat-v2-texto-intencao.md) — Room v5; concluído
 - [A28 Memória v2: fatos permanentes e dinâmicos](plans/completed/a28-memoria-v2.md) — Room v6; concluído
+- [A33 capture-chat: checagens de memória no formato A28](plans/completed/a33-capture-chat-memoria-v2.md) — só `tools/capture-chat.sh`; concluído em 01/10/2026
 - [A29 Chat v2: plano de refeição, avisos de memória e sugestão da rotina](plans/completed/a29-chat-v2-interface.md) — golds do [ST6](../stitch/plans/completed/st6-chat-v2.md) batidos; concluído
 
 Lote do feedback (29/09/2026), concluído (aprovado pelo dono em 30/09/2026):
