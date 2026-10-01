@@ -2,6 +2,19 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.7 — 01/10/2026
+
+### Novidades
+
+- Na primeira tela do cadastro, idade, altura e peso agora são obrigatórios. Enquanto faltar algum, o modo do teto e a meta diária ficam apagados e aparece o aviso "Preencha idade, altura e peso para ver a meta sugerida." Ao completar os três, a meta sugerida já vem preenchida.
+- O teclado segue o formulário: "Próximo" vai de idade para altura e de altura para peso, e "Concluído" no peso fecha o teclado. Nas metas por dia, "Próximo" passa de segunda a domingo.
+
+### Ajustes
+
+- O Chat abre direto na última mensagem, sem rolar a conversa toda.
+- Conversas longas carregam 20 mensagens por vez ao rolar para cima, até 60 dias atrás.
+- Tocar na câmera ou em "Tirar foto do prato" fecha o teclado antes de abrir a escolha da foto.
+
 ## 0.0.6 — 01/10/2026
 
 ### Novidades
