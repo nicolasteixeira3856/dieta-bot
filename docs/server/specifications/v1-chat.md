@@ -4,6 +4,10 @@
 
 Vigente desde o [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). Header de instalação opcional `X-Client-Instance-Id` e `safety_identifier` desde o [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) (01/10/2026, [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile), [contrato](../../api-contract.md)); auditoria segue no CP9.
 
+## Proposta — marca de registro (ADR-028)
+
+[ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) (proposto, 01/10/2026): com `auto_record` no request (cliente v4), o OUT ganha `record` (`auto` | `ask` | `none`), a intenção `skip` com `skip_slot`, e o modelo passa a devolver `record_intent` e `meal_day`; outro dia não é registrado. O server continua sem gravar nada. Não é o comportamento vigente: entra com o [S14](../plans/s14-registro-autonomo.md), que reescreve as regras 3a, 3f, 4 e 5 e o IN/OUT.
+
 ## Estado
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).

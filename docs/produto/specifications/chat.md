@@ -4,6 +4,10 @@
 
 [Content handling](../../content-policy/specifications/content-policy.md) proposes fixed scope/safety replies through existing Chat bubbles, with no estimate or memory mutation on refusal. This is pending CP2 approval and implementation, not current behavior. Photos, meal intent and approved layouts remain unchanged. Any future legal acceptance/reporting UI requires its own approved scope and applicable Stitch gate.
 
+## Proposta — registro autônomo (ADR-028)
+
+[ADR-028](../adrs/ADR-028-registro-autonomo.md) (proposto, 01/10/2026) muda este Chat: refeição de hoje com intenção clara é registrada sozinha, com recibo; na dúvida, um único botão **Registrar**; slot já registrado pergunta dentro da conversa (`Substituir {slot}?`); "pulei o café" pula sozinho; o recibo mais recente de cada slot ganha Desfazer · Excluir · Trocar refeição · Editar; outro dia nunca é registrado. Substitui as regras 4–7, "Registro só depois do tap no chip", a linha "tool invisível que grava meal_log" e o critério "Gravar sem tap…". Não é o comportamento vigente: as regras abaixo continuam valendo até o [A34](../../android/plans/a34-registro-autonomo.md) (que reescreve esta spec), depois do [S14](../../server/plans/s14-registro-autonomo.md) e do gate [ST9](../../stitch/plans/st9-registro-autonomo.md).
+
 ## Estado
 
 Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).

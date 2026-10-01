@@ -121,6 +121,11 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
+Registro autônomo ([ADR-028](../produto/adrs/ADR-028-registro-autonomo.md), proposto em 01/10/2026):
+
+- [A34 Registro autônomo, recibos com ações](plans/a34-registro-autonomo.md) — aguardando aprovação; pré-requisitos [S14](../server/plans/s14-registro-autonomo.md) no dev e gate [ST9](../stitch/plans/st9-registro-autonomo.md); Room v8
+- [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md) — fora de escopo (decisão do dono, 01/10/2026)
+
 Ajustes de O1 e Chat (decisões do dono em 01/10/2026):
 
 - [A31 O1: perfil obrigatório e navegação pelo teclado](plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — gate [ST8](../stitch/plans/completed/st8-teto-sem-perfil.md), gold `o1e`; concluído em 01/10/2026
