@@ -1,6 +1,6 @@
 # Respostas de segurança
 
-Textos fixos para as bolhas existentes. Não criam tela nem controle novo. Em uso no server desde o [CP2](../plans/pending_manual_validation/cp2-server-content-controls.md) (`server/shaping.py`).
+Textos fixos para as bolhas existentes. Não criam tela nem controle novo. Em uso no server desde o [CP2](../plans/completed/cp2-server-content-controls.md) (`server/shaping.py`).
 
 | Situação | Código interno | Resposta |
 | --- | --- | --- |

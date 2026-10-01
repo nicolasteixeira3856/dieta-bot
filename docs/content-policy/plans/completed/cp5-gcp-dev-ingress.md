@@ -1,11 +1,11 @@
 # CP5 — GCP dev ingress, log hygiene and activation
 
-- Status: Pendente aprovação manual (deployed to dev 2026-10-01; OpenAI budget limit pending, owner step 4)
+- Status: Concluído (deployed to dev 2026-10-01; budget limit recorded and manual approval by the owner 2026-10-01: "Os planos estão todos aprovados, pode completar tudo.")
 - Approved: 2026-10-01 by the owner: "Aprovo o plano docs\content-policy\plans\cp5-gcp-dev-ingress.md, analise e implemente o plano aprovado."
 - Date: 2026-09-30 (rescoped 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: server infrastructure.
 - Delivery boundary: `infra/gcp/`; related runbooks/indexes may be updated. No edits to `server/`, `apps/android/` or deployment tooling.
-- Prerequisites: [CP2](cp2-server-content-controls.md) and [CP3](cp3-server-safety-identifier.md) deployed; [CP4](cp4-android-installation-identity.md) automated acceptance; [CP1](../completed/cp1-closed-test-notice.md) notice delivered to the testers.
+- Prerequisites: [CP2](cp2-server-content-controls.md) and [CP3](cp3-server-safety-identifier.md) deployed; [CP4](cp4-android-installation-identity.md) automated acceptance; [CP1](cp1-closed-test-notice.md) notice delivered to the testers.
 
 ## History
 
@@ -66,7 +66,7 @@ Prior compose file kept in git history (`master` before this branch). Rollback =
 1. `infra/gcp/compose.yml`: named network `edge` with fixed subnet `172.30.53.0/28`; `--forwarded-allow-ips=172.30.53.0/28`; `json-file` `max-size: 10m`, `max-file: 3` for `api` and `caddy`. `Caddyfile` unchanged in behavior (comment only: no `trusted_proxies`).
 2. `infra/gcp/startup.sh`: writes `/etc/logrotate.d/nutri` — daily, `rotate 30`, `maxage 30`, `dateext`, `copytruncate` (the server holds the file open in append mode), `compress`/`delaycompress`; `lastaction` deletes the server's own size backups (`.1`–`.5`) older than 30 days. Metadata updated with `gcloud compute instances add-metadata … startup-script=infra/gcp/startup.sh` and run once with `google_metadata_script_runner startup`.
 3. `SAFETY_ID_SECRET` (32 random bytes, hex, generated locally without printing) and `SERVER_ENV=dev` appended to the workstation `.env`, shipped with `./tools/deploy-gcp.ps1 -Env` (root:root 600). Never printed, committed or dumped.
-4. Budget limit: **PENDING — owner manual step.** Record here: value, hard limit or alert, date.
+4. Budget limit (owner, OpenAI dashboard): US$ 10 on the OpenAI project, alert only (no hard stop). Recorded 2026-10-01. Spend is not capped: past the alert, requests keep being billed; containment is the invite rotation runbook.
 5. Runbook: [deploy-gcp.md](../../../server/deploy-gcp.md) gained "Ingress e logs (CP5)", "Segredo do safety identifier" and the rewritten invite rotation (new invite in `.env` + `local.properties`, `deploy-gcp.ps1 -Env`, A16 build, old invite 401). Invite not rotated (no abuse observed).
 6. Deployed with `./tools/deploy-gcp.ps1 -Env`: network `gcp_edge` created, both containers recreated, `/health` → 200 `{"ok": true, "model": "gpt-6-luna", "safety_id": "on"}`. The empty `gcp_default` network was removed afterwards.
 
@@ -82,8 +82,8 @@ Prior compose file kept in git history (`master` before this branch). Rollback =
 | Conversation log rotation | PASS — `logrotate -d /etc/logrotate.d/nutri` parses `after 1 days (30 rotations)`, old logs removed; `logrotate.timer` enabled and active. First real rotation: next daily run |
 | Secret in container | PASS — `SAFETY_ID_SECRET` and `SERVER_ENV=dev` present (names only checked); `.env` 600 root:root; `/health` `safety_id: on` |
 | CP4 APK through the deployed API | PASS on an emulator (`Medium_Phone`) with the distributed dev 0.0.6 APK (A16, 2026-10-01): ordinary meal → estimate (~350 kcal); photo → questions (A30) → estimate (~625 kcal); math → fixed refusal, no card, log policy `out_of_scope`; 6 turns of one installation carry the same `safety_identifier` (pseudonym A, redacted) across an app restart; after uninstall/reinstall a different one (pseudonym B, redacted), unchanged across an `api` container restart |
-| Tester devices | PENDING — owner/tester use of 0.0.6 |
+| Tester devices | Not recorded — owner approved 2026-10-01 on the emulator evidence |
 
 Not run: IPv6 client path (the VM has no external IPv6 address; Docker's IPv6 listener would proxy through the edge gateway, inside the trusted range, and Caddy still overwrites `X-Forwarded-For`).
 
-Manual pending: step 4 (OpenAI budget limit). When recorded here: `Concluído`, move to `completed/`, update the plan index and PG1.
+Manual approval: budget limit recorded and plan approved by the owner on 2026-10-01; moved to `completed/`, PG1 closed.

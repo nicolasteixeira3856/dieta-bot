@@ -1,6 +1,6 @@
 # ADR-025 — Pseudonymous safety correlation
 
-- Status: Accepted, 2026-10-01, with the owner's named approval of [CP3](../plans/pending_manual_validation/cp3-server-safety-identifier.md): "Aprovo o plano docs\content-policy\plans\cp3-server-safety-identifier.md. Analise e implemente o plano aprovado."
+- Status: Accepted, 2026-10-01, with the owner's named approval of [CP3](../plans/completed/cp3-server-safety-identifier.md): "Aprovo o plano docs\content-policy\plans\cp3-server-safety-identifier.md. Analise e implemente o plano aprovado."
 - Date: 2026-09-30 (revised 2026-09-30 for the closed-test cut)
 - Owner: `content-policy`
 - Complements: [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md) (dev conversation log stays in the closed test) and [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md) (no identity or IP goes to Firebase).

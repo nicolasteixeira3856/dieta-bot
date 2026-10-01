@@ -4,7 +4,7 @@ Delivered by [CP1](../plans/completed/cp1-closed-test-notice.md) on 2026-10-01. 
 
 ## 1. Ordinary off-topic use
 
-Math, code, homework, politics or other non-meal requests are not an incident. The server returns the fixed scope refusal ([CP2](../plans/pending_manual_validation/cp2-server-content-controls.md)). No punishment, no warning to the tester, no invite rotation. If the refusal did not happen (the model answered off-topic), treat it as a CP2 eval miss: note the request ID, add a benign synthetic case to the eval set in a CP2 follow-up.
+Math, code, homework, politics or other non-meal requests are not an incident. The server returns the fixed scope refusal ([CP2](../plans/completed/cp2-server-content-controls.md)). No punishment, no warning to the tester, no invite rotation. If the refusal did not happen (the model answered off-topic), treat it as a CP2 eval miss: note the request ID, add a benign synthetic case to the eval set in a CP2 follow-up.
 
 ## 2. False-positive report
 

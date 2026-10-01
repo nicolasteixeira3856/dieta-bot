@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-Closed-test profile: accepted ([ADR-024](../adrs/ADR-024-content-safety-boundaries.md)) and deployed to the dev server through [CP2](../plans/pending_manual_validation/cp2-server-content-controls.md) on 2026-09-30; the owner's manual APK check is pending. Product formulas, screens and the selected model stay unchanged.
+Closed-test profile: accepted ([ADR-024](../adrs/ADR-024-content-safety-boundaries.md)) and deployed to the dev server through [CP2](../plans/completed/cp2-server-content-controls.md) on 2026-09-30; APK check on an emulator with dev 0.0.6 and owner approval on 2026-10-01. Product formulas, screens and the selected model stay unchanged.
 
 Implementation: `server/moderation.py` (moderation model `omni-moderation-latest`, category → action table version `cp2.1`), `server/main.py` (`guarded_turn`, `run_guarded`, shared `Deadline`), fixed copy in `server/shaping.py`. The model writes `scope` as the last key of the Chat schema; a missing or unknown value is `out_of_scope`.
 
@@ -62,7 +62,7 @@ The ADR-015 dev conversation log stays: it is the main debugging tool and it is 
 
 - A turn flagged by moderation (`policy_blocked`, any CSAM signal) logs metadata only: request ID, route, codes, category booleans. No body, no image, no generated text.
 - `out_of_scope` and `safety_support` turns log as today.
-- Retention: 30-day rotation by host `logrotate`, active since 2026-10-01 ([CP5](../plans/pending_manual_validation/cp5-gcp-dev-ingress.md)), plus the server's 20 MB size rotation.
+- Retention: 30-day rotation by host `logrotate`, active since 2026-10-01 ([CP5](../plans/completed/cp5-gcp-dev-ingress.md)), plus the server's 20 MB size rotation.
 
 ## Cost
 

@@ -1,6 +1,6 @@
 # CP2 — Server scope and content controls
 
-- Status: Pendente aprovação manual
+- Status: Concluído (manual approval by the owner 2026-10-01: "Os planos estão todos aprovados, pode completar tudo.")
 - Approved: 2026-09-30 by the owner: "Aprovo o plano docs/content-policy/plans/cp2-server-content-controls.md e a proposta ADR-024 vinculada. Implemente, valide e faça o deploy no dev somente do escopo desse plano."
 - Date: 2026-09-30 (rescoped 2026-09-30 for the closed test)
 - Owner: `content-policy`; executable owner: server.
@@ -97,3 +97,7 @@ Severe categories: mocked verdicts only. No real or generated illegal content wa
 In the dev APK already installed (no APK change): ask an unrelated math question (expect the fixed copy, no card), log a normal meal (card and slot as before), send a meal photo. Record the date and result here, then move this plan to `completed/` as `Concluído`.
 
 Rollback: redeploy `master` at `2e061ec` with `tools/deploy-gcp.ps1`.
+
+## Manual approval (2026-10-01)
+
+Pending manual check run by the agent during CP5 on an emulator (`Medium_Phone`) with the distributed dev 0.0.6 APK against the dev server: unrelated math question → fixed scope copy, no card (log policy `out_of_scope`); normal meal → card (~350 kcal) with the Café slot; meal photo → questions (A30) → card (~625 kcal) with the Almoço slot. Evidence: [CP5 results](cp5-gcp-dev-ingress.md#results-2026-10-01), V08/V16. The owner then approved the plan. Tester-device use is not separately recorded.
