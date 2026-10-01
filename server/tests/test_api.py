@@ -11,6 +11,8 @@ from pathlib import Path
 os.environ["OPENAI_API_KEY"] = "sk-test-sentinel-not-a-real-key"
 os.environ["INVITE_CODE"] = "convite-teste"
 os.environ["LLM_MODEL"] = "gpt-nao-usar"
+# CP3: off unless a test turns it on. Set (even empty) so a local .env cannot override it.
+os.environ["SAFETY_ID_SECRET"] = ""
 
 import httpx
 import httpx2
@@ -38,9 +40,11 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
             second_resp = await client.get("/health")
         first = first_resp.json()
         second = second_resp.json()
-        self.assertEqual(first_resp.text, '{"ok": true, "model": "gpt-6-luna"}')
+        self.assertEqual(
+            first_resp.text, '{"ok": true, "model": "gpt-6-luna", "safety_id": "off"}'
+        )
         self.assertEqual(second_resp.text, first_resp.text)
-        self.assertEqual(first, {"ok": True, "model": "gpt-6-luna"})
+        self.assertEqual(first, {"ok": True, "model": "gpt-6-luna", "safety_id": "off"})
         self.assertEqual(second, first)
         self.assertNotIn(FAKE_KEY, first_resp.text)
 

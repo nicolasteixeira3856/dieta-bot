@@ -1,6 +1,6 @@
 # Content-policy validation
 
-Status: CP2 rows run on 2026-09-30 (evidence in the [CP2 plan](../plans/pending_manual_validation/cp2-server-content-controls.md#results-2026-09-30)); CP1 documentation checks run on 2026-10-01 (evidence in the [CP1 plan](../plans/pending_manual_validation/cp1-closed-test-notice.md#results-2026-10-01)); other runtime checks are NOT RUN. Existing protections and read-only findings do not count as delivered CP plans. Never commit live request bodies, user photos, IPs or pseudonyms here.
+Status: CP2 rows run on 2026-09-30 (evidence in the [CP2 plan](../plans/pending_manual_validation/cp2-server-content-controls.md#results-2026-09-30)); CP1 documentation checks run on 2026-10-01 (evidence in the [CP1 plan](../plans/pending_manual_validation/cp1-closed-test-notice.md#results-2026-10-01)); CP3 server checks run on 2026-10-01 (evidence in the [CP3 plan](../plans/pending_manual_validation/cp3-server-safety-identifier.md#results-2026-10-01)); other runtime checks are NOT RUN. Existing protections and read-only findings do not count as delivered CP plans. Never commit live request bodies, user photos, IPs or pseudonyms here.
 
 ## Closed-test matrix
 
@@ -16,8 +16,8 @@ Status: CP2 rows run on 2026-09-30 (evidence in the [CP2 plan](../plans/pending_
 | V08 | Estimate/fit/chat/compact and current APK | Every route covered; compatible refusal shapes | CP2 | Routes PASS (tests, dev smoke); current APK: owner check PENDING |
 | V09 | Eating-disorder set (low intake goal, purging, laxatives, fasting) | `safety_support` copy; never optimization | CP2 | PASS — evals 3/3 strict |
 | V10 | Legitimate eval baseline; latency/tokens | No regression; one generation call per turn | CP2 | PASS — 35/35 baseline cases; p50 +600 ms |
-| V11 | Stable/new/missing/invalid installation ID | Identifier semantics; no raw UUID in provider payload or log | CP3/CP4 | NOT RUN |
-| V12 | All Responses calls including compact | Same identifier; none on moderation | CP3 | NOT RUN |
+| V11 | Stable/new/missing/invalid installation ID | Identifier semantics; no raw UUID in provider payload or log | CP3/CP4 | CP3 part PASS — fake-transport tests (missing, invalid, same/different ID, no raw UUID/IP in payload or log), dev smoke 400; CP4 part NOT RUN |
+| V12 | All Responses calls including compact | Same identifier; none on moderation | CP3 | PASS — serialized SDK requests (fake transport); live check with the secret in CP5 |
 | V13 | Proxy spoofing, IPv6, direct 8080 access, container recreation | Rate-limit address not client-controlled; 8080 closed | CP5 | NOT RUN |
 | V14 | Log rotation (Docker and conversation log) | Config visible; rotation dry run | CP5 | NOT RUN |
 | V15 | Daily wipe/update/reinstall/redirect/telemetry | Identity lifecycle and destination restriction | CP4 | NOT RUN |

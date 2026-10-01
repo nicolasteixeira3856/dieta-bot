@@ -2,7 +2,7 @@
 
 ## Controles de conteúdo (CP2)
 
-Vigente desde o [CP2](../../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). O header de instalação e a auditoria seguem propostos ([identity/audit](../../content-policy/specifications/identity-and-audit.md), CP3/CP9).
+Vigente desde o [CP2](../../content-policy/plans/pending_manual_validation/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). Header de instalação opcional `X-Client-Instance-Id` e `safety_identifier` desde o [CP3](../../content-policy/plans/pending_manual_validation/cp3-server-safety-identifier.md) (01/10/2026, [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile), [contrato](../../api-contract.md)); auditoria segue no CP9.
 
 ## Estado
 

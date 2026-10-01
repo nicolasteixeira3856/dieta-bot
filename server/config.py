@@ -43,6 +43,8 @@ CLARIFY_REPEAT_JACCARD = 0.6
 # Dev conversation log (ADR-015): on only when CONVERSATION_LOG_PATH is set.
 CONVERSATION_LOG_MAX_BYTES = 20 * 1024 * 1024
 CONVERSATION_LOG_BACKUPS = 5
+# Safety identifier namespace (CP3, ADR-025) when SERVER_ENV is unset. The closed test is dev only.
+DEFAULT_SERVER_ENV = "dev"
 
 _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
 
@@ -54,6 +56,8 @@ def load_settings() -> "Settings":
         invite_code=os.environ.get("INVITE_CODE", ""),
         api_key=os.environ.get("OPENAI_API_KEY", ""),
         conversation_log_path=os.environ.get("CONVERSATION_LOG_PATH", "").strip(),
+        safety_id_secret=os.environ.get("SAFETY_ID_SECRET", "").strip(),
+        server_env=os.environ.get("SERVER_ENV", "").strip() or DEFAULT_SERVER_ENV,
     )
 
 
@@ -62,3 +66,6 @@ class Settings:
     invite_code: str
     api_key: str
     conversation_log_path: str = ""
+    # Empty secret: the server starts and sends no safety_identifier (/health safety_id off).
+    safety_id_secret: str = ""
+    server_env: str = DEFAULT_SERVER_ENV

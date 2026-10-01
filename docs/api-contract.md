@@ -1,6 +1,8 @@
 # HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat
 
-Content controls (CP2, 2026-09-30, [ADR-024](content-policy/adrs/ADR-024-content-safety-boundaries.md)): see [content handling](content-policy/specifications/content-policy.md). Every model route moderates the current user text and photo before generation and the generated text after it (OpenAI moderation, fail closed), and the model must classify `scope`. Errors added: HTTP 400 `{"detail": "content_policy_blocked"}` on `/v1/estimate` and `/v1/fit`; HTTP 503 `{"detail": "content_policy_unavailable"}` on every model route when moderation fails or times out. One 60-second deadline covers moderation and generation. The installation header of [identity/audit](content-policy/specifications/identity-and-audit.md) is still proposed (CP3).
+Content controls (CP2, 2026-09-30, [ADR-024](content-policy/adrs/ADR-024-content-safety-boundaries.md)): see [content handling](content-policy/specifications/content-policy.md). Every model route moderates the current user text and photo before generation and the generated text after it (OpenAI moderation, fail closed), and the model must classify `scope`. Errors added: HTTP 400 `{"detail": "content_policy_blocked"}` on `/v1/estimate` and `/v1/fit`; HTTP 503 `{"detail": "content_policy_unavailable"}` on every model route when moderation fails or times out. One 60-second deadline covers moderation and generation.
+
+Safety identifier (CP3, 2026-10-01, [ADR-025](content-policy/adrs/ADR-025-safety-correlation-audit.md), [identity/audit](content-policy/specifications/identity-and-audit.md#closed-test-profile)): see Installation header below.
 
 Auth: header `X-Invite: $INVITE_CODE` (constant-time validation, HTTP 401 `{"detail": "unauthorized"}` if missing or mismatch).
 Content-Type: application/json
@@ -10,13 +12,17 @@ Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length
 Field lengths: `text` in `/v1/estimate` and `/v1/fit` has a maximum length of 1,000 characters; `/v1/chat` limits are listed in its section. Returns HTTP 422 when exceeded.
 Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as untrusted data. `###` inside client text is rewritten to `# # #`, so it cannot open or close a section.
 
+Installation header: optional request header `X-Client-Instance-Id` on `/v1/estimate`, `/v1/fit` and `/v1/chat` (compact included), a canonical lowercase UUID v4 (36 characters, `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`). Checked after `X-Invite`. Present but not in that shape: HTTP 400 `{"detail": "invalid_client_instance_id"}`, no model call; the value is never echoed or logged. Missing: accepted (older APKs), no identifier. The server derives `safety_identifier = "v1_" + HMAC-SHA256(SAFETY_ID_SECRET, SERVER_ENV + ":installation:" + uuid)` and sends it on every Responses call (never in the prompt, never on the moderation call); the raw UUID and the IP never reach the provider. Without `SAFETY_ID_SECRET` the server starts and sends no identifier. It is a correlation hint, not authentication, and never changes the JSON body.
+
 Request id: optional request header `X-Request-Id` (`[A-Za-z0-9-]{1,64}`). The server reuses it, or generates a UUID when it is missing or invalid, and always returns it in the `X-Request-Id` response header, on every route and status. Optional request headers `X-App-Version` and `X-App-Env` are only recorded. None of them changes the JSON body.
-Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error type and HTTP status, final response, `fallback`: `false` | `"error"` | `"text_only"`, `policy`, latency). Never the photo, the invite, the API key or the provider's error text. A `policy_blocked` or severe turn keeps metadata only (CP2). Off by default.
+Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error type and HTTP status, final response, `fallback`: `false` | `"error"` | `"text_only"`, `policy`, `safety_identifier` (derived, or null; never the raw UUID), latency). Never the photo, the invite, the API key or the provider's error text. A `policy_blocked` or severe turn keeps metadata only (CP2). Off by default.
 
 The server does not compute the ceiling. The app sends the budget on /fit.
 
 ## GET /health
-`{ "ok": true, "model": "gpt-6-luna" }`
+`{ "ok": true, "model": "gpt-6-luna", "safety_id": "on" }`
+
+`safety_id`: `"on"` when `SAFETY_ID_SECRET` is set, `"off"` otherwise (CP3). Clients ignore unknown keys.
 
 ## POST /v1/estimate
 IN
