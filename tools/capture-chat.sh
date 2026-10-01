@@ -48,7 +48,8 @@ expect() { dump; if grep -qE "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo
 shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
 mode() { curl -s -X POST -d "{\"hang\": $1}" "$FAKE/__mode" >/dev/null; }
 calls() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['calls'])"; }
-last_memory() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['memory'])"; }
+files_has() { "$ADB" exec-out run-as $PKG ls -1 files/ | tr -d '\r' | grep -qx "$1"; }
+fact_keys() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(' '.join(sorted(f['key'] for f in json.load(sys.stdin)['facts'])))"; }
 compacts() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['compacts'])"; }
 db() { # db <sql> -> rows, after a force-stop so the WAL is in the pulled files
   "$ADB" shell am force-stop $PKG
@@ -128,15 +129,11 @@ rows=$(db "select m.name, l.kcal, l.carbs, l.fat, l.source from meal_log l join 
 echo "  meal_log: $rows"
 case "$rows" in *"Café da manhã', 380, 36, 16, 'user'"*) echo "  ✓ logged into the suggested slot";; *) echo "  ✗ unexpected meal_log"; FAIL=1;; esac
 
-# A8/A8b: Gravar wrote one memory line to memory.bin (AES-GCM, key in the Keystore, atomic move).
-"$ADB" exec-out run-as $PKG cat files/memory.bin > "$TMP/memory.raw" 2>/dev/null
-size=$(wc -c < "$TMP/memory.raw")
-if [ "$size" -gt 15 ] && [ "$(head -c 2 "$TMP/memory.raw")" = "NM" ]; then echo "  ✓ memory.bin written ($size bytes, NM header)"; else echo "  ✗ memory.bin missing ($size bytes)"; FAIL=1; fi
-if grep -aq "380 kcal\|pães\|Caf" "$TMP/memory.raw"; then echo "  ✗ memory.bin is plaintext"; FAIL=1; else echo "  ✓ memory.bin raw shows no line (not plaintext)"; fi
-if "$ADB" exec-out run-as $PKG ls files/ | grep -q "memory.txt"; then echo "  ✗ A8 memory.txt still there"; FAIL=1; else echo "  ✓ no A8 memory.txt"; fi
-# Crash mid-write: a half-written memory.bin.new must not touch the memory (checked on the next POST).
-"$ADB" shell am force-stop $PKG
-"$ADB" shell run-as $PKG sh -c "'echo lixo-de-crash > files/memory.bin.new'"
+# A28: Gravar applies only the memory_updates the AI proposed. The plain fake estimate has none, so
+# no memory.bin. Existence comes from ls: exec-out merges cat's stderr into the pulled bytes.
+# The sealed format and the crash mid-write are checked in the A29 routine block.
+if files_has memory.bin; then echo "  ✗ memory.bin written by a plain Gravar"; FAIL=1; else echo "  ✓ no memory.bin after a plain Gravar (no memory_updates)"; fi
+if files_has memory.txt; then echo "  ✗ A8 memory.txt still there"; FAIL=1; else echo "  ✓ no A8 memory.txt"; fi
 
 # Gold captures: the flow above is the functional check. The gold message has accents adb cannot
 # type, so the exact gold conversation is seeded and chatE / chatT / chatP are captured again.
@@ -196,8 +193,8 @@ after=$(calls); c6=$(compacts)
 if [ "$c6" = "$((c5 + 1))" ] && [ "$after" = "$((before + 2))" ]; then echo "  ✓ 12 raw: compact + turn in one send"; else echo "  ✗ compact send ($before -> $after calls, $c5 -> $c6 compacts)"; FAIL=1; fi
 expect "turn answered after compact" 'resource-id="chat-actions"'
 dump; if grep -q "Resumo QA" "$TMP/ui.xml"; then echo "  ✗ digest drawn as a bubble"; FAIL=1; else echo "  ✓ digest never drawn"; fi
-mem=$(last_memory)
-case "$mem" in *"380 kcal"*) echo "  ✓ POST memory carries the Gravar line: $mem";; *) echo "  ✗ POST memory: '$mem'"; FAIL=1;; esac
+sent_mem=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin); print(repr(d['memory']), d['facts'])")
+if [ "$sent_mem" = "'' []" ]; then echo "  ✓ POST carries memory \"\" and facts [] (A28: nothing invented by a plain Gravar)"; else echo "  ✗ POST memory/facts: $sent_mem"; FAIL=1; fi
 digests=$(db "select count(*), max(text) from day_digest")
 case "$digests" in *"(1, 'Resumo QA"*) echo "  ✓ day_digest stored: $digests";; *) echo "  ✗ day_digest: $digests"; FAIL=1;; esac
 inchat=$(db "select count(*) from chat_message where text like 'Resumo QA%'")
@@ -472,8 +469,35 @@ for back in 3 2 1; do
   expect "day -$back: estimate with Gravar" 'resource-id="chat-record"'
   [ "$back" = 3 ] && expect "day -3: Memória atualizada on the answer (leite)" 'resource-id="chat-memory-updated"'
   [ "$back" = 1 ] && expect "day -1: origin chips (permanente + dinâmica)" 'chat-memory-permanent.*chat-memory-dynamic'
+  # A8b intent on the A28 file: the stale memory.bin.new left below never reaches the memory.
+  if [ "$back" = 2 ]; then
+    keys=$(fact_keys)
+    if [ "$keys" = "cafe leite" ]; then echo "  ✓ stale memory.bin.new ignored, memory intact (facts: $keys)"; else echo "  ✗ facts after crash mid-write: '$keys'"; FAIL=1; fi
+  fi
   tap 'resource-id="chat-record"' 2
   expect "day -$back: receipt + Memória atualizada (routine applied)" 'resource-id="chat-receipt-[0-9]+"'
+  if [ "$back" = 3 ]; then
+    # A28 memory.bin: "NM" + version 1 + 12-byte IV + AES-GCM ciphertext + 16-byte tag over {"v":2,...}.
+    if files_has memory.bin; then
+      "$ADB" exec-out run-as $PKG cat files/memory.bin > "$TMP/memory.raw"
+      sealed=$("$PY" -c "
+import sys
+b = open(sys.argv[1], 'rb').read()
+plain = any(w in b for w in (b'cafe', b'leite', b'semidesnatado', b'routine', b'\"v\":2'))
+print(len(b), b[:3].hex(), 'plain' if plain else 'sealed')" "$TMP/memory.raw")
+      read -r msize mhead mplain <<< "$sealed"
+      if [ "$msize" -gt 31 ] && [ "$mhead" = 4e4d01 ]; then echo "  ✓ memory.bin sealed ($msize bytes, NM v1 header)"; else echo "  ✗ memory.bin format: $sealed"; FAIL=1; fi
+      if [ "$mplain" = sealed ]; then echo "  ✓ memory.bin raw shows no fact (not plaintext)"; else echo "  ✗ memory.bin is plaintext"; FAIL=1; fi
+    else
+      echo "  ✗ memory.bin missing after the routine Gravar"; FAIL=1
+    fi
+    # Crash mid-write: a half-written memory.bin.new must not touch the memory (checked on day -2).
+    "$ADB" shell am force-stop $PKG
+    "$ADB" shell run-as $PKG sh -c "'echo lixo-de-crash > files/memory.bin.new'"
+  fi
+  if [ "$back" = 2 ]; then
+    if files_has memory.bin.new; then echo "  ✗ memory.bin.new left after the next write"; FAIL=1; else echo "  ✓ next write replaced memory.bin.new atomically"; fi
+  fi
 done
 facts=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print([(f['id'], f['days_seen']) for f in json.load(sys.stdin)['facts']])")
 echo "  facts sent on day -1: $facts"
