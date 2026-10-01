@@ -2,6 +2,23 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.5 — 30/09/2026
+
+### Novidades
+
+- Quando a IA tem dúvida sobre uma refeição que você comeu, ela pergunta antes de estimar: aparece só a pergunta, com todas as dúvidas juntas, sem número nem botões de gravar. A estimativa vem uma vez só, depois das respostas.
+- No máximo 3 rodadas de perguntas: na quarta mensagem a estimativa sempre chega.
+- A partir da segunda pergunta aparece o botão "Forçar estimativa": um toque e a IA estima com o que já sabe.
+
+### Correções
+
+- Não aparece mais uma estimativa provisória que depois era trocada por outra para a mesma refeição.
+- A IA passa a ver as próprias perguntas no histórico da conversa, então não repete pergunta já feita.
+
+### Ajustes
+
+- A pergunta da IA ficou com letra um pouco maior, no balão com a barra dourada.
+
 ## 0.0.4 — 30/09/2026
 
 ### Novidades
