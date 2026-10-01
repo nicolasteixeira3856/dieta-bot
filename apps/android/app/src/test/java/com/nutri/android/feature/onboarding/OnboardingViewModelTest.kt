@@ -90,7 +90,63 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun o3_countKeepsNamesAndRequiresAllNames() = runBlocking<Unit> {
+    fun o1_requiresFullProfile_prefillsEveryCeilingField() = runBlocking<Unit> {
+        val vm = loadedVm()
+        assertThat(vm.uiState.value.sameField).isEmpty()
+        assertThat(vm.uiState.value.dayFields.all { it.isEmpty() }).isTrue()
+
+        vm.setSex("male")
+        vm.setAge("27")
+        assertThat(vm.uiState.value.profileValid).isFalse()
+        assertThat(vm.uiState.value.o1Valid).isFalse()
+        vm.setHeight("180")
+        assertThat(vm.uiState.value.o1Valid).isFalse()
+        vm.setWeight("116")
+        assertThat(vm.uiState.value.profileValid).isTrue()
+        assertThat(vm.uiState.value.o1Valid).isTrue()
+        val s = vm.uiState.value
+        assertThat(listOf(s.sameField, s.weekdayField, s.weekendField) + s.dayFields).containsExactlyElementsIn(List(10) { "2160" })
+    }
+
+    @Test
+    fun o1_clearingBodyFieldAfterEditKeepsCeilingAndBlocks() = runBlocking<Unit> {
+        val vm = loadedVm()
+        vm.setSex("female")
+        vm.setAge("30")
+        vm.setHeight("165")
+        vm.setWeight("60")
+        vm.setSameField("1800")
+        assertThat(vm.uiState.value.o1Valid).isTrue()
+
+        vm.setWeight("")
+        assertThat(vm.uiState.value.profileValid).isFalse()
+        assertThat(vm.uiState.value.sameField).isEqualTo("1800")
+        assertThat(vm.uiState.value.o1Valid).isFalse()
+    }
+
+    @Test
+    fun o1_storedProfileIsValidOnLoad() = runBlocking<Unit> {
+        val repo = DayRepository(db, clock, store)
+        val vm = loadedVm(repo)
+        vm.setSex("male")
+        vm.setAge("27")
+        vm.setHeight("180")
+        vm.setWeight("116")
+        vm.setSlotCount(2)
+        vm.setSlotName(0, "Café")
+        vm.setSlotName(1, "Janta")
+        vm.enterMacros()
+        vm.completeOnboarding {}
+        repo.observeToday().first { it.onboardingDone }
+
+        val again = loadedVm(DayRepository(db, clock, store))
+        assertThat(again.uiState.value.profileValid).isTrue()
+        assertThat(again.uiState.value.o1Valid).isTrue()
+        assertThat(again.uiState.value.sameField).isEqualTo("2160")
+    }
+
+    @Test
+    fun o3_countKeepsNamesAndRequiresAllNames()= runBlocking<Unit> {
         val vm = loadedVm()
         assertThat(vm.uiState.value.slots.map { it.minutes }).containsExactly(450, 750, 960, 1200).inOrder()
         assertThat(vm.uiState.value.slots.all { it.name.isEmpty() }).isTrue()

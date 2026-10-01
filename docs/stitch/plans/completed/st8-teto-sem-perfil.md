@@ -5,7 +5,7 @@
 - Owning context: `stitch`
 - Project: Stitch `Nutri` (`6282733070135794645`)
 - Executes: owner decision of 01/10/2026 (age, height and weight are required on O1; ceiling mode and ceiling fields stay disabled until they are filled). Second owner decision of 01/10/2026: the hint sits right below the body fields, above "MODO DO TETO", and the screen grows taller instead of tightening the layout (prompt 8.2).
-- Blocks: [A31 O1: required profile and keyboard flow](../../../android/plans/a31-o1-perfil-obrigatorio-teclado.md)
+- Blocks: [A31 O1: required profile and keyboard flow](../../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md)
 
 Screen names: exact Stitch titles ([table](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Each prompt has one block for the dark theme (`V2 Expressive`) and one for light (`V2 Light`).
 

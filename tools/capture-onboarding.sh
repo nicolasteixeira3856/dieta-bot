@@ -62,9 +62,17 @@ shot splash 2.5
 sleep 2.5
 
 tap o1-sex-male
-type_into o1-age 27
-type_into o1-height 180
-type_into o1-weight 116
+# A31: before the profile, mode and ceiling are disabled (gold o1e).
+shot o1e
+# The IME walks the profile: age Next -> height Next -> weight Done closes the keyboard.
+tap o1-age
+"$ADB" shell input text 27; "$ADB" shell input keyevent 66; sleep 0.3
+"$ADB" shell input text 180; "$ADB" shell input keyevent 66; sleep 0.3
+"$ADB" shell input text 116; "$ADB" shell input keyevent 66; sleep 0.6
+if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then
+  echo "  ✗ keyboard still open after Done on weight"
+  exit 1
+fi
 scroll_down
 type_into o1-ceiling 2000
 to_top

@@ -37,17 +37,15 @@ class OnboardingViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val day = repository.observeToday().first()
+            // Without a stored body profile the ceiling stays blank until the TMB prefill (A31).
+            val storedProfile = day.sex.isNotEmpty() && day.ageYears > 0 && day.heightCm > 0 && day.weightKg > 0
             _uiState.update { current ->
-                current.copy(
+                val loaded = current.copy(
                     sex = day.sex,
                     ageField = day.ageYears.positiveOrBlank(),
                     heightField = day.heightCm.positiveOrBlank(),
                     weightField = if (day.weightKg > 0) formatWeight(day.weightKg) else "",
                     ceilingMode = day.ceilingMode,
-                    sameField = day.kcalSame.toString(),
-                    weekdayField = day.kcalWeekday.toString(),
-                    weekendField = day.kcalWeekend.toString(),
-                    dayFields = day.kcalDays.map { it.toString() }.let { if (it.size == 7) it else List(7) { "2000" } },
                     eat = day.eat,
                     pct = day.pct.toString(),
                     slotSchedule = SlotScheduleDraft.stored(day.slotMode, day.slots),
@@ -60,7 +58,18 @@ class OnboardingViewModel @Inject constructor(
                     carbField = day.carbTargetG.toString(),
                     fatField = day.fatTargetG.toString(),
                     loaded = true,
-                ).withSuggestion()
+                )
+                val withCeiling = if (!storedProfile) {
+                    loaded
+                } else {
+                    loaded.copy(
+                        sameField = day.kcalSame.toString(),
+                        weekdayField = day.kcalWeekday.toString(),
+                        weekendField = day.kcalWeekend.toString(),
+                        dayFields = day.kcalDays.map { it.toString() }.let { if (it.size == 7) it else List(7) { "2000" } },
+                    )
+                }
+                withCeiling.withSuggestion()
             }
         }
     }

@@ -1,10 +1,10 @@
 # Plan — A31 O1: required profile and keyboard flow
 
-- Status: Aguardando aprovação
+- Status: Concluído
 - Date: 01/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`feature/onboarding/*`, tests and captures)
-- Prerequisites: **[ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) in `stitch/plans/completed/`** (new gold `o1e`). Without it the implementation does not start.
+- Prerequisites: **[ST8](../../../stitch/plans/completed/st8-teto-sem-perfil.md) in `stitch/plans/completed/`** (new gold `o1e`). Without it the implementation does not start.
 
 ## Authorization gate
 
@@ -30,7 +30,7 @@ O1 only continues with a full profile: sex, age, height and weight. Until the th
 ## Sources of truth
 
 - Golds `o1` (filled) and `o1e` (before the profile), dark and light.
-- [perfil-onboarding](../../produto/specifications/perfil-onboarding.md) rule 1 and "Estados e falhas".
+- [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) rule 1 and "Estados e falhas".
 - `AGENTS.md` tokens; skills `dieta-bot-android-ui`, `material3-expressive`, `dieta-bot-android-visual`, `compose-stability`, `screenshot-testing`.
 
 ## Implementation scope
@@ -62,7 +62,7 @@ Layout, tokens and measures from gold `o1e`:
 
 ### 4. Spec
 
-- [perfil-onboarding](../../produto/specifications/perfil-onboarding.md): rule 1 (age, height and weight required; ceiling controls disabled until then; prefill on valid profile; IME order) and "Estados e falhas" (`o1e`).
+- [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md): rule 1 (age, height and weight required; ceiling controls disabled until then; prefill on valid profile; IME order) and "Estados e falhas" (`o1e`).
 
 ## Affected files
 
@@ -101,3 +101,35 @@ Layout, tokens and measures from gold `o1e`:
 After implementation, record real results and apply the lifecycle in `docs/sdd/README.md`, with the git delivery (§ 6).
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and the `plans/cancelled/` folder.
+
+## Results (01/10/2026)
+
+Approved by the owner on 01/10/2026 with the sentence of the authorization gate. Prerequisite checked first: `st8-teto-sem-perfil.md` in `stitch/plans/completed/` and golds `docs/qa/stitch/{dark,light}/o1e.png` present.
+
+Implemented:
+
+- `OnboardingUiState`: `profileValid` (sex set, age and height > 0 as integers, weight > 0 as decimal); `o1Valid = profileValid && ceilingFields() > 0`. `sameField`, `weekdayField`, `weekendField` and `dayFields` start blank. `day1Ceiling` keeps its 2000 fallback.
+- `OnboardingViewModel`: the stored ceiling is read back only when the stored body profile is complete; otherwise the fields stay blank until the TMB prefill (`DaySnapshot` defaults are 2000/2300 even without a profile row). The prefill path is unchanged.
+- `OnboardingScreens.CeilingScreen`: `ModeGroup(enabled)` and `KcalField(enabled)` dim to 38 % through one save layer (`Modifier.disabledAlpha`), no click, the text field is `enabled = false` (not focusable), a blank value shows `—` in `dim`, the `kcal` chip turns `dim` with a `line` border; `GoldRadio(enabled = false)` draws a `dim` ring and dot. Without a valid profile the "Sugerido" caption is hidden and `o1-profile-hint` (info icon + copy, `muted`) sits under the body fields. `UnitField`/`KcalField` take `imeAction`/`keyboardActions`; moves use `FocusRequester`s; Done calls `clearFocus()`. New tags `o1-weekday`, `o1-weekend`, `o1-day-<i>`. `ModeGroup`/`KcalField` keep their defaults for `cfg` (out of scope, unchanged). The disabled `PillCta` uses the same `DISABLED_ALPHA` constant (same 0.38).
+- Spacing: the `o1e` gold is tighter than `o1` (sex toggle 9–13 dp higher, toggle → body label 6–10 dp less, mode group → "META DIÁRIA" 5–8 dp less; the dark and light `o1e` golds also disagree by up to 16 dp between them). The disabled state takes its own spacers (14 / 21 / 25 / 23 dp, the average of both golds); `o1` keeps 25 / 29 / 30 / 30 dp. The hint already reflows the screen when the profile completes, so the extra shift happens at the same moment.
+- `modifier.alpha()` (graphics layer) was not drawn by the Robolectric capture; the save layer renders the same on device and in the JVM test.
+- Tools: `capture-onboarding.sh` captures `o1e` after Homem, then walks age → Enter → height → Enter → weight → Enter and fails if the keyboard is still open. `diff-gold.mjs` default set includes `o1e`.
+
+Validation:
+
+1. `:app:testDevDebugUnitTest`: **391** tests, 0 failures (one intermediate run hit the known `Dispatchers.Main is used concurrently` flake in `ChatViewModelTest`/`ConfigViewModelTest`; the rerun was green). New in `OnboardingViewModelTest`: only age → `o1Valid` false; age + height → false; all three → true with 2160 in all 10 ceiling fields; ceiling edited to 1800, weight cleared → `profileValid` false, 1800 kept, `o1Valid` false; stored profile read by a fresh ViewModel → valid, `sameField` 2160. Existing O1/O4/complete tests unchanged and green. ✅
+2. `:app:verifyRoborazziDevDebug` green; new baselines `snapshots/{dark,light}/o1e.png` (925 dp). `StitchGoldTest`: `o1e` dark **1.10 %**, light **1.56 %** (full page, 925 dp); `o1` dark 1.07 %, light 0.78 % (unchanged). ✅
+3. `:app:assembleDevRelease` ✅
+4. Emulator (devDebug, Medium_Phone API 36, 780×1688 @ 320 dpi): `capture-onboarding.sh` dark and light pass end to end (keyboard closed after Done, relaunch skips onboarding). Manual walk: before the profile, tapping "Personalizado por dia" keeps the single-field mode and tapping the ceiling opens no keyboard; age Next → height, Next → weight, Done → keyboard closed, ceiling 2160, Continuar enabled; seven-day mode Seg Next → Ter → … → Dom, Done → keyboard closed. ✅
+5. `node tools/diff-gold.mjs dark/o1e light/o1e dark/o1 light/o1`: o1e dark 1.27 %, light 1.35 %; o1 dark 1.16 %, light 0.82 % (max 2 %). ✅ Captures in `docs/qa/android/current/{dark,light}/o1e.png` and `o1.png`.
+
+Diff list (`o1e` vs gold, both themes):
+
+- Layout: same order (header, sex toggle, body fields, hint, MODO DO TETO, mode group, META DIÁRIA, kcal field, CTA). Spacing fitted between the two golds (see above); residual ±4–8 dp versus each theme.
+- Tokens: hint and icon `muted`; placeholders `dim`; disabled radio `dim` ring and dot, no gold. Light: mode titles at 38 % of `text` match the gold (162 vs 160). Dark: the gold draws the disabled titles dimmer than its own 38 % spec (≈ `dim` at 38 %); the app follows the plan's 38 % of the normal colours. Disabled `kcal` chip: `dim` text and icon, `line` border, no gold fill (gold: same; ST8 had flagged a gold chip as a defect).
+- Type size: hint 14 sp / 19 sp line; wraps after "meta" in dark, as in the dark gold (the light gold wraps one word earlier, font raster).
+- Radius: fields and group 16 dp, unchanged.
+- CTA: existing disabled `PillCta` (38 %), unchanged.
+- Timeline, semantic macros, ButtonGroup: not on this screen.
+
+No pending manual validation.

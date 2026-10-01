@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -47,8 +48,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -56,6 +59,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -95,6 +99,12 @@ fun CeilingScreen(
     onContinue: () -> Unit,
 ) {
     val p = LocalPalette.current
+    val focus = LocalFocusManager.current
+    val done = KeyboardActions(onDone = { focus.clearFocus() })
+    val height = remember { FocusRequester() }
+    val weight = remember { FocusRequester() }
+    val ceiling = remember { List(7) { FocusRequester() } }
+    val enabled = ui.profileValid
     OnboardingFrame(
         bar = OnboardingBar.Continuous(0.25f),
         cta = "Continuar",
@@ -105,29 +115,55 @@ fun CeilingScreen(
     ) {
         Eyebrow("ONBOARDING 1/4", "METABOLISMO", sectionAccent = true)
         ScreenTitle("Teto do dia", "Defina sua meta diária de calorias. Você pode usar o valor sugerido ou personalizar.")
-        Spacer(Modifier.height(25.dp))
+        // o1e (ST8) is a tighter gold than o1: the disabled state takes its own spacing.
+        Spacer(Modifier.height(if (enabled) 25.dp else 14.dp))
 
         SexToggle(ui.sex, onSex)
-        Spacer(Modifier.height(29.dp))
+        Spacer(Modifier.height(if (enabled) 29.dp else 21.dp))
 
         SectionLabel("Idade, altura e peso")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            UnitField(ui.ageField, "anos", "idade", onAge, Modifier.weight(1f).testTag("o1-age"))
-            UnitField(ui.heightField, "cm", "altura", onHeight, Modifier.weight(1f).testTag("o1-height"))
-            UnitField(ui.weightField, "kg", "peso", onWeight, Modifier.weight(1f).testTag("o1-weight"), decimal = true)
+            UnitField(
+                ui.ageField, "anos", "idade", onAge, Modifier.weight(1f).testTag("o1-age"),
+                imeAction = ImeAction.Next, keyboardActions = KeyboardActions(onNext = { height.requestFocus() }),
+            )
+            UnitField(
+                ui.heightField, "cm", "altura", onHeight, Modifier.weight(1f).focusRequester(height).testTag("o1-height"),
+                imeAction = ImeAction.Next, keyboardActions = KeyboardActions(onNext = { weight.requestFocus() }),
+            )
+            UnitField(
+                ui.weightField, "kg", "peso", onWeight, Modifier.weight(1f).focusRequester(weight).testTag("o1-weight"),
+                decimal = true, imeAction = ImeAction.Done, keyboardActions = done,
+            )
         }
-        Spacer(Modifier.height(30.dp))
+        if (!enabled) {
+            Row(Modifier.padding(top = 16.dp, start = 4.dp).testTag("o1-profile-hint"), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Outlined.Info, contentDescription = null, tint = p.muted, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                Text(
+                    "Preencha idade, altura e peso para ver a meta sugerida.",
+                    style = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, lineHeight = 19.sp),
+                    color = p.muted,
+                )
+            }
+        }
+        Spacer(Modifier.height(if (enabled) 30.dp else 25.dp))
 
         SectionLabel("Modo do teto")
-        ModeGroup(ui.ceilingMode, onMode)
-        Spacer(Modifier.height(30.dp))
+        ModeGroup(ui.ceilingMode, onMode, enabled = enabled)
+        Spacer(Modifier.height(if (enabled) 30.dp else 23.dp))
 
         when (ui.ceilingMode) {
             "weekdayWeekend" -> {
                 SectionLabel("Metas diárias")
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    KcalField(ui.weekdayField, onWeekday, Modifier.weight(1f), caption = "Dias úteis", compact = true)
-                    KcalField(ui.weekendField, onWeekend, Modifier.weight(1f), caption = "Fim de semana", compact = true)
+                    KcalField(
+                        ui.weekdayField, onWeekday, Modifier.weight(1f).focusRequester(ceiling[0]).testTag("o1-weekday"), caption = "Dias úteis", compact = true,
+                        enabled = enabled, imeAction = ImeAction.Next, keyboardActions = KeyboardActions(onNext = { ceiling[1].requestFocus() }),
+                    )
+                    KcalField(
+                        ui.weekendField, onWeekend, Modifier.weight(1f).focusRequester(ceiling[1]).testTag("o1-weekend"), caption = "Fim de semana", compact = true,
+                        enabled = enabled, imeAction = ImeAction.Done, keyboardActions = done,
+                    )
                 }
             }
             "seven" -> {
@@ -138,7 +174,13 @@ fun CeilingScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             pair.forEachIndexed { col, label ->
                                 val i = row * 2 + col
-                                KcalField(ui.dayFields[i], { onDay(i, it) }, Modifier.weight(1f), caption = label, compact = true)
+                                val last = i == labels.lastIndex
+                                KcalField(
+                                    ui.dayFields[i], { onDay(i, it) }, Modifier.weight(1f).focusRequester(ceiling[i]).testTag("o1-day-$i"), caption = label, compact = true,
+                                    enabled = enabled,
+                                    imeAction = if (last) ImeAction.Done else ImeAction.Next,
+                                    keyboardActions = if (last) done else KeyboardActions(onNext = { ceiling[i + 1].requestFocus() }),
+                                )
                             }
                             if (pair.size == 1) Spacer(Modifier.weight(1f))
                         }
@@ -147,10 +189,13 @@ fun CeilingScreen(
             }
             else -> {
                 SectionLabel("Meta diária")
-                KcalField(ui.sameField, onSame, Modifier.fillMaxWidth().testTag("o1-ceiling"))
+                KcalField(
+                    ui.sameField, onSame, Modifier.fillMaxWidth().testTag("o1-ceiling"),
+                    enabled = enabled, imeAction = ImeAction.Done, keyboardActions = done,
+                )
             }
         }
-        ui.suggestedCeiling?.let { suggested ->
+        ui.suggestedCeiling?.takeIf { enabled }?.let { suggested ->
             Row(Modifier.padding(top = 10.dp, start = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = p.gold, modifier = Modifier.padding(top = 1.dp).size(16.dp))
                 Text(
@@ -211,6 +256,8 @@ private fun UnitField(
     onChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     decimal: Boolean = false,
+    imeAction: ImeAction = ImeAction.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     val p = LocalPalette.current
     val suffix = remember(unit, p) { UnitSuffix(unit, SpanStyle(fontFamily = Inter, fontSize = 12.sp, fontWeight = FontWeight.W400, color = p.muted)) }
@@ -218,7 +265,8 @@ private fun UnitField(
         value = value,
         onValueChange = onChange,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number),
+        keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number, imeAction = imeAction),
+        keyboardActions = keyboardActions,
         textStyle = TextStyle(fontFamily = Jakarta, fontSize = 18.sp, fontWeight = FontWeight.W700, color = p.text, textAlign = TextAlign.Center),
         cursorBrush = SolidColor(p.gold),
         visualTransformation = if (value.isEmpty()) VisualTransformation.None else suffix,
@@ -260,7 +308,7 @@ private class UnitSuffix(private val unit: String, private val style: SpanStyle)
 }
 
 @Composable
-internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1") {
+internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1", enabled: Boolean = true) {
     val p = LocalPalette.current
     val items = listOf(
         Triple("same", "Mesma meta todos os dias", "Um valor fixo para a semana inteira."),
@@ -270,6 +318,7 @@ internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1
     Column(
         Modifier
             .fillMaxWidth()
+            .disabledAlpha(enabled)
             .clip(RoundedCornerShape(16.dp))
             .background(p.card)
             .border(1.dp, p.line, RoundedCornerShape(16.dp))
@@ -282,7 +331,7 @@ internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1
                 Modifier
                     .fillMaxWidth()
                     .background(if (selected) p.cardSel else p.card)
-                    .dietaClick { onMode(value) }
+                    .then(if (enabled) Modifier.dietaClick { onMode(value) } else Modifier)
                     .padding(horizontal = 16.dp, vertical = 16.dp)
                     .testTag("$tag-mode-$value"),
                 verticalAlignment = Alignment.CenterVertically,
@@ -291,7 +340,7 @@ internal fun ModeGroup(mode: String, onMode: (String) -> Unit, tag: String = "o1
                     Text(title, style = DietaBotType.labelLg.copy(letterSpacing = (-0.025).em, fontWeight = if (selected) FontWeight.W600 else FontWeight.W500), color = p.text)
                     Text(body, style = DietaBotType.labelMd.copy(letterSpacing = 0.sp, fontWeight = FontWeight.W400), color = if (selected) p.muted else p.dim, modifier = Modifier.padding(top = 2.dp))
                 }
-                GoldRadio(selected)
+                GoldRadio(selected, enabled)
             }
         }
     }
@@ -304,13 +353,18 @@ internal fun KcalField(
     modifier: Modifier = Modifier,
     caption: String? = null,
     compact: Boolean = false,
+    enabled: Boolean = true,
+    imeAction: ImeAction = ImeAction.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     val p = LocalPalette.current
     BasicTextField(
         value = value,
         onValueChange = onChange,
+        enabled = enabled,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = imeAction),
+        keyboardActions = keyboardActions,
         textStyle = TextStyle(
             fontFamily = Jakarta,
             fontSize = if (compact) 22.sp else 32.sp,
@@ -319,7 +373,7 @@ internal fun KcalField(
             color = p.text,
         ),
         cursorBrush = SolidColor(p.gold),
-        modifier = modifier,
+        modifier = modifier.disabledAlpha(enabled),
         decorationBox = { inner ->
             Row(
                 Modifier
@@ -333,20 +387,25 @@ internal fun KcalField(
             ) {
                 Column(Modifier.weight(1f)) {
                     if (caption != null) Text(caption.uppercase(), style = DietaBotType.labelCaps.copy(fontSize = 9.sp), color = p.dim)
-                    inner()
+                    Box {
+                        if (value.isEmpty()) {
+                            Text("—", style = TextStyle(fontFamily = Jakarta, fontSize = if (compact) 22.sp else 32.sp, fontWeight = FontWeight.W700), color = p.dim)
+                        }
+                        inner()
+                    }
                 }
                 if (!compact) {
                     Row(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(p.gold.copy(alpha = 0.10f))
-                            .border(1.dp, p.gold.copy(alpha = 0.20f), RoundedCornerShape(8.dp))
+                            .background(if (enabled) p.gold.copy(alpha = 0.10f) else Color.Transparent)
+                            .border(1.dp, if (enabled) p.gold.copy(alpha = 0.20f) else p.line, RoundedCornerShape(8.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Text("kcal", style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.gold)
-                        Icon(Icons.Outlined.Bolt, contentDescription = null, tint = p.gold, modifier = Modifier.size(14.dp))
+                        Text("kcal", style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = if (enabled) p.gold else p.dim)
+                        Icon(Icons.Outlined.Bolt, contentDescription = null, tint = if (enabled) p.gold else p.dim, modifier = Modifier.size(14.dp))
                     }
                 } else {
                     Text("kcal", style = DietaBotType.labelMd, color = p.muted)

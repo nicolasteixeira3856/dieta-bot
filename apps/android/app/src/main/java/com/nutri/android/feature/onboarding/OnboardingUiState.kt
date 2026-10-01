@@ -17,10 +17,11 @@ data class OnboardingUiState(
     val heightField: String = "",
     val weightField: String = "",
     val ceilingMode: String = "same",
-    val sameField: String = "2000",
-    val weekdayField: String = "2000",
-    val weekendField: String = "2300",
-    val dayFields: List<String> = List(7) { "2000" },
+    /** Ceiling fields start blank; the TMB prefill fills them once the profile is valid (A31). */
+    val sameField: String = "",
+    val weekdayField: String = "",
+    val weekendField: String = "",
+    val dayFields: List<String> = List(7) { "" },
     val ceilingEdited: Boolean = false,
     /** Mifflin-St Jeor rounded to 10. Null while a body field is missing. */
     val suggestedCeiling: Int? = null,
@@ -41,8 +42,15 @@ data class OnboardingUiState(
     /** True once the stored profile has been read into the fields. */
     val loaded: Boolean = false,
 ) {
+    /** Sex, age, height and weight filled (> 0). Gates the ceiling controls and Continuar (A31). */
+    val profileValid: Boolean
+        get() = sex.isNotEmpty() &&
+            (ageField.toIntOrNull() ?: 0) > 0 &&
+            (heightField.toIntOrNull() ?: 0) > 0 &&
+            (weightField.toDoubleOrNull() ?: 0.0) > 0.0
+
     val o1Valid: Boolean
-        get() = sex.isNotEmpty() && ceilingFields().all { (it.toIntOrNull() ?: 0) > 0 }
+        get() = profileValid && ceilingFields().all { (it.toIntOrNull() ?: 0) > 0 }
 
     val o3Valid: Boolean
         get() = slotSchedule.pendingMode == null && slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }

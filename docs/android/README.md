@@ -122,7 +122,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 Ajustes de O1 e Chat (decisões do dono em 01/10/2026):
 
-- [A31 O1: perfil obrigatório e navegação pelo teclado](plans/a31-o1-perfil-obrigatorio-teclado.md) — gate [ST8](../stitch/plans/completed/st8-teto-sem-perfil.md) concluído (gold `o1e`); aguardando aprovação
+- [A31 O1: perfil obrigatório e navegação pelo teclado](plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — gate [ST8](../stitch/plans/completed/st8-teto-sem-perfil.md), gold `o1e`; concluído em 01/10/2026
 - [A32 Chat: abre no fim, paginação reversa, teclado fecha na foto](plans/completed/a32-chat-rolagem-paginacao.md) — Room v7; concluído em 01/10/2026
 
 Perguntas antes da estimativa ([ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), aceito): [A30 Perguntas antes da estimativa, Forçar estimativa](plans/completed/a30-perguntas-antes-da-estimativa.md) — golds `chatE` e `chatQ` do [ST7](../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md); server [S13](../server/plans/completed/s13-perguntas-antes-da-estimativa.md); concluído em 30/09/2026.
