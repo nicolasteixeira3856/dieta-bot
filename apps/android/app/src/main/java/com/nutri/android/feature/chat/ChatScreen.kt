@@ -84,12 +84,16 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -156,6 +160,8 @@ fun ChatScreen(
     /** chatS: Registrar | Quase igual on the routine card. */
     onRoutineRecord: () -> Unit = {},
     onRoutineEdit: () -> Unit = {},
+    /** chatQ: Forçar estimativa from the second question. */
+    onForceEstimate: () -> Unit = {},
 ) {
     val p = LocalPalette.current
     Box(
@@ -175,7 +181,7 @@ fun ChatScreen(
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, onCamera)
-            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto, onRemoveAttachment, onRecordPlan)
+            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, onPhoto, onRemoveAttachment, onRecordPlan, onForceEstimate)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
@@ -240,7 +246,7 @@ private fun Thread(ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> 
             // 12 dp under the meta card (chatS).
             val gap = when {
                 i == 0 -> 0.dp
-                item is ChatItem.Question -> 5.dp
+                item is ChatItem.Question && !item.standalone -> 5.dp
                 item is ChatItem.Routine -> 12.dp
                 else -> 16.dp
             }
@@ -361,28 +367,56 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
     }
 }
 
-/** chatE: the clarifying question in its own bubble. Gold bar on the left, help icon, text in primary colour. */
+/**
+ * The clarifying question in its own bubble. Gold bar on the left, help icon, text in primary colour.
+ * Standalone (chatQ): a question before the estimate, with the "Dieta Bot AI" label above.
+ */
 @Composable
 private fun QuestionBubble(item: ChatItem.Question) {
     val p = LocalPalette.current
     Column(Modifier.fillMaxWidth(0.88f), horizontalAlignment = Alignment.Start) {
+        if (item.standalone) AiLabel()
         Row(
             Modifier
                 .fillMaxWidth()
                 .clip(BubbleShape)
-                .background(p.card)
-                .drawBehind { drawRect(p.gold, size = Size(3.dp.toPx(), size.height)) }
-                .border(1.dp, p.line, BubbleShape)
-                .padding(start = 19.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
+                .drawBehind { questionFrame(p.card, p.line, p.gold) }
+                .padding(start = 19.dp, end = 16.dp, top = 16.dp, bottom = 19.dp)
                 .testTag("chat-question"),
-            verticalAlignment = Alignment.CenterVertically,
+            // Top: a question of several lines keeps the icon on its first line. Text 18 sp (ST7 gold).
+            verticalAlignment = Alignment.Top,
         ) {
-            Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = null, tint = p.gold, modifier = Modifier.size(18.dp))
+            Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = null, tint = p.gold, modifier = Modifier.padding(top = 3.25.dp).size(18.dp))
             Spacer(Modifier.width(12.dp))
-            Text(item.text, style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = 23.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.text)
+            Text(item.text, style = DietaBotType.bodyLg.copy(fontSize = 18.sp, lineHeight = 24.5.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.text)
         }
+        MemoryChips(item.memory)
         Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
     }
+}
+
+/**
+ * Gold's CSS frame: 1 dp line, 3 dp gold on the left that follows the 16 dp corners. Drawn inside a
+ * box clipped to [BubbleShape]: line and gold first, the card on top inset by the border widths.
+ */
+private fun DrawScope.questionFrame(card: Color, line: Color, gold: Color) {
+    val edge = 1.dp.toPx()
+    val bar = 3.dp.toPx()
+    val radius = 16.dp.toPx()
+    drawRect(line)
+    // Where the corner turns from gold to line, as the browser splits the border.
+    drawRect(gold, size = Size(bar + (radius - bar) / 2, size.height))
+    val inner = RoundRect(
+        left = bar,
+        top = edge,
+        right = size.width - edge,
+        bottom = size.height - edge,
+        topLeftCornerRadius = CornerRadius(radius - bar, radius - edge),
+        topRightCornerRadius = CornerRadius(radius - edge),
+        bottomRightCornerRadius = CornerRadius(radius - edge),
+        bottomLeftCornerRadius = CornerRadius(radius - bar, radius - edge),
+    )
+    drawPath(Path().apply { addRoundRect(inner) }, card)
 }
 
 /** "Deseja registrar essa refeição no {slot}?" with the slot in text colour. */
@@ -647,6 +681,7 @@ private fun Footer(
     onPhoto: () -> Unit,
     onRemoveAttachment: () -> Unit,
     onRecordPlan: (Long) -> Unit,
+    onForceEstimate: () -> Unit,
 ) {
     val p = LocalPalette.current
     Column(
@@ -657,7 +692,11 @@ private fun Footer(
             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 11.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        ui.actions?.let { if (it.plan) PlanBar(it) { onRecordPlan(it.estimateId) } else ActionBar(it, onRecord, onSwap, onAskSkip) }
+        if (ui.forceEstimate) {
+            ForceBar(onForceEstimate)
+        } else {
+            ui.actions?.let { if (it.plan) PlanBar(it) { onRecordPlan(it.estimateId) } else ActionBar(it, onRecord, onSwap, onAskSkip) }
+        }
         Composer(ui, onComposer, onSend, onPhoto, onRemoveAttachment)
     }
 }
@@ -705,6 +744,28 @@ private fun PlanBar(actions: EstimateActions, onClick: () -> Unit) {
         Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = p.text, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
         Text("Registrar assim", style = DietaBotType.labelMd.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
+    }
+}
+
+/** chatQ: one Forçar estimativa in the place of Gravar | Trocar | Pular, same bar. */
+@Composable
+private fun ForceBar(onClick: () -> Unit) {
+    val p = LocalPalette.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(p.card)
+            .border(1.dp, p.line, RoundedCornerShape(18.dp))
+            .dietaClick(Haptic.Light, onClick = onClick)
+            .testTag("chat-force-estimate"),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.FastForward, contentDescription = null, tint = p.text, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text("Forçar estimativa", style = DietaBotType.labelMd.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
     }
 }
 

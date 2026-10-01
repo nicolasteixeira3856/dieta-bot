@@ -72,9 +72,18 @@ sealed interface ChatItem {
         override val key = "a-$id"
     }
 
-    /** Follow-up question of an estimate, in its own bubble right below it (chatE). UI only. */
-    data class Question(val estimateId: Long, val text: String, val time: String) : ChatItem {
-        override val key = "q-$estimateId"
+    /**
+     * A question in its own bubble. [standalone] = a question before the estimate (A30, chatQ): the
+     * "Dieta Bot AI" label above, no reply bubble. Else the follow-up right below an old estimate row.
+     */
+    data class Question(
+        val messageId: Long,
+        val text: String,
+        val time: String,
+        val standalone: Boolean = false,
+        val memory: MemoryNotice = MemoryNotice(),
+    ) : ChatItem {
+        override val key = "q-$messageId"
     }
 
     data class Receipt(
@@ -126,6 +135,8 @@ data class ChatUiState(
     val metaTotal: Int = 0,
     /** Actions for the latest estimate that has no receipt yet. */
     val actions: EstimateActions? = null,
+    /** Forçar estimativa in the actions slot (A30, chatQ): the last message is a question of round 2 or more. */
+    val forceEstimate: Boolean = false,
     val slots: List<SlotRef> = emptyList(),
     val currentSlotId: Long? = null,
     /** Estimate id whose "Trocar" sheet is open. */

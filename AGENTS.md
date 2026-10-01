@@ -20,10 +20,10 @@ Numbers first. Dry tone. No coach. No slogan.
 - Onboarding: 4 screens — ceiling (O1) + eat-back (O2) + meal distribution (O3) + macro targets (O4) per ADR-012.
 - Eat-back: 0% | typed % default 50 | 100%. NO cap.
 - Workout is a typed number. No number that day → credit = 0.
-- One question if confidence is not high.
+- Questions before the estimate, all doubts at once, at most 3 rounds; Forçar estimativa from the second (ADR-026).
 - Photo on Chat from day 1. Client sends the photo as JPEG q85, longest side ≤ 2048 px, EXIF stripped (ADR-018). ≤16 MB guard. Server estimates and deletes.
 - Disclaimer: estimate, not advice.
-- Screens: ADR-012 (splash, O1, O2, O3, O4, Home [home0, home1, homeX], Chat [chat0, chatL, chatE, chatT, chatP, chatF, chatG], Config [cfg, wipe], Push). Nothing else.
+- Screens: ADR-012 (splash, O1, O2, O3, O4, Home [home0, home1, homeX], Chat [chat0, chatL, chatE, chatT, chatP, chatF, chatG, chatQ], Config [cfg, wipe], Push). Nothing else.
 - Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.nutri.hide_dev_tools=1` for the cfg capture.
 
 ## Splash

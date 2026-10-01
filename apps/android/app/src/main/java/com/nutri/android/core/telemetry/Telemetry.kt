@@ -44,6 +44,9 @@ object TelemetryEvents {
     /** A29: routine card of the Chat, `action` = shown | record | edit. Enum only. */
     const val ROUTINE_SUGGESTION = "routine_suggestion"
 
+    /** A30: Forçar estimativa tapped, `round` = question rounds shown. Number only. */
+    const val CHAT_FORCE_ESTIMATE = "chat_force_estimate"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 

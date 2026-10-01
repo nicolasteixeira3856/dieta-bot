@@ -160,6 +160,18 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatE_light() = check("chatE", dark = false) { Chat(ChatFixtures.chatE) }
 
+    /**
+     * A30 (ST7): second question before the estimate, Forçar estimativa. Dark is gated whole. The light
+     * gold draws the question bubbles tighter than dark (line ~22 dp vs 24.5 dp, icon gap 10 vs 12 dp,
+     * ~3 dp less padding) from the same prompt: one component follows dark, so light gates only the
+     * Forçar estimativa bar (FORCE_BAR) and reports the screen.
+     */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatQ_dark() = check("chatQ", dark = true, region = FORCE_BAR) { Chat(ChatFixtures.chatQ) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatQ_light() = check("chatQ", dark = false, region = FORCE_BAR, reportOnly = true) { Chat(ChatFixtures.chatQ) }
+
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatT_dark() = check("chatT", dark = true, navDp = 0) { Chat(ChatFixtures.chatT) }
 
@@ -517,6 +529,9 @@ class StitchGoldTest {
 
         /** chatX composer (5 lines, red border) and "Texto muito longo" in gold px (x0, y0, x1, y1). */
         private val COMPOSER_TOO_LONG = intArrayOf(32, 1344, 748, 1668)
+
+        /** chatQ: the Forçar estimativa bar in gold px (x0, y0, x1, y1). */
+        private val FORCE_BAR = intArrayOf(32, 1436, 748, 1544)
 
         /** chatR: "Dieta Bot AI" label, plan bubble with the day panel, time and Registrar assim, in gold px (x0, y0, x1, y1). */
         private val PLAN_BUBBLE = intArrayOf(32, 556, 748, 1540)

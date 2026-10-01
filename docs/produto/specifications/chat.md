@@ -4,10 +4,6 @@
 
 [Content handling](../../content-policy/specifications/content-policy.md) proposes fixed scope/safety replies through existing Chat bubbles, with no estimate or memory mutation on refusal. This is pending CP2 approval and implementation, not current behavior. Photos, meal intent and approved layouts remain unchanged. Any future legal acceptance/reporting UI requires its own approved scope and applicable Stitch gate.
 
-## Proposed: questions before the estimate (ADR-026)
-
-[ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md) proposes that a `log` with doubts shows only question bubbles (all doubts at once, at most 3 rounds, enforced by the server) and no estimate until they are settled, with **Forçar estimativa** from the second question (`chatQ`), and removes the question bubble from `chatE`. Server side done in [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md) (opt-in, on the dev server), gate [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) done; awaiting [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md); rule 14 below remains current behavior until A30 ships.
-
 ## Estado
 
 Vigente desde o [A5](../../android/plans/completed/a5-chat.md): tela Chat aberta pelo FAB da Home, `POST /v1/chat`. Compactação ligada desde o [A5b](../../android/plans/completed/a5b-ligar-compact.md) (server: [S3](../../server/plans/completed/s3-compact.md)).
@@ -23,6 +19,8 @@ Intenção (`log` / `plan` / `question`), texto gravado = `meal_text` e históri
 Memória em fatos no prompt (`facts`), `memory_updates` aplicados pelo app e origem por mensagem desde o [A28](../../android/plans/completed/a28-memoria-v2.md): regras 8 e 12.
 
 Plano com dia projetado e Registrar assim (`chatR`), avisos de memória (`chatM`) e sugestão da rotina (`chatS`) desde o [A29](../../android/plans/completed/a29-chat-v2-interface.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisões 3, 7 e 8; gate [ST6](../../stitch/plans/completed/st6-chat-v2.md)): regras 4, 5, 7, 16, 17 e 18.
+
+Perguntas antes da estimativa (no máximo 3 rodadas) e **Forçar estimativa** (`chatQ`) desde o [A30](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md) ([ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md); server: [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md); gate [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md)): regras 4, 12 e 14 e "Estados e falhas".
 
 ## Contexto e objetivo
 
@@ -41,7 +39,7 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 1. Tela cheia. Back → Home.
 2. Bolhas: user à direita, IA à esquerda, todas com o mesmo raio (16 dp nos 4 cantos). Rótulo da IA: ícone + "Dieta Bot AI", sem selo. Sem foto de perfil.
 3. Composer: texto + câmera (foto) + send. Enter pula linha (até 5 linhas visíveis); só a seta envia. A foto (câmera ou galeria) vira anexo no composer, com miniatura e ✕; nada sai antes do toque em enviar. Uma foto por vez: outra substitui a anterior. Send ativo com texto ou anexo; manda os dois juntos. ✕, troca ou sair do Chat com o anexo apagam o arquivo. Texto até 2000 caracteres (code points do texto sem espaços nas pontas; emoji conta 1), nada é cortado. Acima de 2000 (`chatX`): borda da caixa em `bad`, `Texto muito longo` logo abaixo, enviar e câmera desabilitados; sem contador. Com mais de uma linha a caixa tem cantos de 24 dp.
-4. Após estimate da IA: barra com “Gravar {slot}” (slot sugerido pelo server; some se não for dos slots do dia), “Trocar” (sheet com só os slots do dia, o da hora marcado “(atual)”) e “Pular” (confirmação “Deseja pular o {slot}?”; sem slot sugerido, o da hora). As ações valem só para a última estimativa do dia sem recibo, seja `log` (ou sem intenção, server antigo) ou `plan`. `plan` com estimativa: bolha sem card e, no lugar das três ações, um único **Registrar assim** (regra 16). `question`: só a bolha.
+4. Após estimate da IA: barra com “Gravar {slot}” (slot sugerido pelo server; some se não for dos slots do dia), “Trocar” (sheet com só os slots do dia, o da hora marcado “(atual)”) e “Pular” (confirmação “Deseja pular o {slot}?”; sem slot sugerido, o da hora). As ações valem só para a última estimativa do dia sem recibo, seja `log` (ou sem intenção, server antigo) ou `plan`. `plan` com estimativa: bolha sem card e, no lugar das três ações, um único **Registrar assim** (regra 16). `question`: só a bolha. `log` com dúvida: só a pergunta, sem ações; da segunda pergunta seguida em diante, **Forçar estimativa** no lugar delas (regra 14).
 5. Tap Gravar, Registrar assim (ou Confirmar no Trocar): slot sem registro hoje → `addLog` local com o último estimate (kcal, p, c, g, texto da regra 12). Slot com registro → confirmação no layout do `chatP`: `Substituir {slot}?`, `{slot} tem {kcal antigo} kcal. Fica com {kcal novo} kcal.`, **Substituir** | **Outra refeição** (fecha e abre o Trocar sem seleção). Substituir troca os registros de hoje daquele slot pelo novo numa transação ([ADR-017](../adrs/ADR-017-registro-consolidado.md)). Back ou toque fora só fecha. Sem novo POST.
 6. Sem tap: número não entra no contador.
 7. Pular: status skipped no slot. Sem kcal. Gravar, Registrar assim, Registrar da rotina, Substituir e Pular deixam um recibo na conversa (“Registrado em {slot} · {hora} +{kcal} kcal”, “Atualizado em {slot} · {hora} {kcal} kcal”); recibos não vão ao server.
@@ -49,9 +47,9 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 9. Ao fechar 12 raw desde o último digest: próximo POST manda `compact=true`. Resumo substitui o bloco. Máx 2 digest. Terceiro bloco substitui o digest mais velho.
 10. Snapshot do dia não compacta.
 11. Dia SP vira: digest some do prompt. UI do fio 60 d continua com separador de data.
-12. Texto da timeline ao gravar: o `meal_text` da estimativa (a refeição inteira, corrigida pela conversa). Sem `meal_text`: a primeira mensagem do usuário da cadeia daquela estimativa, pulando as respostas a perguntas (mensagem logo depois de uma estimativa com pergunta); se essa mensagem tem foto, a descrição que a IA devolveu. Nada disso: nomes dos itens. Nunca a resposta a uma pergunta. Gravar não escreve linha de memória: aplica a rotina que a IA propôs para aquela estimativa, se houver.
+12. Texto da timeline ao gravar: o `meal_text` da estimativa (a refeição inteira, corrigida pela conversa). Sem `meal_text`: a primeira mensagem do usuário da cadeia daquela estimativa, pulando as respostas a perguntas (mensagem logo depois de uma pergunta, com ou sem estimativa; até 3 rodadas); se essa mensagem tem foto, a descrição que a IA devolveu. Nada disso: nomes dos itens. Nunca a resposta a uma pergunta. Gravar não escreve linha de memória: aplica a rotina que a IA propôs para aquela estimativa, se houver.
 13. O client deste corte chama `POST /v1/chat`. Não chama `/v1/estimate` nem `/v1/fit` a partir do Chat.
-14. 1 pergunta se confiança ≠ alto (só em `log`), numa bolha própria logo abaixo da estimativa (barra gold à esquerda, ícone de ajuda, texto em cor primária). O horário fica só nela. Assunção pergunta 1×.
+14. Perguntas antes da estimativa (só em `log`, [ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md)): com dúvida material, a IA manda só a pergunta, com todas as dúvidas da refeição numa mensagem, e nenhuma estimativa (`chatQ`). Bolha própria com o rótulo "Dieta Bot AI": barra gold à esquerda, ícone de ajuda, texto 18 sp em cor primária, horário abaixo; sem card, números ou ações. No máximo 3 rodadas: o app manda `clarify_rounds` (perguntas seguidas no fim da conversa de hoje, pulando as respostas; para em estimativa, recibo ou outra resposta da IA) e o server libera a estimativa no 4º turno. Da 2ª pergunta seguida em diante, **Forçar estimativa** (pill única no lugar das ações, ícone de avanço) envia `Pode estimar assim.` com `force_estimate` pelo envio normal (carregando, falha e repetir como sempre; repetir mantém o pedido); some durante o envio e com foto anexada. A estimativa vem uma vez, sem pergunta (`chatE`). Mensagens antigas com estimativa + pergunta seguem com a bolha da pergunta logo abaixo.
 15. Dia sem mensagens: saudação fixa, cartão “Meta calórica de hoje” (restante / meta) e chips de sugestão que preenchem o composer. Com foto anexada, os chips somem. Nada disso é gravado nem enviado.
 16. Plano (`chatR`): a bolha mostra o texto da IA linha a linha (P/C/G nas cores dos macros) e, dentro dela, o dia projetado calculado pelo app, nunca pela IA: `Dia: {comido} → {comido + plano} de {teto efetivo} kcal` e `P {x}/{alvo} · C {y}/{alvo} · G {z}/{alvo}` (valores depois do plano). Teto e alvos pelo perfil e pelo `BudgetCalculator` no momento da exibição: o painel acompanha registros feitos depois. Acima do teto efetivo, a linha de kcal em `bad`. Plano já registrado conta uma vez (o painel parte de comido − plano). Plano de outro dia: só o texto. **Registrar assim** com slot sugerido do dia = Gravar nesse slot (regra 5, Substituir incluído); sem slot, abre o Trocar sem seleção.
 17. Avisos de memória (`chatM`): abaixo da bolha da IA, acima do horário, um chip por linha na ordem `Memória atualizada` (o app aplicou alguma mudança de memória naquele turno), `Memória permanente`, `Memória dinâmica` (a resposta usou fatos desse tipo, `memory_used` conferido pelo app). Recibo que aplicou uma rotina leva `Memória atualizada` logo abaixo. Chips de 28 dp, raio 14, só informativos (sem toque); gold só no check do `Memória atualizada`. Sem aviso, sem linha.
@@ -59,7 +57,7 @@ Avatar, visto, status, streaming neste corte, tool invisível que grava meal_log
 
 ## Estados e falhas
 
-- Estados de tela (golds do [ADR-012](../adrs/ADR-012-chat-home-perfil.md) + ADR-023): `chat0`, `chatL`, `chatE`, `chatT`, `chatP`, `chatF`, `chatG`, `chatA`, `chatX`, `chatR` (plano), `chatM` (avisos de memória), `chatS` (sugestão da rotina).
+- Estados de tela (golds do [ADR-012](../adrs/ADR-012-chat-home-perfil.md) + ADR-023): `chat0`, `chatL`, `chatE`, `chatT`, `chatP`, `chatF`, `chatG`, `chatA`, `chatX`, `chatR` (plano), `chatM` (avisos de memória), `chatS` (sugestão da rotina), `chatQ` (pergunta antes da estimativa, ADR-026).
 
 - Timeout 60 s: bolha “Não deu. Toque para tentar de novo.”. Nada gravado; o toque reenvia.
 - Foto: o client reduz a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). “Foto grande demais.” só quando a foto não cabe na memória para decodificar. Cap de 16 MB fica como defesa.
@@ -75,6 +73,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [ADR-012](../adrs/ADR-012-chat-home-perfil.md)
 - [ADR-017](../adrs/ADR-017-registro-consolidado.md)
 - [ADR-018](../../android/adrs/ADR-018-foto-2048.md)
+- [ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md)
 - [v1-chat](../../server/specifications/v1-chat.md)
 
 ## Planos relacionados
@@ -87,6 +86,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A27 (Concluído)](../../android/plans/completed/a27-chat-v2-texto-intencao.md)
 - [A28 (Concluído)](../../android/plans/completed/a28-memoria-v2.md)
 - [A29 (Concluído)](../../android/plans/completed/a29-chat-v2-interface.md)
+- [A30 (Concluído)](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md)
 - `docs/server/plans/completed/s2-v1-chat.md`
 - [S3 (Concluído)](../../server/plans/completed/s3-compact.md)
 

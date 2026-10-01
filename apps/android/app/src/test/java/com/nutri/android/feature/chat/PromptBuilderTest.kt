@@ -197,4 +197,77 @@ class PromptBuilderTest {
         assertThat(json).contains("\"facts\":[]")
         assertThat(json).doesNotContain("\"memory\"")
     }
+
+    // ------------------------------------------------------------------ A30: clarify rounds
+
+    private var nextId = 0L
+
+    private fun row(role: String, kcal: Int? = null, question: String? = null) = ChatMessageEntity(
+        id = ++nextId,
+        date = "2026-09-25",
+        role = role,
+        text = "t$nextId",
+        createdAtEpochMs = 1_000 + nextId,
+        estimateKcal = kcal,
+        estimateQuestion = question,
+    )
+
+    private fun asked() = row("assistant", question = "Q?")
+
+    @Test
+    fun `clarify rounds count question-only turns at the end, over the answers`() {
+        assertThat(PromptBuilder.clarifyRounds(emptyList())).isEqualTo(0)
+        assertThat(PromptBuilder.clarifyRounds(listOf(row("user")))).isEqualTo(0)
+        assertThat(PromptBuilder.clarifyRounds(listOf(row("user"), asked()))).isEqualTo(1)
+        assertThat(PromptBuilder.clarifyRounds(listOf(row("user"), asked(), row("user"), asked()))).isEqualTo(2)
+        assertThat(PromptBuilder.clarifyRounds(listOf(row("user"), asked(), row("user"), asked(), row("user"), asked()))).isEqualTo(3)
+        // Answer typed but not sent yet: the stored answer of the last round is skipped too.
+        assertThat(PromptBuilder.clarifyRounds(listOf(row("user"), asked(), row("user")))).isEqualTo(1)
+    }
+
+    @Test
+    fun `clarify rounds cap at 3`() {
+        val rows = listOf(row("user")) + (1..5).flatMap { listOf(asked(), row("user")) }
+        assertThat(PromptBuilder.clarifyRounds(rows)).isEqualTo(PromptBuilder.MAX_CLARIFY_ROUNDS)
+    }
+
+    @Test
+    fun `clarify rounds stop at an estimate, a receipt, a wipe or another reply`() {
+        val estimate = listOf(row("user"), asked(), row("user"), row("assistant", kcal = 500), row("user"), asked(), row("user"), asked())
+        assertThat(PromptBuilder.clarifyRounds(estimate)).isEqualTo(2)
+        // An old estimate with its follow-up question is not a question-only turn.
+        assertThat(PromptBuilder.clarifyRounds(listOf(row("user"), row("assistant", kcal = 500, question = "Q?")))).isEqualTo(0)
+        assertThat(PromptBuilder.clarifyRounds(listOf(asked(), row("logged"), row("user"), asked()))).isEqualTo(1)
+        assertThat(PromptBuilder.clarifyRounds(listOf(asked(), row("wiped"), row("user"), asked()))).isEqualTo(1)
+        assertThat(PromptBuilder.clarifyRounds(listOf(asked(), row("user"), row("assistant"), row("user"), asked()))).isEqualTo(1)
+    }
+
+    @Test
+    fun `clarify rounds start at the day - build counts only the messages it gets`() {
+        val turn = PromptBuilder.build(HomeFixtures.home0, listOf(row("user"), asked(), row("user"), asked()), emptyList(), "frito", now)
+        assertThat(turn.body.clarifyRounds).isEqualTo(2)
+        assertThat(PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "jantar", now).body.clarifyRounds).isEqualTo(0)
+    }
+
+    @Test
+    fun `clarify_rounds is always on the wire, force_estimate only when true`() {
+        val json = Json { ignoreUnknownKeys = true }
+        val plain = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "jantar", now)
+        val encoded = json.encodeToString(ChatIn.serializer(), plain.body)
+        assertThat(encoded).contains("\"clarify_rounds\":0")
+        assertThat(encoded).doesNotContain("force_estimate")
+        val forced = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "Pode estimar assim.", now, forceEstimate = true)
+        assertThat(json.encodeToString(ChatIn.serializer(), forced.body)).contains("\"force_estimate\":true")
+    }
+
+    @Test
+    fun `history - an old estimate carries its question, a question-only row goes as stored`() {
+        val first = row("user")
+        val old = row("assistant", kcal = 380, question = "Os pães tinham manteiga?").copy(text = "Identifiquei 2 pães.")
+        val second = row("user")
+        val only = asked().copy(text = "Entendi: macarrão.\nO frango foi grelhado?", estimateQuestion = "O frango foi grelhado?")
+        val turn = PromptBuilder.build(HomeFixtures.home0, listOf(first, old, second, only), emptyList(), "grelhado", now)
+        assertThat(turn.body.messages[1].text).isEqualTo("Identifiquei 2 pães.\nOs pães tinham manteiga?")
+        assertThat(turn.body.messages[3].text).isEqualTo("Entendi: macarrão.\nO frango foi grelhado?")
+    }
 }

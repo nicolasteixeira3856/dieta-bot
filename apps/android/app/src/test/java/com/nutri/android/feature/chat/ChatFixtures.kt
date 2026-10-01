@@ -33,10 +33,22 @@ object ChatFixtures {
     /** Estimate without a follow-up question: the chatT / chatP background (unchanged by ST1). */
     private val estimated = ChatUiState(items = listOf(date, user, bot), emptyDay = false, actions = actions, slots = slots, currentSlotId = 4)
 
-    /** chatE after ST1: the follow-up question in its own bubble right below the estimate (A19). */
-    private const val QUESTION = "Os pães tinham manteiga ou requeijão?"
-    val chatE = estimated.copy(
-        items = listOf(date, user, bot.copy(estimate = bot.estimate!!.copy(question = QUESTION)), ChatItem.Question(2, QUESTION, "20:15")),
+    /** chatE after ST7 (A30): the estimate comes after the questions, with no question bubble. */
+    val chatE = estimated
+
+    /** chatQ (ST7, A30): the second question before the estimate; Forçar estimativa in the actions slot. */
+    val chatQ = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(11, "Jantei macarrão com frango ao molho branco", "20:12"),
+            ChatItem.Question(12, "O molho branco levou creme de leite ou requeijão? E o macarrão, foi 1 prato raso ou fundo?", "20:12", standalone = true),
+            ChatItem.User(13, "Creme de leite, prato fundo", "20:14"),
+            ChatItem.Question(14, "O frango foi grelhado ou empanado?", "20:15", standalone = true),
+        ),
+        emptyDay = false,
+        forceEstimate = true,
+        slots = slots,
+        currentSlotId = 4,
     )
     val chatT = estimated.copy(sheetFor = 2, sheetSelection = 4)
     val chatP = estimated.copy(skipConfirm = SlotRef(3, "Lanche da tarde", "16:00", 960))

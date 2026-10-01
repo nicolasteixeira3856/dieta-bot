@@ -1,6 +1,6 @@
 # ADR-026 — Questions before the estimate, capped at 3 rounds
 
-- Status: Proposed
+- Status: Accepted (30/09/2026, with [A30](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md))
 - Date: 2026-09-30
 - Context: `produto`
 - Supersedes: partially the `AGENTS.md` Product rule "One question if confidence is not high", rule 14 of the [Chat spec](../specifications/chat.md) and rule 4 of [v1-chat](../../server/specifications/v1-chat.md) ("one question per meal"). Changes gold `chatE` (the question bubble leaves the estimate screen) and adds gold `chatQ` (27 → 28 per theme). Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively.
@@ -88,6 +88,6 @@ One Stitch gate, [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estima
 
 - Specifications affected: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md), [api-contract](../../api-contract.md).
 - Related ADRs: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-017](ADR-017-registro-consolidado.md), [ADR-023](ADR-023-chat-v2-memoria-v2.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md).
-- Plans: [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md) → [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) → [A30](../../android/plans/a30-perguntas-antes-da-estimativa.md).
+- Plans: [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md) → [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md) → [A30](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the supersession.
