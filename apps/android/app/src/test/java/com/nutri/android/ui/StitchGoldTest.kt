@@ -84,6 +84,13 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun o1_light() = check("o1", dark = false) { O1() }
 
+    /** A31: before the profile, a 925 dp full-page gold (ST8). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
+    fun o1e_dark() = check("o1e", dark = true, fullPage = true) { O1E() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
+    fun o1e_light() = check("o1e", dark = false, fullPage = true) { O1E() }
+
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun o2_dark() = check("o2", dark = true) { O2() }
 
@@ -276,6 +283,8 @@ class StitchGoldTest {
     )
 
     @Composable private fun O1() = CeilingScreen(GOLD_STATE, {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
+
+    @Composable private fun O1E() = CeilingScreen(OnboardingUiState(sex = "male"), {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
 
     @Composable private fun O2() = EatScreen(GOLD_STATE, {}, {}, {}, {})
 

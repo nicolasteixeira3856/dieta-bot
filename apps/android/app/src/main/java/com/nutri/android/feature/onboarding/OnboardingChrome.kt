@@ -32,9 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
@@ -267,7 +270,7 @@ fun PillCta(
     weight: FontWeight? = null,
 ) {
     val p = LocalPalette.current
-    val alpha = if (enabled) 1f else 0.38f
+    val alpha = if (enabled) 1f else DISABLED_ALPHA
     Row(
         modifier
             .fillMaxWidth()
@@ -373,14 +376,27 @@ fun InfoNote(
 
 /** Gold radio used by O1 modes and O2 cards. */
 @Composable
-fun GoldRadio(selected: Boolean) {
+fun GoldRadio(selected: Boolean, enabled: Boolean = true) {
     val p = LocalPalette.current
+    // Disabled (o1e): the selected radio is a dim ring, no gold fill.
+    val accent = if (enabled) p.gold else p.dim
     Box(
         Modifier
             .size(20.dp)
-            .border(2.dp, if (selected) p.gold else p.line, CircleShape),
+            .border(2.dp, if (selected) accent else p.line, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        if (selected) Box(Modifier.size(10.dp).clip(CircleShape).background(p.gold))
+        if (selected) Box(Modifier.size(10.dp).clip(CircleShape).background(accent))
     }
 }
+
+/** Disabled O1 controls (o1e): 38 % opacity, like the disabled PillCta. */
+internal const val DISABLED_ALPHA = 0.38f
+
+/** Composites the content at [DISABLED_ALPHA] through one save layer when [enabled] is false. */
+internal fun Modifier.disabledAlpha(enabled: Boolean): Modifier =
+    if (enabled) this else drawWithContent {
+        drawContext.canvas.saveLayer(Rect(Offset.Zero, size), Paint().apply { alpha = DISABLED_ALPHA })
+        drawContent()
+        drawContext.canvas.restore()
+    }
