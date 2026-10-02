@@ -44,13 +44,32 @@ const FOOTER = 260; // 130 dp: CTA + gradient + nav
 // chatA: a copy of chat0 (same other header), only its composer is new (A19). chatX too (A25).
 // homeW: a 1350 dp page with the sheet at its bottom; only the sheet is compared (A22).
 // chatS: a copy of chat0 too; only the routine card is compared (A29).
-const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatA", "chatX", "push", "homeW", "chatS"]);
+// chatF, chatG, chatD: the ST9 receipt generation (other header, scrolled thread); only the receipt and
+// its stacked actions are compared (A34, RECEIPT_REGIONS).
+const GOLD_CONFLICTS = new Set(["home0", "homeX", "chat0", "chatL", "chatG", "chatF", "chatD", "chatA", "chatX", "push", "homeW", "chatS"]);
 // Parts of a conflict gold that are gated on their own (gold px box x0, y0, x1, y1; best
-// vertical offset). chatF: the photo bubble (A6); the rest of chatF is the chatG generation.
-// chatA: the composer with the attached thumbnail (A19). chatX: the 5-line composer with the red
+// vertical offset). chatA: the composer with the attached thumbnail (A19). chatX: the 5-line composer with the red
 // border and "Texto muito longo" (A25). chatS: the routine card, title to buttons (A29).
 // chatQ: the Forçar estimativa bar (A30), gated in both themes on top of the dark screen gate.
-const REGIONS = { chatF: [214, 368, 746, 734], chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668], chatS: [32, 798, 748, 1302], chatQ: [32, 1436, 748, 1544] };
+// chatM: the thread between the header and the actions slot; the ST6 gold still draws Gravar | Trocar | Pular, which A34
+// (ADR-028) replaced by Registrar.
+const REGIONS = { chatA: [32, 1388, 748, 1664], chatX: [32, 1344, 748, 1668], chatS: [32, 798, 748, 1302], chatQ: [32, 1436, 748, 1544], chatM: [0, 230, 780, 1436] };
+// A34 (ST9), per theme: the receipt(s), then the stacked actions, each with its own offset (the golds put
+// the actions 16.5, 24 and 28 dp under the receipt; the app uses 22). Same boxes as StitchGoldTest.
+const RECEIPT_REGIONS = {
+  chatG: { dark: [[48, 994, 732, 1136], [48, 1180, 732, 1488]], light: [[48, 974, 732, 1116], [48, 1152, 732, 1460]] },
+  chatD: { dark: [[48, 886, 732, 1144], [48, 1164, 732, 1472]], light: [[48, 868, 732, 1140], [48, 1160, 732, 1468]] },
+  chatF: { dark: [[68, 1096, 714, 1238], [68, 1274, 714, 1478]], light: [[48, 1118, 732, 1222], [48, 1258, 732, 1462]] },
+};
+// chatF (ST9): the photo bubble below the header (A6). Emulator: the seeded photo is not the gold's, so
+// it is reported; the JVM StitchGoldTest gates the light bubble with the gold photo.
+const PHOTO_REGIONS = {
+  chatF: { dark: [214, 224, 746, 504], light: [214, 224, 746, 526] },
+};
+// Receipt boxes reported, not gated: the light receipts are green where dark and the tokens use surf2,
+// and chatF light puts the chip on the title row; chatF dark draws receipt and buttons 314 dp wide
+// (335 dp in the other five). The chatF light buttons stay gated.
+const RECEIPT_REPORT_ONLY = new Set(["light/chatG/0", "light/chatD/0", "light/chatF/0", "dark/chatF/0", "dark/chatF/1"]);
 // Bottom-anchored regions, per theme: the gold bottom is matched to the capture bottom first.
 // homeW: the "Treino de hoje" sheet, top edge to 40 dp above the page end (home pill, A22).
 const BOTTOM_REGIONS = { homeW: { dark: [0, 2012, 780, 2620], light: [0, 2026, 780, 2644] } };
@@ -64,7 +83,8 @@ const REGION_REPORT_ONLY = new Set(["light/chatA", "light/chatX"]);
 // Whole screens reported, not gated, in one theme. light/chatQ: the light gold draws the question
 // bubbles tighter than dark from the same ST7 prompt (line ~22 dp vs 24.5 dp, icon gap 10 vs 12 dp,
 // ~3 dp less padding); the app follows dark. Its Forçar estimativa bar stays gated (REGIONS).
-const SCREEN_REPORT_ONLY = new Set(["light/chatQ"]);
+// chatM (A34): the actions slot changed; only the thread region is gated.
+const SCREEN_REPORT_ONLY = new Set(["light/chatQ", "dark/chatM", "light/chatM"]);
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -259,6 +279,16 @@ for (const key of ids) {
     if (!partOk && !reportOnly) failed = true;
     console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} region ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
   }
+  const photo = PHOTO_REGIONS[id]?.[theme];
+  if (photo) console.log(`  ~ ${key} photo bubble ${regionScore(app, gold, photo).toFixed(2)}% (max ${max}%) [report only]`);
+  (RECEIPT_REGIONS[id]?.[theme] ?? []).forEach((box, i) => {
+    const part = regionScore(app, gold, box);
+    const partOk = part <= max;
+    const reportOnly = RECEIPT_REPORT_ONLY.has(`${key}/${i}`);
+    if (!partOk && !reportOnly) failed = true;
+    const name = i === 0 ? "receipt" : "actions";
+    console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} ${name} ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
+  });
   console.log(`  ${ok ? "✓" : conflict ? "~" : "✗"} ${key} ${pct.toFixed(2)}% ink ${inkRatio.toFixed(2)} (content ${content.dy / 2} dp${footerNote}, max ${max}%, ink 0.8-1.25)${conflict ? " [gold conflict: report only]" : ""}`);
 }
 process.exit(failed ? 1 : 0);

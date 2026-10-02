@@ -15,7 +15,7 @@ Let the user record (or fix) a meal of a past day from the Chat, e.g. "ontem jan
 
 ## Residual risk and dependencies
 
-Until then, a message about another day is never recorded: the reply says the Chat records only today's meals (ADR-028 decision 7). A user who forgets to record a meal before midnight cannot add it. Depends on [S14](../../../server/plans/completed/s14-registro-autonomo.md) (`meal_day`) and [A34](../a34-registro-autonomo.md).
+Until then, a message about another day is never recorded: the reply says the Chat records only today's meals (ADR-028 decision 7). A user who forgets to record a meal before midnight cannot add it. Depends on [S14](../../../server/plans/completed/s14-registro-autonomo.md) (`meal_day`) and [A34](../pending_manual_validation/a34-registro-autonomo.md).
 
 ## Reconsideration conditions
 

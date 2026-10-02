@@ -109,7 +109,7 @@ Client vivo. Room v7 (refeições por dia, A24; Chat v2, A27; memória por mensa
 
 ### Especificacoes
 
-[Room v7](specifications/room-v2.md).
+[Room v8](specifications/room-v2.md).
 
 ### ADRs
 
@@ -121,9 +121,9 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 
 ### Planos e validacao
 
-Registro autônomo ([ADR-028](../produto/adrs/ADR-028-registro-autonomo.md), proposto em 01/10/2026):
+Registro autônomo ([ADR-028](../produto/adrs/ADR-028-registro-autonomo.md), aceito em 02/10/2026):
 
-- [A34 Registro autônomo, recibos com ações](plans/a34-registro-autonomo.md) — aguardando aprovação; pré-requisitos [S14](../server/plans/completed/s14-registro-autonomo.md) no dev (concluído em 02/10/2026) e gate [ST9](../stitch/plans/completed/st9-registro-autonomo.md); Room v8
+- [A34 Registro autônomo, recibos com ações](plans/pending_manual_validation/a34-registro-autonomo.md) — pendente aprovação manual (código, testes, golds e captura entregues em 02/10/2026; falta a rodada manual do dono no servidor dev e o DebugView); [S14](../server/plans/completed/s14-registro-autonomo.md) e gate [ST9](../stitch/plans/completed/st9-registro-autonomo.md); Room v8
 - [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md) — fora de escopo (decisão do dono, 01/10/2026)
 
 Ajustes de O1 e Chat (decisões do dono em 01/10/2026):

@@ -3,6 +3,17 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v7 -> v8: autonomous record and receipt actions (A34). Old rows stay null: no actions. */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `recordMode` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `recordState` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `receiptState` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `undoData` TEXT")
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `recordSource` TEXT")
+    }
+}
+
 /** v6 -> v7: index of the Chat newest-first page (A32). No data change. */
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {

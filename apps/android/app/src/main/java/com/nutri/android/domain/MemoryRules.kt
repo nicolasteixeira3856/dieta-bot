@@ -46,11 +46,17 @@ data class MemoryUpdate(
     val slot: String? = null,
 )
 
+/** [revert] outcome: the memory and how many facts went back or were left as they are. */
+data class RevertResult(val memory: Memory, val reverted: Int, val kept: Int)
+
 /** The meal that was just recorded: a routine takes its slot and macros. */
 data class RecordedMeal(val slot: String, val kcal: Int, val p: Int, val c: Int, val g: Int)
 
-/** Operations effectively applied, by name ([MemoryRules.OPS]). */
-data class MemoryResult(val memory: Memory, val counts: Map<String, Int>) {
+/**
+ * Operations effectively applied, by name ([MemoryRules.OPS]). [images]: pre and post image of every fact
+ * the operation changed (A34), filled by [com.nutri.android.core.memory.FactMemory]; expiry is not a change.
+ */
+data class MemoryResult(val memory: Memory, val counts: Map<String, Int>, val images: List<FactImage> = emptyList()) {
     /** At least one update of the AI was applied (expire alone does not count). */
     val changed: Boolean get() = UPDATE_OPS.any { (counts[it] ?: 0) > 0 }
 
@@ -129,6 +135,39 @@ object MemoryRules {
     }
 
     fun sameKey(a: String, b: String) = clean(a, KEY_MAX).lowercase() == clean(b, KEY_MAX).lowercase()
+
+    /** Every fact that differs between [before] and [after], by id (A34). */
+    fun images(before: Memory, after: Memory): List<FactImage> {
+        val old = before.facts.associateBy { it.id }
+        val new = after.facts.associateBy { it.id }
+        return (old.keys + new.keys).filter { old[it] != new[it] }.map { FactImage(it, old[it], new[it]) }
+    }
+
+    /**
+     * Undo of [images] (A34, ADR-028 decision 6): a fact goes back to `before` only if it still equals `after`
+     * (an added fact leaves, a removed one returns, a changed one gets its old text and days). A fact changed
+     * since is kept. A returning fact keeps its place when its id is free.
+     */
+    fun revert(memory: Memory, images: List<FactImage>): RevertResult {
+        val facts = memory.facts.toMutableList()
+        var reverted = 0
+        var kept = 0
+        for (image in images) {
+            val i = facts.indexOfFirst { it.id == image.id }
+            val current = facts.getOrNull(i)
+            if (current != image.after) {
+                kept++
+                continue
+            }
+            when {
+                image.before == null -> facts.removeAt(i)
+                i >= 0 -> facts[i] = image.before
+                else -> facts += image.before
+            }
+            reverted++
+        }
+        return RevertResult(memory.copy(facts = facts), reverted, kept)
+    }
 
     private class State(memory: Memory, val today: String) {
         val facts = memory.facts.toMutableList()

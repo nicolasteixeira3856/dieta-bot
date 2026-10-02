@@ -185,25 +185,36 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatT_light() = check("chatT", dark = false, navDp = 0) { Chat(ChatFixtures.chatT) }
 
+    /** A34 (ST9): Substituir inside the conversation. chatE generation: whole screen gated. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatP_dark() = check("chatP", dark = true) { Chat(ChatFixtures.chatP) }
+    fun chatU_dark() = check("chatU", dark = true) { Chat(ChatFixtures.chatU) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatP_light() = check("chatP", dark = false) { Chat(ChatFixtures.chatP) }
+    fun chatU_light() = check("chatU", dark = false) { Chat(ChatFixtures.chatU) }
 
-    /** A18: the replace dialog reuses chatP. Copy differs from the gold, so the diff is reported only. */
+    /**
+     * A34 (ST9): chatF, chatG and chatD are the receipt generation (other header, scrolled thread): the receipt
+     * and its stacked actions are gated (RECEIPT_*). The light golds tint the receipt green where dark and the
+     * tokens draw it on the card colour: light is reported only (ADR-027 rules 2 and 3).
+     */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatReplace_dark() = check("chatReplace", dark = true, goldId = "chatP", reportOnly = true) { Chat(ChatFixtures.chatReplace) }
+    fun chatF_dark() = check("chatF", dark = true, reportRegions = listOf(PHOTO_BUBBLE_DARK) + RECEIPT_F_DARK) { Chat(ChatFixtures.chatF) }
+
+    /** chatF light: the photo bubble and the buttons are gated; the receipt (green, chip on the title row) is reported. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatF_light() = check(
+        "chatF",
+        dark = false,
+        region = PHOTO_BUBBLE_LIGHT,
+        regions = RECEIPT_F_LIGHT.drop(1),
+        reportRegions = RECEIPT_F_LIGHT.take(1),
+    ) { Chat(ChatFixtures.chatF) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatReplace_light() = check("chatReplace", dark = false, goldId = "chatP", reportOnly = true) { Chat(ChatFixtures.chatReplace) }
-
-    /** A6: photo bubble. The preview is decoded before rendering (the app decodes it off the main thread). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatF_dark() = check("chatF", dark = true, region = PHOTO_BUBBLE) { Chat(ChatFixtures.chatF) }
+    fun chatD_dark() = check("chatD", dark = true, regions = RECEIPT_D_DARK) { Chat(ChatFixtures.chatD) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatF_light() = check("chatF", dark = false, region = PHOTO_BUBBLE) { Chat(ChatFixtures.chatF) }
+    fun chatD_light() = check("chatD", dark = false, regions = RECEIPT_D_LIGHT, gateRegion = false) { Chat(ChatFixtures.chatD) }
 
     /**
      * A19: photo attached in the composer. chatA is a copy of chat0 (other header): only the composer is gated.
@@ -237,12 +248,16 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatR_light() = check("chatR", dark = false, region = PLAN_BUBBLE, reportOnly = true) { Chat(ChatFixtures.chatR) }
 
-    /** A29 (ST6): Memória atualizada + origin chips. chatE generation: whole screen gated. */
+    /**
+     * A29 (ST6): Memória atualizada + origin chips. chatE generation. The gold still draws Gravar | Trocar |
+     * Pular, which A34 (ADR-028) replaced by Registrar: the thread above the actions slot is gated (CHAT_M_THREAD),
+     * the screen is reported (ADR-027 rule 3).
+     */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatM_dark() = check("chatM", dark = true) { Chat(ChatFixtures.chatM) }
+    fun chatM_dark() = check("chatM", dark = true, region = CHAT_M_THREAD, reportOnly = true) { Chat(ChatFixtures.chatM) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatM_light() = check("chatM", dark = false) { Chat(ChatFixtures.chatM) }
+    fun chatM_light() = check("chatM", dark = false, region = CHAT_M_THREAD, reportOnly = true) { Chat(ChatFixtures.chatM) }
 
     /** A29 (ST6): chatS is a copy of chat0 (other header): only the routine card is gated (ROUTINE_CARD). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -251,9 +266,11 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatS_light() = check("chatS", dark = false, region = ROUTINE_CARD) { Chat(ChatFixtures.chatS) }
 
-    /** Dark chatG gold is a 2560x2048 desktop render: not comparable, light only. chatF (photo) is A6. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
+    fun chatG_dark() = check("chatG", dark = true, regions = RECEIPT_G_DARK) { Chat(ChatFixtures.chatG) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatG_light() = check("chatG", dark = false, regions = RECEIPT_G_LIGHT, gateRegion = false) { Chat(ChatFixtures.chatG) }
 
     /** cfg gold is a full-page capture (936 dp dark, 930 dp light) with the info note near the end. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h936dp-xhdpi")
@@ -272,7 +289,7 @@ class StitchGoldTest {
         ConfigScreen(ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(wipeConfirm = wipe), ConfigActions())
 
     @Composable private fun Chat(ui: ChatUiState) =
-        ChatScreen(ui, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {})
+        ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})
 
     @Composable private fun Home(day: DaySnapshot) =
         HomePanelScreen(HomePanelMapper.map(day, LocalDate.parse("2026-09-25")), {}, {}, {})
@@ -320,6 +337,10 @@ class StitchGoldTest {
         footerDp: Int = if (fullPage) FOOTER_DP else IGNORE_BOTTOM_DP,
         /** Gold px box gated on its own (best vertical offset) when the whole screen is a conflict. */
         region: IntArray? = null,
+        /** More boxes, each with its own best offset (A34: receipt and its buttons, whose gap the golds disagree on). */
+        regions: List<IntArray> = emptyList(),
+        /** Boxes printed, never asserted: the part of a gold that contradicts the others. */
+        reportRegions: List<IntArray> = emptyList(),
         /** Gold to diff against when the state has none of its own. */
         goldId: String = id,
         reportOnly: Boolean = false,
@@ -349,10 +370,14 @@ class StitchGoldTest {
         val inkRatio = ink(appBlur, 0).toDouble() / ink(goldBlur, top).coerceAtLeast(1)
         save(blurred.mask, File(DIFF_OUT, "$theme-$id.png"))
         println("GOLD_DIFF $theme/$id blurred ${"%.2f".format(blurred.percent)}% raw ${"%.2f".format(raw.percent)}% ink ${"%.2f".format(inkRatio)}")
-        if (region != null) {
-            val part = regionDiff(appBlur, goldBlur, region)
-            println("GOLD_DIFF $theme/$id region ${"%.2f".format(part)}%")
-            if (gateRegion) assertWithMessage("$theme/$id region differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
+        (listOfNotNull(region) + regions).forEachIndexed { i, box ->
+            val part = regionDiff(appBlur, goldBlur, box)
+            val name = if (i == 0) "region" else "region$i"
+            println("GOLD_DIFF $theme/$id $name ${"%.2f".format(part)}%")
+            if (gateRegion) assertWithMessage("$theme/$id $name differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
+        }
+        reportRegions.forEachIndexed { i, box ->
+            println("GOLD_DIFF $theme/$id report$i ${"%.2f".format(regionDiff(appBlur, goldBlur, box))}%")
         }
         if (id in GOLD_CONFLICTS || reportOnly) return // reported only, see GOLD_CONFLICTS
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
@@ -511,11 +536,11 @@ class StitchGoldTest {
          */
         private val GOLD_CONFLICTS = setOf(
             "home0", "homeX",
-            // Chat: chatE is canonical. chat0/chatL use another header (body alone: ~1.2-1.4%);
-            // chatG light is the chatF generation. See docs/android/plans/completed/a5-chat.md.
-            "chat0", "chatL", "chatG",
-            // chatF is the chatF/chatG generation too: only its photo bubble is gated (PHOTO_BUBBLE, A6).
-            "chatF",
+            // Chat: chatE is canonical. chat0/chatL use another header (body alone: ~1.2-1.4%).
+            // See docs/android/plans/completed/a5-chat.md.
+            "chat0", "chatL",
+            // chatF, chatG, chatD: the receipt generation (A34, ST9): only the receipt and its actions are gated.
+            "chatF", "chatG", "chatD",
             // chatA is a copy of chat0 (same other header): only its composer is gated (COMPOSER_ATTACHED, A19).
             "chatA",
             // chatX too (A25): only its composer and the error line are gated (COMPOSER_TOO_LONG).
@@ -530,8 +555,24 @@ class StitchGoldTest {
         private val WORKOUT_SHEET_DARK = intArrayOf(0, 2012, 780, 2620)
         private val WORKOUT_SHEET_LIGHT = intArrayOf(0, 2026, 780, 2644)
 
-        /** chatF photo bubble in gold px (x0, y0, x1, y1). */
-        private val PHOTO_BUBBLE = intArrayOf(214, 368, 746, 734)
+        /**
+         * A34: the receipt(s), then the stacked actions, in gold px (x0, y0, x1, y1), per gold. Two boxes: the
+         * golds put the actions 16.5 (chatD), 24 (chatF) and 28 dp (chatG) under the receipt; the app uses 22.
+         * The chatF dark gold draws the receipt and buttons 314 dp wide (335 dp in the other five): reported only,
+         * like its photo bubble (PHOTO_BUBBLE_DARK).
+         */
+        /**
+         * chatF (ST9): the photo bubble below the header, its top scrolled under it (A6), in gold px. The dark
+         * ST9 gold re-crops the photo and bolds the caption (light and the app keep the A6 bubble): dark reported.
+         */
+        private val PHOTO_BUBBLE_DARK = intArrayOf(214, 224, 746, 504)
+        private val PHOTO_BUBBLE_LIGHT = intArrayOf(214, 224, 746, 526)
+        private val RECEIPT_G_DARK = listOf(intArrayOf(48, 994, 732, 1136), intArrayOf(48, 1180, 732, 1488))
+        private val RECEIPT_G_LIGHT = listOf(intArrayOf(48, 974, 732, 1116), intArrayOf(48, 1152, 732, 1460))
+        private val RECEIPT_F_DARK = listOf(intArrayOf(68, 1096, 714, 1238), intArrayOf(68, 1274, 714, 1478))
+        private val RECEIPT_F_LIGHT = listOf(intArrayOf(48, 1118, 732, 1222), intArrayOf(48, 1258, 732, 1462))
+        private val RECEIPT_D_DARK = listOf(intArrayOf(48, 886, 732, 1144), intArrayOf(48, 1164, 732, 1472))
+        private val RECEIPT_D_LIGHT = listOf(intArrayOf(48, 868, 732, 1140), intArrayOf(48, 1160, 732, 1468))
 
         /** chatA composer with the attached thumbnail in gold px (x0, y0, x1, y1). */
         private val COMPOSER_ATTACHED = intArrayOf(32, 1388, 748, 1664)
@@ -544,6 +585,9 @@ class StitchGoldTest {
 
         /** chatR: "Dieta Bot AI" label, plan bubble with the day panel, time and Registrar assim, in gold px (x0, y0, x1, y1). */
         private val PLAN_BUBBLE = intArrayOf(32, 556, 748, 1540)
+
+        /** chatM: the thread below the header down to the actions slot, in gold px (x0, y0, x1, y1). */
+        private val CHAT_M_THREAD = intArrayOf(0, 230, 780, 1436)
 
         /** chatS routine card (title to buttons, 1 px border) in gold px (x0, y0, x1, y1). */
         private val ROUTINE_CARD = intArrayOf(32, 798, 748, 1302)

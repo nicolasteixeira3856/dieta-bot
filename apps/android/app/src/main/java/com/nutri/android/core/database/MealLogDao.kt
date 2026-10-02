@@ -17,6 +17,9 @@ interface MealLogDao {
     @Query("SELECT * FROM meal_log WHERE date >= :from AND date <= :to ORDER BY date ASC, id ASC")
     suspend fun getBetween(from: String, to: String): List<MealLogEntity>
 
+    @Query("SELECT * FROM meal_log WHERE date = :date AND slotId = :slotId ORDER BY id ASC")
+    suspend fun getBySlot(date: String, slotId: Long): List<MealLogEntity>
+
     @Insert
     suspend fun insert(row: MealLogEntity)
 

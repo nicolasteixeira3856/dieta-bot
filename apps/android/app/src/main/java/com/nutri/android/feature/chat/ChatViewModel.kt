@@ -28,9 +28,16 @@ import com.nutri.android.domain.MemoryResult
 import com.nutri.android.domain.MemoryRules
 import com.nutri.android.domain.MemoryUpdate
 import com.nutri.android.domain.ProjectedDay
-import com.nutri.android.domain.RecordedMeal
+import com.nutri.android.domain.ReceiptAction
+import com.nutri.android.domain.ReceiptRules
+import com.nutri.android.domain.RoutineUpdate
 import com.nutri.android.domain.SaoPaulo
+import com.nutri.android.domain.SlotChange
 import com.nutri.android.domain.SlotClock
+import com.nutri.android.domain.SlotRecord
+import com.nutri.android.domain.SlotState
+import com.nutri.android.domain.SlotSuggestions
+import com.nutri.android.domain.UndoData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import java.time.Instant
@@ -89,7 +96,15 @@ class ChatViewModel @Inject constructor(
      * The newest [limit] rows, oldest first, and today's whole conversation read with them: one Room
      * observation, so the actions never arrive a frame before their bubble.
      */
-    private data class Window(val limit: Int, val rows: List<ChatMessageEntity>, val today: List<ChatMessageEntity>)
+    private data class Window(
+        val limit: Int,
+        val rows: List<ChatMessageEntity>,
+        val today: List<ChatMessageEntity>,
+        /** Receipts of the 60 days (A34): the latest of each slot carries the actions. */
+        val receipts: List<ChatMessageEntity> = emptyList(),
+        /** Slot states of the days before today touched by an active receipt; today comes from the snapshot. */
+        val pastSlots: Map<String, Map<Long, SlotState>> = emptyMap(),
+    )
 
     /** VM-only state: never in Room until the server answers (spec: failure leaves Room untouched). */
     private data class Local(
@@ -98,11 +113,11 @@ class ChatViewModel @Inject constructor(
         val composerTooLong: Boolean = false,
         val pending: String? = null,
         val failed: Boolean = false,
-        val sheetFor: Long? = null,
+        /** Trocar sheet (chatT): for an estimate (Outra refeição, a plan without slot) or a receipt (Trocar refeição). */
+        val sheet: Sheet? = null,
         val sheetSelection: Long? = null,
-        val skipConfirm: SlotRef? = null,
-        /** Gravar on a slot that already has a log today (ADR-017): asks before replacing. */
-        val replaceConfirm: ReplaceConfirm? = null,
+        /** Trocar refeição into a slot with a record (A34): Substituir below the receipt, until the next send. */
+        val moveConfirm: MoveConfirm? = null,
         val openedAt: Instant? = null,
         /** JPEG of the pending send (A6). Stored in chat_message only after the server answers. */
         val pendingPhoto: String? = null,
@@ -117,6 +132,26 @@ class ChatViewModel @Inject constructor(
         val sentOnce: Boolean = false,
         val focusComposer: Int = 0,
     )
+
+    private sealed interface Sheet {
+        val id: Long
+
+        data class Estimate(override val id: Long) : Sheet
+
+        /** [current]: the record's slot, marked "(atual)". */
+        data class Receipt(override val id: Long, val current: Long) : Sheet
+    }
+
+    private data class MoveConfirm(val receiptId: Long, val target: SlotRef, val state: SlotState, val confirm: ReplaceConfirm)
+
+    private val recorder = ChatRecorder(repository, memory, telemetry, clock) { result ->
+        memoryChanged(result)
+        reloadFacts()
+    }
+
+    /** Registrar pills already reported as shown, and pending replaces already being expired. */
+    private val shownAsks = mutableSetOf<Long>()
+    private val expiring = mutableSetOf<Long>()
 
     /** Facts after expiration, for the routine card (A29). Reloaded after every memory change. */
     private val facts = MutableStateFlow<List<Fact>>(emptyList())
@@ -138,7 +173,18 @@ class ChatViewModel @Inject constructor(
         val window = combine(pageLimit, day, ::Pair).flatMapLatest { (limit, date) ->
             repository.observeLatestMessages(limit).map { latest ->
                 val newest = latest.firstOrNull()?.id ?: 0L
-                Window(limit, latest.asReversed(), repository.messagesOf(date).filter { it.id <= newest })
+                val receipts = repository.receipts().filter { it.id <= newest }
+                // Other days change only through the Chat, which writes chat_message too: read with the window.
+                val pastDates = receipts.filter { it.receiptState == null }
+                    .flatMap { UndoData.decode(it.undoData)?.slots.orEmpty().map { c -> c.date } }
+                    .filter { it != date }.toSet()
+                Window(
+                    limit,
+                    latest.asReversed(),
+                    repository.messagesOf(date).filter { it.id <= newest },
+                    receipts,
+                    pastDates.associateWith { repository.slotStates(it) },
+                )
             }
         }
         viewModelScope.launch {
@@ -148,7 +194,7 @@ class ChatViewModel @Inject constructor(
                 todayMessages = r.w.today
                 windowLimit = r.w.limit
                 windowFull = r.w.rows.size >= r.w.limit
-                _uiState.value = render(r.d, r.w.rows, r.w.today, r.l, r.f).copy(
+                _uiState.value = render(r.d, r.w, r.l, r.f).copy(
                     loaded = true,
                     hasOlder = windowFull,
                     loadingOlder = r.limit > r.w.limit,
@@ -288,6 +334,8 @@ class ChatViewModel @Inject constructor(
     }
 
     private suspend fun post(text: String, photo: String? = null, force: Boolean = false) {
+        // A34: Registrar and a pending Substituir die on the next send (a retry is a new send).
+        expireOpen()
         telemetry.event(
             TelemetryEvents.CHAT_SEND,
             mapOf("has_photo" to (photo != null), "text_len" to TelemetryEvents.lengthBucket(text.length)),
@@ -330,15 +378,17 @@ class ChatViewModel @Inject constructor(
             telemetry.nonFatal(ChatFallback(requestIds.last, hasPhoto = photo != null))
             chatResult("fallback")
         } else {
-            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence, intent = out.intent, questionOnly = question != null)
+            chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence, intent = out.intent, questionOnly = question != null, record = out.record)
         }
         val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
+        val intent = if (question != null) "log" else out.intent?.takeIf { it in INTENTS }
+        val recordMode = recordModeOf(out, intent, question, suggested)
         repository.insertMessage(role = "user", text = text, photoPath = photo)
         // Preference, portion and every replace/remove apply now; a routine waits for its record (A28).
         val (routine, immediate) = out.memoryUpdates.partition { it.waitsForRecord }
-        val updated = applyMemory(immediate.map { it.toDomain() }, recorded = null)
-        repository.insertMessage(
+        val updated = applyMemory(immediate.map { it.toDomain() })
+        val answerId = repository.insertMessage(
             role = "assistant",
             // Question only: the server's history text (draft + question), sent back as is next turn.
             text = out.reply.ifBlank { question.orEmpty() },
@@ -351,35 +401,75 @@ class ChatViewModel @Inject constructor(
             estimateQuestion = question ?: out.estimate?.question,
             estimateItems = out.estimate?.items?.map { it.name }.orEmpty(),
             estimateMealText = out.estimate?.mealText?.trim()?.takeIf { it.isNotEmpty() },
-            intent = if (question != null) "log" else out.intent?.takeIf { it in INTENTS },
+            intent = intent,
             pendingMemory = routine.takeIf { it.isNotEmpty() }?.let { memoryJson.encodeToString(UPDATES, it) },
             memoryUsedKinds = usedKinds(out.memoryUsed, facts),
             memoryUpdated = updated,
+            recordMode = recordMode,
         )
         local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false) }
+        if (recordMode == RECORD_AUTO) autoRecord(answerId, out, snapshot, turn.body.clarifyRounds)
     }
 
+    /**
+     * The record mark of an answer (A34): the server's, with the client guards (ADR-028 decision 8). A
+     * server without `record` and a recordable log estimate gives `ask`: nothing is recorded without a tap.
+     */
+    private fun recordModeOf(out: ChatOut, intent: String?, question: String?, suggested: Long?): String {
+        val log = out.estimate != null && question == null && (intent == null || intent == "log")
+        val mode = out.record?.takeIf { it in RECORD_MODES } ?: return if (log) RECORD_ASK else RECORD_NONE
+        if (mode != RECORD_AUTO || intent != "log") return mode
+        val reason = when {
+            question != null || !out.estimate?.question.isNullOrBlank() -> "question_pending"
+            out.estimate == null || out.estimate.kcal <= 0.0 -> "not_recordable"
+            out.estimate.suggestedSlot == null -> "no_slot"
+            suggested == null -> "slot_not_today"
+            else -> return mode
+        }
+        telemetry.event(TelemetryEvents.RECORD_GUARD, mapOf("reason" to reason))
+        return RECORD_ASK
+    }
+
+    /** One automatic action per answer: a record of today's log, or a skip by text. */
+    private suspend fun autoRecord(answerId: Long, out: ChatOut, snapshot: DaySnapshot, rounds: Int) {
+        val answer = repository.message(answerId) ?: return
+        val slots = snapshot.slotsOfDay.refs()
+        if (out.intent == "skip") {
+            val slot = out.skipSlot?.toLongOrNull()?.let { id -> slots.firstOrNull { it.id == id } }
+            if (slot == null) {
+                telemetry.event(TelemetryEvents.RECORD_GUARD, mapOf("reason" to if (out.skipSlot == null) "no_slot" else "slot_not_today"))
+                repository.setRecordState(answerId, ChatRecorder.NOT_RECORDED)
+                return
+            }
+            val empty = repository.slotState(answer.date, slot.id).empty
+            if (!empty || !recorder.skip(answerId, slot)) {
+                repository.setRecordState(answerId, ChatRecorder.NOT_RECORDED)
+                return
+            }
+            telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat"))
+            autoEvent("skip", "empty", "user", rounds)
+            return
+        }
+        val slot = answer.estimateSlotId?.let { id -> slots.firstOrNull { it.id == id } } ?: return
+        val day = repository.messagesOf(answer.date)
+        when (val outcome = recordInto(answer, day, slot)) {
+            is RecordOutcome.Recorded -> autoEvent("log", if (outcome.before.skipped) "skipped" else "empty", sourceOf(answer, day), rounds)
+            else -> Unit
+        }
+    }
+
+    private fun autoEvent(kind: String, slotState: String, source: String, rounds: Int) = telemetry.event(
+        TelemetryEvents.MEAL_AUTO_RECORDED,
+        mapOf("kind" to kind, "slot_state" to slotState, "source" to source, "rounds" to rounds),
+    )
+
     /** Applies [updates]; true when at least one changed the memory. A failed write changes nothing. */
-    private suspend fun applyMemory(updates: List<MemoryUpdate>, recorded: RecordedMeal?): Boolean {
+    private suspend fun applyMemory(updates: List<MemoryUpdate>): Boolean {
         if (updates.isEmpty()) return false
-        val result = runCatching { memory.apply(updates, SaoPaulo.date(clock.now()), recorded) }.getOrNull() ?: return false
+        val result = runCatching { memory.apply(updates, SaoPaulo.date(clock.now())) }.getOrNull() ?: return false
         memoryChanged(result)
         reloadFacts()
         return result.changed
-    }
-
-    /** Routine add/reinforce stored with the estimate: they count only now that it was recorded. */
-    private suspend fun applyPending(estimate: ChatMessageEntity, slotId: Long): Boolean {
-        val pending = estimate.pendingMemory ?: return false
-        val updates = runCatching { memoryJson.decodeFromString(UPDATES, pending) }.getOrDefault(emptyList())
-        val meal = RecordedMeal(
-            slot = slotId.toString(),
-            kcal = estimate.estimateKcal ?: 0,
-            p = estimate.estimateP ?: 0,
-            c = estimate.estimateC ?: 0,
-            g = estimate.estimateG ?: 0,
-        )
-        return applyMemory(updates.map { it.toDomain() }, meal)
     }
 
     private fun memoryChanged(result: MemoryResult) {
@@ -398,95 +488,145 @@ class ChatViewModel @Inject constructor(
         return listOf(MemoryRules.PERMANENT, MemoryRules.DYNAMIC).filter { it in kinds }.joinToString(",").ifEmpty { null }
     }
 
-    private fun chatResult(outcome: String, hasEstimate: Boolean = false, confidence: String? = null, intent: String? = null, questionOnly: Boolean = false) {
+    private fun chatResult(
+        outcome: String,
+        hasEstimate: Boolean = false,
+        confidence: String? = null,
+        intent: String? = null,
+        questionOnly: Boolean = false,
+        record: String? = null,
+    ) {
         val params = buildMap<String, Any> {
             put("outcome", outcome)
             put("has_estimate", hasEstimate)
             put("question_only", questionOnly)
             confidence?.let { put("confidence", it) }
             // Enum only: an unknown value never leaves the device as free text.
-            if (outcome == "ok") put("intent", intent?.takeIf { it in INTENTS } ?: "none")
+            if (outcome == "ok") {
+                put("intent", intent?.takeIf { it in INTENTS } ?: "none")
+                put("record", record?.takeIf { it in RECORD_MODES } ?: "missing")
+            }
         }
         telemetry.event(TelemetryEvents.CHAT_RESULT, params)
     }
 
+    /** Routine add/reinforce stored with the estimate (A28): they count only with its record. */
+    private fun routineOf(estimate: ChatMessageEntity): List<RoutineUpdate> {
+        val pending = estimate.pendingMemory ?: return emptyList()
+        return runCatching { memoryJson.decodeFromString(UPDATES, pending) }.getOrDefault(emptyList())
+            .map { RoutineUpdate(it.op, it.id, it.kind, it.category, it.key, it.text, it.slot) }
+    }
+
+    /** The record of [estimate] (A34): the meal_log row, the receipt source and its routine. */
+    private fun newRecord(estimate: ChatMessageEntity, day: List<ChatMessageEntity>): NewRecord {
+        val source = sourceOf(estimate, day)
+        return NewRecord(
+            record = SlotRecord(
+                text = descriptionOf(estimate, day),
+                kcal = estimate.estimateKcal ?: 0,
+                p = estimate.estimateP ?: 0,
+                c = estimate.estimateC ?: 0,
+                g = estimate.estimateG ?: 0,
+                source = source,
+            ),
+            source = if (estimate.isPlanEstimate) SOURCE_PLAN else source,
+            routine = routineOf(estimate),
+            estimateId = estimate.id,
+        )
+    }
+
     /**
-     * Tap Gravar: local log with the last estimate. No second POST (spec rule 5).
-     * A slot that already has a log today asks first and replaces (ADR-017): never two logs by the Chat.
+     * The one record path of an estimate (A34): automatic, Registrar, Registrar assim, the Trocar sheet.
+     * Empty or skipped slot → recorded with a receipt. Slot with a record → pending replace below the answer
+     * (chatU); nothing changes until Substituir. No second POST.
      */
-    fun record(estimateId: Long, slotId: Long) {
-        local.update { it.copy(sheetFor = null, sheetSelection = null) }
+    private suspend fun recordInto(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, slot: SlotRef): RecordOutcome {
+        val outcome = recorder.record(newRecord(estimate, day), slot)
+        when (outcome) {
+            is RecordOutcome.Recorded -> mealSaved(estimate, day)
+            is RecordOutcome.Taken -> {
+                val pending = SlotChange(estimate.date, slot.id, outcome.state, outcome.state)
+                repository.setRecordState(estimate.id, ChatRecorder.PENDING_REPLACE, UndoData.encodeChange(pending))
+                replaceEvent("shown", "answer")
+            }
+            RecordOutcome.Stale -> Unit
+        }
+        return outcome
+    }
+
+    /** An estimate of today that can still be recorded: no record decided, or a pending replace. */
+    private suspend fun openEstimate(estimateId: Long): ChatMessageEntity? = repository.message(estimateId)?.takeIf {
+        it.isRecordable && it.date == SaoPaulo.date(clock.now()).toString() &&
+            (it.recordState == null || it.recordState == ChatRecorder.PENDING_REPLACE)
+    }
+
+    private suspend fun todaySlot(slotId: Long): SlotRef? = repository.observeToday().first().slotsOfDay.refs().firstOrNull { it.id == slotId }
+
+    /** Registrar (chatE): the `ask` estimate takes the record path. Without a slot of today, Trocar with nothing picked. */
+    fun register(estimateId: Long) {
+        val actions = _uiState.value.actions?.takeIf { it.estimateId == estimateId } ?: return
+        if (!actions.plan) telemetry.event(TelemetryEvents.RECORD_ASK, mapOf("action" to "tapped"))
+        val slot = actions.record
+        if (slot == null) {
+            local.update { it.copy(sheet = Sheet.Estimate(estimateId), sheetSelection = null) }
+            return
+        }
         viewModelScope.launch {
-            // By id, not from the window: an estimate scrolled out of the loaded page still records (A32).
-            val estimate = repository.message(estimateId)?.takeIf { it.isRecordable } ?: return@launch
+            val estimate = openEstimate(estimateId) ?: return@launch
+            recordInto(estimate, repository.messagesOf(estimate.date), slot)
+        }
+    }
+
+    /** Registrar assim (chatR): same path as Registrar (A29). */
+    fun recordPlan(estimateId: Long) = register(estimateId)
+
+    /** Substituir below an answer (chatU): today's record(s) of the slot become this estimate, one transaction. */
+    fun confirmReplace(estimateId: Long) {
+        viewModelScope.launch {
+            val estimate = openEstimate(estimateId)?.takeIf { it.recordState == ChatRecorder.PENDING_REPLACE } ?: return@launch
+            val pending = UndoData.decodeChange(estimate.undoData) ?: return@launch
+            val slot = todaySlot(pending.slotId)
             val day = repository.messagesOf(estimate.date)
-            val today = repository.observeToday().first()
-            val slot = today.slotsOfDay.refs().firstOrNull { it.id == slotId } ?: return@launch
-            val taken = today.logs.filter { it.slotId == slotId }
-            if (taken.isNotEmpty()) {
-                val confirm = ReplaceConfirm(estimateId, slot, oldKcal = taken.sumOf { it.kcal }, newKcal = estimate.estimateKcal ?: 0)
-                local.update { it.copy(replaceConfirm = confirm) }
+            val outcome = slot?.let { recorder.record(newRecord(estimate, day), it, expected = pending.before) }
+            if (outcome !is RecordOutcome.Recorded) {
+                expirePending(estimate)
                 return@launch
             }
-            repository.addLog(
-                window = "",
-                text = descriptionOf(estimate, day),
-                kcal = estimate.estimateKcal ?: 0,
-                p = estimate.estimateP ?: 0,
-                stable = true,
-                slotId = slot.id,
-                carbs = estimate.estimateC ?: 0,
-                fat = estimate.estimateG ?: 0,
-                source = sourceOf(estimate, day),
-            )
-            val updated = applyPending(estimate, slot.id)
-            repository.insertMessage(
-                role = "logged",
-                text = slot.name,
-                estimateKcal = estimate.estimateKcal,
-                estimateSlotId = slot.id,
-                memoryUpdated = updated,
-            )
+            replaceEvent("confirmed", "answer")
             mealSaved(estimate, day)
         }
     }
 
-    /** Substituir: today's log(s) of the slot become this estimate, in one transaction. */
-    fun confirmReplace() {
-        val confirm = local.value.replaceConfirm ?: return
-        local.update { it.copy(replaceConfirm = null) }
-        viewModelScope.launch {
-            val estimate = repository.message(confirm.estimateId)?.takeIf { it.isRecordable } ?: return@launch
-            val day = repository.messagesOf(estimate.date)
-            if (repository.observeToday().first().slotsOfDay.none { it.id == confirm.slot.id }) return@launch
-            repository.replaceSlotLog(
-                slotId = confirm.slot.id,
-                text = descriptionOf(estimate, day),
-                kcal = estimate.estimateKcal ?: 0,
-                p = estimate.estimateP ?: 0,
-                carbs = estimate.estimateC ?: 0,
-                fat = estimate.estimateG ?: 0,
-                source = sourceOf(estimate, day),
-            )
-            val updated = applyPending(estimate, confirm.slot.id)
-            repository.insertMessage(
-                role = ROLE_REPLACED,
-                text = confirm.slot.name,
-                estimateKcal = estimate.estimateKcal,
-                estimateSlotId = confirm.slot.id,
-                memoryUpdated = updated,
-            )
-            mealSaved(estimate, day)
+    /** Outra refeição below an answer: Trocar with nothing picked; the confirmation stays until a slot is chosen. */
+    fun replaceElsewhere(estimateId: Long) {
+        replaceEvent("elsewhere", "answer")
+        local.update { it.copy(sheet = Sheet.Estimate(estimateId), sheetSelection = null) }
+    }
+
+    private suspend fun expirePending(estimate: ChatMessageEntity) {
+        repository.setRecordState(estimate.id, ChatRecorder.NOT_RECORDED)
+        replaceEvent("expired", "answer")
+    }
+
+    /**
+     * Next send (A34): every open Registrar and pending Substituir becomes `Não registrado`; a pending move
+     * confirmation closes.
+     */
+    private suspend fun expireOpen() {
+        local.value.moveConfirm?.let { replaceEvent("expired", "move") }
+        local.update { it.copy(moveConfirm = null) }
+        repository.openRecords().forEach { row ->
+            repository.setRecordState(row.id, ChatRecorder.NOT_RECORDED)
+            if (row.recordState == ChatRecorder.PENDING_REPLACE) {
+                replaceEvent("expired", "answer")
+            } else {
+                telemetry.event(TelemetryEvents.RECORD_ASK, mapOf("action" to "expired"))
+            }
         }
     }
 
-    /** Outra refeição: closes the confirmation and opens Trocar with nothing picked. Room untouched. */
-    fun replaceElsewhere() {
-        val confirm = local.value.replaceConfirm ?: return
-        local.update { it.copy(replaceConfirm = null, sheetFor = confirm.estimateId, sheetSelection = null) }
-    }
-
-    fun cancelReplace() = local.update { it.copy(replaceConfirm = null) }
+    private fun replaceEvent(action: String, from: String) =
+        telemetry.event(TelemetryEvents.REPLACE_CONFIRM, mapOf("action" to action, "from" to from))
 
     private fun sourceOf(estimate: ChatMessageEntity, day: List<ChatMessageEntity>) =
         if (userBefore(estimate, day)?.photoPath != null) "photo" else "user"
@@ -496,26 +636,66 @@ class ChatViewModel @Inject constructor(
         mapOf("from" to "chat", "has_photo" to (userBefore(estimate, day)?.photoPath != null), "kcal" to (estimate.estimateKcal ?: 0)),
     )
 
-    fun openSheet(estimateId: Long) = local.update {
-        val preset = _uiState.value.actions?.record?.id ?: _uiState.value.currentSlotId
-        it.copy(sheetFor = estimateId, sheetSelection = preset)
+    // ------------------------------------------------------------------ receipt actions (A34)
+
+    /** Desfazer · Excluir · Trocar refeição · Editar on the latest receipt of its slot (ADR-028 decision 5). */
+    fun receiptAction(receiptId: Long, action: ReceiptAction) {
+        val item = _uiState.value.items.firstOrNull { it is ChatItem.Receipt && it.id == receiptId } as? ChatItem.Receipt
+        if (item == null || action !in item.actions) return
+        viewModelScope.launch {
+            val receipt = repository.message(receiptId)?.takeIf { it.receiptState == null } ?: return@launch
+            when (action) {
+                ReceiptAction.DELETE -> recorder.delete(receipt, ChatRecorder.DELETED) ?: return@launch
+                ReceiptAction.UNDO -> if (!recorder.undo(receipt, ::slotName)) return@launch
+                ReceiptAction.EDIT -> {
+                    val records = recorder.delete(receipt, ChatRecorder.EDITED) ?: return@launch
+                    val text = records.joinToString(", ") { it.text }
+                    local.update {
+                        it.copy(composer = text, composerTooLong = ChatText.tooLong(text), focusComposer = it.focusComposer + 1)
+                    }
+                }
+                ReceiptAction.MOVE -> {
+                    val from = UndoData.decode(receipt.undoData)?.recordSlot ?: return@launch
+                    local.update { it.copy(sheet = Sheet.Receipt(receiptId, from.slotId), sheetSelection = null, moveConfirm = null) }
+                }
+            }
+            recorder.receiptEvent(action, receipt)
+        }
     }
 
-    /**
-     * Registrar assim (chatR): the plan goes through Gravar in its suggested slot, Substituir
-     * included (ADR-017). Without a slot of the day, Trocar opens with nothing picked.
-     */
-    fun recordPlan(estimateId: Long) {
-        val actions = _uiState.value.actions?.takeIf { it.estimateId == estimateId && it.plan } ?: return
-        val slot = actions.record
-        if (slot != null) record(estimateId, slot.id) else local.update { it.copy(sheetFor = estimateId, sheetSelection = null) }
+    /** Substituir below a receipt (Trocar refeição into a slot with a record): move and replace in one transaction. */
+    fun confirmMove() {
+        val confirm = local.value.moveConfirm ?: return
+        local.update { it.copy(moveConfirm = null) }
+        viewModelScope.launch {
+            val receipt = repository.message(confirm.receiptId)?.takeIf { it.receiptState == null } ?: return@launch
+            if (recorder.move(receipt, confirm.target, expected = confirm.state) is RecordOutcome.Recorded) {
+                replaceEvent("confirmed", "move")
+            } else {
+                replaceEvent("expired", "move")
+            }
+        }
     }
+
+    /** Outra refeição below a receipt: Trocar again with nothing picked. */
+    fun moveElsewhere() {
+        val confirm = local.value.moveConfirm ?: return
+        replaceEvent("elsewhere", "move")
+        viewModelScope.launch {
+            val from = repository.message(confirm.receiptId)?.let { UndoData.decode(it.undoData)?.recordSlot } ?: return@launch
+            local.update { it.copy(moveConfirm = null, sheet = Sheet.Receipt(confirm.receiptId, from.slotId), sheetSelection = null) }
+        }
+    }
+
+    /** Slot name for a restored receipt: the profile's, any weekday. */
+    private suspend fun slotName(slotId: Long): String =
+        repository.observeToday().first().slots.firstOrNull { it.id == slotId }?.name ?: "Outros"
 
     // ------------------------------------------------------------------ routine suggestion (A29)
 
     /**
-     * Registrar (chatS): the routine as is, in its slot. No POST. Receipt like Gravar, the routine
-     * reinforced with this record.
+     * Registrar (chatS): the routine as is, in its slot. No POST. Receipt like any record, the routine
+     * reinforced with this record (and reverted by Excluir / Editar).
      */
     fun recordRoutine() {
         val suggestion = _uiState.value.routine ?: return
@@ -523,29 +703,14 @@ class ChatViewModel @Inject constructor(
             val slot = suggestion.slot
             val today = repository.observeToday().first()
             // The card only exists for an empty slot; a record that raced it wins.
-            if (today.slotsOfDay.none { it.id == slot.id } || today.logs.any { it.slotId == slot.id } || slot.id in today.skippedSlotIds) return@launch
-            repository.addLog(
-                window = "",
-                text = suggestion.text,
-                kcal = suggestion.kcal,
-                p = suggestion.p,
-                stable = true,
-                slotId = slot.id,
-                carbs = suggestion.c,
-                fat = suggestion.g,
+            if (today.slotsOfDay.none { it.id == slot.id }) return@launch
+            val new = NewRecord(
+                record = SlotRecord(suggestion.text, suggestion.kcal, suggestion.p, suggestion.c, suggestion.g, SOURCE_ROUTINE),
                 source = SOURCE_ROUTINE,
+                routine = listOf(RoutineUpdate(MemoryRules.REINFORCE, suggestion.factId, MemoryRules.DYNAMIC, MemoryRules.ROUTINE, slot = slot.id.toString())),
+                estimateId = null,
             )
-            val meal = RecordedMeal(slot.id.toString(), suggestion.kcal, suggestion.p, suggestion.c, suggestion.g)
-            val result = runCatching { memory.reinforceRoutine(suggestion.factId, meal, SaoPaulo.date(clock.now())) }.getOrNull()
-            result?.let { memoryChanged(it) }
-            reloadFacts()
-            repository.insertMessage(
-                role = "logged",
-                text = slot.name,
-                estimateKcal = suggestion.kcal,
-                estimateSlotId = slot.id,
-                memoryUpdated = result?.changed == true,
-            )
+            if (recorder.record(new, slot, expected = SlotState.EMPTY) !is RecordOutcome.Recorded) return@launch
             routineEvent("record")
             telemetry.event(TelemetryEvents.MEAL_SAVED, mapOf("from" to SOURCE_ROUTINE, "has_photo" to false, "kcal" to suggestion.kcal))
         }
@@ -568,52 +733,67 @@ class ChatViewModel @Inject constructor(
 
     fun selectInSheet(slotId: Long) = local.update { it.copy(sheetSelection = slotId) }
 
-    fun closeSheet() = local.update { it.copy(sheetFor = null, sheetSelection = null) }
+    fun closeSheet() = local.update { it.copy(sheet = null, sheetSelection = null) }
 
-    /** Trocar → Confirmar: records into the chosen slot. */
+    /** Trocar → Confirmar: records the estimate into the chosen slot, or moves the receipt's record there. */
     fun confirmSheet() {
         val l = local.value
-        val estimateId = l.sheetFor ?: return
+        val sheet = l.sheet ?: return
         val slotId = l.sheetSelection ?: return
-        record(estimateId, slotId)
-    }
-
-    fun askSkip(slot: SlotRef) = local.update { it.copy(skipConfirm = slot) }
-
-    fun cancelSkip() = local.update { it.copy(skipConfirm = null) }
-
-    /** Pular: skip status on the slot, no kcal (spec rule 7). Never automatic. */
-    fun confirmSkip() {
-        val slot = local.value.skipConfirm ?: return
-        local.update { it.copy(skipConfirm = null) }
+        local.update { it.copy(sheet = null, sheetSelection = null) }
         viewModelScope.launch {
-            if (repository.observeToday().first().slotsOfDay.none { it.id == slot.id }) return@launch
-            repository.addSkip(slot.id)
-            repository.insertMessage(role = "skipped", text = slot.name, estimateSlotId = slot.id)
-            telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat"))
+            val slot = todaySlot(slotId) ?: return@launch
+            when (sheet) {
+                is Sheet.Estimate -> {
+                    val estimate = openEstimate(sheet.id) ?: return@launch
+                    recordInto(estimate, repository.messagesOf(estimate.date), slot)
+                }
+                is Sheet.Receipt -> {
+                    val receipt = repository.message(sheet.id)?.takeIf { it.receiptState == null } ?: return@launch
+                    val outcome = recorder.move(receipt, slot)
+                    if (outcome is RecordOutcome.Taken) {
+                        val kcal = UndoData.decode(receipt.undoData)?.recordSlot?.after?.kcal ?: 0
+                        val confirm = ReplaceConfirm(slot, oldKcal = outcome.state.kcal, newKcal = kcal)
+                        local.update { it.copy(moveConfirm = MoveConfirm(receipt.id, slot, outcome.state, confirm)) }
+                        replaceEvent("shown", "move")
+                    }
+                }
+            }
         }
     }
 
     // ------------------------------------------------------------------ render
 
-    /** [window]: the loaded page, oldest first (A32). [todayAll]: today's whole conversation. */
-    private fun render(d: DaySnapshot, window: List<ChatMessageEntity>, todayAll: List<ChatMessageEntity>, l: Local, facts: List<Fact>): ChatUiState {
+    /** [w]: the loaded page (oldest first, A32), today's whole conversation and the receipts of the 60 days. */
+    private fun render(d: DaySnapshot, w: Window, l: Local, facts: List<Fact>): ChatUiState {
+        val window = w.rows
         val now = clock.now()
         val today = SaoPaulo.date(now)
         val todayIso = today.toString()
         val slots = d.slotsOfDay.refs()
         val slotById = slots.associateBy { it.id }
+        val allSlotTimes = d.slots.associate { it.id to SlotSuggestions.format(it.minutesFromMidnight) }
         val eaten = Macros(d.logs.sumOf { it.kcal }, d.logs.sumOf { it.p }, d.logs.sumOf { it.carbs }, d.logs.sumOf { it.fat })
         val budget = d.budgetOn(today)
         val targets = Macros(0, d.proteinTargetG, d.carbTargetG, d.fatTargetG)
         // Date pills, plans and memory notices: the window only. Actions and rounds: all of today.
-        val todayRows = todayAll.filter { it.date == todayIso }
+        val todayRows = w.today.filter { it.date == todayIso }
         val project = { m: ChatMessageEntity ->
             val plan = Macros(m.estimateKcal ?: 0, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
             // A recorded plan is already inside the day: it is counted once, not projected on top.
             val base = if (recordedPlan(m, todayRows)) eaten.minus(plan) else eaten
             ProjectedDay.of(budget, base, plan, targets)
         }
+        val todayStates = todayStates(d)
+        val stateOf = { date: String, slotId: Long ->
+            (if (date == todayIso) todayStates else w.pastSlots[date].orEmpty())[slotId] ?: SlotState.EMPTY
+        }
+        val receiptActions = receiptActions(w.receipts, stateOf)
+        // Registrar (chatE) or Registrar assim (chatR): the last estimate of today that is still open.
+        val lastEstimate = todayRows.lastOrNull { it.role == "assistant" && it.isRecordable }
+        val open = lastEstimate?.takeIf { l.pending == null && isOpen(it, todayRows) }
+        val stalePending = mutableListOf<ChatMessageEntity>()
+
         val items = mutableListOf<ChatItem>()
         var lastDate: String? = null
         // The wipe marker only cuts the prompt; it is never drawn.
@@ -624,26 +804,48 @@ class ChatViewModel @Inject constructor(
                 lastDate = m.date
             }
             val time = timeOf(m.createdAtEpochMs)
-            items += when (m.role) {
-                "user" -> ChatItem.User(m.id, m.text, time, photoPath = m.photoPath)
-                "logged", ROLE_REPLACED, "skipped" -> ChatItem.Receipt(
-                    id = m.id,
-                    skipped = m.role == "skipped",
-                    replaced = m.role == ROLE_REPLACED,
-                    slotName = m.text,
-                    slotTime = m.estimateSlotId?.let { slotById[it]?.time },
-                    kcal = m.estimateKcal,
-                    memoryUpdated = m.memoryUpdated,
-                )
-                // A30: a question before the estimate is only its question bubble (chatQ).
-                else -> if (PromptBuilder.isQuestionOnly(m)) {
-                    ChatItem.Question(m.id, m.estimateQuestion.orEmpty().trim(), time, standalone = true, memory = memoryOf(m))
-                } else assistant(m, time, slotById, plan = if (m.isPlanEstimate && m.date == todayIso) project(m) else null)
+            if (m.role in ReceiptRules.ROLES) {
+                items += receipt(m, allSlotTimes, receiptActions[m.id].orEmpty(), l.moveConfirm?.takeIf { it.receiptId == m.id }?.confirm)
+                continue
             }
-            if (m.role == "assistant" && m.isLogEstimate) {
+            if (m.role == "user") {
+                items += ChatItem.User(m.id, m.text, time, photoPath = m.photoPath)
+                continue
+            }
+            // A30: a question before the estimate is only its question bubble (chatQ).
+            if (PromptBuilder.isQuestionOnly(m)) {
+                items += ChatItem.Question(m.id, m.estimateQuestion.orEmpty().trim(), time, standalone = true, memory = memoryOf(m))
+                continue
+            }
+            // A34: a pending replace asks below the answer while its slot still holds what it asked about.
+            val pending = UndoData.decodeChange(m.undoData)?.takeIf {
+                m.recordState == ChatRecorder.PENDING_REPLACE && m.date == todayIso
+            }
+            val pendingSlot = pending?.let { slotById[it.slotId] }
+            val asking = pending != null && pendingSlot != null && stateOf(pending.date, pending.slotId) == pending.before
+            if (pending != null && !asking) stalePending += m
+            val notRecorded = m.recordMode != null && m.isRecordable && when (m.recordState) {
+                ChatRecorder.NOT_RECORDED -> true
+                ChatRecorder.PENDING_REPLACE -> !asking
+                null -> m.recordMode == RECORD_ASK && m.date != todayIso
+                else -> false
+            }
+            items += assistant(
+                m,
+                time,
+                slotById,
+                plan = if (m.isPlanEstimate && m.date == todayIso) project(m) else null,
+                offer = open?.id == m.id && !m.isPlanEstimate,
+                notRecorded = notRecorded,
+            )
+            if (m.isLogEstimate) {
                 m.estimateQuestion?.takeIf { it.isNotBlank() }?.let { items += ChatItem.Question(m.id, it, time) }
             }
+            if (asking) {
+                items += ChatItem.ReplacePrompt(m.id, ReplaceConfirm(pendingSlot!!, oldKcal = pending!!.before.kcal, newKcal = m.estimateKcal ?: 0))
+            }
         }
+        expireStale(stalePending)
 
         val emptyDay = todayRows.none { it.role != DayRepository.ROLE_WIPED } && l.pending == null
         if (emptyDay) {
@@ -658,17 +860,15 @@ class ChatViewModel @Inject constructor(
 
         val nowMinutes = SlotClock.minutesFromMidnight(now)
         val current = SlotClock.current(slots, nowMinutes) { it.minutes }
-        // A log and a plan share the rule: only the last one without a receipt has actions (A29).
-        val lastEstimate = todayRows.lastOrNull { it.role == "assistant" && it.isRecordable }
-        val closed = lastEstimate == null || todayRows.any { it.createdAtEpochMs >= lastEstimate.createdAtEpochMs && it.id != lastEstimate.id && it.role in RECEIPTS }
-        val actions = if (closed || l.pending != null) null else {
-            val record = lastEstimate!!.estimateSlotId?.let { slotById[it] }
-            EstimateActions(lastEstimate.id, record = record, skip = record ?: current, plan = lastEstimate.isPlanEstimate)
-        }
+        val actions = open?.let { EstimateActions(it.id, record = it.estimateSlotId?.let { id -> slotById[id] }, plan = it.isPlanEstimate) }
         // A30: from the second question in a row, Forçar estimativa takes the actions slot (chatQ).
         val forceEstimate = l.pending == null && l.attachment == null &&
             todayRows.lastOrNull()?.let(PromptBuilder::isQuestionOnly) == true &&
             PromptBuilder.clarifyRounds(todayRows) >= FORCE_FROM_ROUND
+        val shownActions = actions.takeUnless { forceEstimate }
+        shownActions?.takeIf { !it.plan && shownAsks.add(it.estimateId) }?.let {
+            telemetry.event(TelemetryEvents.RECORD_ASK, mapOf("action" to "shown"))
+        }
         val routine = if (l.sentOnce || l.pending != null) null else routineFor(current, d, facts)
         routine?.let { items += ChatItem.Routine(it) }
         routine?.takeIf { shownRoutines.add(it.factId + "@" + it.slot.id) }?.let { routineEvent("shown") }
@@ -681,28 +881,117 @@ class ChatViewModel @Inject constructor(
             emptyDay = emptyDay,
             metaRemaining = (meta - eaten.kcal).coerceAtLeast(0),
             metaTotal = meta,
-            actions = actions.takeUnless { forceEstimate },
+            actions = shownActions,
             forceEstimate = forceEstimate,
             slots = slots,
             currentSlotId = current?.id,
-            sheetFor = l.sheetFor,
+            sheetFor = l.sheet?.id,
             photoSheet = l.photoSheet,
             attachment = l.attachment,
             notice = l.notice,
             sheetSelection = l.sheetSelection,
-            skipConfirm = l.skipConfirm,
-            replaceConfirm = l.replaceConfirm,
+            sheetCurrent = when (val sheet = l.sheet) {
+                is Sheet.Receipt -> sheet.current
+                else -> current?.id
+            },
             routine = routine,
             focusComposer = l.focusComposer,
         )
     }
 
-    /** The plan's own receipt: the first receipt after it, before any other estimate, is a record (not a skip). */
-    private fun recordedPlan(plan: ChatMessageEntity, sorted: List<ChatMessageEntity>): Boolean = sorted
-        .dropWhile { it.id != plan.id }
-        .drop(1)
-        .firstOrNull { it.role in RECEIPTS || it.role == "assistant" && it.isRecordable }
-        ?.role.let { it == "logged" || it == ROLE_REPLACED }
+    /**
+     * Registrar or Registrar assim still applies to [m] (A34): an `ask` log with nothing decided, or a plan
+     * not recorded yet (an old plan row: no receipt after it, as before A34). An old log row has no actions.
+     */
+    private fun isOpen(m: ChatMessageEntity, todayRows: List<ChatMessageEntity>): Boolean = when {
+        m.isPlanEstimate -> m.recordState == null &&
+            todayRows.none { it.createdAtEpochMs >= m.createdAtEpochMs && it.id != m.id && it.role in CLOSERS }
+        else -> m.recordMode == RECORD_ASK && m.recordState == null
+    }
+
+    /** Today's slots as the receipts compare them: logs in id order and the skip. */
+    private fun todayStates(d: DaySnapshot): Map<Long, SlotState> {
+        val logs = d.logs.filter { it.slotId != null }.groupBy { it.slotId!! }
+        return (logs.keys + d.skippedSlotIds).associateWith { id ->
+            SlotState(
+                logs[id].orEmpty().map { SlotRecord(it.text, it.kcal, it.p, it.carbs, it.fat, it.source, it.window, it.stable) },
+                id in d.skippedSlotIds,
+            )
+        }
+    }
+
+    /**
+     * The buttons of each receipt (A34): active, the latest receipt of every slot it touched
+     * ([ReceiptRules.latest]), and every slot still exactly as the receipt left it (a change by another path
+     * hides them, so an action never reverses a state that is gone).
+     */
+    private fun receiptActions(receipts: List<ChatMessageEntity>, stateOf: (String, Long) -> SlotState): Map<Long, List<ReceiptAction>> {
+        val undo = receipts.associate { it.id to UndoData.decode(it.undoData) }
+        val rule = receipts.map { r ->
+            val touched = undo[r.id]?.slots?.map { it.date to it.slotId }?.toSet()
+                ?: setOfNotNull(r.estimateSlotId?.let { r.date to it })
+            ReceiptRules.Receipt(r.id, r.createdAtEpochMs, touched, active = r.receiptState == null && undo[r.id] != null)
+        }
+        val latest = ReceiptRules.latest(rule)
+        return receipts.filter { it.id in latest }.mapNotNull { r ->
+            val data = undo[r.id] ?: return@mapNotNull null
+            if (data.slots.any { stateOf(it.date, it.slotId) != it.after }) return@mapNotNull null
+            r.id to ReceiptRules.actions(r.role, r.recordSource, data)
+        }.toMap()
+    }
+
+    /**
+     * A pending replace whose slot looked changed by another path: `Não registrado`, after checking Room again
+     * (the day and the thread are two observations and can arrive one frame apart).
+     */
+    private fun expireStale(rows: List<ChatMessageEntity>) {
+        rows.filter { expiring.add(it.id) }.forEach { row ->
+            viewModelScope.launch {
+                val fresh = repository.message(row.id)
+                val pending = UndoData.decodeChange(fresh?.undoData)
+                val changed = fresh?.recordState == ChatRecorder.PENDING_REPLACE && pending != null &&
+                    repository.slotState(pending.date, pending.slotId) != pending.before
+                if (changed) expirePending(fresh!!)
+                expiring.remove(row.id)
+            }
+        }
+    }
+
+    private fun receipt(m: ChatMessageEntity, slotTimes: Map<Long, String>, actions: List<ReceiptAction>, moveConfirm: ReplaceConfirm?): ChatItem.Receipt {
+        val undo = UndoData.decode(m.undoData)
+        return ChatItem.Receipt(
+            id = m.id,
+            kind = when (m.role) {
+                ReceiptRules.REPLACED -> ReceiptKind.REPLACED
+                ReceiptRules.SKIPPED -> ReceiptKind.SKIPPED
+                ReceiptRules.MOVED -> ReceiptKind.MOVED
+                ReceiptRules.RESTORED -> ReceiptKind.RESTORED
+                else -> ReceiptKind.LOGGED
+            },
+            slotName = m.text,
+            slotTime = m.estimateSlotId?.let { slotTimes[it] },
+            kcal = m.estimateKcal,
+            fromKcal = undo?.takeIf { m.role == ReceiptRules.REPLACED }?.recordSlot?.before?.kcal,
+            memoryUpdated = m.memoryUpdated,
+            mark = when (m.receiptState) {
+                ChatRecorder.UNDONE -> ReceiptMark.UNDONE
+                ChatRecorder.DELETED -> ReceiptMark.DELETED
+                ChatRecorder.MOVED -> ReceiptMark.MOVED
+                ChatRecorder.EDITED -> ReceiptMark.EDITED
+                else -> null
+            },
+            actions = actions,
+            moveConfirm = moveConfirm?.takeIf { ReceiptAction.MOVE in actions },
+        )
+    }
+
+    /** The plan's own receipt: recorded (A34), or the first receipt after it, before any other estimate, is a record. */
+    private fun recordedPlan(plan: ChatMessageEntity, sorted: List<ChatMessageEntity>): Boolean =
+        plan.recordState == ChatRecorder.RECORDED || sorted
+            .dropWhile { it.id != plan.id }
+            .drop(1)
+            .firstOrNull { it.role in CLOSERS || it.role == "assistant" && it.isRecordable }
+            ?.role.let { it == ReceiptRules.LOGGED || it == ReceiptRules.REPLACED }
 
     private fun Macros.minus(o: Macros) =
         Macros((kcal - o.kcal).coerceAtLeast(0), (p - o.p).coerceAtLeast(0), (c - o.c).coerceAtLeast(0), (g - o.g).coerceAtLeast(0))
@@ -729,7 +1018,15 @@ class ChatViewModel @Inject constructor(
         )
     }
 
-    private fun assistant(m: ChatMessageEntity, time: String, slotById: Map<Long, SlotRef>, plan: ProjectedDay?) = ChatItem.Assistant(
+    /** [offer]: Registrar is open for this answer: the slot question stays in the bubble (chatE). */
+    private fun assistant(
+        m: ChatMessageEntity,
+        time: String,
+        slotById: Map<Long, SlotRef>,
+        plan: ProjectedDay?,
+        offer: Boolean,
+        notRecorded: Boolean,
+    ) = ChatItem.Assistant(
         id = m.id,
         text = m.text,
         time = time,
@@ -741,12 +1038,13 @@ class ChatViewModel @Inject constructor(
                 p = m.estimateP ?: 0,
                 c = m.estimateC ?: 0,
                 g = m.estimateG ?: 0,
-                slotQuestion = m.estimateSlotId?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" },
+                slotQuestion = m.estimateSlotId?.takeIf { offer }?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" },
                 question = m.estimateQuestion,
             )
         },
         plan = plan,
         memory = memoryOf(m),
+        notRecorded = notRecorded,
     )
 
     private fun memoryOf(m: ChatMessageEntity) = m.memoryUsedKinds.orEmpty().split(',').let { kinds ->
@@ -803,10 +1101,19 @@ class ChatViewModel @Inject constructor(
         const val PAGE_SIZE = 20
 
         /** Receipt of Substituir (ADR-017). UI only, like "logged". */
-        const val ROLE_REPLACED = "replaced"
+        const val ROLE_REPLACED = ReceiptRules.REPLACED
 
-        /** Rows that close the last estimate: its actions go away. A wipe closes it too. */
-        private val RECEIPTS = setOf("logged", ROLE_REPLACED, "skipped", DayRepository.ROLE_WIPED)
+        /** Rows that closed an old plan row (before A34): its Registrar assim goes away. A wipe closes it too. */
+        private val CLOSERS = ReceiptRules.ROLES + DayRepository.ROLE_WIPED
+
+        /** server `record` (S14, A34). */
+        const val RECORD_AUTO = "auto"
+        const val RECORD_ASK = "ask"
+        const val RECORD_NONE = "none"
+        private val RECORD_MODES = setOf(RECORD_AUTO, RECORD_ASK, RECORD_NONE)
+
+        /** Receipt source of a plan record (Registrar assim). */
+        const val SOURCE_PLAN = "plan"
 
         private val memoryJson = Json { ignoreUnknownKeys = true }
         private val UPDATES = ListSerializer(ChatMemoryUpdate.serializer())
@@ -817,8 +1124,8 @@ class ChatViewModel @Inject constructor(
 
         private fun ChatMemoryUpdate.toDomain() = MemoryUpdate(op, id, kind, category, key, text, slot)
 
-        /** server/shaping.py intents (S11). */
-        private val INTENTS = setOf("log", "plan", "question")
+        /** server/shaping.py intents (S11, S14). */
+        private val INTENTS = setOf("log", "plan", "question", "skip")
 
         /** An estimate the user can record: intent "log", or null (old row or server before S11). */
         private val ChatMessageEntity.isLogEstimate: Boolean

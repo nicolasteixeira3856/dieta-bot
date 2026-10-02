@@ -124,6 +124,6 @@ ST1–ST5 concluídos (29/09/2026); [ST6](plans/completed/st6-chat-v2.md) conclu
 7. ✅ [ST6 Chat v2: plano de refeição, memória e sugestão da rotina (`chatR`, `chatM`, `chatS`)](plans/completed/st6-chat-v2.md) — concluído; libera [A29](../android/plans/completed/a29-chat-v2-interface.md).
 8. ✅ [ST7 Pergunta antes da estimativa (`chatE` alterado, `chatQ`)](plans/completed/st7-pergunta-antes-da-estimativa.md) — concluído; libera [A30](../android/plans/completed/a30-perguntas-antes-da-estimativa.md).
 9. ✅ [ST8 O1 antes do perfil (`o1e`)](plans/completed/st8-teto-sem-perfil.md) — concluído; libera [A31](../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md) (concluído).
-10. ✅ [ST9 Registro autônomo (`chatE`, `chatF`, `chatG` alterados; `chatU`, `chatD`)](plans/completed/st9-registro-autonomo.md) — concluído; libera [A34](../android/plans/a34-registro-autonomo.md).
+10. ✅ [ST9 Registro autônomo (`chatE`, `chatF`, `chatG` alterados; `chatU`, `chatD`)](plans/completed/st9-registro-autonomo.md) — concluído; libera [A34](../android/plans/pending_manual_validation/a34-registro-autonomo.md).
 
 ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](../produto/adrs/ADR-028-registro-autonomo.md) (proposto).

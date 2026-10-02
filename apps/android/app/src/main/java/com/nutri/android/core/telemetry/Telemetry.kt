@@ -47,6 +47,24 @@ object TelemetryEvents {
     /** A30: Forçar estimativa tapped, `round` = question rounds shown. Number only. */
     const val CHAT_FORCE_ESTIMATE = "chat_force_estimate"
 
+    /** A34: a record or skip made by the Chat with no tap. kind, slot_state, source (enums), rounds. */
+    const val MEAL_AUTO_RECORDED = "meal_auto_recorded"
+
+    /** A34: the Registrar pill, `action` = shown | tapped | expired. */
+    const val RECORD_ASK = "record_ask"
+
+    /** A34: inline Substituir, `action` = shown | confirmed | elsewhere | expired, `from` = answer | move. */
+    const val REPLACE_CONFIRM = "replace_confirm"
+
+    /** A34: a receipt button. action, receipt, source (enums), age_s, same_day. */
+    const val RECEIPT_ACTION = "receipt_action"
+
+    /** A34: memory revert of a receipt, counts of facts `reverted` and `kept`. */
+    const val MEMORY_REVERTED = "memory_reverted"
+
+    /** A34: `auto` downgraded to `ask` by a client guard, `reason` enum. */
+    const val RECORD_GUARD = "record_guard"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 

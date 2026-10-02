@@ -30,6 +30,11 @@ data class ChatIn(
     @SerialName("clarify_rounds") val clarifyRounds: Int,
     /** Forçar estimativa: the server releases the estimate now. */
     @SerialName("force_estimate") val forceEstimate: Boolean = false,
+    /**
+     * The client records by itself (A34, ADR-028): the server answers [ChatOut.record]. No default, like
+     * [clarifyRounds]: Json does not encode defaults and the field must always go.
+     */
+    @SerialName("auto_record") val autoRecord: Boolean,
 )
 
 /** A memory fact as the server sees it (api-contract). slot is a profile slot id or null. */
@@ -129,7 +134,7 @@ data class ChatEstimate(
 @Serializable
 data class ChatOut(
     val reply: String = "",
-    /** "log" | "plan" | "question"; null = server before S11, handled as today. */
+    /** "log" | "plan" | "question" | "skip" (S14); null = server before S11, handled as today. */
     val intent: String? = null,
     val estimate: ChatEstimate? = null,
     /** At most 5 proposals; the app applies them with MemoryRules (A28). */
@@ -140,4 +145,8 @@ data class ChatOut(
     val model: String = "",
     /** Question before the estimate (A30): non-blank with estimate null = a question-only turn. */
     val question: String? = null,
+    /** "auto" | "ask" | "none" (S14, A34). Null = server before S14. */
+    val record: String? = null,
+    /** Profile slot id of a skip by text (intent "skip"), else null. */
+    @SerialName("skip_slot") val skipSlot: String? = null,
 )

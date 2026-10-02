@@ -261,6 +261,22 @@ class PromptBuilderTest {
     }
 
     @Test
+    fun `auto_record true is always on the wire, record and skip_slot are read (A34)`() {
+        val json = Json { ignoreUnknownKeys = true }
+        val body = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "pulei o café", now).body
+        assertThat(json.encodeToString(ChatIn.serializer(), body)).contains("\"auto_record\":true")
+        val compact = PromptBuilder.compact(PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x", now))
+        assertThat(json.encodeToString(ChatIn.serializer(), compact)).contains("\"auto_record\":true")
+        val out = json.decodeFromString(
+            com.nutri.android.core.network.ChatOut.serializer(),
+            """{"reply":"ok","intent":"skip","estimate":null,"record":"auto","skip_slot":"1"}""",
+        )
+        assertThat(out.record).isEqualTo("auto")
+        assertThat(out.skipSlot).isEqualTo("1")
+        assertThat(json.decodeFromString(com.nutri.android.core.network.ChatOut.serializer(), """{"reply":"ok"}""").record).isNull()
+    }
+
+    @Test
     fun `history - an old estimate carries its question, a question-only row goes as stored`() {
         val first = row("user")
         val old = row("assistant", kcal = 380, question = "Os pães tinham manteiga?").copy(text = "Identifiquei 2 pães.")

@@ -4,7 +4,7 @@
 # delete the file) -> gallery JPEG 2000 px (re-encoded, not enlarged) -> camera (runtime permission + TakePicture,
 # longest side <= 2048) -> 50 MP JPEG turned by EXIF (posted at 1536x2048, < 2 MB) -> the old
 # "> 16 MB" file now passes -> WebP (JPEG, same branch as HEIC) -> chatF capture with the gold
-# conversation seeded. Captures land in docs/qa/android/current/<theme>/.
+# conversation seeded (A34: recorded by itself, receipt with Excluir and Trocar refeição, no Editar). Captures land in docs/qa/android/current/<theme>/.
 #
 # Prereqs: node tools/fake-chat-server.mjs running (port 8765); devDebug APK built with
 #   -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed; AVD at gold geometry (wm size 780x1688,
@@ -171,21 +171,29 @@ for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat 
 "$ADB" shell chmod 644 /data/local/tmp/chatf.jpg
 "$ADB" shell run-as $PKG sh -c "'mkdir -p files/photos; cp /data/local/tmp/chatf.jpg files/photos/chatf.jpg'"
 "$PY" - "$TMP/nutri.db" <<'EOF'
-import sqlite3, sys, time
+import json, sqlite3, sys, time
 c = sqlite3.connect(sys.argv[1])
 today = c.execute("select firstDay from profile").fetchone()[0]
 slots = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
 almoco = slots[1]
-c.execute("update meal_slot set name='Almoço' where id=?", (almoco,))
+c.execute("update meal_slot set name='Almoço', minutesFromMidnight=750 where id=?", (almoco,))
 for table in ("chat_message", "meal_log", "slot_skip", "day_digest"):
     c.execute(f"delete from {table}")
 now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,photoPath) values(?,?,?,?,?)",
           (today, "user", "Almoço de hoje", now - 2000, "/data/user/0/com.nutri.android.dev/files/photos/chatf.jpg"))
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
-          "estimateConfidence,estimateSlotId,estimateItems) values(?,?,?,?,?,?,?,?,?,?,?)",
+          "estimateConfidence,estimateSlotId,estimateItems,intent,recordMode,recordState) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
           (today, "assistant", "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde.",
-           now - 1000, 780, 48, 82, 18, "high", almoco, "Prato Feito"))
+           now - 1000, 680, 48, 82, 18, "high", almoco, "Prato Feito", "log", "auto", "recorded"))
+# The record and its receipt as the app writes them (A34): undo data must match the slot for the actions.
+text = "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde."
+rec = {"text": text, "kcal": 680, "p": 48, "c": 82, "g": 18, "source": "photo", "window": "", "stable": True}
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)",
+          (today, "", text, 680, 48, almoco, 82, 18, "photo"))
+undo = {"slots": [{"date": today, "slotId": almoco, "before": {"records": [], "skipped": False}, "after": {"records": [rec], "skipped": False}}]}
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateSlotId,undoData,recordSource) values(?,?,?,?,?,?,?,?)",
+          (today, "logged", "Almoço", now - 500, 680, almoco, json.dumps(undo), "photo"))
 c.commit()
 c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
@@ -197,6 +205,8 @@ EOF
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 2
+expect "chatF: receipt with Excluir and Trocar refeição" 'chat-receipt-delete.*chat-receipt-move'
+dump; if grep -q 'resource-id="chat-receipt-edit"' "$TMP/ui.xml"; then echo "  ✗ Editar on a photo record"; FAIL=1; else echo "  ✓ no Editar on a photo record"; fi
 shot chatF
 
 rm -rf "$TMP"

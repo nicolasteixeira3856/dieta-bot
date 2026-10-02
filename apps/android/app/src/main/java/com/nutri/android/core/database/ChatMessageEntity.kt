@@ -12,8 +12,8 @@ data class ChatMessageEntity(
     val id: Long = 0,
     val date: String = "",
     /**
-     * "user" | "assistant" | receipts: "logged" | "replaced" | "skipped" (UI only, never sent to the server) |
-     * "wiped": marker of wipeToday, never rendered; today's prompt starts after it.
+     * "user" | "assistant" | receipts: "logged" | "replaced" | "skipped" | "moved" | "restored" (UI only,
+     * never sent to the server) | "wiped": marker of wipeToday, never rendered; today's prompt starts after it.
      */
     val role: String = "user",
     val text: String = "",
@@ -40,6 +40,22 @@ data class ChatMessageEntity(
     /** At least one memory change was applied with this row: the answer, or the receipt of a record (A28). */
     @ColumnInfo(defaultValue = "0")
     val memoryUpdated: Boolean = false,
+    /**
+     * Assistant rows (A34): "auto" | "ask" | "none", from the server `record`. Null = row from before A34:
+     * no record actions at all.
+     */
+    val recordMode: String? = null,
+    /** Assistant rows (A34): "recorded" | "pending_replace" | "not_recorded" | null (nothing decided yet). */
+    val recordState: String? = null,
+    /** Receipt rows (A34): "undone" | "deleted" | "moved" | "edited" | null (active). */
+    val receiptState: String? = null,
+    /**
+     * Receipt rows (A34): [com.nutri.android.domain.UndoData] JSON, what the receipt changed. Assistant rows with
+     * recordState "pending_replace": [com.nutri.android.domain.SlotChange] JSON, the slot the confirmation asks about.
+     */
+    val undoData: String? = null,
+    /** Receipt rows (A34): "user" | "photo" | "plan" | "routine" (drives Editar). */
+    val recordSource: String? = null,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

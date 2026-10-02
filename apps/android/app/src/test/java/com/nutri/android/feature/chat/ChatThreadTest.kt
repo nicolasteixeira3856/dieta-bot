@@ -2,6 +2,9 @@ package com.nutri.android.feature.chat
 
 import android.app.Application
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.test.assertIsDisplayed
@@ -43,9 +46,9 @@ class ChatThreadTest {
             DietaBotTheme {
                 CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboard) {
                     ChatScreen(
-                        ui = ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onRecord = { _, _ -> },
-                        onSwap = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {}, onAskSkip = {},
-                        onSkipConfirm = {}, onSkipCancel = {}, onPhoto = onPhoto, onCamera = onCamera, onLoadOlder = onLoadOlder,
+                        ui = ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {},
+                        onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {},
+                        onPhoto = onPhoto, onCamera = onCamera, onLoadOlder = onLoadOlder,
                     )
                 }
             }
@@ -74,6 +77,23 @@ class ChatThreadTest {
         compose.onNodeWithTag("chat-thread").performScrollToIndex(long.items.size)
         compose.onNodeWithTag("chat-loading-older").assertIsDisplayed()
         assertEquals(0, older)
+    }
+
+    /** A34: an answer and its receipt (or Substituir) land together: the thread still follows from the bottom. */
+    @Test fun twoNewItemsAtOnce_followFromTheBottom() {
+        var ui by mutableStateOf(long)
+        compose.setContent {
+            DietaBotTheme {
+                ChatScreen(ui = ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})
+            }
+        }
+        compose.onNodeWithTag("chat-user-40").assertIsDisplayed()
+        ui = long.copy(
+            items = long.items + ChatItem.Assistant(41, "Juntei ao jantar.", "12:01") +
+                ChatItem.ReplacePrompt(41, ReplaceConfirm(SlotRef(4, "Jantar", "20:00", 1200), oldKcal = 380, newKcal = 620)),
+        )
+        compose.waitForIdle()
+        compose.onNodeWithTag("chat-replace-card").assertIsDisplayed()
     }
 
     @Test fun cameraButtonHidesTheKeyboardBeforeThePhotoSheet() {

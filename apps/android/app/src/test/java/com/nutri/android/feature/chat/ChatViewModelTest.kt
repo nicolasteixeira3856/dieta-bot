@@ -33,6 +33,7 @@ import com.nutri.android.domain.Macros
 import com.nutri.android.domain.Memory
 import com.nutri.android.domain.MemoryUpdate
 import com.nutri.android.domain.NextIds
+import com.nutri.android.domain.ReceiptAction
 import com.nutri.android.domain.RecordedMeal
 import java.io.File
 import java.io.IOException
@@ -154,7 +155,7 @@ class ChatViewModelTest {
         sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
         val estimateId = vm.uiState.value.actions!!.estimateId
 
-        vm.record(estimateId, cafe)
+        vm.register(estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
 
         assertThat(requests).hasSize(1)
@@ -171,32 +172,26 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun trocar_recordsIntoChosenSlot() = runBlocking<Unit> {
+    fun suggestedSlotOutsideProfile_registrarOpensTrocarEmpty_recordsIntoChosenSlot() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
-        val (cafe, _, lanche) = slotIds()
-        answer = { estimateOut(cafe.toString()) }
-        sendAndAwait(vm, "pão com ovo")
-        val estimateId = vm.uiState.value.actions!!.estimateId
-
-        vm.openSheet(estimateId)
-        assertThat(vm.uiState.value.sheetSelection).isEqualTo(cafe)
-        vm.selectInSheet(lanche)
-        vm.confirmSheet()
-        vm.await { it.actions == null && it.sheetFor == null }
-
-        assertThat(repo.observeToday().first().logs.single().slotId).isEqualTo(lanche)
-        assertThat(requests).hasSize(1)
-    }
-
-    @Test
-    fun suggestedSlotOutsideProfile_hidesGravar_keepsTrocar() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val lanche = slotIds()[2]
         answer = { estimateOut("cafe") }
         sendAndAwait(vm, "pão com ovo")
         val actions = vm.uiState.value.actions!!
         assertThat(actions.record).isNull()
-        // Pular falls back to the slot of the hour (08:10 -> Café da manhã).
-        assertThat(actions.skip!!.name).isEqualTo("Café da manhã")
+        assertThat(actions.plan).isFalse()
+
+        vm.register(actions.estimateId)
+        val sheet = vm.await { it.sheetFor != null }
+        assertThat(sheet.sheetSelection).isNull()
+        // The slot of the hour (08:10 → Café da manhã) is the one marked "(atual)".
+        assertThat(sheet.sheetCurrent).isEqualTo(slotIds().first())
+        vm.selectInSheet(lanche)
+        vm.confirmSheet()
+        vm.await { it.actions == null && it.sheetFor == null && it.items.any { i -> i is ChatItem.Receipt } }
+
+        assertThat(repo.observeToday().first().logs.single().slotId).isEqualTo(lanche)
+        assertThat(requests).hasSize(1)
     }
 
     @Test
@@ -265,7 +260,7 @@ class ChatViewModelTest {
         val jantar = slotIds()[3]
         answer = { estimateOut(jantar.toString()) }
         sendAndAwait(vm, "4 esfihas")
-        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
         // A later message: a receipt in the same millisecond would close the new estimate.
         now = now.plusSeconds(60)
@@ -279,21 +274,31 @@ class ChatViewModelTest {
         return jantar
     }
 
+    private fun ChatUiState.replacePrompt() = items.filterIsInstance<ChatItem.ReplacePrompt>().singleOrNull()
+
+    private fun ChatUiState.receipts() = items.filterIsInstance<ChatItem.Receipt>()
+
     @Test
-    fun gravarOnTakenSlot_asksFirst_thenReplacesWithOneLog() = runBlocking<Unit> {
+    fun registrarOnTakenSlot_asksInline_thenReplacesWithOneLog() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
         val jantar = jantarTakenThenJuice(vm)
+        val estimateId = vm.uiState.value.actions!!.estimateId
 
-        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
-        val ui = vm.await { it.replaceConfirm != null }
-        assertThat(ui.replaceConfirm!!.slot.name).isEqualTo("Jantar")
-        assertThat(ui.replaceConfirm!!.oldKcal).isEqualTo(380)
-        assertThat(ui.replaceConfirm!!.newKcal).isEqualTo(1220)
+        vm.register(estimateId)
+        val ui = vm.await { it.replacePrompt() != null }
+        val prompt = ui.replacePrompt()!!
+        assertThat(prompt.estimateId).isEqualTo(estimateId)
+        assertThat(prompt.confirm.slot.name).isEqualTo("Jantar")
+        assertThat(prompt.confirm.oldKcal).isEqualTo(380)
+        assertThat(prompt.confirm.newKcal).isEqualTo(1220)
+        // Right below its answer (chatU), and Registrar is gone.
+        assertThat(ui.items[ui.items.indexOfFirst { it is ChatItem.Assistant && it.id == estimateId } + 1]).isEqualTo(prompt)
+        assertThat(ui.actions).isNull()
         // Nothing written until Substituir.
         assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
 
-        vm.confirmReplace()
-        vm.await { it.replaceConfirm == null && it.actions == null && it.items.any { i -> i is ChatItem.Receipt && i.replaced } }
+        vm.confirmReplace(estimateId)
+        vm.await { it.replacePrompt() == null && it.receipts().any { r -> r.kind == ReceiptKind.REPLACED } }
 
         val log = repo.observeToday().first().logs.single()
         assertThat(log.slotId).isEqualTo(jantar)
@@ -302,70 +307,523 @@ class ChatViewModelTest {
         assertThat(log.carbs).isEqualTo(150)
         assertThat(log.fat).isEqualTo(45)
         assertThat(log.text).isEqualTo("também tomei 2 copos de suco")
-        val receipt = vm.uiState.value.items.filterIsInstance<ChatItem.Receipt>().last()
-        assertThat(receipt.replaced).isTrue()
+        val receipt = vm.uiState.value.receipts().last()
+        assertThat(receipt.kind).isEqualTo(ReceiptKind.REPLACED)
         assertThat(receipt.slotName).isEqualTo("Jantar")
         assertThat(receipt.slotTime).isEqualTo("20:00")
         assertThat(receipt.kcal).isEqualTo(1220)
+        assertThat(receipt.fromKcal).isEqualTo(380)
+        // The replacement takes the actions; the first record's receipt loses them (latest per slot).
+        assertThat(receipt.actions).containsExactly(ReceiptAction.UNDO, ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT).inOrder()
+        assertThat(vm.uiState.value.receipts().first().actions).isEmpty()
+        assertThat(storedAssistant().recordState).isEqualTo("recorded")
         // No A8 line on Substituir: without memory_updates the memory is untouched (A28).
         assertThat(memoryFile.writes).isEqualTo(0)
         assertThat(requests).hasSize(2)
     }
 
     @Test
-    fun replaceElsewhere_opensTrocarEmpty_roomIntact() = runBlocking<Unit> {
-        val vm = ChatViewModel(repo, service, clock, memory, photos)
+    fun replaceElsewhere_opensTrocarEmpty_roomIntact_emptySlotRecords() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
         val jantar = jantarTakenThenJuice(vm)
         val estimateId = vm.uiState.value.actions!!.estimateId
 
-        vm.record(estimateId, jantar)
-        vm.await { it.replaceConfirm != null }
-        vm.replaceElsewhere()
-        val ui = vm.await { it.replaceConfirm == null && it.sheetFor != null }
+        vm.register(estimateId)
+        vm.await { it.replacePrompt() != null }
+        vm.replaceElsewhere(estimateId)
+        val ui = vm.await { it.sheetFor != null }
         assertThat(ui.sheetFor).isEqualTo(estimateId)
         assertThat(ui.sheetSelection).isNull()
-        assertThat(ui.actions).isNotNull()
         assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
 
         // Trocar into an empty slot records at once.
         val lanche = slotIds()[2]
         vm.selectInSheet(lanche)
         vm.confirmSheet()
-        vm.await { it.actions == null }
+        vm.await { it.replacePrompt() == null && it.receipts().size == 2 }
         assertThat(repo.observeToday().first().logs.map { it.slotId to it.kcal }).containsExactly(jantar to 380, lanche to 1220)
+        assertThat(telemetry.params(TelemetryEvents.REPLACE_CONFIRM)).containsExactly(
+            mapOf("action" to "shown", "from" to "answer"),
+            mapOf("action" to "elsewhere", "from" to "answer"),
+        ).inOrder()
     }
 
     @Test
-    fun trocarIntoTakenSlot_asksToo_cancelKeepsRoom() = runBlocking<Unit> {
+    fun outraRefeicao_intoAnotherTakenSlot_asksAgain() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
         val jantar = jantarTakenThenJuice(vm)
-        vm.openSheet(vm.uiState.value.actions!!.estimateId)
-        vm.selectInSheet(jantar)
+        val almoco = slotIds()[1]
+        repo.addLog(window = "", text = "arroz", kcal = 500, p = 10, stable = true, slotId = almoco)
+        val estimateId = vm.uiState.value.actions!!.estimateId
+        vm.register(estimateId)
+        vm.await { it.replacePrompt()?.confirm?.slot?.id == jantar }
+        vm.replaceElsewhere(estimateId)
+        vm.await { it.sheetFor != null }
+        vm.selectInSheet(almoco)
         vm.confirmSheet()
-        vm.await { it.replaceConfirm != null && it.sheetFor == null }
 
-        vm.cancelReplace()
-        val ui = vm.await { it.replaceConfirm == null }
-        assertThat(ui.actions).isNotNull()
-        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
+        val ui = vm.await { it.replacePrompt()?.confirm?.slot?.id == almoco }
+        assertThat(ui.replacePrompt()!!.confirm.oldKcal).isEqualTo(500)
+        assertThat(repo.observeToday().first().logs.map { it.kcal }).containsExactly(380, 500)
     }
 
     @Test
-    fun pular_asksThenSkips_withoutKcal() = runBlocking<Unit> {
+    fun pendingReplace_expiresOnTheNextSend_notRecorded() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        jantarTakenThenJuice(vm)
+        val estimateId = vm.uiState.value.actions!!.estimateId
+        vm.register(estimateId)
+        vm.await { it.replacePrompt() != null }
+
+        answer = { ChatOut(reply = "ok", intent = "question", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "obrigado")
+        val ui = vm.await { it.replacePrompt() == null }
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>().single { it.id == estimateId }.notRecorded).isTrue()
+        assertThat(repo.message(estimateId)!!.recordState).isEqualTo("not_recorded")
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
+        vm.confirmReplace(estimateId)
+        delay(100)
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
+        assertThat(telemetry.params(TelemetryEvents.REPLACE_CONFIRM).last()).isEqualTo(mapOf("action" to "expired", "from" to "answer"))
+    }
+
+    @Test
+    fun pendingReplace_expiresWhenTheSlotChangesByAnotherPath() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = jantarTakenThenJuice(vm)
+        val estimateId = vm.uiState.value.actions!!.estimateId
+        vm.register(estimateId)
+        vm.await { it.replacePrompt() != null }
+
+        // The Home skips the dinner: the question no longer matches the slot.
+        repo.addSkip(jantar)
+        vm.await { it.replacePrompt() == null && it.items.any { i -> i is ChatItem.Assistant && i.id == estimateId && i.notRecorded } }
+        withTimeout(5_000) { while (repo.message(estimateId)!!.recordState != "not_recorded") delay(10) }
+    }
+
+    @Test
+    fun pendingReplace_ofYesterday_isNotRecorded() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        jantarTakenThenJuice(vm)
+        val estimateId = vm.uiState.value.actions!!.estimateId
+        vm.register(estimateId)
+        vm.await { it.replacePrompt() != null }
+
+        now = now.plus(java.time.Duration.ofDays(1))
+        vm.tick()
+        val ui = vm.await { it.replacePrompt() == null && it.items.any { i -> i is ChatItem.Assistant && i.id == estimateId && i.notRecorded } }
+        assertThat(ui.actions).isNull()
+    }
+
+    // ------------------------------------------------------------------ A34: automatic record
+
+    private fun autoOut(slot: Long, kcal: Double = 380.0, record: String = "auto") = estimateOut(slot.toString()).copy(
+        intent = "log",
+        record = record,
+        estimate = estimateOut(slot.toString()).estimate!!.copy(kcal = kcal, mealText = "2 pães franceses e 2 ovos mexidos"),
+    )
+
+    private suspend fun sendAndAwaitAuto(vm: ChatViewModel, text: String) {
+        val before = repo.observeMessages().first().size
+        vm.setComposer(text)
+        vm.send()
+        vm.await { !it.sending && it.items.none { i -> i is ChatItem.Loading } }
+        // The automatic record runs right after the answer is stored.
+        withTimeout(5_000) {
+            while (true) {
+                val rows = repo.observeMessages().first()
+                val answer = rows.lastOrNull { it.role == "assistant" }
+                if (rows.size > before + 1 && answer?.recordMode != "auto" || answer?.recordState != null) break
+                delay(10)
+            }
+        }
+    }
+
+    @Test
+    fun auto_emptySlot_recordsWithoutTap_receiptWithActions() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val cafe = slotIds().first()
+        answer = { autoOut(cafe) }
+        sendAndAwaitAuto(vm, "Registra aí, comi 2 pães franceses com 2 ovos mexidos")
+
+        assertThat(requests.single().autoRecord).isTrue()
+        val log = repo.observeToday().first().logs.single()
+        assertThat(log.slotId).isEqualTo(cafe)
+        assertThat(log.kcal).isEqualTo(380)
+        assertThat(log.text).isEqualTo("2 pães franceses e 2 ovos mexidos")
+        val ui = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }
+        val receipt = ui.receipts().single()
+        assertThat(receipt.kind).isEqualTo(ReceiptKind.LOGGED)
+        assertThat(receipt.actions).containsExactly(ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT).inOrder()
+        assertThat(ui.actions).isNull()
+        // chatG: no slot question once recorded.
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>().single().estimate!!.slotQuestion).isNull()
+        assertThat(storedAssistant().recordMode).isEqualTo("auto")
+        assertThat(storedAssistant().recordState).isEqualTo("recorded")
+        assertThat(telemetry.params(TelemetryEvents.MEAL_AUTO_RECORDED).single())
+            .isEqualTo(mapOf("kind" to "log", "slot_state" to "empty", "source" to "user", "rounds" to 0))
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT).single()["record"]).isEqualTo("auto")
+    }
+
+    @Test
+    fun auto_skippedSlot_replacesTheSkipWithoutAsking_undoBringsTheSkipBack() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val cafe = slotIds().first()
+        repo.addSkip(cafe)
+        answer = { autoOut(cafe) }
+        sendAndAwaitAuto(vm, "na verdade comi pão com ovo no café")
+
+        val day = repo.observeToday().first()
+        assertThat(day.skippedSlotIds).isEmpty()
+        assertThat(day.logs.single().kcal).isEqualTo(380)
+        val receipt = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }.receipts().single()
+        assertThat(receipt.actions).containsExactly(ReceiptAction.UNDO, ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT).inOrder()
+
+        vm.receiptAction(receipt.id, ReceiptAction.UNDO)
+        vm.await { it.receipts().single().mark == ReceiptMark.UNDONE }
+        val after = repo.observeToday().first()
+        assertThat(after.skippedSlotIds).containsExactly(cafe)
+        assertThat(after.logs).isEmpty()
+    }
+
+    @Test
+    fun auto_takenSlot_asksInline_nothingChanges() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = slotIds()[3]
+        repo.addLog(window = "", text = "arroz e frango", kcal = 380, p = 30, stable = true, slotId = jantar)
+        answer = { autoOut(jantar, kcal = 620.0) }
+        sendAndAwaitAuto(vm, "também comi um pudim")
+
+        val ui = vm.await { it.replacePrompt() != null }
+        assertThat(ui.replacePrompt()!!.confirm.oldKcal).isEqualTo(380)
+        assertThat(ui.replacePrompt()!!.confirm.newKcal).isEqualTo(620)
+        assertThat(ui.actions).isNull()
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(380)
+        assertThat(storedAssistant().recordState).isEqualTo("pending_replace")
+    }
+
+    @Test
+    fun auto_guards_downgradeToAsk() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        answer = { autoOut(99) }
+        sendAndAwait(vm, "pão com ovo")
+        assertThat(storedAssistant().recordMode).isEqualTo("ask")
+        answer = { autoOut(1).copy(estimate = autoOut(1).estimate!!.copy(suggestedSlot = null)) }
+        sendAndAwait(vm, "pão com ovo")
+        answer = { autoOut(1).copy(estimate = autoOut(1).estimate!!.copy(question = "Pão francês?")) }
+        sendAndAwait(vm, "pão com ovo")
+
+        assertThat(repo.observeToday().first().logs).isEmpty()
+        assertThat(telemetry.params(TelemetryEvents.RECORD_GUARD).map { it["reason"] })
+            .containsExactly("slot_not_today", "no_slot", "question_pending").inOrder()
+        assertThat(vm.uiState.value.actions).isNotNull()
+    }
+
+    @Test
+    fun serverWithoutRecord_logIsAsk_nothingRecordedWithoutATap() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
         val cafe = slotIds().first()
         answer = { estimateOut(cafe.toString()) }
         sendAndAwait(vm, "pão com ovo")
+        assertThat(storedAssistant().recordMode).isEqualTo("ask")
+        assertThat(repo.observeToday().first().logs).isEmpty()
+        assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT).single()["record"]).isEqualTo("missing")
+        assertThat(telemetry.params(TelemetryEvents.RECORD_ASK).single()).isEqualTo(mapOf("action" to "shown"))
+    }
 
-        vm.askSkip(vm.uiState.value.actions!!.skip!!)
-        assertThat(vm.uiState.value.skipConfirm!!.name).isEqualTo("Café da manhã")
-        vm.confirmSkip()
-        vm.await { it.actions == null && it.skipConfirm == null }
+    @Test
+    fun ask_registrarRecords_thenNextSendExpiresTheNextOne() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val (cafe, almoco) = slotIds()
+        answer = { autoOut(cafe, record = "ask") }
+        sendAndAwait(vm, "pudim de leite com calda")
+        val first = vm.uiState.value.actions!!.estimateId
+        assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.Assistant>().single().estimate!!.slotQuestion)
+            .isEqualTo("Deseja registrar essa refeição no Café da manhã?")
+        vm.register(first)
+        vm.await { it.actions == null && it.receipts().isNotEmpty() }
+        assertThat(repo.observeToday().first().logs.single().slotId).isEqualTo(cafe)
 
-        val day = repo.observeToday().first()
-        assertThat(day.skippedSlotIds).containsExactly(cafe)
-        assertThat(day.logs).isEmpty()
-        assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.Receipt>().single().skipped).isTrue()
+        now = now.plusSeconds(60)
+        answer = { autoOut(almoco, record = "ask") }
+        sendAndAwait(vm, "e um pudim no almoço")
+        val second = vm.uiState.value.actions!!.estimateId
+        answer = { ChatOut(reply = "ok", intent = "question", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "obrigado")
+        val ui = vm.await { it.actions == null }
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>().single { it.id == second }.notRecorded).isTrue()
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>().single { it.id == first }.notRecorded).isFalse()
+        assertThat(repo.observeToday().first().logs).hasSize(1)
+        assertThat(telemetry.params(TelemetryEvents.RECORD_ASK).map { it["action"] })
+            .containsExactly("shown", "tapped", "shown", "expired").inOrder()
+    }
+
+    @Test
+    fun skipByText_emptySlot_skipsWithReceipt_recordedSlotChangesNothing() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val (cafe, almoco) = slotIds()
+        answer = { ChatOut(reply = "Tudo bem.", intent = "skip", record = "auto", skipSlot = cafe.toString(), model = "gpt-6-luna") }
+        sendAndAwaitAuto(vm, "pulei o café")
+
+        assertThat(repo.observeToday().first().skippedSlotIds).containsExactly(cafe)
+        val receipt = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }.receipts().single()
+        assertThat(receipt.kind).isEqualTo(ReceiptKind.SKIPPED)
+        assertThat(receipt.actions).containsExactly(ReceiptAction.UNDO)
+        assertThat(telemetry.params(TelemetryEvents.MEAL_AUTO_RECORDED).single()["kind"]).isEqualTo("skip")
+
+        // Skipped again, or a slot with a record: nothing changes, the turn is Não registrado.
+        repo.addLog(window = "", text = "arroz", kcal = 500, p = 10, stable = true, slotId = almoco)
+        now = now.plusSeconds(60)
+        answer = { ChatOut(reply = "Tudo bem.", intent = "skip", record = "auto", skipSlot = almoco.toString(), model = "gpt-6-luna") }
+        sendAndAwaitAuto(vm, "pulei o almoço")
+        assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(500)
+        assertThat(storedAssistant().recordState).isEqualTo("not_recorded")
+        assertThat(repo.observeToday().first().skippedSlotIds).containsExactly(cafe)
+
+        // Desfazer removes the skip.
+        vm.receiptAction(receipt.id, ReceiptAction.UNDO)
+        vm.await { it.receipts().first().mark == ReceiptMark.UNDONE }
+        assertThat(repo.observeToday().first().skippedSlotIds).isEmpty()
+    }
+
+    @Test
+    fun otherDay_isNeverRecorded() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        answer = { ChatOut(reply = "Só registro as refeições de hoje.", intent = "log", record = "none", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "ontem jantei pizza")
+        assertThat(repo.observeToday().first().logs).isEmpty()
+        assertThat(storedAssistant().recordMode).isEqualTo("none")
+        assertThat(vm.uiState.value.actions).isNull()
+    }
+
+    // ------------------------------------------------------------------ A34: receipt actions
+
+    /** An automatic record in [slot] (today), its receipt drawn with actions. */
+    private suspend fun recorded(vm: ChatViewModel, slot: Long, kcal: Double = 380.0, text: String = "comi pão com ovo"): ChatItem.Receipt {
+        now = now.plusSeconds(60)
+        answer = { autoOut(slot, kcal) }
+        val count = vm.uiState.value.receipts().size
+        sendAndAwaitAuto(vm, text)
+        return vm.await { it.receipts().size > count && it.receipts().last().actions.isNotEmpty() }.receipts().last()
+    }
+
+    @Test
+    fun excluir_deletesTheRecord_marksTheReceipt_noConfirmation() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val receipt = recorded(vm, slotIds().first())
+        now = now.plusSeconds(30)
+
+        vm.receiptAction(receipt.id, ReceiptAction.DELETE)
+        val ui = vm.await { it.receipts().single().mark == ReceiptMark.DELETED }
+        assertThat(ui.receipts().single().actions).isEmpty()
+        assertThat(repo.observeToday().first().logs).isEmpty()
+        assertThat(telemetry.params(TelemetryEvents.RECEIPT_ACTION).single()).isEqualTo(
+            mapOf("action" to "delete", "receipt" to "logged", "source" to "user", "age_s" to 30L, "same_day" to true),
+        )
+    }
+
+    @Test
+    fun desfazer_ofAReplacement_restoresThePreviousRecord_withARestoredReceipt() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = slotIds()[3]
+        recorded(vm, jantar, 380.0)
+        now = now.plusSeconds(60)
+        answer = { autoOut(jantar, 620.0) }
+        sendAndAwaitAuto(vm, "também comi um pudim")
+        val estimateId = storedAssistant().id
+        vm.confirmReplace(estimateId)
+        val replaced = vm.await { it.receipts().lastOrNull()?.kind == ReceiptKind.REPLACED && it.receipts().last().actions.isNotEmpty() }.receipts().last()
+
+        vm.receiptAction(replaced.id, ReceiptAction.UNDO)
+        val ui = vm.await { it.receipts().last().kind == ReceiptKind.RESTORED }
+        assertThat(ui.receipts().map { it.kind }).containsExactly(ReceiptKind.LOGGED, ReceiptKind.REPLACED, ReceiptKind.RESTORED).inOrder()
+        val restored = ui.receipts().last()
+        assertThat(restored.kcal).isEqualTo(380)
+        assertThat(restored.slotName).isEqualTo("Jantar")
+        assertThat(restored.actions).containsExactly(ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT).inOrder()
+        assertThat(ui.receipts()[1].mark).isEqualTo(ReceiptMark.UNDONE)
+        assertThat(ui.receipts()[0].actions).isEmpty()
+        val log = repo.observeToday().first().logs.single()
+        assertThat(log.kcal).isEqualTo(380)
+        assertThat(log.text).isEqualTo("2 pães franceses e 2 ovos mexidos")
+    }
+
+    @Test
+    fun trocarRefeicao_toAnEmptySlot_movesTheRecord_desfazerMovesItBack() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val (cafe, _, lanche) = slotIds()
+        val receipt = recorded(vm, cafe)
+
+        vm.receiptAction(receipt.id, ReceiptAction.MOVE)
+        val sheet = vm.await { it.sheetFor == receipt.id }
+        assertThat(sheet.sheetCurrent).isEqualTo(cafe)
+        assertThat(sheet.sheetSelection).isNull()
+        vm.selectInSheet(lanche)
+        vm.confirmSheet()
+        val ui = vm.await { it.receipts().lastOrNull()?.kind == ReceiptKind.MOVED }
+        val moved = ui.receipts().last()
+        assertThat(moved.slotName).isEqualTo("Lanche")
+        assertThat(moved.kcal).isEqualTo(380)
+        assertThat(ui.receipts().first().mark).isEqualTo(ReceiptMark.MOVED)
+        assertThat(repo.observeToday().first().logs.single().slotId).isEqualTo(lanche)
+
+        val withActions = vm.await { it.receipts().last().actions.isNotEmpty() }.receipts().last()
+        assertThat(withActions.actions).containsExactly(ReceiptAction.UNDO, ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT).inOrder()
+        vm.receiptAction(moved.id, ReceiptAction.UNDO)
+        vm.await { it.receipts().last().kind == ReceiptKind.RESTORED }
+        assertThat(repo.observeToday().first().logs.single().slotId).isEqualTo(cafe)
+    }
+
+    @Test
+    fun trocarRefeicao_toATakenSlot_asksBelowTheReceipt_substituirMovesAndReplaces() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val (cafe, almoco) = slotIds()
+        repo.addLog(window = "", text = "arroz", kcal = 500, p = 10, stable = true, slotId = almoco)
+        val receipt = recorded(vm, cafe)
+
+        vm.receiptAction(receipt.id, ReceiptAction.MOVE)
+        vm.await { it.sheetFor == receipt.id }
+        vm.selectInSheet(almoco)
+        vm.confirmSheet()
+        val asking = vm.await { it.receipts().single().moveConfirm != null }
+        assertThat(asking.receipts().single().moveConfirm!!.oldKcal).isEqualTo(500)
+        assertThat(asking.receipts().single().moveConfirm!!.newKcal).isEqualTo(380)
+        assertThat(repo.observeToday().first().logs.map { it.slotId }).containsExactly(almoco, cafe)
+
+        vm.confirmMove()
+        vm.await { it.receipts().lastOrNull()?.kind == ReceiptKind.MOVED }
+        assertThat(repo.observeToday().first().logs.map { it.slotId to it.kcal }).containsExactly(almoco to 380)
+        assertThat(telemetry.params(TelemetryEvents.REPLACE_CONFIRM).map { it["action"] to it["from"] })
+            .containsExactly("shown" to "move", "confirmed" to "move").inOrder()
+
+        // Desfazer: the meal goes back to the café and the almoço gets its record back.
+        val moved = vm.await { it.receipts().last().actions.isNotEmpty() }.receipts().last()
+        vm.receiptAction(moved.id, ReceiptAction.UNDO)
+        vm.await { it.receipts().count { r -> r.kind == ReceiptKind.RESTORED } == 2 }
+        assertThat(repo.observeToday().first().logs.map { it.slotId to it.kcal }).containsExactly(almoco to 500, cafe to 380)
+    }
+
+    @Test
+    fun editar_removesTheRecord_fillsTheComposer_focuses() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val receipt = recorded(vm, slotIds().first())
+        vm.setComposer("rascunho")
+        val focus = vm.uiState.value.focusComposer
+
+        vm.receiptAction(receipt.id, ReceiptAction.EDIT)
+        val ui = vm.await { it.receipts().single().mark == ReceiptMark.EDITED }
+        assertThat(ui.composer).isEqualTo("2 pães franceses e 2 ovos mexidos")
+        assertThat(ui.focusComposer).isEqualTo(focus + 1)
+        assertThat(repo.observeToday().first().logs).isEmpty()
+    }
+
+    @Test
+    fun photoRecord_hasNoEditar() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val almoco = slotIds()[1]
+        answer = { autoOut(almoco) }
+        photos.nextImport = com.nutri.android.core.photo.PhotoResult.Ready("/photos/pf.jpg")
+        vm.onPicked(android.net.Uri.parse("content://media/1"))
+        vm.await { it.attachment != null }
+        vm.send()
+        val receipt = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }.receipts().single()
+        assertThat(receipt.actions).containsExactly(ReceiptAction.DELETE, ReceiptAction.MOVE).inOrder()
+        assertThat(repo.observeToday().first().logs.single().source).isEqualTo("photo")
+    }
+
+    @Test
+    fun actions_onlyOnTheLatestReceiptOfTheSlot_andHiddenWhenTheSlotChangedElsewhere() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val (cafe, almoco) = slotIds()
+        val first = recorded(vm, cafe)
+        val second = recorded(vm, almoco, text = "almocei arroz")
+        val ui = vm.uiState.value
+        assertThat(ui.receipts().map { it.actions.isNotEmpty() }).containsExactly(true, true).inOrder()
+        assertThat(ui.receipts().first().id).isEqualTo(first.id)
+
+        // The Home adds a second log to the almoço: its receipt no longer matches, no actions.
+        repo.addLog(window = "", text = "suco", kcal = 100, p = 1, stable = true, slotId = almoco)
+        val after = vm.await { it.receipts().single { r -> r.id == second.id }.actions.isEmpty() }
+        assertThat(after.receipts().single { it.id == first.id }.actions).isNotEmpty()
+        vm.receiptAction(second.id, ReceiptAction.DELETE)
+        delay(100)
+        assertThat(repo.observeToday().first().logs).hasSize(3)
+    }
+
+    @Test
+    fun receiptOfYesterday_keepsItsActions_andDeletesOnItsDay() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val cafe = slotIds().first()
+        val receipt = recorded(vm, cafe)
+        now = now.plus(java.time.Duration.ofDays(1))
+        vm.tick()
+        val ui = vm.await { it.receipts().single().actions.isNotEmpty() && it.items.any { i -> i is ChatItem.DateSeparator && i.label.startsWith("Ontem") } }
+        assertThat(ui.receipts().single().id).isEqualTo(receipt.id)
+
+        vm.receiptAction(receipt.id, ReceiptAction.DELETE)
+        vm.await { it.receipts().single().mark == ReceiptMark.DELETED }
+        assertThat(db.mealLogDao().getByDate("2026-09-25")).isEmpty()
+    }
+
+    @Test
+    fun oldRows_withoutRecordMode_haveNoActions() = runBlocking<Unit> {
+        val cafe = slotIds().first()
+        repo.insertMessage("user", "pão com ovo")
+        repo.insertMessage("assistant", "Pão com ovo.", estimateKcal = 300, estimateP = 10, estimateC = 30, estimateG = 10, estimateSlotId = cafe, intent = "log")
+        repo.addLog(window = "", text = "pão com ovo", kcal = 300, p = 10, stable = true, slotId = cafe)
+        repo.insertMessage("logged", "Café da manhã", estimateKcal = 300, estimateSlotId = cafe)
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val ui = vm.await { it.loaded && it.receipts().isNotEmpty() }
+        assertThat(ui.actions).isNull()
+        assertThat(ui.receipts().single().actions).isEmpty()
+        assertThat(ui.items.filterIsInstance<ChatItem.Assistant>().single().notRecorded).isFalse()
+    }
+
+    @Test
+    fun excluir_revertsTheRoutineItApplied_keepsAFactChangedSince() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val cafe = slotIds().first()
+        answer = {
+            autoOut(cafe).copy(
+                memoryUpdates = listOf(update("add", null, "dynamic", "routine", "cafe", "pão com ovo", cafe.toString())),
+            )
+        }
+        sendAndAwaitAuto(vm, "comi pão com ovo")
+        val receipt = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }.receipts().single()
+        assertThat(receipt.memoryUpdated).isTrue()
+        assertThat(memory.read(today).facts.single().id).isEqualTo("D1")
+
+        vm.receiptAction(receipt.id, ReceiptAction.DELETE)
+        vm.await { it.receipts().single().mark == ReceiptMark.DELETED }
+        assertThat(memory.read(today).facts).isEmpty()
+        assertThat(telemetry.params(TelemetryEvents.MEMORY_REVERTED).single()).isEqualTo(mapOf("reverted" to 1, "kept" to 0))
+    }
+
+    @Test
+    fun routineCard_record_hasActions_excluirRevertsTheReinforce() = runBlocking<Unit> {
+        val cafe = slotIds().first()
+        seedRoutine(routineFact(3, cafe))
+        val before = memory.read(today).facts.single()
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        vm.await { it.routine != null }
+        vm.recordRoutine()
+        val receipt = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }.receipts().single()
+        assertThat(receipt.actions).containsExactly(ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT).inOrder()
+        assertThat(memory.read(today).facts.single().days).contains(today.toString())
+
+        vm.receiptAction(receipt.id, ReceiptAction.DELETE)
+        vm.await { it.receipts().single().mark == ReceiptMark.DELETED }
+        assertThat(memory.read(today).facts.single()).isEqualTo(before)
     }
 
     @Test
@@ -431,7 +889,7 @@ class ChatViewModelTest {
         assertThat(storedAssistant().pendingMemory).contains("\"routine\"")
         assertThat(storedAssistant().memoryUpdated).isFalse()
 
-        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
         val routine = memory.read(today).facts.single()
         assertThat(routine.id).isEqualTo("D1")
@@ -460,8 +918,9 @@ class ChatViewModelTest {
             )
         }
         sendAndAwait(vm, "pão com ovo")
-        vm.askSkip(vm.uiState.value.actions!!.skip!!)
-        vm.confirmSkip()
+        // Registrar never tapped: the next send expires it.
+        answer = { ChatOut(reply = "ok", intent = "question", model = "gpt-6-luna") }
+        sendAndAwaitReply(vm, "deixa pra lá")
         vm.await { it.actions == null }
 
         val fact = memory.read(today).facts.single()
@@ -772,7 +1231,7 @@ class ChatViewModelTest {
         assertThat(telemetry.params(TelemetryEvents.CHAT_SEND))
             .containsExactly(mapOf("has_photo" to false, "text_len" to "20-100"))
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high", "intent" to "none", "question_only" to false))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "high", "intent" to "none", "question_only" to false, "record" to "missing"))
         assertThat(telemetry.nonFatals).isEmpty()
         val allValues = telemetry.events.flatMap { it.second.values }.map { it.toString() } + telemetry.breadcrumbs
         assertThat(allValues.none { it.contains("pães") || it.contains("ovos") }).isTrue()
@@ -796,7 +1255,7 @@ class ChatViewModelTest {
         val cafe = slotIds().first()
         answer = { estimateOut(cafe.toString()) }
         sendAndAwait(vm, "2 pães franceses com 2 ovos mexidos")
-        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
 
         assertThat(telemetry.params(TelemetryEvents.MEAL_SAVED))
@@ -833,7 +1292,7 @@ class ChatViewModelTest {
         sendAndAwaitReply(vm, "café igual ao de ontem")
         answer = { cafeOut(cafe, question = null, mealText = mealText) }
         sendAndAwaitReply(vm, "Sempre uso leite semi desnatado")
-        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
         return cafe
     }
@@ -863,7 +1322,7 @@ class ChatViewModelTest {
         val cafe = slotIds().first()
         answer = { cafeOut(cafe, question = null, mealText = "  ", intent = null) }
         sendAndAwaitReply(vm, "o de sempre")
-        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
         assertThat(repo.observeToday().first().logs.single().text).isEqualTo("o de sempre")
     }
@@ -878,7 +1337,7 @@ class ChatViewModelTest {
         vm.await { it.attachment != null }
         vm.send()
         vm.await { it.actions != null }
-        vm.record(vm.uiState.value.actions!!.estimateId, almoco)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
         val log = repo.observeToday().first().logs.single()
         assertThat(log.text).isEqualTo("Prato feito com frango, arroz e feijão.")
@@ -911,7 +1370,7 @@ class ChatViewModelTest {
         assertThat(stored.estimateKcal).isEqualTo(430)
         assertThat(stored.estimateMealText).isEqualTo("pizza de pão sírio")
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT))
-            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "medium", "intent" to "plan", "question_only" to false))
+            .containsExactly(mapOf("outcome" to "ok", "has_estimate" to true, "confidence" to "medium", "intent" to "plan", "question_only" to false, "record" to "missing"))
 
         vm.recordPlan(stored.id)
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
@@ -1008,13 +1467,14 @@ class ChatViewModelTest {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
         answer = { planOut(jantar.toString()) }
         sendAndAwaitReply(vm, "vou fazer pizza")
-        vm.recordPlan(vm.uiState.value.actions!!.estimateId)
-        val ui = vm.await { it.replaceConfirm != null }
-        assertThat(ui.replaceConfirm!!.oldKcal).isEqualTo(300)
-        assertThat(ui.replaceConfirm!!.newKcal).isEqualTo(420)
+        val estimateId = vm.uiState.value.actions!!.estimateId
+        vm.recordPlan(estimateId)
+        val ui = vm.await { it.replacePrompt() != null }
+        assertThat(ui.replacePrompt()!!.confirm.oldKcal).isEqualTo(300)
+        assertThat(ui.replacePrompt()!!.confirm.newKcal).isEqualTo(420)
 
-        vm.confirmReplace()
-        vm.await { it.items.any { i -> i is ChatItem.Receipt && i.replaced } }
+        vm.confirmReplace(estimateId)
+        vm.await { it.receipts().any { r -> r.kind == ReceiptKind.REPLACED } }
         assertThat(repo.observeToday().first().logs.single().kcal).isEqualTo(420)
     }
 
@@ -1053,9 +1513,9 @@ class ChatViewModelTest {
         val bot = vm.uiState.value.items.filterIsInstance<ChatItem.Assistant>().single()
         assertThat(bot.memory).isEqualTo(MemoryNotice(updated = true, permanent = true, dynamic = false))
 
-        vm.record(vm.uiState.value.actions!!.estimateId, cafe)
-        val ui = vm.await { it.items.any { i -> i is ChatItem.Receipt } }
-        assertThat(ui.items.filterIsInstance<ChatItem.Receipt>().single().memoryUpdated).isTrue()
+        vm.register(vm.uiState.value.actions!!.estimateId)
+        // The memory change lands on the receipt right after the record (A34: it is stored with its undo data).
+        vm.await { it.items.any { i -> i is ChatItem.Receipt && i.memoryUpdated } }
     }
 
     private fun routineFact(days: Int, slot: Long, permanent: Boolean = false, id: String = if (permanent) "P1" else "D1") = Fact(
@@ -1149,7 +1609,7 @@ class ChatViewModelTest {
         vm.await { it.routine != null }
 
         vm.recordRoutine()
-        val ui = vm.await { it.routine == null && it.items.any { i -> i is ChatItem.Receipt } }
+        val ui = vm.await { it.routine == null && it.items.any { i -> i is ChatItem.Receipt && i.memoryUpdated } }
         val log = repo.observeToday().first().logs.single()
         assertThat(log.slotId).isEqualTo(cafe)
         assertThat(log.text).isEqualTo("2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite semidesnatado, café")
@@ -1242,7 +1702,7 @@ class ChatViewModelTest {
         // Round 1: no Forçar estimativa.
         assertThat(ui.forceEstimate).isFalse()
         assertThat(telemetry.params(TelemetryEvents.CHAT_RESULT).single())
-            .isEqualTo(mapOf("outcome" to "ok", "has_estimate" to false, "intent" to "log", "question_only" to true))
+            .isEqualTo(mapOf("outcome" to "ok", "has_estimate" to false, "intent" to "log", "question_only" to true, "record" to "missing"))
     }
 
     @Test
@@ -1324,7 +1784,7 @@ class ChatViewModelTest {
 
         assertThat(requests.map { it.clarifyRounds }).containsExactly(0, 1, 2, 3).inOrder()
         assertThat(requests.none { it.forceEstimate }).isTrue()
-        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.items.any { i -> i is ChatItem.Receipt } }
         assertThat(repo.observeToday().first().logs.single().text).isEqualTo("macarrão com frango grelhado ao molho branco")
     }
@@ -1341,7 +1801,7 @@ class ChatViewModelTest {
         turn(vm, "R2")
         answer = { dinnerOut(jantar, mealText = null) }
         turn(vm, "R3")
-        vm.record(vm.uiState.value.actions!!.estimateId, jantar)
+        vm.register(vm.uiState.value.actions!!.estimateId)
         vm.await { it.items.any { i -> i is ChatItem.Receipt } }
         assertThat(repo.observeToday().first().logs.single().text).isEqualTo(dinner)
     }
@@ -1401,7 +1861,7 @@ class ChatViewModelTest {
         assertThat(ui.items.filterIsInstance<ChatItem.Assistant>()).isEmpty()
         assertThat(ui.actions!!.estimateId).isEqualTo(estimateId)
 
-        vm.record(estimateId, jantar)
+        vm.register(estimateId)
         vm.await { it.items.any { i -> i is ChatItem.Receipt } }
         val log = repo.observeToday().first().logs.single()
         assertThat(log.text).isEqualTo(dinner)

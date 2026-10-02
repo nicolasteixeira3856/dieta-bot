@@ -1,6 +1,7 @@
 package com.nutri.android.core.memory
 
 import com.nutri.android.domain.Fact
+import com.nutri.android.domain.FactImage
 import com.nutri.android.domain.Memory
 import com.nutri.android.domain.MemoryResult
 import com.nutri.android.domain.MemoryRules
@@ -16,6 +17,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+
+/** [FactMemory.revertAndApply]: the apply result and the revert counts. */
+data class MemoryEdit(val result: MemoryResult, val reverted: Int, val kept: Int)
 
 /** Raw storage of the memory bytes as text. Production: [AtomicMemoryFile]. */
 interface MemoryFile {
@@ -38,14 +42,32 @@ class FactMemory @Inject constructor(private val file: MemoryFile) {
     /** Facts after expiration: what the next POST sends. */
     suspend fun read(today: LocalDate): Memory = mutex.withLock { MemoryRules.expire(load(), today).memory }
 
-    /** Applies the AI updates; [recorded] is the meal of a Gravar/Substituir (routine only). */
+    /**
+     * Applies the AI updates; [recorded] is the meal of a record (routine only). The result carries the
+     * images of the facts it changed (A34), measured after expiry so an expired fact never comes back.
+     */
     suspend fun apply(updates: List<MemoryUpdate>, today: LocalDate, recorded: RecordedMeal? = null): MemoryResult =
-        mutex.withLock {
-            val before = load()
-            val result = MemoryRules.apply(before, updates, today, recorded)
-            if (result.memory != before) store(result.memory)
-            result
-        }
+        revertAndApply(emptyList(), updates, today, recorded).result
+
+    /**
+     * A34: reverts [images] (Excluir, Desfazer, Editar), then applies [updates] with [recorded] (Trocar
+     * refeição), in one locked write. The images of the result cover both steps.
+     */
+    suspend fun revertAndApply(
+        images: List<FactImage>,
+        updates: List<MemoryUpdate>,
+        today: LocalDate,
+        recorded: RecordedMeal? = null,
+    ): MemoryEdit = mutex.withLock {
+        val stored = load()
+        val expired = MemoryRules.expire(stored, today)
+        val base = expired.memory
+        val undone = MemoryRules.revert(base, images)
+        val result = MemoryRules.apply(undone.memory, updates, today, recorded)
+        if (result.memory != stored) store(result.memory)
+        val counts = result.counts + expired.counts
+        MemoryEdit(result.copy(counts = counts, images = MemoryRules.images(base, result.memory)), undone.reverted, undone.kept)
+    }
 
     /** A29 "Registrar assim": the suggested routine was recorded as is. */
     suspend fun reinforceRoutine(factId: String, meal: RecordedMeal, today: LocalDate): MemoryResult {

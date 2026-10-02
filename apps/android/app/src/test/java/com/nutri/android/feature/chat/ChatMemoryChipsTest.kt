@@ -22,7 +22,7 @@ class ChatMemoryChipsTest {
     val compose = createComposeRule()
 
     private fun show(ui: ChatUiState) = compose.setContent {
-        DietaBotTheme(darkTheme = true) { ChatScreen(ui, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {}) }
+        DietaBotTheme(darkTheme = true) { ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {}) }
     }
 
     private fun top(tag: String) = compose.onNodeWithTag(tag).getUnclippedBoundsInRoot().top
