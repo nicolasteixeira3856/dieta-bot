@@ -1,4 +1,4 @@
-# Plan — S15 Pending meal is not a skip, photo with a question is `ask`, hard record cases
+# Plan — S15 Pending meal is not a skip, a firm skip ahead is, photo with a question is `ask`, hard record cases
 
 - Status: Aguardando aprovação
 - Date: 02/10/2026
@@ -35,15 +35,17 @@ Reports: `logs/evals/2026-10-02-150548-none.json`, `logs/evals/2026-10-02-151043
 - Both efforts: "ainda não almocei" at 11:40 came back `intent: skip`, `skip_slot` almoço, `record: auto` in 2 of 3 runs. In the app that marks a pending lunch as skipped.
 - `low` only: a food photo with "isso tem muita caloria?" came back `log` + `clear` → `auto` (0/3). The spec did not define it; owner decision below.
 
-## Owner decision (02/10/2026)
+## Owner decisions (02/10/2026)
 
+- A skip announced ahead counts as a skip when it is firm: "hoje não vou jantar", "vou pular o almoço hoje" → `intent: skip`, `skip_slot` = that slot → `record: auto` (the client skips the empty slot with a receipt that has Desfazer, A34). A hedged one ("acho que não vou jantar", "talvez eu pule a janta") is not a skip: `intent: question`, `skip_slot: null`, nothing marked. The skip gate (S14 row 4) does not read `record_intent`, so the line between firm and hedged lives in the instruction.
 - A food photo sent with a question about it ("isso tem muita caloria?", "quanto tem isso?") is `intent: log`, estimate present, `record_intent: unsure` → `record: ask`. The user sees the estimate and one **Registrar** button. Only a photo with **no** text stays `clear` (`auto`).
 
 ## Implementation scope
 
 ### 1. Instructions (`_CHAT_INSTRUCTIONS`, English, all clients)
 
-- **Pending meal:** "ainda não almocei", "não jantei ainda", "ainda vou almoçar" say the meal has not happened **yet**. That is not `skip`: `intent: question` (or `plan` when the user asks what to eat), `skip_slot: null`. `skip` stays as in S14: the meal did not happen ("pulei o café", "hoje não almocei", without "ainda").
+- **Pending meal:** "ainda não almocei", "não jantei ainda", "ainda vou almoçar" say the meal has not happened **yet**. That is not `skip`: `intent: question` (or `plan` when the user asks what to eat), `skip_slot: null`. `skip` = the meal did not happen ("pulei o café", "hoje não almocei", without "ainda") or the user firmly says it will not happen today ("hoje não vou jantar", "vou pular o almoço hoje").
+- **Hedged skip:** "acho que não vou jantar", "talvez eu pule a janta", "não sei se vou almoçar" are not `skip`: `intent: question`, `skip_slot: null`.
 - **Photo with a question:** a food photo with a question about it is `log`: estimate the plate, `record_intent: unsure`. A photo with no text is `clear` (unchanged).
 
 No change to the schema, shaping, gates or response shape. Legacy, v2 and v3 responses unchanged except for the model's own text.
@@ -81,6 +83,9 @@ New, for this plan's rules:
 | Case | Message | Expect |
 |---|---|---|
 | `hard-nao-jantei-ainda` | "não jantei ainda, o que como?" (19:00) | `plan`, `none`, skip_slot null |
+| `hard-nao-vou-jantar` | "hoje não vou jantar" (19:00) | `skip`, `auto`, skip_slot jantar |
+| `hard-vou-pular-almoco` | "vou pular o almoço hoje" (10:30) | `skip`, `auto`, skip_slot almoço |
+| `hard-acho-que-nao-janto` | "acho que não vou jantar hoje" (19:00) | `none`, skip_slot null |
 | `hard-foto-quanto-tem` | food photo + "quanto tem isso?" | `log`, estimate present, `ask` |
 
 Every case adds `refusal: none`. Expectations follow v1-chat rules 3a, 3g, 4 and 5d with this plan's two rules. For the pending-meal cases `record: none` and `skip_slot: null` are enough: a wrong `skip` with the slot fails both.
@@ -91,25 +96,25 @@ Every case adds `refusal: none`. Expectations follow v1-chat rules 3a, 3g, 4 and
 
 ## Affected files and areas
 
-- `server/llm.py`, `server/evals/cases/hard-*.json` (23 new files), `server/tests/test_record.py`.
-- Docs in the same delivery: [v1-chat](../specifications/v1-chat.md) rules 3a and 3g (remove the S15 proposal note); server README; this plan's result.
+- `server/llm.py`, `server/evals/cases/hard-*.json` (26 new files), `server/tests/test_record.py`.
+- Docs in the same delivery: [v1-chat](../specifications/v1-chat.md) rules 3a and 3g (remove the S15 proposal note); [api-contract](../../api-contract.md) `intent: skip` line; server README; this plan's result.
 
 ## Planned validation
 
 1. `pytest server/tests` green.
-2. `python -m evals.run --effort none --repeat 3`: every `record-hard` case ≥ 2/3; `hard-ainda-nao-almocei` and `hard-nao-jantei-ainda` 3/3 (a wrong skip is the costly error); the other 68 cases no regression against S14 (`memoria-cheia` and `ceia-completa-suco` are already unstable; compare with a 6-repetition run if they fail). Record pass rate and p95 here.
+2. `python -m evals.run --effort none --repeat 3`: every `record-hard` case ≥ 2/3; `hard-ainda-nao-almocei`, `hard-nao-jantei-ainda` and `hard-acho-que-nao-janto` 3/3 (a wrong skip is the costly error); the other 68 cases no regression against S14 (`memoria-cheia` and `ceia-completa-suco` are already unstable; compare with a 6-repetition run if they fail). Record pass rate and p95 here.
 3. Deploy to the dev server (`tools/deploy-gcp.ps1`), one real v4 request "ainda não almocei" with `X-Request-Id: s15-*`: `record: none`, log `record` ≠ `auto_skip`.
 
 ## Out of scope
 
 - `reasoning.effort` (stays `none`; the comparison above is the evidence).
 - Schema, gates, response shape, Android (A34).
-- A skip announced ahead ("hoje não vou jantar"): ADR-028 decision 4 speaks of a meal that did not happen; whether a given-up future meal is a skip is an open owner decision. Until then the model decides and no case asserts it.
 - Messages with two days or two meals ("ontem jantei pizza e hoje no café comi pão"): no rule yet; a separate decision.
 - A server-side guard on the word "ainda": the model rule plus cases are the control; a keyword guard would misfire on "ainda comi um pão".
 
 ## Risks and controls
 
+- **A firm skip ahead turns out wrong** (the user eats after all): the receipt's Desfazer removes the skip, and a meal sent for a skipped slot is recorded by itself (A34). The hedged-skip case guards the opposite error.
 - **The rule makes real skips less frequent** ("hoje não almocei" read as pending): cases `hard-hoje-nao-jantei` and `registro-pulei` must keep passing.
 - **Photo + question now asks instead of recording:** intended (owner decision); one tap on Registrar.
 - **Prompt drift on other cases:** the full suite runs; failures are compared with `master`.
@@ -117,6 +122,7 @@ Every case adds `refusal: none`. Expectations follow v1-chat rules 3a, 3g, 4 and
 ## Acceptance criteria
 
 - "ainda não almocei" returns `record: none`, never `intent: skip`.
+- "hoje não vou jantar" returns `intent: skip`, `skip_slot` jantar, `record: auto`; "acho que não vou jantar" returns `record: none`.
 - A food photo with a question returns `record: ask` with the estimate.
 - A food photo with no text still returns `record: auto`.
 - All `record-hard` cases ≥ 2/3, the two pending-meal cases 3/3.
