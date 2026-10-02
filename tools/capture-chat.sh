@@ -243,6 +243,21 @@ dump; missing=$((2100 - $(composer_len)))
 [ "$missing" -gt 0 ] && "$ADB" shell input text "$(printf 'x%.0s' $(seq $missing))"
 dump; echo "  composer holds $(composer_len) characters"
 "$ADB" shell input keyevent 4; sleep 0.8  # hide the keyboard: the gold has none
+# A36: the field scrolled to the cursor at the end; the gold shows the first 5 lines. Drag the text down to
+# its top: a drag scrolls without moving the cursor, and no key event (keys flip Gboard to its physical
+# keyboard mode). Each swipe first finds the field, so a changed screen gets no more input.
+scrolled=1
+for _ in $(seq 24); do
+  dump
+  box=$("$PY" -c "
+import re, sys
+m = re.search(r'resource-id=\"chat-input\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"', open(sys.argv[1], encoding='utf-8').read())
+print(' '.join(m.groups()) if m else '')" "$TMP/ui.xml")
+  [ -z "$box" ] && { echo "  ✗ chat-input gone while scrolling to the top"; FAIL=1; scrolled=0; break; }
+  read -r x0 y0 x1 y1 <<< "$box"
+  "$ADB" shell input swipe $(((x0 + x1) / 2)) $((y0 + 10)) $(((x0 + x1) / 2)) $((y1 - 10)) 150
+done
+[ "$scrolled" = 1 ] && echo "  composer dragged down 24 times"
 expect "over 2000: Texto muito longo" 'resource-id="chat-too-long"'
 shot chatX
 before=$(calls)
