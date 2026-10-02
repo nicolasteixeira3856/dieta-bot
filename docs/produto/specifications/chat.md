@@ -22,7 +22,7 @@ Plano com dia projetado e Registrar assim (`chatR`), avisos de memória (`chatM`
 
 Perguntas antes da estimativa (no máximo 3 rodadas) e **Forçar estimativa** (`chatQ`) desde o [A30](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md) ([ADR-026](../adrs/ADR-026-perguntas-antes-da-estimativa.md); server: [S13](../../server/plans/completed/s13-perguntas-antes-da-estimativa.md); gate [ST7](../../stitch/plans/completed/st7-pergunta-antes-da-estimativa.md)): regras 4, 12 e 14 e "Estados e falhas".
 
-Registro autônomo com recibo que desfaz (`chatE`, `chatF`, `chatG`, `chatU`, `chatD`) desde o [A34](../../android/plans/pending_manual_validation/a34-registro-autonomo.md) ([ADR-028](../adrs/ADR-028-registro-autonomo.md); server: [S14](../../server/plans/completed/s14-registro-autonomo.md), [S15](../../server/plans/completed/s15-registro-casos-dificeis.md); gate [ST9](../../stitch/plans/completed/st9-registro-autonomo.md)): regras 4–7, 12 e 16–20, "Estados e falhas" e critérios. A barra Gravar | Trocar | Pular e o diálogo de pular saíram do Chat; o `chatP` fica só como referência do pulo da Home.
+Registro autônomo com recibo que desfaz (`chatE`, `chatF`, `chatG`, `chatU`, `chatD`) desde o [A34](../../android/plans/completed/a34-registro-autonomo.md) ([ADR-028](../adrs/ADR-028-registro-autonomo.md); server: [S14](../../server/plans/completed/s14-registro-autonomo.md), [S15](../../server/plans/completed/s15-registro-casos-dificeis.md); gate [ST9](../../stitch/plans/completed/st9-registro-autonomo.md)): regras 4–7, 12 e 16–20, "Estados e falhas" e critérios. A barra Gravar | Trocar | Pular e o diálogo de pular saíram do Chat; o `chatP` fica só como referência do pulo da Home.
 
 ## Contexto e objetivo
 
@@ -94,7 +94,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A29 (Concluído)](../../android/plans/completed/a29-chat-v2-interface.md)
 - [A30 (Concluído)](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md)
 - [A32 (Concluído)](../../android/plans/completed/a32-chat-rolagem-paginacao.md)
-- [A34 (Pendente aprovação manual)](../../android/plans/pending_manual_validation/a34-registro-autonomo.md)
+- [A34 (Concluído)](../../android/plans/completed/a34-registro-autonomo.md)
 - [A35 (Fora de escopo)](../../android/plans/out_of_scope/a35-registro-retroativo.md)
 - `docs/server/plans/completed/s2-v1-chat.md`
 - [S3 (Concluído)](../../server/plans/completed/s3-compact.md)

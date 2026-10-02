@@ -1,6 +1,6 @@
 # Plan — A34 Autonomous record, receipts with actions
 
-- Status: Pendente aprovação manual
+- Status: Concluído (02/10/2026)
 - Approval: 02/10/2026 (owner: "Aprovo o plano docs/android/plans/a34-registro-autonomo.md. Implemente o plano aprovado.")
 - Date: 01/10/2026
 - Owning context: `android`
@@ -242,7 +242,7 @@ Validation:
    - "ontem jantei pizza, 3 fatias" → a question first, nothing recorded (the S14 note).
    - A shorter dinner phrase got a question first (ADR-026), as expected.
 
-   ⏳ Pending, owner: the same run on the owner's phone, including a photo record and Excluir, plus the telemetry events in Firebase DebugView (the Firebase MCP did not connect in this session).
+   ✅ Owner, 02/10/2026: tested dev 0.0.8 (Firebase App Tester) on their phone. Owner: "Já testei aqui e está funcional, pode completar o plano." Plan → `Concluído`.
 
 Diff list (ST9 golds vs app, written per AGENTS Visual QA):
 

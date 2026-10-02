@@ -4,7 +4,7 @@
 - Date: 02/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`llm.py`, `evals/cases/`, `tests/`)
-- Prerequisites: [S14](s14-registro-autonomo.md) (`Concluído`). Refines [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 2 and 4 within their text; no new ADR. Does not block [A34](../../../android/plans/pending_manual_validation/a34-registro-autonomo.md): the response shape does not change.
+- Prerequisites: [S14](s14-registro-autonomo.md) (`Concluído`). Refines [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 2 and 4 within their text; no new ADR. Does not block [A34](../../../android/plans/completed/a34-registro-autonomo.md): the response shape does not change.
 
 ## Authorization gate
 
@@ -159,7 +159,7 @@ Each full run was compared with `master` (detached worktree, same evaluator, 6 r
 
 ### Pending
 
-- None for S15. [A34](../../../android/plans/pending_manual_validation/a34-registro-autonomo.md) is unaffected: the response shape did not change.
+- None for S15. [A34](../../../android/plans/completed/a34-registro-autonomo.md) is unaffected: the response shape did not change.
 
 ## Closure
 
