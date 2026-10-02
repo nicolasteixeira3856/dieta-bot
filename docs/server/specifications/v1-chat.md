@@ -4,6 +4,10 @@
 
 Vigente desde o [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). Header de instalação opcional `X-Client-Instance-Id` e `safety_identifier` desde o [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) (01/10/2026, [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile), [contrato](../../api-contract.md)); auditoria segue no CP9.
 
+## Proposta — S15 (refeição pendente, foto com pergunta)
+
+[S15](../plans/s15-registro-casos-dificeis.md) (aguardando aprovação, 02/10/2026): "ainda não almocei" é refeição pendente, nunca `skip` (`intent: question` ou `plan`, `skip_slot: null`); foto de comida com uma pergunta sobre ela ("isso tem muita caloria?") é `log` com `record_intent: unsure` → `record: ask` (decisão do dono, 02/10/2026); foto sem texto continua `clear`. Não é o comportamento vigente: entra com o S15, que reescreve as regras 3a e 3g.
+
 ## Estado
 
 Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
