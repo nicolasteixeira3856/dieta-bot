@@ -2,6 +2,22 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.8 — 02/10/2026
+
+### Novidades
+
+- Refeição de hoje mandada no Chat é registrada sozinha quando a IA tem certeza. Logo abaixo aparece um recibo com a refeição, o horário e as kcal.
+- O recibo mais recente de cada refeição tem ações: Desfazer, Excluir, Trocar refeição e Editar. Editar devolve o texto para a caixa de mensagem para você corrigir e mandar de novo. Refeição registrada por foto não tem Editar.
+- Desfazer volta a refeição como estava antes, inclusive o que a IA tinha aprendido com ela.
+- Quando a IA não tem certeza, aparece só um botão "Registrar". Ele some quando você manda a próxima mensagem.
+- Se a refeição já tinha registro, o Chat pergunta antes de trocar: "Substituir {refeição}?", com o valor antigo e o novo. "Outra refeição" deixa escolher onde gravar.
+- "Pulei o café" ou "hoje não vou jantar" marcam a refeição como pulada, com Desfazer no recibo. "Acho que não vou jantar" ou "ainda não almocei" não marcam nada.
+
+### Ajustes
+
+- A barra Gravar | Trocar | Pular saiu do Chat. Estimativas antigas ficam sem botões.
+- Foto de prato com uma pergunta, como "isso tem muita caloria?", só responde e oferece "Registrar". Não grava sozinha.
+
 ## 0.0.7 — 01/10/2026
 
 ### Novidades
