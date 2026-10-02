@@ -5,7 +5,7 @@
 - Date: 01/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: none. Executes [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1, 2, 4, 7 and 8. Opt-in by request field: no Android change needed to ship. Blocks [A34](../../../android/plans/pending_manual_validation/a34-registro-autonomo.md). Can run in parallel with [ST9](../../../stitch/plans/completed/st9-registro-autonomo.md).
+- Prerequisites: none. Executes [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1, 2, 4, 7 and 8. Opt-in by request field: no Android change needed to ship. Blocks [A34](../../../android/plans/completed/a34-registro-autonomo.md). Can run in parallel with [ST9](../../../stitch/plans/completed/st9-registro-autonomo.md).
 
 ## Authorization gate
 
@@ -166,4 +166,4 @@ For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_
 
 ### Pending
 
-- None for S14. The client side is [A34](../../../android/plans/pending_manual_validation/a34-registro-autonomo.md), which accepts ADR-028 on completion.
+- None for S14. The client side is [A34](../../../android/plans/completed/a34-registro-autonomo.md), which accepts ADR-028 on completion.

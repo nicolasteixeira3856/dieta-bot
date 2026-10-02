@@ -1,6 +1,6 @@
 # ADR-028 — The Chat records a meal by itself, with a receipt that can undo it
 
-- Status: Accepted (02/10/2026, with [A34](../../android/plans/pending_manual_validation/a34-registro-autonomo.md))
+- Status: Accepted (02/10/2026, with [A34](../../android/plans/completed/a34-registro-autonomo.md))
 - Date: 2026-10-01
 - Context: `produto`
 - Supersedes: partially [ADR-012](ADR-012-chat-home-perfil.md) (record only after the tap on Gravar) and [ADR-017](ADR-017-registro-consolidado.md) decision 3 only in its trigger and form (the replace confirmation was opened by a tap on Gravar, as a dialog; it now arrives inline with the answer; asking before replacing stays). In the [Chat spec](../specifications/chat.md): "Registro só depois do tap no chip", rules 4–7, the "tool invisível que grava meal_log" out-of-scope line and the criterion "Gravar sem tap não altera o círculo da Home". In [v1-chat](../../server/specifications/v1-chat.md): rule 3f, "nunca gravar sozinho" in rule 4, the "ontem → grava hoje" sentence of rule 4 and the criterion "Sem tap do user o server nao grava nada" (reworded: the server still writes nothing; it tells the client what to do). Edits golds `chatE`, `chatF`, `chatG`; adds golds `chatU`, `chatD` (29 → 31 per theme). Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively.
@@ -112,6 +112,6 @@ One Stitch gate, [ST9](../../stitch/plans/completed/st9-registro-autonomo.md): `
 
 - Specifications affected: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md), [api-contract](../../api-contract.md), [room-v2](../../android/specifications/room-v2.md).
 - Related ADRs: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), [ADR-017](ADR-017-registro-consolidado.md), [ADR-023](ADR-023-chat-v2-memoria-v2.md), [ADR-026](ADR-026-perguntas-antes-da-estimativa.md).
-- Plans: [S14](../../server/plans/completed/s14-registro-autonomo.md) ∥ [ST9](../../stitch/plans/completed/st9-registro-autonomo.md) → [A34](../../android/plans/pending_manual_validation/a34-registro-autonomo.md). Deferred: [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md).
+- Plans: [S14](../../server/plans/completed/s14-registro-autonomo.md) ∥ [ST9](../../stitch/plans/completed/st9-registro-autonomo.md) → [A34](../../android/plans/completed/a34-registro-autonomo.md). Deferred: [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the supersession.
