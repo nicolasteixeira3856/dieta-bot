@@ -184,6 +184,12 @@ fun ChatScreen(
         focusManager.clearFocus()
         onCamera()
     }
+    // A37: send closes the keyboard, so the answer and the receipt show whole.
+    val send = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+        onSend()
+    }
     Box(
         Modifier
             .fillMaxSize()
@@ -202,7 +208,7 @@ fun ChatScreen(
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, camera)
-            Footer(ui, onComposer, onSend, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
+            Footer(ui, onComposer, send, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         if (ui.photoSheet) PhotoSheet(onCamera, onGallery, onPhotoSheetClose)
