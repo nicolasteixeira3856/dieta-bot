@@ -127,6 +127,12 @@ Optional fields (S13, ADR-026), out of limits → HTTP 422:
 - `clarify_rounds`: integer 0–3, question rounds already shown for the pending meal. **v3 client** = `clarify_rounds` present: it renders question-only turns. Absent = the response is the same as before S13.
 - `force_estimate`: boolean, default `false`. The user tapped **Forçar estimativa**. Ignored without `clarify_rounds`.
 
+Optional field (S14, ADR-028):
+```json
+{"auto_record": true}
+```
+- `auto_record`: boolean, default `false`. **v4 client** = `clarify_rounds` present and `auto_record: true`: the OUT carries the record mark (below). Anything else = the response is the same as before S14.
+
 OUT
 ```json
 {
@@ -180,6 +186,35 @@ Quanto de macarrão? E o molho era com creme de leite ou requeijão?",
 - `reply` on a question-only turn is the history text: `Entendi: {meal_text}.` + newline + the question (no `meal_text`: the question alone). The app stores it and sends it back in `messages[]`; it does not display it.
 - The server releases the estimate (`estimate` present, `question: null`) when `force_estimate` is true, confidence is high or the model asked nothing, `clarify_rounds` is 3, or the question repeats one asked in an `assistant` turn of `messages`. A v3 client never gets the generic question above.
 - `plan`, `question` and `estimate: null` turns are unchanged, with `question: null`. Fallbacks carry `question: null`.
+
+v4 client (`clarify_rounds` + `auto_record: true`, S14): the OUT also carries `record` and `skip_slot`, and `intent` may be `skip`. The server still writes nothing; the client records, checks its own guards (slot of today, no pending question) and may downgrade `auto` to `ask`.
+```json
+{
+  "reply": "Ok, café de hoje fora.",
+  "intent": "skip",
+  "estimate": null,
+  "memory_updates": [],
+  "memory_used": [],
+  "digest": null,
+  "model": "gpt-6-luna",
+  "question": null,
+  "record": "auto",
+  "skip_slot": "cafe"
+}
+```
+- `record`: `auto` (record by itself), `ask` (show one **Registrar** button) or `none` (do not record). First matching rule wins:
+  1. Refusal (scope or moderation, any fixed reply) → `none`.
+  2. `intent` `question` or `plan`, a question-only turn, or a fallback → `none`.
+  3. The message is about another day ("ontem", a past weekday) → `none`; the `reply` says the Chat records only today's meals.
+  4. `intent: skip` with a `profile.slots` id → `auto`, `skip_slot` = that id.
+  5. `intent: skip` without a valid slot → `none`, shaped to `intent: question`.
+  6. `log` with a released estimate and `suggested_slot: null` → `ask`.
+  7. `log` with a released estimate and a clear intent to record (eating stated, "registra", a meal name followed by food, a photo with no text, `force_estimate`) → `auto`.
+  8. Any other released `log` → `ask`.
+- `skip_slot`: a `profile.slots` id on rule 4, else `null`.
+- `intent: skip` ("pulei o café"): `estimate: null`, one short neutral `reply`. Clients before v4 never see it: the turn comes as `intent: question` with the same `reply`.
+- The `reply` never says a meal was recorded or skipped; the app shows the receipt.
+- Refusals and fallbacks carry `record: "none"`, `skip_slot: null`.
 - Content refusal (CP2): the model's `scope` is not `in_scope`, or moderation flagged the input or the output. HTTP 200 in the normal shape: fixed pt-BR `reply` (e.g. `"Posso ajudar com refeições, porções e o orçamento alimentar do dia."`), `intent: "question"`, `estimate: null`, `memory_updates: []`, `memory_used: []`, `digest: null`, plus `question: null` for a v3 client. Copy: [refusal-copy.pt-BR.md](content-policy/specifications/refusal-copy.pt-BR.md). `scope` is never returned.
 - Moderation error or timeout: HTTP 503 `{"detail": "content_policy_unavailable"}`.
 - Model answered plain text (no JSON): the fixed out-of-scope `reply`, `estimate: null`. The model text is never returned. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.

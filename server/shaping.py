@@ -15,10 +15,12 @@ from config import (
     FACT_KEY_MAX,
     FACT_TEXT_MAX,
     FALLBACK_QUESTION,
+    MEAL_DAYS,
     MEAL_TEXT_MAX,
     MEMORY_UPDATES_MAX,
     MEMORY_USED_MAX,
     MODEL,
+    RECORD_INTENTS,
 )
 from moderation import (
     IN_SCOPE,
@@ -122,6 +124,8 @@ def digest_output_texts(result: dict[str, Any]) -> list[str]:
 def _texts(values: list[Any]) -> list[str]:
     return [value for value in values if isinstance(value, str) and value.strip()]
 CHAT_INTENTS = ("log", "plan", "question")
+# ADR-028 decision 4: "pulei o café". Only a v4 client sees it (S14).
+INTENT_SKIP = "skip"
 MEMORY_OPS = ("add", "reinforce", "replace", "remove")
 FACT_KINDS = ("permanent", "dynamic")
 FACT_CATEGORIES = ("preference", "portion", "routine")
@@ -199,8 +203,12 @@ def shape_chat(
     *,
     valid_slot_ids: set[str] | list[str] | None = None,
     fact_ids: list[str] | None = None,
+    skip: bool = False,
 ) -> dict[str, Any]:
-    """fact_ids None = legacy client (no facts in the request): no memory fields, plan without card."""
+    """fact_ids None = legacy client (no facts in the request): no memory fields, plan without card.
+
+    skip False (any client before v4, S14): intent skip becomes question, its reply kept.
+    """
     valid_ids = set(valid_slot_ids) if valid_slot_ids else set()
     legacy = fact_ids is None
     known_facts = set(fact_ids or [])
@@ -213,11 +221,13 @@ def shape_chat(
 
     raw_estimate = payload.get("estimate")
     intent = payload.get("intent")
-    if intent not in CHAT_INTENTS:
+    if intent == INTENT_SKIP:
+        intent = INTENT_SKIP if skip else "question"
+    elif intent not in CHAT_INTENTS:
         intent = "log" if isinstance(raw_estimate, dict) else "question"
 
     estimate: dict[str, Any] | None = None
-    if isinstance(raw_estimate, dict) and intent != "question":
+    if isinstance(raw_estimate, dict) and intent in ("log", "plan"):
         estimate = _chat_estimate(raw_estimate, valid_ids, plan=intent == "plan")
     if legacy and intent == "plan":
         # APK <= 0.0.3 shows a card for any estimate: grams and total stay in the reply.
@@ -424,6 +434,73 @@ def _question_tokens(text: str) -> set[str]:
     decomposed = unicodedata.normalize("NFKD", text.casefold())
     plain = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
     return {token for token in _TOKEN.findall(plain) if token not in _STOP_WORDS}
+
+
+# Record mark of a v4 client (ADR-028, S14). The server never writes: the client applies it.
+RECORD_AUTO = "auto"
+RECORD_ASK = "ask"
+RECORD_NONE = "none"
+# Log values of the record gate, one per row of S14 § 4.
+RECORD_NONE_POLICY = "none_policy"
+RECORD_NONE_INTENT = "none_intent"
+RECORD_NONE_OTHER_DAY = "none_other_day"
+RECORD_AUTO_SKIP = "auto_skip"
+RECORD_NONE_SKIP_SLOT = "none_skip_slot"
+RECORD_ASK_NO_SLOT = "ask_no_slot"
+RECORD_AUTO_LOG = "auto_log"
+RECORD_ASK_UNSURE = "ask_unsure"
+
+
+def record_gate(
+    result: dict[str, Any],
+    payload: dict[str, Any],
+    *,
+    valid_slot_ids: Iterable[str],
+    force_estimate: bool = False,
+    photo_only: bool = False,
+) -> tuple[dict[str, Any], str]:
+    """v4 client (clarify_rounds + auto_record): adds record and skip_slot. First matching row wins.
+
+    result is the clarify_gate output; payload the raw model JSON. Returns (response, record log value).
+    """
+    out = {**result, "record": RECORD_NONE, "skip_slot": None}
+    intent = out.get("intent")
+    estimate = out.get("estimate")
+    if payload_scope(payload) != IN_SCOPE:
+        return out, RECORD_NONE_POLICY
+    released_log = intent == "log" and isinstance(estimate, dict)
+    if not released_log and intent != INTENT_SKIP:
+        # question, plan, or a question-only turn (ADR-026).
+        return out, RECORD_NONE_INTENT
+    if payload.get("meal_day") == "other":
+        return out, RECORD_NONE_OTHER_DAY
+    if intent == INTENT_SKIP:
+        slot = _slot_id(payload.get("skip_slot"), set(valid_slot_ids))
+        if slot is None:
+            out["intent"] = "question"
+            return out, RECORD_NONE_SKIP_SLOT
+        out.update(record=RECORD_AUTO, skip_slot=slot)
+        return out, RECORD_AUTO_SKIP
+    if estimate.get("suggested_slot") is None:
+        out["record"] = RECORD_ASK
+        return out, RECORD_ASK_NO_SLOT
+    if payload.get("record_intent") == "clear" or force_estimate or photo_only:
+        out["record"] = RECORD_AUTO
+        return out, RECORD_AUTO_LOG
+    out["record"] = RECORD_ASK
+    return out, RECORD_ASK_UNSURE
+
+
+def record_fields(payload: dict[str, Any]) -> dict[str, str | None]:
+    """record_intent and meal_day of the model payload for the dev log (enums only, else null)."""
+    return {
+        "record_intent": _enum(payload.get("record_intent"), RECORD_INTENTS),
+        "meal_day": _enum(payload.get("meal_day"), MEAL_DAYS),
+    }
+
+
+def _enum(value: Any, allowed: tuple[str, ...]) -> str | None:
+    return value if isinstance(value, str) and value in allowed else None
 
 
 def text_only_chat(text: str) -> dict[str, Any]:

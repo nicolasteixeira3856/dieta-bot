@@ -41,6 +41,8 @@ KNOWN = (
     "reply_has",
     "reply_not",
     "refusal",
+    "record",
+    "skip_slot",
 )
 
 # CP2 refusal expectation: which fixed copy the reply must be. "none" = no refusal at all.
@@ -50,7 +52,7 @@ REFUSALS = {
     "safety_support": (REFUSAL_EATING, REFUSAL_VIOLENCE),
 }
 
-INTENTS = ("log", "plan", "question")
+INTENTS = ("log", "plan", "question", "skip")
 
 
 def normalize(text: str) -> str:
@@ -117,6 +119,14 @@ def _check(
             return _na("no top-level question in output")
         question = output.get("question")
         return _terms(False, want, question if isinstance(question, str) else "")
+
+    # ADR-028: record mark of a v4 client. NA on an older output. record may list accepted values.
+    if key in ("record", "skip_slot"):
+        if key not in output:
+            return _na(f"no {key} in output")
+        got = output.get(key)
+        accepted = want if key == "record" and isinstance(want, list) else [want]
+        return _result(got in accepted, f"got {got}")
 
     if key == "suggested_slot":
         if estimate is None:

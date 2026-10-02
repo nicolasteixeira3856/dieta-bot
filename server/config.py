@@ -40,6 +40,9 @@ MEMORY_USED_MAX = 10
 # Questions before the estimate (ADR-026, S13). Release gate in shaping.clarify_gate.
 CLARIFY_MAX_ROUNDS = 3
 CLARIFY_REPEAT_JACCARD = 0.6
+# Record mark (ADR-028, S14): model enums of chat_turn. Gate in shaping.record_gate.
+RECORD_INTENTS = ("clear", "unsure")
+MEAL_DAYS = ("today", "other")
 # Dev conversation log (ADR-015): on only when CONVERSATION_LOG_PATH is set.
 CONVERSATION_LOG_MAX_BYTES = 20 * 1024 * 1024
 CONVERSATION_LOG_BACKUPS = 5

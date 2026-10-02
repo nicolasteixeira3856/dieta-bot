@@ -4,7 +4,7 @@
 - Date: 01/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`core/network/ChatModels.kt`, `core/database/*` (Room v8), `core/memory/*`, `feature/chat/*`, `core/telemetry` events, tests, QA tools and captures)
-- Prerequisites: **[S14](../../server/plans/s14-registro-autonomo.md) deployed on the dev server** and **[ST9](../../stitch/plans/completed/st9-registro-autonomo.md) in `stitch/plans/completed/`** (golds `chatE`, `chatF`, `chatG` edited; `chatU`, `chatD` new). Executes [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1–9; accepts ADR-028 on completion.
+- Prerequisites: **[S14](../../server/plans/completed/s14-registro-autonomo.md) deployed on the dev server** and **[ST9](../../stitch/plans/completed/st9-registro-autonomo.md) in `stitch/plans/completed/`** (golds `chatE`, `chatF`, `chatG` edited; `chatU`, `chatD` new). Executes [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1–9; accepts ADR-028 on completion.
 
 ## Authorization gate
 

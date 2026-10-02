@@ -1,10 +1,11 @@
 # Plan — S14 Record mark (`record`) and skip by text
 
-- Status: Aguardando aprovação
+- Status: Concluído
+- Approval: 02/10/2026 (owner: "Aprovo o plano docs/server/plans/s14-registro-autonomo.md. Implemente o plano aprovado.")
 - Date: 01/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: none. Executes [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1, 2, 4, 7 and 8. Opt-in by request field: no Android change needed to ship. Blocks [A34](../../android/plans/a34-registro-autonomo.md). Can run in parallel with [ST9](../../stitch/plans/completed/st9-registro-autonomo.md).
+- Prerequisites: none. Executes [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1, 2, 4, 7 and 8. Opt-in by request field: no Android change needed to ship. Blocks [A34](../../../android/plans/a34-registro-autonomo.md). Can run in parallel with [ST9](../../../stitch/plans/completed/st9-registro-autonomo.md).
 
 ## Authorization gate
 
@@ -20,8 +21,8 @@ If implementation reveals an uncovered decision, stop, update the artifacts and 
 
 ## Sources of truth
 
-- [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md), [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [v1-chat](../specifications/v1-chat.md), [api-contract](../../api-contract.md).
-- [Content policy](../../content-policy/specifications/content-policy.md): a refused or blocked turn is always `record: none`.
+- [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md), [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md), [v1-chat](../../specifications/v1-chat.md), [api-contract](../../../api-contract.md).
+- [Content policy](../../../content-policy/specifications/content-policy.md): a refused or blocked turn is always `record: none`.
 - Skill `fastapi-security` (input limits, LLM input boundaries).
 
 ## Implementation scope
@@ -67,7 +68,7 @@ Runs for a v4 client after `clarify_gate` and after the content-policy shaping. 
 
 ### 5. Observability
 
-- Dev conversation log ([ADR-015](../adrs/ADR-015-log-conversa-dev.md)): `record` (log enum above, or `null` for a non-v4 client), `record_intent`, `meal_day` (enums). No user text in new fields.
+- Dev conversation log ([ADR-015](../../adrs/ADR-015-log-conversa-dev.md)): `record` (log enum above, or `null` for a non-v4 client), `record_intent`, `meal_day` (enums). No user text in new fields.
 
 ### 6. Evaluator (`server/evals/`)
 
@@ -94,19 +95,19 @@ Runs for a v4 client after `clarify_gate` and after the content-policy shaping. 
 - `server/main.py`, `server/llm.py`, `server/shaping.py`, `server/config.py`, `server/conversation_log.py`.
 - `server/evals/checks.py`, `server/evals/cases/*.json` (new files only).
 - `server/tests/test_chat.py`, new `server/tests/test_record.py`.
-- Docs in the same delivery: [v1-chat](../specifications/v1-chat.md) (rules 3a, 3f, 4, 5, new 5d, IN/OUT, log fields, acceptance criterion "Sem tap…" reworded to "O server nunca grava: só marca `record`"); [api-contract](../../api-contract.md) `/v1/chat`; server README; this plan's result.
+- Docs in the same delivery: [v1-chat](../../specifications/v1-chat.md) (rules 3a, 3f, 4, 5, new 5d, IN/OUT, log fields, acceptance criterion "Sem tap…" reworded to "O server nunca grava: só marca `record`"); [api-contract](../../../api-contract.md) `/v1/chat`; server README; this plan's result.
 
 ## Planned validation
 
 1. `pytest server/tests` green, with unit tests for each gate row, `force_estimate` and photo-only as `clear`, skip shaping for legacy, the strict schema accepting the new fields, policy refusal → `none`, legacy and v3 snapshots byte for byte (checked against `master` before S14).
-2. `python -m server.evals.run --effort none --repeat 3`: every new case ≥ 2/3; existing 35 cases no regression vs [S13](completed/s13-perguntas-antes-da-estimativa.md).
+2. `python -m server.evals.run --effort none --repeat 3`: every new case ≥ 2/3; existing 35 cases no regression vs [S13](s13-perguntas-antes-da-estimativa.md).
 3. Deploy to the dev server (`tools/deploy-gcp.ps1`), then one real v4 request by `curl` with `X-Request-Id: s14-*` and the log line checked for `record`.
 
 ## Out of scope
 
 - Android (A34), Stitch (ST9).
 - Any server-side write or session state.
-- Retroactive recording ([A35](../../android/plans/out_of_scope/a35-registro-retroativo.md)).
+- Retroactive recording ([A35](../../../android/plans/out_of_scope/a35-registro-retroativo.md)).
 - Changing `reasoning.effort`.
 
 ## Risks and controls
@@ -129,4 +130,40 @@ After implementation, record real results and apply the lifecycle in `docs/sdd/R
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and `plans/cancelled/`.
 
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../sdd/README.md#fora-de-escopo).
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../../sdd/README.md#fora-de-escopo).
+
+## Results (02/10/2026)
+
+### Implemented
+
+- `ChatIn.auto_record` (default `false`); `ChatIn.records` = `clarify_rounds` present and `auto_record` true (v4 client).
+- `chat_turn` schema (all clients): `intent` enum gains `skip`; new required `record_intent` (`clear` | `unsure`), `meal_day` (`today` | `other`), `skip_slot` (profile slot ids + null), before `scope`. Enums in `config.RECORD_INTENTS` / `config.MEAL_DAYS`.
+- `shape_chat(..., skip=False)`: before v4, `skip` becomes `question` with the reply kept; a `skip` never carries an estimate.
+- `shaping.record_gate`: table § 4 in order, plus `force_estimate` and photo-only as `clear`. `main.shape_chat_turn` = `shape_chat` → `clarify_gate` (v3) → `record_gate` (v4), shared by the route and the evaluator; returns the record log value. Refusals (scope, moderation, text only) carry `record: none` (`none_policy`), fallbacks `none` (`none_intent`).
+- `_CHAT_INSTRUCTIONS`: rule 3f kept and extended ("recorded, registered, noted, saved or skipped"); `skip`, `RECORD` (`record_intent`, `meal_day`, late-night rule) with the owner's pt-BR examples; the other-day sentence now says the Chat records only today's meals; refusal sets `skip_slot` null.
+- Dev conversation log: `record` (log enum, `null` for a non-v4 client), `record_intent`, `meal_day` (enums from the model, any client) on every `chat` line. Set in `main` with the S13 fields; `conversation_log.py` needed no change.
+- Evaluator: `record` (one value or a list of accepted values) and `skip_slot` in `checks.py` (`n/a` on an output without them); `intent` accepts `skip`; 16 `since: v4` cases, tag `record`.
+
+### Implementation details within the plan
+
+- **Late-night rule wording.** "today only when the profile has that slot today" was written for the model as: before 05:00, a janta with no date is `today` only when PROFILE has that slot at a time before 05:00 (night shift, e.g. Jantar 03:00); otherwise last night's janta, `other`. This matches ADR-028 decision 7 ("na janta comi X" sent the next morning is another day) and keeps `slot-noturno-jantei` (Jantar 03:00 at 03:10) as today. Two cases cover it: `registro-noturno-ontem`, `registro-noturno-turno`.
+- **Food named alone.** First run: `registro-comida-solta` ("pudim de leite com calda") came back as `intent: question`, estimate null, so `none` instead of `ask`. One INTENT line added: "A food named alone, with no verb and no question, is log: estimate it." Then 3/3 `ask`.
+- **Released estimate in single-turn cases.** First run 8/16: seven of the eight failures were the ADR-026 gate asking a question first (row 2, `record: none`, correct by ADR-028 decision 1); the eighth was `registro-comida-solta` above. The single-turn log cases that measure the mark, not the questions, now send `clarify_rounds: 3`, so the gate releases (`released_cap`) and only the mark is judged: `registro-na-janta-comi`, `registro-lanche-dois-pontos`, `registro-pedido-explicito`, `registro-comida-solta`, `registro-ontem`, `registro-noturno-ontem`, `registro-noturno-turno`, `registro-acrescimo`. `registro-almocei` keeps `clarify_rounds: 0` and accepts `auto` or `none` (a question first). The extra case `registro-almocei-resposta` checks `auto` on the answer.
+- Extra cases beyond the § 6 list: `registro-almocei-resposta`, `registro-noturno-ontem`, `registro-noturno-turno` (risk "late-night janta").
+
+### Validation
+
+1. `pytest server/tests`: **211 passed** (175 subtests). New `test_record.py` (30 tests): each gate row 1–8, row 6 before `clear`/force/photo, `force_estimate` and photo-only as `clear`, missing `meal_day` = today, skip shaped to `question` before v4 (legacy and v2), skip without estimate, strict schema with the new fields (and `skip_slot` `[None]` with no slots), route: v4 auto log/skip/force/photo, scope refusal and output-moderation flag → `none_policy`, fallback → `none_intent`, log fields enum-only, v3 / `auto_record: false` / `auto_record` without `clarify_rounds` carry no record fields. Snapshot tests: v3 log and legacy/v2/v3 skip **byte for byte**; the same literals were run against `master` code (dab0435) in a temporary worktree: 5/5 identical. A wider dump (6 client shapes × 7 model payloads, new fields included) was also identical between `master` and the branch. `test_chat.py` / `test_evals.py` updated for the new schema keys, instruction text and expectation keys.
+2. `python -m evals.run --effort none --repeat 3`:
+   - Tag `record` (report `logs/evals/2026-10-02-144048-none.json`): **16/16**, each 3/3 except `registro-pulei-sem-slot` 2/3. p50 3239 ms, **p95 3988 ms**.
+   - Full suite (report `logs/evals/2026-10-02-144421-none.json`): **66/68** (97.1%). p50 3100 ms, **p95 4081 ms**, US$ 0.0262 for 204 calls. The 52 existing cases: 50/52. Failed `ceia-completa-suco` 1/3 (already 2/3 in S13) and `memoria-cheia` 0/3. Re-run of both with 6 repetitions: `master` 5/6 and 3/6, branch 5/6 and 4/6. No regression against `master`: the model drifted on `memoria-cheia` since S13 (it was passing then).
+3. `tools/deploy-gcp.ps1` (code only): `/health` 200. Real v4 requests (bodies of `registro-pulei` and `registro-na-janta-comi`): `X-Request-Id: s14-registro-pulei` → `intent: skip`, `record: auto`, `skip_slot: "1"`; log `record: auto_skip`, `record_intent: clear`, `meal_day: today`. `X-Request-Id: s14-registro-na-janta-comi` → `record: auto`, `suggested_slot: "5"`; log `record: auto_log`, `clarify: released_cap`.
+
+### Findings for the owner (not changed, no new decision taken)
+
+- **Other day with a doubt.** For a v3/v4 client, a `log` about another day with a material doubt ("ontem jantei pizza, 3 fatias", `clarify_rounds: 0`) is a question-only turn first: the ADR-026 gate runs before the record gate, so the reply is `Entendi: …` + the question, and the "only today" line arrives only on the released turn (`record: none` either way; nothing is recorded). Skipping the questions for `meal_day: other` would be a new decision (ADR-026 / ADR-028).
+- `memoria-cheia` is flaky on `master` too (3/6): a candidate for a separate prompt fix.
+
+### Pending
+
+- None for S14. The client side is [A34](../../../android/plans/a34-registro-autonomo.md), which accepts ADR-028 on completion.

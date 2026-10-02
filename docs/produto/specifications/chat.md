@@ -6,7 +6,7 @@
 
 ## Proposta — registro autônomo (ADR-028)
 
-[ADR-028](../adrs/ADR-028-registro-autonomo.md) (proposto, 01/10/2026) muda este Chat: refeição de hoje com intenção clara é registrada sozinha, com recibo; na dúvida, um único botão **Registrar**; slot já registrado pergunta dentro da conversa (`Substituir {slot}?`); "pulei o café" pula sozinho; o recibo mais recente de cada slot ganha Desfazer · Excluir · Trocar refeição · Editar; outro dia nunca é registrado. Substitui as regras 4–7, "Registro só depois do tap no chip", a linha "tool invisível que grava meal_log" e o critério "Gravar sem tap…". Não é o comportamento vigente: as regras abaixo continuam valendo até o [A34](../../android/plans/a34-registro-autonomo.md) (que reescreve esta spec), depois do [S14](../../server/plans/s14-registro-autonomo.md) e do gate [ST9](../../stitch/plans/completed/st9-registro-autonomo.md).
+[ADR-028](../adrs/ADR-028-registro-autonomo.md) (proposto, 01/10/2026) muda este Chat: refeição de hoje com intenção clara é registrada sozinha, com recibo; na dúvida, um único botão **Registrar**; slot já registrado pergunta dentro da conversa (`Substituir {slot}?`); "pulei o café" pula sozinho; o recibo mais recente de cada slot ganha Desfazer · Excluir · Trocar refeição · Editar; outro dia nunca é registrado. Substitui as regras 4–7, "Registro só depois do tap no chip", a linha "tool invisível que grava meal_log" e o critério "Gravar sem tap…". Não é o comportamento vigente: as regras abaixo continuam valendo até o [A34](../../android/plans/a34-registro-autonomo.md) (que reescreve esta spec), depois do [S14](../../server/plans/completed/s14-registro-autonomo.md) e do gate [ST9](../../stitch/plans/completed/st9-registro-autonomo.md).
 
 ## Estado
 
