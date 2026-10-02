@@ -209,10 +209,10 @@ v4 client (`clarify_rounds` + `auto_record: true`, S14): the OUT also carries `r
   4. `intent: skip` with a `profile.slots` id → `auto`, `skip_slot` = that id.
   5. `intent: skip` without a valid slot → `none`, shaped to `intent: question`.
   6. `log` with a released estimate and `suggested_slot: null` → `ask`.
-  7. `log` with a released estimate and a clear intent to record (eating stated, "registra", a meal name followed by food, a photo with no text, `force_estimate`) → `auto`.
+  7. `log` with a released estimate and a clear intent to record (eating stated, "registra", a meal name followed by food, a photo with no text, `force_estimate`) → `auto`. A food photo sent with a question about it ("isso tem muita caloria?") is not clear → rule 8 (S15).
   8. Any other released `log` → `ask`.
 - `skip_slot`: a `profile.slots` id on rule 4, else `null`.
-- `intent: skip` ("pulei o café"): `estimate: null`, one short neutral `reply`. Clients before v4 never see it: the turn comes as `intent: question` with the same `reply`.
+- `intent: skip` ("pulei o café", or a firm skip ahead: "hoje não vou jantar"): `estimate: null`, one short neutral `reply`. A pending meal ("ainda não almocei") or a hedged skip ("acho que não vou jantar") is never `skip`: `record: none` (S15). Clients before v4 never see it: the turn comes as `intent: question` with the same `reply`.
 - The `reply` never says a meal was recorded or skipped; the app shows the receipt.
 - Refusals and fallbacks carry `record: "none"`, `skip_slot: null`.
 - Content refusal (CP2): the model's `scope` is not `in_scope`, or moderation flagged the input or the output. HTTP 200 in the normal shape: fixed pt-BR `reply` (e.g. `"Posso ajudar com refeições, porções e o orçamento alimentar do dia."`), `intent: "question"`, `estimate: null`, `memory_updates: []`, `memory_used: []`, `digest: null`, plus `question: null` for a v3 client. Copy: [refusal-copy.pt-BR.md](content-policy/specifications/refusal-copy.pt-BR.md). `scope` is never returned.

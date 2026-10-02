@@ -1,10 +1,10 @@
 # Plan — S15 Pending meal is not a skip, a firm skip ahead is, photo with a question is `ask`, hard record cases
 
-- Status: Aguardando aprovação
+- Status: Concluído
 - Date: 02/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`llm.py`, `evals/cases/`, `tests/`)
-- Prerequisites: [S14](completed/s14-registro-autonomo.md) (`Concluído`). Refines [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 2 and 4 within their text; no new ADR. Does not block [A34](../../android/plans/a34-registro-autonomo.md): the response shape does not change.
+- Prerequisites: [S14](s14-registro-autonomo.md) (`Concluído`). Refines [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 2 and 4 within their text; no new ADR. Does not block [A34](../../../android/plans/a34-registro-autonomo.md): the response shape does not change.
 
 ## Authorization gate
 
@@ -97,7 +97,7 @@ Every case adds `refusal: none`. Expectations follow v1-chat rules 3a, 3g, 4 and
 ## Affected files and areas
 
 - `server/llm.py`, `server/evals/cases/hard-*.json` (26 new files), `server/tests/test_record.py`.
-- Docs in the same delivery: [v1-chat](../specifications/v1-chat.md) rules 3a and 3g (remove the S15 proposal note); [api-contract](../../api-contract.md) `intent: skip` line; server README; this plan's result.
+- Docs in the same delivery: [v1-chat](../../specifications/v1-chat.md) rules 3a and 3g (remove the S15 proposal note); [api-contract](../../../api-contract.md) `intent: skip` line; server README; this plan's result.
 
 ## Planned validation
 
@@ -127,10 +127,44 @@ Every case adds `refusal: none`. Expectations follow v1-chat rules 3a, 3g, 4 and
 - A food photo with no text still returns `record: auto`.
 - All `record-hard` cases ≥ 2/3, the two pending-meal cases 3/3.
 
+## Result (02/10/2026)
+
+Approved by the owner on 02/10/2026 ("Aprovo o plano `docs/server/plans/s15-registro-casos-dificeis.md`. Implemente o plano aprovado.").
+
+### Delivered
+
+- `_CHAT_INSTRUCTIONS`: `skip` covers a meal that did not happen (without "ainda") and a firm skip ahead ("hoje não vou jantar", "vou pular o almoço hoje"); a pending meal ("ainda não almocei", "não jantei ainda", "ainda vou almoçar") is `question` or `plan` with `skip_slot: null`; a hedged skip ("acho que não vou jantar", "talvez eu pule a janta", "não sei se vou almoçar") is `question` with `skip_slot: null`. `clear` photo = a plate with no text or with text saying it was eaten ("almocei isso"); a food photo sent with a question about it is `log`, estimate the plate, `record_intent: unsure` → `record: ask`.
+- `server/evals/cases/`: 26 new `hard-*.json` cases, `since: v4`, tag `record-hard`, `refusal: none`. The 21 comparison cases kept their requests; `hard-foto-pergunta` now expects `log`, estimate present, `ask` (it accepted `none | ask` in the comparison). New: `hard-nao-jantei-ainda`, `hard-nao-vou-jantar`, `hard-vou-pular-almoco`, `hard-acho-que-nao-janto`, `hard-foto-quanto-tem`.
+- `test_record.py`: `test_instructions_define_pending_hedged_skip_and_photo_question` (text assertions; the old "a photo of a plate with or without text" is gone).
+- Schema, shaping, gates, response shape: unchanged.
+
+### Implementation details within the plan
+
+Each full run was compared with `master` (detached worktree, same evaluator, 6 repetitions) on every case that dropped. Three drifts were found and fixed inside `_CHAT_INSTRUCTIONS`, without a new rule for the product:
+
+- **`skip_slot` by name.** The longer `skip` text made `registro-pulei-sem-slot` ("pulei a merenda") map to Lanche: 0/6 vs `master` 3/6. The line now says `skip_slot` is the slot whose name is that meal (jantei: Jantar), null when no slot has that name (merenda, sobremesa). Then 6/6, and the four skip cases 6/6.
+- **"agora" is today.** `hard-madrugada-pao` ("comi um pão com manteiga agora", 00:40) came back `meal_day: other` in 2 of 6 (`master` 6/6). The late-night sentence now ends "food eaten now (agora) is always today". Then 6/6, the late-night and other-day cases 6/6.
+- **Other-day line kept with an assumption.** `registro-noturno-ontem` ("na janta comi…", 01:30) had `meal_day: other` and `record: none` right, but the reply stated the assumption and dropped the "only today" line (3/6 vs `master` 4–5/6). The other-day sentence now says the line is due also under the before-05:00 rule and also when the reply states what was assumed. Then 6/6.
+- **Short answer released.** `hard-resposta-curta` ("2" answering "Quantos pães?") failed on `master` too (2/6): after the answer the model asked about the butter and the café com leite, so the ADR-026 gate held the turn. The existing "after an answer, amounts of … are assumed, never asked" line gained butter and a usual cup of coffee, café com leite or tea. Then 6/6; the clarify cases (`pergunta-*`, `cafe-resposta-leite`, `almoco-resposta-peso`, `resposta-curta-contexto`, `registro-almocei-resposta`, `memoria-*-leite`) 5–6/6.
+
+### Validation
+
+1. `pytest server/tests`: **212 passed** (201 subtests).
+2. `python -m evals.run --effort none --repeat 3` (final, report `logs/evals/2026-10-02-155642-none.json`): **92/94 (97.9%)**, `record-hard` **26/26**, `record` 16/16, `skip` 2/2. `hard-ainda-nao-almocei`, `hard-nao-jantei-ainda`, `hard-acho-que-nao-janto` **3/3**; `hard-acrescimo-dois-slots` 2/3, the other `record-hard` cases 3/3. p50 3041 ms, **p95 3974 ms**, US$ 0.0364 for 282 calls. Failed: `ceia-completa-suco` 1/3 and `memoria-cheia` 0/3, both named unstable by this plan; 6 repetitions, `master` vs branch: `ceia-completa-suco` 4/6 vs 3/6 and 5/6 vs 5/6 (two pairs), `memoria-cheia` 2/6 vs 1/6 and 2/6 vs 2/6. No regression beyond that noise. Run before the last fix: 92/94, p95 3751 ms (`2026-10-02-154945-none.json`).
+3. `tools/deploy-gcp.ps1` (code only): `/health` 200. Real v4 requests (bodies of the eval cases): `X-Request-Id: s15-ainda-nao-almocei` → `intent: question`, `record: none`, `skip_slot: null`; log `record: none_intent`, `record_intent: unsure`, `meal_day: today` (≠ `auto_skip`). `X-Request-Id: s15-nao-vou-jantar` → `intent: skip`, `record: auto`, `skip_slot: "5"`.
+
+### Findings for the owner (not changed)
+
+- `memoria-cheia` stays flaky on `master` (2/6): candidate for its own prompt fix, as already noted in S14.
+
+### Pending
+
+- None for S15. [A34](../../../android/plans/a34-registro-autonomo.md) is unaffected: the response shape did not change.
+
 ## Closure
 
 After implementation, record real results and apply the lifecycle in `docs/sdd/README.md`.
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and `plans/cancelled/`.
 
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../sdd/README.md#fora-de-escopo).
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../../sdd/README.md#fora-de-escopo).
