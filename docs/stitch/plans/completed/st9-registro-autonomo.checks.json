@@ -1,0 +1,236 @@
+{
+  "gate": "ST9",
+  "keep": [
+    "Chat Dieta Bot",
+    "Dieta Bot AI"
+  ],
+  "coherence": {
+    "exceptions": [
+      "restart_alt",
+      "restore",
+      "20:16"
+    ],
+    "known": [
+      {
+        "gold": "chatG",
+        "text": ".",
+        "note": "older than ST9: dark ends the sentence after \"mexidos\""
+      },
+      {
+        "gold": "chatG",
+        "text": ". A estimativa total é de:",
+        "note": "older than ST9: only the light bubble continues the sentence"
+      }
+    ]
+  },
+  "screens": [
+    {
+      "gold": "chatU",
+      "keep": [
+        "ENERGIA TOTAL",
+        "Substituir Jantar?",
+        "Substituir",
+        "Outra refeição"
+      ],
+      "checks": [
+        {
+          "type": "text",
+          "has": [
+            "Também comi um pudim de leite no jantar",
+            "Juntei o pudim ao jantar.",
+            "ENERGIA TOTAL",
+            "620",
+            "Substituir Jantar?",
+            "Jantar tem 380 kcal. Fica com 620 kcal.",
+            "Substituir",
+            "Outra refeição",
+            "21:02"
+          ],
+          "not": [
+            "Gravar",
+            "Pular",
+            "Deseja registrar",
+            "2 pães franceses",
+            "IA ATIVA"
+          ]
+        },
+        {
+          "type": "fits",
+          "text": "Jantar tem 380 kcal. Fica com 620 kcal."
+        },
+        {
+          "type": "fits",
+          "text": "Outra refeição"
+        },
+        {
+          "type": "gap",
+          "a": "Juntei o pudim ao jantar.",
+          "b": "Substituir Jantar?",
+          "min": 60
+        }
+      ]
+    },
+    {
+      "gold": "chatD",
+      "keep": [
+        "Atualizado em Jantar",
+        "Restaurado em Jantar",
+        "Excluir",
+        "Trocar refeição",
+        "Editar"
+      ],
+      "checks": [
+        {
+          "type": "text",
+          "has": [
+            "Também comi um pudim de leite no jantar",
+            "Atualizado em Jantar",
+            "380 → 620 kcal",
+            "Desfeito",
+            "Restaurado em Jantar",
+            "380 kcal",
+            "Excluir",
+            "Trocar refeição",
+            "Editar"
+          ],
+          "not": [
+            "2 pães franceses",
+            "Café da manhã",
+            "Registrado em",
+            "Gravar",
+            "Pular",
+            "IA ATIVA"
+          ]
+        },
+        {
+          "type": "fits",
+          "text": "Trocar refeição",
+          "maxHeight": 24
+        },
+        {
+          "type": "fits",
+          "text": "Atualizado em Jantar"
+        },
+        {
+          "type": "fits",
+          "text": "Restaurado em Jantar"
+        },
+        {
+          "type": "gap",
+          "a": "Restaurado em Jantar",
+          "b": "Editar",
+          "min": 80
+        }
+      ]
+    },
+    {
+      "gold": "chatE",
+      "keep": [
+        "ENERGIA TOTAL",
+        "Deseja registrar essa refeição no",
+        "Registrar"
+      ],
+      "checks": [
+        {
+          "type": "text",
+          "has": [
+            "2 pães franceses com 2 ovos mexidos",
+            "ENERGIA TOTAL",
+            "Deseja registrar essa refeição no",
+            "Registrar",
+            "20:15"
+          ],
+          "not": [
+            "Gravar café",
+            "Trocar",
+            "Pular",
+            "Excluir",
+            "IA ATIVA"
+          ]
+        },
+        {
+          "type": "fits",
+          "text": "Registrar",
+          "maxHeight": 24
+        }
+      ]
+    },
+    {
+      "gold": "chatG",
+      "keep": [
+        "Registrado em",
+        "Café da manhã",
+        "+380 kcal"
+      ],
+      "checks": [
+        {
+          "type": "text",
+          "has": [
+            "2 pães franceses com 2 ovos mexidos",
+            "Registrado em",
+            "+380 kcal",
+            "Excluir",
+            "Trocar refeição",
+            "Editar"
+          ],
+          "not": [
+            "Gravar",
+            "Pular",
+            "Desfazer",
+            "IA ATIVA"
+          ]
+        },
+        {
+          "type": "fits",
+          "text": "Trocar refeição",
+          "maxHeight": 24
+        },
+        {
+          "type": "gap",
+          "a": "+380 kcal",
+          "b": "Editar",
+          "min": 80
+        }
+      ]
+    },
+    {
+      "gold": "chatF",
+      "keep": [
+        "Almoço de hoje",
+        "ENERGIA ESTIMADA",
+        "Registrado em",
+        "Almoço"
+      ],
+      "checks": [
+        {
+          "type": "text",
+          "has": [
+            "Almoço de hoje",
+            "ENERGIA ESTIMADA",
+            "680",
+            "Registrado em",
+            "+680 kcal",
+            "Excluir",
+            "Trocar refeição"
+          ],
+          "not": [
+            "Editar",
+            "Gravar almoço",
+            "Pular",
+            "Deseja registrar",
+            "IA ATIVA"
+          ]
+        },
+        {
+          "type": "fits",
+          "text": "Trocar refeição",
+          "maxHeight": 24
+        },
+        {
+          "type": "fits",
+          "text": "+680 kcal"
+        }
+      ]
+    }
+  ]
+}

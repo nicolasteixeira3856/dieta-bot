@@ -4,7 +4,7 @@
 - Date: 01/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: none. Executes [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1, 2, 4, 7 and 8. Opt-in by request field: no Android change needed to ship. Blocks [A34](../../android/plans/a34-registro-autonomo.md). Can run in parallel with [ST9](../../stitch/plans/st9-registro-autonomo.md).
+- Prerequisites: none. Executes [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1, 2, 4, 7 and 8. Opt-in by request field: no Android change needed to ship. Blocks [A34](../../android/plans/a34-registro-autonomo.md). Can run in parallel with [ST9](../../stitch/plans/completed/st9-registro-autonomo.md).
 
 ## Authorization gate
 

@@ -38,6 +38,8 @@ export const DARK_SCREENS = {
   chatM: "b7f52c2e04e44f1dbe14df39971a7dc3",
   chatS: "0a00a8024977490b87fe85e7048cdfc2",
   chatQ: "14d834bd30cd40f7a58b36735e0aded9",
+  chatU: "face5508d7154b8788f7b8f26f9a909e",
+  chatD: "b1b9a819f87e439fbc5bae264adae498",
   cfg: "ffb8e640dff34e8b9015e4936f36ebe5",
   cfgS: "8a05d4beabc04253a45e7b09e0975085",
   wipe: "f2797b013a714413ac252918753dffa9",
@@ -70,6 +72,8 @@ export const LIGHT_SCREENS = {
   chatM: "c819a0417134455eb4ae6f9f14d1b237",
   chatS: "8f341d4fa7444aa7b569ab34f2dfb505",
   chatQ: "40bda18602174f2daee83f684e51f2bc",
+  chatU: "54b2de6d01d84819abb46536748607f9",
+  chatD: "a3f4732249364ec8b474cab482637153",
   cfg: "d582887ce63242a9ab48b882647ddbb9",
   cfgS: "2cca2addc43b47a195cee2e2bfc3901a",
   wipe: "bacd8c4d917040d687ef6a4e9ddedad2",
@@ -182,10 +186,21 @@ export async function loadFrame(html, cssHeight) {
   }
 }
 
-async function renderHtml(htmlUrl, dest, cssHeight) {
+// The Chat opens at the latest message (A32): a chat screen whose thread overflows the phone frame is
+// shown scrolled to the end, as the app shows it (ST9: receipts with stacked actions below the fold).
+export async function scrollToEnd(page) {
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll("*")) {
+      if (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 2) el.scrollTop = el.scrollHeight;
+    }
+  });
+}
+
+async function renderHtml(htmlUrl, dest, cssHeight, atEnd = false) {
   const html = await (await fetch(htmlUrl)).text();
   const { page, frame } = await loadFrame(html, cssHeight);
   try {
+    if (atEnd) await scrollToEnd(page);
     // Same framing as the Stitch screenshots: the declared screen height, with 20 dp of page above the phone
     // frame when the frame is shorter than the screen (844 dp frame in a 884 dp screen). StitchGoldTest relies on it.
     const box = await frame.boundingBox();
@@ -200,7 +215,9 @@ async function renderHtml(htmlUrl, dest, cssHeight) {
 const RENDER_FROM_HTML = new Set([
   "cad05772505e480c997b722296b64473", // light/homeW: screenshot predates the ST2 row fix
   "a31e81c1467f492ba9db3d65e1290fa8", // dark/o1e: screenshot half-rendered (ST8)
-  "90b76571a765420a9f6f2011dc49fe17" // light/o1e: screenshot blank (ST8)
+  "90b76571a765420a9f6f2011dc49fe17", // light/o1e: screenshot blank (ST8)
+  "b1b9a819f87e439fbc5bae264adae498", // dark/chatD: screenshot shows the thread scrolled to the top (ST9)
+  "a3f4732249364ec8b474cab482637153" // light/chatD: same
 ]);
 
 export async function exportOne(theme, name, screen, outDir) {
@@ -208,7 +225,7 @@ export async function exportOne(theme, name, screen, outDir) {
   await downloadFile(fullSize(screen.screenshot.downloadUrl), dest);
   if (!RENDER_FROM_HTML.has(screen.name.split("/").pop()) && isFullSizePng(dest)) return "screenshot";
   if (!screen.htmlCode?.downloadUrl) throw new Error(`${theme}/${name}: small screenshot and no HTML to render`);
-  await renderHtml(screen.htmlCode.downloadUrl, dest, screenCssHeight(screen));
+  await renderHtml(screen.htmlCode.downloadUrl, dest, screenCssHeight(screen), name.startsWith("chat"));
   return "rendered from HTML (2x)";
 }
 
