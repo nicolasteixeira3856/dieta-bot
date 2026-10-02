@@ -84,6 +84,8 @@ class CheckTests(unittest.TestCase):
         )
         output["estimate"]["question"] = "Qual leite?"
         output["question"] = "Qual leite?"
+        output["record"] = "ask"
+        output["skip_slot"] = None
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -101,6 +103,8 @@ class CheckTests(unittest.TestCase):
             "reply_has": ["ovo"],
             "reply_not": ["registrei"],
             "refusal": "out_of_scope",
+            "record": "auto",
+            "skip_slot": "1",
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)
@@ -139,6 +143,24 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(
             _status({"top_question": "absent", "top_question_not": ["x"]}, _v2()),
             {"top_question": NA, "top_question_not": NA},
+        )
+
+    def test_record_checks(self) -> None:
+        """S14: record and skip_slot of a v4 output; NA on an output without the fields."""
+        skipped = {**V1_QUESTION, "intent": "skip", "record": "auto", "skip_slot": "1"}
+        self.assertEqual(
+            _status({"intent": "skip", "record": "auto", "skip_slot": "1"}, skipped),
+            {"intent": PASS, "record": PASS, "skip_slot": PASS},
+        )
+        logged = {**_v2(), "question": None, "record": "ask", "skip_slot": None}
+        self.assertEqual(
+            _status({"record": "auto", "skip_slot": None}, logged),
+            {"record": FAIL, "skip_slot": PASS},
+        )
+        self.assertEqual(_status({"record": ["auto", "ask"]}, logged), {"record": PASS})
+        self.assertEqual(
+            _status({"record": "none", "skip_slot": None}, _v2()),
+            {"record": NA, "skip_slot": NA},
         )
 
     def test_v1_intent_is_deduced_from_estimate(self) -> None:
@@ -183,7 +205,7 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2", "v3", "cp2"))
+                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "cp2"))
                 if case.get("image"):
                     self.assertTrue((run.MEDIA_DIR / case["image"]).is_file())
                 self.assertTrue(case["tags"])

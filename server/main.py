@@ -54,9 +54,14 @@ from moderation import (
 from shaping import (
     CHAT_FALLBACK_REPLY,
     CLARIFY_NONE,
+    RECORD_NONE,
+    RECORD_NONE_INTENT,
+    RECORD_NONE_POLICY,
     REFUSAL_OUT_OF_SCOPE,
     chat_output_texts,
     clarify_gate,
+    record_fields,
+    record_gate,
     digest_output_texts,
     estimate_output_texts,
     fail_chat,
@@ -195,6 +200,8 @@ class ChatIn(BaseModel):
     clarify_rounds: int | None = Field(default=None, ge=0, le=CLARIFY_MAX_ROUNDS)
     # Ignored unless clarify_rounds is present.
     force_estimate: bool = False
+    # ADR-028: with clarify_rounds = v4 client (record mark). Ignored without clarify_rounds.
+    auto_record: bool = False
 
     @model_validator(mode="after")
     def _fact_slots_in_profile(self) -> "ChatIn":
@@ -208,6 +215,11 @@ class ChatIn(BaseModel):
     def fact_ids(self) -> list[str] | None:
         """None for a legacy client."""
         return None if self.facts is None else [f.id for f in self.facts]
+
+    @property
+    def records(self) -> bool:
+        """v4 client: gets record and skip_slot (S14)."""
+        return self.clarify_rounds is not None and self.auto_record
 
 
 def reject_photo(image_b64: str | None) -> str | None:
@@ -450,7 +462,13 @@ def create_app(
                 lambda record, deadline: chat_reply(
                     llm, moderator, body, image, record, deadline, safety_identifier=safety_id
                 ),
-                {"clarify": CLARIFY_NONE, "clarify_rounds": body.clarify_rounds},
+                {
+                    "clarify": CLARIFY_NONE,
+                    "clarify_rounds": body.clarify_rounds,
+                    "record": None,
+                    "record_intent": None,
+                    "meal_day": None,
+                },
             )
         finally:
             image = None
@@ -611,15 +629,23 @@ def chat_reply(
 ) -> dict[str, Any]:
     """The whole /v1/chat turn (compact=false), without HTTP. The evaluator calls it too."""
 
-    def v3(result: dict[str, Any]) -> dict[str, Any]:
+    photo_only = bool(image) and not body.text.strip()
+
+    def versioned(result: dict[str, Any], record_log: str | None) -> dict[str, Any]:
         # A v3 client always gets the top-level question, null on a fallback or refusal.
         if body.clarify_rounds is not None:
             result.setdefault("question", None)
+        # A v4 client always gets record and skip_slot (S14).
+        if body.records:
+            result.setdefault("record", RECORD_NONE)
+            result.setdefault("skip_slot", None)
+            record["record"] = record_log
         return result
 
     def shape(payload: dict[str, Any]) -> dict[str, Any]:
-        result, record["clarify"] = shape_chat_turn(body, payload)
-        return v3(result)
+        record.update(record_fields(payload))
+        result, record["clarify"], record_log = shape_chat_turn(body, payload, photo_only=photo_only)
+        return versioned(result, record_log)
 
     return run_guarded(
         record,
@@ -641,10 +667,11 @@ def chat_reply(
             shape=shape,
             output_texts=chat_output_texts,
             text_only_refusal=True,
-            photo_only=bool(image) and not body.text.strip(),
+            photo_only=photo_only,
         ),
-        fail=lambda: v3(fail_chat()),
-        refuse=lambda reply: v3(refuse_chat(reply)),
+        # A fallback is a question turn; a refusal (scope, moderation, text only) is policy.
+        fail=lambda: versioned(fail_chat(), RECORD_NONE_INTENT),
+        refuse=lambda reply: versioned(refuse_chat(reply), RECORD_NONE_POLICY),
         is_fallback=lambda result: result.get("reply") == CHAT_FALLBACK_REPLY,
     )
 
@@ -663,19 +690,34 @@ def _error_record(exc: Exception) -> dict[str, Any]:
     return error
 
 
-def shape_chat_turn(body: ChatIn, payload: dict[str, Any]) -> tuple[dict[str, Any], str]:
-    """shape_chat, then the release gate for a v3 client (ADR-026). Returns (response, clarify)."""
+def shape_chat_turn(
+    body: ChatIn, payload: dict[str, Any], *, photo_only: bool = False
+) -> tuple[dict[str, Any], str, str | None]:
+    """shape_chat, the release gate for a v3 client (ADR-026), the record gate for a v4 client (ADR-028).
+
+    Returns (response, clarify, record log value or None for a client before v4).
+    """
     slot_ids = [s.id for s in body.profile.slots]
-    result = shape_chat(payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids)
+    result = shape_chat(payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids, skip=body.records)
     if body.clarify_rounds is None:
-        return result, CLARIFY_NONE
-    return clarify_gate(
+        return result, CLARIFY_NONE, None
+    result, clarify = clarify_gate(
         result,
         payload,
         clarify_rounds=body.clarify_rounds,
         force_estimate=body.force_estimate,
         history=[(m.role, m.text) for m in body.messages],
     )
+    if not body.records:
+        return result, clarify, None
+    result, record_log = record_gate(
+        result,
+        payload,
+        valid_slot_ids=slot_ids,
+        force_estimate=body.force_estimate,
+        photo_only=photo_only,
+    )
+    return result, clarify, record_log
 
 
 def _new_record(request: Request, route: str, image: str | None) -> dict[str, Any]:

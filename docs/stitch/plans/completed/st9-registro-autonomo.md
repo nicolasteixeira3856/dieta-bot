@@ -11,7 +11,7 @@ Screen names: exact Stitch titles ([table](../../README.md#nomes-das-telas-regra
 
 ## ⛔ Owner blocker — Stitch prompts
 
-This step is manual and blocks A34. Five prompts, each sent twice (dark and light). **Order matters:** 9.1 and 9.2 duplicate screens that 9.3 and 9.4 then edit. It can run in parallel with [S14](../../../server/plans/s14-registro-autonomo.md).
+This step is manual and blocks A34. Five prompts, each sent twice (dark and light). **Order matters:** 9.1 and 9.2 duplicate screens that 9.3 and 9.4 then edit. It can run in parallel with [S14](../../../server/plans/completed/s14-registro-autonomo.md).
 
 ### Prompt 9.1 — new screen: replace confirmation inside the Chat (`chatU`)
 

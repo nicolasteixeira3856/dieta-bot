@@ -1,0 +1,76 @@
+{
+  "id": "registro-noturno-turno",
+  "since": "v4",
+  "tags": [
+    "record",
+    "log",
+    "slot"
+  ],
+  "request": {
+    "local_time": "2026-10-01T03:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Jantar",
+          "time": "03:00"
+        },
+        {
+          "id": "2",
+          "name": "Café",
+          "time": "14:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-01",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "jantei um prato de macarrão com carne moída, uns 300 g",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "1",
+    "refusal": "none"
+  }
+}

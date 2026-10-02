@@ -636,7 +636,10 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         schema = fmt["schema"]
         self.assertEqual(
             schema["required"],
-            ["reply", "intent", "estimate", "memory_updates", "memory_used", "digest", "scope"],
+            [
+                "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slot",
+                "memory_updates", "memory_used", "digest", "scope",
+            ],
         )
         self.assertFalse(schema["additionalProperties"])
         self.assertEqual(schema["properties"]["digest"], {"type": "null"})
@@ -773,7 +776,7 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
             "only a calorie total",
             "Never return an estimate with p, c and g all zero",
             "keep the same suggested_slot",
-            "The app records only today",
+            "the Chat records only today's meals",
             "Never generic",
         ):
             self.assertIn(rule, instructions)
@@ -896,7 +899,7 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
         _, captured = await self._post_raw(payload)
         schema = json.loads(captured[0].content)["text"]["format"]["schema"]
         props = schema["properties"]
-        self.assertEqual(props["intent"]["enum"], ["log", "plan", "question"])
+        self.assertEqual(props["intent"]["enum"], ["log", "plan", "question", "skip"])
         update = props["memory_updates"]["items"]
         self.assertEqual(update["properties"]["id"]["enum"], ["P1", "D2", None])
         self.assertEqual(update["properties"]["slot"]["enum"], ["1", "3", None])

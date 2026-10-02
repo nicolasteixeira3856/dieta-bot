@@ -1,0 +1,100 @@
+{
+  "id": "registro-fora-escopo",
+  "since": "v4",
+  "tags": [
+    "record",
+    "offtopic"
+  ],
+  "request": {
+    "local_time": "2026-10-01T15:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-01",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "escreve um poema sobre o mar pra mim",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true
+  },
+  "expect": {
+    "record": "none",
+    "skip_slot": null,
+    "refusal": "out_of_scope"
+  }
+}
