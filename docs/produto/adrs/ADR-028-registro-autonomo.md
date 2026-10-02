@@ -73,7 +73,7 @@ Dev flavor only (ADR-014), enums and numbers only (ADR-015): automatic record, a
 
 ### 10. Gate
 
-One Stitch gate, [ST9](../../stitch/plans/st9-registro-autonomo.md): `chatE` (Registrar only), `chatF` and `chatG` (receipt with stacked actions, no action bar), new `chatU` (replace confirmation inside the Chat) and new `chatD` (undone replacement and restore receipt).
+One Stitch gate, [ST9](../../stitch/plans/completed/st9-registro-autonomo.md): `chatE` (Registrar only), `chatF` and `chatG` (receipt with stacked actions, no action bar), new `chatU` (replace confirmation inside the Chat) and new `chatD` (undone replacement and restore receipt).
 
 ## Rationale
 
@@ -112,6 +112,6 @@ One Stitch gate, [ST9](../../stitch/plans/st9-registro-autonomo.md): `chatE` (Re
 
 - Specifications affected: [chat](../specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md), [api-contract](../../api-contract.md), [room-v2](../../android/specifications/room-v2.md).
 - Related ADRs: [ADR-012](ADR-012-chat-home-perfil.md), [ADR-014](../../android/adrs/ADR-014-flavors-firebase-dev.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md), [ADR-017](ADR-017-registro-consolidado.md), [ADR-023](ADR-023-chat-v2-memoria-v2.md), [ADR-026](ADR-026-perguntas-antes-da-estimativa.md).
-- Plans: [S14](../../server/plans/s14-registro-autonomo.md) ∥ [ST9](../../stitch/plans/st9-registro-autonomo.md) → [A34](../../android/plans/a34-registro-autonomo.md). Deferred: [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md).
+- Plans: [S14](../../server/plans/s14-registro-autonomo.md) ∥ [ST9](../../stitch/plans/completed/st9-registro-autonomo.md) → [A34](../../android/plans/a34-registro-autonomo.md). Deferred: [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the supersession.

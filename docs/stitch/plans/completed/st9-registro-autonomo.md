@@ -1,17 +1,17 @@
 # Stitch gate — ST9 Autonomous record (`chatE`, `chatF`, `chatG`, `chatU`, `chatD`)
 
-- Status: Aguardando o dono no Stitch
+- Status: Concluído
 - Date: 01/10/2026
 - Owning context: `stitch`
 - Project: Stitch `Nutri` (`6282733070135794645`)
-- Executes: [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) (decisions 2, 3, 5 and 10)
-- Blocks: [A34 Autonomous record](../../android/plans/a34-registro-autonomo.md)
+- Executes: [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) (decisions 2, 3, 5 and 10)
+- Blocks: [A34 Autonomous record](../../../android/plans/a34-registro-autonomo.md)
 
-Screen names: exact Stitch titles ([table](../README.md#nomes-das-telas-regra-do-dono-29092026)). Each prompt has one block for the dark theme (`V2 Expressive`) and one for light (`V2 Light`).
+Screen names: exact Stitch titles ([table](../../README.md#nomes-das-telas-regra-do-dono-29092026)). Each prompt has one block for the dark theme (`V2 Expressive`) and one for light (`V2 Light`).
 
 ## ⛔ Owner blocker — Stitch prompts
 
-This step is manual and blocks A34. Five prompts, each sent twice (dark and light). **Order matters:** 9.1 and 9.2 duplicate screens that 9.3 and 9.4 then edit. It can run in parallel with [S14](../../server/plans/s14-registro-autonomo.md).
+This step is manual and blocks A34. Five prompts, each sent twice (dark and light). **Order matters:** 9.1 and 9.2 duplicate screens that 9.3 and 9.4 then edit. It can run in parallel with [S14](../../../server/plans/s14-registro-autonomo.md).
 
 ### Prompt 9.1 — new screen: replace confirmation inside the Chat (`chatU`)
 
@@ -195,30 +195,30 @@ After sending: the photo estimate with "~680 kcal", the receipt and only Excluir
 
 ## Verification (agent)
 
-Starts when the owner says the prompts ran. Gate checks: [`st9-registro-autonomo.checks.json`](st9-registro-autonomo.checks.json) ([types](../README.md#verificação-automática-sv1)).
+Starts when the owner says the prompts ran. Gate checks: [`st9-registro-autonomo.checks.json`](st9-registro-autonomo.checks.json) ([types](../../README.md#verificação-automática-sv1)).
 
 1. `node tools/verify-stitch.mjs st9 --report --out <scratchpad>/stitch-report.html`: finds `chatE`, `chatF`, `chatG` by ID and `chatU`, `chatD` by exact title, runs the checks at 390 px, dark × light coherence and images, and writes the before/after report. Answers `PASSOU` or `NÃO PASSOU`.
 2. `NÃO PASSOU` (including a different title): **stop**, send the report to the owner in one message and keep the state `Aguardando o dono no Stitch`.
 3. `PASSOU`: look at the report (before/after) for the appearance items the script does not measure.
 4. Add the `chatU` and `chatD` IDs (Log) to `tools/export-stitch.mjs` and the count (31) to `tools/check-stitch.mjs`.
 5. `node tools/export-stitch.mjs --only chatE,chatF,chatG,chatU,chatD` + `node tools/check-stitch.mjs` green.
-6. Add `chatU.png` and `chatD.png` to the gold list of `AGENTS.md` (29 → 31) and `docs/qa/README.md`. Both titles are already in the name table of [stitch/README.md](../README.md#nomes-das-telas-regra-do-dono-29092026) (the verifier reads them from there).
+6. Add `chatU.png` and `chatD.png` to the gold list of `AGENTS.md` (29 → 31) and `docs/qa/README.md`. Both titles are already in the name table of [stitch/README.md](../../README.md#nomes-das-telas-regra-do-dono-29092026) (the verifier reads them from there).
 
 ### Checklist
 
-- [ ] `chatU`: title exact in both themes — screen lookup
-- [ ] `chatU`: user message, estimate ~620, confirmation card with "Substituir Jantar?", "Jantar tem 380 kcal. Fica com 620 kcal.", Substituir and Outra refeição — `text has`
-- [ ] `chatU`: no action bar, no "Deseja registrar" — `text not "Gravar", "Pular", "Deseja registrar"`
-- [ ] `chatU`: confirmation card below the bubble, left-aligned, Substituir as the light/dark CTA — report
-- [ ] `chatD`: title exact in both themes — screen lookup
-- [ ] `chatD`: "Atualizado em Jantar · 20:00" with "380 → 620 kcal" and "Desfeito"; "Restaurado em Jantar · 20:00" with "380 kcal" — `text has`
-- [ ] `chatD`: Excluir, Trocar refeição, Editar stacked under the restored receipt only; first receipt dimmed — `text has` + report
-- [ ] `chatD`: old breakfast content gone — `text not "2 pães franceses", "Café da manhã"`
-- [ ] `chatE`: single "Registrar" pill, no Gravar/Trocar/Pular; card and question line kept — `text has "Registrar", "ENERGIA TOTAL", "Deseja registrar"`, `text not "Gravar café", "Pular"`, `fits "Registrar"`
-- [ ] `chatG`: Excluir, Trocar refeição, Editar under the receipt; no action bar — `text has`, `text not "Gravar", "Pular"`
-- [ ] `chatF`: "~680 kcal" in the card; receipt "Registrado em Almoço · 12:30" "+680 kcal"; Excluir and Trocar refeição only — `text has`, `text not "Editar", "Gravar almoço", "Deseja registrar"`
-- [ ] Excluir in the `bad` color, other actions neutral, no gold button background — report
-- [ ] Every action label on one line — `fits`
+- [x] `chatU`: title exact in both themes — screen lookup
+- [x] `chatU`: user message, estimate ~620, confirmation card with "Substituir Jantar?", "Jantar tem 380 kcal. Fica com 620 kcal.", Substituir and Outra refeição — `text has`
+- [x] `chatU`: no action bar, no "Deseja registrar" — `text not "Gravar", "Pular", "Deseja registrar"`
+- [x] `chatU`: confirmation card below the bubble, left-aligned, Substituir as the light/dark CTA — report
+- [x] `chatD`: title exact in both themes — screen lookup
+- [x] `chatD`: "Atualizado em Jantar · 20:00" with "380 → 620 kcal" and "Desfeito"; "Restaurado em Jantar · 20:00" with "380 kcal" — `text has`
+- [x] `chatD`: Excluir, Trocar refeição, Editar stacked under the restored receipt only; first receipt dimmed — `text has` + report
+- [x] `chatD`: old breakfast content gone — `text not "2 pães franceses", "Café da manhã"`
+- [x] `chatE`: single "Registrar" pill, no Gravar/Trocar/Pular; card and question line kept — `text has "Registrar", "ENERGIA TOTAL", "Deseja registrar"`, `text not "Gravar café", "Pular"`, `fits "Registrar"`
+- [x] `chatG`: Excluir, Trocar refeição, Editar under the receipt; no action bar — `text has`, `text not "Gravar", "Pular"`
+- [x] `chatF`: "~680 kcal" in the card; receipt "Registrado em Almoço · 12:30" "+680 kcal"; Excluir and Trocar refeição only — `text has`, `text not "Editar", "Gravar almoço", "Deseja registrar"`
+- [x] Excluir in the `bad` color, other actions neutral, no gold button background — report
+- [x] Every action label on one line — `fits`
 
 ## Files this gate may touch
 
@@ -232,3 +232,27 @@ Nothing in `apps/` or `server/`.
 ## Log
 
 - 01/10/2026 — gate written; waiting for the owner.
+- 01/10/2026 — `edit_screens` test (owner-authorized, dark 9.3/9.4/9.5): nothing persisted (two timeouts, one "success" with no change; same as [stitch-sdk#361](https://github.com/google-labs-code/stitch-sdk/issues/361)). Prompts stay manual.
+- 02/10/2026 — owner ran 9.1–9.5. First `verify-stitch st9`: NÃO PASSOU (7). Triage:
+  - Scroll: `chatF`, `chatG`, `chatD` overflow the fixed phone frame by 74–116 px, so the actions sat below the fold. The exporter now renders a chat gold scrolled to the end, as the app opens the Chat (A32); `chatD` is rendered from HTML (its screenshot shows the top). No Stitch change.
+  - Check fixes: `chatU` `fits "Outra refeição"` had `maxHeight` 24 but the label is the 44 px button itself (one line) → `maxHeight` removed. Coherence: icon names `restart_alt`/`restore` and the status-bar time `20:16` are exceptions; the `chatG` sentence difference is older than ST9 (`known`).
+  - Real defects, back to the owner: dark `chatD` card label "ENERGIA TOTAL" vs light "ESTIMATIVA NUTRICIONAL"; light `chatF` meal photo broken (image URL 403). Fix prompts below. State stays `Aguardando o dono no Stitch`.
+
+### Fix prompts (02/10/2026)
+
+Dark only. Select only "Chat com registro desfeito (V2 Expressive)":
+
+```text
+Screen to edit: "Chat com registro desfeito (V2 Expressive)".
+
+In the estimate card inside the assistant bubble, change the label "ENERGIA TOTAL" to "ESTIMATIVA NUTRICIONAL", same style. Change nothing else.
+```
+
+Light only. Select only "Foto de refeição e estimativa no Chat (V2 Light)":
+
+```text
+Screen to edit: "Foto de refeição e estimativa no Chat (V2 Light)".
+
+The meal photo in the user bubble is broken: it shows only the alt text "Prato Feito com filé de frango, arroz, feijão e salada". Replace it with a real photo of the same lunch, as on "Foto de refeição e estimativa no Chat (V2 Expressive)": a plate with grilled chicken fillet, white rice, a bowl of black beans and green salad on a wooden table, same size and rounded corners, with the "Visão Computacional" chip over it. Change nothing else.
+```
+- 02/10/2026 — owner ran both fix prompts. `node tools/verify-stitch.mjs st9 --report`: **PASSOU** (warnings only: hidden duplicate `chatE` titles; the older `chatG` sentence difference). Report reviewed: `chatU` card below the bubble with the CTA tokens; `chatD` dimmed "Desfeito" receipt and the "Restaurado" receipt with the three actions; `chatE` single Registrar pill; `chatG`/`chatF` receipts with stacked actions, Excluir in `bad`, no Editar on the photo; light `chatF` photo back. Cosmetic, not blocking: light `chatU` "Outra refeição" is regular weight (dark semibold); dark `chatE` Registrar icon drawn in `good`. New IDs: `chatU` dark `face5508d7154b8788f7b8f26f9a909e`, light `54b2de6d01d84819abb46536748607f9`; `chatD` dark `b1b9a819f87e439fbc5bae264adae498`, light `a3f4732249364ec8b474cab482637153`. Exporter: chat golds rendered scrolled to the end; `chatD` from HTML. `node tools/export-stitch.mjs --only chatE,chatF,chatG,chatU,chatD` + `node tools/check-stitch.mjs`: 62 golds (31 + 31). Gold list updated in `AGENTS.md` and `docs/qa/README.md`. Unblocks [A34](../../../android/plans/a34-registro-autonomo.md) (still needs S14 on the dev server).
