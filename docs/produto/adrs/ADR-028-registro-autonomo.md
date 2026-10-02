@@ -34,7 +34,7 @@ A skipped slot is not a record: a meal for it is recorded by itself, and that re
 
 ### 4. Skip by text
 
-"Pulei o café" (clear, today) marks the slot as skipped by itself, with a receipt. A firm skip announced ahead ("hoje não vou jantar") counts too; a hedged one ("acho que não vou jantar") or a pending meal ("ainda não almocei") does not (owner, 02/10/2026; [S15](../../server/plans/s15-registro-casos-dificeis.md)). The Chat action bar (Gravar | Trocar | Pular) and its skip dialog leave the Chat. A skip for a slot that already has a record or a skip changes nothing; the turn is marked `Não registrado` (Excluir on the receipt removes a record). The Home skip (tap on an empty slot, dialog `chatP`) is unchanged.
+"Pulei o café" (clear, today) marks the slot as skipped by itself, with a receipt. A firm skip announced ahead ("hoje não vou jantar") counts too; a hedged one ("acho que não vou jantar") or a pending meal ("ainda não almocei") does not (owner, 02/10/2026; [S15](../../server/plans/completed/s15-registro-casos-dificeis.md)). The Chat action bar (Gravar | Trocar | Pular) and its skip dialog leave the Chat. A skip for a slot that already has a record or a skip changes nothing; the turn is marked `Não registrado` (Excluir on the receipt removes a record). The Home skip (tap on an empty slot, dialog `chatP`) is unchanged.
 
 ### 5. Receipts carry the actions
 

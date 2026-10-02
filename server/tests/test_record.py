@@ -389,6 +389,21 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(rule, instructions)
         self.assertNotIn("it will be recorded today", instructions)
 
+    async def test_instructions_define_pending_hedged_skip_and_photo_question(self) -> None:
+        """S15: a pending or hedged meal is not a skip; a photo with a question is log, unsure."""
+        captured: list[httpx2.Request] = []
+        await self._post(self._v4(), _responds(_model(), captured))
+        instructions = json.loads(captured[0].content)["instructions"]
+        for rule in (
+            "firmly says it will not happen today (hoje não vou jantar, vou pular o almoço hoje)",
+            "A meal that has not happened yet is not skip (ainda não almocei, não jantei ainda",
+            "A hedged skip is not skip (acho que não vou jantar",
+            "a food photo sent with a question about it (isso tem muita caloria?",
+            "that photo is log, estimate the plate, record_intent unsure",
+        ):
+            self.assertIn(rule, instructions)
+        self.assertNotIn("a photo of a plate with or without text", instructions)
+
 
 if __name__ == "__main__":
     unittest.main()
