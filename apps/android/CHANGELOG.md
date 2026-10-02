@@ -2,6 +2,12 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.9 — 02/10/2026
+
+### Ajustes
+
+- No Chat, tocar em enviar fecha o teclado. A resposta e o recibo aparecem inteiros, sem o teclado por cima.
+
 ## 0.0.8 — 02/10/2026
 
 ### Novidades
