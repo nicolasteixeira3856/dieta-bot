@@ -118,6 +118,7 @@ import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.WaitIndicator
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.formatRemaining
+import com.nutri.android.domain.ReceiptAction
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
 import kotlin.math.roundToInt
@@ -138,18 +139,19 @@ fun ChatScreen(
     onComposer: (String) -> Unit,
     onSend: () -> Unit,
     onRetry: () -> Unit,
-    onRecord: (estimateId: Long, slotId: Long) -> Unit,
-    onSwap: (estimateId: Long) -> Unit,
     onSheetSelect: (Long) -> Unit,
     onSheetConfirm: () -> Unit,
     onSheetClose: () -> Unit,
-    onAskSkip: (SlotRef) -> Unit,
-    onSkipConfirm: () -> Unit,
-    onSkipCancel: () -> Unit,
-    /** ADR-017: Gravar on a taken slot → Substituir | Outra refeição. */
-    onReplaceConfirm: () -> Unit = {},
-    onReplaceElsewhere: () -> Unit = {},
-    onReplaceCancel: () -> Unit = {},
+    /** chatE: Registrar on an `ask` estimate (A34). */
+    onRegister: (estimateId: Long) -> Unit = {},
+    /** chatU: Substituir | Outra refeição below an answer whose slot already has a record. */
+    onReplaceConfirm: (estimateId: Long) -> Unit = {},
+    onReplaceElsewhere: (estimateId: Long) -> Unit = {},
+    /** chatG / chatF / chatD: Desfazer · Excluir · Trocar refeição · Editar on a receipt. */
+    onReceiptAction: (receiptId: Long, action: ReceiptAction) -> Unit = { _, _ -> },
+    /** chatU below a receipt: Trocar refeição into a slot with a record. */
+    onMoveConfirm: () -> Unit = {},
+    onMoveElsewhere: () -> Unit = {},
     /** A6: composer camera → chooser; chip → camera; chooser rows → launchers. */
     onPhoto: () -> Unit = {},
     onCamera: () -> Unit = {},
@@ -191,22 +193,30 @@ fun ChatScreen(
             }
             .testTag("chat"),
     ) {
-        val overlay = ui.sheetFor != null || ui.skipConfirm != null || ui.replaceConfirm != null || ui.photoSheet
-        // Stitch: backdrop-blur behind the sheet and the skip dialog.
+        val overlay = ui.sheetFor != null || ui.photoSheet
+        // Stitch: backdrop-blur behind the sheets.
         Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding().imePadding()) {
             Header(onBack)
-            if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
+            val record = RecordCallbacks(onReplaceConfirm, onReplaceElsewhere, onReceiptAction, onMoveConfirm, onMoveElsewhere)
+            if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, camera)
-            Footer(ui, onComposer, onSend, onRecord, onSwap, onAskSkip, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
+            Footer(ui, onComposer, onSend, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
         }
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
-        ui.skipConfirm?.let { SkipDialog(it, onSkipConfirm, onSkipCancel) }
-        ui.replaceConfirm?.let { ReplaceDialog(it, onReplaceConfirm, onReplaceElsewhere, onReplaceCancel) }
         if (ui.photoSheet) PhotoSheet(onCamera, onGallery, onPhotoSheetClose)
     }
 }
+
+/** The record taps of thread items (A34), one object instead of five parameters per level. */
+private class RecordCallbacks(
+    val onReplaceConfirm: (Long) -> Unit,
+    val onReplaceElsewhere: (Long) -> Unit,
+    val onReceiptAction: (Long, ReceiptAction) -> Unit,
+    val onMoveConfirm: () -> Unit,
+    val onMoveElsewhere: () -> Unit,
+)
 
 // ----------------------------------------------------------------------------- header
 
@@ -260,6 +270,7 @@ private fun Thread(
     onRoutineRecord: () -> Unit,
     onRoutineEdit: () -> Unit,
     onLoadOlder: () -> Unit,
+    record: RecordCallbacks,
     modifier: Modifier,
 ) {
     val list = rememberLazyListState()
@@ -268,10 +279,13 @@ private fun Thread(
     val seen = remember { arrayOf(newest?.key) }
     LaunchedEffect(newest?.key) {
         if (newest == null || newest.key == seen[0]) return@LaunchedEffect
+        // A34: one answer can add several items (the answer and its receipt or Substituir): the list keeps
+        // the old newest item in place by key, so "at the bottom" counts the items added in front of it.
+        val added = items.indexOfFirst { it.key == seen[0] }.coerceAtLeast(0)
         seen[0] = newest.key
         // Follows only from the bottom or for the user's own send; scrolled up, nothing jumps.
         val own = newest is ChatItem.Loading || newest is ChatItem.User && newest.pending
-        if (own || list.firstVisibleItemIndex <= 1) list.animateScrollToItem(0)
+        if (own || list.firstVisibleItemIndex <= added + 1) list.animateScrollToItem(0)
     }
     val nearOldest by remember {
         derivedStateOf {
@@ -299,10 +313,13 @@ private fun Thread(
                 i == items.lastIndex -> 0.dp
                 item is ChatItem.Question && !item.standalone -> 5.dp
                 item is ChatItem.Routine -> 12.dp
+                // chatU: the confirmation sits 8 dp under the answer's time; chatD: receipts 12 dp apart.
+                item is ChatItem.ReplacePrompt -> 8.dp
+                item is ChatItem.Receipt && items.getOrNull(i + 1) is ChatItem.Receipt -> 12.dp
                 else -> 16.dp
             }
             Box(Modifier.padding(top = gap)) {
-                ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit)
+                ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit, record)
             }
         }
         if (ui.loadingOlder) {
@@ -319,13 +336,27 @@ private fun Thread(
 private const val OLDER_THRESHOLD = 5
 
 @Composable
-private fun ThreadItem(item: ChatItem, ui: ChatUiState, onRetry: () -> Unit, onRoutineRecord: () -> Unit, onRoutineEdit: () -> Unit) {
+private fun ThreadItem(
+    item: ChatItem,
+    ui: ChatUiState,
+    onRetry: () -> Unit,
+    onRoutineRecord: () -> Unit,
+    onRoutineEdit: () -> Unit,
+    record: RecordCallbacks,
+) {
     when (item) {
         is ChatItem.DateSeparator -> DatePill(item.label)
         is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it) } ?: UserBubble(item)
         is ChatItem.Assistant -> AssistantBubble(item)
         is ChatItem.Question -> QuestionBubble(item)
-        is ChatItem.Receipt -> ReceiptCard(item)
+        is ChatItem.Receipt -> ReceiptCard(item, { record.onReceiptAction(item.id, it) }, record.onMoveConfirm, record.onMoveElsewhere)
+        is ChatItem.ReplacePrompt -> ReplaceCard(
+            item.confirm,
+            tag = "chat-replace",
+            onReplace = { record.onReplaceConfirm(item.estimateId) },
+            onElsewhere = { record.onReplaceElsewhere(item.estimateId) },
+            modifier = Modifier.fillMaxWidth(0.88f),
+        )
         is ChatItem.Greeting -> Greeting(item, ui)
         ChatItem.Loading -> LoadingBubble()
         ChatItem.Failed -> FailedBubble(onRetry)
@@ -425,6 +456,7 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
         if (item.estimate?.question.isNullOrBlank()) {
             Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
         }
+        if (item.notRecorded) NotRecordedLabel(Modifier.padding(top = 6.dp, start = 8.dp))
     }
 }
 
@@ -510,7 +542,8 @@ private fun EstimateCard(e: EstimateView) {
     val p = LocalPalette.current
     Column(
         Modifier
-            .padding(top = 12.dp, bottom = 12.dp)
+            // ST9: without the slot question the bubble ends 16 dp under the card (chatU, chatG).
+            .padding(top = 12.dp, bottom = if (e.slotQuestion != null) 12.dp else 0.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(p.phone.copy(alpha = 0.9f))
@@ -554,55 +587,6 @@ private fun MacroBox(label: String, value: String, color: Color, modifier: Modif
     ) {
         Text(label, style = DietaBotType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W700, letterSpacing = 0.1.em), color = p.muted)
         Text(value, style = DietaBotType.headlineMd.copy(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = color)
-    }
-}
-
-@Composable
-private fun ReceiptCard(item: ChatItem.Receipt) {
-    val p = LocalPalette.current
-    val tone = if (item.skipped) p.dim else p.good
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(
-            Modifier
-                .widthIn(max = 270.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(p.card)
-                .border(1.dp, p.line, RoundedCornerShape(16.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp)
-                .testTag("chat-receipt-${item.id}"),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(22.dp).clip(CircleShape).background(tone.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                Icon(if (item.skipped) Icons.Outlined.Remove else Icons.Filled.DoneAll, contentDescription = null, tint = tone, modifier = Modifier.size(14.dp))
-            }
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    buildAnnotatedString {
-                        append(
-                            when {
-                                item.skipped -> "Pulado "
-                                item.replaced -> "Atualizado em "
-                                else -> "Registrado em "
-                            },
-                        )
-                        withStyle(SpanStyle(fontWeight = FontWeight.W600)) { append(item.slotName) }
-                        item.slotTime?.let { withStyle(SpanStyle(color = p.dim)) { append("  ·  $it") } }
-                    },
-                    style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp),
-                    color = p.text,
-                )
-                item.kcal?.takeIf { !item.skipped }?.let {
-                    Text(
-                        if (item.replaced) "$it kcal" else "+$it kcal",
-                        style = DietaBotType.labelMd.copy(fontSize = 11.sp, letterSpacing = 0.sp),
-                        color = p.good,
-                        modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp)).background(p.good.copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 1.dp),
-                    )
-                }
-            }
-        }
-        MemoryChips(MemoryNotice(updated = item.memoryUpdated), horizontal = Alignment.CenterHorizontally)
     }
 }
 
@@ -736,9 +720,7 @@ private fun Footer(
     ui: ChatUiState,
     onComposer: (String) -> Unit,
     onSend: () -> Unit,
-    onRecord: (Long, Long) -> Unit,
-    onSwap: (Long) -> Unit,
-    onAskSkip: (SlotRef) -> Unit,
+    onRegister: (Long) -> Unit,
     onPhoto: () -> Unit,
     onRemoveAttachment: () -> Unit,
     onRecordPlan: (Long) -> Unit,
@@ -756,37 +738,13 @@ private fun Footer(
         if (ui.forceEstimate) {
             ForceBar(onForceEstimate)
         } else {
-            ui.actions?.let { if (it.plan) PlanBar(it) { onRecordPlan(it.estimateId) } else ActionBar(it, onRecord, onSwap, onAskSkip) }
+            ui.actions?.let { if (it.plan) PlanBar(it) { onRecordPlan(it.estimateId) } else RegisterBar { onRegister(it.estimateId) } }
         }
         Composer(ui, onComposer, onSend, onPhoto, onRemoveAttachment)
     }
 }
 
-@Composable
-private fun ActionBar(actions: EstimateActions, onRecord: (Long, Long) -> Unit, onSwap: (Long) -> Unit, onAskSkip: (SlotRef) -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(p.card)
-            .border(1.dp, p.line, RoundedCornerShape(18.dp))
-            .testTag("chat-actions"),
-    ) {
-        val segments = buildList<@Composable BoxScope.() -> Unit> {
-            actions.record?.let { slot -> add { Action(Icons.Outlined.CheckCircle, "Gravar ${shortName(slot.name)}", "chat-record", Haptic.Confirm) { onRecord(actions.estimateId, slot.id) } } }
-            add { Action(Icons.Outlined.SwapHoriz, "Trocar", "chat-swap") { onSwap(actions.estimateId) } }
-            actions.skip?.let { slot -> add { Action(Icons.Outlined.Close, "Pular", "chat-skip") { onAskSkip(slot) } } }
-        }
-        segments.forEachIndexed { i, segment ->
-            if (i > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(p.line))
-            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center, content = segment)
-        }
-    }
-}
-
-/** chatR: one Registrar assim in the place of Gravar | Trocar | Pular, same bar. */
+/** chatR: one Registrar assim in the actions slot. */
 @Composable
 private fun PlanBar(actions: EstimateActions, onClick: () -> Unit) {
     val p = LocalPalette.current
@@ -808,7 +766,7 @@ private fun PlanBar(actions: EstimateActions, onClick: () -> Unit) {
     }
 }
 
-/** chatQ: one Forçar estimativa in the place of Gravar | Trocar | Pular, same bar. */
+/** chatQ: one Forçar estimativa in the actions slot, same bar as Registrar assim. */
 @Composable
 private fun ForceBar(onClick: () -> Unit) {
     val p = LocalPalette.current
@@ -827,23 +785,6 @@ private fun ForceBar(onClick: () -> Unit) {
         Icon(Icons.Outlined.FastForward, contentDescription = null, tint = p.text, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
         Text("Forçar estimativa", style = DietaBotType.labelMd.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
-    }
-}
-
-/** "Café da manhã" -> "café" (gold: "Gravar café"). */
-private fun shortName(name: String) = name.substringBefore(' ').lowercase()
-
-@Composable
-private fun BoxScope.Action(icon: ImageVector, label: String, tag: String, haptic: Haptic = Haptic.Light, onClick: () -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier.fillMaxSize().dietaClick(haptic, onClick = onClick).testTag(tag),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, contentDescription = null, tint = p.muted, modifier = Modifier.size(17.dp))
-        Spacer(Modifier.width(6.dp))
-        Text(label, style = DietaBotType.labelMd.copy(fontSize = 12.5.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text, maxLines = 1)
     }
 }
 
@@ -1013,7 +954,7 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
         Text("Selecione a refeição", style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
         Text("Escolha o momento do dia para salvar este registro:", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            ui.slots.forEach { slot -> SheetRow(slot, slot.id == ui.sheetSelection, slot.id == ui.currentSlotId) { onSelect(slot.id) } }
+            ui.slots.forEach { slot -> SheetRow(slot, slot.id == ui.sheetSelection, slot.id == ui.sheetCurrent) { onSelect(slot.id) } }
         }
         Row(
             Modifier
@@ -1091,126 +1032,6 @@ private fun sheetIcon(minutes: Int): ImageVector = when (SlotSuggestions.bandOf(
     SlotBand.LUNCH -> Icons.Outlined.LunchDining
     SlotBand.DINNER -> Icons.Outlined.DinnerDining
     SlotBand.NIGHT -> Icons.Outlined.Bedtime
-}
-
-@Composable
-private fun BoxScope.SkipDialog(slot: SlotRef, onConfirm: () -> Unit, onCancel: () -> Unit) = ConfirmDialog(
-    time = slot.time,
-    title = "Deseja pular o ${slot.name}?",
-    body = "Nenhuma caloria será somada hoje. Se você mudar de ideia, ainda poderá registrar alimentos nessa refeição mais tarde.",
-    primaryIcon = Icons.Outlined.FastForward,
-    primaryLabel = "Pular refeição",
-    secondaryLabel = "Cancelar",
-    tag = "chat-skip",
-    onPrimary = onConfirm,
-    onSecondary = onCancel,
-    onDismiss = onCancel,
-)
-
-/** ADR-017, same chatP dialog. Outra refeição opens Trocar; back and scrim only close. */
-@Composable
-private fun BoxScope.ReplaceDialog(confirm: ReplaceConfirm, onReplace: () -> Unit, onElsewhere: () -> Unit, onCancel: () -> Unit) = ConfirmDialog(
-    time = confirm.slot.time,
-    title = "Substituir ${confirm.slot.name}?",
-    body = "${confirm.slot.name} tem ${confirm.oldKcal} kcal. Fica com ${confirm.newKcal} kcal.",
-    primaryIcon = Icons.Outlined.SwapHoriz,
-    primaryLabel = "Substituir",
-    secondaryLabel = "Outra refeição",
-    tag = "chat-replace",
-    onPrimary = onReplace,
-    onSecondary = onElsewhere,
-    onDismiss = onCancel,
-)
-
-/** Stitch chatP layout: icon + slot time, title, body, CTA pill, secondary pill. Tags {tag}-dialog/-confirm/-cancel. */
-@Composable
-private fun BoxScope.ConfirmDialog(
-    time: String,
-    title: String,
-    body: String,
-    primaryIcon: ImageVector,
-    primaryLabel: String,
-    secondaryLabel: String,
-    tag: String,
-    onPrimary: () -> Unit,
-    onSecondary: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val p = LocalPalette.current
-    BackHandler(onBack = onDismiss)
-    // Stitch chatP: #07090d/80 dark, text colour/40 light.
-    Scrim(if (p.isDark) Color(0xFF07090D).copy(alpha = 0.8f) else p.text.copy(alpha = 0.4f), onDismiss)
-    val shape = RoundedCornerShape(24.dp)
-    Column(
-        Modifier
-            .align(Alignment.Center)
-            .padding(start = 20.dp, end = 20.dp, bottom = 32.dp)
-            .fillMaxWidth()
-            .clip(shape)
-            .background(if (p.isDark) p.card else p.surf)
-            .border(1.dp, p.line, shape)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            .padding(24.dp)
-            .testTag("$tag-dialog"),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(16.dp)).background(p.surf2).border(1.dp, p.line, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Outlined.Fastfood, contentDescription = null, tint = if (p.isDark) p.gold else p.muted, modifier = Modifier.size(22.dp)) }
-            Spacer(Modifier.weight(1f))
-            Row(
-                Modifier.clip(CircleShape).background(p.surf2).border(1.dp, p.line, CircleShape).padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Icon(Icons.Outlined.Schedule, contentDescription = null, tint = p.muted, modifier = Modifier.size(14.dp))
-                Text(time, style = DietaBotType.labelCaps.copy(letterSpacing = 0.05.em), color = p.muted)
-            }
-        }
-        Text(
-            title,
-            style = DietaBotType.bodyLg.copy(fontSize = 18.sp, lineHeight = 24.75.sp, fontWeight = if (p.isDark) FontWeight.W600 else FontWeight.W700, letterSpacing = (-0.025).em),
-            color = p.text,
-            modifier = Modifier.padding(top = 20.dp),
-        )
-        Text(
-            body,
-            style = DietaBotType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
-            color = p.muted,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Row(
-            Modifier
-                .padding(top = 24.dp)
-                .fillMaxWidth()
-                .height(52.dp)
-                .clip(CircleShape)
-                .background(p.ctaBg)
-                .dietaClick(Haptic.Confirm, onClick = onPrimary)
-                .testTag("$tag-confirm"),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(primaryIcon, contentDescription = null, tint = p.ctaText, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(primaryLabel, style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText)
-        }
-        Box(
-            Modifier
-                .padding(top = 12.dp)
-                .fillMaxWidth()
-                .height(52.dp)
-                .clip(CircleShape)
-                .background(p.surf2)
-                .border(1.dp, p.line, CircleShape)
-                .dietaClick(onClick = onSecondary)
-                .testTag("$tag-cancel"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(secondaryLabel, style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
-        }
-    }
 }
 
 // ----------------------------------------------------------------------------- photo (A6)

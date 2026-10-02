@@ -144,36 +144,40 @@ class RoborazziSmokeTest {
     @Test
     fun chatQ_light() = chat(dark = false, ChatFixtures.chatQ, "chatQ")
 
+    /** A34 (ST9): automatic record receipts, Substituir inline, undone replacement. */
+    @Test
+    fun chatG_dark() = chat(dark = true, ChatFixtures.chatG, "chatG")
+
+    @Test
+    fun chatG_light() = chat(dark = false, ChatFixtures.chatG, "chatG")
+
+    @Test
+    fun chatF_dark() = chat(dark = true, ChatFixtures.chatF, "chatF")
+
+    @Test
+    fun chatF_light() = chat(dark = false, ChatFixtures.chatF, "chatF")
+
+    @Test
+    fun chatU_dark() = chat(dark = true, ChatFixtures.chatU, "chatU")
+
+    @Test
+    fun chatU_light() = chat(dark = false, ChatFixtures.chatU, "chatU")
+
+    @Test
+    fun chatD_dark() = chat(dark = true, ChatFixtures.chatD, "chatD")
+
+    @Test
+    fun chatD_light() = chat(dark = false, ChatFixtures.chatD, "chatD")
+
     private fun chat(dark: Boolean, ui: com.nutri.android.feature.chat.ChatUiState, name: String) {
         com.nutri.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_A_PHOTO)
+        com.nutri.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_F_PHOTO)
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = dark) {
-                ChatScreen(ui, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {})
+                ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})
             }
         }
         val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/$name.png")
-        composeTestRule.onRoot().captureRoboImage(
-            filePath = target.path,
-            roborazziOptions = RoborazziOptions(
-                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f)
-            )
-        )
-    }
-
-    /** A18: replace confirmation (chatP layout, ADR-017 copy). */
-    @Test
-    fun chatReplace_dark() = chatReplace(dark = true)
-
-    @Test
-    fun chatReplace_light() = chatReplace(dark = false)
-
-    private fun chatReplace(dark: Boolean) {
-        composeTestRule.setContent {
-            DietaBotTheme(darkTheme = dark) {
-                ChatScreen(ChatFixtures.chatReplace, {}, {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {}, {})
-            }
-        }
-        val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/chatReplace.png")
         composeTestRule.onRoot().captureRoboImage(
             filePath = target.path,
             roborazziOptions = RoborazziOptions(

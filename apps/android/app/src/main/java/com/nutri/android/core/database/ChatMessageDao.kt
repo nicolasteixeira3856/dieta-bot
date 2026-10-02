@@ -23,4 +23,24 @@ interface ChatMessageDao {
 
     @Insert
     suspend fun insert(row: ChatMessageEntity): Long
+
+    /** Receipts of the 60 days (A34): which one is the latest of its slot. */
+    @Query("SELECT * FROM chat_message WHERE date >= :fromDate AND role IN (:roles) ORDER BY createdAtEpochMs ASC, id ASC")
+    suspend fun getReceiptsSince(fromDate: String, roles: List<String>): List<ChatMessageEntity>
+
+    /** Assistant rows still waiting for a tap (A34): Registrar or the inline Substituir. */
+    @Query(
+        "SELECT * FROM chat_message WHERE role = 'assistant' AND " +
+            "(recordState = 'pending_replace' OR (recordMode = 'ask' AND recordState IS NULL AND estimateKcal IS NOT NULL))",
+    )
+    suspend fun getOpenRecords(): List<ChatMessageEntity>
+
+    @Query("UPDATE chat_message SET recordState = :state, undoData = :undoData WHERE id = :id")
+    suspend fun setRecordState(id: Long, state: String?, undoData: String?)
+
+    @Query("UPDATE chat_message SET undoData = :undoData, memoryUpdated = :memoryUpdated WHERE id = :id")
+    suspend fun setReceiptUndo(id: Long, undoData: String, memoryUpdated: Boolean)
+
+    @Query("UPDATE chat_message SET receiptState = :state WHERE id = :id")
+    suspend fun setReceiptState(id: Long, state: String)
 }

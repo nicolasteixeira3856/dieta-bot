@@ -3,6 +3,7 @@ package com.nutri.android.feature.chat
 import androidx.compose.runtime.Immutable
 import com.nutri.android.core.database.MealSlot
 import com.nutri.android.domain.ProjectedDay
+import com.nutri.android.domain.ReceiptAction
 import com.nutri.android.domain.SlotSuggestions
 
 @Immutable
@@ -68,8 +69,15 @@ sealed interface ChatItem {
         /** A plan of today (A29, chatR): the day projected with it, recomputed on every render. */
         val plan: ProjectedDay? = null,
         val memory: MemoryNotice = MemoryNotice(),
+        /** A34: an `ask` or a pending replace that expired: `Não registrado` below the bubble. */
+        val notRecorded: Boolean = false,
     ) : ChatItem {
         override val key = "a-$id"
+    }
+
+    /** chatU (A34): `Substituir {slot}?` right below the answer whose slot already has a record. */
+    data class ReplacePrompt(val estimateId: Long, val confirm: ReplaceConfirm) : ChatItem {
+        override val key = "rp-$estimateId"
     }
 
     /**
@@ -88,16 +96,23 @@ sealed interface ChatItem {
 
     data class Receipt(
         val id: Long,
-        val skipped: Boolean,
+        val kind: ReceiptKind,
         val slotName: String,
         val slotTime: String?,
         val kcal: Int?,
-        /** "Atualizado em": the slot's log was replaced (ADR-017). */
-        val replaced: Boolean = false,
+        /** Replacement (A34): the slot's kcal before it, chip `{fromKcal} → {kcal} kcal`. Null on old rows. */
+        val fromKcal: Int? = null,
         /** The record applied a routine to the memory (A28): `Memória atualizada` below it. */
         val memoryUpdated: Boolean = false,
+        /** A34: what was done to this receipt; dims it (chatD). */
+        val mark: ReceiptMark? = null,
+        /** A34: the stacked buttons of the latest receipt of its slot (chatG, chatF, chatD). */
+        val actions: List<ReceiptAction> = emptyList(),
+        /** A34: Trocar refeição into a slot with a record asks right below the receipt (chatU). */
+        val moveConfirm: ReplaceConfirm? = null,
     ) : ChatItem {
         override val key = "r-$id"
+        val skipped: Boolean get() = kind == ReceiptKind.SKIPPED
     }
 
     /** `O de sempre no {slot}?` card at the end of the thread (chatS). UI only. */
@@ -119,6 +134,17 @@ sealed interface ChatItem {
     }
 }
 
+/** Receipt roles (A34): title and icon of the card. */
+enum class ReceiptKind { LOGGED, REPLACED, SKIPPED, MOVED, RESTORED }
+
+/** The mark of a receipt that lost its actions by a tap on it (A34). */
+enum class ReceiptMark(val label: String) {
+    UNDONE("Desfeito"),
+    DELETED("Excluído"),
+    MOVED("Movido"),
+    EDITED("Removido para editar"),
+}
+
 @Immutable
 data class SlotRef(val id: Long, val name: String, val time: String, val minutes: Int)
 
@@ -133,19 +159,17 @@ data class ChatUiState(
     val emptyDay: Boolean = true,
     val metaRemaining: Int = 0,
     val metaTotal: Int = 0,
-    /** Actions for the latest estimate that has no receipt yet. */
+    /** Registrar (an `ask` estimate, chatE) or Registrar assim (a plan, chatR) above the composer. */
     val actions: EstimateActions? = null,
     /** Forçar estimativa in the actions slot (A30, chatQ): the last message is a question of round 2 or more. */
     val forceEstimate: Boolean = false,
     val slots: List<SlotRef> = emptyList(),
     val currentSlotId: Long? = null,
-    /** Estimate id whose "Trocar" sheet is open. */
+    /** Estimate or receipt id whose Trocar sheet (chatT) is open. */
     val sheetFor: Long? = null,
     val sheetSelection: Long? = null,
-    /** Slot waiting for the skip confirmation (chatP). */
-    val skipConfirm: SlotRef? = null,
-    /** Slot waiting for the replace confirmation (chatP layout, ADR-017). */
-    val replaceConfirm: ReplaceConfirm? = null,
+    /** Slot marked "(atual)" in the sheet: the record's slot for Trocar refeição, else the slot of the hour. */
+    val sheetCurrent: Long? = null,
     /** Camera / gallery chooser (A6). */
     val photoSheet: Boolean = false,
     /** JPEG attached in the composer, not sent yet (chatA). */
@@ -172,17 +196,16 @@ data class ChatUiState(
     val canAttach: Boolean get() = !sending && !composerTooLong
 }
 
-/** Gravar on a taken slot: "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */
+/** A record into a taken slot (chatU): "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */
 @Immutable
-data class ReplaceConfirm(val estimateId: Long, val slot: SlotRef, val oldKcal: Int, val newKcal: Int)
+data class ReplaceConfirm(val slot: SlotRef, val oldKcal: Int, val newKcal: Int)
 
 @Immutable
 data class EstimateActions(
     val estimateId: Long,
-    /** Null when the suggested slot is not in the profile: only Trocar and Pular show. */
+    /** Suggested slot of today; null = the tap opens Trocar with nothing picked. */
     val record: SlotRef?,
-    val skip: SlotRef?,
-    /** A plan (chatR): one Registrar assim button instead of Gravar | Trocar | Pular. */
+    /** A plan (chatR): Registrar assim. Else Registrar (chatE). */
     val plan: Boolean = false,
 )
 

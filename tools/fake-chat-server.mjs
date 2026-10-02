@@ -20,6 +20,10 @@
 // estimate. /__calls reports the last clarify_rounds and force_estimate.
 // A32: POST /__mode {"delay": 4000} answers each turn (not compacts) that many ms later, so a reply
 // can land while the thread is scrolled up.
+// A34: POST /__mode {"record": "auto"|"ask"|"none"} adds `record` to the estimate answers of a client
+// that sent auto_record (S14); {"skip": "Jan"} answers "pulei" as intent "skip" for the slot whose name
+// starts with "Jan" (record auto, no estimate); {"reply": "..."} replaces the default reply text.
+// /__calls reports the last auto_record.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -33,6 +37,10 @@ let kcalOverride = null;
 let plan = false;
 let routine = false;
 let clarify = false;
+let record = null;
+let skipPrefix = null;
+let replyOverride = null;
+let lastAutoRecord = null;
 let lastClarify = { rounds: null, force: false };
 let lastFacts = [];
 let lastRequestId = "";
@@ -75,11 +83,14 @@ http.createServer(async (req, res) => {
     plan = Boolean(mode.plan);
     routine = Boolean(mode.routine);
     clarify = Boolean(mode.clarify);
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, calls }));
+    record = mode.record ?? null;
+    skipPrefix = mode.skip ?? null;
+    replyOverride = mode.reply ?? null;
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -92,6 +103,9 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastFacts = input.facts ?? [];
     if (!input.compact) textLen = [...(input.text ?? "")].length;
     if (!input.compact) lastClarify = { rounds: input.clarify_rounds ?? null, force: Boolean(input.force_estimate) };
+    if (!input.compact) lastAutoRecord = input.auto_record ?? null;
+    // S14: only a client that sent auto_record gets the mark.
+    const marks = (fields) => (input.auto_record === true ? fields : {});
     if (textLen > 2000) {
       res.writeHead(422, { "content-type": "application/json" }).end(JSON.stringify({ detail: "text_too_long" }));
       return;
@@ -120,6 +134,14 @@ http.createServer(async (req, res) => {
     }
     const slots = input.profile?.slots ?? [];
     const rounds = input.clarify_rounds;
+    if (skipPrefix) {
+      const skipped = slots.find((s) => s.name.startsWith(skipPrefix)) ?? slots[0];
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: "Tudo bem, essa refeição não aconteceu hoje.", intent: "skip", estimate: null, digest: null, model: "gpt-6-luna",
+        ...marks({ record: "auto", skip_slot: skipped ? skipped.id : null }),
+      }));
+      return;
+    }
     if (clarify && Number.isInteger(rounds) && rounds < 3 && !input.force_estimate) {
       const question = [
         "O molho branco levou creme de leite ou requeijão? E o macarrão, foi 1 prato raso ou fundo?",
@@ -180,7 +202,8 @@ http.createServer(async (req, res) => {
     }
     const slot = slots.find((s) => s.name.startsWith(slotPrefix)) ?? slots[0];
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
-      reply: "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:",
+      reply: replyOverride ?? "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:",
+      ...(record ? { intent: "log" } : {}),
       estimate: {
         kcal: kcalOverride ?? 380, p: 22, c: 36, g: 16, confidence: "high", question: null,
         items: [{ name: "2 pães franceses", g: 100, kcal: 270 }, { name: "2 ovos mexidos", g: 100, kcal: 110 }],
@@ -188,6 +211,7 @@ http.createServer(async (req, res) => {
       },
       digest: null,
       model: "gpt-6-luna",
+      ...marks(record ? { record, skip_slot: null } : {}),
     }));
     return;
   }

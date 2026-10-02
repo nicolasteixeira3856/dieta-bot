@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Chat QA on a running emulator against tools/fake-chat-server.mjs (no OpenAI):
-# onboarding -> chat0 -> chatL -> (dark: timeout + retry) -> chatE -> chatT -> chatP -> Gravar -> chatG
+# onboarding -> chat0 -> chatL -> (dark: timeout + retry) -> chatE (Registrar) -> Registrar -> receipt -> chatT
 # -> Home ring -> compact -> chatX (A25: 2100 characters block send and photo; back to 2000 sends)
 # -> A29: routine over 3 past days -> chatS (Quase igual, Registrar) -> plan + Registrar assim -> chatR -> chatM.
 # -> A30: questions before the estimate, Forçar estimativa, 3-round cap -> chatQ.
+# -> A34: automatic record, receipt actions (Excluir, Trocar refeição, Desfazer, Editar), Substituir inline,
+#    Registrar, skip by text -> chatG, chatU, chatD.
 # Captures land in docs/qa/android/current/<theme>/. SCENES=v2 runs only onboarding + the A29 scenes;
 # SCENES=a30 only onboarding + the A30 scenes; SCENES=a32 only onboarding + the A32 long-history scenes
 # (opens at the bottom, pages of 20 up to 60 days, no jump on a reply while scrolled up, camera closes the keyboard).
@@ -11,7 +13,8 @@
 # Prereqs: node tools/fake-chat-server.mjs running on the host (port 8765);
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
 #   AVD at gold geometry (wm size 780x1688, wm density 320); python3; curl.
-# Usage: [SCENES=v2|a30|a32] tools/capture-chat.sh dark|light
+# SCENES=a34 only onboarding + the A34 scenes.
+# Usage: [SCENES=v2|a30|a32|a34] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -103,25 +106,16 @@ else
   tap 'resource-id="chat-suggestion-0"'
   tap 'resource-id="chat-send"' 3
 fi
-expect "estimate with actions" 'resource-id="chat-actions"'
+# A34: the fake sends no `record` here (a server before S14): the estimate offers Registrar only.
+expect "estimate with Registrar" 'resource-id="chat-register"'
+dump; if grep -q 'resource-id="chat-actions"\|resource-id="chat-skip"' "$TMP/ui.xml"; then echo "  ✗ Gravar | Trocar | Pular still drawn"; FAIL=1; else echo "  ✓ no Gravar | Trocar | Pular"; fi
 shot chatE
 
-tap 'resource-id="chat-swap"' && expect "Trocar opens the slot sheet" 'resource-id="chat-sheet"'
-dump; last=$(grep -o 'resource-id="chat-sheet-slot-[0-9]*"' "$TMP/ui.xml" | tail -1)
-tap "$last" 0.6
-shot chatT
-tap 'resource-id="chat-sheet-cancel"'
-
-tap 'resource-id="chat-skip"' && expect "Pular asks for confirmation" 'resource-id="chat-skip-dialog"'
-shot chatP
-tap 'resource-id="chat-skip-cancel"'
-
 sent=$(calls)
-tap 'resource-id="chat-record"' 1.5
-expect "Gravar shows the receipt" 'resource-id="chat-receipt-[0-9]+"'
-shot chatG
+tap 'resource-id="chat-register"' 1.5
+expect "Registrar shows the receipt with its actions" 'resource-id="chat-receipt-delete"'
 after=$(calls)
-if [ "$after" = "$sent" ]; then echo "  ✓ Gravar made no second POST ($after calls)"; else echo "  ✗ Gravar posted again ($sent -> $after)"; FAIL=1; fi
+if [ "$after" = "$sent" ]; then echo "  ✓ Registrar made no second POST ($after calls)"; else echo "  ✗ Registrar posted again ($sent -> $after)"; FAIL=1; fi
 
 "$ADB" shell input keyevent 4; sleep 1
 expect "Home ring shows the recorded kcal" 'text="380" resource-id="home-consumed"'
@@ -129,34 +123,36 @@ rows=$(db "select m.name, l.kcal, l.carbs, l.fat, l.source from meal_log l join 
 echo "  meal_log: $rows"
 case "$rows" in *"Café da manhã', 380, 36, 16, 'user'"*) echo "  ✓ logged into the suggested slot";; *) echo "  ✗ unexpected meal_log"; FAIL=1;; esac
 
-# A28: Gravar applies only the memory_updates the AI proposed. The plain fake estimate has none, so
+# A28: a record applies only the memory_updates the AI proposed. The plain fake estimate has none, so
 # no memory.bin. Existence comes from ls: exec-out merges cat's stderr into the pulled bytes.
 # The sealed format and the crash mid-write are checked in the A29 routine block.
-if files_has memory.bin; then echo "  ✗ memory.bin written by a plain Gravar"; FAIL=1; else echo "  ✓ no memory.bin after a plain Gravar (no memory_updates)"; fi
+if files_has memory.bin; then echo "  ✗ memory.bin written by a plain record"; FAIL=1; else echo "  ✓ no memory.bin after a plain record (no memory_updates)"; fi
 if files_has memory.txt; then echo "  ✗ A8 memory.txt still there"; FAIL=1; else echo "  ✓ no A8 memory.txt"; fi
 
 # Gold captures: the flow above is the functional check. The gold message has accents adb cannot
-# type, so the exact gold conversation is seeded and chatE / chatT / chatP are captured again.
+# type, so the exact gold conversation is seeded and chatE / chatT are captured again (A34: no chatP in the Chat).
 # Since ST7/A30 chatE has no question bubble either: the questions come before the estimate (chatQ).
-seed_gold() { # seed_gold <question or empty>
+seed_gold() { # seed_gold <question or empty> [noslot]: an `ask` estimate (A34); noslot = Registrar opens Trocar
 "$ADB" shell am force-stop $PKG
 rm -f "$TMP"/nutri.db*
 for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" "$1" <<'EOF'
+"$PY" - "$TMP/nutri.db" "$1" "${2:-}" <<'EOF'
 import sqlite3, sys, time
 c = sqlite3.connect(sys.argv[1])
 question = sys.argv[2] or None
 today = c.execute("select firstDay from profile").fetchone()[0]
 first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
+if sys.argv[3] == "noslot":
+    first = None
 for table in ("chat_message", "meal_log", "slot_skip"):
     c.execute(f"delete from {table}")
 now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)",
           (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
-          "estimateConfidence,estimateSlotId,estimateItems,estimateQuestion) values(?,?,?,?,?,?,?,?,?,?,?,?)",
+          "estimateConfidence,estimateSlotId,estimateItems,estimateQuestion,intent,recordMode) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
           (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000,
-           380, 22, 36, 16, "medium" if question else "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", question))
+           380, 22, 36, 16, "medium" if question else "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", question, "log", "ask"))
 c.commit()
 c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
@@ -171,15 +167,17 @@ tap 'resource-id="home-fab"' 1.5
 }
 seed_gold ""
 dump; if grep -q 'resource-id="chat-question"' "$TMP/ui.xml"; then echo "  ✗ question bubble under the estimate"; FAIL=1; else echo "  ✓ estimate without a question bubble"; fi
+expect "gold: Registrar" 'resource-id="chat-register"'
 shot chatE
-tap 'resource-id="chat-swap"'
+# chatT: an estimate without a slot of today; Registrar opens Trocar with nothing picked.
+seed_gold "" noslot
+tap 'resource-id="chat-register"' 1
+expect "Registrar without a slot opens Trocar" 'resource-id="chat-sheet"'
 dump; last=$(grep -o 'resource-id="chat-sheet-slot-[0-9]*"' "$TMP/ui.xml" | tail -1)
 tap "$last" 0.6
 shot chatT
 tap 'resource-id="chat-sheet-cancel"'
-tap 'resource-id="chat-skip"'
-shot chatP
-tap 'resource-id="chat-skip-cancel"'
+seed_gold ""
 
 # A5b compact: the seeded thread is 2 raw. 5 sends make 12; the 6th asks compact=true first.
 say() { tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "$1"; tap 'resource-id="chat-send"' 2.5; }
@@ -191,10 +189,10 @@ before=$(calls)
 say "jantar%sleve"
 after=$(calls); c6=$(compacts)
 if [ "$c6" = "$((c5 + 1))" ] && [ "$after" = "$((before + 2))" ]; then echo "  ✓ 12 raw: compact + turn in one send"; else echo "  ✗ compact send ($before -> $after calls, $c5 -> $c6 compacts)"; FAIL=1; fi
-expect "turn answered after compact" 'resource-id="chat-actions"'
+expect "turn answered after compact" 'resource-id="chat-register"'
 dump; if grep -q "Resumo QA" "$TMP/ui.xml"; then echo "  ✗ digest drawn as a bubble"; FAIL=1; else echo "  ✓ digest never drawn"; fi
 sent_mem=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin); print(repr(d['memory']), d['facts'])")
-if [ "$sent_mem" = "'' []" ]; then echo "  ✓ POST carries memory \"\" and facts [] (A28: nothing invented by a plain Gravar)"; else echo "  ✗ POST memory/facts: $sent_mem"; FAIL=1; fi
+if [ "$sent_mem" = "'' []" ]; then echo "  ✓ POST carries memory \"\" and facts [] (A28: nothing invented by a plain record)"; else echo "  ✗ POST memory/facts: $sent_mem"; FAIL=1; fi
 digests=$(db "select count(*), max(text) from day_digest")
 case "$digests" in *"(1, 'Resumo QA"*) echo "  ✓ day_digest stored: $digests";; *) echo "  ✗ day_digest: $digests"; FAIL=1;; esac
 inchat=$(db "select count(*) from chat_message where text like 'Resumo QA%'")
@@ -260,14 +258,14 @@ dump
 if grep -q 'resource-id="chat-too-long"' "$TMP/ui.xml"; then echo "  ✗ still too long at 2000"; FAIL=1; else echo "  ✓ 2000: error gone"; fi
 echo "  composer holds $(composer_len) characters"
 tap 'resource-id="chat-send"' 3
-expect "2000 characters answered" 'resource-id="chat-actions"'
+expect "2000 characters answered" 'resource-id="chat-register"'
 len=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['textLen'])")
 if [ "$len" = 2000 ]; then echo "  ✓ fake got 2000 characters"; else echo "  ✗ fake got $len characters"; FAIL=1; fi
 fi
 
 # ------------------------------------------------------------------ helpers (A29, A30)
 # The device clock moves (cmd alarm set-time, no root): 3 breakfasts on 3 past days make a strong
-# dynamic routine through the real flow (fake memory_updates -> Gravar -> memory.bin, Keystore key).
+# dynamic routine through the real flow (fake memory_updates -> Registrar -> memory.bin, Keystore key).
 # Then today at 08:10 (America/Sao_Paulo) the routine card shows (chatS); at 20:15 the plan (chatR)
 # and the memory chips (chatM) are captured on seeded threads, like seed_gold.
 fake_mode() { curl -s -X POST -d "$1" "$FAKE/__mode" >/dev/null; }
@@ -312,14 +310,14 @@ open_chat
 say "jantei%smacarrao%scom%sfrango"
 expect "round 1: question bubble" 'resource-id="chat-question"'
 if has chat-bot-[0-9]*; then echo "  ✗ reply bubble on a question"; FAIL=1; else echo "  ✓ no reply bubble, no estimate"; fi
-if has chat-actions || has chat-force-estimate; then echo "  ✗ actions or Forçar on round 1"; FAIL=1; else echo "  ✓ round 1: no actions, no Forçar"; fi
+if has chat-register || has chat-force-estimate; then echo "  ✗ actions or Forçar on round 1"; FAIL=1; else echo "  ✓ round 1: no actions, no Forçar"; fi
 [ "$(clarify_sent)" = "0 False" ] && echo "  ✓ clarify_rounds 0 sent" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
 say "creme%sde%sleite"
 expect "round 2: Forçar estimativa" 'resource-id="chat-force-estimate"'
 [ "$(clarify_sent)" = "1 False" ] && echo "  ✓ clarify_rounds 1 sent" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
 before=$(calls)
 tap 'resource-id="chat-force-estimate"' 3
-expect "Forçar: estimate with actions" 'resource-id="chat-actions"'
+expect "Forçar: estimate with Registrar" 'resource-id="chat-register"'
 # A32: the thread follows the newest reply; with the keyboard open the tall estimate fills the view.
 "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }
 expect "Forçar: user message Pode estimar assim." 'Pode estimar assim\.'
@@ -335,9 +333,9 @@ say "creme%sde%sleite"
 say "grelhado"
 expect "round 3: still a question" 'resource-id="chat-force-estimate"'
 say "sem%squeijo"
-expect "4th turn: the estimate" 'resource-id="chat-actions"'
+expect "4th turn: the estimate" 'resource-id="chat-register"'
 [ "$(clarify_sent)" = "3 False" ] && echo "  ✓ clarify_rounds 3 sent" || { echo "  ✗ sent $(clarify_sent)"; FAIL=1; }
-tap 'resource-id="chat-record"' 2
+tap 'resource-id="chat-register"' 2
 logged=$(db "select text from meal_log")
 case "$logged" in *[Jj]"antei macarrao"*) echo "  ✓ recorded the meal text, not an answer: $logged";; *) echo "  ✗ recorded: $logged"; FAIL=1;; esac
 fake_mode '{}'
@@ -363,11 +361,11 @@ sql "$CLEAN"'
 first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
 now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
-c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,estimateItems,intent) values(?,?,?,?,?,?,?,?,?,?,?,?)",
-          (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000, 380, 22, 36, 16, "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", "log"))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,estimateItems,intent,recordMode) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000, 380, 22, 36, 16, "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", "log", "ask"))
 '
 open_chat
-expect "gold: estimate with actions" 'resource-id="chat-actions"'
+expect "gold: estimate with Registrar" 'resource-id="chat-register"'
 if has chat-question; then echo "  ✗ question bubble under the estimate"; FAIL=1; else echo "  ✓ no question bubble"; fi
 [ "${SCENES:-all}" = a30 ] && shot chatE
 fi
@@ -439,9 +437,10 @@ fake_mode '{}'
 open_chat
 expect "reopen: at the bottom with the reply" 'Identifiquei'
 say "pao%sde%squeijo"
-# Keyboard down: the tall reply plus its question fit the thread again.
+# Keyboard down: the tall reply plus its question fit the thread again. A34: only the newest open
+# answer keeps "Deseja registrar…" (the earlier one expired), so it marks the new reply on screen.
 "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }
-expect "send at the bottom: followed to the new reply" 'text="pao de queijo"'
+expect "send at the bottom: followed to the new reply" 'Deseja registrar essa refei'
 
 echo "  A32: camera closes the keyboard"
 tap 'resource-id="chat-input"' 1
@@ -466,7 +465,7 @@ for back in 3 2 1; do
   dump
   if grep -q 'resource-id="chat-routine"' "$TMP/ui.xml"; then echo "  ✗ card before 3 days (day -$back)"; FAIL=1; else echo "  ✓ no card on day -$back"; fi
   tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "cafe%sde%ssempre"; tap 'resource-id="chat-send"' 3
-  expect "day -$back: estimate with Gravar" 'resource-id="chat-record"'
+  expect "day -$back: estimate with Registrar" 'resource-id="chat-register"'
   [ "$back" = 3 ] && expect "day -3: Memória atualizada on the answer (leite)" 'resource-id="chat-memory-updated"'
   [ "$back" = 1 ] && expect "day -1: origin chips (permanente + dinâmica)" 'chat-memory-permanent.*chat-memory-dynamic'
   # A8b intent on the A28 file: the stale memory.bin.new left below never reaches the memory.
@@ -474,7 +473,7 @@ for back in 3 2 1; do
     keys=$(fact_keys)
     if [ "$keys" = "cafe leite" ]; then echo "  ✓ stale memory.bin.new ignored, memory intact (facts: $keys)"; else echo "  ✗ facts after crash mid-write: '$keys'"; FAIL=1; fi
   fi
-  tap 'resource-id="chat-record"' 2
+  tap 'resource-id="chat-register"' 2
   expect "day -$back: receipt + Memória atualizada (routine applied)" 'resource-id="chat-receipt-[0-9]+"'
   if [ "$back" = 3 ]; then
     # A28 memory.bin: "NM" + version 1 + 12-byte IV + AES-GCM ciphertext + 16-byte tag over {"v":2,...}.
@@ -489,7 +488,7 @@ print(len(b), b[:3].hex(), 'plain' if plain else 'sealed')" "$TMP/memory.raw")
       if [ "$msize" -gt 31 ] && [ "$mhead" = 4e4d01 ]; then echo "  ✓ memory.bin sealed ($msize bytes, NM v1 header)"; else echo "  ✗ memory.bin format: $sealed"; FAIL=1; fi
       if [ "$mplain" = sealed ]; then echo "  ✓ memory.bin raw shows no fact (not plaintext)"; else echo "  ✗ memory.bin is plaintext"; FAIL=1; fi
     else
-      echo "  ✗ memory.bin missing after the routine Gravar"; FAIL=1
+      echo "  ✗ memory.bin missing after the routine record"; FAIL=1
     fi
     # Crash mid-write: a half-written memory.bin.new must not touch the memory (checked on day -2).
     "$ADB" shell am force-stop $PKG
@@ -532,7 +531,7 @@ open_chat
 tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "vou%sfazer%spizza"; tap 'resource-id="chat-send"' 3
 expect "plan: projected day panel" 'resource-id="chat-plan-panel"'
 expect "plan: Registrar assim" 'resource-id="chat-record-plan"'
-dump; if grep -q 'resource-id="chat-record"\|resource-id="chat-swap"' "$TMP/ui.xml"; then echo "  ✗ Gravar/Trocar on a plan"; FAIL=1; else echo "  ✓ no Gravar/Trocar/Pular"; fi
+dump; if grep -q 'resource-id="chat-register"' "$TMP/ui.xml"; then echo "  ✗ Registrar on a plan"; FAIL=1; else echo "  ✓ only Registrar assim"; fi
 tap 'resource-id="chat-record-plan"' 2
 expect "Registrar assim: receipt" 'resource-id="chat-receipt-[0-9]+"'
 logged=$(db "select m.name, l.kcal, l.source from meal_log l join meal_slot m on m.id = l.slotId")
@@ -562,12 +561,180 @@ sql "$CLEAN"'
 first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
 now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "Café da manhã igual ao de sempre, mas hoje com pão integral", now - 2000))
-c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,intent,memoryUsedKinds,memoryUpdated) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-          (today, "assistant", "Usei o seu café de sempre, com pão integral no lugar do francês e leite semidesnatado, como você costuma usar.", now - 1000, 430, 26, 36, 20, "high", first, "log", "permanent,dynamic", 1))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,intent,memoryUsedKinds,memoryUpdated,recordMode) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", "Usei o seu café de sempre, com pão integral no lugar do francês e leite semidesnatado, como você costuma usar.", now - 1000, 430, 26, 36, 20, "high", first, "log", "permanent,dynamic", 1, "ask"))
 '
 open_chat
 expect "chips in order" 'chat-memory-updated.*chat-memory-permanent.*chat-memory-dynamic'
 shot chatM
+fi
+
+# ------------------------------------------------------------------ A34: autonomous record (ST9)
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a34 ]; then
+# The reversed thread lists its newest items first in the dump; the keyboard can cover a new receipt.
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+auto_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['autoRecord'])"; }
+set_clock 0 20:15
+echo "  A34: a clear meal is recorded by itself"
+sql "$CLEAN"
+fake_mode '{"record": "auto"}'
+open_chat
+say "comi%s2%spaes%se%s2%sovos"; kb_off
+expect "auto: receipt with Excluir · Trocar refeição · Editar" 'chat-receipt-delete.*chat-receipt-move.*chat-receipt-edit'
+if has chat-register; then echo "  ✗ Registrar on an automatic record"; FAIL=1; else echo "  ✓ no Registrar, no tap"; fi
+[ "$(auto_sent)" = "True" ] && echo "  ✓ auto_record true on the wire" || { echo "  ✗ auto_record sent: $(auto_sent)"; FAIL=1; }
+rows=$(db "select m.name, l.kcal from meal_log l join meal_slot m on m.id = l.slotId")
+case "$rows" in "[('Café da manhã', 380)]") echo "  ✓ recorded in the suggested slot: $rows";; *) echo "  ✗ meal_log: $rows"; FAIL=1;; esac
+state=$(db "select recordMode, recordState from chat_message where role = 'assistant'")
+[ "$state" = "[('auto', 'recorded')]" ] && echo "  ✓ answer stored auto / recorded" || { echo "  ✗ answer state: $state"; FAIL=1; }
+
+echo "  A34: Excluir"
+open_chat
+tap 'resource-id="chat-receipt-delete"' 1.5
+expect "Excluir marks the receipt" 'text="Excluído"'
+if has chat-receipt-delete; then echo "  ✗ actions left after Excluir"; FAIL=1; else echo "  ✓ no actions after Excluir"; fi
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ record deleted, no confirmation" || { echo "  ✗ meal_log after Excluir"; FAIL=1; }
+
+echo "  A34: Trocar refeição to an empty slot, then Desfazer"
+open_chat
+say "comi%spao%scom%sovo"; kb_off
+tap 'resource-id="chat-receipt-move"' 1
+expect "Trocar refeição opens the sheet" 'resource-id="chat-sheet"'
+expect "the record's slot is marked (atual)" '\(atual\)'
+dump; last=$(grep -o 'resource-id="chat-sheet-slot-[0-9]*"' "$TMP/ui.xml" | tail -1)
+tap "$last" 0.6
+tap 'resource-id="chat-sheet-confirm"' 1.5
+expect "moved receipt" 'Movido para'
+rows=$(db "select m.name from meal_log l join meal_slot m on m.id = l.slotId")
+case "$rows" in "[('Jantar',)]"|"[('Ceia',)]") echo "  ✓ record moved: $rows";; *) echo "  ✗ after move: $rows"; FAIL=1;; esac
+open_chat
+tap 'resource-id="chat-receipt-undo"' 1.5
+expect "Desfazer of a move: Restaurado" 'Restaurado em'
+rows=$(db "select m.name from meal_log l join meal_slot m on m.id = l.slotId")
+[ "$rows" = "[('Café da manhã',)]" ] && echo "  ✓ back in the café" || { echo "  ✗ after undo: $rows"; FAIL=1; }
+
+echo "  A34: the slot already has a record -> Substituir inside the conversation, then Desfazer"
+fake_mode '{"record": "auto", "kcal": 620, "reply": "Juntei ao café."}'
+open_chat
+say "tambem%scomi%sum%spudim"; kb_off
+expect "inline confirmation below the answer" 'resource-id="chat-replace-card"'
+[ "$(db "select kcal from meal_log")" = "[(380,)]" ] && echo "  ✓ nothing changed before Substituir" || { echo "  ✗ meal_log changed before Substituir"; FAIL=1; }
+open_chat
+tap 'resource-id="chat-replace-confirm"' 1.5
+expect "replacement receipt" 'Atualizado em'
+[ "$(db "select kcal from meal_log")" = "[(620,)]" ] && echo "  ✓ one record, 620 kcal" || { echo "  ✗ after Substituir: $(db "select kcal from meal_log")"; FAIL=1; }
+open_chat
+tap 'resource-id="chat-receipt-undo"' 1.5
+expect "Desfazer: Desfeito" 'text="Desfeito"'
+expect "Desfazer: Restaurado" 'Restaurado em'
+[ "$(db "select kcal from meal_log")" = "[(380,)]" ] && echo "  ✓ previous record restored" || { echo "  ✗ after Desfazer: $(db "select kcal from meal_log")"; FAIL=1; }
+
+echo "  A34: Editar puts the text back in the composer"
+open_chat
+tap 'resource-id="chat-receipt-edit"' 1.5
+expect "Removido para editar" 'Removido para editar'
+dump
+case "$(grep -o 'text="[^"]*"[^>]*resource-id="chat-input"' "$TMP/ui.xml")" in *"comi pao com ovo"*) echo "  ✓ composer holds the record text";; *) echo "  ✗ composer not filled"; FAIL=1;; esac
+if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then echo "  ✓ keyboard open"; else echo "  ✗ keyboard closed"; FAIL=1; fi
+"$ADB" shell input keyevent 4; sleep 0.6
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ record removed for editing" || { echo "  ✗ meal_log after Editar"; FAIL=1; }
+
+echo "  A34: unsure meal -> Registrar; expires on the next send"
+sql "$CLEAN"
+fake_mode '{"record": "ask"}'
+open_chat
+say "pudim%sde%sleite%scom%scalda"; kb_off
+expect "ask: one Registrar" 'resource-id="chat-register"'
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ nothing recorded without a tap" || { echo "  ✗ recorded without a tap"; FAIL=1; }
+open_chat
+say "e%sum%scafe"; kb_off
+open_chat
+expect "the first one is Não registrado" 'resource-id="chat-not-recorded"'
+tap 'resource-id="chat-register"' 1.5
+expect "Registrar records the latest" 'resource-id="chat-receipt-delete"'
+
+echo "  A34: skip by text"
+sql "$CLEAN"
+fake_mode '{"skip": "Jan"}'
+open_chat
+say "hoje%snao%svou%sjantar"; kb_off
+expect "skip receipt" 'Pulado'
+expect "skip: Desfazer only" 'resource-id="chat-receipt-undo"'
+[ "$(db "select count(*) from slot_skip")" = "[(1,)]" ] && echo "  ✓ slot skipped" || { echo "  ✗ slot_skip: $(db "select count(*) from slot_skip")"; FAIL=1; }
+
+echo "  A34: another day is never recorded"
+sql "$CLEAN"
+fake_mode '{"record": "none", "reply": "So registro as refeicoes de hoje."}'
+open_chat
+say "ontem%sjantei%spizza"; kb_off
+if has chat-register || has chat-receipt-delete; then echo "  ✗ action on another day"; FAIL=1; else echo "  ✓ no record, no Registrar"; fi
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ meal_log empty" || { echo "  ✗ recorded another day"; FAIL=1; }
+fake_mode '{}'
+
+# Gold threads (accents adb cannot type), stored as the app writes them: undo data matches the slot.
+A34_SEED='
+import json
+slots = {n: i for i, n in c.execute("select id, name from meal_slot")}
+cafe = next(i for n, i in slots.items() if n.startswith("Caf"))
+jantar = next(i for n, i in slots.items() if n.startswith("Jan"))
+now = int(time.time() * 1000)
+def rec(text, kcal, p, cc, g, source="user"):
+    return {"text": text, "kcal": kcal, "p": p, "c": cc, "g": g, "source": source, "window": "", "stable": True}
+def state(*records):
+    return {"records": list(records), "skipped": False}
+def log(slot, r):
+    c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)",
+              (today, "", r["text"], r["kcal"], r["p"], slot, r["c"], r["g"], r["source"]))
+def msg(role, text, at, **kw):
+    cols = ["date", "role", "text", "createdAtEpochMs"] + list(kw)
+    c.execute(f"insert into chat_message({chr(44).join(cols)}) values({chr(44).join(chr(63) * len(cols))})", [today, role, text, now - at] + list(kw.values()))
+'
+echo "  A34 gold: chatG"
+sql "$CLEAN$A34_SEED"'
+eggs = rec("2 pães franceses com 2 ovos mexidos no café da manhã", 380, 22, 36, 16)
+log(cafe, eggs)
+msg("user", eggs["text"], 3000)
+msg("assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos.", 2000, estimateKcal=380, estimateP=22, estimateC=36, estimateG=16,
+    estimateConfidence="high", estimateSlotId=cafe, estimateItems="2 pães franceses" + chr(10) + "2 ovos mexidos", intent="log", recordMode="auto", recordState="recorded")
+msg("logged", "Café da manhã", 1000, estimateKcal=380, estimateSlotId=cafe, recordSource="user",
+    undoData=json.dumps({"slots": [{"date": today, "slotId": cafe, "before": state(), "after": state(eggs)}]}))
+'
+open_chat
+expect "gold chatG: three actions" 'chat-receipt-delete.*chat-receipt-move.*chat-receipt-edit'
+shot chatG
+
+echo "  A34 gold: chatU"
+sql "$CLEAN$A34_SEED"'
+dinner = rec("arroz, feijão e frango grelhado", 380, 30, 40, 9)
+log(jantar, dinner)
+msg("user", "Também comi um pudim de leite no jantar", 2000)
+msg("assistant", "Juntei o pudim ao jantar. A estimativa total é de:", 1000, estimateKcal=620, estimateP=30, estimateC=82, estimateG=19,
+    estimateConfidence="high", estimateSlotId=jantar, intent="log", recordMode="auto", recordState="pending_replace",
+    undoData=json.dumps({"date": today, "slotId": jantar, "before": state(dinner), "after": state(dinner)}))
+'
+open_chat
+expect "gold chatU: Substituir Jantar?" 'text="Substituir Jantar\?"'
+expect "gold chatU: copy" 'text="Jantar tem 380 kcal. Fica com 620 kcal."'
+shot chatU
+
+echo "  A34 gold: chatD"
+sql "$CLEAN$A34_SEED"'
+dinner = rec("arroz, feijão e frango grelhado", 380, 30, 40, 9)
+pudding = rec("arroz, feijão, frango grelhado e pudim de leite", 620, 30, 82, 19)
+log(jantar, dinner)
+msg("user", "Também comi um pudim de leite no jantar", 4000)
+msg("assistant", "Juntei o pudim ao jantar.", 3000, estimateKcal=620, estimateP=30, estimateC=82, estimateG=19,
+    estimateConfidence="high", estimateSlotId=jantar, intent="log", recordMode="auto", recordState="recorded")
+msg("replaced", "Jantar", 2000, estimateKcal=620, estimateSlotId=jantar, recordSource="user", receiptState="undone",
+    undoData=json.dumps({"slots": [{"date": today, "slotId": jantar, "before": state(dinner), "after": state(pudding)}]}))
+msg("restored", "Jantar", 1000, estimateKcal=380, estimateSlotId=jantar, recordSource="user",
+    undoData=json.dumps({"slots": [{"date": today, "slotId": jantar, "before": state(pudding), "after": state(dinner)}]}))
+'
+open_chat
+expect "gold chatD: Desfeito" 'text="Desfeito"'
+expect "gold chatD: Restaurado with actions" 'chat-receipt-delete'
+expect "gold chatD: Restaurado em Jantar" 'Restaurado em Jantar'
+shot chatD
 fi
 "$ADB" shell settings put global auto_time 1
 

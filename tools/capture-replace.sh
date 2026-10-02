@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # A18 QA on a running emulator against tools/fake-chat-server.mjs (no OpenAI):
 # Enter inserts a line break (no send) -> "4 esfihas" recorded in the Ceia -> "também tomei suco"
-# re-estimated for the Ceia -> Gravar asks (chatP layout, ADR-017) -> Outra refeição opens Trocar
-# -> Substituir leaves one Ceia log with the new numbers -> Home shows the new total.
-# Captures land in docs/qa/android/current/<theme>/chatReplace.png (compare with chatP: layout
-# only, the copy differs).
+# re-estimated for the Ceia -> Registrar asks inside the conversation (A34, chatU) -> Outra refeição
+# opens Trocar -> Substituir leaves one Ceia log with the new numbers -> Home shows the new total.
+# No capture: the inline confirmation is gated by chatU (tools/capture-chat.sh SCENES=a34).
 #
 # Prereqs: node tools/fake-chat-server.mjs running on the host (port 8765);
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
@@ -85,27 +84,26 @@ if grep -qE 'text="Linha1(&#10;|\n)linha2"' "$TMP/ui.xml"; then echo "  ✓ Ente
 # 1. First meal into the empty Ceia: recorded at once.
 mode '{"slot": "Ceia", "kcal": 880}'
 say "4%sesfihas"
-expect "estimate suggests the Ceia" 'resource-id="chat-record"'
-tap 'resource-id="chat-record"' 1.5
+expect "estimate offers Registrar" 'resource-id="chat-register"'
+tap 'resource-id="chat-register"' 1.5
 expect "empty slot records without asking" 'resource-id="chat-receipt-[0-9]+"'
-dump; grep -q 'resource-id="chat-replace-dialog"' "$TMP/ui.xml" && { echo "  ✗ dialog on an empty slot"; FAIL=1; }
+dump; grep -q 'resource-id="chat-replace-card"' "$TMP/ui.xml" && { echo "  ✗ confirmation on an empty slot"; FAIL=1; }
 
 # 2. The whole meal again, for the taken Ceia.
 mode '{"slot": "Ceia", "kcal": 1220}'
 say "tambem%stomei%s2%scopos%sde%ssuco"
 hide_ime
-tap 'resource-id="chat-record"' 1.2
-expect "taken slot asks first" 'resource-id="chat-replace-dialog"'
+tap 'resource-id="chat-register"' 1.2
+expect "taken slot asks inside the conversation" 'resource-id="chat-replace-card"'
 expect "copy: old and new kcal" 'text="Ceia tem 880 kcal. Fica com 1220 kcal."'
-shot chatReplace
 
-# 3. Outra refeição: Trocar opens, Room untouched.
-tap 'resource-id="chat-replace-cancel"' 1
+# 3. Outra refeição: Trocar opens, Room untouched; the question stays.
+tap 'resource-id="chat-replace-elsewhere"' 1
 expect "Outra refeição opens Trocar" 'resource-id="chat-sheet"'
 tap 'resource-id="chat-sheet-cancel"' 1
+expect "question still there" 'resource-id="chat-replace-card"'
 
 # 4. Substituir: one Ceia log with the new numbers.
-tap 'resource-id="chat-record"' 1.2
 tap 'resource-id="chat-replace-confirm"' 1.5
 expect "receipt says Atualizado" 'Atualizado em'
 # Back closes the keyboard first, then the Chat.

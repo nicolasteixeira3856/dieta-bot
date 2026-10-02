@@ -5,7 +5,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.withTransaction
+import com.nutri.android.domain.ReceiptRules
 import com.nutri.android.domain.SaoPaulo
+import com.nutri.android.domain.SlotChange
+import com.nutri.android.domain.SlotRecord
+import com.nutri.android.domain.SlotState
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -193,6 +197,94 @@ class DayRepository @Inject constructor(
         }
     }
 
+    /** What [slotId] holds on [date] (ISO): logs in id order and the skip (A34). */
+    suspend fun slotState(date: String, slotId: Long): SlotState {
+        importOnce()
+        return withContext(Dispatchers.IO) { readSlot(date, slotId) }
+    }
+
+    /** Every slot of [date] that has a log or a skip; a missing slot is empty. */
+    suspend fun slotStates(date: String): Map<Long, SlotState> = withContext(Dispatchers.IO) {
+        val logs = db.mealLogDao().getByDate(date).filter { it.slotId != null }.groupBy { it.slotId!! }
+        val skips = db.slotSkipDao().getByDate(date).map { it.slotId }.toSet()
+        (logs.keys + skips).associateWith { id -> SlotState(logs[id].orEmpty().map { it.toRecord() }, id in skips) }
+    }
+
+    /**
+     * A34: one transaction for every record action of the Chat. Each change must find its slot exactly at
+     * `before`; otherwise nothing is written and the result is null. Then each slot becomes `after`, the
+     * [receiptMarks] and [recordStates] are set, and [receipts] are inserted in order (date and time = now).
+     * Returns the new receipt ids.
+     */
+    suspend fun commitRecord(
+        changes: List<SlotChange>,
+        receipts: List<ChatMessageEntity> = emptyList(),
+        receiptMarks: Map<Long, String> = emptyMap(),
+        recordStates: Map<Long, String> = emptyMap(),
+    ): List<Long>? {
+        importOnce()
+        val now = clock.now()
+        return withContext(Dispatchers.IO) {
+            db.withTransaction {
+                if (changes.any { readSlot(it.date, it.slotId) != it.before }) return@withTransaction null
+                changes.forEach { writeSlot(it.date, it.slotId, it.after) }
+                receiptMarks.forEach { (id, state) -> db.chatMessageDao().setReceiptState(id, state) }
+                recordStates.forEach { (id, state) -> db.chatMessageDao().setRecordState(id, state, null) }
+                receipts.map {
+                    db.chatMessageDao().insert(
+                        it.copy(id = 0, date = SaoPaulo.date(now).toString(), createdAtEpochMs = now.toEpochMilli()),
+                    )
+                }
+            }
+        }
+    }
+
+    /** Assistant [id]: its record state; [undoData] = the pending slot of a pending_replace, else null. */
+    suspend fun setRecordState(id: Long, state: String?, undoData: String? = null) =
+        withContext(Dispatchers.IO) { db.chatMessageDao().setRecordState(id, state, undoData) }
+
+    suspend fun setReceiptState(id: Long, state: String) = withContext(Dispatchers.IO) { db.chatMessageDao().setReceiptState(id, state) }
+
+    /** A receipt's undo data once its memory change is known (the record is committed first). */
+    suspend fun setReceiptUndo(id: Long, undoData: String, memoryUpdated: Boolean) =
+        withContext(Dispatchers.IO) { db.chatMessageDao().setReceiptUndo(id, undoData, memoryUpdated) }
+
+    /** Assistant rows still waiting for Registrar or Substituir, any day. */
+    suspend fun openRecords(): List<ChatMessageEntity> = withContext(Dispatchers.IO) { db.chatMessageDao().getOpenRecords() }
+
+    /** Receipt rows of the Chat's 60 days, oldest first. */
+    suspend fun receipts(): List<ChatMessageEntity> =
+        withContext(Dispatchers.IO) { db.chatMessageDao().getReceiptsSince(messagesFrom(), ReceiptRules.ROLES.toList()) }
+
+    private suspend fun readSlot(date: String, slotId: Long) = SlotState(
+        db.mealLogDao().getBySlot(date, slotId).map { it.toRecord() },
+        db.slotSkipDao().getByDate(date).any { it.slotId == slotId },
+    )
+
+    private suspend fun writeSlot(date: String, slotId: Long, state: SlotState) {
+        db.mealLogDao().deleteBySlot(date, slotId)
+        db.slotSkipDao().delete(date, slotId)
+        state.records.forEach { r ->
+            db.mealLogDao().insert(
+                MealLogEntity(
+                    date = date,
+                    window = r.window,
+                    text = r.text,
+                    kcal = r.kcal,
+                    p = r.p,
+                    stable = if (r.stable) 1 else 0,
+                    slotId = slotId,
+                    carbs = r.c,
+                    fat = r.g,
+                    source = r.source,
+                ),
+            )
+        }
+        if (state.skipped) db.slotSkipDao().insert(SlotSkipEntity(date = date, slotId = slotId))
+    }
+
+    private fun MealLogEntity.toRecord() = SlotRecord(text, kcal, p, carbs, fat, source, window, stable != 0)
+
     /**
      * Keeps chat_message, profile, slots and workoutKcal. Adds a [ROLE_WIPED] marker: the thread
      * stays on screen, today's prompt restarts after it.
@@ -308,6 +400,9 @@ class DayRepository @Inject constructor(
         pendingMemory: String? = null,
         memoryUsedKinds: String? = null,
         memoryUpdated: Boolean = false,
+        recordMode: String? = null,
+        recordSource: String? = null,
+        undoData: String? = null,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -332,6 +427,9 @@ class DayRepository @Inject constructor(
                     pendingMemory = pendingMemory,
                     memoryUsedKinds = memoryUsedKinds,
                     memoryUpdated = memoryUpdated,
+                    recordMode = recordMode,
+                    recordSource = recordSource,
+                    undoData = undoData,
                 ),
             )
         }

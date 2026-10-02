@@ -74,6 +74,7 @@ object PromptBuilder {
                 facts = chatFacts(facts, day.slotsOn(today).map { it.id.toString() }.toSet()),
                 clarifyRounds = clarifyRounds(todayMessages),
                 forceEstimate = forceEstimate,
+                autoRecord = true,
             ),
             needsCompact = compactEnabled && raw.size >= MAX_RAW,
         )

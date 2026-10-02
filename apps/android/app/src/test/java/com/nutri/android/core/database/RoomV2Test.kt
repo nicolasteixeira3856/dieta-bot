@@ -52,8 +52,44 @@ class RoomV2Test {
     }
 
     @Test
-    fun databaseIsVersion7() {
-        assertThat(db.openHelper.readableDatabase.version).isEqualTo(7)
+    fun databaseIsVersion8() {
+        assertThat(db.openHelper.readableDatabase.version).isEqualTo(8)
+    }
+
+    /** A34: the record transaction checks every slot first; a mismatch writes nothing. */
+    @Test
+    fun commitRecord_checksTheSlots_firstThenWritesAllOrNothing() = runBlocking<Unit> {
+        val repo = repository()
+        repo.saveSlots(listOf(MealSlot(name = "Café", minutesFromMidnight = 450), MealSlot(name = "Jantar", minutesFromMidnight = 1200)))
+        val (cafe, jantar) = repo.observeToday().first().slots.map { it.id }
+        val date = repo.observeToday().first().date
+        val record = com.nutri.android.domain.SlotRecord("arroz", 380, 20, 40, 10)
+        val receipt = ChatMessageEntity(role = "logged", text = "Café", estimateSlotId = cafe, undoData = "{}")
+        val toCafe = com.nutri.android.domain.SlotChange(date, cafe, com.nutri.android.domain.SlotState.EMPTY, com.nutri.android.domain.SlotState.of(record))
+
+        val ids = repo.commitRecord(listOf(toCafe), receipts = listOf(receipt))!!
+        assertThat(ids).hasSize(1)
+        assertThat(repo.slotState(date, cafe)).isEqualTo(com.nutri.android.domain.SlotState.of(record))
+        assertThat(repo.message(ids.single())!!.date).isEqualTo(date)
+
+        // Same change again: the café is no longer empty, nothing is written, not even the receipt mark.
+        assertThat(repo.commitRecord(listOf(toCafe), receiptMarks = mapOf(ids.single() to "deleted"))).isNull()
+        assertThat(repo.message(ids.single())!!.receiptState).isNull()
+
+        // A move with a skip in the target: both slots or none.
+        repo.addSkip(jantar)
+        val move = listOf(
+            toCafe.copy(before = toCafe.after, after = com.nutri.android.domain.SlotState.EMPTY),
+            com.nutri.android.domain.SlotChange(date, jantar, com.nutri.android.domain.SlotState.EMPTY, toCafe.after),
+        )
+        assertThat(repo.commitRecord(move)).isNull()
+        assertThat(repo.slotState(date, cafe).records).hasSize(1)
+        val fixed = listOf(move[0], move[1].copy(before = com.nutri.android.domain.SlotState.SKIPPED))
+        assertThat(repo.commitRecord(fixed, receiptMarks = mapOf(ids.single() to "moved"))).isEmpty()
+        assertThat(repo.slotState(date, cafe)).isEqualTo(com.nutri.android.domain.SlotState.EMPTY)
+        assertThat(repo.slotState(date, jantar)).isEqualTo(com.nutri.android.domain.SlotState.of(record))
+        assertThat(repo.observeToday().first().skippedSlotIds).isEmpty()
+        assertThat(repo.message(ids.single())!!.receiptState).isEqualTo("moved")
     }
 
     @Test

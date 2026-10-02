@@ -1,10 +1,11 @@
 # Plan — A34 Autonomous record, receipts with actions
 
-- Status: Aguardando aprovação
+- Status: Pendente aprovação manual
+- Approval: 02/10/2026 (owner: "Aprovo o plano docs/android/plans/a34-registro-autonomo.md. Implemente o plano aprovado.")
 - Date: 01/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`core/network/ChatModels.kt`, `core/database/*` (Room v8), `core/memory/*`, `feature/chat/*`, `core/telemetry` events, tests, QA tools and captures)
-- Prerequisites: **[S14](../../server/plans/completed/s14-registro-autonomo.md) deployed on the dev server** and **[ST9](../../stitch/plans/completed/st9-registro-autonomo.md) in `stitch/plans/completed/`** (golds `chatE`, `chatF`, `chatG` edited; `chatU`, `chatD` new). Executes [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1–9; accepts ADR-028 on completion.
+- Prerequisites: **[S14](../../../server/plans/completed/s14-registro-autonomo.md) deployed on the dev server** and **[ST9](../../../stitch/plans/completed/st9-registro-autonomo.md) in `stitch/plans/completed/`** (golds `chatE`, `chatF`, `chatG` edited; `chatU`, `chatD` new). Executes [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md) decisions 1–9; accepts ADR-028 on completion.
 
 ## Authorization gate
 
@@ -23,7 +24,7 @@ A clear meal of today sent to the Chat is recorded by itself and leaves a receip
 ## Sources of truth
 
 - Golds `chatE`, `chatF`, `chatG`, `chatU`, `chatD` (dark and light) from ST9; `chatT` (Trocar sheet), `chatQ`, `chatR`, `chatS`, `chatM` unchanged.
-- [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md), [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-027](../adrs/ADR-027-golds-divergentes.md), [chat](../../produto/specifications/chat.md), [v1-chat](../../server/specifications/v1-chat.md), [room-v2](../specifications/room-v2.md).
+- [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md), [ADR-017](../../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-027](../../adrs/ADR-027-golds-divergentes.md), [chat](../../../produto/specifications/chat.md), [v1-chat](../../../server/specifications/v1-chat.md), [room-v2](../../specifications/room-v2.md).
 - `AGENTS.md` tokens; skills `dieta-bot-android-ui`, `material3-expressive`, `room-ksp-coroutines`, `kotlin-clean`, `compose-stability`, `dieta-bot-android-visual`, `screenshot-testing`.
 
 ## Implementation scope
@@ -102,8 +103,8 @@ Plan (**Registrar assim**) and the routine card (**Registrar**) are unchanged, e
 
 ### 9. Docs in the same delivery
 
-- [chat](../../produto/specifications/chat.md): rewrite "Contexto e objetivo", rules 4–7, 12, 16–18 (receipts and actions), "Fora de escopo", states list (`chatU`, `chatD`), acceptance criteria; remove the ADR-028 proposal overlay.
-- [room-v2](../specifications/room-v2.md) v8; `AGENTS.md` Chat screen list gains `chatU`, `chatD`; ADR-028 status → Accepted; produto and android READMEs and matrix.
+- [chat](../../../produto/specifications/chat.md): rewrite "Contexto e objetivo", rules 4–7, 12, 16–18 (receipts and actions), "Fora de escopo", states list (`chatU`, `chatD`), acceptance criteria; remove the ADR-028 proposal overlay.
+- [room-v2](../../specifications/room-v2.md) v8; `AGENTS.md` Chat screen list gains `chatU`, `chatD`; ADR-028 status → Accepted; produto and android READMEs and matrix.
 
 ## Affected files and areas
 
@@ -125,7 +126,7 @@ Plan (**Registrar assim**) and the routine card (**Registrar**) are unchanged, e
 ## Out of scope
 
 - Server changes (S14), Stitch (ST9).
-- Retroactive recording ([A35](out_of_scope/a35-registro-retroativo.md)).
+- Retroactive recording ([A35](../out_of_scope/a35-registro-retroativo.md)).
 - Home timeline edit/delete actions; the Home skip dialog (`chatP`) stays.
 - A settings toggle for automatic recording.
 - Redo after Desfazer/Excluir.
@@ -153,4 +154,118 @@ After implementation, record real results and apply the lifecycle in `docs/sdd/R
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and `plans/cancelled/`.
 
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../sdd/README.md#fora-de-escopo).
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../../sdd/README.md#fora-de-escopo).
+
+## Results (02/10/2026)
+
+Approval: 02/10/2026 (owner: "Aprovo o plano docs/android/plans/a34-registro-autonomo.md. Implemente o plano aprovado.").
+
+Prerequisites confirmed before any code: ST9 in `stitch/plans/completed/`; the five golds (`chatE`, `chatF`, `chatG`, `chatU`, `chatD`) in `docs/qa/stitch/{dark,light}/`; S14 `Concluído`; a real request to the dev server answered `intent: skip`, `record: auto`, `skip_slot: "1"`.
+
+Implemented:
+
+- Wire: `ChatIn.autoRecord` has no default (always encoded, like `clarify_rounds`). `ChatOut` gains `record` and `skip_slot`, and `intent` accepts `skip`.
+- Room v8 (`MIGRATION_7_8`, schema `8.json`): `recordMode`, `recordState`, `receiptState`, `undoData`, `recordSource`, plus the new receipt roles `moved` and `restored`. `DayRepository.commitRecord` is the one transaction behind every record action. It checks each touched slot against its expected state, then writes the slots, the receipt marks, the record states and the new receipts. On a mismatch it writes nothing.
+- Domain (`domain/RecordUndo.kt`): `SlotRecord`, `SlotState`, `SlotChange`, `FactImage`, `UndoData` and `RoutineUpdate`. `ReceiptRules.latest` (latest receipt per touched `(date, slot)`) and `ReceiptRules.actions` (the ADR-028 table) are pure.
+- Memory: `FactMemory.revertAndApply` reverts images, then applies updates in one locked write. Images are measured after expiry, so an expired fact never comes back. `MemoryRules.revert` restores a fact only while it still equals its post image.
+- `ChatRecorder` (new) owns record, skip, delete/edit, undo and move. `ChatViewModel` handles:
+  - the record mode and its guards, with `record_guard` telemetry;
+  - one automatic action per answer;
+  - Registrar;
+  - the inline Substituir / Outra refeição;
+  - expiry on the next send, on the day change, and when the slot changes by another path (re-checked in Room before expiring);
+  - the receipt actions and their telemetry.
+
+  The Gravar | Trocar | Pular bar, the Chat skip dialog and the Chat `chatP` dialog are gone.
+- UI (`ChatRecordComponents.kt`, new): the receipt with its mark and stacked actions, the inline `ReplaceCard` (`chatU`), `Não registrado` and the Registrar pill (`chatE`). The estimate card drops its bottom gap when there is no slot question.
+- Thread fix found on the emulator: an answer can now land together with its receipt or its Substituir. The thread treated "at the bottom" as `firstVisibleItemIndex <= 1` and stopped following. It now counts the items added in front of the previous newest one (`ChatThreadTest.twoNewItemsAtOnce_followFromTheBottom` fails without the fix).
+- Telemetry (dev only, enums and numbers): `meal_auto_recorded`, `record_ask`, `replace_confirm`, `receipt_action`, `memory_reverted`, `record_guard`, and `record` on `chat_result`. `FirebaseTelemetry` logs any event name, so nothing extra had to be registered.
+- QA tools:
+  - `fake-chat-server.mjs`: `{"record"}`, `{"skip"}`, `{"reply"}`, and `autoRecord` in `/__calls`.
+  - `capture-chat.sh`: old scenes moved to Registrar, plus a new `SCENES=a34`.
+  - `capture-photo.sh`: the chatF seed is the ST9 state.
+  - `capture-replace.sh`: the inline flow, no capture.
+  - `diff-gold.mjs` and `StitchGoldTest`: per-gold receipt and actions boxes, the chatM thread region, the chatF photo bubble.
+  - The stale `chatP` / `chatReplace` captures and the `chatReplace` baselines were removed.
+
+Validation:
+
+1. `:app:testDevDebugUnitTest`: **439** tests, 0 failures. ✅ New or rewritten coverage:
+   - wire `"auto_record":true`, and `record` / `skip_slot` read;
+   - migration v7 → v8 with real rows (all new columns null);
+   - `commitRecord` all-or-nothing;
+   - `ReceiptRules` (latest per slot, a move touching two slots, other days, the action table, `UndoData` round trip);
+   - memory images and revert (unchanged fact restored, fact changed since kept, add removed, remove brought back).
+   - Chat ViewModel:
+     - auto record into an empty slot, and into a skipped slot (Desfazer brings the skip back);
+     - auto into a taken slot asks inline;
+     - guards downgrade to `ask`; a server without `record` gives `ask`;
+     - Registrar records, and the next send expires the one left;
+     - pending replace: Substituir, Outra refeição (to an empty slot, to a taken slot asks again), expiry on the next send, on another path and on the day change;
+     - skip by text (empty slot; recorded slot gets `Não registrado`);
+     - another day is never recorded.
+   - Receipt actions:
+     - Excluir;
+     - Desfazer of a replacement gives `Restaurado`;
+     - Trocar refeição to an empty slot, and to a taken slot with Substituir; Desfazer of both;
+     - Editar fills the composer and focuses;
+     - a photo record has no Editar;
+     - actions only on the latest receipt and hidden after another path; yesterday's receipt keeps its actions;
+     - old rows have no actions;
+     - Excluir reverts the routine; the routine card's record has actions.
+   - Compose: the record controls (`ChatRecordUiTest`) and thread follow (`ChatThreadTest`).
+   - Telemetry maps.
+2. `:app:verifyRoborazziDevDebug` green. New baselines: `chatG`, `chatF`, `chatU`, `chatD`. Updated: `chatE`, `chatM` (Registrar instead of the bar). `chatReplace` removed. ✅
+3. Gold comparison (blurred, 2 % gate). ✅
+
+   JVM `StitchGoldTest`:
+   - chatU 1.77 % / 1.84 %; chatE 1.84 % / 1.60 %; chatT 1.27 % / 1.74 %.
+   - Receipt / actions: chatG dark 0.94 / 0.16 %, chatD dark 0.27 / 0.16 %; light actions chatG 0.15 %, chatD 0.14 %, chatF 0.86 %.
+   - chatF light photo bubble 1.59 %; chatM thread region 1.41 % / 1.43 %.
+
+   Emulator, `capture-chat.sh` dark and light (all scenes, `SCENES=a34` included), `capture-photo.sh`, `capture-replace.sh`: every flow check ✓. Two light failures were rerun:
+   - The A32 follow check now looks at the new reply (a taller answer plus Registrar push the user's line just above the view).
+   - adb dropped two characters from the typed text ("copode"); the rerun passed.
+
+   `node tools/diff-gold.mjs`:
+   - chatU 1.24 % / 1.63 %; chatE 1.69 % / 1.34 %; chatT 1.39 % / 1.82 %; chatR 1.72 % / 1.97 %; chatQ 1.21 %.
+   - Receipt / actions: chatG dark 0.91 / 0.18 %, chatD dark 0.28 / 0.17 %; light actions chatG 0.18 %, chatD 0.14 %, chatF 0.87 %.
+   - chatM thread 1.60 % / 1.47 %.
+   - `dark/chatX` composer region 4.56 % is pre-existing: master's capture scores 4.77 %. It is not touched by A34.
+4. `:app:assembleDevRelease` ✅
+5. Dev server (gpt-6-luna), dev release APK on the emulator, the owner's phrases:
+   - "Na janta comi 4 colheres de arroz branco, 1 concha de feijão carioca e 150 g de peito de frango grelhado sem óleo" → recorded with no tap: `Registrado em Jantar · 20:00 +470 kcal`, Excluir · Trocar refeição · Editar.
+   - "também comi um pudim de leite no jantar" → `Substituir Jantar?` / `Jantar tem 470 kcal. Fica com 770 kcal.` → Substituir → `Atualizado 470 → 770 kcal` → Desfazer → `Desfeito` + `Restaurado em Jantar · 20:00 470 kcal` with the actions.
+   - Trocar refeição → `Movido para Lanche · 16:00` → Editar → `Removido para editar`, Home at 0 kcal.
+   - "pudim de leite com calda" → Registrar only, then `Não registrado` after the next send.
+   - "pulei o café hoje" → `Pulado Café · 07:30` with Desfazer.
+   - "ontem jantei pizza, 3 fatias" → a question first, nothing recorded (the S14 note).
+   - A shorter dinner phrase got a question first (ADR-026), as expected.
+
+   ⏳ Pending, owner: the same run on the owner's phone, including a photo record and Excluir, plus the telemetry events in Firebase DebugView (the Firebase MCP did not connect in this session).
+
+Diff list (ST9 golds vs app, written per AGENTS Visual QA):
+
+- `chatG`, `chatD`, `chatF`: receipt 335 dp wide (thread content minus 12 dp per side) and 65 dp tall (46 dp for a restore, chip on the title row).
+  - Plus Jakarta Sans as in the golds: title 13.5 sp W500 with the slot W700, time `muted` after a `dim` dot, chip 11.5 sp W600 on `good` 15 %.
+  - Icon circle 24 dp, then 10 dp to the text.
+  - Buttons 44 dp, radius 14, `surf` + 1 dp line, gap 8 dp, icon 22 dp (filled delete and pencil as in the golds), label Jakarta 15 sp semibold (plan value; the gold renders it near 17 sp, ADR-027 rule 3); Excluir in `bad`.
+  - Receipt fill `surf2` above the `surf` buttons, as the dark golds.
+  - Mark at the end of the title row, 50 % save layer (ADR-027 rule 4).
+- `chatU`: card at bubble width, radius 14, `surf` + line, title 16 sp W700, body 14 sp `muted`, two 44 dp pills (CTA tokens | outlined), both 14 sp bold (gold sizes; the plan sets none). Inner spacing is the average of the dark and light golds (ADR-027 rule 2).
+- `chatE`: one full-width 44 dp Registrar pill, `card` + line, check-circle and label in `text`. The dark gold tints the icon `good`, light uses `text`: one colour kept, gold stays an accent.
+- Gold conflicts, reported and not gated:
+  - Receipt → actions gap: 16.5 dp (chatD), 24 dp (chatF) and 28 dp (chatG). The app uses 22 dp; receipt and actions are gated as separate boxes.
+  - Light receipts are green-tinted (no token); dark and the app use `surf2`.
+  - The `chatF` dark gold draws receipt and buttons 314 dp wide (335 in the other five), re-crops the photo and bolds the caption.
+  - `chatM` (ST6) still draws Gravar | Trocar | Pular: only its thread is gated.
+  - The header "tune" button and the composer mic, as on every chat gold.
+- `chatP` is no longer drawn by the Chat (ADR-028). Its gold stays as the reference of the Home skip, which has its own sheet.
+
+Decisions taken within the plan, recorded here:
+
+- A restored receipt carries no routine. Trocar refeição on it moves the record without memory changes, and Excluir on it reverts nothing (the replaced receipt's own revert already ran on Desfazer).
+- A moved receipt's memory images cover the whole move (revert of the old change plus the routine in the new slot), so Desfazer of a move returns the memory to just before it.
+- Undo of a move that replaced a record restores both slots, each with its own `Restaurado` receipt.
+- A skip announced for a slot that is not of today, or with no slot, keeps the turn `Não registrado` and logs `record_guard`.
+- The memory change lands on the receipt right after the record: it is stored with the undo data once the slot transaction has committed.

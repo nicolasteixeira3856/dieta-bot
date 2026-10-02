@@ -2,6 +2,7 @@ package com.nutri.android.feature.chat
 
 import com.nutri.android.domain.Macros
 import com.nutri.android.domain.ProjectedDay
+import com.nutri.android.domain.ReceiptAction
 
 /** States drawn in the Stitch chat golds (Café 07:30 ... Jantar 20:00, 25 de setembro). */
 object ChatFixtures {
@@ -20,7 +21,9 @@ object ChatFixtures {
         highlights = listOf("2 pães franceses", "2 ovos mexidos"),
         estimate = EstimateView(380, 22, 36, 16, "Deseja registrar essa refeição no Café da manhã?", null),
     )
-    private val actions = EstimateActions(2, record = slots[0], skip = slots[0])
+    /** chatE (A34): an `ask` estimate, one Registrar pill. */
+    private val actions = EstimateActions(2, record = slots[0])
+    private val recordActions = listOf(ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT)
 
     val chat0 = ChatUiState(
         items = listOf(date, ChatItem.Greeting("20:14")),
@@ -30,7 +33,7 @@ object ChatFixtures {
         slots = slots,
     )
     val chatL = ChatUiState(items = listOf(date, user.copy(pending = true), ChatItem.Loading), sending = true, emptyDay = false, slots = slots)
-    /** Estimate without a follow-up question: the chatT / chatP background (unchanged by ST1). */
+    /** Estimate without a follow-up question: the chatT background (unchanged by ST1). */
     private val estimated = ChatUiState(items = listOf(date, user, bot), emptyDay = false, actions = actions, slots = slots, currentSlotId = 4)
 
     /** chatE after ST7 (A30): the estimate comes after the questions, with no question bubble. */
@@ -50,13 +53,44 @@ object ChatFixtures {
         slots = slots,
         currentSlotId = 4,
     )
-    val chatT = estimated.copy(sheetFor = 2, sheetSelection = 4)
-    val chatP = estimated.copy(skipConfirm = SlotRef(3, "Lanche da tarde", "16:00", 960))
+    val chatT = estimated.copy(sheetFor = 2, sheetSelection = 4, sheetCurrent = 4)
 
-    /** A18 / ADR-017: Gravar on a taken slot. chatP layout, new copy (no gold of its own). */
-    val chatReplace = estimated.copy(replaceConfirm = ReplaceConfirm(2, slots[3], oldKcal = 880, newKcal = 1220))
+    /** chatG (ST9, A34): recorded by itself; the receipt carries Excluir · Trocar refeição · Editar. */
     val chatG = ChatUiState(
-        items = listOf(date, user, bot.copy(estimate = bot.estimate!!.copy(slotQuestion = null)), ChatItem.Receipt(3, false, "Café da manhã", "07:30", 380)),
+        items = listOf(
+            date,
+            user,
+            bot.copy(estimate = bot.estimate!!.copy(slotQuestion = null)),
+            ChatItem.Receipt(3, ReceiptKind.LOGGED, "Café da manhã", "07:30", 380, actions = recordActions),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
+    private val pudding = ChatItem.User(20, "Também comi um pudim de leite no jantar", "21:02")
+    private val puddingEstimate = EstimateView(620, 30, 82, 19, null, null)
+
+    /** chatU (ST9, A34): the dinner already has 380 kcal; Substituir asks inside the conversation. */
+    val chatU = ChatUiState(
+        items = listOf(
+            date,
+            pudding,
+            ChatItem.Assistant(21, "Juntei o pudim ao jantar. A estimativa total é de:", "21:02", estimate = puddingEstimate),
+            ChatItem.ReplacePrompt(21, ReplaceConfirm(slots[3], oldKcal = 380, newKcal = 620)),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
+    /** chatD (ST9, A34): the replacement undone, the dinner restored with the actions. */
+    val chatD = ChatUiState(
+        items = listOf(
+            date,
+            pudding,
+            ChatItem.Assistant(21, "Juntei o pudim ao jantar.", "21:02", estimate = puddingEstimate),
+            ChatItem.Receipt(22, ReceiptKind.REPLACED, "Jantar", "20:00", 620, fromKcal = 380, mark = ReceiptMark.UNDONE),
+            ChatItem.Receipt(23, ReceiptKind.RESTORED, "Jantar", "20:00", 380, actions = recordActions),
+        ),
         emptyDay = false,
         slots = slots,
     )
@@ -73,7 +107,7 @@ object ChatFixtures {
     /** Thumbnail of the chatA gold (the photo the owner attached in Stitch). */
     const val CHAT_A_PHOTO = "src/test/resources/chatA-photo.jpg"
 
-    /** chatF: photo of a prato feito captioned "Almoço de hoje", estimate 780 kcal for Almoço (A6). */
+    /** chatF (ST9, A34): photo of a prato feito, recorded by itself in the Almoço; a photo has no Editar. */
     const val CHAT_F_PHOTO = "src/test/resources/chatF-photo.jpg"
     val chatF = ChatUiState(
         items = listOf(
@@ -84,11 +118,11 @@ object ChatFixtures {
                 text = "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde.",
                 time = "12:41",
                 highlights = listOf("Prato Feito"),
-                estimate = EstimateView(780, 48, 82, 18, "Deseja registrar essa refeição no Almoço?", null),
+                estimate = EstimateView(680, 48, 82, 18, null, null),
             ),
+            ChatItem.Receipt(7, ReceiptKind.LOGGED, "Almoço", "12:30", 680, actions = listOf(ReceiptAction.DELETE, ReceiptAction.MOVE)),
         ),
         emptyDay = false,
-        actions = EstimateActions(6, record = slots[1], skip = slots[1]),
         slots = slots,
         currentSlotId = 2,
     )
@@ -113,7 +147,7 @@ object ChatFixtures {
             ),
         ),
         emptyDay = false,
-        actions = EstimateActions(8, record = slots[3], skip = slots[3], plan = true),
+        actions = EstimateActions(8, record = slots[3], plan = true),
         slots = slots,
         currentSlotId = 4,
     )
@@ -132,7 +166,7 @@ object ChatFixtures {
             ),
         ),
         emptyDay = false,
-        actions = EstimateActions(10, record = slots[0], skip = slots[0]),
+        actions = EstimateActions(10, record = slots[0]),
         slots = slots,
         currentSlotId = 4,
     )
