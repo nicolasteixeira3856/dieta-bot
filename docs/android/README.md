@@ -126,6 +126,10 @@ Registro autônomo ([ADR-028](../produto/adrs/ADR-028-registro-autonomo.md), ace
 - [A34 Registro autônomo, recibos com ações](plans/pending_manual_validation/a34-registro-autonomo.md) — pendente aprovação manual (código, testes, golds e captura entregues em 02/10/2026; falta a rodada manual do dono no servidor dev e o DebugView); [S14](../server/plans/completed/s14-registro-autonomo.md) e gate [ST9](../stitch/plans/completed/st9-registro-autonomo.md); Room v8
 - [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md) — fora de escopo (decisão do dono, 01/10/2026)
 
+QA visual:
+
+- [A36 capture-chat: chatX mostra o topo do composer](plans/completed/a36-capture-chatx-composer-topo.md) — só `tools/capture-chat.sh`; região `dark/chatX` 4,77 % → 0,89 % (composer arrastado até a primeira linha); concluído em 02/10/2026
+
 Ajustes de O1 e Chat (decisões do dono em 01/10/2026):
 
 - [A31 O1: perfil obrigatório e navegação pelo teclado](plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — gate [ST8](../stitch/plans/completed/st8-teto-sem-perfil.md), gold `o1e`; concluído em 01/10/2026
