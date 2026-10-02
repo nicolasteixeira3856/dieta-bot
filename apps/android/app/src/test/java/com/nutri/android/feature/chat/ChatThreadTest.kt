@@ -21,7 +21,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
-/** A32: the thread opens at the bottom, asks for older pages at the top, and the photo closes the keyboard. */
+/** A32: the thread opens at the bottom, asks for older pages at the top, and the photo closes the keyboard. A37: send closes it too. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = Application::class, sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -41,12 +41,12 @@ class ChatThreadTest {
         override fun hide() { calls += "hide" }
     }
 
-    private fun show(ui: ChatUiState, keyboard: Keyboard = Keyboard(), onPhoto: () -> Unit = {}, onCamera: () -> Unit = {}, onLoadOlder: () -> Unit = {}) {
+    private fun show(ui: ChatUiState, keyboard: Keyboard = Keyboard(), onPhoto: () -> Unit = {}, onCamera: () -> Unit = {}, onLoadOlder: () -> Unit = {}, onSend: () -> Unit = {}) {
         compose.setContent {
             DietaBotTheme {
                 CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboard) {
                     ChatScreen(
-                        ui = ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {},
+                        ui = ui, onBack = {}, onComposer = {}, onSend = onSend, onRetry = {},
                         onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {},
                         onPhoto = onPhoto, onCamera = onCamera, onLoadOlder = onLoadOlder,
                     )
@@ -108,5 +108,12 @@ class ChatThreadTest {
         show(ChatFixtures.chat0, keyboard, onCamera = { keyboard.calls += "camera" })
         compose.onNodeWithTag("chat-suggestion-photo").performClick()
         assertEquals(listOf("hide", "camera"), keyboard.calls)
+    }
+
+    @Test fun sendHidesTheKeyboardBeforeSending() {
+        val keyboard = Keyboard()
+        show(ChatFixtures.chat0.copy(composer = "arroz e feijão"), keyboard, onSend = { keyboard.calls += "send" })
+        compose.onNodeWithTag("chat-send").performClick()
+        assertEquals(listOf("hide", "send"), keyboard.calls)
     }
 }
