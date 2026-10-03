@@ -1,6 +1,6 @@
 # Plan — SD3 Documentation checker and search ignores
 
-- State: `Pendente aprovação manual`
+- State: `Concluído`
 - Date: 2026-10-02
 - Owner: `sdd` — shared agent workflow maintenance.
 - Code affected: `tools/check-docs.mjs`, `tools/check-docs.test.mjs`, the wire export tools, `tools/package.json` description, `.gitignore`, `.ignore`. No app, server or infra code.
@@ -149,7 +149,7 @@ A finding caused by documentation that SD2 missed is fixed here only if it is a 
 
 ## Results
 
-Implemented 2026-10-02 on branch `feat/sd3-docs-checker`, from `master` @ `3300057`. Automated validation passed; one owner check is pending.
+Implemented 2026-10-02 on branch `feat/sd3-docs-checker`, from `master` @ `3300057`. Automated validation passed; the owner confirmed the manual check on 2026-10-02.
 
 ### Checker
 
@@ -197,7 +197,7 @@ Deleted `tools/export-wires.mjs`, `tools/check-wires.mjs` and `tools/export-pain
 - `node --test tools/verify-stitch.test.mjs`: 2/2. `node tools/check-stitch.mjs`: 62 golds (31 + 31).
 - `git diff --check`: clean.
 
-Pending (owner):
+Manual (owner, confirmed 2026-10-02: a new Claude Code session listed the seven `dieta-bot-*` skills and Grep returned only `.agents/skills/dieta-bot-android-decision/SKILL.md`):
 
 1. In a new Claude Code session, confirm that the project skills (`dieta-bot-*`) are still listed and that a Grep for a skill sentence returns only the `.agents/skills/` copy.
 2. Optional: the same Grep in grok-cli and Hermes. A tool that ignores `.ignore` is recorded and does not block completion.
