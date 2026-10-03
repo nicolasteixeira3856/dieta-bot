@@ -30,15 +30,16 @@ import httpx2
 from config import MODEL, load_settings
 from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status
 from llm import LlmClient
-from main import ChatIn, chat_reply
+from main import ChatIn, chat_reply, compact_reply
 from moderation import Deadline, ModerationUnavailable, Moderator
-from shaping import fail_chat
+from shaping import fail_chat, fail_digest
 
 SERVER = Path(__file__).resolve().parent.parent
 CASES_DIR = Path(__file__).resolve().parent / "cases"
 MEDIA_DIR = CASES_DIR / "media"
 REPORT_DIR = SERVER.parent / "logs" / "evals"
 MAX_WORKERS = 3
+DEFAULT_WORKERS = 2
 RATE_LIMIT_RETRIES = 2
 EFFORTS = ("none", "minimal", "low", "medium", "high")
 # USD per 1M tokens, gpt-6-luna standard tier (30/09/2026). Reasoning tokens bill as output.
@@ -119,25 +120,28 @@ def run_once(
 ) -> dict[str, Any]:
     """One repetition, handled like the /v1/chat route. Moderation down = an error repetition."""
     body = ChatIn.model_validate(case["request"])
-    image = _case_image(case)
+    image = None if body.compact else _case_image(case)
     trace: dict[str, Any] = {}
     error: str | None = None
     started = time.monotonic()
     usage.take_usage()
     for attempt in range(RATE_LIMIT_RETRIES + 1):
-        trace = {"route": "chat"}
+        trace = {"route": "compact" if body.compact else "chat"}
         try:
-            output = chat_reply(llm, moderator, body, image, trace, Deadline())
+            if body.compact:
+                output = compact_reply(llm, moderator, body, trace, Deadline())
+            else:
+                output = chat_reply(llm, moderator, body, image, trace, Deadline())
             failure = trace.get("error") or {}
             error = _error_text(failure) if failure else None
         except ModerationUnavailable as exc:
-            output = fail_chat()
+            output = fail_digest() if body.compact else fail_chat()
             error = f"ModerationUnavailable: {exc.reason}"
         except Exception as exc:
             message = str(exc)[:300]
             if secret:
                 message = message.replace(secret, "[redacted]")
-            output = fail_chat()
+            output = fail_digest() if body.compact else fail_chat()
             error = f"{type(exc).__name__}: {message}"
         if error and "RateLimitError" in error and attempt < RATE_LIMIT_RETRIES:
             time.sleep(5 * (attempt + 1))
@@ -145,7 +149,7 @@ def run_once(
             continue
         break
     latency_ms = round((time.monotonic() - started) * 1000)
-    checks = evaluate(case["expect"], output)
+    checks = evaluate(case["expect"], output, required=case.get("required"))
     return {
         "status": FAIL if error else repetition_status(checks),
         "checks": checks,
@@ -175,7 +179,7 @@ def run_effort(
     cases: list[dict[str, Any]],
     repeat: int,
     api_key: str,
-    workers: int = MAX_WORKERS,
+    workers: int = DEFAULT_WORKERS,
     transport: httpx2.BaseTransport | None = None,
 ) -> dict[str, Any]:
     usage = UsageTransport(transport)
@@ -320,7 +324,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--only", help="comma-separated case ids")
     parser.add_argument("--tag", action="append", help="run cases with this tag (repeatable)")
-    parser.add_argument("--workers", type=int, default=MAX_WORKERS, help=f"max {MAX_WORKERS}")
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS,
+                        help=f"default {DEFAULT_WORKERS}, max {MAX_WORKERS}")
     args = parser.parse_args(argv)
     if args.repeat < 1:
         parser.error("--repeat must be >= 1")

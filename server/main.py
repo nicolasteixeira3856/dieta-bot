@@ -30,6 +30,7 @@ from config import (
     MAX_BODY_BYTES,
     MEMORY_DYNAMIC_MAX,
     MEMORY_PERMANENT_MAX,
+    MEMORY_TEMP_MAX,
     MODEL,
     PHOTO_MAX_B64_CHARS,
     RATE_LIMIT_CHAT,
@@ -54,6 +55,7 @@ from moderation import (
 from shaping import (
     CHAT_FALLBACK_REPLY,
     CLARIFY_NONE,
+    CLARIFY_ASKED,
     RECORD_NONE,
     RECORD_NONE_INTENT,
     RECORD_NONE_POLICY,
@@ -160,14 +162,20 @@ class ChatMessageIn(BaseModel):
 class FactIn(BaseModel):
     """One memory fact (ADR-023). The app owns and applies them."""
 
-    id: str = Field(..., pattern=r"^[PD][0-9]{1,4}$")
-    kind: Literal["permanent", "dynamic"]
+    id: str = Field(..., pattern=r"^[PDT][0-9]{1,4}$")
+    kind: Literal["permanent", "dynamic", "temp"]
     category: Literal["preference", "portion", "routine"]
     key: str = Field(..., max_length=FACT_KEY_MAX)
     text: str = Field(..., max_length=FACT_TEXT_MAX)
     slot: str | None = None
     days_seen: int = Field(default=0, ge=0)
     last_seen: date | None = None
+
+    @model_validator(mode="after")
+    def _temp_id_matches_kind(self) -> "FactIn":
+        if self.id.startswith("T") != (self.kind == "temp"):
+            raise ValueError("temporary fact id and kind must match")
+        return self
 
 
 class RecentMealIn(BaseModel):
@@ -202,6 +210,8 @@ class ChatIn(BaseModel):
     force_estimate: bool = False
     # ADR-028: with clarify_rounds = v4 client (record mark). Ignored without clarify_rounds.
     auto_record: bool = False
+    # ADR-029: v5 stores temporary facts and preserves the slot of a held estimate.
+    temp_facts: bool = False
 
     @model_validator(mode="after")
     def _fact_slots_in_profile(self) -> "ChatIn":
@@ -220,6 +230,11 @@ class ChatIn(BaseModel):
     def records(self) -> bool:
         """v4 client: gets record and skip_slot (S14)."""
         return self.clarify_rounds is not None and self.auto_record
+
+    @property
+    def supports_temp(self) -> bool:
+        """Ignore the capability on a legacy client without structured memory."""
+        return self.temp_facts and self.facts is not None
 
 
 def reject_photo(image_b64: str | None) -> str | None:
@@ -468,6 +483,8 @@ def create_app(
                     "record": None,
                     "record_intent": None,
                     "meal_day": None,
+                    "temp_facts": sum(f.kind == "temp" for f in body.facts or []) if body.supports_temp else None,
+                    "question_slot": None,
                 },
             )
         finally:
@@ -482,27 +499,8 @@ def create_app(
             request,
             "compact",
             None,
-            lambda record, deadline: run_guarded(
-                record,
-                lambda: guarded_turn(
-                    moderator,
-                    deadline,
-                    record,
-                    # History is client state, not re-moderated (content-policy spec). Digest is.
-                    input_texts=[],
-                    image=None,
-                    generate=lambda timeout: llm.digest_json(
-                        history_text=_history_text(body),
-                        trace=record,
-                        timeout=timeout,
-                        safety_identifier=safety_id,
-                    ),
-                    shape=shape_digest,
-                    output_texts=digest_output_texts,
-                    scoped=False,
-                ),
-                fail=fail_digest,
-                refuse=lambda reply: fail_digest(),
+            lambda record, deadline: compact_reply(
+                llm, moderator, body, record, deadline, safety_identifier=safety_id
             ),
         )
 
@@ -640,6 +638,7 @@ def chat_reply(
             result.setdefault("record", RECORD_NONE)
             result.setdefault("skip_slot", None)
             record["record"] = record_log
+        record["question_slot"] = result.get("question_slot")
         return result
 
     def shape(payload: dict[str, Any]) -> dict[str, Any]:
@@ -676,6 +675,40 @@ def chat_reply(
     )
 
 
+def compact_reply(
+    llm: LlmClient,
+    moderator: Moderator,
+    body: ChatIn,
+    record: dict[str, Any],
+    deadline: Deadline,
+    *,
+    safety_identifier: str | None = None,
+) -> dict[str, Any]:
+    """The digest path shared by HTTP and evals, including output moderation and failures."""
+    if not body.messages:
+        raise HTTPException(status_code=422, detail="compact_needs_messages")
+    return run_guarded(
+        record,
+        lambda: guarded_turn(
+            moderator,
+            deadline,
+            record,
+            # History is client state, not re-moderated (content-policy spec). Digest is.
+            input_texts=[],
+            image=None,
+            generate=lambda timeout: llm.digest_json(
+                history_text=_history_text(body), trace=record, timeout=timeout,
+                safety_identifier=safety_identifier,
+            ),
+            shape=shape_digest,
+            output_texts=digest_output_texts,
+            scoped=False,
+        ),
+        fail=fail_digest,
+        refuse=lambda reply: fail_digest(),
+    )
+
+
 def _block(reply: str) -> dict[str, Any]:
     """Estimate/fit refusal: 400, no fabricated zero-calorie dish (content-policy spec)."""
     raise HTTPException(status_code=400, detail="content_policy_blocked")
@@ -698,9 +731,13 @@ def shape_chat_turn(
     Returns (response, clarify, record log value or None for a client before v4).
     """
     slot_ids = [s.id for s in body.profile.slots]
-    result = shape_chat(payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids, skip=body.records)
+    result = shape_chat(
+        payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids,
+        skip=body.records, temp_facts=body.supports_temp,
+    )
     if body.clarify_rounds is None:
         return result, CLARIFY_NONE, None
+    held_slot = result["estimate"].get("suggested_slot") if result.get("estimate") else None
     result, clarify = clarify_gate(
         result,
         payload,
@@ -708,6 +745,8 @@ def shape_chat_turn(
         force_estimate=body.force_estimate,
         history=[(m.role, m.text) for m in body.messages],
     )
+    if body.supports_temp and clarify == CLARIFY_ASKED:
+        result["question_slot"] = held_slot
     if not body.records:
         return result, clarify, None
     result, record_log = record_gate(
@@ -797,7 +836,7 @@ def _chat_text(body: ChatIn) -> str:
     )
 
     if body.facts is not None:
-        lines.extend(_memory_lines(body.facts))
+        lines.extend(_memory_lines(body.facts, temp_facts=body.supports_temp))
     elif body.memory:
         lines.append(f"MEMORY: {body.memory}")
 
@@ -841,14 +880,19 @@ def _chat_text(body: ChatIn) -> str:
     return "\n".join(lines)
 
 
-def _memory_lines(facts: list[FactIn]) -> list[str]:
+def _memory_lines(facts: list[FactIn], *, temp_facts: bool = False) -> list[str]:
     """ADR-023: counts first (the model sees a full permanent memory), then one line per fact."""
     permanent = sum(1 for f in facts if f.kind == "permanent")
     lines = [
         f"MEMORY: permanent {permanent}/{MEMORY_PERMANENT_MAX}, "
-        f"dynamic {len(facts) - permanent}/{MEMORY_DYNAMIC_MAX}"
+        f"dynamic {sum(f.kind == 'dynamic' for f in facts)}/{MEMORY_DYNAMIC_MAX}"
+        + (f", temp {sum(f.kind == 'temp' for f in facts)}/{MEMORY_TEMP_MAX}" if temp_facts else "")
     ]
     for fact in facts:
+        if fact.kind == "temp":
+            created = fact.last_seen.isoformat() if fact.last_seen else "unknown"
+            lines.append(f"{fact.id} {fact.category} {fact.key}: {fact.text} (temp since {created})")
+            continue
         slot = f" slot={fact.slot}" if fact.slot is not None else ""
         last = f", last {fact.last_seen.isoformat()}" if fact.last_seen else ""
         lines.append(

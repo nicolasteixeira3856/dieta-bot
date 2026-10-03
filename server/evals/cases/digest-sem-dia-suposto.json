@@ -1,0 +1,126 @@
+{
+  "id": "digest-sem-dia-suposto",
+  "since": "v4",
+  "tags": [
+    "s16",
+    "digest"
+  ],
+  "request": {
+    "local_time": "2026-10-03T13:58:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-03",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "470 g da lasanha que pedi para estimar ontem e 80 g de costela."
+      },
+      {
+        "role": "assistant",
+        "text": "Como é de ontem, não será registrado. A lasanha era bolonhesa e a costela sem osso?\n[refeição sugerida: Almoço]"
+      },
+      {
+        "role": "user",
+        "text": "Bolonhesa, costela sem osso."
+      }
+    ],
+    "text": "",
+    "image_b64": null,
+    "compact": true,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "digest": "present",
+    "digest_has": [
+      "lasanha",
+      "470"
+    ],
+    "digest_not": [
+      "de ontem",
+      "registrad"
+    ],
+    "refusal": "none"
+  },
+  "required": [
+    "digest",
+    "digest_has",
+    "digest_not"
+  ],
+  "strict": true
+}

@@ -115,7 +115,7 @@ Optional fields (S11, ADR-023). Every one is optional; out of limits → HTTP 42
   "day": {"remaining_kcal": 640}
 }
 ```
-- `facts`: ≤ 70 items. `id` matches `[PD][0-9]{1,4}`. `kind` `permanent` | `dynamic`. `category` `preference` | `portion` | `routine`. `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`.
+- `facts`: ≤ 75 items. `id` matches `[PDT][0-9]{1,4}`. `kind` `permanent` | `dynamic` | `temp`. A `T` id requires `kind: temp` and vice versa, otherwise HTTP 422. `category` `preference` | `portion` | `routine`. `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`.
 - **v2 client** = `facts` present (even `[]`): the facts replace `memory` in the prompt. **Legacy client** = no `facts`: `memory` (text) goes to the prompt as before.
 - `recent`: meals recorded in the last 7 days, ≤ 42 items, `text` ≤ 240, `date` ISO, `slot_id` `null` = "Outros". Any client may send it.
 - `day.remaining_kcal`: integer or `null`, effective ceiling − eaten, computed by the app (may be negative). Any client may send it.
@@ -132,6 +132,12 @@ Optional field (S14, ADR-028):
 {"auto_record": true}
 ```
 - `auto_record`: boolean, default `false`. **v4 client** = `clarify_rounds` present and `auto_record: true`: the OUT carries the record mark (below). Anything else = the response is the same as before S14.
+
+Optional field (S16, ADR-029):
+```json
+{"temp_facts": true}
+```
+- `temp_facts`: boolean, default `false`. **v5 capability** = true with `facts` present; ignored for legacy clients without facts. Enables temporary proposals and the held `question_slot` below. V5 clients also send `clarify_rounds` and `auto_record`. Android support belongs to [A38](android/plans/a38-fatos-temporarios-compactacao.md); the server must support T facts before that client ships.
 
 OUT
 ```json
@@ -162,9 +168,10 @@ OUT
 - `estimate`: present for `log` and `plan`, `null` for `question`. A `plan` never carries a `question`.
 - `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, ≤ 160 characters. The app records this text.
 - `memory_updates` (v2 client only, else `[]`): at most 5 proposals `{op, id, kind, category, key, text, slot}`, `op` `add` | `reinforce` | `replace` | `remove`. `add` has `id: null`; the others carry an id from `facts`. `slot` is set only for `routine`. The app decides and applies them; the server stores nothing.
+- Temp proposals require v5 capability. Only `add` with null id, or `replace`/`remove` of a known T id, category `portion`/`preference`, slot null survive shaping. Temp reinforce/routine and operations on T ids with another kind are dropped. Without the flag, temp proposals are dropped. The model uses a matching reference on every portion, cites its T id and does not remove or reinforce it merely on use; the client owns lifetime/capacity.
 - `memory_used` (v2 client only, else `[]`): ids from `facts` the reply relied on, unique, at most 10.
 - Legacy client: `intent: plan` returns `estimate: null` (no record card on APK ≤ 0.0.3; grams and total stay in `reply`).
-- The server asks the model for structured output (`json_schema` strict). `suggested_slot` is an enum of the `profile.slots` ids plus `null`.
+- The server asks the model for structured output (`json_schema` strict). The kind enum always includes `temp`; instructions and schema are identical with/without the capability for the same profile slots and fact ids. `suggested_slot` is an enum of the `profile.slots` ids plus `null`.
 - `suggested_slot`: always a string id from `profile.slots` or `null`. The server normalises `1` / `{"id": 1}` to `"1"` and discards any other value to `null`.
 - A message that completes or corrects a meal whose slot is `eaten` returns the estimate of the **whole meal** with that slot (ADR-017). A calorie total without food returns `estimate: null`.
 - `question`: exists only if `confidence != high`. Missing → `"Alguma porção foi diferente do que considerei?"`. Clients without `clarify_rounds` only.
@@ -205,12 +212,13 @@ v4 client (`clarify_rounds` + `auto_record: true`, S14): the OUT also carries `r
 - `record`: `auto` (record by itself), `ask` (show one **Registrar** button) or `none` (do not record). First matching rule wins:
   1. Refusal (scope or moderation, any fixed reply) → `none`.
   2. `intent` `question` or `plan`, a question-only turn, or a fallback → `none`.
-  3. The message is about another day ("ontem", a past weekday) → `none`; the `reply` says the Chat records only today's meals.
+  3. Food was eaten on another day → `none`; the `reply` says the Chat records only today's meals. A past day of asking, estimating, buying, cooking or planning is not the eating day. The before-05:00 dinner exception and food eaten `agora` follow the [Chat specification](server/specifications/v1-chat.md).
   4. `intent: skip` with a `profile.slots` id → `auto`, `skip_slot` = that id.
   5. `intent: skip` without a valid slot → `none`, shaped to `intent: question`.
   6. `log` with a released estimate and `suggested_slot: null` → `ask`.
   7. `log` with a released estimate and a clear intent to record (eating stated, "registra", a meal name followed by food, a photo with no text, `force_estimate`) → `auto`. A food photo sent with a question about it ("isso tem muita caloria?") is not clear → rule 8 (S15).
   8. Any other released `log` → `ask`.
+- A request/complaint to record an identifiable meal is clear, reconstructed from history/digests, but does not change its eating day (`registra o almoço de ontem` remains other). An explicit eating-day correction overrides assistant assumptions. A day-only answer after a generic nutrition question does not create a log. Slot priority includes the earlier assistant marker `[refeição sugerida: {slot name}]` after user-named slots; it is a suggestion, not user testimony.
 - `skip_slot`: a `profile.slots` id on rule 4, else `null`.
 - `intent: skip` ("pulei o café", or a firm skip ahead: "hoje não vou jantar"): `estimate: null`, one short neutral `reply`. A pending meal ("ainda não almocei") or a hedged skip ("acho que não vou jantar") is never `skip`: `record: none` (S15). Clients before v4 never see it: the turn comes as `intent: question` with the same `reply`.
 - The `reply` never says a meal was recorded or skipped; the app shows the receipt.
@@ -219,6 +227,8 @@ v4 client (`clarify_rounds` + `auto_record: true`, S14): the OUT also carries `r
 - Moderation error or timeout: HTTP 503 `{"detail": "content_policy_unavailable"}`.
 - Model answered plain text (no JSON): the fixed out-of-scope `reply`, `estimate: null`. The model text is never returned. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.
 - `model`: always `gpt-6-luna`.
+
+v5 held turn (S16): when the clarify gate withholds an estimate, `question_slot` is the sanitized suggested profile slot id or null. It is absent for clients without effective temp capability, released turns, fallbacks and refusals. The field allows the client to retain the suggestion in history even when estimate is null. Dev chat log metadata adds `temp_facts` (T count, or null without capability) and `question_slot` (id or null), with no fact text in these fields.
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.
 
@@ -235,7 +245,7 @@ OUT
   "model": "gpt-6-luna"
 }
 ```
-- `digest`: pt-BR prose, facts only (foods, kcal/P as stated, slot, skips), no advice. ≤ 400 tokens (capped at 1600 characters).
+- `digest`: pt-BR prose, ≤ 400 tokens (capped at 1600 characters). Keep user-stated foods, quantities and nutrition numbers, user-named slots, skips and confirmed clarifications. Never state record status, an assistant-assumed day/slot or an unconfirmed estimate as eaten. A suggested-slot marker is not a user fact. Preserve an unanswered question and pending meal/photo description at the end as `Pergunta em aberto: {question} ({meal})`. No advice, judgement or new estimates/numbers.
 - Model failure/timeout or empty digest: HTTP 200 with `"digest": null` (fail-soft). The client keeps its raw messages.
 - The digest is moderated before it returns; a flag returns `"digest": null`. History is not re-moderated. Moderation error: HTTP 503 `content_policy_unavailable`.
 - Stateless: the server returns the text; the client stores it (`day_digest`).

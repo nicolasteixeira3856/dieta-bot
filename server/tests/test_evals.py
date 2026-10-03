@@ -86,6 +86,7 @@ class CheckTests(unittest.TestCase):
         output["question"] = "Qual leite?"
         output["record"] = "ask"
         output["skip_slot"] = None
+        output["digest"] = "Pergunta em aberto: qual leite?"
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -105,6 +106,9 @@ class CheckTests(unittest.TestCase):
             "refusal": "out_of_scope",
             "record": "auto",
             "skip_slot": "1",
+            "digest": "absent",
+            "digest_has": ["arroz"],
+            "digest_not": ["leite"],
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)
@@ -172,6 +176,23 @@ class CheckTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             evaluate({"kcal": 1}, V1_LOG)
 
+    def test_required_expectations_fail_on_na(self) -> None:
+        expect = {"record": "auto", "estimate": "present"}
+        self.assertEqual(evaluate(expect, V1_LOG)["record"]["status"], NA)
+        checks = evaluate(expect, V1_LOG, required=["record"])
+        self.assertEqual(checks["record"]["status"], FAIL)
+        self.assertEqual(repetition_status(checks), FAIL)
+        with self.assertRaises(ValueError):
+            evaluate(expect, V1_LOG, required=["digest"])
+
+    def test_digest_checks_require_content_even_for_negative_terms(self) -> None:
+        expect = {"digest": "present", "digest_has": ["PAO"], "digest_not": ["registrad"]}
+        self.assertEqual(set(_status(expect, {"digest": "Pão com queijo"}).values()), {PASS})
+        self.assertEqual(set(_status(expect, {}).values()), {NA})
+        for digest in (None, "", "   "):
+            self.assertEqual(set(_status(expect, {"digest": digest}).values()), {FAIL})
+        self.assertEqual(_status({"digest": "absent"}, {"digest": None}), {"digest": PASS})
+
     def test_refusal_check(self) -> None:
         from shaping import REFUSAL_EATING, REFUSAL_OUT_OF_SCOPE
 
@@ -205,7 +226,12 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "cp2"))
+                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "cp2"))
+                self.assertTrue(set(case.get("required", [])) <= set(case["expect"]))
+                if case["since"] == "v5":
+                    self.assertTrue(case["request"]["temp_facts"])
+                    self.assertTrue(case["request"]["auto_record"])
+                    self.assertIn("clarify_rounds", case["request"])
                 if case.get("image"):
                     self.assertTrue((run.MEDIA_DIR / case["image"]).is_file())
                 self.assertTrue(case["tags"])
@@ -300,6 +326,31 @@ class RunTests(unittest.TestCase):
         finally:
             llm.close()
         self.assertEqual(seen[0]["reasoning"], {"effort": "none"})
+
+    def test_compact_eval_uses_digest_schema_and_moderation_failure_path(self) -> None:
+        case = next(c for c in run.load_cases() if c["id"] == "digest-pergunta-aberta")
+        for mode in ("success", "flagged", "error"):
+            seen = []
+            moderated = []
+
+            def handler(request: httpx2.Request) -> httpx2.Response:
+                if _is_moderation(request):
+                    moderated.append(json.loads(request.content))
+                    return httpx2.Response(200, json=_moderation({"harassment": True} if mode == "flagged" else None))
+                seen.append(json.loads(request.content))
+                if mode == "error":
+                    raise httpx2.ConnectError("down")
+                return httpx2.Response(200, json=_usage_envelope({"digest": "Pergunta em aberto: qual o peso? (cheesecake)"}))
+
+            with self.subTest(mode=mode):
+                report = run.run_effort("none", [case], 1, FAKE_KEY, transport=httpx2.MockTransport(handler))
+                result = report["cases"][0]
+                self.assertEqual(result["status"], PASS if mode == "success" else FAIL)
+                self.assertEqual(seen[0]["text"]["format"]["schema"]["required"], ["digest"])
+                self.assertNotIn("PROFILE:", json.dumps(seen))
+                self.assertEqual(len(moderated), 0 if mode == "error" else 1)
+                if mode != "success":
+                    self.assertIn("digest", result["failed_checks"])
 
 
 if __name__ == "__main__":

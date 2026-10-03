@@ -4,7 +4,7 @@
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`core/network/ChatModels.kt`, `core/database/*` (Room v9), `core/memory/FactMemory.kt`, `domain/MemoryRules.kt`, `feature/chat/PromptBuilder.kt`, `feature/chat/ChatViewModel.kt`, `src/dev/.../devtools/{FactText,DevMemoryViewModel,DevMemoryScreen}.kt`, `core/telemetry` counts, tests)
-- Prerequisites: [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md) accepted by the owner; **[S16](../../server/plans/s16-dia-da-refeicao-fatos-temporarios.md) deployed on the dev server** (it accepts `T` facts and `temp_facts`, and returns `question_slot`). Executes ADR-029 decisions 1 (client part), 2 and the slot marker of decision 5. No Stitch gate: no gold changes.
+- Prerequisites: [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md) accepted by the owner; **[S16](../../server/plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) deployed on the dev server** (it accepts `T` facts and `temp_facts`, and returns `question_slot`). Executes ADR-029 decisions 1 (client part), 2 and the slot marker of decision 5. No Stitch gate: no gold changes.
 
 ## Authorization gate
 

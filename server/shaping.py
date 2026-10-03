@@ -127,7 +127,7 @@ CHAT_INTENTS = ("log", "plan", "question")
 # ADR-028 decision 4: "pulei o café". Only a v4 client sees it (S14).
 INTENT_SKIP = "skip"
 MEMORY_OPS = ("add", "reinforce", "replace", "remove")
-FACT_KINDS = ("permanent", "dynamic")
+FACT_KINDS = ("permanent", "dynamic", "temp")
 FACT_CATEGORIES = ("preference", "portion", "routine")
 
 
@@ -204,6 +204,7 @@ def shape_chat(
     valid_slot_ids: set[str] | list[str] | None = None,
     fact_ids: list[str] | None = None,
     skip: bool = False,
+    temp_facts: bool = False,
 ) -> dict[str, Any]:
     """fact_ids None = legacy client (no facts in the request): no memory fields, plan without card.
 
@@ -244,7 +245,9 @@ def shape_chat(
         "reply": reply,
         "intent": intent,
         "estimate": estimate,
-        "memory_updates": [] if legacy else _memory_updates(payload.get("memory_updates"), known_facts, valid_ids),
+        "memory_updates": [] if legacy else _memory_updates(
+            payload.get("memory_updates"), known_facts, valid_ids, temp_facts=temp_facts
+        ),
         "memory_used": [] if legacy else _memory_used(payload.get("memory_used"), known_facts),
         "digest": digest,
         "model": MODEL,
@@ -305,7 +308,9 @@ def _cut_at_comma(text: str, limit: int) -> str:
     return (head[:comma] if comma > 0 else head).strip()
 
 
-def _memory_updates(raw: Any, known_facts: set[str], valid_slots: set[str]) -> list[dict[str, Any]]:
+def _memory_updates(
+    raw: Any, known_facts: set[str], valid_slots: set[str], *, temp_facts: bool = False
+) -> list[dict[str, Any]]:
     """The app applies them; drop anything it could not apply safely (S11 § 5)."""
     if not isinstance(raw, list):
         return []
@@ -325,6 +330,14 @@ def _memory_updates(raw: Any, known_facts: set[str], valid_slots: set[str]) -> l
             if fact_id is not None:
                 continue
         elif fact_id not in known_facts:
+            continue
+        if kind == "temp":
+            if not temp_facts or category == "routine" or update.get("slot") is not None:
+                continue
+            if op != "add" and (op not in ("replace", "remove") or not fact_id.startswith("T")):
+                continue
+        elif isinstance(fact_id, str) and fact_id.startswith("T"):
+            # A temporary reference cannot be reinforced or promoted into a habit.
             continue
         slot = _slot_id(update.get("slot"), valid_slots)
         if category == "routine" and slot is None:

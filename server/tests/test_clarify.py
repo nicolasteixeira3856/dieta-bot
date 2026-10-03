@@ -28,7 +28,7 @@ from shaping import (
     repeats_question,
     shape_chat,
 )
-from tests.test_api import INVITE, _client, _explodes, _responds, _mock
+from tests.test_api import INVITE, _client, _explodes, _responds, _mock, _is_moderation, _moderation
 from tests.test_chat import _estimate, _fact, _v2_payload
 
 QUESTION = "Quanto de macarrão? E o molho era com creme de leite ou requeijão?"
@@ -287,6 +287,55 @@ class ClarifyRouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(body["estimate"]["question"])
         self.assertIsNone(body["question"])
         self.assertEqual(self._log()["clarify"], CLARIFY_RELEASED_FORCE)
+
+    async def test_held_slot_is_v5_only_and_sanitized(self) -> None:
+        for slot in ("1", None, "unknown"):
+            for version in (3, 4, 5):
+                with self.subTest(slot=slot, version=version):
+                    response = await self._post(
+                        _v2_payload(facts=[], clarify_rounds=0, auto_record=version >= 4,
+                                    temp_facts=version == 5, text="comi " + MEAL),
+                        _responds(_model(suggested_slot=slot), []),
+                    )
+                    body = response.json()
+                    self.assertIsNone(body["estimate"])
+                    self.assertEqual(body["question"], QUESTION)
+                    if version == 5:
+                        self.assertEqual(body["question_slot"], "1" if slot == "1" else None)
+                    else:
+                        self.assertNotIn("question_slot", body)
+
+    async def test_v5_released_fallback_and_refusal_have_no_held_slot(self) -> None:
+        for handler in (_responds(_model(), []), _explodes(httpx2.ConnectError("down")),
+                        _responds({"scope": "out_of_scope"}, [])):
+            response = await self._post(
+                _v2_payload(facts=[], temp_facts=True, clarify_rounds=3, auto_record=True), handler,
+            )
+            self.assertNotIn("question_slot", response.json())
+
+    async def test_output_refusal_clears_held_slot_and_temp_updates(self) -> None:
+        moderation_calls = []
+        model = _model()
+        model["memory_updates"] = [{"op": "add", "id": None, "kind": "temp", "category": "portion",
+                                    "key": "reference", "text": "reference sentinel", "slot": None}]
+
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            if _is_moderation(request):
+                moderation_calls.append(1)
+                return httpx2.Response(200, json=_moderation({"harassment": True} if len(moderation_calls) > 1 else None))
+            return _responds(model, [])(request)
+
+        app = main.create_app(transport=httpx2.MockTransport(handler))
+        self._apps.append(app)
+        async with _client(app) as client:
+            response = await client.post("/v1/chat", headers={"X-Invite": INVITE},
+                                         json=_v2_payload(facts=[], temp_facts=True, clarify_rounds=0, auto_record=True))
+        body = response.json()
+        self.assertEqual(len(moderation_calls), 2)
+        self.assertEqual(body["memory_updates"], [])
+        self.assertNotIn("question_slot", body)
+        self.assertEqual(body["record"], "none")
+        self.assertIsNone(self._log()["question_slot"])
 
     async def test_v3_fallback_has_null_question_and_no_generic_question(self) -> None:
         response = await self._post(

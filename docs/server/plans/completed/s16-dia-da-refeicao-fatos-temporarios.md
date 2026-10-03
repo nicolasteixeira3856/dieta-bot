@@ -1,16 +1,18 @@
 # Plan — S16 Meal day is the eating day, day/record/slot read apart, "de sempre" from RECENT, honest digest, temp facts
 
-- Status: Aguardando aprovação
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md) accepted by the owner (it is `Proposed`). Executes ADR-029 decisions 1 (server part), 3, 4, 5 and 6. Does not depend on [A38](../../android/plans/a38-fatos-temporarios-compactacao.md); A38 depends on this plan being deployed to the dev server (rollout order below).
+- Prerequisites: [ADR-029](../../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md). Executes ADR-029 decisions 1 (server part), 3, 4, 5 and 6. Does not depend on [A38](../../../android/plans/a38-fatos-temporarios-compactacao.md); A38 depends on this plan being deployed to the dev server (rollout order below).
 
 ## Authorization gate
 
 This plan is documentation only. Implementation starts only after an explicit approval naming this file:
 
 > Aprovo o plano `docs/server/plans/s16-dia-da-refeicao-fatos-temporarios.md`. Implemente o plano aprovado.
+
+Owner approval received on 2026-10-03 with the sentence above, authorizing this plan and its prerequisite decisions. Android implementation remains outside this approval.
 
 If implementation reveals an uncovered decision, stop, update the artifacts and ask for a new approval.
 
@@ -112,9 +114,9 @@ New cases, tag `meal-day`, `correction`, `de-sempre`, `temp` or `digest`, `refus
 
 ## Intended spec changes (written at Completion, not now)
 
-- [v1-chat](../specifications/v1-chat.md): rule 3 (MEMORY header with temp; the slot marker in `HISTORY`), 3d ("de sempre"), 3g (`meal_day` = eating day), 4 (day/record/slot apart), 5 (schema `kind` enum), 5a (temp shaping), 5c (`question_slot` for v5), 7 (digest content), § IN (`facts` with `T`/`temp`, `temp_facts`), dev log fields; Provenance S16.
-- [api-contract](../../api-contract.md): `temp_facts` (v5 client), `facts` (`T` ids, `temp`, ≤ 75), `memory_updates` temp ops, `question_slot`, compact digest content.
-- [memoria-push](../../produto/specifications/memoria-push.md): written by A38 (the client owns the memory rules).
+- [v1-chat](../../specifications/v1-chat.md): rule 3 (MEMORY header with temp; the slot marker in `HISTORY`), 3d ("de sempre"), 3g (`meal_day` = eating day), 4 (day/record/slot apart), 5 (schema `kind` enum), 5a (temp shaping), 5c (`question_slot` for v5), 7 (digest content), § IN (`facts` with `T`/`temp`, `temp_facts`), dev log fields; Provenance S16.
+- [api-contract](../../../api-contract.md): `temp_facts` (v5 client), `facts` (`T` ids, `temp`, ≤ 75), `memory_updates` temp ops, `question_slot`, compact digest content.
+- [memoria-push](../../../produto/specifications/memoria-push.md): written by A38 (the client owns the memory rules).
 - Server README: evaluator fields (`since: v5`, `required`, compact mode) and test list.
 
 ## Rollout
@@ -157,7 +159,54 @@ S16 first, A38 after. A server without S16 rejects `T` facts (422): the v5 APK m
 
 ## Results
 
-<Filled at Completion: commands and real numbers, manual evidence, pending items.>
+Completed on 2026-10-03. Server implementation and dev validation are complete; Android storage, expiry and compaction-tail work remain in A38.
+
+### Implementation
+
+- Added the v5 capability, T-id/kind validation, isolated temp shaping, held-slot response and metadata. Instructions/schema stay identical across capability flags for equal slot/fact ids. Older clients receive neither temp proposals nor the held-slot field.
+- Updated eating-day, correction, habitual-meal and digest instructions. Temp references remain reusable; recording never removes or reinforces them. Prompt checks also preserve the existing after-answer and consolidated-meal rules.
+- Added 21 eval fixtures and a synthetic label image. Compact evals use the same moderation, shaping and failure path as HTTP. Required checks cannot pass as unavailable; negative digest checks require non-empty content.
+- `conversation_log.py` needed no change: its existing serializer already writes the new metadata, covered by route/log tests.
+- Default evaluator concurrency is two workers, with the existing maximum of three. Three-worker runs hit the provider's token-per-minute limit during development; two workers completed the final run. Model and reasoning effort are unchanged.
+
+### Automated validation
+
+- `server/.venv/Scripts/python.exe -m pytest server/tests -q`: **223 passed, 271 subtests passed**.
+- Full real-model suite: `python -m evals.run --effort none --repeat 3` from `server/`, using the server virtualenv. A stdout-only wrapper counted progress without changing evaluation behavior.
+
+| Run | Cases passing | p95 | Reported cost |
+|---|---:|---:|---:|
+| Master `89e4236`, 94 cases × 3 | 93/94 (98.9%) | 4162 ms | US$ 0.0371 |
+| Final S16, 115 cases × 3 | 114/115 (99.1%) | 3827 ms | US$ 0.0495 |
+
+Final report: local `logs/evals/2026-10-03-191742-none.json`; baseline: `2026-10-03-172826-none.json` from an isolated archive of master. Logs remain outside git; the measured results are recorded here.
+
+All **21 new cases** met the plan threshold: all **10 strict cases passed 3/3**; `de-sempre-rotina-vence` passed 2/3 and the other new cases 3/3. No unavailable checks. The existing cases remain 93/94 passing. `ceia-completa-suco` is the sole final case failure, 1/3 on both master and S16; it can return only the added drink's calories despite listing the whole meal. This known instability is not fixed by this delivery. `memoria-cheia` remains variable and passed 2/3 in both full runs.
+
+The two existing cases with fewer passing repetitions than the baseline were compared with six repetitions: `python -m evals.run --effort none --repeat 6 --only cafe-resposta-leite,registro-forcado`. Both passed **6/6** on the final source (report `2026-10-03-191828-none.json`), versus 5/6 and 6/6 on master. The coffee failure in the full run was invalid model JSON, not an unavailable-check pass. No existing case-status regression remained after the planned comparisons.
+
+Focused six-repeat runs also checked brand equivalence, quantity differences, routine priority, missing history, clarification answers and additions. Those exposed prompt ambiguities that were corrected before the final full run. Passing thresholds measure observed model behavior, not deterministic guarantees.
+
+### Dev deployment and live evidence
+
+`./tools/deploy-gcp.ps1 -Project dieta-bot-703426` completed. HTTPS `/health` returned 200 with `ok: true` and `safety_id: on`. SHA-256 checks of deployed `config.py`, `llm.py`, `main.py` and `shaping.py` matched the tested local files. No environment or secret changes were needed.
+
+Four real `/v1/chat` requests returned 200. The request bodies came from the fixtures, with a synthetic meal requiring clarification for the held turns. Responses and the matching dev log entries were checked:
+
+| Request id | Response and matching log evidence |
+|---|---|
+| `s16-meal-day-191840` | Response `record: auto`; log `meal_day: today`, `record: auto_log`, `clarify: released_cap`. |
+| `s16-temp-191840` | Response contains a temp add and `record: none`; log `temp_facts: 0`, `record: none_intent`. |
+| `s16-held-v4-191840` | Estimate held, question present, no `question_slot`; log `clarify: asked`, temp count and held slot null. |
+| `s16-held-v5-191840` | Estimate held, question present, `question_slot: "3"`; log `clarify: asked`, `temp_facts: 0`, `question_slot: "3"`. |
+
+All four logs have `fallback: false`. Live checks used local scripts under ignored `logs/evals/`; the exact request IDs were read with `tools/pull-conversations.ps1 -RequestId ... -Project dieta-bot-703426`. No unrelated tester logs were collected.
+
+### Documentation and remaining scope
+
+The HTTP contract, server specification and server README describe the delivered behavior and rollout boundary. ADR-029 was accepted under this approval, and ADR-023's status records the partial supersession without changing its decision body. Lifecycle links were updated; `node tools/check-docs.mjs` and `git diff --check` passed. The affected lifecycle directories were checked; none was empty and eligible for removal.
+
+No S16 validation is pending. A38 remains a separate client plan: the current APK does not persist/send temp references, preserve the suggested-slot marker or keep the new raw compaction tail. No Android code or UI changed.
 
 ## Closure
 
@@ -165,4 +214,4 @@ After implementation, record real results and apply the lifecycle in `docs/sdd/R
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and `plans/cancelled/`.
 
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../sdd/README.md#fora-de-escopo).
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../../sdd/README.md#fora-de-escopo).

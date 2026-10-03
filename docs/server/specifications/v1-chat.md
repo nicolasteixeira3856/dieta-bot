@@ -1,179 +1,121 @@
-# Especificacao — POST /v1/chat
+# Specification — POST /v1/chat
 
-## Contexto e objetivo
+## Context and goal
 
-O Chat manda perfil + snapshot do dia + ate 12 msgs + foto opcional. O server devolve prosa + estimate estruturado + slot sugerido. Stateless. Nao grava o dia.
+Chat sends a profile, today's snapshot, up to 12 messages and an optional photo. The server returns prose, a structured estimate and a suggested slot. It is stateless and never records the day.
 
-## Escopo
+## Scope
 
-- POST /v1/chat (X-Invite, JSON).
-- Timeout 60s em config + httpx + OpenAI.
-- Cap 16 MB no JPEG decodificado (ou 22_400_000 chars de image_b64). HTTP 413. Antes de chamar Luna.
-- compact=false: uma resposta de chat.
-- compact=true: resume `messages` e devolve `digest`. Nao empilha raw.
-- estimate/fit continuam no ar; o client não os chama a partir do Chat ([chat](../../produto/specifications/chat.md) regra 13).
-- Header opcional `X-Client-Instance-Id`, que vira `safety_identifier` ([contrato](../../api-contract.md), [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile)).
-- Controles de conteúdo: regras 12–16 e a [política de conteúdo](../../content-policy/specifications/content-policy.md) ([ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)).
+- `POST /v1/chat`, authenticated JSON; normal turns and `compact=true` digests.
+- Request, photo, timeout and error boundaries: [HTTP contract](../../api-contract.md).
+- The client does not call estimate/fit from Chat ([product Chat](../../produto/specifications/chat.md), rule 13).
+- Optional installation correlation: [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile).
+- Content handling: [content policy](../../content-policy/specifications/content-policy.md) and rules 12–16 below.
 
-## Fora de escopo
+## Out of scope
 
-- Persistencia de foto, user, dia, memoria.
-- Stream.
-- Gemini / Grok flagship.
-- Multipart (MVP continua image_b64).
-- Calcular teto no server.
-- Trilha de auditoria de produção ([production gate](../../content-policy/production-gate.md)).
+Photo, user, day and memory persistence; streaming; multipart; other models; server-side ceiling calculation; the [production audit gate](../../content-policy/production-gate.md).
 
-## Regras funcionais
+## Functional rules
 
-1. Auth igual estimate. 401 se X-Invite falhar.
-2. Modelo gpt-6-luna, reasoning.effort=none (`config.REASONING_EFFORT`; `low` só se ganhar ≥ 10 p.p. no avaliador com p95 ≤ 20 s — ADR-023). store=false.
-3. Prompt do turno = instructions fixas + `PROFILE` + `MEMORY` + `DAY` + `RECENT` + `DIGESTS` + `HISTORY` (≤12) + mensagem atual + imagem opcional. As instructions vêm primeiro e são idênticas entre turnos (cache de prompt). O `day` leva, por slot gravado, `kcal`, P/C/G e `text`, e `remaining_kcal` quando o app manda.
-   - Cliente v2 (`facts` presente, mesmo vazio): `MEMORY: permanent {n}/30, dynamic {n}/40` e uma linha por fato: `{id} {category}[ slot={slot}] {key}: {text} (seen {n} days[, last {data}])`. O texto `memory` é ignorado.
-   - Cliente legado (sem `facts`): `MEMORY: {memory}` como antes.
-   - `RECENT` (qualquer cliente, quando vier): uma linha por refeição, `{data} {dia da semana} {slot_id} {slot_name}: "{text}" {kcal}kcal {p}P {c}C {g}G`; `slot_id` null = `Outros`.
-3a. Intenção: `log` (comeu ou está comendo, ou responde a pergunta sobre essa refeição; comida citada sozinha, sem verbo nem pergunta, também é `log`), `plan` (vai comer, quer montar, pede quantidades, pergunta se cabe), `question` (sem comida a estimar: saudação, dúvida sobre o app, pergunta de nutrição sobre comida) ou `skip` (uma refeição de hoje não aconteceu: "pulei o café", "hoje não almocei", sem "ainda"; ou o usuário diz com firmeza que não vai acontecer hoje: "hoje não vou jantar", "vou pular o almoço hoje"; `skip_slot` = id do slot do perfil cujo nome é essa refeição, ou null quando nenhum slot tem esse nome: "merenda", "sobremesa"). Refeição pendente não é `skip` ("ainda não almocei", "não jantei ainda", "ainda vou almoçar"): `question`, ou `plan` se pede o que comer, `skip_slot: null`. Pulo com dúvida não é `skip` ("acho que não vou jantar", "talvez eu pule a janta", "não sei se vou almoçar"): `question`, `skip_slot: null` (S15). Pedido fora do escopo nunca é respondido (regra 12). Dúvida: passado = `log`; futuro, condicional ou pedido de quantidade = `plan`. Estimate em `log` e `plan`; null em `question` e `skip`. `skip` só chega ao cliente v4; antes dele vira `question` com o mesmo `reply` (regra 5d).
-3b. `meal_text`: a refeição inteira em pt-BR com as correções da conversa, sem comentário, ≤ 160 caracteres. Nunca a resposta do usuário sozinha.
-3c. Plano: `reply` com gramas por item, preparo em até 3 linhas se receita, total `kcal · P · C · G`; cabe em `remaining_kcal` quando possível, senão diz quanto passa. Não faz a conta do dia. Não pergunta: assume e diz o que assumiu (`question` null).
-3d. Histórico: "o mesmo de ontem", "igual ao almoço de segunda" → usa a linha de `RECENT` daquele dia e slot. Sem registro que case → estimate null e pergunta o que foi.
-3e. Memória: fato que responde a incerteza é usado, não vira pergunta, e o id vai em `memory_used`. `memory_updates` (≤ 5 por turno): frase explícita de hábito → `add` permanente (ou `replace` do fato de mesma `key`); "esquece X" → `remove`; marca/tipo/porção num `log` → `reinforce` ou `add` dinâmico; refeição que casa rotina → `reinforce`; hábito novo → `add` dinâmico `routine` com slot. Nunca refeição avulsa, números do dia ou saúde. Permanente 30/30 + frase nova → sem `add`; o `reply` pergunta "Minha memória fixa está cheia. Esqueço {fato menos visto}?".
-3f. O `reply` nunca diz que registrou ou pulou uma refeição: quem registra é o app, que mostra o recibo ([ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md)). Vale para todo cliente.
-3g. Marca de registro (todo cliente, usada só pelo v4): `record_intent` `clear` = o usuário diz que comeu (ou pulou) e espera que conte: passado ou presente de comer ("Na janta comi…", "almocei um PF"), pedido explícito ("registra", "anota", "marca": "Registra aí, comi tal e tal"), nome de refeição seguido de comida ("Lanche da tarde: 200g de…"), foto de prato sem texto ou com texto dizendo que comeu ("almocei isso"), resposta a pergunta sobre a refeição, "Pode estimar assim."; `unsure` = comida sem sinal de ter sido comida ("pudim de leite com calda"), dúvida misturada com comida, hipótese, foto de comida com pergunta sobre ela ("isso tem muita caloria?", "quanto tem isso?": `log` com estimate, `record: ask`; S15); `plan` e `question` levam `unsure`. `meal_day` `other` = a mensagem fala de refeição de outro dia ("ontem", "anteontem", dia da semana passado, "ontem à noite"); antes das 05:00 locais, "a janta" sem outra data é `today` só se o perfil tem esse slot hoje, num horário antes das 05:00 (ex.: Jantar 03:00); senão é a janta de ontem, `other`. Resto = `today`; comida comida agora ("agora") é sempre `today`. `skip`: reply de uma linha curta e neutra, sem conselho.
-4. Instructions: estimar se o user registrou comida; responder duvida; o modelo nunca grava (só marca, regra 3g); sugerir slot pelo horario local vs slots do perfil; se confidence ≠ high, `question` lista todas as dúvidas da refeição numa mensagem só (no máximo 3 perguntas curtas, cada uma específica: porção, tamanho, preparo, ingrediente); depois de uma resposta, pergunta de novo só sobre comida que ficou sem porção nenhuma e muda a estimativa de forma material (quantidade de molho, óleo, creme, queijo ou tempero é assumida); senão confidence high e `question` null; nunca repete pergunta já feita no `HISTORY`; com confidence ≠ high, o `reply` diz numa linha curta o que assumiu. kcal/P/C/G são o total da refeição inteira (soma dos itens). A refeição da fala, em ordem de prioridade: (1) a nomeada na mensagem atual (nome do slot do perfil ou palavra comum: café, almoço, jantar, lanche, ceia, "jantei", "almocei"); (2) senão, a nomeada na fala do user que esta mensagem responde ou continua ("cafe igual ao de ontem" → pergunta → resposta = café); (3) senão, a refeição gravada que a mensagem corrige; (4) senão, a do horário local. Refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)) só quando a mensagem se refere à refeição gravada: nomeia aquele slot, ou é acréscimo/correção explícito ("também", "faltou", "esqueci", "na verdade", "tirando", "era X e não Y") sem nomear outra refeição. Aí, slot `eaten` → estimate da **refeição inteira** (itens gravados + mudança, a comida acrescentada sempre entra, com porção assumida se houver pergunta) com aquele slot, e o reply diz que substitui. Comida igual ou parecida à gravada não basta: com outra refeição nomeada, é refeição nova daquele slot e o reply não fala em substituir. Resposta a pergunta → reestima a mesma refeição, mesmo slot. Outro dia ("ontem") → `meal_day: other`, estima se pedido, e o reply diz numa linha curta que o Chat registra só as refeições de hoje.
-4a. Total de kcal sem comida ("comi 1220 kcal"), mesmo com o slot gravado → `estimate: null` e o reply pergunta o que foi comido. Nunca estimate com p, c e g todos zero; P/C/G coerentes com kcal; sem conseguir estimar → null, nunca zeros.
-5. OUT sempre JSON. O server pede ao modelo `text.format` `json_schema` strict (`chat_turn`: todo campo obrigatório, nulo explícito; compact usa o schema `digest`):
-   - reply: string (prosa pt-BR)
-   - intent: `log` | `plan` | `question` | `skip`
-   - estimate: {kcal,p,c,g,confidence,question,items,suggested_slot,meal_text} ou null (`question`, `skip`)
-   - record_intent: `clear` | `unsure`; meal_day: `today` | `other`; skip_slot: enum dos ids do perfil + null (S14, regra 3g; internos: só o cliente v4 recebe `skip_slot`, pela regra 5d)
-   - memory_updates: lista de {op,id,kind,category,key,text,slot}; `id` e `memory_used` com enum dos ids de `facts` (sem fatos: `id` só null, `memory_used` string livre)
-   - memory_used: lista de ids de fatos
-   - digest: string ou null
-   - scope: `in_scope` | `out_of_scope` | `policy_blocked` | `safety_support` (último campo do schema; só interno, nunca vai ao client)
-   - model: gpt-6-luna
-5a. Shaping (S11): `intent` inválido → deduzido (estimate = `log`, senão `question`); `question` com estimate → estimate descartado; `plan` → `question` null; `meal_text` vazio → itens (`{name} {g} g`, vírgulas), acima de 160 corta na última vírgula. `memory_updates`: descarta op/kind/category inválidos, `id` desconhecido em `reinforce`/`replace`/`remove`, `add` com `id`, `routine` sem slot válido, `key` ou `text` vazio; corta `text` 160 e `key` 40; no máximo 5. `memory_used`: só ids de `facts`, sem repetição, no máximo 10.
-5c. Cliente v3 (`clarify_rounds` presente, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): o OUT ganha `question` no topo (string ou null) e `estimate.question` é sempre null. Para `intent: log` com estimate, o gate de liberação (`shaping.clarify_gate`), em ordem: (1) `force_estimate` → libera (`released_force`); (2) confidence high ou pergunta vazia → libera (`released_confident`); (3) `clarify_rounds ≥ 3` → libera (`released_cap`); (4) a pergunta repete uma pergunta de um turno `assistant` de `messages` → libera (`released_repeat`); (5) senão pergunta (`asked`). Liberar = estimate com `question: null` e a confidence do modelo; `question` do topo null. Perguntar = `estimate: null`, `question` = a pergunta do modelo, `reply` = `Entendi: {meal_text}.` + quebra de linha + a pergunta (sem `meal_text`, só a pergunta), texto que o app guarda e devolve no histórico; `memory_updates` e `memory_used` passam iguais. Repetição: só as frases terminadas em `?` do turno contam; texto em minúsculas, sem acento, tokens `[a-z0-9]`, sem stop words pt-BR de uma lista fixa curta; repete com Jaccard ≥ 0,6 (`CLARIFY_REPEAT_JACCARD`) ou um conjunto contido no outro. `plan`, `question` e estimate null passam sem gate. Falha ou texto sem JSON: `question: null`. Sem `clarify_rounds` (cliente até v2): sem gate e sem `question` no topo.
-5d. Cliente v4 (`clarify_rounds` presente e `auto_record: true`, [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md)): depois do gate da regra 5c e da política de conteúdo, o gate de registro (`shaping.record_gate`) põe no topo `record` (`auto` | `ask` | `none`) e `skip_slot` (string ou null). Em ordem, a primeira linha vale (valor no log entre parênteses): (1) `scope` ≠ `in_scope` ou flag de moderação (resposta fixa, inclusive texto sem JSON) → `none` (`none_policy`); (2) `intent` `question` ou `plan`, turno só de pergunta, `log` sem estimate ou falha (`fallback: "error"`) → `none` (`none_intent`); (3) `meal_day: other` → `none` (`none_other_day`); (4) `skip` com `skip_slot` id do perfil → `auto`, `skip_slot` = esse id (`auto_skip`); (5) `skip` sem slot válido → `none` e `intent: question` (`none_skip_slot`); (6) `log` com estimate liberado e `suggested_slot` null → `ask` (`ask_no_slot`); (7) `log` com estimate liberado e `record_intent: clear` → `auto` (`auto_log`); (8) senão `ask` (`ask_unsure`). `force_estimate: true` e foto sem texto contam como `clear`. `meal_day` ausente ou inválido = `today`; `record_intent` ausente ou inválido = `unsure`. `skip_slot` só não é null na linha 4. O cliente aplica a marca e rebaixa `auto` para `ask` se uma guarda dele falhar. Sem cliente v4 (`auto_record` ausente ou `false`, ou sem `clarify_rounds`): `skip` vira `question` com o mesmo `reply`, `record` e `skip_slot` não existem no OUT, e a resposta é byte a byte a de antes do S14.
-5b. Cliente legado (sem `facts`): `memory_updates` e `memory_used` vazios; `intent: plan` → `estimate: null` (sem card no APK ≤ 0.0.3; gramas e total no `reply`).
-6. suggested_slot = id de um slot do profile.slots (enum no schema, montado por request; perfil sem slots → só `null`). Ordem da regra 4. Nomes e horários só do PROFILE: nunca supor horário "normal" de refeição (Jantar às 03:00 é o Jantar). Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id. Defesa no shaping: aceita `"1"`, `1` e `{"id": 1}`, normaliza para string e descarta id fora do perfil.
-6a. confidence ≠ high sem `question` → `"Alguma porção foi diferente do que considerei?"` (`CHAT_FALLBACK_QUESTION`). Só cliente sem `clarify_rounds`: o cliente v3 nunca recebe a pergunta genérica (pergunta vazia libera a estimativa, regra 5c).
-7. compact=true: Luna recebe so as messages (delimitadas, sem foto) e devolve digest ≤400 tokens (corte em 1600 chars), pt-BR, fatos (comida, kcal/P citados nas falas, slot, pulou), sem conselho. OUT: reply "", estimate null. messages vazio → 422 `compact_needs_messages` sem chamar a Luna. Falha → 200 com digest null.
-8. Foto: data:image/jpeg;base64. HEIC nao entra no server — client converte.
-9. Recusar image_b64 maior que o cap ANTES do LLM. Nao logar o base64.
-10. Modelo respondeu texto sem JSON (nenhum `{`): `reply` é a resposta fixa de fora do escopo, estimate=null (log `fallback: "text_only"`). O texto do modelo nunca volta ao client (CP2). Falha LLM/timeout, saída vazia ou JSON inválido: reply curto "nao deu pra estimar", estimate=null (log `fallback: "error"`). Sem stacktrace.
-11. Corpo HTTP até 24 MB (`MAX_BODY_BYTES`), acima → 413 `payload_too_large`. Cobre o cap da foto + JSON: foto acima do cap continua 413 `photo_too_large`.
+1. Authentication matches estimate: invalid or missing `X-Invite` returns 401.
+2. Model: `gpt-6-luna`, `reasoning.effort=none`, `store=false`. Considering `low` requires at least 10 percentage points of evaluator gain and p95 at most 20 seconds (ADR-023).
+3. Each turn has fixed instructions followed by `PROFILE`, `MEMORY`, `DAY`, `RECENT`, `DIGESTS`, `HISTORY` (up to 12 messages), current text and optional image. Instructions are identical across requests for prompt caching. `DAY` carries recorded slot text and kcal/P/C/G, plus `remaining_kcal` when supplied.
+   - Structured memory (`facts` present, even empty): `MEMORY: permanent {n}/30, dynamic {n}/40`. Permanent/dynamic lines: `{id} {category}[ slot={slot}] {key}: {text} (seen {n} days[, last {date}])`. The legacy `memory` text is ignored.
+   - With `temp_facts: true` and structured memory (v5), append `, temp {n}/5` to that header. A temporary line is `{id} {category} {key}: {text} (temp since {last_seen})`; a missing date is `unknown`. The client supplies creation date in `last_seen`. Without the capability the permanent/dynamic header is unchanged.
+   - Legacy clients without `facts` retain `MEMORY: {memory}`. Their `temp_facts` flag is ignored.
+   - `RECENT`, when supplied by any client: `{date} {weekday} {slot_id} {slot_name}: "{text}" {kcal}kcal {p}P {c}C {g}G`; a null slot is `Outros`.
+   - An assistant history message may end with `[refeição sugerida: {slot name}]`. It is the assistant's suggestion, never the user's words. Client creation of this marker belongs to A38.
+3a. Intent is `log`, `plan`, `question` or `skip`. `log`: ate/is eating, answers a question about that meal, or names food alone without a verb or question. `plan`: will eat, asks quantities, a recipe or whether food fits. `question`: a greeting, app question, food nutrition question or memory statement without food to estimate. `skip`: a meal did not happen today (`pulei o café`, `hoje não almocei`, without `ainda`), or a firm decision it will not happen (`hoje não vou jantar`). A pending meal (`ainda não almocei`) or hedged skip (`acho que não vou jantar`) is `question`, or `plan` when asking what to eat, never `skip`. For skip, `skip_slot` is the matching profile slot, otherwise null. Estimate is present for log/plan and null for question/skip. When uncertain, past eating is log; future/conditional or quantities are plan. Off-topic requests are handled under rule 12. Clients before v4 receive skip as question with the same reply.
+3b. `meal_text` is the entire meal, including corrections, in pt-BR, at most 160 characters, foods and quantities only. Never the latest answer alone or commentary.
+3c. A plan's reply gives grams per item, preparation in at most three lines for a recipe, and totals as `kcal · P · C · G`. It fits `remaining_kcal` when possible, otherwise states the excess. No daily-total arithmetic in the reply. Plans assume rather than ask; the reply states assumptions, and estimate.question is null.
+3d. `O mesmo de ontem` or `igual ao almoço de segunda` copies the matching RECENT day/slot, foods and numbers. No match means estimate null and a question about the meal. `O de sempre` / `o mesmo de sempre` first uses a routine fact of that slot. Otherwise compare the latest record of that slot on each of the two most recent distinct days (last record within a day). Foods and quantities must match; a different brand of the same food is allowed, changed amounts or added/missing foods are not. A bare habitual-meal report is log. On a match, return the estimate, copy the most recent foods and numbers and name the copied weekday in reply without asking whether the user ate it. Otherwise, including fewer than two days, ask what was eaten with estimate null.
+3e. Use memory that resolves uncertainty, without asking again, and cite its id in `memory_used`. Explicit habits propose permanent add/replace; explicit forgetting proposes remove; brand/type/portion in a log reinforces or adds a dynamic fact; matching routines reinforce; a new habit can add a dynamic routine. Permanent/dynamic keys match only that family. Never save one-off meals, day totals, health conditions or one-off labels as habits. At permanent capacity, ask which least-seen fact to forget before adding.
+   - Only with temp capacity in MEMORY, a specific product's supplied label/nutrition values or a dish estimated for later proposes `add`, kind `temp`, category `portion`, slot null. Keep the product, serving basis and given numbers even with incomplete nutrients; never invent missing values in the fact. The proposal is independent of the reply/estimate, including plans for another day. Generic calorie questions, habits/preferences and the meal being logged do not create temporaries.
+   - A matching T reference supplies its numbers on every use, including later portions, and its id goes into `memory_used`. Use never reinforces, promotes or removes it. An explicit request to forget can remove it. Changed reference data replaces an existing T id; a temp key never replaces a permanent/dynamic fact. Storage, expiry and capacity belong to the client under [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md).
+3f. Reply never claims a meal was recorded or skipped: the app writes it and shows a receipt ([ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md)). Applies to every client.
+3g. Internal record marks apply to every model request and drive v4 responses. `record_intent: clear` means stated eating/skipping, explicit registration, a meal name followed by food, a plate photo without text or with stated eating, an answer to a meal question, a concrete portion report referring to previously discussed/estimated food, or `Pode estimar assim`. Food alone, hypotheticals and food photos with a nutrition question are `unsure`; the latter still have log/estimate. Plan/question are unsure. `today` uses DAY.date at the supplied local_time for the whole dialogue, including undated eating statements in history and their answers. Past tense alone is not yesterday. `meal_day: other` means food was **eaten** on another day, not merely asked about, estimated, bought, cooked or planned then. `O mesmo de ontem` is today's meal. Before 05:00, an undated dinner is today only if that profile slot is scheduled before 05:00; otherwise it is last night's dinner, other. Other undated meals and food eaten `agora` are today. Skip replies are one short neutral line without advice.
+4. Read eating day, intent to record and slot separately. A record request/complaint for an identifiable meal is log with clear intent; reconstruct every food and answer from HISTORY/DIGESTS. It does not change the eating day: `registra o almoço de ontem` remains other. An explicit day correction overrides an assistant assumption or digest. `É de hoje` alone after a generic nutrition question does not create a meal log. Without identifiable food, ask what it was. If the current report identifies food and quantity but the earlier estimate is unavailable, make a fresh estimate from that report.
+   - Slot priority: current user-named meal; earlier user-named meal being continued; earlier assistant suggestion for that meal; recorded meal being corrected; local profile time or nearest empty slot. Never ask which meal when already named or suggested. Profile names/times are authoritative, including unusual schedules.
+   - For a material uncertainty, confidence below high carries all doubts at once (at most three specific short questions). Never ask what memory/history already answers or repeat a history question. After an answer, ask again only about food still lacking any portion and materially changing totals; assume sauce, oil, cream, cheese, seasoning and usual coffee/tea amounts. Otherwise confidence is high and question null. Below high, reply states the assumption in one short line.
+   - Totals cover the whole meal and sum its items. A recorded meal is consolidated only when the message names that eaten slot, or explicitly adds/corrects without naming another meal. An unnamed explicit addition without a history target uses the most recent eaten DAY slot, not a later empty slot selected by the clock. Include existing food plus the change, even with an assumed portion while asking. Reply says this replaces the recorded meal. Similar food alone is not enough; another named slot is a new meal, not a replacement. An answer re-estimates the same meal and slot.
+   - Food eaten on another day may be estimated if requested, but reply states that Chat records only today's meals, including the before-05:00 rule.
+4a. A calorie total without food, even for an eaten slot, produces estimate null and a question about food. Never all-zero macros for real food; kcal and P/C/G must be coherent. Unable to estimate means null, not zeros.
+5. Model output uses strict JSON schema `chat_turn`, all properties required with explicit nulls: reply; intent; estimate `{kcal,p,c,g,confidence,question,items,suggested_slot,meal_text}` or null; internal record_intent/meal_day/skip_slot; memory_updates; memory_used; digest (null for chat); and internal scope as the final schema field. The response adds the configured model. `memory_updates[].kind` always has `permanent`, `dynamic`, `temp`, even for older clients. Slots and fact ids supply the existing per-request enums; `temp_facts` creates no schema or instruction variant for the same ids. Compact uses the separate digest schema.
+5a. Shaping deduces invalid intent from estimate (log if present, otherwise question); drops an estimate on question; nulls plan questions; fills empty meal_text from items and truncates at the last comma within its limit. Memory updates discard invalid op/kind/category, unknown ids for non-add operations, add with an id, routine without valid slot, and empty key/text; truncate key/text to their input limits and retain at most five. `memory_used` retains known unique ids, at most ten.
+   - Temp updates require the effective v5 capability: add with null id, or replace/remove of a known T id; category portion/preference; slot null. Reinforce, routine and any non-null slot are dropped. Operations on T ids with another kind are dropped. Without capability, all temp proposals are dropped.
+5c. With `clarify_rounds` (v3), response gains top-level question and estimate.question is always null. For log with estimate, `clarify_gate` checks in order: force (`released_force`); high confidence or no question (`released_confident`); rounds at least three (`released_cap`); repeated assistant question (`released_repeat`); otherwise hold (`asked`). Release keeps the model confidence and estimate, with both questions null. Hold returns estimate null, top-level question and history reply `Entendi: {meal_text}.` + newline + question (question alone without meal_text). Memory lists pass unchanged. Repeat detection uses sentences ending in `?`, lowercase unaccented alphanumeric tokens excluding a fixed short pt-BR stop list, Jaccard at least 0.6 or set inclusion. Plan/question/null estimate bypass the gate. Fallback/refusal has question null. Without rounds there is no gate or top-level question.
+   - A v5 held response additionally carries `question_slot`: the sanitized held estimate's profile slot id or null. It is absent for non-held responses and clients without effective temp capability. Older client response shapes stay unchanged. Android consumption belongs to A38.
+5d. With rounds and `auto_record: true` (v4), the record gate adds record (`auto`, `ask`, `none`) and skip_slot. First matching rule wins:
+   1. Refusal → none (`none_policy`).
+   2. Question/plan, held turn, log without estimate or fallback → none (`none_intent`).
+   3. Other eating day → none (`none_other_day`).
+   4. Skip with profile slot → auto and that skip_slot (`auto_skip`).
+   5. Skip without slot → none, intent question (`none_skip_slot`).
+   6. Released log without suggested slot → ask (`ask_no_slot`).
+   7. Released log with clear intent → auto (`auto_log`).
+   8. Otherwise → ask (`ask_unsure`).
+   Force and photo without text count as clear. Missing/invalid meal_day defaults today; record_intent defaults unsure. Skip_slot is null except on rule 4. The client applies its guards before recording. Without v4 capability, record/skip_slot are absent and skip becomes question with the same reply.
+5b. Legacy clients without facts receive empty memory lists. Plans return estimate null to avoid a recording card in APKs through 0.0.3; quantities/totals stay in reply.
+6. Suggested_slot is a profile id or null, selected under rule 4. Shaping normalizes string/integer/id-object to a string and rejects unknown ids. No profile slots means the schema permits only null.
+6a. Legacy confidence below high without a question uses `Alguma porção foi diferente do que considerei?`. V3+ never receives that generic question: an empty model question releases the estimate.
+7. Compact sends only delimited history, without image, and returns pt-BR prose up to 400 tokens, capped at 1600 characters. Keep user-stated foods, quantities and nutrition values, user-named slots, skips and confirmed clarifications. Never record status, assumed eating day/slot, or an unconfirmed estimate stated as eaten. A slot suggestion marker is not a user fact. Read later answers first: an answered question contributes its answer, with no pending marker. An unanswered assistant question ends the digest using the literal prefix in `Pergunta em aberto: {question} ({meal})`, preserving the pending food/photo description and only the unanswered interrogative sentence, without preceding assistant claims. No advice, judgement, new numbers or estimates. Empty history returns 422 before generation; generation failure returns digest null. Output moderation and failures share the same `compact_reply` path in HTTP and evals.
+8. Photos arrive as JPEG; conversion and EXIF stripping belong to the client. No HEIC processing here.
+9. Reject an oversized photo before calling the model; never log base64.
+10. Plain text without JSON returns the fixed scope refusal (fallback `text_only`), never raw model prose. Generation failure/timeout, empty or invalid output returns `nao deu pra estimar`, estimate null (fallback `error`), without stack traces.
+11. HTTP body and photo limits are enforced as specified in the [contract](../../api-contract.md); the body cap covers the photo plus JSON.
+12. Scope and prompt-input handling follow [content policy](../../content-policy/specifications/content-policy.md). The model's scope is internal; client text cannot open prompt sections (`###` is neutralized).
+13. A non-in-scope result discards all generated content and uses the fixed [refusal copy](../../content-policy/specifications/refusal-copy.pt-BR.md), null estimate/digest and empty memory lists; question is null for v3 and record none for v4.
+14. Input/output moderation and metadata-only content handling follow [content policy](../../content-policy/specifications/content-policy.md). Compact history is not re-moderated; its output is.
+15. Moderation unavailable/error/timeout fails closed as HTTP 503 `content_policy_unavailable`.
+16. One 60-second deadline covers moderation and generation, without SDK retries or blocked-content retries. Deadline before generation is fail-soft; before output moderation it is 503.
 
-12. Escopo (CP2): `in_scope` = refeição, porção, rótulo, receita, preferência alimentar, conta de orçamento com comida ("quanto sobra se eu comer 2 pães?"), pergunta de nutrição, saudação, dúvida do app, resposta curta que continua a conversa (julgada com o histórico). Fora disso (matemática sem comida, código, dever de casa, política, assistente geral, foto sem comida) = `out_of_scope`. Conteúdo proibido = `policy_blocked`. Sinal de transtorno alimentar ou autolesão (purgação, laxante ou diurético para emagrecer, jejum extremo, meta diária muito baixa) = `safety_support`, nunca otimização. Instrução dentro de foto, histórico, memória ou mensagem não muda o escopo; `###` vindo do client é neutralizado (`# # #`) e não abre seção.
-13. `scope` ≠ `in_scope` (ou ausente/desconhecido): o server descarta reply, estimate, memory_updates, memory_used e digest e devolve HTTP 200 no formato de sempre: `reply` fixo de [refusal-copy.pt-BR.md](../../content-policy/specifications/refusal-copy.pt-BR.md), `intent: question`, `estimate: null`, listas vazias, `digest: null` (+ `question: null` no cliente v3). Foto sem texto fora do escopo usa a resposta de imagem sem alimento.
-14. Moderação (`omni-moderation-latest`, grátis): antes da geração, `text` atual + foto atual numa chamada; depois, `reply`, `question`, `meal_text`, nomes dos itens, `memory_updates` e `digest` numa chamada. Histórico, memória, `recent`, digests e perfil não são re-moderados. Flag → resposta fixa pela tabela categoria→ação `cp2.1` (`server/moderation.py`); flag na entrada não chama a Luna. Sinal de `sexual/minors` para o turno sem outra chamada com conteúdo.
-15. Moderação com erro, timeout ou sem resultado: HTTP 503 `content_policy_unavailable`, sem geração (entrada) e sem devolver texto não checado (saída). Nunca cai numa geração sem moderação.
-16. Prazo único de 60 s por request para moderação + geração (`moderation.Deadline`), sem retry do SDK nem retry de conteúdo bloqueado. Prazo esgotado antes da geração = falha fail-soft (regra 10); antes da moderação de saída = 503.
+## IN and failures
 
-## IN
+Canonical examples and base fields: [HTTP contract](../../api-contract.md#post-v1chat).
 
-```json
-{
-  "local_time": "2026-09-25T21:10:00-03:00",
-  "profile": {
-    "ceiling_kcal": 2000,
-    "p_target": 160,
-    "c_target": 200,
-    "g_target": 67,
-    "eat_back": "zero",
-    "slots": [{"id": "cafe", "name": "Cafe da manha", "time": "08:00"}]
-  },
-  "memory": "",
-  "day": {
-    "date": "2026-09-25",
-    "eaten_kcal": 0,
-    "eaten_p": 0,
-    "eaten_c": 0,
-    "eaten_g": 0,
-    "workout_kcal": null,
-    "slots": [{"id": "cafe", "status": "empty"}]
-  },
-  "digests": [],
-  "messages": [],
-  "text": "2 paes e 2 ovos",
-  "image_b64": null,
-  "compact": false
-}
-```
+- Messages: up to 12, user/assistant roles only; digests: up to two. Text and message text: up to 2000 code points.
+- Facts: up to 75 `{id,kind,category,key,text,slot,days_seen,last_seen}`. Id matches `[PDT][0-9]{1,4}`; T iff kind temp, otherwise 422. Kinds: permanent/dynamic/temp. Categories: preference/portion/routine. Key at most 40, text at most 160, slot profile id or null, days_seen nonnegative, last_seen ISO date or null. Present even empty means structured memory.
+- Recent: up to 42, text at most 240, ISO date, nullable slot. Day.remaining_kcal is an integer or null, computed by the app and possibly negative.
+- Clarify_rounds: 0–3 or absent. Force_estimate: false by default, ignored without rounds.
+- Auto_record: false by default, effective only with rounds.
+- Temp_facts: false by default, effective only with facts. The client sends rounds and auto_record for the full v5 behavior. Older APKs get neither temp updates nor question_slot.
+- Slot status: empty/eaten/skipped. Invalid input returns 422; unauthorized 401; oversized body/photo 413. Content refusals return the usual 200 shape, moderation failure 503, generation failure a 200 fallback. No 504 for the model timeout.
 
-status do slot: `empty` | `eaten` | `skipped`.
-`text` e `messages[].text`: até 2000 caracteres ([ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)); acima → 422.
-messages[].role: `user` | `assistant`. Sem system.
+## Boundaries and observability
 
-Campos opcionais do S11 (ADR-023), limites → 422:
+The client builds profile/day/history, applies records and stores memory; the server never reads Room. Content logging restrictions and safety correlation belong to [content policy](../../content-policy/specifications/content-policy.md) and [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile). Never log photo base64 or secrets.
 
-- `facts`: ≤ 70 itens `{id, kind, category, key, text, slot, days_seen, last_seen}`; `id` `[PD][0-9]{1,4}`; `kind` `permanent` | `dynamic`; `category` `preference` | `portion` | `routine`; `key` ≤ 40; `text` ≤ 160; `slot` id do perfil ou null; `days_seen` ≥ 0; `last_seen` data ISO ou null. Presente (mesmo vazio) = cliente v2.
-- `recent`: ≤ 42 itens `{date, slot_id, slot_name, text, kcal, p, c, g}`; `text` ≤ 240; `date` ISO; `slot_id` null = "Outros".
-- `day.remaining_kcal`: inteiro ou null (teto efetivo − comido, pode ser negativo).
+For dev chat logs, `clarify` identifies the release/hold reason and `clarify_rounds` is a number or null. `record` uses the reason labels in rule 5d or null outside v4; internal `record_intent` and `meal_day` are model enums or null. Logs also include `temp_facts`, the count of T references for effective v5 or null otherwise, and `question_slot`, the returned held slot or null. These fields contain no fact or user text. The conversation-log serializer writes these metadata.
 
-Campos opcionais do S13 (ADR-026):
+## Related decisions
 
-- `clarify_rounds`: inteiro 0–3 (fora → 422), rodadas de pergunta já mostradas para a refeição pendente. Presente = cliente v3 (regra 5c).
-- `force_estimate`: booleano, padrão `false`. O usuário tocou **Forçar estimativa**. Ignorado sem `clarify_rounds`.
+[ADR-012](../../produto/adrs/ADR-012-chat-home-perfil.md), [ADR-015](../adrs/ADR-015-log-conversa-dev.md), [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md), [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md), [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) and [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md).
 
-Campo opcional do S14 (ADR-028):
+## Functional acceptance
 
-- `auto_record`: booleano, padrão `false`. Com `clarify_rounds` presente = cliente v4 (regra 5d). Ignorado sem `clarify_rounds`.
+- A clear meal eaten today records with a known slot; true other-day meals do not. Past estimation/purchase alone does not change eating day.
+- Record corrections reconstruct the meal and reuse the known/suggested slot. Day-only answers to generic questions do not record.
+- Habit fallback requires two matching distinct days, or a routine fact.
+- V5 labels produce reusable temp proposals; generic questions and old clients do not. Held v5 turns retain their slot; old response shapes remain compatible.
+- Compaction retains stated facts and pending questions, excludes assumptions/record status, and fails closed on moderated output.
+- Auth, payload/photo boundaries, fail-soft generation and fail-closed moderation remain covered by route tests.
 
-## Estados e falhas
+## Provenance
 
-- 401 invite.
-- 413 foto > cap.
-- 422 JSON invalido.
-- 200 + estimate=null se a fala nao for comida (receita, duvida).
-- 200 + resposta fixa se `scope` ≠ `in_scope` ou moderação sinalizar (regras 13–14).
-- 503 `content_policy_unavailable` se a moderação falhar (regra 15).
-- Timeout 60s → 200 fail-soft (nao 504), mesmo shaping de falha.
-
-## Fronteiras e ownership
-
-- Dono: `server/`.
-- Client monta profile/day/messages. Server nao consulta Room.
-
-## Localizacao e observabilidade
-
-- Nao logar image_b64 nem OPENAI_API_KEY.
-- Log de conversa dev, campo `policy` (CP2): `null` ou `{stage, code, severe, categories, table}` (`stage` `input` | `scope` | `output` | `text_only`; `code` interno; só categorias verdadeiras). Turno `policy_blocked` ou com sinal severo: só metadados (prompt, input, saída e resposta `null`), parcialmente substituindo o [ADR-015](../adrs/ADR-015-log-conversa-dev.md). `error` leva só tipo e status HTTP, nunca o texto do provedor.
-- Log de conversa dev ([ADR-015](../adrs/ADR-015-log-conversa-dev.md)), rota `chat`: `clarify` (`none` | `asked` | `released_force` | `released_confident` | `released_cap` | `released_repeat`) e `clarify_rounds` (número ou null). S14: `record` (`none_policy` | `none_intent` | `none_other_day` | `auto_skip` | `none_skip_slot` | `ask_no_slot` | `auto_log` | `ask_unsure`, ou null fora do cliente v4), `record_intent` (`clear` | `unsure` | null) e `meal_day` (`today` | `other` | null), estes dois do modelo, para todo cliente (null se o modelo não devolveu ou se o turno foi recusado antes do shaping). Sem texto do usuário nesses campos.
-
-## Decisoes relacionadas
-
-- [ADR-012](../../produto/adrs/ADR-012-chat-home-perfil.md)
-- [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)
-- [ADR-015](../adrs/ADR-015-log-conversa-dev.md)
-- [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)
-- [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)
-- [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)
-- [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)
-- [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) (o server cobre as decisões 1, 2, 4, 7 e 8)
-- [api-contract.md](../../api-contract.md)
-
-## Criterios de aceite funcionais
-
-- POST /v1/chat texto sem foto devolve reply + estimate com numeros.
-- O server nunca grava: só marca `record` (sem side effect).
-- Cliente v4: `log` claro de hoje com slot → `record: auto`; `log` sem clareza → `ask`; `plan`, `question`, turno só de pergunta, outro dia ou recusa → `none`; "pulei o café" → `intent: skip`, `skip_slot` do café, `record: auto`. "ainda não almocei" e "acho que não vou jantar" → `record: none`, nunca `skip`; "hoje não vou jantar" → `skip`, `record: auto`; foto de comida com pergunta → `record: ask` com estimate; foto sem texto → `auto` (S15).
-- Request sem `auto_record` devolve o mesmo formato de antes do S14.
-- compact=true devolve digest nao-vazio e messages nao voltam no OUT.
-- Foto > cap = 413 e Luna nao e chamada (asserção no teste com transport fake).
-
-## Proveniência
-
-- [S1](../plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16MB
-- [S2](../plans/completed/s2-v1-chat.md) — POST /v1/chat
+- [S1](../plans/completed/s1-timeout-photo-cap.md) — timeout and photo cap
+- [S2](../plans/completed/s2-v1-chat.md) — Chat route
 - [S3](../plans/completed/s3-compact.md) — compact digest
-- [S8](../plans/completed/s8-chat-json-slot-consolidado.md) — Chat: JSON garantido, slot sugerido e refeição consolidada
-- [S9](../plans/completed/s9-limite-texto-2000.md) — Texto do Chat até 2000 caracteres
-- [S10](../plans/completed/s10-avaliacao-chat.md) — Avaliação do Chat com casos reais
-- [S11](../plans/completed/s11-chat-v2.md) — Chat v2 no server: intenção, texto da refeição, memória estruturada e histórico recente
-- [S12](../plans/completed/s12-slot-nomeado.md) — Slot da refeição: o nome vence a semelhança com o registro
-- [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) — Questions before the estimate, 3-round hard stop
-- [S14](../plans/completed/s14-registro-autonomo.md) — Record mark (`record`) and skip by text
-- [S15](../plans/completed/s15-registro-casos-dificeis.md) — Hard record cases: skip by text, photo with a question
-- [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) — Server scope and content controls
-- [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) — Server safety identifier
-- [CP9](../../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md) — Production audit, retention and containment
+- [S8](../plans/completed/s8-chat-json-slot-consolidado.md) — structured output and consolidated meals
+- [S9](../plans/completed/s9-limite-texto-2000.md) — text limit
+- [S10](../plans/completed/s10-avaliacao-chat.md) — evaluator
+- [S11](../plans/completed/s11-chat-v2.md) — intent, structured memory and recent meals
+- [S12](../plans/completed/s12-slot-nomeado.md) — named-slot priority
+- [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) — questions and release gate
+- [S14](../plans/completed/s14-registro-autonomo.md) — record mark and skips
+- [S15](../plans/completed/s15-registro-casos-dificeis.md) — hard record cases
+- [S16](../plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) — eating day, corrections, habitual fallback, temp capability and honest digests
+- [A38](../../android/plans/a38-fatos-temporarios-compactacao.md) — client storage and history marker
+- [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) — content controls
+- [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) — safety identifier
+- [CP9](../../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md) — production audit and containment

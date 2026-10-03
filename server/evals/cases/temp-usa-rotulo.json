@@ -1,0 +1,136 @@
+{
+  "id": "temp-usa-rotulo",
+  "since": "v5",
+  "tags": [
+    "s16",
+    "temp"
+  ],
+  "request": {
+    "local_time": "2026-10-03T13:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [
+      {
+        "id": "T1",
+        "kind": "temp",
+        "category": "portion",
+        "key": "lasanha",
+        "text": "Lasanha Sadia bolonhesa, 99 kcal e 7 g P por 100 g, caixa 600 g",
+        "slot": null,
+        "days_seen": 1,
+        "last_seen": "2026-10-02"
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-03",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "Comi 470 g da lasanha.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true,
+    "temp_facts": true
+  },
+  "expect": {
+    "intent": "log",
+    "record": "auto",
+    "suggested_slot": "3",
+    "estimate": "present",
+    "kcal_range": [
+      420,
+      520
+    ],
+    "memory_used_has": [
+      "T1"
+    ],
+    "memory_updates_not": [
+      {
+        "id": "T1"
+      }
+    ],
+    "refusal": "none"
+  },
+  "required": [
+    "intent",
+    "record",
+    "suggested_slot",
+    "estimate",
+    "kcal_range",
+    "memory_used_has",
+    "memory_updates_not"
+  ],
+  "strict": true
+}

@@ -1,6 +1,6 @@
 # ADR-029 — Short-lived temp facts, a compaction that keeps the open tail, the meal day is the day it was eaten
 
-- Status: Proposed
+- Status: Accepted (2026-10-03, owner approval of S16)
 - Date: 2026-10-03
 - Context: `produto`
 - Supersedes: partially [ADR-023](ADR-023-chat-v2-memoria-v2.md) decision 4 (memory had two kinds, permanent and dynamic; a third kind, `temp`, is added; the permanent/dynamic rules survive unchanged). In the [Chat spec](../specifications/chat.md): rule 9 (the summary replaced the whole raw block). Refines [ADR-028](ADR-028-registro-autonomo.md) decision 1 ("the meal is of today") without changing its trigger. In [v1-chat](../../server/specifications/v1-chat.md): the `meal_day` sentence of rule 3g, rule 3d ("de sempre") and rule 7 (digest content). Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively. No gold changes.
@@ -113,6 +113,6 @@ Rejected: an unanswered question would grow the raw block without bound. The 12-
 
 - Specifications affected: [chat](../specifications/chat.md) (rules 8, 9), [memoria-push](../specifications/memoria-push.md) (memory rules 1–5, 7, 8), [v1-chat](../../server/specifications/v1-chat.md) (rules 3, 3d, 3g, 4, 5, 5a, 5c, 7), [api-contract](../../api-contract.md), [room-v2](../../android/specifications/room-v2.md).
 - ADRs related: [ADR-023](ADR-023-chat-v2-memoria-v2.md), [ADR-026](ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](ADR-028-registro-autonomo.md), [ADR-019](ADR-019-ferramentas-dev.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md).
-- Plans: [S16](../../server/plans/s16-dia-da-refeicao-fatos-temporarios.md) (server: decision 1 server part, 3, 4, 5, 6), [A38](../../android/plans/a38-fatos-temporarios-compactacao.md) (client: decision 1 client part, 2, 5 slot marker).
+- Plans: [S16](../../server/plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) (server: decision 1 server part, 3, 4, 5, 6), [A38](../../android/plans/a38-fatos-temporarios-compactacao.md) (client: decision 1 client part, 2, 5 slot marker).
 
 After acceptance, the body of this ADR is not edited. Only the `- Status:` line changes, to record a total or partial supersession by a new ADR.
