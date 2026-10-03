@@ -1,5 +1,7 @@
 # 001 — Monorepo para comparar Android e React Native
 
+- Status: Accepted; partially superseded by [005](005-android-only.md) (Flutter and React Native left the tree; the monorepo keeps `server/` and `apps/android/`).
+
 Flutter arquivado, não apagado. O app continua em `legacy/flutter/`.
 
 Monorepo com pastas isoladas: `server/`, `legacy/flutter/`, `apps/android/`, `apps/rn/`. Um goal mexe numa pasta.

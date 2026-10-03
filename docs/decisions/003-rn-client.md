@@ -1,5 +1,7 @@
 # 003 — Client React Native
 
+- Status: Superseded by [005](005-android-only.md) (React Native left the tree).
+
 O client mora em `apps/rn/`. Só Android. O kit de UI deste goal é Paper, não NativeWind e não React Native Reusables: o prompt do goal travou Paper 5 estável e proibiu NativeWind neste experimento. A constituição da raiz continua valendo para produto, LLM e telas.
 
 ## Versões

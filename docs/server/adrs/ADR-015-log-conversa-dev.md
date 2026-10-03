@@ -1,6 +1,6 @@
 # ADR-015 — Log de conversa no server de dev
 
-- Estado: Aceito (aprovação do plano S6, 2026-09-28)
+- Estado: Aceito (aprovação do plano S6, 2026-09-28); parcialmente substituído pelo [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md) (turno sinalizado pela moderação só com metadados)
 - Data: 2026-09-28
 - Contexto: `server`
 - Substitui: Não se aplica. Complementa [ADR-013](ADR-013-gcp-host.md).

@@ -1,5 +1,7 @@
 # 010 — Room for profile, day, meal_log
 
+- Status: Accepted (Room for local state). Schema, version and implementation: [Room spec](../android/specifications/room-v2.md).
+
 Date: 2026-09-25
 
 ## Decision

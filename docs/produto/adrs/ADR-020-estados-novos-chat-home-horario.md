@@ -1,6 +1,6 @@
 # ADR-020 — Estados novos: anexo no Chat, treino na Home, seletor de horário
 
-- Estado: Aceito (condição do próprio ADR: ST1, ST2 e ST3 concluídos, em `stitch/plans/completed/`; registrado em 30/09/2026)
+- Estado: Aceito (condição do próprio ADR: ST1, ST2 e ST3 concluídos, em `stitch/plans/completed/`; registrado em 30/09/2026); parcialmente substituído pelo [ADR-022](ADR-022-limite-texto-chat.md) (lista de golds: adiciona `chatX`)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o [ADR-012](ADR-012-chat-home-perfil.md) (lista fechada de telas) e a lista de 18 golds do `AGENTS.md`. Adiciona estados; não remove nenhum.

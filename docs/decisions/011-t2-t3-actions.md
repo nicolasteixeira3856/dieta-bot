@@ -1,5 +1,7 @@
 # 011 — T2/T3 taps write a meal or discard it
 
+- Status: Superseded by [ADR-012](../produto/adrs/ADR-012-chat-home-perfil.md) (the T1/T2/T3 flow was removed).
+
 Date: 2026-09-25
 
 ## Decision
