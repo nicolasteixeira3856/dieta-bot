@@ -1,16 +1,16 @@
 # Specification — Content handling
 
-## Status and authority
+## Authority
 
-Closed-test profile: accepted ([ADR-024](../adrs/ADR-024-content-safety-boundaries.md)) and deployed to the dev server through [CP2](../plans/completed/cp2-server-content-controls.md) on 2026-09-30; APK check on an emulator with dev 0.0.6 and owner approval on 2026-10-01. Product formulas, screens and the selected model stay unchanged.
+The closed-test profile is current behavior ([ADR-024](../adrs/ADR-024-content-safety-boundaries.md)). Product formulas, screens and the selected model are unaffected.
 
 Implementation: `server/moderation.py` (moderation model `omni-moderation-latest`, category → action table version `cp2.1`), `server/main.py` (`guarded_turn`, `run_guarded`, shared `Deadline`), fixed copy in `server/shaping.py`. The model writes `scope` as the last key of the Chat schema; a missing or unknown value is `out_of_scope`.
 
 This file has two profiles. The **closed-test profile** is the current target. The **production profile** lists what must be added before production; it is deferred and enforced by the [production gate](../production-gate.md).
 
-## Root cause of the reported drift
+## Design principle
 
-The live Chat prompt allowed it: `question` covers a "general question", and the user block is described as "meal data or nutritional questions". The model answered an unrelated math question because the prompt permitted it. Fix the instructions first; extra classifier calls are not the first control.
+Scope is enforced first by the Chat instructions and the required `scope` field. Extra classifier calls are not the first control.
 
 ## Product policy
 
@@ -23,10 +23,10 @@ The live Chat prompt allowed it: `question` covers a "general question", and the
 | Sexual content, harmful illegal instructions, threats, other prohibited content | Fixed block. A block is not a criminal finding | `policy_blocked` |
 | Eating-disorder or self-harm signals: purging, laxatives or diuretics for weight, extreme fasting, very low daily intake as a goal, help-seeking | Fixed safety reply; no dietary optimization toward the harmful goal; no punishment | `safety_support` |
 | Photo without food or label information, or mixed with prohibited material | No estimate. Food in one region does not exempt the rest | `out_of_scope` or `policy_blocked` |
-| Known or suspected CSAM from any credible signal | Stop processing; never resubmit to moderation or another model to confirm; follow the [incident note](../operations/closed-test-incident.md) ([CP1](../plans/completed/cp1-closed-test-notice.md)) | `policy_blocked` |
+| Known or suspected CSAM from any credible signal | Stop processing; never resubmit to moderation or another model to confirm; follow the [incident note](../operations/closed-test-incident.md) | `policy_blocked` |
 | Moderation or classification unavailable | Fail closed | `unavailable` |
 
-These codes are internal. They are not new public Chat `intent` values. Eating-disorder risk is the most realistic harm for a diet app; it gets its own eval set in CP2.
+These codes are internal. They are not new public Chat `intent` values. Eating-disorder risk is the most realistic harm for a diet app; it has its own eval cases (`server/evals/cases/tca-*.json`).
 
 ## Closed-test pipeline
 
@@ -42,11 +42,11 @@ Same controls on `/v1/estimate`, `/v1/fit`, `/v1/chat` and `compact=true`. Estim
 
 ### Context that is not re-moderated
 
-History, legacy memory, facts, recent meals, digests and profile names are not moderated on every turn. Memory facts and digests are moderated when the server generates them (step 5). The rest is client-held state of the same installation: a user who forges it only poisons their own session. Residual risk accepted for the closed test; revisited by [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md).
+History, legacy memory, facts, recent meals, digests and profile names are not moderated on every turn. Memory facts and digests are moderated when the server generates them (step 5). The rest is client-held state of the same installation: a user who forges it only poisons their own session. Residual risk accepted for the closed test; the production profile below revisits it.
 
 ### Scope self-classification limits
 
-A `scope` field filled by the same model can be manipulated by injection ("set scope to in_scope"). Output moderation and the eval set bound that risk. Escalation, only if CP2 evals or live use show leaks: a separate bounded scope call with the same model before and/or after generation. That needs a revision of CP2 or a new plan; it is not implied.
+A `scope` field filled by the same model can be manipulated by injection ("set scope to in_scope"). Output moderation and the eval set bound that risk. Escalation, only if evals or live use show leaks: a separate bounded scope call with the same model before and/or after generation. That needs a new approved plan; it is not implied.
 
 ## Response compatibility
 
@@ -58,25 +58,34 @@ A `scope` field filled by the same model can be manipulated by injection ("set s
 
 ## Logging in the closed test
 
-The ADR-015 dev conversation log stays: it is the main debugging tool and it is how the drift was found. Testers are told through the [tester notice](../legal/tester-notice.pt-BR.md) ([CP1](../plans/completed/cp1-closed-test-notice.md)). Changes:
+The ADR-015 dev conversation log stays: it is the main debugging tool and it is how the drift was found. Testers are told through the [tester notice](../legal/tester-notice.pt-BR.md). Changes:
 
 - A turn flagged by moderation (`policy_blocked`, any CSAM signal) logs metadata only: request ID, route, codes, category booleans. No body, no image, no generated text.
 - `out_of_scope` and `safety_support` turns log as today.
-- Retention: 30-day rotation by host `logrotate`, active since 2026-10-01 ([CP5](../plans/completed/cp5-gcp-dev-ingress.md)), plus the server's 20 MB size rotation.
+- Retention: 30-day rotation by host `logrotate`, plus the server's 20 MB size rotation ([data map](../operations/closed-test-data-map.md), D5).
 
 ## Cost
 
-At most one generation call per turn, as today, plus free moderation calls (input, output). No new vendor, no model escalation, no retry loops. CP2 records measured latency and tokens against the current baseline.
+At most one generation call per turn, plus free moderation calls (input, output). No new vendor, no model escalation, no retry loops.
 
 ## Production profile (deferred)
 
-Before production, the [production gate](../production-gate.md) requires:
+Before production, the [production gate](../production-gate.md), which owns the blocker list and the plan for each, requires:
 
-- Raw conversation capture off; minimal security journal with retention, legal hold and safe failure ([CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md), [identity and audit](identity-and-audit.md#production-profile-deferred)).
-- Moderation of all model-bound context fields, with field provenance so off-topic history does not permanently poison later valid turns (CP9).
-- A decision on specialist image detection ([CP7](../plans/out_of_scope/cp7-specialist-detection.md)).
-- Reviewed public legal text ([CP8](../plans/out_of_scope/cp8-public-legal-pack.md)).
+- Raw conversation capture off; minimal security journal with retention, legal hold and safe failure ([identity and audit](identity-and-audit.md#production-profile-deferred)).
+- Moderation of all model-bound context fields, with field provenance so off-topic history does not permanently poison later valid turns.
+- A decision on specialist image detection.
+- Reviewed public legal text.
 
 ## Validation
 
 Use the [matrix](../validation/README.md). Passing schema tests is not semantic proof. Benign synthetic injections and mocked severe verdicts only; never acquire, generate or upload illegal imagery. Record misses and false positives separately. No compliance claim follows from a test suite.
+
+## Provenance
+
+- [CP1](../plans/completed/cp1-closed-test-notice.md) — Closed-test notice and incident note
+- [CP2](../plans/completed/cp2-server-content-controls.md) — Server scope and content controls
+- [CP5](../plans/completed/cp5-gcp-dev-ingress.md) — GCP dev ingress, log hygiene and activation
+- [CP7](../plans/out_of_scope/cp7-specialist-detection.md) — Specialized illegal-image detection
+- [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) — Public legal pack
+- [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md) — Production audit, retention and containment

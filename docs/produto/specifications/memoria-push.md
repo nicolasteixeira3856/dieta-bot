@@ -1,15 +1,5 @@
 # Especificação — Memória, foto, push, Config
 
-## Estado
-
-Memória vigente desde o [A28](../../android/plans/completed/a28-memoria-v2.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisão 4): fatos permanentes e dinâmicos em `filesDir/memory.bin`, cifrado com AES-256-GCM (chave no Android Keystore) e gravação atômica desde o [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md), enviados em `facts` em todo POST /v1/chat. A memória de texto do [A8](../../android/plans/completed/a8-memoria.md) foi apagada na atualização. Foto no Chat desde o [A6](../../android/plans/completed/a6-foto.md): câmera + galeria; desde o [A18](../../android/plans/completed/a18-chat-registro-foto.md) reduzida a 2048 px no lado maior, JPEG q85, sem EXIF ([ADR-018](../../android/adrs/ADR-018-foto-2048.md)). Push vigente desde o [A7](../../android/plans/completed/a7-push.md): alarme por slot vazio, exato quando permitido (senão inexato), Registrar/Pular. Config vigente desde o [A3](../../android/plans/completed/a3-config-wipe-treino.md): teto, eat-back, alvos, slots e treino do dia editáveis; wipe do teto. Desde o [A20](../../android/plans/completed/a20-polimento-geral.md): Salvar/Cancelar do mesmo tamanho nos sheets, toque com ripple + vibração e a copy dos sheets abaixo.
-
-Desde o [A22](../../android/plans/completed/a22-treino-home.md): o treino do dia também pode ser informado pela Home, com o mesmo editor.
-
-Desde o [A23](../../android/plans/completed/a23-editor-memoria-dev.md), só no flavor dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST. Push por dia da semana e edição de refeições em grupos vigentes desde o [A24](../../android/plans/completed/a24-refeicoes-por-dia.md).
-
-O que o usuário vê da memória, desde o [A29](../../android/plans/completed/a29-chat-v2-interface.md) ([ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md) decisões 7 e 8): selo `Memória atualizada`, chips de origem e o card da rotina no Chat (regras 8 e 9 abaixo; [chat](chat.md) regras 17 e 18).
-
 ## Contexto e objetivo
 
 Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada.
@@ -24,13 +14,13 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 
 ## Regras — memória
 
-1. Arquivo interno criptografado (AES-256-GCM, chave no Android Keystore). Gravação atômica: crash no meio de uma gravação mantém a memória anterior. Conteúdo JSON `{"v": 2, "next": {"P", "D"}, "facts": [...]}`; o que não é `v: 2` é lido como memória vazia. Não vai ao server além do campo `facts` do POST (`days_seen`, `last_seen`; slot de rotina fora dos slots de hoje vai `null`).
+1. Arquivo interno criptografado `filesDir/memory.bin` (AES-256-GCM, chave no Android Keystore). Gravação atômica: crash no meio de uma gravação mantém a memória anterior. Conteúdo JSON `{"v": 2, "next": {"P", "D"}, "facts": [...]}`; o que não é `v: 2` é lido como memória vazia. Não vai ao server além do campo `facts` do POST (`days_seen`, `last_seen`; slot de rotina fora dos slots de hoje vai `null`).
 2. Fato: `id` estável (`P{n}` permanente, `D{n}` dinâmico, nunca reutilizado), `category` `preference` | `portion` | `routine`, `key` ≤ 40, `text` ≤ 160, `slot` (só rotina), `source` `explicit` | `promoted` | `observed`, dias distintos em que apareceu (só os dos últimos 21) e, na rotina, kcal/P/C/G do último registro.
 3. A IA só propõe (`memory_updates`, ≤ 5 por turno); o app aplica com regras fixas. `add permanent`: mesma `key` → vira esse fato, permanente, com o texto novo (contradição); senão novo `P{n}` se houver vaga (≤ 30), sem vaga é ignorado. `add dynamic`: mesma `key` → reforço; senão novo `D{n}`; acima de 40 sai a dinâmica vista há mais tempo. `reinforce`: hoje entra nos dias; dinâmica troca o texto, permanente não. `replace`: troca o texto; com `kind: permanent` numa dinâmica, vira permanente se houver vaga. `remove`: apaga (pedido explícito).
 4. Promoção: dinâmica com ≥ 5 dias nos últimos 21 vira permanente (`promoted`), só com vaga. Expiração: dias fora dos 21 saem a cada leitura; dinâmica sem dia sai; permanente nunca expira. Rotina forte (A29): permanente, ou dinâmica com ≥ 3 dias, com slot e kcal.
-5. Quando: preferência, porção e todo `replace`/`remove` na resposta; `add`/`reinforce` de rotina só quando **aquela** estimativa é registrada (registro automático, Registrar, Registrar assim, Confirmar do Trocar, Substituir; [A34](../../android/plans/completed/a34-registro-autonomo.md)), com slot e kcal/P/C/G do registro. Estimativa não registrada não vira hábito. Excluir, Editar e Desfazer do recibo revertem essa mudança, e Trocar refeição a reaplica no slot novo, só para o fato que ainda está como o recibo deixou ([chat](chat.md) regra 20). A mensagem com pelo menos uma mudança aplicada ganha `memoryUpdated` (a da IA, ou o recibo do registro); `memory_used` vira `memoryUsedKinds`. Nada de linha por Gravar nem `Respondeu "…"`.
+5. Quando: preferência, porção e todo `replace`/`remove` na resposta; `add`/`reinforce` de rotina só quando **aquela** estimativa é registrada (registro automático, Registrar, Registrar assim, Confirmar do Trocar, Substituir), com slot e kcal/P/C/G do registro. Estimativa não registrada não vira hábito. Excluir, Editar e Desfazer do recibo revertem essa mudança, e Trocar refeição a reaplica no slot novo, só para o fato que ainda está como o recibo deixou ([chat](chat.md) regra 20). A mensagem com pelo menos uma mudança aplicada ganha `memoryUpdated` (a da IA, ou o recibo do registro); `memory_used` vira `memoryUsedKinds`. Nada de linha por Gravar nem `Respondeu "…"`.
 6. Sobrevive `wipeToday`. Morre no uninstall.
-7. Só no dev (A23, A28): o editor mostra um fato por linha (`P1 | preference | leite | Leite semidesnatado`; rotina com `slot=` e `440 kcal 25P 38C 22G`) e, só leitura, `Permanente n/30 · Dinâmica n/40` e `visto n dias · último dd/MM`. Edita texto, `key` e categoria e aceita `novo | …` (permanente). Mesmos limites. Linha removida é recusada com o número da linha e nada é salvo: esquecer é pelo Chat.
+7. Só no dev ([ADR-019](../adrs/ADR-019-ferramentas-dev.md)): Config → `Memória da IA (dev)` mostra, edita e salva a memória e o perfil do próximo POST. O editor mostra um fato por linha (`P1 | preference | leite | Leite semidesnatado`; rotina com `slot=` e `440 kcal 25P 38C 22G`) e, só leitura, `Permanente n/30 · Dinâmica n/40` e `visto n dias · último dd/MM`. Edita texto, `key` e categoria e aceita `novo | …` (permanente). Mesmos limites. Linha removida é recusada com o número da linha e nada é salvo: esquecer é pelo Chat.
 8. O usuário vê a memória só no Chat, sem tela própria nem toque para editar: `Memória atualizada` abaixo da resposta (ou do recibo) quando o app aplicou uma mudança naquele turno; `Memória permanente` / `Memória dinâmica` quando a resposta usou fatos desse tipo (`memoryUsedKinds`).
 9. Rotina forte do slot da hora vazio vira o card `O de sempre no {slot}?` ([chat](chat.md) regra 18). **Registrar** grava com os números da rotina (`source` `routine`) e reforça a rotina com esse registro (entra hoje nos dias); **Quase igual** só preenche o composer. O card não vai ao server.
 
@@ -50,8 +40,8 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 5. Mudou teto: diálogo “Reiniciar registros de hoje?”. Default sim. Confirmar → `wipeToday` (meal_log + skip + digest de hoje). Cancelar → teto não é salvo. Chat UI fica. Prompt do dia recomeça: `wipeToday` grava em `chat_message` um marcador `wiped` (nunca desenhado, nunca enviado) e o prompt só leva raw depois dele.
 6. Mudou nome/hora, modo ou dias: não apaga logs. IDs mantidos continuam associados; logs sem slot do dia vão para "Outros" (ADR-021 regra 7).
 7. Back → Home.
-8. Copy dos sheets ([A20](../../android/plans/completed/a20-polimento-geral.md)): "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
-9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar`: dois botões pill de largura total e 52 dp. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema.
+8. Copy dos sheets: "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
+9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar`: dois botões pill de largura total e 52 dp. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema. Controles tocáveis têm ripple.
 
 ## Regras — push
 
@@ -69,20 +59,29 @@ Comportamento: `produto`. Client: `android`.
 ## Decisões relacionadas
 
 - [ADR-012](../adrs/ADR-012-chat-home-perfil.md)
-
-## Planos relacionados
-
-- [A3 (Concluído)](../../android/plans/completed/a3-config-wipe-treino.md)
-- [A22 (Concluído)](../../android/plans/completed/a22-treino-home.md)
-- [A6 (Concluído)](../../android/plans/completed/a6-foto.md)
-- [A18 (Concluído)](../../android/plans/completed/a18-chat-registro-foto.md)
-- [A7 (Concluído)](../../android/plans/completed/a7-push.md)
-- [A8 (Concluído)](../../android/plans/completed/a8-memoria.md)
-- [A28 (Concluído)](../../android/plans/completed/a28-memoria-v2.md)
-- [A29 (Concluído)](../../android/plans/completed/a29-chat-v2-interface.md)
+- [ADR-018](../../android/adrs/ADR-018-foto-2048.md)
+- [ADR-019](../adrs/ADR-019-ferramentas-dev.md)
+- [ADR-021](../adrs/ADR-021-refeicoes-por-dia.md)
+- [ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md)
 
 ## Critérios de aceite funcionais
 
 - Memória ≤ 30 fatos permanentes + ≤ 40 dinâmicos, texto ≤ 160 por fato.
 - Push não dispara se o slot já foi gravado ou pulado.
 - Wipe do teto não apaga dias anteriores nem o arquivo de memória.
+
+## Proveniência
+
+- [A3](../../android/plans/completed/a3-config-wipe-treino.md) — Config + wipe + treino do dia
+- [A6](../../android/plans/completed/a6-foto.md) — foto camera + picker
+- [A7](../../android/plans/completed/a7-push.md) — push no horario do slot
+- [A8](../../android/plans/completed/a8-memoria.md) — memoria criptografada
+- [A8b](../../android/plans/completed/a8b-memoria-gravacao-atomica.md) — Memória com gravação atômica
+- [A18](../../android/plans/completed/a18-chat-registro-foto.md) — Chat: refeição consolidada, teclado e foto 2048 px
+- [A20](../../android/plans/completed/a20-polimento-geral.md) — Polimento: feedback de toque, botões dos sheets, respiro de scroll, Config
+- [A22](../../android/plans/completed/a22-treino-home.md) — Treino na Home
+- [A23](../../android/plans/completed/a23-editor-memoria-dev.md) — Editor de memória e perfil da IA (só dev)
+- [A24](../../android/plans/completed/a24-refeicoes-por-dia.md) — Refeições por dia da semana
+- [A28](../../android/plans/completed/a28-memoria-v2.md) — Memória v2: fatos permanentes e dinâmicos
+- [A29](../../android/plans/completed/a29-chat-v2-interface.md) — Chat v2: plano de refeição, avisos de memória e sugestão da rotina
+- [A34](../../android/plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions

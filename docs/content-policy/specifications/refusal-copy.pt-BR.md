@@ -1,6 +1,6 @@
 # Respostas de segurança
 
-Textos fixos para as bolhas existentes. Não criam tela nem controle novo. Em uso no server desde o [CP2](../plans/completed/cp2-server-content-controls.md) (`server/shaping.py`).
+Textos fixos para as bolhas existentes. Não criam tela nem controle novo. Em uso no server (`server/shaping.py`).
 
 | Situação | Código interno | Resposta |
 | --- | --- | --- |
@@ -12,4 +12,8 @@ Textos fixos para as bolhas existentes. Não criam tela nem controle novo. Em us
 
 Nenhuma resposta acusa o usuário de crime, afirma que houve denúncia, expõe categorias internas ou descreve o conteúdo bloqueado. Falha técnica usa o estado de erro já existente.
 
-Conferido em 30/09/2026, na entrega do CP2: CVV 188 (24 horas, gratuito), 190 (Polícia Militar) e 192 (SAMU) vigentes. Confira de novo antes de qualquer revisão desta tabela.
+Conferido em 30/09/2026: CVV 188 (24 horas, gratuito), 190 (Polícia Militar) e 192 (SAMU) vigentes. Confira de novo antes de qualquer revisão desta tabela.
+
+## Proveniência
+
+- [CP2](../plans/completed/cp2-server-content-controls.md) — Server scope and content controls
