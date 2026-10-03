@@ -96,6 +96,18 @@ test("C4: status markers in Provenance fail; free-text titles do not", async (t)
   only(await findings(t, {
     "docs/produto/specifications/chat.md": "# Chat\n\n1. Rule.\n\n## Provenance\n\n- [A1](../../android/plans/completed/a1-x.md) — x, `pending`\n",
   }), "C4");
+  only(await findings(t, {
+    "docs/android/plans/pending_manual_validation/a38-x.md": "# Plan — A38 x\n",
+    "docs/produto/specifications/chat.md": "# Chat\n\n1. Rule.\n\n## Provenance\n\n- [A38](../../android/plans/pending_manual_validation/a38-x.md) (pendente) — x\n",
+  }), "C4");
+});
+
+test("C4: a link target into pending_manual_validation/ is not a Provenance status marker", async (t) => {
+  assert.deepEqual(await findings(t, {
+    "docs/android/plans/pending_manual_validation/a38-x.md": "# Plan — A38 x\n",
+    "docs/produto/specifications/chat.md": "# Chat\n\n1. Rule.\n\n## Provenance\n\n- [A38](../../android/plans/pending_manual_validation/a38-x.md) — client storage\n"
+      + "- [A38](<../../android/plans/pending_manual_validation/a38-x.md> \"A38\") — angle target with a title\n",
+  }), []);
 });
 
 test("C4: an accepted ADR called proposed and a completed plan called pending fail; rule words do not", async (t) => {
