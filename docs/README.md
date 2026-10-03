@@ -57,6 +57,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [026](produto/adrs/ADR-026-perguntas-antes-da-estimativa.md) | produto | perguntas antes da estimativa, até 3 rodadas, Forçar estimativa; `chatE` alterado, gold `chatQ` |
 | [027](android/adrs/ADR-027-golds-divergentes.md) | android | QA visual com golds divergentes: estado segue o próprio gold, média dark/light, spec vence o gold, esmaecimento por save layer |
 | [028](produto/adrs/ADR-028-registro-autonomo.md) | produto | registro autônomo no Chat, recibo com Desfazer/Excluir/Trocar refeição/Editar, Registrar na dúvida, substituição confirmada no Chat; golds `chatE`, `chatF`, `chatG` alterados, `chatU`, `chatD` novos |
+| [029](produto/adrs/ADR-029-fatos-temporarios-compactacao.md) | produto | fatos temporários (3 dias), compactação que mantém o fim aberto, dia da refeição = dia em que comeu |
 
 ## Outros docs
 
