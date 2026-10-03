@@ -1,6 +1,6 @@
 # Plan — SD2 Documentation authority and lifecycle
 
-- State: `Pendente aprovação manual`
+- State: `Concluído`
 - Date: 2026-10-02
 - Owner: `sdd` — shared agent workflow maintenance.
 - Production code affected: none.
@@ -264,7 +264,7 @@ The filename `room-v2.md` stays (see Out of scope).
 
 ## Results
 
-Implemented 2026-10-02 on branch `docs/sd2-documentation-authority`, from `master` @ `51cdded`. Automated validation passed; the owner's fresh-session check is pending.
+Implemented 2026-10-02 on branch `docs/sd2-documentation-authority`, from `master` @ `51cdded`. Automated validation passed; the owner confirmed the fresh-session check on 2026-10-02.
 
 ### Route walk (bytes on the default route, `git show 51cdded` vs working tree)
 
@@ -352,7 +352,7 @@ Deleted:
 - No live line links an accepted ADR as proposed or a completed plan as pending. No README claims "no specification" next to a non-empty `specifications/`.
 - `git diff --check`: clean.
 
-Pending (owner): in a fresh session of any agent, ask the four acceptance questions. Answers must be correct and must not open `plans/completed/`.
+Manual (owner): the four acceptance questions were answered correctly in a fresh session without opening `plans/completed/`; the owner approved on 2026-10-02.
 
 ### Candidates for later (not in scope)
 

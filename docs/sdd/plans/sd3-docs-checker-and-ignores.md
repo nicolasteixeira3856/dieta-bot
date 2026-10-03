@@ -4,7 +4,7 @@
 - Date: 2026-10-02
 - Owner: `sdd` — shared agent workflow maintenance.
 - Code affected: `tools/check-docs.mjs`, `tools/check-docs.test.mjs`, the wire export tools, `tools/package.json` description, `.gitignore`, `.ignore`. No app, server or infra code.
-- Prerequisites: [SD2](pending_manual_validation/sd2-documentation-authority.md) implemented, either in `completed/` or in `pending_manual_validation/` with its automated validation passed. The checker must pass on the repository SD2 leaves behind.
+- Prerequisites: [SD2](completed/sd2-documentation-authority.md) implemented, either in `completed/` or in `pending_manual_validation/` with its automated validation passed. The checker must pass on the repository SD2 leaves behind.
 
 ## Authorization gate
 
