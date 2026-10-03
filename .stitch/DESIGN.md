@@ -8,7 +8,7 @@ Design System oficial e fonte da verdade visual para o app Nutri (Android Jetpac
 
 > [!IMPORTANT]
 > **Padrão Ouro de Implementação:**
-> Toda e qualquer implementação de UI no client Android deve ser baseada estritamente nos PNGs do Stitch (`docs/qa/stitch/{dark,light}/`). O agente/desenvolvedor deve iterar o código Compose até que a captura do emulador em `docs/qa/android/current/{dark,light}/` esteja visualmente equivalente ao Gold do Stitch. Wireframes são permitidos exclusivamente como referência preliminar de criação de layout (preferindo sempre Stitch via MCP, com wireframe como fallback).
+> Toda e qualquer implementação de UI no client Android deve ser baseada estritamente nos PNGs do Stitch (`docs/qa/stitch/{dark,light}/`). O agente/desenvolvedor deve iterar o código Compose até que a captura do emulador em `docs/qa/android/current/{dark,light}/` esteja visualmente equivalente ao Gold do Stitch.
 
 ---
 

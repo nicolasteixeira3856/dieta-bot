@@ -1,69 +1,26 @@
-# Nutri
+# Dieta Bot
 
-App Android para encaixar a próxima refeição no saldo do dia, sobretudo a janta.
+Android app that fits the next meal into today's remaining budget, dinner first. Log a meal in natural language or with a photo; the app shows kcal and macros against the day's target. An estimate, not advice.
 
-Android app that fits the next meal into today's remaining budget, dinner first.
+Product name: Dieta Bot. Technical IDs stay `nutri` ([ADR-016](docs/produto/adrs/ADR-016-nome-dieta-bot.md)). The app is in a closed test.
 
-Log in natural language + photo. Returns kcal, P, and whether it fits. Not a food-search diary. Not a dietitian. Does not compute TDEE. Estimate, not advice.
+## Start here
 
-## Stack
-
-| Layer | What |
-|---|---|
-| Client | `apps/android/` — Kotlin, Jetpack Compose, Material 3 Expressive |
-| API | `server/` — FastAPI, `gpt-6-luna`, `reasoning.effort=none` |
-| Infra | Home tower + Cloudflare Tunnel. No VPS. No router port |
-
-Client architecture: `ui` / `domain` / `data`. UDF. ViewModel + `StateFlow`. Hilt. Formulas in pure domain.
-
-## What the app does
-
-1. O1 — ceiling (same every day / weekday-weekend / 7 days)
-2. O2 — eat-back (0% / typed % / 100%, no cap)
-3. T0 — Home: remaining, next window, text+photo composer, CTA “o que cabe agora”
-4. T1 — log sheet
-5. T2 — short card
-6. T3 — fit sheet (`POST /v1/fit`)
-
-Home on day 1 has no chip. A chip appears on the 2nd stable log of the window.
+- [AGENTS.md](AGENTS.md): constitution (product rules, formulas, stack, gates). Read first.
+- [docs/README.md](docs/README.md): documentation matrix. Routes to each context, its specifications, ADRs and plans.
+- [docs/server/deploy-gcp.md](docs/server/deploy-gcp.md): dev server runbook.
+- [docs/content-policy/production-gate.md](docs/content-policy/production-gate.md): what blocks production.
 
 ## Folders
 
-```
-apps/android/     client
-server/           API
-docs/             contract, ADRs, tokens, QA
-.stitch/          Google Stitch Design System (Nutri)
-wires/            wireframes (layout creation only)
-.agents/skills/   agent skills
-```
-
-Flutter and React Native left the tree. They live in git history.
-
-## Run (Windows)
-
-Emulator open (`adb devices` shows a device).
-
-```powershell
-# API (on the tower)
-cd server
-docker compose up -d
-
-# App
-cd apps\android
-.\gradlew.bat test
-.\gradlew.bat :app:installDebug
+```text
+apps/android/   Android client (Kotlin, Compose)
+server/         HTTP API (FastAPI)
+infra/          host configuration
+docs/           specifications, ADRs, plans, visual QA golds
+design/         brand sources
+tools/          QA, export, deploy and distribution scripts
+.stitch/        Google Stitch design system (Nutri)
 ```
 
-The client uses `API_PUBLIC_URL` + `INVITE_CODE`. Header `X-Invite`. Never `OPENAI_API_KEY` in the APK. `.env` does not go in git.
-
-## Tokens
-
-`docs/tokens.md`. Background `#0b0d10`, accent `#e8b86d`, CTA `#f3f5f7` / `#111`. No default Material purple. No dynamic color.
-
-## Agent
-
-Constitution: `AGENTS.md`.
-1 `/goal` = 1 folder.
-UI DONE = emulator screenshot vs Stitch gold PNG (`docs/qa/stitch/{dark,light}/`).
-Decision = ADR in `docs/decisions/`.
+Agent skills live in `.agents/skills`, `.grok/skills`, `.hermes/skills` and `.claude/skills` (kept identical).
