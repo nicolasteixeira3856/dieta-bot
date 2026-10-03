@@ -24,6 +24,7 @@ Autorização, ciclo de vida, cancelamento e fora de escopo: `docs/sdd/README.md
 ## Validação
 
 1. <Teste, análise, captura, validação manual>.
+2. Mudou documentação: `node tools/check-docs.mjs` passa.
 
 ## Results
 

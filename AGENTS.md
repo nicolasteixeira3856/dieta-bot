@@ -129,6 +129,7 @@ Still allowed: explaining the blockers, reactivating and executing the blocking 
 Implementation follows `docs/sdd/README.md`. Matrix: `docs/README.md`.
 Current state: read AGENTS → `docs/README.md` → the context README → the owning specification, then an ADR it cites and the named active plan. `plans/completed/` and `plans/cancelled/` are history: open them only for provenance, a Stitch gate check or an explicit history question.
 Single writer: state a fact (status, version, date, list, value) only in the file that owns it; everywhere else, link to that file.
+After a documentation change, run `node tools/check-docs.mjs` (read-only; `--root <path>` supports fixture checks): links, spec Provenance, status copies, ADR status lines, README routing, gold inventory.
 Everything about user-supplied content reaching the AI (scope, injection, moderation, harmful content, correlation, content logging, incidents) lives in `docs/content-policy/`. Keep that folder; do not split the topic elsewhere. Each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
 Planning is documentation only. Code starts only after an explicit approval that names the plan file.
 `/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.

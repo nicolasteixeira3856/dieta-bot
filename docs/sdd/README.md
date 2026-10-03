@@ -144,7 +144,8 @@ Pedido para analisar, documentar, criar spec, criar ADR ou criar plano **não** 
 3. Aplique o ciclo de vida do plano na mesma entrega.
 4. Atualize links que apontavam para o caminho anterior.
 5. Remova pastas de estado que ficaram vazias, pela regra de limpeza abaixo.
-6. Entregue pelo fluxo git abaixo.
+6. Rode `node tools/check-docs.mjs` (e `node tools/check-skills.mjs` se mexeu em skills). Falha bloqueia a entrega.
+7. Entregue pelo fluxo git abaixo.
 
 ### 6. Entrega git (decisão do dono, 29/09/2026)
 
