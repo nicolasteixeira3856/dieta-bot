@@ -11,7 +11,7 @@ Numbers first. Dry tone. No coach. No slogan.
 - Source identifiers: English. Files, classes, functions, variables, JSON keys we own, logs.
 - User-facing copy: pt-BR.
 - Agent chat with the owner: PT-BR or EN. Do not mix languages inside one source file.
-- Technical docs (AGENTS, ADRs, skills, API contract, SETUP): English.
+- Technical docs (AGENTS, ADRs, skills, API contract): English.
 - Product copy stays pt-BR.
 
 ## Product (do not reopen)
@@ -23,7 +23,7 @@ Numbers first. Dry tone. No coach. No slogan.
 - Questions before the estimate, all doubts at once, at most 3 rounds; Forçar estimativa from the second (ADR-026).
 - Photo on Chat from day 1. Client sends the photo as JPEG q85, longest side ≤ 2048 px, EXIF stripped (ADR-018). ≤16 MB guard. Server estimates and deletes.
 - Disclaimer: estimate, not advice.
-- Screens: ADR-012 (splash, O1, O2, O3, O4, Home [home0, home1, homeX], Chat [chat0, chatL, chatE, chatT, chatP, chatF, chatG, chatQ, chatU, chatD], Config [cfg, wipe], Push). Nothing else.
+- Screens: ADR-012 and its accepted successors. Every product screen and state has a gold in the inventory of `docs/qa/README.md`. Nothing else.
 - Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.nutri.hide_dev_tools=1` for the cfg capture.
 
 ## Splash
@@ -54,12 +54,12 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   material3 1.5.0-alpha29 (or newer 1.5 alpha) on top of the stable BOM
   Official architecture: ui / domain / data
   UDF, ViewModel + UiState, Hilt, collectAsStateWithLifecycle
-  Room 2.6.x for profile + day + meal_log. No DataStore for day state.
+  Room 2.6.x for local state; schema in `docs/android/specifications/room-v2.md`. No DataStore for day state.
   Flavors dev (com.nutri.android.dev, GCP dev server) / prod (com.nutri.android) per ADR-014.
   Build and test with the dev variant: assembleDevRelease, testDevDebugUnitTest, verifyRoborazziDevDebug.
   Telemetry: core/telemetry Telemetry interface. dev = Firebase nutri-bot-dev (Crashlytics + Analytics), prod = NoopTelemetry.
   Events carry enums and numbers only, never user text. X-Request-Id links Crashlytics to the dev server log (ADR-015).
-- server/ — FastAPI, untouched contract: GET /health, POST /v1/estimate, POST /v1/fit
+- server/ — FastAPI. Routes and payloads: `docs/api-contract.md`.
 - Host: GCP e2-micro us-east1 + Caddy (ADR-013). Runbook: docs/server/deploy-gcp.md. Deploy: tools/deploy-gcp.ps1
 
 Dead: legacy/flutter, apps/rn. Git history keeps them. Do not restore.
@@ -68,25 +68,14 @@ Dead: legacy/flutter, apps/rn. Git history keeps them. Do not restore.
 
 Two themes. Follow the system (`isSystemInDarkTheme()`). No dynamic color. No wallpaper. No settings toggle in this cut.
 
-Dark:
-bg #0b0d10 · panel #12151a · phone #0e1114 · surf #171b20 · surf2 #1e242b · line #2a3139
-text #f3f5f7 · muted #8b939c · dim #5c6570 · gold #e8b86d · good #7dda9a · bad #e07a6a
-protein #4ec994 · carbs #e58e42 · fat #e8b86d
-CTA #f3f5f7 on #111
-
-Light:
-bg #f4f3f0 · panel #eceae6 · phone #f7f6f3 · surf #ffffff · surf2 #e8e6e2 · line #d5d2cc
-text #14161a · muted #5c636b · dim #8b939c · gold #b8873d · good #1f8a4c · bad #c14d40
-protein #1b7a4b · carbs #c2651e · fat #b8873d
-CTA #111111 on #f3f5f7
-
-Remaining 34pt w590. Field 28pt. Sheet radius 22 top. Card/chip 14. Bar 6px gold.
+Values (colors per theme, CTA, type sizes, radii, bar): `docs/tokens.md`, the single owner.
+Gold is an accent only. Macros use their semantic colors.
 Timeline: continuous vertical guide, node markers, single consolidated meal log (e.g. 520 kcal · 28P · 52C · 22G).
 
 ## Visual QA
 
 Source of truth for layout: Google Stitch project `Nutri` (ID: `6282733070135794645`).
-Implementation must strictly follow the Stitch gold PNGs (`docs/qa/stitch/{dark,light}/`). Layout creation can use wireframes as initial reference (prefer Stitch via MCP, fallback to wireframes).
+Implementation must strictly follow the Stitch gold PNGs (`docs/qa/stitch/{dark,light}/`).
 
 Folder law:
 - Gold PNGs: `docs/qa/stitch/dark/<id>.png` and `docs/qa/stitch/light/<id>.png` (exported from Stitch `Nutri`)
@@ -95,12 +84,7 @@ Folder law:
 - Do not compare against `_legacy`
 - No PNG/JPG may sit in the `docs/qa/` root
 
-Gold filenames (31 per theme):
-splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
-home0.png · home1.png · homeX.png · homeW.png
-chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png · chatX.png
-chatR.png · chatM.png · chatS.png · chatQ.png · chatU.png · chatD.png
-cfg.png · cfgS.png · wipe.png · push.png
+Gold inventory (ids per theme): `docs/qa/README.md` § Golds, the single human-readable list. The executable map is `tools/export-stitch.mjs`.
 
 Splash is a cold start, not a freeze. Do not treat a visible splash as a crash.
 
@@ -112,7 +96,7 @@ A screen is not DONE until the agent has:
 4. Iterated the Compose UI until the emulator screencap matches the Stitch gold PNG
 
 Ignore in the comparison: system clock, battery, 3-button nav, font raster from the emulator.
-Do not ignore: remaining 34pt, CTA color, sheet radius 22, day-1 zero chips, gold as accent only, semantic macro colors, consolidated meal entry.
+Do not ignore: remaining size, CTA color, sheet radius, day-1 zero chips, gold as accent only, semantic macro colors, consolidated meal entry (values in `docs/tokens.md`).
 
 How to export gold PNGs (agent, unattended):
 - `node tools/export-stitch.mjs`
@@ -143,6 +127,8 @@ Still allowed: explaining the blockers, reactivating and executing the blocking 
 ## How to work
 
 Implementation follows `docs/sdd/README.md`. Matrix: `docs/README.md`.
+Current state: read AGENTS → `docs/README.md` → the context README → the owning specification, then an ADR it cites and the named active plan. `plans/completed/` and `plans/cancelled/` are history: open them only for provenance, a Stitch gate check or an explicit history question.
+Single writer: state a fact (status, version, date, list, value) only in the file that owns it; everywhere else, link to that file.
 Everything about user-supplied content reaching the AI (scope, injection, moderation, harmful content, correlation, content logging, incidents) lives in `docs/content-policy/`. Keep that folder; do not split the topic elsewhere. Each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
 Planning is documentation only. Code starts only after an explicit approval that names the plan file.
 `/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.
@@ -166,7 +152,7 @@ Never edit `apps/android/version.properties` by hand. Never reuse a number. Unti
 Firebase outside ADR-014 (Crashlytics + Analytics, dev flavor only) and A16 (App Distribution of the dev APK), Gemini / Firebase AI, TDEE, eat-back cap, Health/Xiaomi, key in the client,
 VPS outside ADR-013, router port, iOS, Flutter, React Native,
 screens outside ADR-012,
-implementation based on wires instead of Stitch gold PNGs,
+UI implementation from any source other than the Stitch gold PNGs,
 Appbar / BottomNav as showcase,
 treat splash as a freeze,
 drop loose QA images in docs/qa/.

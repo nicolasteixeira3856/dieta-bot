@@ -1,6 +1,6 @@
 # ADR-NNNN — <Decisão>
 
-- Estado: Proposto
+- Status: Proposto
 - Data: <AAAA-MM-DD>
 - Contexto: `<contexto>`
 - Substitui: <ADR anterior, total/parcialmente, ou “Não se aplica”>
@@ -39,4 +39,4 @@
 - ADRs relacionados: <links>.
 - Contextos consumidores: <links>.
 
-Depois de aceito, este ADR não se edita. Mudança posterior exige ADR novo que declare a substituição.
+Depois de aceito, o corpo deste ADR não se edita. Só a linha `- Status:` muda, para registrar substituição total ou parcial por um ADR novo (ex.: `Accepted; partially superseded by ADR-NNNN (<escopo>)`). O ADR novo declara o escopo que sobrevive deste.
