@@ -10,7 +10,7 @@ Read [AGENTS](../../../AGENTS.md), the [Android context](../../../docs/android/R
 - Domain formulas are pure Kotlin. UI depends on screen/flow-scoped ViewModels and repositories, not DAOs or Retrofit.
 - ViewModels expose immutable UiState through StateFlow; destinations collect with collectAsStateWithLifecycle. Child composables receive state and callbacks, not the whole ViewModel.
 - Hilt provides dependencies. Keep the current Hilt kapt pipeline; Room entities/DAOs are Kotlin with KSP. Room's processor choice does not require removing kapt from unrelated processors.
-- Read the [Room specification](../../../docs/android/specifications/room-v2.md) with the accepted changes linked from the Android index. Profile survives day rollover; daily state is keyed by America/Sao_Paulo. Historical ADR-010's Java/kapt implementation is superseded by the delivered [A0 refactor](../../../docs/android/plans/completed/a0-arch-refactor.md).
+- Read the [Room specification](../../../docs/android/specifications/room-v2.md); it states the current schema. Profile survives day rollover; daily state is keyed by America/Sao_Paulo. Historical ADR-010's Java/kapt implementation is superseded by the delivered [A0 refactor](../../../docs/android/plans/completed/a0-arch-refactor.md).
 - Preserve existing typed Navigation Compose routes and native back behavior. Do not migrate to Navigation 3, introduce destinations or reset the entire backstack in response to state changes without an approved plan.
 - Screen layouts follow their current Stitch golds. Keep the Home FAB opening Chat, as specified in [ADR-012](../../../docs/produto/adrs/ADR-012-chat-home-perfil.md).
 
