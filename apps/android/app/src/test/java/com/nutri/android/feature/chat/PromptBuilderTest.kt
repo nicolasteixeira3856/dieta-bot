@@ -30,9 +30,14 @@ class PromptBuilderTest {
         val turn = PromptBuilder.build(HomeFixtures.home0, msgs(12), emptyList(), "jantar", now, compactEnabled = true)
         assertThat(turn.needsCompact).isTrue()
         assertThat(turn.body.compact).isFalse()
-        val compact = PromptBuilder.compact(turn)
+        // A38: the oldest 8 are summarised, the newest 4 stay raw.
+        val block = turn.blocks.single()
+        val compact = PromptBuilder.compact(turn, block)
         assertThat(compact.compact).isTrue()
-        assertThat(compact.messages).hasSize(12)
+        assertThat(compact.text).isEmpty()
+        assertThat(compact.messages.map { it.text }).containsExactlyElementsIn((1..8).map { "m$it" }).inOrder()
+        assertThat(block.coversUntilId).isEqualTo(8)
+        assertThat(turn.kept).isEqualTo(4)
     }
 
     @Test
@@ -265,7 +270,10 @@ class PromptBuilderTest {
         val json = Json { ignoreUnknownKeys = true }
         val body = PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "pulei o café", now).body
         assertThat(json.encodeToString(ChatIn.serializer(), body)).contains("\"auto_record\":true")
-        val compact = PromptBuilder.compact(PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x", now))
+        val compact = PromptBuilder.compact(
+            PromptBuilder.build(HomeFixtures.home0, emptyList(), emptyList(), "x", now),
+            PromptBuilder.CompactBlock(emptyList(), coversUntilId = 0),
+        )
         assertThat(json.encodeToString(ChatIn.serializer(), compact)).contains("\"auto_record\":true")
         val out = json.decodeFromString(
             com.nutri.android.core.network.ChatOut.serializer(),
@@ -285,5 +293,105 @@ class PromptBuilderTest {
         val turn = PromptBuilder.build(HomeFixtures.home0, listOf(first, old, second, only), emptyList(), "grelhado", now)
         assertThat(turn.body.messages[1].text).isEqualTo("Identifiquei 2 pães.\nOs pães tinham manteiga?")
         assertThat(turn.body.messages[3].text).isEqualTo("Entendi: macarrão.\nO frango foi grelhado?")
+    }
+
+    // ------------------------------------------------------------------ A38
+
+    @Test
+    fun `suggested slot marker on estimate and question-only rows, name from today, none for a slot not today`() {
+        val user = row("user")
+        val estimate = row("assistant", kcal = 520).copy(text = "Almoço: 520 kcal.", estimateSlotId = 2)
+        val held = asked().copy(text = "Entendi.\nQuantos gramas?", estimateQuestion = "Quantos gramas?", estimateSlotId = 4)
+        val gone = row("assistant", kcal = 300).copy(text = "Ceia.", estimateSlotId = 99)
+        val plain = row("assistant").copy(text = "Oi.")
+        val userWithSlot = row("user").copy(text = "jantar", estimateSlotId = 4)
+        val receipt = row("logged").copy(text = "Almoço", estimateSlotId = 2)
+        val turn = PromptBuilder.build(HomeFixtures.home0, listOf(user, estimate, held, gone, plain, userWithSlot, receipt), emptyList(), "registra", now)
+        assertThat(turn.body.messages.map { it.text }).containsExactly(
+            user.text,
+            "Almoço: 520 kcal.\n[refeição sugerida: Almoço]",
+            "Entendi.\nQuantos gramas?\n[refeição sugerida: Jantar]",
+            "Ceia.",
+            "Oi.",
+            "jantar",
+        ).inOrder()
+    }
+
+    @Test
+    fun `marker survives clipping and the turn stays at 2000 code points`() {
+        val user = row("user")
+        val long = row("assistant", kcal = 520).copy(text = "😀".repeat(2100), estimateSlotId = 2)
+        val text = PromptBuilder.build(HomeFixtures.home0, listOf(user, long), emptyList(), "x", now).body.messages[1].text
+        assertThat(text).endsWith("\n[refeição sugerida: Almoço]")
+        assertThat(text.codePointCount(0, text.length)).isEqualTo(2000)
+    }
+
+    @Test
+    fun `temp_facts true is always on the wire, temp fact goes with days_seen 1 and last_seen its creation`() {
+        val temp = Fact("T1", "temp", "portion", "lasanha", "100 g = 150 kcal", source = "observed", days = listOf("2026-09-23"), created = "2026-09-23")
+        val turn = PromptBuilder.build(HomeFixtures.home0, msgs(12), emptyList(), "x", now, facts = listOf(temp))
+        val json = Json
+        assertThat(json.encodeToString(ChatIn.serializer(), turn.body)).contains("\"temp_facts\":true")
+        assertThat(json.encodeToString(ChatIn.serializer(), PromptBuilder.compact(turn, turn.blocks.single()))).contains("\"temp_facts\":true")
+        assertThat(turn.body.facts).containsExactly(ChatFact("T1", "temp", "portion", "lasanha", "100 g = 150 kcal", null, daysSeen = 1, lastSeen = "2026-09-23"))
+    }
+
+    @Test
+    fun `question_slot is read from the answer`() {
+        val reader = Json { ignoreUnknownKeys = true }
+        val out = reader.decodeFromString(
+            com.nutri.android.core.network.ChatOut.serializer(),
+            """{"reply":"","question":"Quantos gramas?","estimate":null,"question_slot":"4"}""",
+        )
+        assertThat(out.questionSlot).isEqualTo("4")
+        assertThat(reader.decodeFromString(com.nutri.android.core.network.ChatOut.serializer(), """{"reply":"ok"}""").questionSlot).isNull()
+    }
+
+    /** [n] plain raw, then the open clarify sequence user, question, user, question… of [open] rows. */
+    private fun withOpen(n: Int, open: Int): List<ChatMessageEntity> = msgs(n) + (1..open).map { i ->
+        val id = (n + i).toLong()
+        if (i % 2 == 1) {
+            ChatMessageEntity(id = id, date = "2026-09-25", role = "user", text = "m$id", createdAtEpochMs = 1_000 + id)
+        } else {
+            ChatMessageEntity(id = id, date = "2026-09-25", role = "assistant", text = "m$id", createdAtEpochMs = 1_000 + id, estimateQuestion = "Q$id?")
+        }
+    }
+
+    @Test
+    fun `open question 6 back keeps those 6 raw`() {
+        val all = withOpen(6, 6)
+        val blocks = PromptBuilder.compactBlocks(PromptBuilder.rawSinceDigest(all, emptyList()), all)
+        assertThat(blocks.single().map { it.id }).containsExactlyElementsIn(1L..6L).inOrder()
+    }
+
+    @Test
+    fun `open sequence of 12 - no compaction, the newest 12 go raw`() {
+        val all = withOpen(0, 12)
+        val turn = PromptBuilder.build(HomeFixtures.home0, all, emptyList(), "x", now)
+        assertThat(turn.needsCompact).isFalse()
+        assertThat(turn.body.messages).hasSize(12)
+    }
+
+    @Test
+    fun `18 raw - one block of 12, 6 left - 30 raw - two blocks of 12, 6 left`() {
+        val eighteen = PromptBuilder.build(HomeFixtures.home0, msgs(18), emptyList(), "x", now)
+        assertThat(eighteen.blocks.map { it.messages.size }).containsExactly(12)
+        assertThat(eighteen.blocks.single().coversUntilId).isEqualTo(12)
+        assertThat(eighteen.kept).isEqualTo(6)
+        val thirty = PromptBuilder.build(HomeFixtures.home0, msgs(30), emptyList(), "x", now)
+        assertThat(thirty.blocks.map { it.messages.size to it.coversUntilId }).containsExactly(12 to 12L, 12 to 24L).inOrder()
+        assertThat(thirty.kept).isEqualTo(6)
+        assertThat(thirty.body.messages.first().text).isEqualTo("m19")
+    }
+
+    @Test
+    fun `digest cut - coversUntilId by id, a v8 digest by its creation time`() {
+        val all = msgs(10)
+        val v9 = DayDigestEntity("2026-09-25", 1, "d", createdAtEpochMs = 5_000, coversUntilId = 6)
+        assertThat(PromptBuilder.rawSinceDigest(all, listOf(v9)).map { it.id }).containsExactly(7L, 8L, 9L, 10L).inOrder()
+        val v8 = DayDigestEntity("2026-09-25", 1, "d", createdAtEpochMs = 1_003)
+        assertThat(PromptBuilder.rawSinceDigest(all, listOf(v8)).map { it.id }).containsExactlyElementsIn(4L..10L).inOrder()
+        // The newest digest decides: a v9 one after an old v8 one.
+        assertThat(PromptBuilder.rawSinceDigest(all, listOf(v8, v9)).map { it.id }).containsExactly(7L, 8L, 9L, 10L).inOrder()
     }
 }

@@ -241,4 +241,130 @@ class MemoryRulesTest {
         assertThat(r.memory.facts).isEmpty()
         assertThat(r.changed).isFalse()
     }
+
+    // ------------------------------------------------------------------ A38: temp facts
+
+    private fun temp(id: String, key: String, created: String = d, text: String = "rótulo $key") =
+        Fact(id, "temp", "portion", key, text, source = "observed", days = listOf(created), created = created)
+
+    @Test
+    fun addTemp_new_getsTnAndCountsAsChange() {
+        val r = MemoryRules.apply(Memory(), listOf(add("temp", "lasanha", "100 g = 150 kcal", category = "portion")), today)
+        val f = r.memory.facts.single()
+        assertThat(f.id).isEqualTo("T1")
+        assertThat(f.kind).isEqualTo("temp")
+        assertThat(f.created).isEqualTo(d)
+        assertThat(r.memory.next).isEqualTo(NextIds(1, 1, 2))
+        assertThat(r.changed).isTrue()
+        assertThat(r.counts["add"]).isEqualTo(1)
+        assertThat(r.counts["temp_add"]).isEqualTo(1)
+    }
+
+    @Test
+    fun addTemp_sameTempKey_replacesTextKeepsIdAndCreation() {
+        val m = memory(temp("T3", "lasanha", created = today.minusDays(1).toString()))
+        val r = MemoryRules.apply(m, listOf(add("temp", "Lasanha", "100 g = 160 kcal", category = "portion")), today)
+        val f = r.memory.facts.single()
+        assertThat(f.id).isEqualTo("T3")
+        assertThat(f.text).isEqualTo("100 g = 160 kcal")
+        assertThat(f.created).isEqualTo(today.minusDays(1).toString())
+        assertThat(r.counts["temp_replace"]).isEqualTo(1)
+        assertThat(r.changed).isTrue()
+    }
+
+    @Test
+    fun tempKey_isolatedFromDynamicBothWays() {
+        val withDynamic = memory(fact("D1", "lasanha", days = daysBack(2)))
+        val r1 = MemoryRules.apply(withDynamic, listOf(add("temp", "lasanha", "rótulo", category = "portion")), today)
+        assertThat(r1.memory.facts.map { it.id }).containsExactly("D1", "T1").inOrder()
+        assertThat(r1.memory.facts.first().days).containsExactly(today.minusDays(2).toString())
+
+        val withTemp = memory(temp("T1", "lasanha"))
+        val r2 = MemoryRules.apply(withTemp, listOf(add("dynamic", "lasanha", "300 g")), today)
+        assertThat(r2.memory.facts.map { it.id to it.kind }).containsExactly("T1" to "temp", "D10" to "dynamic").inOrder()
+        assertThat(r2.memory.facts.first().text).isEqualTo("rótulo lasanha")
+        assertThat(r2.counts["reinforce"]).isEqualTo(0)
+    }
+
+    @Test
+    fun tempKey_permanentAddDoesNotTouchTemp() {
+        val withTemp = memory(temp("T1", "lasanha"))
+        val r = MemoryRules.apply(withTemp, listOf(add("permanent", "lasanha", "sem queijo")), today)
+        assertThat(r.memory.facts.map { it.id to it.kind }).containsExactly("T1" to "temp", "P10" to "permanent").inOrder()
+        assertThat(r.memory.facts.first().text).isEqualTo("rótulo lasanha")
+    }
+
+    @Test
+    fun tempCap_sixthPushesOutTheOldestCreated() {
+        val m = Memory(
+            NextIds(1, 1, 6),
+            listOf(
+                temp("T1", "a", created = today.minusDays(1).toString()),
+                temp("T2", "b", created = today.minusDays(2).toString()),
+                temp("T3", "c"),
+                temp("T4", "e"),
+                temp("T5", "f"),
+            ),
+        )
+        val r = MemoryRules.apply(m, listOf(add("temp", "g", "novo", category = "portion")), today)
+        assertThat(r.memory.facts.map { it.id }).containsExactly("T1", "T3", "T4", "T5", "T6").inOrder()
+        assertThat(r.memory.facts.count { it.temp }).isEqualTo(MemoryRules.TEMP_MAX)
+    }
+
+    @Test
+    fun tempExpiry_goneOnDay3_keptOnDay2_notAChange() {
+        val m = memory(temp("T1", "lasanha", created = "2026-10-02"))
+        val day2 = MemoryRules.expire(m, LocalDate.parse("2026-10-04"))
+        assertThat(day2.memory.facts.map { it.id }).containsExactly("T1")
+        val day3 = MemoryRules.apply(m, emptyList(), LocalDate.parse("2026-10-05"))
+        assertThat(day3.memory.facts).isEmpty()
+        assertThat(day3.counts["expire"]).isEqualTo(1)
+        assertThat(day3.counts["temp_expire"]).isEqualTo(1)
+        assertThat(day3.changed).isFalse()
+    }
+
+    @Test
+    fun tempReplaceAndRemove_byTId() {
+        val m = memory(temp("T1", "lasanha"), temp("T2", "pizza"))
+        val r = MemoryRules.apply(m, listOf(op("replace", "T1", "corrigido", kind = "temp"), op("remove", "T2", kind = "temp")), today)
+        assertThat(r.memory.facts.single().text).isEqualTo("corrigido")
+        assertThat(r.memory.facts.single().kind).isEqualTo("temp")
+        assertThat(r.counts["temp_replace"]).isEqualTo(1)
+        assertThat(r.counts["temp_remove"]).isEqualTo(1)
+    }
+
+    @Test
+    fun tempReinforceRoutineSlotAndPromotion_ignored() {
+        val m = memory(temp("T1", "lasanha"))
+        val r = MemoryRules.apply(
+            m,
+            listOf(
+                op("reinforce", "T1", "outro", kind = "temp"),
+                add("temp", "cafe", "2 ovos", category = "routine", slot = "1"),
+                add("temp", "pao", "1 pão", category = "portion", slot = "1"),
+                op("replace", "T1", "permanente agora", kind = "permanent"),
+            ),
+            today,
+        )
+        val f = r.memory.facts.single()
+        assertThat(f.id).isEqualTo("T1")
+        assertThat(f.kind).isEqualTo("temp")
+        assertThat(f.days).containsExactly(d)
+        assertThat(r.counts["reinforce"]).isEqualTo(0)
+        assertThat(r.counts["promote"]).isEqualTo(0)
+    }
+
+    @Test
+    fun recordRoutineUpdate_leavesTempUntouched_andTempNeverEntersImages() {
+        val m = memory(temp("T1", "lasanha"))
+        val r = MemoryRules.apply(m, listOf(add("dynamic", "almoco", "300 g de lasanha", category = "routine", slot = "2")), today, RecordedMeal("2", 450, 20, 50, 15))
+        assertThat(r.memory.facts.first()).isEqualTo(temp("T1", "lasanha"))
+        val images = MemoryRules.images(m, r.memory)
+        assertThat(images.map { it.id }).containsExactly("D10")
+        // A temp image (from anywhere) is never reverted.
+        val removed = MemoryRules.apply(m, listOf(op("remove", "T1", kind = "temp")), today).memory
+        val back = MemoryRules.revert(removed, listOf(FactImage("T1", before = temp("T1", "lasanha"), after = null)))
+        assertThat(back.memory.facts).isEmpty()
+        assertThat(back.reverted).isEqualTo(0)
+    }
 }

@@ -355,13 +355,24 @@ class ChatViewModel @Inject constructor(
         }
         var turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force)
         if (turn.needsCompact) {
-            // A failed compact never fails the turn: nothing stored, the newest 12 raw go as they are
-            // and the next send tries again.
-            val digest = runCatching { service.chat(PromptBuilder.compact(turn)).digest }.getOrNull()
-            if (!digest.isNullOrBlank()) {
-                repository.upsertDigest(digest)
+            // A38: the oldest block(s), the open tail stays raw. A failed compact never fails the turn: nothing
+            // stored, the newest 12 raw go as they are and the next send tries again. A digest is stored only on
+            // the day and after the wipe it was asked on.
+            val sentOn = SaoPaulo.date(sentAt).toString()
+            val wipeId = today.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
+            val planned = turn
+            var stored = 0
+            for (block in planned.blocks) {
+                val digest = runCatching { service.chat(PromptBuilder.compact(turn, block)).digest }.getOrNull()
+                if (digest.isNullOrBlank() || !repository.upsertDigest(digest, block.coversUntilId, sentOn, wipeId)) break
+                stored++
                 digests = repository.digestsToday()
                 turn = PromptBuilder.build(snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force)
+            }
+            if (stored > 0) {
+                val summarised = planned.blocks.take(stored).sumOf { it.messages.size }
+                val kept = planned.kept + planned.blocks.drop(stored).sumOf { it.messages.size }
+                telemetry.event(TelemetryEvents.CHAT_COMPACT, mapOf("blocks" to stored, "kept" to kept, "summarised" to summarised))
             }
         }
         // The photo rides only on the turn, never on the compact request.
@@ -382,6 +393,8 @@ class ChatViewModel @Inject constructor(
         }
         val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
+        // A38: the slot held with a question-only turn goes back in HISTORY as the suggested meal.
+        val held = out.questionSlot?.toLongOrNull()?.takeIf { question != null && it in slots }
         val intent = if (question != null) "log" else out.intent?.takeIf { it in INTENTS }
         val recordMode = recordModeOf(out, intent, question, suggested)
         repository.insertMessage(role = "user", text = text, photoPath = photo)
@@ -397,7 +410,7 @@ class ChatViewModel @Inject constructor(
             estimateC = out.estimate?.c?.roundToInt(),
             estimateG = out.estimate?.g?.roundToInt(),
             estimateConfidence = out.estimate?.confidence,
-            estimateSlotId = suggested,
+            estimateSlotId = suggested ?: held,
             estimateQuestion = question ?: out.estimate?.question,
             estimateItems = out.estimate?.items?.map { it.name }.orEmpty(),
             estimateMealText = out.estimate?.mealText?.trim()?.takeIf { it.isNotEmpty() },
@@ -475,9 +488,10 @@ class ChatViewModel @Inject constructor(
     private fun memoryChanged(result: MemoryResult) {
         if (result.counts.values.none { it > 0 }) return
         val params = buildMap<String, Any> {
-            MemoryRules.OPS.forEach { put(it, result.counts[it] ?: 0) }
+            (MemoryRules.OPS + MemoryRules.TEMP_OPS).forEach { put(it, result.counts[it] ?: 0) }
             put("permanent", result.memory.facts.count { it.permanent })
-            put("dynamic", result.memory.facts.count { !it.permanent })
+            put("dynamic", result.memory.facts.count { it.dynamic })
+            put("temp", result.memory.facts.count { it.temp })
         }
         telemetry.event(TelemetryEvents.MEMORY_CHANGED, params)
     }

@@ -459,22 +459,37 @@ class DayRepository @Inject constructor(
 
     private fun messagesFrom() = SaoPaulo.date(clock.now()).minusDays(MESSAGE_DAYS - 1L).toString()
 
-    /** At most 2 digests per day. A 3rd overwrites the oldest (seq 1, then seq 2, ...). */
-    suspend fun upsertDigest(text: String) {
+    /** Id of today's latest wipe marker, null when today has none (A38: captured before a compaction). */
+    suspend fun latestWipeToday(): Long? {
+        importOnce()
+        return withContext(Dispatchers.IO) { db.chatMessageDao().latestIdOf(todayIso(), ROLE_WIPED) }
+    }
+
+    /**
+     * At most 2 digests per day. A 3rd overwrites the oldest (seq 1, then seq 2, ...). [coversUntilId]: the newest
+     * message it summarised (A38). [sentOn] and [wipeId]: the day and latest wipe captured before the compact
+     * call; when today or its latest wipe differ now, nothing is written and the result is false.
+     * Null [sentOn] = no check.
+     */
+    suspend fun upsertDigest(text: String, coversUntilId: Long? = null, sentOn: String? = null, wipeId: Long? = null): Boolean {
         importOnce()
         val now = clock.now()
         val date = SaoPaulo.date(now).toString()
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             db.withTransaction {
+                if (sentOn != null && (sentOn != date || db.chatMessageDao().latestIdOf(date, ROLE_WIPED) != wipeId)) {
+                    return@withTransaction false
+                }
                 val existing = db.dayDigestDao().getByDate(date)
                 val seq = when {
                     existing.none { it.seq == 1 } -> 1
                     existing.none { it.seq == 2 } -> 2
-                    else -> existing.minWith(compareBy({ it.createdAtEpochMs }, { it.seq })).seq
+                    else -> existing.minWith(compareBy({ it.createdAtEpochMs }, { it.coversUntilId ?: Long.MIN_VALUE }, { it.seq })).seq
                 }
                 db.dayDigestDao().upsert(
-                    DayDigestEntity(date = date, seq = seq, text = text, createdAtEpochMs = now.toEpochMilli()),
+                    DayDigestEntity(date = date, seq = seq, text = text, createdAtEpochMs = now.toEpochMilli(), coversUntilId = coversUntilId),
                 )
+                true
             }
         }
     }

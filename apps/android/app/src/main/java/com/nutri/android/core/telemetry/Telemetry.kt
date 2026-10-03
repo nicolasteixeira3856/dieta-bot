@@ -38,8 +38,11 @@ object TelemetryEvents {
     const val ONBOARDING_COMPLETE = "onboarding_complete"
     const val PUSH_ACTION = "push_action"
 
-    /** A28: count per applied memory operation + permanent/dynamic totals. Numbers only. */
+    /** A28: count per applied memory operation + permanent/dynamic totals; A38 adds temp totals and temp_* ops. Numbers only. */
     const val MEMORY_CHANGED = "memory_changed"
+
+    /** A38: a send that compacted, `blocks` = digests stored, `summarised` / `kept` = raw messages in / out of them. Numbers only. */
+    const val CHAT_COMPACT = "chat_compact"
 
     /** A29: routine card of the Chat, `action` = shown | record | edit. Enum only. */
     const val ROUTINE_SUGGESTION = "routine_suggestion"

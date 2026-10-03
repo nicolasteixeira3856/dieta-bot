@@ -52,8 +52,8 @@ class RoomV2Test {
     }
 
     @Test
-    fun databaseIsVersion8() {
-        assertThat(db.openHelper.readableDatabase.version).isEqualTo(8)
+    fun databaseIsVersion9() {
+        assertThat(db.openHelper.readableDatabase.version).isEqualTo(9)
     }
 
     /** A34: the record transaction checks every slot first; a mismatch writes nothing. */

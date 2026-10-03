@@ -900,6 +900,7 @@ class ChatViewModelTest {
         assertThat(rows.single { it.role == "assistant" }.memoryUpdated).isFalse()
         assertThat(telemetry.params(TelemetryEvents.MEMORY_CHANGED).single()).containsExactly(
             "add", 1, "reinforce", 0, "replace", 0, "remove", 0, "promote", 0, "expire", 0, "permanent", 0, "dynamic", 1,
+            "temp_add", 0, "temp_replace", 0, "temp_remove", 0, "temp_expire", 0, "temp", 0,
         )
     }
 
@@ -1881,5 +1882,87 @@ class ChatViewModelTest {
         assertThat(turns.map { it.clarifyRounds }).containsExactly(0, 1).inOrder()
         assertThat(vm.uiState.value.forceEstimate).isTrue()
         assertThat(vm.uiState.value.emptyDay).isFalse()
+    }
+
+    // ------------------------------------------------------------------ A38
+
+    private suspend fun tempFacts() = memory.read(today).facts.filter { it.temp }
+
+    @Test
+    fun tempFact_addedOnTheAnswer_survivesRecordsAndEveryReceiptAction() = runBlocking<Unit> {
+        val telemetry = FakeTelemetry()
+        val vm = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+        val (cafe, almoco, lanche, jantar) = slotIds()
+        answer = {
+            ChatOut(
+                reply = "Guardei o rótulo da lasanha.",
+                intent = "question",
+                memoryUpdates = listOf(update("add", null, "temp", "portion", "lasanha", "Lasanha: 100 g = 150 kcal, 8P 15C 6G")),
+                model = "gpt-6-luna",
+            )
+        }
+        sendAndAwaitAuto(vm, "rótulo da lasanha: 150 kcal por 100 g")
+        assertThat(storedAssistant().memoryUpdated).isTrue()
+        val t1 = tempFacts().single()
+        assertThat(t1.id).isEqualTo("T1")
+        assertThat(requests.single().tempFacts).isTrue()
+        val changed = telemetry.params(TelemetryEvents.MEMORY_CHANGED).single()
+        assertThat(changed["temp"]).isEqualTo(1)
+        assertThat(changed["temp_add"]).isEqualTo(1)
+
+        // Two recorded meals that used T1: it stays, no origin chip.
+        val withT1: () -> ChatOut = { autoOut(cafe, 450.0).copy(memoryUsed = listOf("T1")) }
+        now = now.plusSeconds(60)
+        answer = withT1
+        sendAndAwaitAuto(vm, "comi 300 g da lasanha")
+        assertThat(requests.last().facts!!.single { it.id == "T1" }.kind).isEqualTo("temp")
+        assertThat(storedAssistant().memoryUsedKinds).isNull()
+        val first = vm.await { it.receipts().size == 1 && it.receipts().last().actions.isNotEmpty() }.receipts().last()
+        val second = recorded(vm, jantar, 300.0, "comi o resto da lasanha")
+        assertThat(tempFacts()).containsExactly(t1)
+
+        // Trocar refeição to an empty slot, Excluir, Editar: T1 as it was.
+        vm.receiptAction(first.id, ReceiptAction.MOVE)
+        vm.await { it.sheetFor == first.id }
+        vm.selectInSheet(lanche)
+        vm.confirmSheet()
+        val moved = vm.await { it.receipts().lastOrNull()?.kind == ReceiptKind.MOVED && it.receipts().last().actions.isNotEmpty() }.receipts().last()
+        assertThat(tempFacts()).containsExactly(t1)
+        vm.receiptAction(moved.id, ReceiptAction.DELETE)
+        vm.await { it.receipts().single { r -> r.id == moved.id }.mark == ReceiptMark.DELETED }
+        assertThat(tempFacts()).containsExactly(t1)
+        vm.receiptAction(second.id, ReceiptAction.EDIT)
+        vm.await { it.receipts().single { r -> r.id == second.id }.mark == ReceiptMark.EDITED }
+        assertThat(tempFacts()).containsExactly(t1)
+
+        // Substituir over a recorded slot, then Desfazer: the previous record comes back, T1 unchanged.
+        recorded(vm, almoco, 380.0)
+        now = now.plusSeconds(60)
+        answer = { autoOut(almoco, 620.0).copy(memoryUsed = listOf("T1")) }
+        sendAndAwaitAuto(vm, "na verdade foi lasanha no almoço")
+        vm.confirmReplace(storedAssistant().id)
+        val replaced = vm.await { it.receipts().lastOrNull()?.kind == ReceiptKind.REPLACED && it.receipts().last().actions.isNotEmpty() }.receipts().last()
+        vm.receiptAction(replaced.id, ReceiptAction.UNDO)
+        vm.await { it.receipts().last().kind == ReceiptKind.RESTORED }
+        assertThat(repo.observeToday().first().logs.single { it.slotId == almoco }.kcal).isEqualTo(380)
+        assertThat(tempFacts()).containsExactly(t1)
+    }
+
+    @Test
+    fun questionSlot_storedOnTheQuestionOnlyRow_andSentBackAsTheSuggestedMeal() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        val jantar = slotIds()[3]
+        answer = { questionOut("Quantos gramas?").copy(questionSlot = jantar.toString()) }
+        turn(vm, dinner)
+        assertThat(storedAssistant().estimateSlotId).isEqualTo(jantar)
+        assertThat(storedAssistant().estimateKcal).isNull()
+        assertThat(vm.uiState.value.actions).isNull()
+
+        answer = { questionOut("Era grelhado?").copy(questionSlot = "999") }
+        turn(vm, "200 g")
+        assertThat(requests.last().messages.last().text)
+            .isEqualTo("Entendi: macarrão com frango ao molho branco.\nQuantos gramas?\n[refeição sugerida: Jantar]")
+        // A slot that is not today's is not kept.
+        assertThat(storedAssistant().estimateSlotId).isNull()
     }
 }

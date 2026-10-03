@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter
  * `P1 | preference | leite | Leite semidesnatado`
  * `D2 | routine | cafe | slot=1 | 2 ovos mexidos | 440 kcal 25P 38C 22G` (macros optional)
  * Text, key and category can change; `novo | …` adds a permanent fact. Nothing is deleted (ADR-019).
+ * Temp facts (A38) come last, read-only: `T1 | temp | portion | lasanha | {text} · criado 03/10`. The parser
+ * skips every `T` line and keeps the temp facts as they are.
  */
 object FactText {
     const val NEW = "novo"
@@ -23,9 +25,12 @@ object FactText {
         data class Error(val message: String) : Result
     }
 
-    fun format(facts: List<Fact>): String = facts.joinToString("\n", transform = ::line)
+    fun format(facts: List<Fact>): String = ordered(facts).joinToString("\n", transform = ::line)
 
-    fun line(f: Fact): String = buildList {
+    /** Permanent and dynamic as stored, then the temp facts. */
+    fun ordered(facts: List<Fact>): List<Fact> = facts.filterNot { it.temp } + facts.filter { it.temp }
+
+    fun line(f: Fact): String = if (f.temp) tempLine(f) else buildList {
         add(f.id)
         add(f.category)
         add(f.key)
@@ -34,10 +39,16 @@ object FactText {
         if (f.category == MemoryRules.ROUTINE && f.kcal != null) add("${f.kcal} kcal ${f.p ?: 0}P ${f.c ?: 0}C ${f.g ?: 0}G")
     }.joinToString(SEP)
 
-    /** Read-only header: `Permanente 3/30 · Dinâmica 5/40`. */
+    private fun tempLine(f: Fact): String =
+        listOf(f.id, MemoryRules.TEMP, f.category, f.key, "${f.text} · criado ${createdLabel(f.created)}").joinToString(SEP)
+
+    private fun createdLabel(date: String) = runCatching { LocalDate.parse(date).format(DATE) }.getOrDefault(date)
+
+    /** Read-only header: `Permanente 3/30 · Dinâmica 5/40 · Temporária 1/5`. */
     fun summary(facts: List<Fact>): String =
         "Permanente ${facts.count { it.permanent }}/${MemoryRules.PERMANENT_MAX} · " +
-            "Dinâmica ${facts.count { !it.permanent }}/${MemoryRules.DYNAMIC_MAX}"
+            "Dinâmica ${facts.count { it.dynamic }}/${MemoryRules.DYNAMIC_MAX} · " +
+            "Temporária ${facts.count { it.temp }}/${MemoryRules.TEMP_MAX}"
 
     /** Read-only, per fact: `P1 · visto 3 dias · último 29/09`. */
     fun seen(f: Fact): String {
@@ -60,6 +71,8 @@ object FactText {
             val n = index + 1
             if (raw.isBlank()) return@forEachIndexed
             val parts = raw.split('|').map { it.trim() }
+            // A38: a temp line is read-only; changed or removed, it is ignored.
+            if (parts[0].startsWith("T")) return@forEachIndexed
             if (parts.size < 4) return Result.Error("Linha $n: use id | categoria | chave | texto.")
             val id = parts[0]
             val category = parts[1]
@@ -114,12 +127,12 @@ object FactText {
                 g = if (routine) macros?.get(3) ?: base.g else null,
             )
         }
-        current.facts.forEachIndexed { i, f ->
-            if (f.id !in seenIds) return Result.Error("Linha ${i + 1}: remover não é permitido (${f.id}). Esquecer é pelo Chat.")
+        ordered(current.facts).forEachIndexed { i, f ->
+            if (!f.temp && f.id !in seenIds) return Result.Error("Linha ${i + 1}: remover não é permitido (${f.id}). Esquecer é pelo Chat.")
         }
         if (facts.count { it.permanent } > MemoryRules.PERMANENT_MAX) return Result.Error("Permanente acima de ${MemoryRules.PERMANENT_MAX}.")
-        if (facts.count { !it.permanent } > MemoryRules.DYNAMIC_MAX) return Result.Error("Dinâmica acima de ${MemoryRules.DYNAMIC_MAX}.")
-        return Result.Ok(Memory(current.next.copy(p = nextP), facts))
+        if (facts.count { it.dynamic } > MemoryRules.DYNAMIC_MAX) return Result.Error("Dinâmica acima de ${MemoryRules.DYNAMIC_MAX}.")
+        return Result.Ok(Memory(current.next.copy(p = nextP), facts + current.facts.filter { it.temp }))
     }
 
     private fun checkSize(n: Int, name: String, empty: String, value: String, max: Int): String? = when {

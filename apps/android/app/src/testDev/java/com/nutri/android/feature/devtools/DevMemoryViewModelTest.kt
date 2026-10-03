@@ -107,7 +107,7 @@ class DevMemoryViewModelTest {
                 "D1 | routine | cafe | slot=$cafe | 2 ovos mexidos | 380 kcal 22P 4C 16G",
         )
         assertThat(body.facts!!.map { it.id }).containsExactly("P1", "D1").inOrder()
-        assertThat(ui.memorySummary).isEqualTo("Permanente 1/30 · Dinâmica 1/40")
+        assertThat(ui.memorySummary).isEqualTo("Permanente 1/30 · Dinâmica 1/40 · Temporária 0/5")
         assertThat(ui.memorySeen).isEqualTo("P1 · visto 1 dia · último 23/09\nD1 · visto 1 dia · último 25/09")
         assertThat(ui.profileText).isEqualTo(ProfileText.format(body.profile))
         // 2000 base + 50% of 400.
@@ -136,7 +136,7 @@ class DevMemoryViewModelTest {
         vm = DevMemoryViewModel(repo, memory, clock, telemetry)
         awaitUi { it.loaded }
         assertThat(vm.uiState.value.memoryText).isEmpty()
-        assertThat(vm.uiState.value.memorySummary).isEqualTo("Permanente 0/30 · Dinâmica 0/40")
+        assertThat(vm.uiState.value.memorySummary).isEqualTo("Permanente 0/30 · Dinâmica 0/40 · Temporária 0/5")
 
         vm.setProfile(vm.uiState.value.profileText.replace("proteina_g=150", "proteina_g=160"))
         vm.save()
@@ -189,7 +189,7 @@ class DevMemoryViewModelTest {
         assertThat(day.kcalSame).isEqualTo(2000)
         assertThat(day.logs).hasSize(1)
         val params = telemetry.params(DevMemoryViewModel.DEV_MEMORY_SAVED).single()
-        assertThat(params).containsExactly("permanent", 2, "dynamic", 1, "memory_changed", true, "profile_changed", true)
+        assertThat(params).containsExactly("permanent", 2, "dynamic", 1, "temp", 0, "memory_changed", true, "profile_changed", true)
     }
 
     @Test

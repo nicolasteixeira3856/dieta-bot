@@ -35,7 +35,10 @@ data class SlotChange(val date: String, val slotId: Long, val before: SlotState,
 
 /** Pre and post image of one memory fact (A34). Null = the fact did not exist. */
 @Serializable
-data class FactImage(val id: String, val before: Fact? = null, val after: Fact? = null)
+data class FactImage(val id: String, val before: Fact? = null, val after: Fact? = null) {
+    /** A38: a temp fact is never recorded, reverted or restored by a receipt. */
+    val temp: Boolean get() = before?.temp == true || after?.temp == true || id.startsWith("T")
+}
 
 /**
  * What a receipt changed (A34, ADR-028 decision 5): every touched slot before/after, the memory images,
