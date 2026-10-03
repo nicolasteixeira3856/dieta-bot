@@ -6,10 +6,6 @@ Shared workflow maintenance follows [the SDD policy](../README.md) and [AGENTS.m
 
 None.
 
-## Pending manual validation
-
-- [SD3 — Documentation checker and search ignores](pending_manual_validation/sd3-docs-checker-and-ignores.md): `tools/check-docs.mjs`, `.gitignore`/`.ignore` fixes, orphaned wire tools removed.
-
 ## History
 
 [`completed/`](completed/).
