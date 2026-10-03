@@ -1,6 +1,6 @@
 # Plan — A37 Send closes the keyboard
 
-- Status: Pendente aprovação manual
+- Status: Concluído (02/10/2026)
 - Approval: 02/10/2026 (owner, in chat: "eu queria que você gerasse um microplano rápido para o app, já aplicasse ele, testasse e já fizesse o deploy após o merge + atualização da master. Quando o usuário clica no botão de enviar para o chat o teclado deveria fechar sozinho e não ficar aberto.")
 - Date: 02/10/2026
 - Owning context: `android`
@@ -35,4 +35,4 @@ After implementation, record real results and apply the lifecycle in `docs/sdd/R
 - `ChatScreen` wraps `onSend` with `keyboard?.hide()` + `focusManager.clearFocus()`, as the A32 camera and photo chip.
 - `ChatThreadTest.sendHidesTheKeyboardBeforeSending`: `hide` then `send`. ChatThreadTest 7/7.
 - `./gradlew testDevDebugUnitTest verifyRoborazziDevDebug assembleDevRelease`: green. No baseline changed (no layout change).
-- ⏳ Pending, owner: on the next dev build, type a meal, tap send, the keyboard closes.
+- ✅ Owner, 02/10/2026: confirmed on dev 0.0.9 (Firebase App Tester). Owner: "Confirmei, pode fechar o plano." Plan → `Concluído`.

@@ -124,7 +124,7 @@ Historico: [002](../decisions/002-android-client.md), [004](../decisions/004-m3-
 Registro autônomo ([ADR-028](../produto/adrs/ADR-028-registro-autonomo.md), aceito em 02/10/2026):
 
 - [A34 Registro autônomo, recibos com ações](plans/completed/a34-registro-autonomo.md) — concluído em 02/10/2026 (aprovado pelo dono após testar a dev 0.0.8); [S14](../server/plans/completed/s14-registro-autonomo.md) e gate [ST9](../stitch/plans/completed/st9-registro-autonomo.md); Room v8
-- [A37 Enviar fecha o teclado](plans/pending_manual_validation/a37-enviar-fecha-teclado.md) — pendente aprovação manual (código e testes entregues em 02/10/2026)
+- [A37 Enviar fecha o teclado](plans/completed/a37-enviar-fecha-teclado.md) — concluído em 02/10/2026 (confirmado pelo dono na dev 0.0.9)
 - [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md) — fora de escopo (decisão do dono, 01/10/2026)
 
 QA visual:
