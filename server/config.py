@@ -27,9 +27,10 @@ CHAT_FALLBACK_QUESTION = "Alguma porção foi diferente do que considerei?"
 # Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
 DIGEST_MAX_CHARS = 1600
 # Chat v2 (ADR-023). Memory facts and recent meals come from the app; the server is stateless.
-FACTS_MAX = 70
+FACTS_MAX = 75
 MEMORY_PERMANENT_MAX = 30
 MEMORY_DYNAMIC_MAX = 40
+MEMORY_TEMP_MAX = 5
 FACT_KEY_MAX = 40
 FACT_TEXT_MAX = 160
 RECENT_MAX = 42

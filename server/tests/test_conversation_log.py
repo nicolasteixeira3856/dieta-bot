@@ -19,7 +19,7 @@ import httpx2
 import main
 from tests.test_api import FAKE_KEY, INVITE, _client, _envelope, _explodes, _responds, _mock
 from shaping import REFUSAL_OUT_OF_SCOPE
-from tests.test_chat import _base_chat_payload
+from tests.test_chat import _base_chat_payload, _estimate, _fact
 
 PHOTO_SENTINEL = "UEhPVE9fU0VOVElORUxfTkFPX1BPREVfVkFaQVI" * 40
 
@@ -109,6 +109,18 @@ class ConversationLogTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(line["error"])
         self.assertEqual(line["fallback"], "text_only")
         self.assertEqual(line["response"], response.json())
+
+    async def test_temp_count_and_held_slot_are_metadata(self) -> None:
+        model = {"reply": "ok", "intent": "log", "estimate": _estimate(suggested_slot="cafe")}
+        app = self._app(_responds(model, []), str(self.path))
+        for enabled, facts in ((False, []), (True, []), (True, [_fact("T1", kind="temp", text="reference sentinel")]), (True, None)):
+            response = await self._chat(app, facts=facts, temp_facts=enabled, clarify_rounds=0)
+            self.assertEqual(response.status_code, 200)
+            line = self._lines()[-1]
+            supported = enabled and facts is not None
+            self.assertEqual(line["temp_facts"], len(facts) if supported else None)
+            self.assertEqual(line["question_slot"], "cafe" if supported else None)
+            self.assertNotIn("reference sentinel", json.dumps({k: line[k] for k in ("temp_facts", "question_slot")}))
 
     async def test_malformed_json_is_an_error_fallback(self) -> None:
         app = self._app(_raw('{"reply": "quebrado"'), str(self.path))

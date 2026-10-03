@@ -1088,7 +1088,10 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
             return payload
 
         bad = {
-            "71 facts": _v2_payload(facts=[_fact(f"D{i}", kind="dynamic") for i in range(71)]),
+            "76 facts": _v2_payload(facts=[_fact(f"D{i}", kind="dynamic") for i in range(76)]),
+            "T dynamic": _v2_payload(facts=[_fact("T1", kind="dynamic")]),
+            "P temp": _v2_payload(facts=[_fact("P1", kind="temp")]),
+            "D temp": _v2_payload(facts=[_fact("D1", kind="temp")]),
             "fact id": _v2_payload(facts=[_fact("X1")]),
             "fact id 5 digits": _v2_payload(facts=[_fact("P12345")]),
             "kind": _v2_payload(facts=[_fact(kind="forever")]),
@@ -1112,11 +1115,59 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
     async def test_limits_at_the_edge_are_accepted(self) -> None:
         facts = [_fact(f"P{i}", key="k" * 40, text="t" * 160, slot="3") for i in range(30)]
         facts += [_fact(f"D{i}", kind="dynamic") for i in range(40)]
+        facts += [_fact(f"T{i}", kind="temp", category="portion") for i in range(5)]
         payload = _v2_payload(facts=facts, recent=[_recent(text="r" * 240) for _ in range(42)])
         payload["day"]["remaining_kcal"] = 0
         response, captured = await self._post_raw(payload)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(captured), 1)
+
+    async def test_temp_capability_changes_context_but_not_instructions_or_schema(self) -> None:
+        facts = [_fact(), _fact("D1", kind="dynamic"), _fact("T1", kind="temp", category="portion")]
+        calls = []
+        for enabled in (False, True):
+            response, captured = await self._post_raw(_v2_payload(facts=facts, temp_facts=enabled))
+            self.assertEqual(response.status_code, 200)
+            prompt = self._prompt(captured)
+            header = prompt.split("MEMORY: ")[1].splitlines()[0]
+            self.assertEqual(header, "permanent 1/30, dynamic 1/40" + (", temp 1/5" if enabled else ""))
+            self.assertIn("T1 portion leite: Leite semidesnatado (temp since 2026-09-29)", prompt)
+            calls.append(json.loads(captured[0].content))
+        self.assertEqual(calls[0]["instructions"], calls[1]["instructions"])
+        self.assertEqual(calls[0]["text"], calls[1]["text"])
+        kind = calls[0]["text"]["format"]["schema"]["properties"]["memory_updates"]["items"]["properties"]["kind"]
+        self.assertEqual(kind["enum"], ["permanent", "dynamic", "temp"])
+
+    async def test_temp_flag_without_facts_is_ignored(self) -> None:
+        model = {"reply": "ok", "intent": "question", "memory_updates": [_update(kind="temp")]}
+        old, old_calls = await self._post_raw(_v2_payload(), model)
+        flagged, new_calls = await self._post_raw(_v2_payload(temp_facts=True), model)
+        self.assertEqual(old.content, flagged.content)
+        self.assertEqual(self._prompt(old_calls), self._prompt(new_calls))
+
+    def test_temp_updates_are_isolated_and_never_reinforced(self) -> None:
+        cases = [
+            (_update(kind="temp", category="portion"), True),
+            (_update(kind="temp", category="preference"), True),
+            (_update(kind="temp", op="replace", id="T1"), True),
+            (_update(kind="temp", op="remove", id="T1"), True),
+            (_update(kind="temp", op="reinforce", id="T1"), False),
+            (_update(kind="temp", category="routine", slot="1"), False),
+            (_update(kind="temp", slot="1"), False),
+            (_update(kind="temp", slot="invalid"), False),
+            (_update(kind="temp", op="remove", id="T2"), False),
+            (_update(kind="temp", op="replace", id="P1"), False),
+            (_update(kind="temp", op="add", id="T1"), False),
+            *[(_update(kind=kind, op=op, id="T1"), False)
+              for kind in ("permanent", "dynamic") for op in ("replace", "remove", "reinforce")],
+        ]
+        for update, valid in cases:
+            for enabled in (False, True):
+                with self.subTest(update=update, enabled=enabled):
+                    out = shape_chat({"reply": "ok", "memory_updates": [update], "memory_used": ["T1", "T1", "T9"]},
+                                     valid_slot_ids=["1"], fact_ids=["P1", "T1"], temp_facts=enabled)
+                    self.assertEqual(out["memory_updates"], [update] if valid and enabled else [])
+                    self.assertEqual(out["memory_used"], ["T1"])
 
 
 if __name__ == "__main__":

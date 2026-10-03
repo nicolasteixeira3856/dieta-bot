@@ -1,88 +1,50 @@
 # server
 
-## Proposito
+## Purpose and ownership
 
-API HTTP do Dieta Bot. Estima refeicao e devolve prato que cabe. Nao calcula teto. Nao guarda o dia.
+Dieta Bot's HTTP API estimates meals and portions that fit the supplied budget. It neither computes the ceiling nor stores the day. Code owner: `server/`; consumer: [Android](../android/README.md). Infrastructure: `server/docker-compose.yml`, `infra/`, `infra/gcp/` and the [deployment runbook](deploy-gcp.md).
 
-## Tipo e ownership
+## Scope and boundaries
 
-- Tipo: contrato HTTP.
-- Codigo principal: `server/`.
-- Consumidor: [android](../android/README.md).
-- Infra indexada aqui: `server/docker-compose.yml`, `infra/`, `infra/gcp/`, [deploy-gcp.md](deploy-gcp.md).
+- Routes, authentication, model configuration, timeout and payload/photo limits: [HTTP contract](../api-contract.md) and [Chat specification](specifications/v1-chat.md).
+- The client owns ceiling/eat-back calculations, Room, push and UI. No server account, payment or day persistence.
+- Host: [ADR-013](adrs/ADR-013-gcp-host.md); deployment: `tools/deploy-gcp.ps1`. Public distribution remains subject to the [production gate](../content-policy/production-gate.md).
+- Optional dev conversation logging and request correlation: [ADR-015](adrs/ADR-015-log-conversa-dev.md), read through `tools/pull-conversations.ps1`.
+- User-supplied content and safety correlation: [content-policy](../content-policy/README.md).
+- Repository architecture and identifiers: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
 
-## Escopo
+## Reading order
 
-- GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat.
-- Auth X-Invite.
-- LLM gpt-6-luna, reasoning.effort=none (`config.REASONING_EFFORT`; escolha feita pelo [avaliador](#avaliacao-do-chat)).
-- Foto entra no request e some. Nao persiste.
-- Cap 16 MB JPEG (`PHOTO_MAX_B64_CHARS = 22_400_000`). Acima disso HTTP 413 `photo_too_large` antes da Luna.
-- Shaping do JSON de contrato.
-- `X-Request-Id` em toda resposta. Log de conversa opcional (`CONVERSATION_LOG_PATH`), ligado so no server GCP de dev ([ADR-015](adrs/ADR-015-log-conversa-dev.md)); leitura por `tools/pull-conversations.ps1`.
-- Host: VM e2-micro GCP + Caddy HTTPS ([ADR-013](adrs/ADR-013-gcp-host.md), runbook [deploy-gcp.md](deploy-gcp.md)). `infra/gcp/`, `tools/deploy-gcp.ps1`. Servidor de produção: bloqueado pelo [production gate](../content-policy/production-gate.md).
+Follow [SDD](../sdd/README.md): [matrix](../README.md), this README, [HTTP contract](../api-contract.md), [Chat specification](specifications/v1-chat.md), cited ADR and named active plan, then `server/main.py`, `llm.py`, `shaping.py`, `config.py`.
 
-## Fora de escopo
+## Chat evaluation
 
-- Teto, eat-back, Room, push, UI — [android](../android/README.md) / [produto](../produto/README.md).
-- Conta de user, Stripe, persistencia do dia no server.
-- Outro host alem do ADR-013 (VPS, dominio proprio, Cloud Run).
-
-## Fronteiras e dependencias
-
-- Contrato vivo hoje: [api-contract.md](../api-contract.md). Spec de chat: [v1-chat.md](specifications/v1-chat.md).
-- Timeout vigente: 60s em server/config.py (`TIMEOUT_SECONDS`). Keep-alive do uvicorn precisa ser >=60s.
-- Cap foto: `PHOTO_MAX_BYTES` 16 MB / `PHOTO_MAX_B64_CHARS` 22_400_000.
-- ADRs de repo: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
-- Controles de conteúdo e correlação de segurança: política em [content-policy](../content-policy/README.md); regras do server em [v1-chat](specifications/v1-chat.md) (regras 12–16) e no [contrato](../api-contract.md).
-
-## Cobertura documental atual
-
-Fonte HTTP: [api-contract.md](../api-contract.md), [v1-chat.md](specifications/v1-chat.md), `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`, `server/tests/test_clarify.py`, `server/tests/test_record.py`.
-
-## Como usar esta documentacao
-
-Segue [docs/sdd/README.md](../sdd/README.md).
-
-1. [matriz](../README.md) e este README
-2. [api-contract.md](../api-contract.md)
-3. [v1-chat.md](specifications/v1-chat.md)
-4. server/main.py, llm.py, shaping.py, config.py
-
-## Avaliacao do Chat
-
-Roda na maquina do dono, nunca no server. Chave `OPENAI_API_KEY` do `.env` da raiz; nunca impressa.
+Run locally, never on the server. The key is loaded from the repository `.env` and never printed.
 
 ```bash
 cd server
-.venv/Scripts/python -m evals.run --effort none low --repeat 3
-.venv/Scripts/python -m evals.run --effort none --repeat 1 --only cafe-resposta-leite,cabe-acai
-.venv/Scripts/python -m evals.run --tag memory
+.venv/Scripts/python -m evals.run --effort none --repeat 3
+.venv/Scripts/python -m evals.run --effort none --repeat 6 --only cafe-resposta-leite,cabe-acai
+.venv/Scripts/python -m evals.run --tag temp
 ```
 
-- Casos: `server/evals/cases/<id>.json` (`id`, `since` v1/v2/v3/v4/cp2, `tags`, `request` = corpo `ChatIn`, `expect`). Expectativas em `server/evals/checks.py`; campo v2 ausente na saida = `n/a`.
-- Mesmo codigo da rota (`_chat_text`, `LlmClient.chat_json`, `shape_chat_turn` = `shape_chat` + gate do S13 + gate do S14), sem HTTP. Casos v3 levam `clarify_rounds` no request; casos v4 levam tambem `auto_record: true`, e `record` (valor ou lista de aceitos) e `skip_slot` olham a marca (`n/a` sem ela); `top_question` (`present` | `absent` | lista de termos) e `top_question_not` olham a `question` do topo (`n/a` sem ela). No maximo 3 chamadas simultaneas.
-- Aprovado: todas as expectativas aplicaveis em pelo menos 2 de 3 repeticoes.
-- Relatorio no terminal e em `logs/evals/<data-hora>-<effort>.json` (fora do git).
-- Caso novo: situacao do log (`./tools/pull-conversations.ps1 -Download`), texto reescrito a mao. Log bruto e texto de tester nunca entram no git.
+- Cases: `server/evals/cases/<id>.json`, with id, since (`v1`/`v2`/`v3`/`v4`/`v5`/`cp2`), tags, request (`ChatIn` body), expect, optional required/strict/image. Since is metadata only: v3 sends clarify_rounds, v4 also auto_record, v5 also temp_facts and structured facts.
+- Normal cases call the route's `chat_reply`; compact requests call its `compact_reply`. Both include generation, shaping, moderation and failure handling, without HTTP. Default: two workers to avoid token-rate bursts with the longer prompt; `--workers` can select up to three.
+- Expectations live in `server/evals/checks.py`. Missing versioned fields are n/a, except any expectation named in `required` fails on n/a. Record/skip_slot check the mark; top_question/top_question_not check the top-level question. Digest accepts present/absent; digest_has/digest_not check terms and require non-empty content. A failed or empty compact response cannot pass only a negative digest check.
+- A case passes when every applicable expectation passes in at least two of three repetitions. Strict cases require every repetition. Inspect the reported statuses; the CLI writes the report even when cases fail.
+- Reports: terminal and `logs/evals/<date-time>-<effort>.json`, outside git, with pass rate, p95 and cost. New cases use manually rewritten situations or synthetic images; never commit raw tester logs/text.
 
-## Indice
+## Index
 
-### Especificacoes
+### Specifications and decisions
 
-- [v1-chat.md](specifications/v1-chat.md) — regras da rota `/v1/chat`.
-- Contrato HTTP: [api-contract.md](../api-contract.md).
+- [v1-chat](specifications/v1-chat.md) and [HTTP contract](../api-contract.md).
+- [ADR-013](adrs/ADR-013-gcp-host.md) — host.
+- [ADR-015](adrs/ADR-015-log-conversa-dev.md) — dev conversation log.
+- Each ADR's own status line is authoritative.
 
-### ADRs
+### Plans and validation
 
-Status: a linha de status de cada ADR.
-
-- [ADR-013](adrs/ADR-013-gcp-host.md) — host GCP e2-micro.
-- [ADR-015](adrs/ADR-015-log-conversa-dev.md) — log de conversa no server de dev.
-- Historico: [001](../decisions/001-monorepo.md), [007](../decisions/007-english-identifiers.md).
-
-### Planos e validacao
-
-- Ativos: arquivos na raiz de [`plans/`](plans/).
-- Histórico (com os números de avaliação de cada entrega): [`plans/completed/`](plans/completed/).
-- Testes: `server/tests/test_api.py`, `server/tests/test_photo_cap.py`, `server/tests/test_security.py`, `server/tests/test_chat.py`, `server/tests/test_conversation_log.py`, `server/tests/test_evals.py`, `server/tests/test_clarify.py`, `server/tests/test_record.py`.
+- Active plans: files directly under [plans/](plans/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
+- Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
+- Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.

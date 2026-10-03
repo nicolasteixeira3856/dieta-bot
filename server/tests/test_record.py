@@ -404,6 +404,27 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(rule, instructions)
         self.assertNotIn("a photo of a plate with or without text", instructions)
 
+    async def test_instructions_separate_eating_day_record_slot_and_reference(self) -> None:
+        captured: list[httpx2.Request] = []
+        await self._post(self._v4(), _responds(_model(), captured))
+        instructions = json.loads(captured[0].content)["instructions"]
+        for rule in (
+            "other means the food was EATEN on another day",
+            "registra o almoço de ontem is other and never records today",
+            "A day statement alone (é de hoje) after a pure nutrition question does not become a log",
+            "The user's explicit facts now override DIGESTS and earlier assistant assumptions",
+            "[refeição sugerida: {slot name}]",
+            "never the user's words",
+            "Never ask which meal when its slot was named by the user or suggested earlier",
+            "two most recent RECENT records of that slot on DIFFERENT days",
+            "Compare food type, numeric quantity and unit AFTER ignoring brand names",
+            "fewer than two days",
+            "including another portion on a later turn",
+            "Recording or citing a temp fact never removes it",
+            "never promote it or copy it into a habit",
+        ):
+            self.assertIn(rule, instructions)
+
 
 if __name__ == "__main__":
     unittest.main()

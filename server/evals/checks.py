@@ -43,6 +43,9 @@ KNOWN = (
     "refusal",
     "record",
     "skip_slot",
+    "digest",
+    "digest_has",
+    "digest_not",
 )
 
 # CP2 refusal expectation: which fixed copy the reply must be. "none" = no refusal at all.
@@ -69,15 +72,22 @@ def output_intent(output: dict[str, Any]) -> tuple[str, bool]:
     return ("log" if output.get("estimate") else "question"), True
 
 
-def evaluate(expect: dict[str, Any], output: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def evaluate(
+    expect: dict[str, Any], output: dict[str, Any], *, required: list[str] | None = None
+) -> dict[str, dict[str, Any]]:
     """{check name: {"status": PASS|FAIL|NA, "detail": str}} for every expectation present."""
     results: dict[str, dict[str, Any]] = {}
+    required_keys = set(required or [])
+    if not required_keys <= expect.keys():
+        raise ValueError("required keys must be present in expect")
     estimate = output.get("estimate") if isinstance(output.get("estimate"), dict) else None
 
     for key, want in expect.items():
         if key not in KNOWN:
             raise ValueError(f"unknown expectation: {key}")
         results[key] = _check(key, want, output, estimate)
+        if key in required_keys and results[key]["status"] == NA:
+            results[key] = _result(False, "required check is unavailable: " + results[key]["detail"])
     return results
 
 
@@ -91,6 +101,19 @@ def _check(
     if key == "estimate":
         got = "present" if estimate else "absent"
         return _result(got == want, f"got {got}")
+
+    if key in ("digest", "digest_has", "digest_not"):
+        if "digest" not in output:
+            return _na("no digest in output")
+        digest = output.get("digest")
+        present = isinstance(digest, str) and bool(digest.strip())
+        if key == "digest":
+            got = "present" if present else "absent"
+            return _result(got == want, f"got {got}")
+        # A negative substring check must not turn an empty/failed compact into a pass.
+        if not present:
+            return _result(False, "no non-empty digest")
+        return _terms(key == "digest_has", want, digest)
 
     if key == "question":
         question = estimate.get("question") if estimate else None

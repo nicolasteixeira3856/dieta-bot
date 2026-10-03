@@ -1,0 +1,111 @@
+{
+  "id": "temp-rotulo-texto",
+  "since": "v5",
+  "tags": [
+    "s16",
+    "temp"
+  ],
+  "request": {
+    "local_time": "2026-10-03T23:50:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-03",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "Amanhã vou almoçar essa lasanha. O rótulo diz 99 kcal e 7 g de proteína por 100 g; a caixa tem 600 g.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true,
+    "temp_facts": true
+  },
+  "expect": {
+    "memory_updates_has": [
+      {
+        "op": "add",
+        "kind": "temp"
+      }
+    ],
+    "record": "none",
+    "refusal": "none"
+  },
+  "required": [
+    "memory_updates_has",
+    "record"
+  ],
+  "strict": true
+}
