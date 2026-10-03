@@ -270,7 +270,7 @@ Criação, movimentação ou substituição:
 
 Scope: repository agent instructions and their supporting validation tools; no client or server implementation ownership. Existing product and architecture authorities remain unchanged.
 
-Plans: [maintenance index](plans/README.md). Completed: [SD1 — Repository skill alignment](plans/completed/sd1-skills-alignment.md), `Concluído`.
+Plans: [maintenance index](plans/README.md). Active: [SD2 — Documentation authority and lifecycle](plans/sd2-documentation-authority.md) and [SD3 — Documentation checker and search ignores](plans/sd3-docs-checker-and-ignores.md), `Aguardando aprovação`. Completed: [SD1 — Repository skill alignment](plans/completed/sd1-skills-alignment.md), `Concluído`.
 
 ## Templates
 
