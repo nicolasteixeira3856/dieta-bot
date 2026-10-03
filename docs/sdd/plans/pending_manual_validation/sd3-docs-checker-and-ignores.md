@@ -1,10 +1,10 @@
 # Plan — SD3 Documentation checker and search ignores
 
-- State: `Aguardando aprovação`
+- State: `Pendente aprovação manual`
 - Date: 2026-10-02
 - Owner: `sdd` — shared agent workflow maintenance.
 - Code affected: `tools/check-docs.mjs`, `tools/check-docs.test.mjs`, the wire export tools, `tools/package.json` description, `.gitignore`, `.ignore`. No app, server or infra code.
-- Prerequisites: [SD2](completed/sd2-documentation-authority.md) implemented, either in `completed/` or in `pending_manual_validation/` with its automated validation passed. The checker must pass on the repository SD2 leaves behind.
+- Prerequisites: [SD2](../completed/sd2-documentation-authority.md) implemented, either in `completed/` or in `pending_manual_validation/` with its automated validation passed. The checker must pass on the repository SD2 leaves behind.
 
 ## Authorization gate
 
@@ -149,4 +149,55 @@ A finding caused by documentation that SD2 missed is fixed here only if it is a 
 
 ## Results
 
-To be filled at Completion.
+Implemented 2026-10-02 on branch `feat/sd3-docs-checker`, from `master` @ `3300057`. Automated validation passed; one owner check is pending.
+
+### Checker
+
+- `tools/check-docs.mjs`: read-only, no dependencies beyond `tools/export-stitch.mjs` (C7); `--root <path>`; output `file:line Cn message`; exit 0/1, 2 if it cannot finish.
+- Reuses `proseOnly` from `tools/check-skills.mjs`, now exported (no behavior change).
+- `docs/sdd/templates/**` is excluded from the live set: its links are placeholders by design.
+- C4 deviation from the plan text, needed to avoid false positives:
+  - "proposed" is matched only in the 40 characters right after an ADR link, not anywhere on the line. A rule such as `proposed memory facts ([ADR-001](…))` is not a status copy.
+  - Provenance status markers are matched on raw lines, because the prose filter removes backticks.
+- On the repository: 35 live files and 38 link-checked files, 0 findings.
+- On the pre-SD2 tree (`git archive 51cdded`), as evidence that it catches the original problems:
+  - 3 C1, 2 C2, 132 C3, 5 C4, 10 C5, 198 C6;
+  - 1 C7: `pngjs` is absent in the archive, so the gold map could not load there.
+  - The 5 C4 hits are the "proposto" ADR-024/ADR-028 copies that SD2 removed.
+- Known limit: C4 does not see a banner that calls behavior pending without linking a completed plan (the old `chat.md` CP2 banner linked a spec). Single writer and the spec template carry that rule.
+
+### Tests
+
+`node --test tools/check-docs.test.mjs`: 12/12. Each of C1–C7 has a passing and a failing fixture. The negative C4 cases are "refeição pendente", "proposed memory facts", "independente", a proposed ADR that really is proposed, and a free-text "Pending meal" title. The tests also cover CRLF, CLI exit codes with `--root`, unknown options, and unchanged fixture bytes after passing and failing runs.
+
+### Ignores
+
+- `.gitignore`: dropped `.agents/` and `.hermes/`, added `.claude/worktrees/`.
+  - `git status` showed no new untracked files under `.agents/` or `.hermes/`.
+  - `git check-ignore .agents/skills/x/SKILL.md` matches nothing.
+  - `.claude/worktrees/x` matches `.gitignore:27`.
+  - SD2's delivery had hit the old rule: `git add` refused the two trees.
+- `.ignore` hides `.grok/skills/`, `.hermes/skills/`, `.claude/skills/` and `.claude/worktrees/`.
+  - `rg --hidden -l "<dieta-bot-android-decision sentence>"`: only `.agents/skills/…` (4 copies with `--no-ignore-dot`).
+  - The Claude Code Grep tool in this session returned the same single copy.
+
+### Wire tooling
+
+Deleted `tools/export-wires.mjs`, `tools/check-wires.mjs` and `tools/export-painel-wires.mjs`. The `tools/package.json` description now names the Stitch golds; dependencies unchanged. `git grep` finds the three names only in completed plans and ADR bodies (history).
+
+### Workflow
+
+`node tools/check-docs.mjs` is now required in three places: `AGENTS.md` (How to work), SDD Completion step 6 (a failure blocks delivery) and the plan template's Validation section.
+
+### Validation
+
+- `node tools/check-docs.mjs`: pass.
+- `node --test tools/check-docs.test.mjs`: 12/12.
+- `node tools/check-skills.mjs`: pass. `node --test tools/check-skills.test.mjs`: 14/14.
+- `node --test tools/verify-stitch.test.mjs`: 2/2. `node tools/check-stitch.mjs`: 62 golds (31 + 31).
+- `git diff --check`: clean.
+
+Pending (owner):
+
+1. In a new Claude Code session, confirm that the project skills (`dieta-bot-*`) are still listed and that a Grep for a skill sentence returns only the `.agents/skills/` copy.
+2. Optional: the same Grep in grok-cli and Hermes. A tool that ignores `.ignore` is recorded and does not block completion.

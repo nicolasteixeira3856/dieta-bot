@@ -48,7 +48,7 @@ function inventory(root, errors, label) {
   return { files, skills };
 }
 
-function proseOnly(markdown) {
+export function proseOnly(markdown) {
   let fence = null;
   const lines = [];
   for (const line of markdown.split(/\r?\n/)) {

@@ -1,0 +1,7 @@
+# Search-only ignores (ripgrep and tools that read .ignore). Git ignores live in .gitignore.
+# Mirror skill trees: .agents/skills is the searchable copy; check-skills.mjs keeps the four identical.
+.grok/skills/
+.hermes/skills/
+.claude/skills/
+# Agent worktrees: full checkouts of this repository.
+.claude/worktrees/

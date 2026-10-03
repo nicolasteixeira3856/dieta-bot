@@ -24,7 +24,4 @@ android/local.properties
 key.properties
 google-services.json
 apps/rn/.expo/
-
-.agents/
-.hermes/
-
+.claude/worktrees/
