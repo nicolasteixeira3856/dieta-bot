@@ -1,10 +1,10 @@
 # Plan — SD2 Documentation authority and lifecycle
 
-- State: `Aguardando aprovação`
+- State: `Pendente aprovação manual`
 - Date: 2026-10-02
 - Owner: `sdd` — shared agent workflow maintenance.
 - Production code affected: none.
-- Prerequisites: none. [SD3](sd3-docs-checker-and-ignores.md) depends on this plan.
+- Prerequisites: none. [SD3](../sd3-docs-checker-and-ignores.md) depends on this plan.
 
 ## Authorization gate
 
@@ -40,7 +40,7 @@ The review in `MELHORIA_PROCESSO_SDD.md` (owner question, five model reviews, sy
 
 ## Sources of truth
 
-- [AGENTS.md](../../../AGENTS.md), [SDD policy](../README.md), [documentation matrix](../../README.md).
+- [AGENTS.md](../../../../AGENTS.md), [SDD policy](../../README.md), [documentation matrix](../../../README.md).
 - Code facts used to correct copies:
   - `server/main.py` routes (`/health`, `/v1/estimate`, `/v1/fit`, `/v1/chat`);
   - `apps/android/app/src/main/java/com/nutri/android/core/database/DietaBotDatabase.kt` (schema version and tables);
@@ -92,7 +92,7 @@ Also record the bytes of `AGENTS.md`, `docs/README.md` and every context README.
 
 ### 2. Constitution — `AGENTS.md`
 
-- **Live stack:** `server/` links to [the HTTP contract](../../api-contract.md) instead of listing routes. The Room line says Room 2.6.x for local state, with the schema owned by the Room spec. "No DataStore for day state" stays.
+- **Live stack:** `server/` links to [the HTTP contract](../../../api-contract.md) instead of listing routes. The Room line says Room 2.6.x for local state, with the schema owned by the Room spec. "No DataStore for day state" stays.
 - **Product:**
   - Screens: ADR-012 and its accepted successors; every product screen has a gold listed in `docs/qa/README.md`; nothing else.
   - Every other product rule stays.
@@ -167,7 +167,7 @@ The filename `room-v2.md` stays (see Out of scope).
 - **Context READMEs** (`produto`, `android`, `server`, `stitch`, `content-policy`, `sdd`) and `plans/README.md` indexes: the same rule. In particular:
   - correct `produto/README.md:5,36`;
   - correct `android/README.md:38,46,51`;
-  - keep `out_of_scope/` and the [production gate](../../content-policy/production-gate.md) on the route.
+  - keep `out_of_scope/` and the [production gate](../../../content-policy/production-gate.md) on the route.
 - **`docs/qa/README.md`:** becomes the owner of the gold inventory (exact ids per theme, matching `tools/export-stitch.mjs`); the counts "18 telas" go away.
 
 ### 6. ADR status lines
@@ -195,7 +195,7 @@ The filename `room-v2.md` stays (see Out of scope).
   - `docs/README.md` "Outros docs" (TEAM, HERMES, MIGRACAO-VPS, wires rows);
   - each other's mutual references.
 - **`.stitch/DESIGN.md:11`:** remove the wireframe fallback sentence (repository copy only; the owner re-uploads to Stitch if needed).
-- The wire export tools in `tools/` become orphaned; [SD3](sd3-docs-checker-and-ignores.md) deletes them, because `tools/` is outside this plan's boundary.
+- The wire export tools in `tools/` become orphaned; [SD3](../sd3-docs-checker-and-ignores.md) deletes them, because `tools/` is outside this plan's boundary.
 - **Exempt history:** links and mentions in completed plans and in immutable ADR bodies stay as history: ADR-013 (`MIGRACAO-VPS.md`), ADR-007 and ADR-008 (`wires/`, `export-wires.mjs`). `docs/qa/_legacy/` is not touched.
 - **Rewrite `README.md`** (target ≤ 2 KB, no copied stack details, versions, screens or infra):
   - name (Dieta Bot, technical id `nutri` per ADR-016);
@@ -221,7 +221,7 @@ The filename `room-v2.md` stays (see Out of scope).
 - Moving procedures (Stitch gate, git delivery, test builds) out of `AGENTS.md`.
 - Wire tooling in `tools/` (`export-wires.mjs`, `check-wires.mjs`, `export-painel-wires.mjs`): deleted by SD3.
 - `docs/qa/_legacy/`.
-- `tools/check-docs.mjs`, `.gitignore`, `.ignore`: [SD3](sd3-docs-checker-and-ignores.md).
+- `tools/check-docs.mjs`, `.gitignore`, `.ignore`: [SD3](../sd3-docs-checker-and-ignores.md).
 - RAG, embeddings or any index service.
 
 ## Validation
@@ -264,4 +264,98 @@ The filename `room-v2.md` stays (see Out of scope).
 
 ## Results
 
-To be filled at Completion.
+Implemented 2026-10-02 on branch `docs/sd2-documentation-authority`, from `master` @ `51cdded`. Automated validation passed; the owner's fresh-session check is pending.
+
+### Route walk (bytes on the default route, `git show 51cdded` vs working tree)
+
+| Question | Files on the route | Before | After | Stale text met before |
+| --- | --- | --- | --- | --- |
+| 1. Chat, photo plus a question | AGENTS, `docs/README.md`, produto README, `chat.md`, `v1-chat.md` | 73,725 | 62,576 (−16 %) | `chat.md` banner: content policy "pending … not current behavior"; `v1-chat.md`: ADR-028 "proposto" |
+| 2. Room version and tables | AGENTS, `docs/README.md`, android README, Room spec | 47,793 | 34,050 (−29 %) | AGENTS "profile + day + meal_log"; android README "Room v7", "Sem specifications/", route to ADR-010 |
+| 3. Open production blockers | AGENTS, `docs/README.md`, content-policy README, production gate | 35,006 | 26,593 (−25 %) | none wrong; long status narratives |
+| 4. ADR-012 after ADR-028 | AGENTS, `docs/README.md`, produto README, ADR-012, ADR-028 | 44,364 | 37,240 (−17 %) | ADR-012 had no supersession note; the reader had to open every successor |
+
+None of the four answers needed `plans/completed/`, before or after. Before, two answers met contradicting text on the way; after, none. Entry points: `docs/README.md` 12,702 → 6,262 B; android README 14,888 → 8,296; server README 11,398 → 4,963; stitch README 12,107 → 9,535; content-policy plans index 4,238 → 1,204. `docs/sdd/README.md` grew 15,496 → 18,007 (new rules). Specifications 88,542 → 82,960 B.
+
+### Discovery table
+
+Every row is closed. Additional contradictions found and fixed during implementation:
+
+- `docs/server/README.md`: "Compose + Cloudflare Tunnel na torre (dev)"; ADR-028 "proposto"; "Docker nao muda neste plano".
+- `docs/stitch/README.md`: ADR-028 "(proposto)"; gold list owned by AGENTS.
+- `docs/content-policy/README.md`: "proposed architecture decisions … not deployed".
+- `docs/android/README.md`: "ADRs vigentes … 011".
+- `docs/qa/README.md`: "18 telas", "36 telas"; link to the deleted `SETUP-WINDOWS.md` (now points to the `android-cli` skill).
+- Room spec: "pending owner/tester update validation" (a status copy) replaced by a link to the A24 validation.
+
+### Specifications (numbered rules before → after)
+
+| Spec | Rules | Notes |
+| --- | --- | --- |
+| `produto/specifications/chat.md` | 20 → 21 | Rule 21 states the deployed content-policy behavior that was in the "proposed overlay" banner. Fixed `teclado.amp;` typo. 28 plans in Proveniência. |
+| `server/specifications/v1-chat.md` | 29 → 29 | Facts that lived only in "Estado" moved into the body: the 2000-character `text`/`messages[].text` limit (IN), the `X-Client-Instance-Id` header and content controls (Escopo), the no-`clarify_rounds` qualifier (rule 5c), production audit out of scope. 14 plans in Proveniência. |
+| `produto/specifications/home-timeline.md` | 11 → 11 | 48 dp disclaimer clearance (rule 10) and `home1` canonical layout moved from "Estado". |
+| `produto/specifications/memoria-push.md` | 28 → 28 | `filesDir/memory.bin` path, dev editor location and profile editing (rule 7), ripple (Config rule 9) moved from "Estado". |
+| `produto/specifications/perfil-onboarding.md` | 7 → 7 | "Room v2" copy dropped. |
+| `android/specifications/room-v2.md` | 13 → 13 | "Status" narrative → "Schema version 8". |
+| `content-policy/specifications/content-policy.md` | 7 → 7 | Root-cause narrative → one-line design principle; plan links to blockers → the production gate. |
+| `content-policy/specifications/identity-and-audit.md` | — | "Status" narrative → authority line; CP5 sentences in present tense with their owners (`infra/gcp/compose.yml`, `deploy-gcp.md`). |
+| `content-policy/specifications/refusal-copy.pt-BR.md` | — | CP2 references moved to Proveniência. |
+
+No rule was dropped. No spec/code conflict required an owner decision.
+
+### ADR status lines
+
+- `docs/decisions/` (new status lines):
+  - 001: partially superseded by 005.
+  - 002: partially superseded by 004.
+  - 003: superseded by 005.
+  - 004, 005, 007: accepted.
+  - 008: partially superseded by AGENTS § Visual QA and ADR-027.
+  - 009: superseded by ADR-012 and AGENTS § Visual QA.
+  - 010: accepted; schema in the Room spec.
+  - 011: superseded by ADR-012.
+- Status lines extended with partial supersession:
+  - ADR-012, by ADR-017, 018, 020, 021 and 028;
+  - ADR-017, by ADR-028;
+  - ADR-020, by ADR-022;
+  - ADR-015, by ADR-024.
+
+### Skills
+
+The four trees are identical. Edited:
+
+- `dieta-bot-android-memory` (lifecycle, single writer);
+- `dieta-bot-android-decision` (spec at Completion);
+- `android-architecture` and `room-ksp-coroutines` (Room spec states the current schema);
+- `dieta-bot-android-ui` (no wireframes);
+- `dieta-bot-stitch` (gold inventory in `docs/qa/README.md`, no wireframes).
+
+### Removals
+
+Deleted:
+
+- `GOALS.md`, `SETUP.md`, `DECISOES.md`, `README-EXTRACT.md`;
+- `docs/TEAM.md`, `docs/AGENTS-TEAM-SNIPPET.md`, `docs/MIGRACAO-VPS.md`, `docs/SETUP-WINDOWS.md`, `docs/HERMES.md`;
+- `wires/` (4 files), `.grok/agents/README.md`;
+- `MELHORIA_PROCESSO_SDD.md` (in history at `52caa34`).
+
+`README.md` was rewritten (1,234 B). The wireframe fallback was removed from `.stitch/DESIGN.md`. History mentions of deleted files remain in completed plans and in the bodies of ADR-007, ADR-008 and ADR-013.
+
+### Validation
+
+- `node tools/check-skills.mjs`: pass, 26 skills / 136 files in each of the four roots.
+- `node --test tools/check-skills.test.mjs`: 14/14 pass.
+- Scratch link check over `AGENTS.md`, `README.md` and every live `docs/**/*.md` (not committed): zero broken relative links after this move.
+- `git grep` for the deleted names outside completed plans, ADR bodies and `docs/qa/_legacy/`: only `tools/package.json` ("wireframes" in its description), which is SD3's boundary.
+- No specification has a plan link outside its Provenance section. Every file in `docs/decisions/` and `docs/*/adrs/` has a status line.
+- No live line links an accepted ADR as proposed or a completed plan as pending. No README claims "no specification" next to a non-empty `specifications/`.
+- `git diff --check`: clean.
+
+Pending (owner): in a fresh session of any agent, ask the four acceptance questions. Answers must be correct and must not open `plans/completed/`.
+
+### Candidates for later (not in scope)
+
+- `docs/api-contract.md` opens with a history banner ("Content controls (CP2, 2026-09-30, …)").
+- Some rules keep plan IDs as plain text in rollout qualifiers ("antes do S14", "(S15)"). They are not links and carry meaning; a later spec rewrite can phrase them by client version.
+- `docs/content-policy/operations/*` and `docs/content-policy/validation/README.md` cite completed plans as evidence. That is allowed: they are evidence, not current-state files.
