@@ -1,5 +1,7 @@
 # <Nome do contexto>
 
+Este README roteia. Não repete versão, data ou status que outro arquivo possui: linka o dono.
+
 ## Propósito
 
 <Comportamento, domínio ou contrato documentado.>
@@ -24,36 +26,26 @@
 
 Não duplique spec ou ADR de outro contexto. Use link.
 
-## Cobertura documental atual
-
-<O que já está mapeado e o que ainda não tem spec.>
-
 ## Como usar esta documentação
 
 Este contexto segue `docs/sdd/README.md`.
 
-Antes de planejar ou implementar:
-
-1. <ordem de leitura local>;
-2. confira planos ativos, validações pendentes e cancelamentos;
+1. <ordem de leitura local: specs, depois ADRs citados>;
+2. confira planos ativos, `pending_manual_validation/` e `out_of_scope/` (deferred plans are not active `/goal` candidates; follow [SDD](../README.md#fora-de-escopo) for explicit reactivation);
 3. confira o código atual.
-
-Also inspect any `plans/out_of_scope/` entries and their residual risks. Deferred plans are not active `/goal` candidates; follow [SDD](../README.md#fora-de-escopo) for explicit reactivation.
-
-## Estado atual
-
-- <Estado funcional conhecido>.
 
 ## Índice
 
 ### Especificações
 
-- Nenhuma especificação criada até o momento.
+- <link> — <assunto>
 
 ### ADRs
 
-- Nenhum ADR local. Histórico vigente: `docs/decisions/`.
+- <link> — <título>
 
-### Planos e validação
+### Planos
 
-- Nenhum plano criado até o momento.
+- Ativos: <links ou “nenhum”>.
+- Fora de escopo: <links ou “nenhum”>.
+- Histórico: link para a pasta `plans/completed/`, nunca plano por plano.

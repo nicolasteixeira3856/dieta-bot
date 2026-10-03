@@ -5,7 +5,7 @@ description: Implement Dieta Bot Room persistence with Kotlin entities, KSP, cor
 
 # Room persistence
 
-Read [AGENTS](../../../AGENTS.md), the [Android context](../../../docs/android/README.md), [Room specification](../../../docs/android/specifications/room-v2.md) and relevant accepted changes. Some specification sections describe older schemas; inspect the current database and approved migration before choosing a version or table shape.
+Read [AGENTS](../../../AGENTS.md), the [Android context](../../../docs/android/README.md), [Room specification](../../../docs/android/specifications/room-v2.md), which states the current schema. Confirm it against the current database class and exported schemas before choosing a version or table shape.
 
 - Room 2.6.x entities, DAOs and converters are Kotlin; Room's compiler uses KSP. Hilt currently uses kapt separately; do not remove that processor as part of a Room change.
 - Profile is durable across calendar days. Workout/day/meal state is date-keyed in America/Sao_Paulo; daily workout values do not belong in an illustrative profile entity.

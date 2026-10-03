@@ -4,7 +4,7 @@
 - Date: 2026-10-02
 - Owner: `sdd` — shared agent workflow maintenance.
 - Code affected: `tools/check-docs.mjs`, `tools/check-docs.test.mjs`, the wire export tools, `tools/package.json` description, `.gitignore`, `.ignore`. No app, server or infra code.
-- Prerequisites: [SD2](sd2-documentation-authority.md) implemented, either in `completed/` or in `pending_manual_validation/` with its automated validation passed. The checker must pass on the repository SD2 leaves behind.
+- Prerequisites: [SD2](pending_manual_validation/sd2-documentation-authority.md) implemented, either in `completed/` or in `pending_manual_validation/` with its automated validation passed. The checker must pass on the repository SD2 leaves behind.
 
 ## Authorization gate
 
@@ -59,7 +59,7 @@ Skill trees are covered by `check-skills.mjs`.
 - **C2 — "No specification" claims.** A README whose text claims there is no specification (`Sem especifica`, `Sem specifications`, `no specification`, case- and accent-insensitive) fails when the sibling `specifications/` directory has a `.md` file.
 - **C3 — Plan links in specs.** In `docs/*/specifications/*.md`, a link into any `plans/` path is allowed only under a `## Provenance` or `## Proveniência` heading.
 - **C4 — Status copies.**
-  - Provenance entries contain no status words (`Concluído`, `concluído`, `proposto`, `proposed`, `pendente`, `pending`, `aceito`, `accepted`).
+  - Provenance entries carry no status marker: a parenthetical or backticked status word (`Concluído`, `proposto`, `proposed`, `pendente`, `pending`, `aceito`, `accepted`), matched case-insensitively as a whole word. Entry titles are free text (an S15 title once read "Pending meal is not a skip").
   - In the live set, a line linking an ADR and containing `proposto`/`proposed`/`proposta` fails when the ADR's own status line says Accepted/Aceito.
   - A line linking a plan in `plans/completed/` and containing `aguardando aprovação`, `pending approval`, `pendente de aprovação`, `em implementação` or `not current behavior` fails.
   - Generic words in rules (e.g. "refeição pendente") are not matched.

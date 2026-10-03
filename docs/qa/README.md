@@ -4,8 +4,8 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 
 ## Folders
 
-- `stitch/dark/` — Gold PNGs oficiais exportados do projeto Google Stitch `Nutri` (Dark theme, 18 telas)
-- `stitch/light/` — Gold PNGs oficiais exportados do projeto Google Stitch `Nutri` (Light theme, 18 telas)
+- `stitch/dark/` — Gold PNGs oficiais exportados do projeto Google Stitch `Nutri` (Dark theme)
+- `stitch/light/` — Gold PNGs oficiais exportados do projeto Google Stitch `Nutri` (Light theme)
 - `android/current/dark/` — Screencaps do emulador Android (Dark theme). Só emulador: renders JVM ficam em `build/`.
 - `android/current/light/` — Screencaps do emulador Android (Light theme)
 - `_legacy/` — Telas legadas e wires antigos depreciados. **Nunca comparar contra esta pasta.**
@@ -14,7 +14,9 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 
 ---
 
-## Filenames (31 telas oficiais por tema)
+## Golds
+
+Inventário oficial: dono único da lista de golds, igual nos dois temas. Gate Stitch que cria ou remove um gold atualiza esta lista e o mapa de `tools/export-stitch.mjs` na mesma entrega.
 
 ```text
 splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
@@ -38,7 +40,7 @@ Para re-exportar os PNGs gold diretamente do Google Stitch:
 node tools/export-stitch.mjs
 ```
 
-Para verificar se todas as 36 telas estão presentes e íntegras:
+Para verificar se todos os golds do inventário estão presentes e íntegros:
 
 ```bash
 node tools/check-stitch.mjs
@@ -55,7 +57,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
    ```bash
    adb shell wm size 780x1688 && adb shell wm density 320
    ```
-3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Home (inclui interações): `tools/capture-home.sh dark|light`. Config (cfg, wipe + checagens de wipe/treino no Room): `tools/capture-config.sh dark|light`. Foto (chatA: anexo sem POST, ✕, troca, sair do Chat; chatF + galeria, câmera, 50 MP com EXIF → 2048 px < 2 MB, arquivo de 16 MB passa, WebP→JPEG): fake + `tools/capture-photo.sh dark|light` (AVD com `-camera-back virtualscene`). Substituir refeição dentro da conversa + Enter (A34, sem captura própria: o gold é o `chatU`): fake + `tools/capture-replace.sh dark|light`. Push (alarmes reais, Registrar/Pular, tela de bloqueio): `tools/capture-push.sh dark|light` (~6 min). Chat: `node tools/fake-chat-server.mjs` + APK com `-PAPI_PUBLIC_URL=http://10.0.2.2:8765` + `tools/capture-chat.sh dark|light` (`SCENES=v2` roda só onboarding + `chatS`, `chatR`, `chatM` do A29; `SCENES=a30` só onboarding + perguntas antes da estimativa, Forçar estimativa, teto de 3 rodadas, `chatQ` e `chatE` do A30, com o fake em `{"clarify": true}`; `SCENES=a32` só onboarding + histórico longo do A32: abre no fim sem rolagem (screenrecord), páginas de 20 até 60 dias, resposta com o fio rolado para cima sem pulo, câmera fecha o teclado; `SCENES=a34` só onboarding + registro autônomo do A34, com o fake em `{"record": "auto"|"ask"|"none"}` e `{"skip": "Jan"}`: registro sem toque, Excluir, Trocar refeição e Desfazer, Substituir dentro da conversa e Desfazer, Editar, Registrar e `Não registrado`, pulo por texto, outro dia sem registro, e `chatG`, `chatU`, `chatD` semeados; muda o relógio do aparelho por `cmd alarm set-time` para gravar o café em 3 dias passados e devolve o relógio automático no fim). Manual, com o [Android CLI](../SETUP-WINDOWS.md#android-cli):
+3. Capturar a tela pelo fluxo real (testTags viram resource-id) em `docs/qa/android/current/{theme}/<id>.png`. Onboarding: `tools/capture-onboarding.sh dark|light`. Home (inclui interações): `tools/capture-home.sh dark|light`. Config (cfg, wipe + checagens de wipe/treino no Room): `tools/capture-config.sh dark|light`. Foto (chatA: anexo sem POST, ✕, troca, sair do Chat; chatF + galeria, câmera, 50 MP com EXIF → 2048 px < 2 MB, arquivo de 16 MB passa, WebP→JPEG): fake + `tools/capture-photo.sh dark|light` (AVD com `-camera-back virtualscene`). Substituir refeição dentro da conversa + Enter (A34, sem captura própria: o gold é o `chatU`): fake + `tools/capture-replace.sh dark|light`. Push (alarmes reais, Registrar/Pular, tela de bloqueio): `tools/capture-push.sh dark|light` (~6 min). Chat: `node tools/fake-chat-server.mjs` + APK com `-PAPI_PUBLIC_URL=http://10.0.2.2:8765` + `tools/capture-chat.sh dark|light` (`SCENES=v2` roda só onboarding + `chatS`, `chatR`, `chatM` do A29; `SCENES=a30` só onboarding + perguntas antes da estimativa, Forçar estimativa, teto de 3 rodadas, `chatQ` e `chatE` do A30, com o fake em `{"clarify": true}`; `SCENES=a32` só onboarding + histórico longo do A32: abre no fim sem rolagem (screenrecord), páginas de 20 até 60 dias, resposta com o fio rolado para cima sem pulo, câmera fecha o teclado; `SCENES=a34` só onboarding + registro autônomo do A34, com o fake em `{"record": "auto"|"ask"|"none"}` e `{"skip": "Jan"}`: registro sem toque, Excluir, Trocar refeição e Desfazer, Substituir dentro da conversa e Desfazer, Editar, Registrar e `Não registrado`, pulo por texto, outro dia sem registro, e `chatG`, `chatU`, `chatD` semeados; muda o relógio do aparelho por `cmd alarm set-time` para gravar o café em 3 dias passados e devolve o relógio automático no fim). Manual, com o Android CLI (skill `android-cli`):
    ```bash
    android screen capture -o docs/qa/android/current/{theme}/<id>.png
    ```

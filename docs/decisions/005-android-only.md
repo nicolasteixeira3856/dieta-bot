@@ -1,5 +1,7 @@
 # 005 — Android only
 
+- Status: Accepted.
+
 Flutter e React Native saíram do tree. `legacy/flutter` e `apps/rn` não estão mais no working tree. O histórico git guarda o código. Não reabrir.
 
 Stack viva = `apps/android` + `server`.

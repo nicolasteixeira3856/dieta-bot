@@ -4,13 +4,16 @@ Shared workflow maintenance follows [the SDD policy](../README.md) and [AGENTS.m
 
 ## Active
 
-- [SD2 — Documentation authority and lifecycle](sd2-documentation-authority.md): `Aguardando aprovação`; single writer, rules-only specs, spec update at Completion, stale root docs removed.
-- [SD3 — Documentation checker and search ignores](sd3-docs-checker-and-ignores.md): `Aguardando aprovação`; `tools/check-docs.mjs`, `.gitignore`/`.ignore` fixes, orphaned wire tools removed. Requires SD2.
+- [SD3 — Documentation checker and search ignores](sd3-docs-checker-and-ignores.md): `tools/check-docs.mjs`, `.gitignore`/`.ignore` fixes, orphaned wire tools removed. Requires SD2.
 
-## Completed
+## Pending manual validation
 
-- [SD1 — Repository skill alignment](completed/sd1-skills-alignment.md): `Concluído`; fourteen local skills corrected, Google resources preserved, CLI guidance verified, four complete mirrors tracked and a read-only checker validated with fixtures and workflow scenarios.
+- [SD2 — Documentation authority and lifecycle](pending_manual_validation/sd2-documentation-authority.md): single writer, rules-only specs, spec update at Completion, stale root docs removed.
+
+## History
+
+[`completed/`](completed/).
 
 ## Lifecycle
 
-Apply the states and completion rules in the SDD policy. This index records plan state; it does not authorize implementation. State directories are created only when a plan moves into them.
+Apply the states and completion rules in the SDD policy. Plan state: each plan's own State line and its folder. This index does not authorize implementation.

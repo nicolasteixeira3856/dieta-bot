@@ -1,5 +1,7 @@
 # 004 — Material 3 Expressive no client Android
 
+- Status: Accepted. Current versions: `apps/android/gradle/libs.versions.toml`.
+
 Substitui o trecho Expressive do 002. O client em `apps/android` usa a API pública. Sem dynamic color.
 
 ## Versões

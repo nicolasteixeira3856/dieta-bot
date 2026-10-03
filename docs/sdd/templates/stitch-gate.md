@@ -55,7 +55,7 @@ Cada item diz a checagem que o cobre, ou "relatório" quando só o olho confere.
 - `docs/qa/stitch/{dark,light}/<id>.png`
 - `tools/export-stitch.mjs`, `tools/check-stitch.mjs`
 - `st<n>-<assunto>.checks.json` (checagens do gate)
-- Lista de golds em `AGENTS.md` e `docs/qa/README.md`; tabela de nomes em `docs/stitch/README.md`
+- Inventário de golds em `docs/qa/README.md` (dono único da lista); tabela de nomes em `docs/stitch/README.md`
 
 Nada em `apps/` ou `server/`.
 

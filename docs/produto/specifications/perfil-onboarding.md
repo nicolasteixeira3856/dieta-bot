@@ -1,11 +1,5 @@
 # Especificacao — Perfil e onboarding
 
-## Estado
-
-Vigente desde o [A2](../../android/plans/completed/a2-onboarding-perfil.md): splash + O1-O4 conforme Stitch gold, perfil completo em Room v2.
-
-Horário em diálogo com rodas vigente desde 29/09/2026 ([A21](../../android/plans/completed/a21-seletor-horario.md), gate [ST3](../../stitch/plans/completed/st3-seletor-horario.md)). Vigente desde o A24: refeições por dia da semana na O3 em etapas ([ADR-021](../adrs/ADR-021-refeicoes-por-dia.md), [A24](../../android/plans/completed/a24-refeicoes-por-dia.md), gate [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md)). Vigente desde 01/10/2026: perfil obrigatório na O1 e navegação pelo teclado ([A31](../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md), gate [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md), gold `o1e`).
-
 ## Contexto e objetivo
 
 Perfil persistente que a IA recebe em todo turno. Onboarding coleta TMB+teto+slots+macros.
@@ -37,16 +31,12 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 
 ## Fronteiras e ownership
 
-Dono: produto. Implementacao: android A2.
+Dono: produto. Implementação: `android`.
 
 ## Decisoes relacionadas
 
 - [ADR-012](../adrs/ADR-012-chat-home-perfil.md)
-
-## Planos relacionados
-
-- [A2 (Concluido)](../../android/plans/completed/a2-onboarding-perfil.md)
-- [A31 (Concluído)](../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md)
+- [ADR-021](../adrs/ADR-021-refeicoes-por-dia.md)
 
 ## Criterios de aceite funcionais
 
@@ -55,3 +45,13 @@ Dono: produto. Implementacao: android A2.
 - Continuar só com sexo, idade, altura, peso e teto preenchidos.
 - Slot sem nome nao persiste.
 - Perfil lido de volta apos kill do processo.
+
+## Proveniência
+
+- [A2](../../android/plans/completed/a2-onboarding-perfil.md) — Onboarding perfil
+- [A21](../../android/plans/completed/a21-seletor-horario.md) — Seletor de horário em rodas
+- [ST3](../../stitch/plans/completed/st3-seletor-horario.md) — Seletor de horário em rodas
+- [A24](../../android/plans/completed/a24-refeicoes-por-dia.md) — Refeições por dia da semana
+- [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md) — Refeições por dia da semana
+- [A31](../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — O1: required profile and keyboard flow
+- [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) — Ceiling screen before the profile (`o1e`)

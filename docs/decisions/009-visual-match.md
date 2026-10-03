@@ -1,5 +1,7 @@
 # 009 — Screens vs gold wire
 
+- Status: Superseded by [ADR-012](../produto/adrs/ADR-012-chat-home-perfil.md) (screens, FAB) and `AGENTS.md` § Visual QA (Stitch golds). Its splash and theme rules live on in `AGENTS.md`.
+
 Date: 2026-09-25
 
 ## Decision

@@ -12,12 +12,12 @@ Project: Nutri, 6282733070135794645. Read [SDD gate rules](../../../docs/sdd/REA
 - Verify with node tools/verify-stitch.mjs st<n> --report --out <scratchpad>/stitch-report.html. It resolves IDs/titles, renders HTML, checks copy/geometry/coherence/image URLs and produces fix prompts.
 - Failure: stop gate/dependent implementation, report the missing items and share the HTML through an available absolute file link or preview. Do not require a host-specific file-sending tool or commit failed golds.
 - Passing automated checks still require visual inspection of the report crops for checklist items marked for report review.
-- After the whole checklist passes, update permitted gold mappings and export only affected golds with node tools/export-stitch.mjs --only <ids>. Run node tools/check-stitch.mjs. Apply the gate lifecycle/indices and required git delivery.
+- After the whole checklist passes, update permitted gold mappings and the gold inventory in docs/qa/README.md, then export only affected golds with node tools/export-stitch.mjs --only <ids>. Run node tools/check-stitch.mjs. Apply the gate lifecycle/indices and required git delivery.
 - A gate's checks.json covers exact copy, fits/gaps, content above fixed controls, and a keep list. A green script does not substitute for checklist items it does not cover.
 
 ## Capability and historical limits
 
-Direct Stitch MCP may be unavailable. Existing scripts use the Stitch API; inspect tool availability and configuration without printing STITCH_API_KEY. Missing access is a concrete blocker, not permission to substitute wireframes for implementation golds.
+Direct Stitch MCP may be unavailable. Existing scripts use the Stitch API; inspect tool availability and configuration without printing STITCH_API_KEY. Missing access is a concrete blocker, not permission to implement from any other source.
 
 Observations from the 2026-09-29 ST1/ST2 work and SV1:
 - A too-short viewport positioned the fixed Chat FAB incorrectly. The verifier and exporter share loadFrame and grow the viewport; measure served HTML before blaming Stitch.

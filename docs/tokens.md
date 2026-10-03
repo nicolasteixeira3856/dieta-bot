@@ -1,6 +1,6 @@
 # Tokens
 
-Two themes. Follow the system. No dynamic color.
+Single owner of the visual token values. Theme rules (follow the system, no dynamic color): [AGENTS.md](../AGENTS.md) § Tokens.
 
 ## Dark
 bg #0b0d10

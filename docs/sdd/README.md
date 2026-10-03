@@ -25,7 +25,7 @@ Esta política não substitui `AGENTS.md`. Constituição e SDD convivem. Confli
 5. Plano aprovado.
 6. Implementação atual.
 
-Decisão explícita que muda comportamento documentado atualiza a spec viva na etapa de Planning. Decisão arquitetural nova não reescreve ADR aceito: cria ADR sucessor e declara substituição total ou parcial.
+Decisão explícita que muda comportamento documentado fica registrada no plano (e num ADR, se for arquitetural) na etapa de Planning. A spec viva só muda no Completion, quando o comportamento está entregue. Decisão arquitetural nova não reescreve o corpo de ADR aceito: cria ADR sucessor e declara substituição total ou parcial.
 
 ADRs aceitos em `docs/decisions/` (001–011) continuam lá. ADRs novos nascem em `docs/<contexto>/adrs/`.
 
@@ -83,7 +83,19 @@ Não crie diretórios vazios. `completed/`, `pending_manual_validation/`, `cance
 | Especificação | Comportamento vigente | Viva | Não |
 | ADR aceito | Histórico de uma decisão | Imutável | Não |
 | Plano ativo | Escopo executável de uma entrega | Mutável até aprovação | Só após aprovação explícita |
-| Validação | Evidências e pendências | Viva | Não |
+| Validação | Evidência que cobre mais de um plano, matriz viva ou pendência recorrente | Viva | Não |
+
+Evidência de um único plano (testes, evals, confirmação do dono) fica na seção Results do próprio plano.
+
+### Estado atual × histórico (decisão do dono, 02/10/2026)
+
+- **Arquivos de estado atual**: `AGENTS.md`, `README.md`, READMEs de contexto e de `plans/`, especificações, `docs/api-contract.md`, `docs/tokens.md`, `docs/qa/README.md`. São reescritos no lugar. Não carregam histórico ("desde o plano X"), propostas, avisos de pendência nem status de outro artefato.
+- **Arquivos de histórico**: planos, corpo de ADR, evidência de validação. Imutáveis depois do encerramento. A pasta (`plans/completed/`, `plans/cancelled/`) ou a linha de status é o rótulo.
+- Uma especificação cita os planos que a formaram só numa seção final `## Provenance` (ou `## Proveniência`), uma linha por plano: `- [ID](caminho) — título`, sem palavra de status.
+
+### Dono único (decisão do dono, 02/10/2026)
+
+Cada fato (status, versão, data, lista, valor) tem um arquivo dono. Os outros arquivos linkam para ele em vez de repeti-lo. Exemplos: rotas em `docs/api-contract.md`; schema do Room na spec do Room; valores de token em `docs/tokens.md`; inventário de golds em `docs/qa/README.md`; status de um ADR na linha de status do próprio ADR; estado de um plano no próprio plano e na pasta onde ele está.
 
 Planos não são fonte de verdade do produto. Se a implementação descobrir comportamento novo: para, atualiza spec e artefatos, pede nova aprovação.
 
@@ -94,18 +106,18 @@ Planos não são fonte de verdade do produto. Se a implementação descobrir com
 1. Comece em `docs/README.md`.
 2. Resolva o contexto dono.
 3. Leia o README do contexto e o que ele indicar.
-4. Consulte planos ativos, ADRs vigentes e validações pendentes.
+4. Consulte planos ativos (raiz de `plans/`), `pending_manual_validation/`, `out_of_scope/`, ADRs vigentes e validações pendentes. `completed/` e `cancelled/` são histórico: abra só para proveniência, conferência de gate Stitch ou pergunta explícita sobre histórico.
 5. Confirme no código atual.
 6. Feche decisões de produto ou arquitetura ainda abertas (A/B/C se precisar).
 
 ### 2. Planning
 
 1. Crie a fundação do contexto se não existir.
-2. Atualize as specs vivas afetadas.
+2. Descreva no plano a mudança pretendida em cada spec viva afetada. A spec não muda nesta etapa.
 3. Crie um ADR quando a decisão for duradoura e ainda não coberta.
 4. Crie ou atualize um plano ativo em `docs/<contexto>/plans/<plano>.md`.
 5. Registre validações automatizadas e manuais previstas.
-6. Atualize índices, matriz e links.
+6. Atualize índices, matriz e links, só com o estado ativo.
 
 Etapa só documental. Exceção: o dono autorizou outra alteração não produtiva.
 
@@ -127,8 +139,8 @@ Pedido para analisar, documentar, criar spec, criar ADR ou criar plano **não** 
 
 ### 5. Completion
 
-1. Registre resultados reais e pendências na validação.
-2. Atualize specs e índices.
+1. Registre resultados reais e pendências na seção Results do plano (ou em `validation/`, se a evidência cobre mais de um plano).
+2. Reescreva no lugar as regras das specs afetadas, no presente. Entrega parcial (ex.: server no ar antes do client) entra como ressalva de rollout na própria regra ("Sem cliente v4, …"). Acrescente o plano à `## Provenance` da spec. Tire qualquer texto que a entrega deixou velho. READMEs listam só planos ativos, pendentes e fora de escopo.
 3. Aplique o ciclo de vida do plano na mesma entrega.
 4. Atualize links que apontavam para o caminho anterior.
 5. Remova pastas de estado que ficaram vazias, pela regra de limpeza abaixo.
@@ -154,7 +166,7 @@ Um plano de gate:
 
 - Abre com o **prompt exato** que o dono cola no Stitch, marcado como bloqueio do dono. Logo abaixo, as instruções extras: quais telas selecionar, o que anexar.
 - Chama as telas pelo **título exato do Stitch**, em toda instrução ao dono (selecionar, duplicar, renomear) e dentro do próprio prompt. Nunca pelo id de gold (`chatE`), que só aparece entre parênteses, para o agente. `V2 Expressive` = dark, `V2 Light` = light, com um bloco de prompt pronto por tema. Tela nova ganha no gate o título final, que o dono aplica na cópia. A tabela título ↔ gold fica em [stitch/README.md § Nomes das telas](../stitch/README.md#nomes-das-telas-regra-do-dono-29092026) e é atualizada a cada gate.
-- Não muda layout nem funcionalidade do app. Mexe só em gold PNG (`docs/qa/stitch/`), no mapa de IDs de `tools/export-stitch.mjs` e `tools/check-stitch.mjs`, na lista de golds do `AGENTS.md` e de `docs/qa/README.md`.
+- Não muda layout nem funcionalidade do app. Mexe só em gold PNG (`docs/qa/stitch/`), no mapa de IDs de `tools/export-stitch.mjs` e `tools/check-stitch.mjs` e no inventário de golds de `docs/qa/README.md` (dono único da lista; o `AGENTS.md` só linka).
 - Tem uma verificação: o agente lê o projeto pelo MCP do Stitch, exporta os golds e confere um checklist. Se algo do prompt não aparece no Stitch, o agente **para na hora**, lista o que falta e não segue para nenhum plano dependente.
 - Termina `Concluído` só quando o checklist inteiro passou.
 
@@ -240,19 +252,20 @@ Template: [deferred plan](templates/out-of-scope-plan.md). Safe empty-directory 
 Nome: `ADR-NNNN-<decisao>.md` em `docs/<contexto>/adrs/`.
 Mínimo: estado, data, contexto, decisão, motivação, consequências, alternativas.
 
-ADR aceito é imutável. Para mudar:
+O corpo de ADR aceito é imutável. A linha `- Status:` (ou `- Estado:`) é a única parte que muda: ela registra a substituição total ou parcial quando um sucessor é aceito. Para mudar uma decisão:
 
 1. Crie outro ADR.
-2. Declare a substituição total ou parcial.
-3. Atualize a spec viva.
-4. Atualize índices.
-5. Preserve o ADR anterior.
+2. Declare a substituição total ou parcial e o escopo que sobrevive do anterior.
+3. Atualize a linha de status do ADR anterior (ex.: `Status: Accepted; partially superseded by ADR-028 (record trigger)`).
+4. Atualize a spec viva no Completion do plano que entrega a decisão.
+5. Atualize índices sem copiar o status.
+6. Preserve o corpo do ADR anterior.
 
 ## Validação
 
 Separe: automação executada, comandos reais, cobertura, manual executada, manual pendente, falhas e justificativa do que não rodou.
 
-Cobertura pequena pode viver no próprio plano. Crie `validation/` quando houver matriz viva, validação recorrente, pendência manual ou evidência de mais de um plano.
+Evidência de um plano vive na seção Results dele, com os números escritos no texto (logs locais não ficam no repositório). Crie `validation/` só quando houver matriz viva, validação recorrente ou evidência de mais de um plano.
 
 UI no client: DONE só com captura vs gold do corte, regra de `AGENTS.md`.
 
@@ -260,8 +273,8 @@ UI no client: DONE só com captura vs gold do corte, regra de `AGENTS.md`.
 
 Criação, movimentação ou substituição:
 
-1. README do contexto.
-2. README de `plans/`, se existir.
+1. README do contexto. Planos concluídos e cancelados entram só como link para a pasta (`plans/completed/`), nunca um por um.
+2. README de `plans/`, se existir, com a mesma regra.
 3. Matriz global se o contexto ou a cobertura mudou.
 4. Specs, planos, validações.
 5. Links relativos e referências ao caminho antigo.
@@ -270,7 +283,7 @@ Criação, movimentação ou substituição:
 
 Scope: repository agent instructions and their supporting validation tools; no client or server implementation ownership. Existing product and architecture authorities remain unchanged.
 
-Plans: [maintenance index](plans/README.md). Active: [SD2 — Documentation authority and lifecycle](plans/sd2-documentation-authority.md) and [SD3 — Documentation checker and search ignores](plans/sd3-docs-checker-and-ignores.md), `Aguardando aprovação`. Completed: [SD1 — Repository skill alignment](plans/completed/sd1-skills-alignment.md), `Concluído`.
+Plans and their state: [maintenance index](plans/README.md).
 
 ## Templates
 

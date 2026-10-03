@@ -1,5 +1,7 @@
 # 002 — Client Android
 
+- Status: Accepted; partially superseded by [004](004-m3-expressive.md) (Material 3 Expressive). Current versions: `apps/android/gradle/libs.versions.toml`.
+
 O client mora em `apps/android/`. Namespace `com.nutri.android`. minSdk 26. targetSdk 36. compileSdk 36. Nenhuma system-image nova.
 
 ## Versões

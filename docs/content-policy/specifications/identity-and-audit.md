@@ -1,8 +1,8 @@
 # Specification — Safety correlation and audit
 
-## Status
+## Authority
 
-Server side live on dev since 2026-10-01 ([CP3](../plans/completed/cp3-server-safety-identifier.md), `safety_id: on` since CP5 provisioned the secret on 2026-10-01); Android header in dev 0.0.6, distributed 2026-10-01 ([CP4](../plans/completed/cp4-android-installation-identity.md)); GCP activation done 2026-10-01 ([CP5](../plans/completed/cp5-gcp-dev-ingress.md), `Concluído`). Architecture: [ADR-025](../adrs/ADR-025-safety-correlation-audit.md) (accepted). Closed-test profile delivered by [CP3](../plans/completed/cp3-server-safety-identifier.md), [CP4](../plans/completed/cp4-android-installation-identity.md) and [CP5](../plans/completed/cp5-gcp-dev-ingress.md). Production profile deferred to [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md) and enforced by the [production gate](../production-gate.md).
+The closed-test profile is current behavior on the dev server and the dev APK. Architecture: [ADR-025](../adrs/ADR-025-safety-correlation-audit.md). The production profile is deferred and enforced by the [production gate](../production-gate.md).
 
 ## Closed-test profile
 
@@ -30,19 +30,19 @@ The ADR-015 conversation log record gains the derived `safety_identifier` (never
 
 ### IP provenance
 
-- Caddy v2 without `trusted_proxies` replaces client-sent `X-Forwarded-For` with the address it observes. The API port is not published. CP5 verifies this with a spoofing test and restricts Uvicorn `--forwarded-allow-ips` to the compose network instead of `*`.
+- Caddy v2 without `trusted_proxies` replaces client-sent `X-Forwarded-For` with the address it observes. The API port is not published. Uvicorn `--forwarded-allow-ips` is restricted to the compose network (`infra/gcp/compose.yml`), not `*`.
 - The rate-limit key keeps using that address. No IP is added to prompts, Firebase or user responses. IPs stay out of the conversation log body.
 - An IP can be a VPN, carrier NAT or shared connection. Never infer a person from it.
 
 ### Containment
 
 - Keep the per-route IP+invite rate limits.
-- Primary abuse control in the closed test: the invite. The APK carries it, so a leaked APK leaks access. CP5 documents an invite rotation procedure (new value in `.env`, new dev build through A16, old value rejected).
+- Primary abuse control in the closed test: the invite. The APK carries it, so a leaked APK leaks access. Invite rotation procedure: [deploy-gcp.md](../../server/deploy-gcp.md#trocar-o-invite_code) (new value in `.env`, new dev build through A16, old value rejected).
 - Spend ceiling: the OpenAI project budget limit set by the owner in the OpenAI dashboard. No in-app quota counter in this profile.
 
 ## Production profile (deferred)
 
-Required before production by [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md). Preserved from the original 2026-09-30 proposal.
+Required before production by the [production gate](../production-gate.md).
 
 ### Security journal
 
@@ -56,7 +56,7 @@ Record ingress rejections (401/413/422/429), policy blocks, provider failures, a
 
 ### Retention and failure
 
-- Explicit schedule per data class, purpose, legal basis, access and deletion trigger (from [CP8](../plans/out_of_scope/cp8-public-legal-pack.md)). No unbounded default; an absent schedule prevents enabling the journal.
+- Explicit schedule per data class, purpose, legal basis, access and deletion trigger (from the public legal pack required by the production gate). No unbounded default; an absent schedule prevents enabling the journal.
 - Cleanup runs at low traffic and after downtime; disk growth is bounded; records under legal hold are never overwritten.
 - Required audit failing: fixed 503 before external generation; a terminal write failure after a call fails the response closed.
 - Routine raw conversation capture (ADR-015) off in production, with no environment switch left that re-enables it.
@@ -71,3 +71,11 @@ Record ingress rejections (401/413/422/429), policy blocks, provider failures, a
 - Owner-operated expiring pseudonym denylist (403 `access_restricted`), reason code and expiration, no content, no public admin endpoint. No automatic permanent ban from a classifier score.
 
 Security records do not replace legally required content preservation. This profile does not implement a media evidence vault.
+
+## Provenance
+
+- [CP3](../plans/completed/cp3-server-safety-identifier.md) — Server safety identifier
+- [CP4](../plans/completed/cp4-android-installation-identity.md) — Android installation identity
+- [CP5](../plans/completed/cp5-gcp-dev-ingress.md) — GCP dev ingress, log hygiene and activation
+- [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) — Public legal pack
+- [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md) — Production audit, retention and containment

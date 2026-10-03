@@ -1,5 +1,7 @@
 # 008 — Visual QA folder law and gold PNG export
 
+- Status: Partially superseded by `AGENTS.md` § Visual QA (golds come from Google Stitch into `docs/qa/stitch/`, not from wires) and [ADR-027](../android/adrs/ADR-027-golds-divergentes.md). The folder law for captures and `_legacy/` stays.
+
 Date: 2026-09-25
 
 ## Decision

@@ -1,5 +1,7 @@
 # 007 — English source identifiers
 
+- Status: Accepted.
+
 Date: 2026-09-25
 
 ## Decision

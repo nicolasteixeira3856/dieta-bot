@@ -10,23 +10,17 @@ Keep Dieta Bot within its meal-budgeting purpose without turning conversation lo
 
 - Type: cross-cutting policy, authorized by the owner on 2026-09-30. The owner requires this folder to stay and to concentrate this topic; do not split it into other contexts or remove it.
 - Directory name: `content-policy`, explicitly requested by the owner; exception to the default snake_case naming convention.
-- Owns policy specifications, proposed architecture decisions, delivery plans, the production gate and consolidated validation.
+- Owns policy specifications, architecture decisions, delivery plans, the production gate and consolidated validation.
 - Each implementation plan has exactly one executable boundary: `server/`, `apps/android/` or `infra/gcp/`. Documentation-only plans own this context. Owning specs/indexes may be updated with a delivery; that does not authorize another code boundary.
 - [Server](../server/README.md) owns HTTP/LLM implementation, [Android](../android/README.md) owns the client, [product](../produto/README.md) owns screens and meal behavior.
 
 ## Current state
 
-Phase: **closed test** (dev flavor, invite, two testers via Firebase App Distribution).
-
-[CP2](plans/completed/cp2-server-content-controls.md) is deployed to the dev server (2026-09-30, `Concluído` 2026-10-01): tightened scope instructions, a required `scope` field with fixed refusal copy, free OpenAI moderation of input and output that fails closed, and an eval set for off-topic, injection and eating-disorder cases. [CP3](plans/completed/cp3-server-safety-identifier.md) is deployed to dev (2026-10-01): optional `X-Client-Instance-Id`, HMAC `safety_identifier` on every Responses call and in the dev log, active on dev since CP5 provisioned the secret (2026-10-01). [CP4](plans/completed/cp4-android-installation-identity.md) is implemented and distributed as dev 0.0.6 (2026-10-01): the APK keeps a random UUID v4 in `noBackupFilesDir` and sends `X-Client-Instance-Id` only to the configured API origin's `v1/` routes, never across a redirect. No dedicated audit (CP9). Dev conversation logging (ADR-015) includes input and output, except metadata-only lines for blocked turns. [CP5](plans/completed/cp5-gcp-dev-ingress.md) is deployed to dev (2026-10-01): Uvicorn trusts forwarded headers only from the fixed compose subnet `172.30.53.0/28`, Caddy without `trusted_proxies` overwrites client `X-Forwarded-For`, Docker logs are bounded (10 MB × 3) and the conversation log rotates at 30 days; the OpenAI project has a US$ 10 alert (not a hard stop). CP1–CP5 are `Concluído` (2026-10-01).
-
-[CP1](plans/completed/cp1-closed-test-notice.md) documents were delivered on 2026-10-01: [tester notice](legal/tester-notice.pt-BR.md), [data map](operations/closed-test-data-map.md) and [incident note](operations/closed-test-incident.md). The owner delivered the notice to both testers on 2026-10-01; CP1 is `Concluído`.
-
-A read-only inspection confirmed an off-topic quadratic-equation response on 2026-09-30 at 14:53 America/Sao_Paulo. No user log, IP, identifier or attachment is copied here. Evidence of scope drift, not of illegal activity.
+Phase: **closed test** (dev flavor, invite, testers via Firebase App Distribution). The closed-test controls are live on dev. Behavior: [policy](specifications/content-policy.md) and [identity and audit](specifications/identity-and-audit.md). Operational facts (log locations, rotation, secrets, access): [data map](operations/closed-test-data-map.md). What blocks production: [production gate](production-gate.md).
 
 ## Scope
 
-Closed test (active plans):
+Closed test:
 
 - Prompt scope fix, server-enforced `scope` field, fixed refusals, safe text-only fallback.
 - Free OpenAI text/image moderation on input and generated output; fail closed.
@@ -47,7 +41,7 @@ Constraints: existing OpenAI integration only; photos from day one; current mode
 
 An installation UUID is client-controlled, replaceable and spoofable. An IP can be a VPN, proxy, carrier NAT or shared connection. Neither proves identity or authorship. `safety_identifier` supports provider correlation, not authentication. A model-filled `scope` field can be manipulated by injection. Moderation has false negatives and positives; this cut cannot claim illegal-image or CSAM detection.
 
-Legal review and publication are not achieved by code. In the closed test, testers receive a notice (CP1); public text belongs to CP8.
+Legal review and publication are not achieved by code. In the closed test, testers receive the [tester notice](legal/tester-notice.pt-BR.md); public text is a production blocker.
 
 ## Reading order
 
@@ -55,16 +49,16 @@ Legal review and publication are not achieved by code. In the closed test, teste
 2. [Production gate](production-gate.md).
 3. [Policy](specifications/content-policy.md), [identity and audit](specifications/identity-and-audit.md), [refusal copy](specifications/refusal-copy.pt-BR.md), [sources](sources.md).
 4. Closed-test operations: [data map](operations/closed-test-data-map.md), [incident note](operations/closed-test-incident.md), [tester notice](legal/tester-notice.pt-BR.md).
-5. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) (accepted 2026-09-30) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md) (accepted 2026-10-01).
-6. [Plan order](plans/README.md) and [validation matrix](validation/README.md).
+5. [ADR-024](adrs/ADR-024-content-safety-boundaries.md) and [ADR-025](adrs/ADR-025-safety-correlation-audit.md).
+6. [Plan index](plans/README.md) and [validation matrix](validation/README.md).
 7. Current implementation in the owning folder before each approved delivery.
 
-## Plan order
+## Plans
 
-Closed test: CP2 → CP1 (any time before CP5) → CP3 → CP4 → CP5. Out of scope: CP6, CP7, CP8, CP9. See the [plan index](plans/README.md).
+[Plan index](plans/README.md): active and out-of-scope plans. History: [`plans/completed/`](plans/completed/).
 
 ## Decision status
 
 Accepted owner constraints (2026-09-30): create and keep this context as the single home for user-content × AI safety; plan economical prevention and correlation; defer additional detection platforms (budget); add the SDD `Fora de escopo` state; keep only closed-test controls active; defer production plans with "app in closed test" as the reason; enforce them through the production gate.
 
-ADR-024 was accepted with the named approval of CP2 on 2026-09-30. Other proposed implementation choices are reviewable in the specifications and plans and are not deployed. Accept the relevant proposed ADR when approving its named plan.
+Architecture decisions: [ADR-024](adrs/ADR-024-content-safety-boundaries.md), [ADR-025](adrs/ADR-025-safety-correlation-audit.md). Their status lines own their status.

@@ -5,7 +5,7 @@ description: Build or revise Dieta Bot Compose screens, timeline, Chat composer 
 
 # Dieta Bot Compose UI
 
-Use [AGENTS](../../../AGENTS.md), [tokens](../../../docs/tokens.md), the owning live specification and the matching Stitch golds. Wireframes are preliminary design references; implementation follows golds. New/changed golds need the separate completed owner-run gate.
+Use [AGENTS](../../../AGENTS.md), [tokens](../../../docs/tokens.md), the owning live specification and the matching Stitch golds. Implementation follows golds only. New/changed golds need the separate completed owner-run gate.
 
 Keep MaterialExpressiveTheme + MotionScheme.expressive(), both system-following palettes and semantic macro colors. No dynamic color. Use the gold/spec-specific shapes and typography: do not replace a Chat bubble or multiline composer shape with a generic card radius. The highlighted remaining value, CTA and sheet tokens remain those in the constitution.
 

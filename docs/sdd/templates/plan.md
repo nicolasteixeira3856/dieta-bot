@@ -6,52 +6,25 @@
 - Código afetado: `<pastas>`
 - Pré-requisitos: <links ou “Nenhum”>
 
-## Gate de autorização
-
-Este plano é exclusivamente documental. A implementação só começa após aprovação explícita que identifique este arquivo:
-
-> Aprovo o plano `docs/<contexto>/plans/<plano>.md`. Implemente o plano aprovado.
-
-Se a implementação revelar decisão não coberta, pare, atualize os artefatos e peça nova aprovação.
+Autorização, ciclo de vida, cancelamento e fora de escopo: `docs/sdd/README.md`. Aprovação: `Aprovo o plano docs/<contexto>/plans/<plano>.md. Implemente o plano aprovado.`
 
 ## Objetivo
 
-<Resultado da entrega.>
+<Resultado da entrega, e por quê.>
 
-## Fontes de verdade
+## Escopo
 
-- <Specs e ADRs vigentes>.
-
-## Escopo de implementação
-
-### 1. <Área>
-
-- <Mudança planejada>.
-
-## Arquivos e áreas afetadas
-
-- `<path>`.
-
-## Validação planejada
-
-1. <Teste, análise, captura, validação manual>.
+- <Mudança planejada, com as fontes (specs, ADRs, golds) que a justificam>.
+- <Mudança pretendida em cada spec viva; a spec só é reescrita no Completion>.
 
 ## Fora de escopo
 
 - <Limite explícito>.
 
-## Riscos e controles
+## Validação
 
-- **<Risco>:** <controle>.
+1. <Teste, análise, captura, validação manual>.
 
-## Critérios de aceite
+## Results
 
-- <Resultado verificável>.
-
-## Encerramento
-
-Depois da implementação, registre resultados reais e aplique o ciclo de vida em `docs/sdd/README.md`.
-
-Só declaração explícita do dono cancelando este plano permite `Cancelado` e a pasta `plans/cancelled/`.
-
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../README.md#fora-de-escopo). Record the reason, residual risk and re-entry conditions; do not treat missing approval or incomplete implementation as deferral.
+<Preenchido no Completion: comandos e números reais, evidência manual, pendências.>

@@ -1,32 +1,8 @@
 # Especificacao — POST /v1/chat
 
-## Controles de conteúdo (CP2)
-
-Vigente desde o [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) (30/09/2026, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)), regras na [política de conteúdo](../../content-policy/specifications/content-policy.md). Header de instalação opcional `X-Client-Instance-Id` e `safety_identifier` desde o [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) (01/10/2026, [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile), [contrato](../../api-contract.md)); auditoria segue no CP9.
-
-## Estado
-
-Vigente: GET /health, POST /v1/estimate, POST /v1/fit, POST /v1/chat ([S2](../plans/completed/s2-v1-chat.md)) com `compact=true` ([S3](../plans/completed/s3-compact.md)). Timeout 60s. Cap 16 MB JPEG (22_400_000 chars de image_b64).
-
-Desde o [S8](../plans/completed/s8-chat-json-slot-consolidado.md) (29/09/2026): saída estruturada (`json_schema` strict, `suggested_slot` com enum dos ids do perfil), texto sem JSON vira `reply`, refeição consolidada ([ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)), total sem comida sem estimate, `MAX_BODY_BYTES` 24 MB.
-
-Desde o [S9](../plans/completed/s9-limite-texto-2000.md) (29/09/2026): `text` e `messages[].text` até 2000 caracteres ([ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)).
-
-Desde o [S11](../plans/completed/s11-chat-v2.md) (30/09/2026, [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)): intenção (`log` | `plan` | `question`), `estimate.meal_text`, memória em fatos (`facts`), `recent` (7 dias), `day.remaining_kcal`, `memory_updates` e `memory_used`. Tudo aditivo: cliente legado (sem `facts`) continua funcionando. `reasoning.effort` fica `none`, decidido pelo avaliador `server/evals/` ([S10](../plans/completed/s10-avaliacao-chat.md)).
-
-Desde o [S12](../plans/completed/s12-slot-nomeado.md) (30/09/2026): o `suggested_slot` segue a refeição nomeada pelo usuário (na mensagem ou na fala que ela responde), mesmo com comida igual à de um slot gravado; a refeição consolidada só vale quando a mensagem se refere à refeição gravada.
-
-Desde o [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) (30/09/2026, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): perguntas antes da estimativa. Com `clarify_rounds` no request (cliente v3), um turno `log` com dúvida devolve só a pergunta (`estimate: null`, `question` no topo); o server libera a estimativa no código após 3 rodadas, em pergunta repetida ou com `force_estimate`. Sem `clarify_rounds`, a resposta é a mesma de antes do S13.
-
-Desde o [S14](../plans/completed/s14-registro-autonomo.md) (02/10/2026, [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md), proposto): marca de registro. Com `clarify_rounds` e `auto_record: true` (cliente v4), o OUT ganha `record` (`auto` | `ask` | `none`) e `skip_slot`, e a intenção `skip` ("pulei o café"); o modelo devolve `record_intent` e `meal_day` (internos); outro dia nunca é registrado. O server continua sem gravar nada. Sem cliente v4, a resposta é a mesma de antes do S14.
-
-Desde o [S15](../plans/completed/s15-registro-casos-dificeis.md) (02/10/2026): refeição pendente ("ainda não almocei") nunca é `skip`; pulo firme avisado antes ("hoje não vou jantar") é `skip`, pulo com dúvida ("acho que não vou jantar") não; foto de comida com pergunta sobre ela é `log` com `record_intent: unsure` (`record: ask`). Só as instructions mudaram: schema, gates e formato da resposta iguais aos do S14.
-
-Desde o [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) (30/09/2026): escopo do produto nas instructions, campo `scope` obrigatório no schema, resposta fixa fora do escopo, moderação OpenAI da entrada e da saída com falha fechada (regras 12–16).
-
 ## Contexto e objetivo
 
-O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda perfil + snapshot do dia + ate 12 msgs + foto opcional. O server devolve prosa + estimate estruturado + slot sugerido. Stateless. Nao grava o dia.
+O Chat manda perfil + snapshot do dia + ate 12 msgs + foto opcional. O server devolve prosa + estimate estruturado + slot sugerido. Stateless. Nao grava o dia.
 
 ## Escopo
 
@@ -35,7 +11,9 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 - Cap 16 MB no JPEG decodificado (ou 22_400_000 chars de image_b64). HTTP 413. Antes de chamar Luna.
 - compact=false: uma resposta de chat.
 - compact=true: resume `messages` e devolve `digest`. Nao empilha raw.
-- estimate/fit continuam no ar neste corte (client para de chama-los no A5).
+- estimate/fit continuam no ar; o client não os chama a partir do Chat ([chat](../../produto/specifications/chat.md) regra 13).
+- Header opcional `X-Client-Instance-Id`, que vira `safety_identifier` ([contrato](../../api-contract.md), [identity/audit](../../content-policy/specifications/identity-and-audit.md#closed-test-profile)).
+- Controles de conteúdo: regras 12–16 e a [política de conteúdo](../../content-policy/specifications/content-policy.md) ([ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)).
 
 ## Fora de escopo
 
@@ -44,6 +22,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 - Gemini / Grok flagship.
 - Multipart (MVP continua image_b64).
 - Calcular teto no server.
+- Trilha de auditoria de produção ([production gate](../../content-policy/production-gate.md)).
 
 ## Regras funcionais
 
@@ -73,7 +52,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
    - scope: `in_scope` | `out_of_scope` | `policy_blocked` | `safety_support` (último campo do schema; só interno, nunca vai ao client)
    - model: gpt-6-luna
 5a. Shaping (S11): `intent` inválido → deduzido (estimate = `log`, senão `question`); `question` com estimate → estimate descartado; `plan` → `question` null; `meal_text` vazio → itens (`{name} {g} g`, vírgulas), acima de 160 corta na última vírgula. `memory_updates`: descarta op/kind/category inválidos, `id` desconhecido em `reinforce`/`replace`/`remove`, `add` com `id`, `routine` sem slot válido, `key` ou `text` vazio; corta `text` 160 e `key` 40; no máximo 5. `memory_used`: só ids de `facts`, sem repetição, no máximo 10.
-5c. Cliente v3 (`clarify_rounds` presente, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): o OUT ganha `question` no topo (string ou null) e `estimate.question` é sempre null. Para `intent: log` com estimate, o gate de liberação (`shaping.clarify_gate`), em ordem: (1) `force_estimate` → libera (`released_force`); (2) confidence high ou pergunta vazia → libera (`released_confident`); (3) `clarify_rounds ≥ 3` → libera (`released_cap`); (4) a pergunta repete uma pergunta de um turno `assistant` de `messages` → libera (`released_repeat`); (5) senão pergunta (`asked`). Liberar = estimate com `question: null` e a confidence do modelo; `question` do topo null. Perguntar = `estimate: null`, `question` = a pergunta do modelo, `reply` = `Entendi: {meal_text}.` + quebra de linha + a pergunta (sem `meal_text`, só a pergunta), texto que o app guarda e devolve no histórico; `memory_updates` e `memory_used` passam iguais. Repetição: só as frases terminadas em `?` do turno contam; texto em minúsculas, sem acento, tokens `[a-z0-9]`, sem stop words pt-BR de uma lista fixa curta; repete com Jaccard ≥ 0,6 (`CLARIFY_REPEAT_JACCARD`) ou um conjunto contido no outro. `plan`, `question` e estimate null passam sem gate. Falha ou texto sem JSON: `question: null`.
+5c. Cliente v3 (`clarify_rounds` presente, [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)): o OUT ganha `question` no topo (string ou null) e `estimate.question` é sempre null. Para `intent: log` com estimate, o gate de liberação (`shaping.clarify_gate`), em ordem: (1) `force_estimate` → libera (`released_force`); (2) confidence high ou pergunta vazia → libera (`released_confident`); (3) `clarify_rounds ≥ 3` → libera (`released_cap`); (4) a pergunta repete uma pergunta de um turno `assistant` de `messages` → libera (`released_repeat`); (5) senão pergunta (`asked`). Liberar = estimate com `question: null` e a confidence do modelo; `question` do topo null. Perguntar = `estimate: null`, `question` = a pergunta do modelo, `reply` = `Entendi: {meal_text}.` + quebra de linha + a pergunta (sem `meal_text`, só a pergunta), texto que o app guarda e devolve no histórico; `memory_updates` e `memory_used` passam iguais. Repetição: só as frases terminadas em `?` do turno contam; texto em minúsculas, sem acento, tokens `[a-z0-9]`, sem stop words pt-BR de uma lista fixa curta; repete com Jaccard ≥ 0,6 (`CLARIFY_REPEAT_JACCARD`) ou um conjunto contido no outro. `plan`, `question` e estimate null passam sem gate. Falha ou texto sem JSON: `question: null`. Sem `clarify_rounds` (cliente até v2): sem gate e sem `question` no topo.
 5d. Cliente v4 (`clarify_rounds` presente e `auto_record: true`, [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md)): depois do gate da regra 5c e da política de conteúdo, o gate de registro (`shaping.record_gate`) põe no topo `record` (`auto` | `ask` | `none`) e `skip_slot` (string ou null). Em ordem, a primeira linha vale (valor no log entre parênteses): (1) `scope` ≠ `in_scope` ou flag de moderação (resposta fixa, inclusive texto sem JSON) → `none` (`none_policy`); (2) `intent` `question` ou `plan`, turno só de pergunta, `log` sem estimate ou falha (`fallback: "error"`) → `none` (`none_intent`); (3) `meal_day: other` → `none` (`none_other_day`); (4) `skip` com `skip_slot` id do perfil → `auto`, `skip_slot` = esse id (`auto_skip`); (5) `skip` sem slot válido → `none` e `intent: question` (`none_skip_slot`); (6) `log` com estimate liberado e `suggested_slot` null → `ask` (`ask_no_slot`); (7) `log` com estimate liberado e `record_intent: clear` → `auto` (`auto_log`); (8) senão `ask` (`ask_unsure`). `force_estimate: true` e foto sem texto contam como `clear`. `meal_day` ausente ou inválido = `today`; `record_intent` ausente ou inválido = `unsure`. `skip_slot` só não é null na linha 4. O cliente aplica a marca e rebaixa `auto` para `ask` se uma guarda dele falhar. Sem cliente v4 (`auto_record` ausente ou `false`, ou sem `clarify_rounds`): `skip` vira `question` com o mesmo `reply`, `record` e `skip_slot` não existem no OUT, e a resposta é byte a byte a de antes do S14.
 5b. Cliente legado (sem `facts`): `memory_updates` e `memory_used` vazios; `intent: plan` → `estimate: null` (sem card no APK ≤ 0.0.3; gramas e total no `reply`).
 6. suggested_slot = id de um slot do profile.slots (enum no schema, montado por request; perfil sem slots → só `null`). Ordem da regra 4. Nomes e horários só do PROFILE: nunca supor horário "normal" de refeição (Jantar às 03:00 é o Jantar). Se hora nao casar, o mais proximo ainda vazio. Nunca inventar id. Defesa no shaping: aceita `"1"`, `1` e `{"id": 1}`, normaliza para string e descarta id fora do perfil.
@@ -122,6 +101,7 @@ O client deixa de usar o wizard T1/T2/T3 como caminho principal. O Chat manda pe
 ```
 
 status do slot: `empty` | `eaten` | `skipped`.
+`text` e `messages[].text`: até 2000 caracteres ([ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)); acima → 422.
 messages[].role: `user` | `assistant`. Sem system.
 
 Campos opcionais do S11 (ADR-023), limites → 422:
@@ -166,21 +146,11 @@ Campo opcional do S14 (ADR-028):
 - [ADR-017](../../produto/adrs/ADR-017-registro-consolidado.md)
 - [ADR-015](../adrs/ADR-015-log-conversa-dev.md)
 - [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md)
-- [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) (proposto; o S14 executa as decisões 1, 2, 4, 7 e 8)
-- [api-contract.md](../../api-contract.md) ate S2 atualizar
-
-## Planos relacionados
-
-- [S1](../plans/completed/s1-timeout-photo-cap.md)
-- [S2](../plans/completed/s2-v1-chat.md)
-- [S3 (Concluido)](../plans/completed/s3-compact.md)
-- [S8 (Concluído)](../plans/completed/s8-chat-json-slot-consolidado.md)
-- [S10 (Concluído)](../plans/completed/s10-avaliacao-chat.md) — avaliador `server/evals/`
-- [S11 (Concluído)](../plans/completed/s11-chat-v2.md) — Chat v2
-- [S12 (Concluído)](../plans/completed/s12-slot-nomeado.md) — slot nomeado vence a semelhança
-- [S13 (Concluído)](../plans/completed/s13-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa, limite de 3 rodadas
-- [S14 (Concluído)](../plans/completed/s14-registro-autonomo.md) — marca de registro (`record`) e pulo por texto (`skip`)
-- [S15 (Concluído)](../plans/completed/s15-registro-casos-dificeis.md) — refeição pendente não é pulo, pulo firme avisado antes é, foto com pergunta é `ask`
+- [ADR-022](../../produto/adrs/ADR-022-limite-texto-chat.md)
+- [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md)
+- [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md)
+- [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md) (o server cobre as decisões 1, 2, 4, 7 e 8)
+- [api-contract.md](../../api-contract.md)
 
 ## Criterios de aceite funcionais
 
@@ -190,3 +160,20 @@ Campo opcional do S14 (ADR-028):
 - Request sem `auto_record` devolve o mesmo formato de antes do S14.
 - compact=true devolve digest nao-vazio e messages nao voltam no OUT.
 - Foto > cap = 413 e Luna nao e chamada (asserção no teste com transport fake).
+
+## Proveniência
+
+- [S1](../plans/completed/s1-timeout-photo-cap.md) — timeout 60s + cap 16MB
+- [S2](../plans/completed/s2-v1-chat.md) — POST /v1/chat
+- [S3](../plans/completed/s3-compact.md) — compact digest
+- [S8](../plans/completed/s8-chat-json-slot-consolidado.md) — Chat: JSON garantido, slot sugerido e refeição consolidada
+- [S9](../plans/completed/s9-limite-texto-2000.md) — Texto do Chat até 2000 caracteres
+- [S10](../plans/completed/s10-avaliacao-chat.md) — Avaliação do Chat com casos reais
+- [S11](../plans/completed/s11-chat-v2.md) — Chat v2 no server: intenção, texto da refeição, memória estruturada e histórico recente
+- [S12](../plans/completed/s12-slot-nomeado.md) — Slot da refeição: o nome vence a semelhança com o registro
+- [S13](../plans/completed/s13-perguntas-antes-da-estimativa.md) — Questions before the estimate, 3-round hard stop
+- [S14](../plans/completed/s14-registro-autonomo.md) — Record mark (`record`) and skip by text
+- [S15](../plans/completed/s15-registro-casos-dificeis.md) — Hard record cases: skip by text, photo with a question
+- [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) — Server scope and content controls
+- [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) — Server safety identifier
+- [CP9](../../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md) — Production audit, retention and containment
