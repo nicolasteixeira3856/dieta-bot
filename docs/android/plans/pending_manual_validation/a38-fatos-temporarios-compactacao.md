@@ -1,10 +1,10 @@
 # Plan — A38 Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 
-- Status: Aguardando aprovação
+- Status: Pendente aprovação manual
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`core/network/ChatModels.kt`, `core/database/*` (Room v9), `core/memory/FactMemory.kt`, `domain/MemoryRules.kt`, `feature/chat/PromptBuilder.kt`, `feature/chat/ChatViewModel.kt`, `src/dev/.../devtools/{FactText,DevMemoryViewModel,DevMemoryScreen}.kt`, `core/telemetry` counts, tests)
-- Prerequisites: [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md) accepted by the owner; **[S16](../../server/plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) deployed on the dev server** (it accepts `T` facts and `temp_facts`, and returns `question_slot`). Executes ADR-029 decisions 1 (client part), 2 and the slot marker of decision 5. No Stitch gate: no gold changes.
+- Prerequisites: [ADR-029](../../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md) accepted by the owner; **[S16](../../../server/plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) deployed on the dev server** (it accepts `T` facts and `temp_facts`, and returns `question_slot`). Executes ADR-029 decisions 1 (client part), 2 and the slot marker of decision 5. No Stitch gate: no gold changes.
 
 ## Authorization gate
 
@@ -82,10 +82,10 @@ Owner session of 03/10/2026 (ADR-029 § Context):
 
 ## Intended spec changes (written at Completion, not now)
 
-- [memoria-push](../../produto/specifications/memoria-push.md) memory rules 1–5, 7, 8: third kind `temp`, `T` ids, cap 5, 3-day expiry, not touched by records or receipts, editor, badge; Provenance A38.
-- [chat](../../produto/specifications/chat.md) rules 8 and 9: prompt carries temp facts and the `[refeição sugerida: …]` line; compaction summarises the oldest block of ≤ 12, the newest 4 raw (or the open question's meal) stay raw, day and wipe checked; Provenance A38.
-- [room-v2](../specifications/room-v2.md): v9 column, title version.
-- [api-contract](../../api-contract.md) is written by S16.
+- [memoria-push](../../../produto/specifications/memoria-push.md) memory rules 1–5, 7, 8: third kind `temp`, `T` ids, cap 5, 3-day expiry, not touched by records or receipts, editor, badge; Provenance A38.
+- [chat](../../../produto/specifications/chat.md) rules 8 and 9: prompt carries temp facts and the `[refeição sugerida: …]` line; compaction summarises the oldest block of ≤ 12, the newest 4 raw (or the open question's meal) stay raw, day and wipe checked; Provenance A38.
+- [room-v2](../../specifications/room-v2.md): v9 column, title version.
+- [api-contract](../../../api-contract.md) is written by S16.
 
 ## Out of scope
 
@@ -93,7 +93,7 @@ Owner session of 03/10/2026 (ADR-029 § Context):
 - A visible temp-memory chip or any new UI copy (would need a Stitch gate).
 - Removing a temp fact when a meal is recorded (rejected in ADR-029, option A of 03/10/2026); promotion of temp facts; editing temp facts in the dev editor.
 - Sending yesterday's chat or digest.
-- Retroactive records ([A35](out_of_scope/a35-registro-retroativo.md), `Fora de escopo`).
+- Retroactive records ([A35](../out_of_scope/a35-registro-retroativo.md), `Fora de escopo`).
 
 ## Planned validation
 
@@ -134,7 +134,33 @@ Owner session of 03/10/2026 (ADR-029 § Context):
 
 ## Results
 
-<Filled at Completion: commands and real numbers, manual evidence, pending items.>
+Owner approval received on 2026-10-03 with the sentence of the authorization gate. Code and automated validation done on 2026-10-03; the owner's manual validation (step 4) is pending, so the plan is `Pendente aprovação manual`.
+
+### First implementation step
+
+S16 is in `docs/server/plans/completed/`. A live `POST /v1/chat` to the dev server with `facts: [T1, kind temp]`, `temp_facts: true`, `clarify_rounds: 0`, `auto_record: true` (request id `a38-gate-check`) returned **HTTP 200** with `memory_used: ["T1"]`.
+
+### Implementation
+
+- Wire: `ChatIn.tempFacts` (`temp_facts`, no default, always encoded); `ChatOut.questionSlot`. A question-only answer stores `question_slot` in `estimateSlotId` when it is one of today's slots; the record mode still uses only the estimate's slot, and a question-only row is not recordable, so no action or visual change.
+- History marker: `PromptBuilder.chatTurn` appends `\n[refeição sugerida: {slot}]` to assistant rows whose slot is in today's profile. The body is clipped to `2000 − marker length` code points first, so the turn stays within the server's 2000 limit (a clip to 2000 followed by the marker would exceed it and get a 422).
+- Memory: `Fact.dynamic` / `Fact.temp`, `NextIds.t`, `TEMP_MAX = 5`, `TEMP_TTL_DAYS = 3`; temp add/replace/remove/expiry as specified; cap, promotion and expiry of dynamic facts now test `kind == dynamic` explicitly. `MemoryRules.images` and `revert` skip temp facts; `FactMemory.revertAndApply` (every record and receipt path) drops temp updates and temp images, while the answer path (`apply`) keeps them.
+- Compaction: `PromptBuilder.compactBlocks` (keep 4, back to the open question's meal, ≤ 12 per block, ≤ 2 blocks, open tail ≥ 12 → none); `Turn.blocks` / `Turn.kept`; `compact(turn, block)` sends exactly the block. `rawSinceDigest` cuts by the newest digest's `coversUntilId`, or by its creation time when null. `ChatViewModel.post` captures the send date and the latest wipe id, compacts block by block (stops at the first failure) and rebuilds the turn after each stored digest. `DayRepository.upsertDigest(text, coversUntilId, sentOn, wipeId)` returns false and writes nothing when today or the latest wipe changed.
+- Room v9: `day_digest.coversUntilId`, `MIGRATION_8_9`, schema `9.json`. Digest ordering ties are broken by `coversUntilId`, so two digests stored in the same millisecond keep their order.
+- Dev editor: temp lines last and read-only, `Temporária n/5`, `T` lines skipped by the parser and current temp facts kept on Salvar; the `visto` list shows only permanent and dynamic facts (a temp line already carries `criado`). `DevMemoryScreen.kt` needed no change.
+- Telemetry (dev): `memory_changed` adds `temp`, `temp_add`, `temp_replace`, `temp_remove`, `temp_expire`; a temp op is also counted under its plain op, so `Memória atualizada` follows the existing rule. New event `chat_compact` with `blocks`, `kept`, `summarised` (numbers only), fired when at least one digest was stored.
+
+### Automated validation
+
+- `./gradlew :app:testDevDebugUnitTest`: **471 tests, 0 failures** (final run). New: `MemoryRulesTest` (9), `FactMemoryTest` (3), `PromptBuilderTest` (8, 2 updated), `ChatCompactTest` (6, 3 updated), `ChatViewModelTest` (2: temp fact through two records, Trocar refeição, Excluir, Editar, Substituir + Desfazer; `question_slot` stored and sent back as the marker), `FactTextTest` (2), `MigrationV8V9Test` (1). Existing expectations updated for v9 and the new telemetry keys.
+- One run failed once in `ChatCompactTest.compactFailure_turnStillAnswers_nothingStored_retriesNextSend`: it read `uiState.value` right after Room had the answer, before the render. The test now waits for the rendered answer; the next two full runs were green.
+- `./gradlew :app:verifyRoborazziDevDebug`: **BUILD SUCCESSFUL**, no new compare images (no visual diff).
+- `./gradlew :app:assembleDevRelease`: **BUILD SUCCESSFUL**.
+- `node tools/check-docs.mjs`: passes. Its C4 rule flags `pending` inside a `plans/pending_manual_validation/` link target as a Provenance status marker, so the four spec Provenance entries for A38 use reference-style links (`[A38][a38]`); they become inline links when the plan closes. A separate checker fix was flagged to the owner.
+
+### Pending
+
+- Manual validation step 4 on a dev APK (owner, through `tools/distribute-dev.ps1` when a test build is asked): temp label across days 1–4, receipt actions leaving `T1`, suggested slot without "Em qual refeição?", clarify answer after a compaction. Release notes must say that an older APK cannot read a memory file with temp facts (update forward only).
 
 ## Closure
 
@@ -142,4 +168,4 @@ After implementation, record real results and apply the lifecycle in `docs/sdd/R
 
 Only an explicit owner statement cancelling this plan allows `Cancelado` and `plans/cancelled/`.
 
-For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../sdd/README.md#fora-de-escopo).
+For an owner-authorized future deferral, use `Fora de escopo` and `plans/out_of_scope/` under [SDD](../../../sdd/README.md#fora-de-escopo).

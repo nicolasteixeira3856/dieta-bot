@@ -35,9 +35,14 @@ data class ChatIn(
      * [clarifyRounds]: Json does not encode defaults and the field must always go.
      */
     @SerialName("auto_record") val autoRecord: Boolean,
+    /**
+     * The client stores temp facts (A38, ADR-029): v5 client, the server may propose `kind: temp` and answers
+     * [ChatOut.questionSlot]. No default, like [autoRecord]: the field must always go.
+     */
+    @SerialName("temp_facts") val tempFacts: Boolean,
 )
 
-/** A memory fact as the server sees it (api-contract). slot is a profile slot id or null. */
+/** A memory fact as the server sees it (api-contract). slot is a profile slot id or null. kind "temp" = a T id (A38). */
 @Serializable
 data class ChatFact(
     val id: String,
@@ -149,4 +154,6 @@ data class ChatOut(
     val record: String? = null,
     /** Profile slot id of a skip by text (intent "skip"), else null. */
     @SerialName("skip_slot") val skipSlot: String? = null,
+    /** Slot the server held with a question-only turn (S16, v5 client); null otherwise. */
+    @SerialName("question_slot") val questionSlot: String? = null,
 )

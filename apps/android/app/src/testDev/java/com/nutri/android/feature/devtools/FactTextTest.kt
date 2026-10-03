@@ -95,8 +95,39 @@ class FactTextTest {
 
     @Test
     fun readOnlyLines() {
-        assertThat(FactText.summary(memory.facts)).isEqualTo("Permanente 1/30 · Dinâmica 1/40")
+        assertThat(FactText.summary(memory.facts)).isEqualTo("Permanente 1/30 · Dinâmica 1/40 · Temporária 0/5")
         assertThat(FactText.seen(cafe)).isEqualTo("D2 · visto 2 dias · último 30/09")
         assertThat(FactText.seen(leite)).isEqualTo("P1 · visto 1 dia · último 29/09")
+    }
+
+    // ------------------------------------------------------------------ A38: temp facts
+
+    private val lasanha = Fact("T1", "temp", "portion", "leite", "Lasanha 100 g = 150 kcal", source = "observed", days = listOf("2026-09-29"), created = "2026-09-29")
+    private val withTemp = Memory(NextIds(2, 3, 2), listOf(lasanha, leite, cafe))
+
+    @Test
+    fun tempLines_formattedLastReadOnly_andCounted() {
+        val text = FactText.format(withTemp.facts)
+        assertThat(text.lines()).containsExactly(
+            "P1 | preference | leite | Leite semidesnatado",
+            "D2 | routine | cafe | slot=1 | 2 ovos mexidos, 1 pão | 440 kcal 25P 38C 22G",
+            "T1 | temp | portion | leite | Lasanha 100 g = 150 kcal · criado 29/09",
+        ).inOrder()
+        assertThat(FactText.summary(withTemp.facts)).isEqualTo("Permanente 1/30 · Dinâmica 1/40 · Temporária 1/5")
+    }
+
+    @Test
+    fun salvarOfAnEditedPermanent_keepsEveryTemp_sameKeyAsTempAccepted_changedTempLineIgnored() {
+        val text = FactText.format(withTemp.facts)
+            .replace("Leite semidesnatado", "Leite integral")
+            .replace("150 kcal · criado 29/09", "999 kcal")
+        val out = (FactText.parse(text, withTemp, today, slots) as FactText.Result.Ok).memory
+        assertThat(out.facts.single { it.id == "P1" }.text).isEqualTo("Leite integral")
+        assertThat(out.facts.single { it.id == "T1" }).isEqualTo(lasanha)
+        assertThat(out.next).isEqualTo(withTemp.next)
+
+        // A removed temp line is not an error either: the temp fact stays.
+        val withoutTemp = FactText.format(withTemp.facts).lines().filterNot { it.startsWith("T1") }.joinToString("\n")
+        assertThat((FactText.parse(withoutTemp, withTemp, today, slots) as FactText.Result.Ok).memory.facts).contains(lasanha)
     }
 }

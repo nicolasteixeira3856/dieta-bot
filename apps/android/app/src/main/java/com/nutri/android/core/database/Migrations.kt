@@ -3,6 +3,13 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v8 -> v9: the newest message a digest summarised (A38). Old digests stay null: cut by creation time. */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `day_digest` ADD COLUMN `coversUntilId` INTEGER")
+    }
+}
+
 /** v7 -> v8: autonomous record and receipt actions (A34). Old rows stay null: no actions. */
 val MIGRATION_7_8 = object : Migration(7, 8) {
     override fun migrate(db: SupportSQLiteDatabase) {

@@ -47,17 +47,30 @@ class FactMemory @Inject constructor(private val file: MemoryFile) {
      * images of the facts it changed (A34), measured after expiry so an expired fact never comes back.
      */
     suspend fun apply(updates: List<MemoryUpdate>, today: LocalDate, recorded: RecordedMeal? = null): MemoryResult =
-        revertAndApply(emptyList(), updates, today, recorded).result
+        edit(emptyList(), updates, today, recorded).result
 
     /**
      * A34: reverts [images] (Excluir, Desfazer, Editar), then applies [updates] with [recorded] (Trocar
-     * refeição), in one locked write. The images of the result cover both steps.
+     * refeição), in one locked write. The images of the result cover both steps. A record never adds,
+     * removes or reverts a temp fact (A38): temp updates and images are dropped here.
      */
     suspend fun revertAndApply(
         images: List<FactImage>,
         updates: List<MemoryUpdate>,
         today: LocalDate,
         recorded: RecordedMeal? = null,
+    ): MemoryEdit = edit(
+        images.filterNot { it.temp },
+        updates.filterNot { it.kind == MemoryRules.TEMP || it.id?.startsWith("T") == true },
+        today,
+        recorded,
+    )
+
+    private suspend fun edit(
+        images: List<FactImage>,
+        updates: List<MemoryUpdate>,
+        today: LocalDate,
+        recorded: RecordedMeal?,
     ): MemoryEdit = mutex.withLock {
         val stored = load()
         val expired = MemoryRules.expire(stored, today)

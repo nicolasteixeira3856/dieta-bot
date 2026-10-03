@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 /**
  * One memory fact (ADR-023 decision 4). [days]: distinct America/Sao_Paulo dates the fact showed up,
  * only those of the last [MemoryRules.DYNAMIC_TTL_DAYS]. kcal/p/c/g: routine only, from the last record.
+ * A temp fact (A38, ADR-029) lives [MemoryRules.TEMP_TTL_DAYS] days from [created]; its days are never counted.
  */
 @Serializable
 data class Fact(
@@ -25,12 +26,14 @@ data class Fact(
     val g: Int? = null,
 ) {
     val permanent: Boolean get() = kind == MemoryRules.PERMANENT
+    val dynamic: Boolean get() = kind == MemoryRules.DYNAMIC
+    val temp: Boolean get() = kind == MemoryRules.TEMP
     val lastSeen: String? get() = days.maxOrNull()
 }
 
-/** Next number of each id prefix: ids are never reused. */
+/** Next number of each id prefix: ids are never reused. A file without T reads as 1 (A38). */
 @Serializable
-data class NextIds(@SerialName("P") val p: Int = 1, @SerialName("D") val d: Int = 1)
+data class NextIds(@SerialName("P") val p: Int = 1, @SerialName("D") val d: Int = 1, @SerialName("T") val t: Int = 1)
 
 @Serializable
 data class Memory(val next: NextIds = NextIds(), val facts: List<Fact> = emptyList())
@@ -57,7 +60,7 @@ data class RecordedMeal(val slot: String, val kcal: Int, val p: Int, val c: Int,
  * the operation changed (A34), filled by [com.nutri.android.core.memory.FactMemory]; expiry is not a change.
  */
 data class MemoryResult(val memory: Memory, val counts: Map<String, Int>, val images: List<FactImage> = emptyList()) {
-    /** At least one update of the AI was applied (expire alone does not count). */
+    /** At least one update of the AI was applied (expire alone does not count). Temp ops count under their op too. */
     val changed: Boolean get() = UPDATE_OPS.any { (counts[it] ?: 0) > 0 }
 
     private companion object {
@@ -75,11 +78,14 @@ object MemoryRules {
     const val DYNAMIC_TTL_DAYS = 21L
     const val PROMOTE_DAYS = 5
     const val STRONG_ROUTINE_DAYS = 3
+    const val TEMP_MAX = 5
+    const val TEMP_TTL_DAYS = 3L
     const val TEXT_MAX = 160
     const val KEY_MAX = 40
 
     const val PERMANENT = "permanent"
     const val DYNAMIC = "dynamic"
+    const val TEMP = "temp"
     const val ROUTINE = "routine"
     val CATEGORIES = setOf("preference", "portion", ROUTINE)
 
@@ -95,23 +101,40 @@ object MemoryRules {
     const val EXPIRE = "expire"
     val OPS = listOf(ADD, REINFORCE, REPLACE, REMOVE, PROMOTE, EXPIRE)
 
+    /** A38: the ops on temp facts, counted again under these names (telemetry). */
+    const val TEMP_ADD = "temp_add"
+    const val TEMP_REPLACE = "temp_replace"
+    const val TEMP_REMOVE = "temp_remove"
+    const val TEMP_EXPIRE = "temp_expire"
+    val TEMP_OPS = listOf(TEMP_ADD, TEMP_REPLACE, TEMP_REMOVE, TEMP_EXPIRE)
+
     /**
      * Days older than the 21-day window leave; a dynamic fact with no day left leaves (a fact seen on
-     * day 1 and never again is gone on day 22). Permanent never expires.
+     * day 1 and never again is gone on day 22). Permanent never expires. A temp fact leaves
+     * [TEMP_TTL_DAYS] São Paulo days after it was created (created 02/10 → gone on 05/10).
      */
     fun expire(memory: Memory, today: LocalDate): MemoryResult {
         val from = today.minusDays(DYNAMIC_TTL_DAYS - 1).toString()
+        val tempFrom = today.minusDays(TEMP_TTL_DAYS - 1).toString()
         var expired = 0
+        var tempExpired = 0
         val facts = memory.facts.mapNotNull { fact ->
             val days = fact.days.filter { it >= from }
-            if (!fact.permanent && days.isEmpty()) {
-                expired++
-                null
-            } else {
-                fact.copy(days = days)
+            when {
+                fact.temp && fact.created < tempFrom -> {
+                    expired++
+                    tempExpired++
+                    null
+                }
+                fact.dynamic && days.isEmpty() -> {
+                    expired++
+                    null
+                }
+                fact.temp -> fact
+                else -> fact.copy(days = days)
             }
         }
-        return MemoryResult(memory.copy(facts = facts), mapOf(EXPIRE to expired))
+        return MemoryResult(memory.copy(facts = facts), mapOf(EXPIRE to expired, TEMP_EXPIRE to tempExpired))
     }
 
     /** Expire, apply every update in order, cap the dynamic list, promote. */
@@ -136,11 +159,12 @@ object MemoryRules {
 
     fun sameKey(a: String, b: String) = clean(a, KEY_MAX).lowercase() == clean(b, KEY_MAX).lowercase()
 
-    /** Every fact that differs between [before] and [after], by id (A34). */
+    /** Every fact that differs between [before] and [after], by id (A34). Temp facts never enter an image (A38). */
     fun images(before: Memory, after: Memory): List<FactImage> {
         val old = before.facts.associateBy { it.id }
         val new = after.facts.associateBy { it.id }
         return (old.keys + new.keys).filter { old[it] != new[it] }.map { FactImage(it, old[it], new[it]) }
+            .filterNot { it.temp }
     }
 
     /**
@@ -152,7 +176,7 @@ object MemoryRules {
         val facts = memory.facts.toMutableList()
         var reverted = 0
         var kept = 0
-        for (image in images) {
+        for (image in images.filterNot { it.temp }) {
             val i = facts.indexOfFirst { it.id == image.id }
             val current = facts.getOrNull(i)
             if (current != image.after) {
@@ -173,9 +197,10 @@ object MemoryRules {
         val facts = memory.facts.toMutableList()
         var nextP = memory.next.p
         var nextD = memory.next.d
-        val counts = OPS.filter { it != EXPIRE }.associateWith { 0 }.toMutableMap()
+        var nextT = memory.next.t
+        val counts = (OPS + TEMP_OPS).filter { it != EXPIRE && it != TEMP_EXPIRE }.associateWith { 0 }.toMutableMap()
 
-        fun memory() = Memory(NextIds(nextP, nextD), facts.toList())
+        fun memory() = Memory(NextIds(nextP, nextD, nextT), facts.toList())
 
         private fun count(op: String) {
             counts[op] = counts.getValue(op) + 1
@@ -190,14 +215,18 @@ object MemoryRules {
             val key = clean(update.key, KEY_MAX)
             val text = clean(update.text, TEXT_MAX)
             when (update.op) {
-                ADD -> if (key.isNotEmpty() && text.isNotEmpty()) add(update, key, text, recorded)
-                REINFORCE -> reinforce(indexOf(update.id), text, recorded)
+                ADD -> if (key.isNotEmpty() && text.isNotEmpty()) {
+                    if (update.kind == TEMP) addTemp(update, key, text) else add(update, key, text, recorded)
+                }
+                // A temp fact is never reinforced: it lives from its creation (A38).
+                REINFORCE -> indexOf(update.id).let { i -> if (i < 0 || !facts[i].temp) reinforce(i, text, recorded) }
                 REPLACE -> replace(update, text)
                 REMOVE -> {
                     val i = indexOf(update.id)
                     if (i >= 0) {
-                        facts.removeAt(i)
+                        val removed = facts.removeAt(i)
                         count(REMOVE)
+                        if (removed.temp) count(TEMP_REMOVE)
                     }
                 }
             }
@@ -205,8 +234,30 @@ object MemoryRules {
 
         private fun indexOf(id: String?) = if (id == null) -1 else facts.indexOfFirst { it.id == id }
 
+        /**
+         * A38: a temp fact only meets other temp facts. Same key → its text changes (id and creation kept);
+         * else a new T id; above [TEMP_MAX] the oldest created leaves. Never a routine, never a slot.
+         */
+        private fun addTemp(update: MemoryUpdate, key: String, text: String) {
+            if (update.category == ROUTINE || update.slot != null) return
+            val same = facts.indexOfFirst { it.temp && sameKey(it.key, key) }
+            if (same >= 0) {
+                if (facts[same].text == text) return
+                facts[same] = facts[same].copy(text = text)
+                count(REPLACE)
+                count(TEMP_REPLACE)
+                return
+            }
+            facts += newFact("T${nextT++}", TEMP, update, key, text, OBSERVED)
+            count(ADD)
+            count(TEMP_ADD)
+            while (facts.count { it.temp } > TEMP_MAX) {
+                facts.remove(facts.filter { it.temp }.minWith(compareBy<Fact>({ it.created }, { it.id.drop(1).toIntOrNull() ?: 0 })))
+            }
+        }
+
         private fun add(update: MemoryUpdate, key: String, text: String, recorded: RecordedMeal?) {
-            val same = facts.indexOfFirst { sameKey(it.key, key) }
+            val same = facts.indexOfFirst { !it.temp && sameKey(it.key, key) }
             if (update.kind == PERMANENT) {
                 if (same >= 0) return contradiction(same, update, text, recorded)
                 if (!permanentRoom()) return
@@ -255,13 +306,15 @@ object MemoryRules {
             val i = indexOf(update.id)
             if (i < 0 || text.isEmpty()) return
             val old = facts[i]
-            val promote = update.kind == PERMANENT && !old.permanent && permanentRoom()
+            // No promotion from or to temp (A38).
+            val promote = update.kind == PERMANENT && old.dynamic && permanentRoom()
             facts[i] = if (promote) {
                 old.copy(id = newP(), kind = PERMANENT, source = EXPLICIT, text = text)
             } else {
                 old.copy(text = text)
             }
             count(REPLACE)
+            if (old.temp) count(TEMP_REPLACE)
         }
 
         private fun newFact(id: String, kind: String, update: MemoryUpdate, key: String, text: String, source: String) = Fact(
@@ -286,8 +339,8 @@ object MemoryRules {
 
         /** Above the limit, the dynamic fact seen longest ago leaves (oldest id on a tie). */
         private fun cap() {
-            while (facts.count { !it.permanent } > DYNAMIC_MAX) {
-                val oldest = facts.filter { !it.permanent }
+            while (facts.count { it.dynamic } > DYNAMIC_MAX) {
+                val oldest = facts.filter { it.dynamic }
                     .minWith(compareBy<Fact>({ it.lastSeen ?: "" }, { it.id.drop(1).toIntOrNull() ?: 0 }))
                 facts.remove(oldest)
             }
@@ -297,7 +350,7 @@ object MemoryRules {
         fun promote() {
             for (i in facts.indices) {
                 val fact = facts[i]
-                if (fact.permanent || fact.days.size < PROMOTE_DAYS || !permanentRoom()) continue
+                if (!fact.dynamic || fact.days.size < PROMOTE_DAYS || !permanentRoom()) continue
                 facts[i] = fact.copy(id = newP(), kind = PERMANENT, source = PROMOTED)
                 count(PROMOTE)
             }

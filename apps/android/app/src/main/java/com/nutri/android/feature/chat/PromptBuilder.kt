@@ -30,6 +30,10 @@ import java.time.format.DateTimeFormatter
  */
 object PromptBuilder {
     const val MAX_RAW = 12
+    /** A38: the newest raw messages a compaction leaves out of its block. */
+    const val KEEP_RAW = 4
+    /** A38: compactions in one send at most. */
+    const val MAX_BLOCKS = 2
     const val MAX_DIGESTS = 2
     const val MAX_RECENT = 42
     const val MAX_RECENT_TEXT = 240
@@ -42,7 +46,16 @@ object PromptBuilder {
      */
     const val COMPACT_ENABLED = true
 
-    data class Turn(val body: ChatIn, val needsCompact: Boolean)
+    /** A38: one compact request, the oldest raw [messages], and the id of the newest one it summarises. */
+    data class CompactBlock(val messages: List<ChatTurn>, val coversUntilId: Long)
+
+    /** [blocks]: the compactions this send asks for, oldest first (A38); [kept] raw stay out of them. */
+    data class Turn(val body: ChatIn, val blocks: List<CompactBlock> = emptyList(), val kept: Int = 0) {
+        val needsCompact: Boolean get() = blocks.isNotEmpty()
+    }
+
+    /** `[refeição sugerida: …]`: the slot an assistant row suggested, as the model reads it in HISTORY (A38). */
+    fun slotMarker(name: String) = "[refeição sugerida: $name]"
 
     fun build(
         day: DaySnapshot,
@@ -60,14 +73,17 @@ object PromptBuilder {
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
+        val slotNames = day.slotsOn(today).associate { it.id to it.name }
+        val blocks = if (compactEnabled) compactBlocks(raw, todayMessages) else emptyList()
         return Turn(
             body = ChatIn(
                 localTime = now.atZone(SaoPaulo.zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
                 profile = profile(day, today),
                 memory = "",
                 day = snapshot(day, today),
-                digests = digests.sortedBy { it.createdAtEpochMs }.takeLast(MAX_DIGESTS).map { it.text },
-                messages = raw.takeLast(MAX_RAW).map { ChatTurn(it.role, ChatText.clip(turnText(it))) },
+                digests = digests.sortedWith(compareBy({ it.createdAtEpochMs }, { it.coversUntilId ?: Long.MIN_VALUE }))
+                    .takeLast(MAX_DIGESTS).map { it.text },
+                messages = raw.takeLast(MAX_RAW).map { chatTurn(it, slotNames) },
                 text = ChatText.clip(text),
                 compact = false,
                 recent = recent(recentLogs, day.slots, today),
@@ -75,9 +91,68 @@ object PromptBuilder {
                 clarifyRounds = clarifyRounds(todayMessages),
                 forceEstimate = forceEstimate,
                 autoRecord = true,
+                tempFacts = true,
             ),
-            needsCompact = compactEnabled && raw.size >= MAX_RAW,
+            blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames) }, block.last().id) },
+            kept = raw.size - blocks.sumOf { it.size },
         )
+    }
+
+    /**
+     * A38 (ADR-029 decision 2): the blocks to summarise, computed on every raw message (never on the newest 12).
+     * Nothing below [MAX_RAW] raw. The newest [KEEP_RAW] stay raw, back to the user message before the first
+     * question of an open clarify sequence when that is older. Each block is the oldest ≤ [MAX_RAW] raw before
+     * them; a second block only while more than [MAX_RAW] raw would be left. A kept tail of [MAX_RAW] or more:
+     * nothing is summarised.
+     */
+    fun compactBlocks(raw: List<ChatMessageEntity>, todayMessages: List<ChatMessageEntity>): List<List<ChatMessageEntity>> {
+        if (raw.size < MAX_RAW) return emptyList()
+        var keepFrom = raw.size - KEEP_RAW
+        if (clarifyRounds(todayMessages) > 0) {
+            val anchor = openClarifyStart(todayMessages)
+            val i = raw.indexOfFirst { it.id == anchor?.id }
+            if (i in 0 until keepFrom) keepFrom = i
+        }
+        if (raw.size - keepFrom >= MAX_RAW) return emptyList()
+        val blocks = mutableListOf<List<ChatMessageEntity>>()
+        var from = 0
+        while (blocks.size < MAX_BLOCKS && from < keepFrom && (blocks.isEmpty() || raw.size - from > MAX_RAW)) {
+            val block = raw.subList(from, minOf(keepFrom, from + MAX_RAW)).toList()
+            blocks += block
+            from += block.size
+        }
+        return blocks
+    }
+
+    /**
+     * The user message right before the first question of the open clarify sequence (the meal that was asked
+     * about), or that question when no user message precedes it. Same walk as [clarifyRounds].
+     */
+    private fun openClarifyStart(todayMessages: List<ChatMessageEntity>): ChatMessageEntity? {
+        val sorted = todayMessages.sortedWith(compareBy<ChatMessageEntity>({ it.createdAtEpochMs }, { it.id }))
+        var first = -1
+        for (i in sorted.indices.reversed()) {
+            val m = sorted[i]
+            when {
+                m.role == "user" -> continue
+                isQuestionOnly(m) -> first = i
+                else -> break
+            }
+        }
+        if (first < 0) return null
+        return sorted.getOrNull(first - 1)?.takeIf { it.role == "user" } ?: sorted[first]
+    }
+
+    /**
+     * One HISTORY turn. An assistant row with a suggested slot of today ends with [slotMarker] (A38): the text
+     * is clipped first, leaving room for the line, so the marker always survives and the turn stays in the limit.
+     */
+    private fun chatTurn(m: ChatMessageEntity, slotNames: Map<Long, String>): ChatTurn {
+        val text = turnText(m)
+        val name = m.estimateSlotId?.takeIf { m.role == "assistant" }?.let(slotNames::get)
+            ?: return ChatTurn(m.role, ChatText.clip(text))
+        val marker = "\n" + slotMarker(name)
+        return ChatTurn(m.role, ChatText.clip(text, ChatText.MAX_CHARS - marker.codePointCount(0, marker.length)) + marker)
     }
 
     /**
@@ -121,7 +196,7 @@ object PromptBuilder {
 
     /**
      * days_seen / last_seen from the stored days. A routine slot that is not a slot of today goes as
-     * null: the server accepts only profile slots.
+     * null: the server accepts only profile slots. A temp fact goes as seen once, on its creation (A38).
      */
     fun chatFacts(facts: List<Fact>, todaySlots: Set<String>): List<ChatFact> = facts.map {
         ChatFact(
@@ -131,23 +206,28 @@ object PromptBuilder {
             key = it.key,
             text = it.text,
             slot = it.slot?.takeIf { slot -> slot in todaySlots },
-            daysSeen = it.days.size,
-            lastSeen = it.lastSeen,
+            daysSeen = if (it.temp) 1 else it.days.size,
+            lastSeen = if (it.temp) it.created else it.lastSeen,
         )
     }
 
-    /** compact=true request: only the raw block to summarise (spec rule 9). */
-    fun compact(turn: Turn): ChatIn = turn.body.copy(compact = true, text = "")
+    /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
+    fun compact(turn: Turn, block: CompactBlock): ChatIn = turn.body.copy(compact = true, text = "", messages = block.messages)
 
     /**
-     * Raw user/assistant messages of today newer than the latest digest and the latest wipe
-     * (Config ceiling change: the thread stays on screen, the prompt restarts). Receipts are UI only.
+     * Raw user/assistant messages of today after the newest digest and the latest wipe (Config ceiling change:
+     * the thread stays on screen, the prompt restarts). Receipts are UI only. The digest cut is the newest
+     * message it summarised (A38, v9); a digest from before v9 cuts by its creation time. All of them: the
+     * prompt takes the newest [MAX_RAW].
      */
     fun rawSinceDigest(todayMessages: List<ChatMessageEntity>, digests: List<DayDigestEntity>): List<ChatMessageEntity> {
         val wiped = todayMessages.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
-        val cut = digests.maxOfOrNull { it.createdAtEpochMs } ?: Long.MIN_VALUE
+        val newest = digests.maxWithOrNull(compareBy({ it.createdAtEpochMs }, { it.coversUntilId ?: Long.MIN_VALUE }))
+        val until = newest?.coversUntilId
+        val cut = newest?.createdAtEpochMs ?: Long.MIN_VALUE
         return todayMessages
-            .filter { it.role in ROLES && it.createdAtEpochMs > cut && (wiped == null || it.id > wiped) }
+            .filter { it.role in ROLES && (wiped == null || it.id > wiped) }
+            .filter { if (until != null) it.id > until else it.createdAtEpochMs > cut }
             .sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
     }
 

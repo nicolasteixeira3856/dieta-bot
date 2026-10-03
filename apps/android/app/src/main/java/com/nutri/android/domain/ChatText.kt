@@ -12,11 +12,11 @@ object ChatText {
 
     fun tooLong(text: String): Boolean = length(text) > MAX_CHARS
 
-    /** First [MAX_CHARS] code points: a prompt defence that never splits an emoji. */
-    fun clip(text: String): String {
-        if (text.length <= MAX_CHARS) return text
+    /** First [max] code points: a prompt defence that never splits an emoji. */
+    fun clip(text: String, max: Int = MAX_CHARS): String {
+        if (text.length <= max) return text
         val count = text.codePointCount(0, text.length)
-        if (count <= MAX_CHARS) return text
-        return text.substring(0, text.offsetByCodePoints(0, MAX_CHARS))
+        if (count <= max) return text
+        return text.substring(0, text.offsetByCodePoints(0, max))
     }
 }

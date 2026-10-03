@@ -16,6 +16,8 @@ import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.photo.FakePhotoFiles
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.core.network.ChatOut
+import com.nutri.android.core.telemetry.FakeTelemetry
+import com.nutri.android.core.telemetry.TelemetryEvents
 import java.io.File
 import java.io.IOException
 import java.time.Instant
@@ -37,7 +39,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** A5b: compact=true is live. The clock ticks so digests cut the raw block by time, as on a phone. */
+/** A5b: compact=true is live. The clock ticks as on a phone. A38: the oldest block is summarised, the open tail stays raw. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [34])
@@ -51,11 +53,18 @@ class ChatCompactTest {
     private val photos = FakePhotoFiles()
     private val clock = TickingClock(Instant.parse("2026-09-25T12:00:00-03:00"))
     private val requests = mutableListOf<ChatIn>()
-    private var compactAnswer: () -> ChatOut = { ChatOut(digest = "resumo ${requests.count { it.compact }}", model = "gpt-6-luna") }
+    private var compactAnswer: suspend () -> ChatOut = { ChatOut(digest = "resumo ${requests.count { it.compact }}", model = "gpt-6-luna") }
+
+    /** True: every turn answers a question only (A30), so the open clarify sequence grows. */
+    private var clarify = false
 
     private val service = ChatService { body ->
         requests += body
-        if (body.compact) compactAnswer() else ChatOut(reply = "ok ${body.text}", model = "gpt-6-luna")
+        when {
+            body.compact -> compactAnswer()
+            clarify -> ChatOut(reply = "", intent = "log", question = "Quantos gramas?", model = "gpt-6-luna")
+            else -> ChatOut(reply = "ok ${body.text}", model = "gpt-6-luna")
+        }
     }
 
     @Before
@@ -110,12 +119,15 @@ class ChatCompactTest {
         assertThat(requests).hasSize(2)
         val (compact, turn) = requests
         assertThat(compact.compact).isTrue()
-        assertThat(compact.messages).hasSize(12)
+        // A38: 12 raw → the oldest 8 are summarised, the newest 4 stay raw.
+        assertThat(compact.messages.map { it.text }).containsExactly("m0", "ok m0", "m1", "ok m1", "m2", "ok m2", "m3", "ok m3").inOrder()
         assertThat(turn.compact).isFalse()
         assertThat(turn.text).isEqualTo("jantar")
         assertThat(turn.digests).containsExactly("resumo 1")
-        assertThat(turn.messages).isEmpty()
+        assertThat(turn.messages.map { it.text }).containsExactly("m4", "ok m4", "m5", "ok m5").inOrder()
         assertThat(repo.digestsToday().map { it.text }).containsExactly("resumo 1")
+        val raw = repo.observeMessages().first().filter { it.role in setOf("user", "assistant") }
+        assertThat(repo.digestsToday().single().coversUntilId).isEqualTo(raw[7].id)
         // The digest never becomes a bubble or a chat_message.
         assertThat(repo.observeMessages().first().map { it.text }).doesNotContain("resumo 1")
         val ui = vm.uiState.value
@@ -124,21 +136,140 @@ class ChatCompactTest {
     }
 
     @Test
-    fun threeCompactions_keepTwoDigests_oldestReplaced() = runBlocking<Unit> {
+    fun threeCompactions_keepTwoDigests_oldestReplaced_nothingSummarisedTwice() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
-        // Compact on the 7th, 13th and 19th send (12 raw since the last digest each time).
-        exchanges(vm, 19)
+        // Compact on the 7th, 11th and 15th send (12 raw since the last digest, 4 of them kept each time).
+        exchanges(vm, 15)
 
-        assertThat(requests.count { it.compact }).isEqualTo(3)
+        val compacts = requests.filter { it.compact }
+        assertThat(compacts).hasSize(3)
+        val summarised = compacts.flatMap { it.messages.map { m -> m.text } }
+        assertThat(summarised).containsNoDuplicates()
+        assertThat(summarised).hasSize(24)
         assertThat(repo.digestsToday().map { it.text }).containsExactly("resumo 2", "resumo 3")
         assertThat(requests.last().digests).containsExactly("resumo 2", "resumo 3").inOrder()
+        assertThat(requests.last().messages.map { it.text }).containsExactly("m12", "ok m12", "m13", "ok m13").inOrder()
+    }
+
+    @Test
+    fun openQuestion_sixBack_keepsTheMealAndItsQuestionsRaw() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        exchanges(vm, 3)
+        compactAnswer = { ChatOut(digest = "resumo", model = "gpt-6-luna") }
+        // The meal, then 2 question-only rounds and their answers: 6 open rows, 12 raw in all on the next send.
+        clarify = true
+        send(vm, "foto de cheesecake")
+        send(vm, "100 gramas")
+        send(vm, "sem calda")
+        clarify = false
+        requests.clear()
+
+        send(vm, "isso")
+
+        val (compact, turn) = requests
+        assertThat(compact.compact).isTrue()
+        assertThat(compact.messages.map { it.text }).containsExactly("m0", "ok m0", "m1", "ok m1", "m2", "ok m2").inOrder()
+        assertThat(turn.messages.first().text).isEqualTo("foto de cheesecake")
+        assertThat(turn.messages).hasSize(6)
+    }
+
+    @Test
+    fun openSequenceOf12_noCompaction() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        clarify = true
+        exchanges(vm, 6)
+        requests.clear()
+
+        send(vm, "mais uma")
+
+        assertThat(requests.single().compact).isFalse()
+        assertThat(requests.single().messages).hasSize(12)
+        assertThat(repo.digestsToday()).isEmpty()
+    }
+
+    @Test
+    fun after18Raw_oneBlockOf12_then30Raw_twoBlocks() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        compactAnswer = { throw IOException("down") }
+        exchanges(vm, 9) // 18 raw, every compact failed
+        compactAnswer = { ChatOut(digest = "resumo ${requests.count { it.compact }}", model = "gpt-6-luna") }
+        requests.clear()
+
+        send(vm, "jantar")
+
+        assertThat(requests.filter { it.compact }.map { it.messages.size }).containsExactly(12)
+        assertThat(requests.last().messages).hasSize(6)
+
+        compactAnswer = { throw IOException("down") }
+        exchanges(vm, 11, from = 100) // 6 + 2 + 22 = 30 raw after the last digest
+        compactAnswer = { ChatOut(digest = "resumo ${requests.count { it.compact }}", model = "gpt-6-luna") }
+        requests.clear()
+        val telemetry = FakeTelemetry()
+        val vm2 = ChatViewModel(repo, service, clock, memory, photos, telemetry)
+
+        send(vm2, "ceia")
+
+        val compacts = requests.filter { it.compact }
+        assertThat(compacts.map { it.messages.size }).containsExactly(12, 12).inOrder()
+        // The second compact already sees the first digest.
+        assertThat(compacts[1].digests).hasSize(2)
+        assertThat(requests.last().messages).hasSize(6)
+        assertThat(telemetry.params(TelemetryEvents.CHAT_COMPACT).single())
+            .isEqualTo(mapOf("blocks" to 2, "kept" to 6, "summarised" to 24))
+    }
+
+    @Test
+    fun v8DigestWithoutCoversUntilId_keepsTheTimeCut() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        exchanges(vm, 2)
+        repo.upsertDigest("resumo antigo") // v8 shape: no coversUntilId
+        requests.clear()
+
+        send(vm, "jantar")
+
+        assertThat(requests.single().messages).isEmpty()
+        assertThat(requests.single().digests).containsExactly("resumo antigo")
+    }
+
+    @Test
+    fun midnightDuringTheCompactCall_nothingStored() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        exchanges(vm, 6)
+        compactAnswer = {
+            clock.jumpTo(Instant.parse("2026-09-26T00:00:05-03:00"))
+            ChatOut(digest = "resumo de ontem", model = "gpt-6-luna")
+        }
+        requests.clear()
+
+        send(vm, "ceia")
+
+        assertThat(requests.map { it.compact }).containsExactly(true, false).inOrder()
+        assertThat(db.dayDigestDao().getByDate("2026-09-25")).isEmpty()
+        assertThat(db.dayDigestDao().getByDate("2026-09-26")).isEmpty()
+        assertThat(requests.last().messages).hasSize(12)
+    }
+
+    @Test
+    fun wipeDuringTheCompactCall_nothingStored() = runBlocking<Unit> {
+        val vm = ChatViewModel(repo, service, clock, memory, photos)
+        exchanges(vm, 6)
+        compactAnswer = {
+            repo.wipeToday()
+            ChatOut(digest = "resumo de antes do wipe", model = "gpt-6-luna")
+        }
+        requests.clear()
+
+        send(vm, "ceia")
+
+        assertThat(requests.map { it.compact }).containsExactly(true, false).inOrder()
+        assertThat(repo.digestsToday()).isEmpty()
     }
 
     @Test
     fun compactFailure_turnStillAnswers_nothingStored_retriesNextSend() = runBlocking<Unit> {
         val vm = ChatViewModel(repo, service, clock, memory, photos)
         exchanges(vm, 6)
-        for (failure in listOf<() -> ChatOut>({ throw IOException("timeout") }, { ChatOut(digest = null) }, { ChatOut(digest = " ") })) {
+        for (failure in listOf<suspend () -> ChatOut>({ throw IOException("timeout") }, { ChatOut(digest = null) }, { ChatOut(digest = " ") })) {
             compactAnswer = failure
             requests.clear()
             send(vm, "jantar")
@@ -147,8 +278,9 @@ class ChatCompactTest {
             assertThat(requests.last().messages).hasSize(12)
             assertThat(requests.last().digests).isEmpty()
             assertThat(repo.digestsToday()).isEmpty()
-            assertThat(vm.uiState.value.items.none { it is ChatItem.Failed }).isTrue()
-            assertThat(vm.uiState.value.items.filterIsInstance<ChatItem.Assistant>().last().text).isEqualTo("ok jantar")
+            // Room holds the answer before the UI renders it: wait for the render, then check it.
+            val ui = withTimeout(5_000) { vm.uiState.first { it.items.filterIsInstance<ChatItem.Assistant>().lastOrNull()?.text == "ok jantar" } }
+            assertThat(ui.items.none { it is ChatItem.Failed }).isTrue()
         }
 
         compactAnswer = { ChatOut(digest = "resumo ok", model = "gpt-6-luna") }
@@ -173,5 +305,9 @@ class ChatCompactTest {
 
     private class TickingClock(private var instant: Instant) : InstantClock {
         override fun now(): Instant = instant.also { instant = instant.plusSeconds(1) }
+
+        fun jumpTo(to: Instant) {
+            instant = to
+        }
     }
 }

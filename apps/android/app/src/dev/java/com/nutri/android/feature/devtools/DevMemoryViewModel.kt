@@ -34,7 +34,7 @@ data class DevMemoryUiState(
     val profileText: String = "",
     /** One fact per line ([FactText]). */
     val memoryText: String = "",
-    /** Read-only: `Permanente 3/30 · Dinâmica 5/40`. */
+    /** Read-only: `Permanente 3/30 · Dinâmica 5/40 · Temporária 1/5`. */
     val memorySummary: String = "",
     /** Read-only, one line per fact: `P1 · visto 3 dias · último 29/09`. */
     val memorySeen: String = "",
@@ -78,7 +78,8 @@ class DevMemoryViewModel @Inject constructor(
                 profileText = ProfileText.format(body.profile),
                 memoryText = FactText.format(shown.facts),
                 memorySummary = FactText.summary(shown.facts),
-                memorySeen = shown.facts.joinToString("\n", transform = FactText::seen),
+                // A temp line already carries its creation date.
+                memorySeen = shown.facts.filterNot { it.temp }.joinToString("\n", transform = FactText::seen),
                 dayText = dayJson.encodeToString(body.day),
             )
         }
@@ -139,7 +140,8 @@ class DevMemoryViewModel @Inject constructor(
                 DEV_MEMORY_SAVED,
                 mapOf(
                     "permanent" to facts.facts.count { it.permanent },
-                    "dynamic" to facts.facts.count { !it.permanent },
+                    "dynamic" to facts.facts.count { it.dynamic },
+                    "temp" to facts.facts.count { it.temp },
                     "memory_changed" to (facts != shown),
                     "profile_changed" to (edited != before),
                 ),

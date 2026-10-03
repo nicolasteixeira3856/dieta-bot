@@ -24,6 +24,10 @@ interface ChatMessageDao {
     @Insert
     suspend fun insert(row: ChatMessageEntity): Long
 
+    /** Id of the latest row of [role] on [date] (A38: the wipe marker a compaction started after). */
+    @Query("SELECT MAX(id) FROM chat_message WHERE date = :date AND role = :role")
+    suspend fun latestIdOf(date: String, role: String): Long?
+
     /** Receipts of the 60 days (A34): which one is the latest of its slot. */
     @Query("SELECT * FROM chat_message WHERE date >= :fromDate AND role IN (:roles) ORDER BY createdAtEpochMs ASC, id ASC")
     suspend fun getReceiptsSince(fromDate: String, roles: List<String>): List<ChatMessageEntity>

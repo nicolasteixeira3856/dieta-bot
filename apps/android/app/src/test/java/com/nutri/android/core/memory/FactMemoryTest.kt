@@ -1,6 +1,7 @@
 package com.nutri.android.core.memory
 
 import com.google.common.truth.Truth.assertThat
+import com.nutri.android.domain.FactImage
 import com.nutri.android.domain.MemoryUpdate
 import com.nutri.android.domain.RecordedMeal
 import java.time.LocalDate
@@ -36,7 +37,7 @@ class FactMemoryTest {
         val file = FakeMemoryFile()
         FactMemory(file).apply(listOf(leite), today)
         assertThat(file.text).isEqualTo(
-            "{\"v\":2,\"next\":{\"P\":2,\"D\":1},\"facts\":[{\"id\":\"P1\",\"kind\":\"permanent\",\"category\":\"preference\"," +
+            "{\"v\":2,\"next\":{\"P\":2,\"D\":1,\"T\":1},\"facts\":[{\"id\":\"P1\",\"kind\":\"permanent\",\"category\":\"preference\"," +
                 "\"key\":\"leite\",\"text\":\"Leite semidesnatado\",\"slot\":null,\"source\":\"explicit\",\"days\":[\"2026-09-30\"]," +
                 "\"created\":\"2026-09-30\",\"kcal\":null,\"p\":null,\"c\":null,\"g\":null}]}",
         )
@@ -127,5 +128,50 @@ class FactMemoryTest {
         assertThat(memory.read(today).facts).isEmpty()
         memory.revertAndApply(remove.images, emptyList(), today)
         assertThat(memory.read(today).facts.single().id).isEqualTo("P2")
+    }
+
+    // ------------------------------------------------------------------ A38: temp facts
+
+    private val lasanha = MemoryUpdate("add", null, "temp", "portion", "lasanha", "100 g = 150 kcal")
+
+    @Test
+    fun fileWithoutT_readsNextTAs1() = runBlocking<Unit> {
+        val file = FakeMemoryFile("{\"v\":2,\"next\":{\"P\":4,\"D\":7},\"facts\":[]}")
+        val memory = FactMemory(file)
+        assertThat(memory.read(today).next.t).isEqualTo(1)
+        assertThat(memory.apply(listOf(lasanha), today).memory.facts.single().id).isEqualTo("T1")
+        assertThat(file.text).contains("\"next\":{\"P\":4,\"D\":7,\"T\":2}")
+    }
+
+    @Test
+    fun tIds_neverReused() = runBlocking<Unit> {
+        val memory = FactMemory(FakeMemoryFile())
+        memory.apply(listOf(lasanha), today)
+        memory.apply(listOf(MemoryUpdate("remove", "T1", "temp", "portion", "lasanha", "")), today)
+        val again = memory.apply(listOf(lasanha), today)
+        assertThat(again.memory.facts.single().id).isEqualTo("T2")
+        // Expired on day 3, the next one is still new.
+        val later = today.plusDays(3)
+        assertThat(memory.read(later).facts).isEmpty()
+        assertThat(memory.apply(listOf(lasanha), later).memory.facts.single().id).isEqualTo("T3")
+    }
+
+    @Test
+    fun answerImages_neverCarryTemp_recordPathNeverTouchesTemp() = runBlocking<Unit> {
+        val memory = FactMemory(FakeMemoryFile())
+        val added = memory.apply(listOf(lasanha), today)
+        assertThat(added.changed).isTrue()
+        assertThat(added.images).isEmpty()
+
+        // A receipt carrying a temp image (or a temp update) changes nothing on Desfazer/Excluir/Editar/Trocar.
+        val t1 = memory.read(today).facts.single()
+        val edit = memory.revertAndApply(
+            listOf(FactImage("T1", before = null, after = t1)),
+            listOf(MemoryUpdate("remove", "T1", "temp", "portion", "lasanha", ""), lasanha.copy(key = "pizza")),
+            today,
+            RecordedMeal("1", 450, 20, 50, 15),
+        )
+        assertThat(edit.reverted).isEqualTo(0)
+        assertThat(memory.read(today).facts).containsExactly(t1)
     }
 }
