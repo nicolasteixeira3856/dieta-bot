@@ -32,7 +32,10 @@ const PROVENANCE_STATUS = new RegExp("\\([^)]*(?<!\\p{L})" + STATUS_WORD + "(?!\
 const PROPOSED = /(?<!\p{L})(proposto|proposta|proposed)(?!\p{L})/iu;
 const PENDING_PHRASE = /aguardando aprovação|pending approval|pendente de aprovação|em implementação|not current behavior/i;
 const NO_SPEC = /sem especificacao|sem specifications|no specification/;
-const INLINE_LINK = /\[[^\]\n]*\]\(\s*(<[^>\n]+>|(?:\\.|[^\s)])+)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\s*\)/g;
+// One link grammar: INLINE_LINK finds targets; LINK_TARGET strips them before the Provenance status test (C4)
+const LINK_TARGET_SOURCE = String.raw`\]\(\s*(<[^>\n]+>|(?:\\.|[^\s)])+)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\s*\)`;
+const INLINE_LINK = new RegExp(String.raw`\[[^\]\n]*` + LINK_TARGET_SOURCE, "g");
+const LINK_TARGET = new RegExp(LINK_TARGET_SOURCE, "g");
 
 function posix(p) {
   return p.split(path.sep).join("/");
@@ -162,7 +165,8 @@ export async function checkDocs(repoRoot) {
     if (isSpec && provenanceAt > 0) {
       markdown.split(/\r?\n/).slice(provenanceAt).forEach((text, i) => {
         if (/^##\s/.test(text)) return;
-        if (PROVENANCE_STATUS.test(text)) findings.push(rel + ":" + (provenanceAt + 1 + i) + " C4 status marker in a Provenance entry");
+        // a folder name in a link target (plans/pending_manual_validation/) is not a status marker
+        if (PROVENANCE_STATUS.test(text.replace(LINK_TARGET, "]"))) findings.push(rel + ":" + (provenanceAt + 1 + i) + " C4 status marker in a Provenance entry");
       });
     }
     // C2
