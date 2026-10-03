@@ -113,6 +113,6 @@ Rejected: an unanswered question would grow the raw block without bound. The 12-
 
 - Specifications affected: [chat](../specifications/chat.md) (rules 8, 9), [memoria-push](../specifications/memoria-push.md) (memory rules 1–5, 7, 8), [v1-chat](../../server/specifications/v1-chat.md) (rules 3, 3d, 3g, 4, 5, 5a, 5c, 7), [api-contract](../../api-contract.md), [room-v2](../../android/specifications/room-v2.md).
 - ADRs related: [ADR-023](ADR-023-chat-v2-memoria-v2.md), [ADR-026](ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](ADR-028-registro-autonomo.md), [ADR-019](ADR-019-ferramentas-dev.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md).
-- Plans: [S16](../../server/plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) (server: decision 1 server part, 3, 4, 5, 6), [A38](../../android/plans/a38-fatos-temporarios-compactacao.md) (client: decision 1 client part, 2, 5 slot marker).
+- Plans: [S16](../../server/plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) (server: decision 1 server part, 3, 4, 5, 6), [A38](../../android/plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md) (client: decision 1 client part, 2, 5 slot marker).
 
 After acceptance, the body of this ADR is not edited. Only the `- Status:` line changes, to record a total or partial supersession by a new ADR.

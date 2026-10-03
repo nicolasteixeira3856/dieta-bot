@@ -137,7 +137,7 @@ Optional field (S16, ADR-029):
 ```json
 {"temp_facts": true}
 ```
-- `temp_facts`: boolean, default `false`. **v5 capability** = true with `facts` present; ignored for legacy clients without facts. Enables temporary proposals and the held `question_slot` below. V5 clients also send `clarify_rounds` and `auto_record`. Android support belongs to [A38](android/plans/a38-fatos-temporarios-compactacao.md); the server must support T facts before that client ships.
+- `temp_facts`: boolean, default `false`. **v5 capability** = true with `facts` present; ignored for legacy clients without facts. Enables temporary proposals and the held `question_slot` below. V5 clients also send `clarify_rounds` and `auto_record`. Android support belongs to [A38](android/plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md); the server must support T facts before that client ships.
 
 OUT
 ```json
