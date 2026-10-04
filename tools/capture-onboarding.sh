@@ -85,8 +85,9 @@ tap o2-continue
 # adb cannot type accents: names come from the suggestion chips.
 sleep 0.6
 tap o3-chip-0-0
-tap o3-chip-1-0
+# A41: the fixed CTA covers the second card's chips at the top of the scroll (uiautomator skips covered nodes).
 scroll_down
+tap o3-chip-1-0
 tap o3-chip-2-0
 tap o3-chip-3-0
 to_top

@@ -44,7 +44,7 @@ import com.nutri.android.feature.onboarding.CeilingScreen
 import com.nutri.android.feature.onboarding.EatScreen
 import com.nutri.android.feature.onboarding.MacrosScreen
 import com.nutri.android.feature.onboarding.OnboardingViewModel
-import com.nutri.android.feature.onboarding.SlotsScreen
+import com.nutri.android.feature.onboarding.OnboardingSlotsScreen
 import com.nutri.android.feature.splash.SplashScreen
 import com.nutri.android.feature.splash.SplashViewModel
 import com.nutri.android.feature.chat.ChatScreen
@@ -140,79 +140,89 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 val vm: SplashViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
                 val isCapture = captureScreen == "splash"
-                SplashScreen(
-                    capture = isCapture,
-                    onDone = {
-                        val destination: Any = if (ui.onboardingDone) RouteHome else RouteOnboarding
-                        nav.navigate(destination) {
-                            popUpTo<RouteSplash> { inclusive = true }
-                        }
-                    },
-                )
+                AeroTheme {
+                    SplashScreen(
+                        capture = isCapture,
+                        onDone = {
+                            val destination: Any = if (ui.onboardingDone) RouteHome else RouteOnboarding
+                            nav.navigate(destination) {
+                                popUpTo<RouteSplash> { inclusive = true }
+                            }
+                        },
+                    )
+                }
             }
             navigation<RouteOnboarding>(startDestination = onboardingStart) {
                 composable<RouteCeiling> { entry ->
                     val vm = onboardingViewModel(nav, entry)
                     val ui by vm.uiState.collectAsStateWithLifecycle()
-                    CeilingScreen(
-                        ui = ui,
-                        onSex = vm::setSex,
-                        onAge = vm::setAge,
-                        onHeight = vm::setHeight,
-                        onWeight = vm::setWeight,
-                        onMode = vm::setCeilingMode,
-                        onSame = vm::setSameField,
-                        onWeekday = vm::setWeekdayField,
-                        onWeekend = vm::setWeekendField,
-                        onDay = vm::setDayField,
-                        onContinue = { nav.navigate(RouteEat) },
-                    )
+                    AeroTheme {
+                        CeilingScreen(
+                            ui = ui,
+                            onSex = vm::setSex,
+                            onAge = vm::setAge,
+                            onHeight = vm::setHeight,
+                            onWeight = vm::setWeight,
+                            onMode = vm::setCeilingMode,
+                            onSame = vm::setSameField,
+                            onWeekday = vm::setWeekdayField,
+                            onWeekend = vm::setWeekendField,
+                            onDay = vm::setDayField,
+                            onContinue = { nav.navigate(RouteEat) },
+                        )
+                    }
                 }
                 composable<RouteEat> { entry ->
                     val vm = onboardingViewModel(nav, entry)
                     val ui by vm.uiState.collectAsStateWithLifecycle()
-                    EatScreen(
-                        ui = ui,
-                        onEat = vm::setEat,
-                        onPct = vm::setPct,
-                        onBack = { nav.popBackStack() },
-                        onContinue = { nav.navigate(RouteSlots) },
-                    )
+                    AeroTheme {
+                        EatScreen(
+                            ui = ui,
+                            onEat = vm::setEat,
+                            onPct = vm::setPct,
+                            onBack = { nav.popBackStack() },
+                            onContinue = { nav.navigate(RouteSlots) },
+                        )
+                    }
                 }
                 composable<RouteSlots> { entry ->
                     val vm = onboardingViewModel(nav, entry)
                     val ui by vm.uiState.collectAsStateWithLifecycle()
-                    SlotsScreen(
-                        ui = ui,
-                        onCount = vm::setSlotCount,
-                        onName = vm::setSlotName,
-                        onTime = vm::setSlotTime,
-                        onMode = vm::setSlotMode,
-                        onCopy = vm::copyPreviousSlots,
-                        onConfirmMode = vm::confirmSlotMode,
-                        onCancelMode = vm::cancelSlotMode,
-                        onBack = { vm.previousSlotGroup { nav.popBackStack() } },
-                        onContinue = { vm.nextSlotGroup { nav.navigate(RouteMacros) } },
-                    )
+                    AeroTheme {
+                        OnboardingSlotsScreen(
+                            ui = ui,
+                            onCount = vm::setSlotCount,
+                            onName = vm::setSlotName,
+                            onTime = vm::setSlotTime,
+                            onMode = vm::setSlotMode,
+                            onCopy = vm::copyPreviousSlots,
+                            onConfirmMode = vm::confirmSlotMode,
+                            onCancelMode = vm::cancelSlotMode,
+                            onBack = { vm.previousSlotGroup { nav.popBackStack() } },
+                            onContinue = { vm.nextSlotGroup { nav.navigate(RouteMacros) } },
+                        )
+                    }
                 }
                 composable<RouteMacros> { entry ->
                     val vm = onboardingViewModel(nav, entry)
                     val ui by vm.uiState.collectAsStateWithLifecycle()
                     LaunchedEffect(Unit) { vm.enterMacros() }
-                    MacrosScreen(
-                        ui = ui,
-                        onProtein = vm::setProtein,
-                        onCarb = vm::setCarb,
-                        onFat = vm::setFat,
-                        onBack = { nav.popBackStack() },
-                        onFinish = {
-                            vm.completeOnboarding {
-                                nav.navigate(RouteHome) {
-                                    popUpTo<RouteOnboarding> { inclusive = true }
+                    AeroTheme {
+                        MacrosScreen(
+                            ui = ui,
+                            onProtein = vm::setProtein,
+                            onCarb = vm::setCarb,
+                            onFat = vm::setFat,
+                            onBack = { nav.popBackStack() },
+                            onFinish = {
+                                vm.completeOnboarding {
+                                    nav.navigate(RouteHome) {
+                                        popUpTo<RouteOnboarding> { inclusive = true }
+                                    }
                                 }
-                            }
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
             }
             composable<RouteHome> {

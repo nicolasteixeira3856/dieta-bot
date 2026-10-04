@@ -77,7 +77,7 @@ internal object TimeWheelLoop {
 }
 
 /** Five visible rows; the third row is snapped to the centre, including during confirmation. */
-private fun LazyListState.centerIndex(): Int {
+internal fun LazyListState.centerIndex(): Int {
     val layout = layoutInfo
     val center = (layout.viewportStartOffset + layout.viewportEndOffset) / 2
     return layout.visibleItemsInfo.minByOrNull { abs(it.offset + it.size / 2 - center) }?.index

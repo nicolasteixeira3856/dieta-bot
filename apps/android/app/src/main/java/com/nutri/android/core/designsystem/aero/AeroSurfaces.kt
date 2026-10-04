@@ -3,6 +3,8 @@ package com.nutri.android.core.designsystem.aero
 import android.os.Build
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -145,3 +147,6 @@ fun Modifier.aeroGloss(shape: Shape): Modifier {
     val brush = remember(c) { AeroPaints.glossButtonStops(c).verticalBrush() }
     return drawBehind { drawOutline(shape.createOutline(size, layoutDirection, this), brush) }
 }
+
+/** Consumes taps on a sheet or dialog body (so they do not reach the scrim) without merging child semantics. */
+fun Modifier.aeroSwallowTaps(): Modifier = pointerInput(Unit) { detectTapGestures { } }

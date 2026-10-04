@@ -36,7 +36,7 @@ import com.nutri.android.feature.onboarding.EatScreen
 import com.nutri.android.feature.onboarding.MacrosScreen
 import com.nutri.android.feature.onboarding.OnboardingUiState
 import com.nutri.android.feature.onboarding.SlotDraft
-import com.nutri.android.feature.onboarding.SlotsScreen
+import com.nutri.android.feature.onboarding.OnboardingSlotsScreen
 import com.nutri.android.feature.splash.SplashScreen
 import java.io.File
 import java.io.FileOutputStream
@@ -79,17 +79,17 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun splash_light() = check("splash", dark = false) { SplashScreen(capture = true, onDone = {}) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h979dp-xhdpi")
     fun o1_dark() = check("o1", dark = true) { O1() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h979dp-xhdpi")
     fun o1_light() = check("o1", dark = false) { O1() }
 
-    /** A31: before the profile, a 925 dp full-page gold (ST8). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
+    /** A31: before the profile (A41: Figma frame, 937 dp). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h937dp-xhdpi")
     fun o1e_dark() = check("o1e", dark = true, fullPage = true) { O1E() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h937dp-xhdpi")
     fun o1e_light() = check("o1e", dark = false, fullPage = true) { O1E() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -98,16 +98,16 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun o2_light() = check("o2", dark = false) { O2() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1239dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1268dp-xhdpi")
     fun o3_dark() = check("o3", dark = true, fullPage = true) { O3() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1239dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1268dp-xhdpi")
     fun o3_light() = check("o3", dark = false, fullPage = true) { O3() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1224dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
     fun o3s_dark() = check("o3s", dark = true, fullPage = true) { O3S() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1225dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
     fun o3s_light() = check("o3s", dark = false, fullPage = true) { O3S() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h918dp-xhdpi")
@@ -116,10 +116,10 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h884dp-xhdpi")
     fun cfgS_light() = check("cfgS", dark = false, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { CfgS() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
     fun o4_dark() = check("o4", dark = true) { O4() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
     fun o4_light() = check("o4", dark = false) { O4() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1258dp-xhdpi")
@@ -303,9 +303,9 @@ class StitchGoldTest {
 
     @Composable private fun O2() = EatScreen(GOLD_STATE, {}, {}, {}, {})
 
-    @Composable private fun O3() = SlotsScreen(GOLD_STATE, {}, { _, _ -> }, { _, _ -> }, {}, {})
+    @Composable private fun O3() = OnboardingSlotsScreen(GOLD_STATE, {}, { _, _ -> }, { _, _ -> }, {}, {})
 
-    @Composable private fun O3S() = SlotsScreen(
+    @Composable private fun O3S() = OnboardingSlotsScreen(
         GOLD_STATE.copy(
             slots = listOf(SlotDraft(name = "Café da manhã", minutes = 570), SlotDraft(name = "Almoço", minutes = 810), SlotDraft(name = "Jantar", minutes = 1230)),
             slotSchedule = com.nutri.android.feature.onboarding.SlotScheduleDraft(mode = "split", index = 1),
@@ -365,7 +365,7 @@ class StitchGoldTest {
 
         val goldFile = File(ROOT, "docs/qa/${GoldInventory.source(goldId)}/$theme/$goldId.png")
         val gold = BitmapFactory.decodeFile(goldFile.path) ?: error("missing gold $goldFile")
-        val top = if (fullPage) 0 else BAND_PX
+        val top = if (fullPage || figma) 0 else BAND_PX
         val raw = diff(app, gold, top)
         val appBlur = blur(app)
         val goldBlur = blur(gold)

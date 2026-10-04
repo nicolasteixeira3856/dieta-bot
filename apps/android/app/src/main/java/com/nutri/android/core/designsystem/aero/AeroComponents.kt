@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.dietaClick
-import androidx.compose.foundation.text.BasicText as Text
+import com.nutri.android.core.designsystem.aero.AeroText as Text
 
 /*
  * Compose versions of the Figma `Design` components (page Componentes), same names. Sizes and paddings come from
@@ -367,6 +367,7 @@ fun AeroOptionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     badge: String? = null,
+    enabled: Boolean = true,
     extra: (@Composable () -> Unit)? = null,
 ) {
     val c = Aero.colors
@@ -376,7 +377,7 @@ fun AeroOptionCard(
         modifier
             .fillMaxWidth()
             .aeroGlass(Aero.shapes.card, border = if (selected) c.accentDefault else c.borderGlass, borderWidth = stroke)
-            .dietaClick(Haptic.Light, onClick = onClick)
+            .dietaClick(Haptic.Light, enabled = enabled, onClick = onClick)
             .padding(20.dp + stroke),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
