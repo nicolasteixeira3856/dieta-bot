@@ -30,7 +30,7 @@ Behavior: [chat](../../produto/specifications/chat.md) (rules 17–19 and the re
 
 ## Scope
 
-Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the eight golds above. Flow-specific work:
+Procedure as [D3 § Scope](pending_manual_validation/d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the eight golds above. Flow-specific work:
 
 1. **Components:**
    - `Chat/Receipt`: double check, Desfazer/Excluir/Trocar refeição/Editar per ADR-028; states `Saved`, `Undone`, `ReplacePending`;
@@ -51,7 +51,7 @@ Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, appli
 
 ## Validation
 
-As [D3 § Validation](d3-release1-home.md#validation), with 16 frames.
+As [D3 § Validation](pending_manual_validation/d3-release1-home.md#validation), with 16 frames.
 
 ## Results
 

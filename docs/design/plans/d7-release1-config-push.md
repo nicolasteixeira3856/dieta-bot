@@ -26,7 +26,7 @@ Behavior: [memoria-push](../../produto/specifications/memoria-push.md) (Config, 
 
 ## Scope
 
-Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the four golds above. Flow-specific work:
+Procedure as [D3 § Scope](pending_manual_validation/d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the four golds above. Flow-specific work:
 
 1. **Config:** reuse the onboarding components (`Field/Number`, `Choice/Segmented`, `Row/MealSlot`, `Tabs/Weekday`) and `Dialog/Confirm` for `wipe`.
 2. **Push:**
@@ -42,7 +42,7 @@ Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, appli
 
 ## Validation
 
-As [D3 § Validation](d3-release1-home.md#validation), with 8 frames and the page screenshot.
+As [D3 § Validation](pending_manual_validation/d3-release1-home.md#validation), with 8 frames and the page screenshot.
 
 ## Results
 
