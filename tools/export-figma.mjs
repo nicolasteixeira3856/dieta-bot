@@ -55,6 +55,10 @@ export const DARK_FRAMES = {
   chatR: "72:3312",
   chatM: "72:3333",
   chatS: "72:3359",
+  cfg: "78:3664",
+  cfgS: "78:3695",
+  wipe: "78:3723",
+  push: "78:3757",
 };
 
 export const LIGHT_FRAMES = {
@@ -89,6 +93,10 @@ export const LIGHT_FRAMES = {
   chatR: "72:2959",
   chatM: "72:3034",
   chatS: "72:3104",
+  cfg: "78:3425",
+  cfgS: "78:3520",
+  wipe: "78:3596",
+  push: "78:3646",
 };
 
 const NODE_ID = /^\d+:\d+$/;
