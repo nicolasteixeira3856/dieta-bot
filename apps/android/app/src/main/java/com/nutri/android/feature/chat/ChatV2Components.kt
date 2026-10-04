@@ -1,5 +1,14 @@
 package com.nutri.android.feature.chat
 
+import androidx.compose.foundation.layout.Box
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroButtonPrimary
+import com.nutri.android.core.designsystem.aero.AeroIcon
+import com.nutri.android.core.designsystem.aero.AeroIconName
+import com.nutri.android.core.designsystem.aero.AeroText
+import com.nutri.android.core.designsystem.aero.aeroGlass
+import com.nutri.android.core.designsystem.aero.AeroColors
+import com.nutri.android.core.designsystem.aero.AeroSecondaryPill
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -42,157 +51,115 @@ import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.formatRemaining
 import com.nutri.android.domain.ProjectedDay
 
-private val ChipShape = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
-private val PanelShape = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
-
 // ----------------------------------------------------------------------------- plan (chatR)
 
-/**
- * The ST6 golds were generated per theme and measure differently: dark 23 dp lines and a 13.5/12 sp
- * panel on the phone colour; light 22 dp lines and a 15/13 sp panel on the panel colour.
- */
-private class PlanMetrics(val lineSp: Float, val listGapDp: Float, val daySp: Float, val macroSp: Float, val macroLineSp: Float, val gapDp: Int)
-
-private val DarkPlan = PlanMetrics(lineSp = 23f, listGapDp = 5f, daySp = 13.5f, macroSp = 12f, macroLineSp = 17f, gapDp = 5)
-private val LightPlan = PlanMetrics(lineSp = 22f, listGapDp = 6f, daySp = 15f, macroSp = 13f, macroLineSp = 19f, gapDp = 8)
-
-@Composable
-private fun planMetrics() = if (LocalPalette.current.isDark) DarkPlan else LightPlan
-
-/**
- * The reply of a plan, line by line (chatR): a bullet list sits a little apart from the paragraphs
- * around it, and "40P · 38C · 12G" take the macro colours.
- */
+/** The reply of a plan as one Body text (chatR); "40P · 38C · 12G" in Body/Strong and the macro colours. */
 @Composable
 internal fun PlanText(text: String) {
-    val p = LocalPalette.current
-    val m = planMetrics()
-    val lines = text.trim().lines().filter { it.isNotBlank() }
-    // Stitch (Chrome) puts the first line 1 dp lower than Compose's half-leading, and its text box
-    // is 2 dp narrower (bubble right edge 329 dp vs 330 dp): same wraps as the gold.
-    Column(Modifier.padding(top = 1.dp, end = 2.dp)) {
-        lines.forEachIndexed { i, line ->
-            val bullet = line.trimStart().startsWith("•") || line.trimStart().startsWith("- ")
-            val previousBullet = lines.getOrNull(i - 1)?.trimStart()?.let { it.startsWith("•") || it.startsWith("- ") }
-            val gap = when {
-                i == 0 -> 0.dp
-                bullet && previousBullet == true -> 0.dp
-                bullet -> m.listGapDp.dp
-                else -> 8.dp
-            }
-            Text(
-                macroColored(line.trim(), p),
-                style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = m.lineSp.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp),
-                color = p.text,
-                modifier = Modifier.padding(top = gap),
-            )
-        }
-    }
+    val c = Aero.colors
+    val lines = text.trim().lines().filter { it.isNotBlank() }.joinToString("\n") { it.trim() }
+    AeroText(macroColored(lines, c), style = Aero.type.body.copy(color = c.textPrimary))
 }
 
 /** "40P" (gold) or "P 17 g" (how the model often writes it). */
 private val MACRO = Regex("""\b(\d+)\s?([PCG])\b|\b([PCG])\s(\d+)\s?g\b""")
 
-private fun macroColored(line: String, p: Palette): AnnotatedString = buildAnnotatedString {
+private fun macroColored(line: String, c: AeroColors): AnnotatedString = buildAnnotatedString {
     append(line)
     MACRO.findAll(line).forEach { m ->
         val color = when (m.groupValues[2].ifEmpty { m.groupValues[3] }) {
-            "P" -> p.protein
-            "C" -> p.carbs
-            else -> p.fat
+            "P" -> c.macroProtein
+            "C" -> c.macroCarbs
+            else -> c.macroFat
         }
         addStyle(SpanStyle(color = color, fontWeight = FontWeight.W600), m.range.first, m.range.last + 1)
     }
 }
 
-/** Day projected with the plan, computed by the app (ADR-023 decision 3). Above the ceiling: `bad`. */
+/** Card/MealPlan: the day projected with the plan, computed by the app (ADR-023 decision 3); above the ceiling: status/bad. */
 @Composable
 internal fun PlanPanel(day: ProjectedDay) {
-    val p = LocalPalette.current
-    val m = planMetrics()
-    val numbers = if (day.over) p.bad else p.text
-    val words = if (day.over) p.bad else p.muted
+    val c = Aero.colors
+    val type = Aero.type
+    val numbers = if (day.over) c.statusBad else c.textPrimary
+    val words = if (day.over) c.statusBad else c.textMuted
+    val strong = type.captionStrong.fontWeight
+    val shape = Aero.shapes.card
     Column(
         Modifier
-            .padding(top = 12.dp)
             .fillMaxWidth()
-            .clip(PanelShape)
-            .background(if (p.isDark) p.phone.copy(alpha = 0.9f) else p.panel)
-            .border(1.dp, p.line, PanelShape)
-            .padding(horizontal = 15.dp, vertical = 14.dp)
+            .clip(shape)
+            .background(c.surface2)
+            .border(1.dp, c.borderLine, shape)
+            .padding(horizontal = 15.dp, vertical = 13.dp)
             .testTag("chat-plan-panel"),
-        verticalArrangement = Arrangement.spacedBy(m.gapDp.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
+        AeroText(
             buildAnnotatedString {
                 withStyle(SpanStyle(color = words)) { append("Dia: ") }
-                withStyle(SpanStyle(color = numbers, fontWeight = FontWeight.W600)) { append(formatRemaining(day.eatenKcal)) }
+                withStyle(SpanStyle(color = numbers, fontWeight = strong)) { append(formatRemaining(day.eatenKcal)) }
                 withStyle(SpanStyle(color = words)) { append(" → ") }
-                withStyle(SpanStyle(color = numbers, fontWeight = FontWeight.W600)) { append(formatRemaining(day.projected.kcal)) }
+                withStyle(SpanStyle(color = numbers, fontWeight = strong)) { append(formatRemaining(day.projected.kcal)) }
                 withStyle(SpanStyle(color = words)) { append(" de ${formatRemaining(day.ceilingKcal)} kcal") }
             },
-            style = DietaBotType.bodyMd.copy(fontSize = m.daySp.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
-            modifier = Modifier.testTag("chat-plan-day"),
+            Modifier.testTag("chat-plan-day"),
+            style = type.caption,
         )
-        Text(
+        AeroText(
             buildAnnotatedString {
-                macro("P", day.projected.p, day.targets.p, p.protein)
+                macro("P", day.projected.p, day.targets.p, c.macroProtein, strong)
                 append(" · ")
-                macro("C", day.projected.c, day.targets.c, p.carbs)
+                macro("C", day.projected.c, day.targets.c, c.macroCarbs, strong)
                 append(" · ")
-                macro("G", day.projected.g, day.targets.g, p.fat)
+                macro("G", day.projected.g, day.targets.g, c.macroFat, strong)
             },
-            style = DietaBotType.bodyMd.copy(fontSize = m.macroSp.sp, lineHeight = m.macroLineSp.sp, letterSpacing = 0.sp),
-            color = p.muted,
+            style = type.caption.copy(color = c.textMuted),
         )
     }
 }
 
-private fun AnnotatedString.Builder.macro(letter: String, value: Int, target: Int, color: Color) {
+private fun AnnotatedString.Builder.macro(letter: String, value: Int, target: Int, color: Color, weight: FontWeight?) {
     append("$letter ")
-    withStyle(SpanStyle(color = color, fontWeight = FontWeight.W500)) { append(value.toString()) }
+    withStyle(SpanStyle(color = color, fontWeight = weight)) { append(value.toString()) }
     append("/$target")
 }
 
 // ----------------------------------------------------------------------------- memory (chatM)
 
-enum class MemoryChipKind(val label: String, val icon: ImageVector, val tag: String) {
-    UPDATED("Memória atualizada", Icons.Outlined.Check, "updated"),
-    PERMANENT("Memória permanente", Icons.Outlined.PushPin, "permanent"),
-    DYNAMIC("Memória dinâmica", Icons.Outlined.Sync, "dynamic"),
+enum class MemoryChipKind(val label: String, val icon: AeroIconName, val tag: String) {
+    UPDATED("Memória atualizada", AeroIconName.Check, "updated"),
+    PERMANENT("Memória permanente", AeroIconName.PushPin, "permanent"),
+    DYNAMIC("Memória dinâmica", AeroIconName.ArrowsClockwise, "dynamic"),
 }
 
-/** Informative only: no tap (A29). The check of `Memória atualizada` is the only gold. */
+/** Chip/Memory: informative only, no tap (A29); the accent check of `Memória atualizada` is the only accent. */
 @Composable
-internal fun MemoryChip(kind: MemoryChipKind, background: Color = LocalPalette.current.surf, modifier: Modifier = Modifier) {
-    val p = LocalPalette.current
+internal fun MemoryChip(kind: MemoryChipKind, modifier: Modifier = Modifier) {
+    val c = Aero.colors
     val updated = kind == MemoryChipKind.UPDATED
+    val pill = RoundedCornerShape(percent = 50)
     Row(
         modifier
             .height(28.dp)
-            .clip(ChipShape)
-            .background(background)
-            .border(1.dp, p.line, ChipShape)
-            .padding(horizontal = 10.dp)
+            .clip(pill)
+            .background(c.surface2)
+            .border(1.dp, c.borderLine, pill)
+            .padding(start = 11.dp, end = 13.dp)
             .testTag("chat-memory-${kind.tag}"),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(kind.icon, contentDescription = null, tint = if (updated) p.gold else p.muted, modifier = Modifier.size(14.dp))
-        Spacer(Modifier.width(6.dp))
-        Text(
-            kind.label,
-            style = DietaBotType.labelMd.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp),
-            color = if (updated) p.text else p.muted,
-            maxLines = 1,
-        )
+        AeroIcon(kind.icon, if (updated) c.accentDefault else c.iconMuted, size = 14.dp)
+        AeroText(kind.label, style = Aero.type.caption.copy(color = if (updated) c.textPrimary else c.textMuted), maxLines = 1)
     }
 }
 
-/** The chips of a bubble, in the fixed order: updated, permanent, dynamic. Nothing → nothing drawn. */
+/** The chips of a bubble, 8 dp under it and 8 dp apart, in the fixed order: updated, permanent, dynamic. */
 @Composable
 internal fun MemoryChips(notice: MemoryNotice, modifier: Modifier = Modifier, horizontal: Alignment.Horizontal = Alignment.Start) {
     if (!notice.any) return
-    Column(modifier.padding(top = 5.dp).testTag("chat-memory"), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = horizontal) {
+    Column(modifier.padding(top = 8.dp).testTag("chat-memory"), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = horizontal) {
         if (notice.updated) MemoryChip(MemoryChipKind.UPDATED)
         if (notice.permanent) MemoryChip(MemoryChipKind.PERMANENT)
         if (notice.dynamic) MemoryChip(MemoryChipKind.DYNAMIC)
@@ -201,74 +168,41 @@ internal fun MemoryChips(notice: MemoryNotice, modifier: Modifier = Modifier, ho
 
 // ----------------------------------------------------------------------------- routine (chatS)
 
-/** `O de sempre no {slot}?` (ADR-023 decision 8). No gold background anywhere. */
+/** Card/Routine: `O de sempre no {slot}?` (ADR-023 decision 8) with Registrar and Quase igual. */
 @Composable
 internal fun RoutineSuggestionCard(s: RoutineSuggestion, onRecord: () -> Unit, onEdit: () -> Unit) {
-    val p = LocalPalette.current
+    val c = Aero.colors
+    val type = Aero.type
+    val strong = type.bodyStrong.fontWeight
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(PanelShape)
-            .background(p.surf)
-            .border(1.dp, p.line, PanelShape)
-            .padding(16.dp)
+            .aeroGlass(Aero.shapes.card)
+            .padding(17.dp)
             .testTag("chat-routine"),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            "O de sempre no ${s.slot.name}?",
-            style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp),
-            color = p.text,
-        )
-        Text(
-            s.text,
-            style = DietaBotType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
-            color = p.muted,
-            maxLines = 2,
-            modifier = Modifier.padding(top = 10.dp),
-        )
-        Text(
+        AeroText("O de sempre no ${s.slot.name}?", style = type.bodyStrong.copy(color = c.textPrimary))
+        AeroText(s.text, style = type.body.copy(color = c.textMuted), maxLines = 2)
+        AeroText(
             buildAnnotatedString {
-                withStyle(SpanStyle(color = p.text, fontWeight = FontWeight.W600)) { append("${formatRemaining(s.kcal)} kcal") }
-                withStyle(SpanStyle(color = p.dim)) { append(" · ") }
-                withStyle(SpanStyle(color = p.protein)) { append("${s.p}P") }
-                withStyle(SpanStyle(color = p.dim)) { append(" · ") }
-                withStyle(SpanStyle(color = p.carbs)) { append("${s.c}C") }
-                withStyle(SpanStyle(color = p.dim)) { append(" · ") }
-                withStyle(SpanStyle(color = p.fat)) { append("${s.g}G") }
+                withStyle(SpanStyle(color = c.textPrimary, fontWeight = strong)) { append("${formatRemaining(s.kcal)} kcal") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroProtein, fontWeight = strong)) { append("${s.p}P") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroCarbs, fontWeight = strong)) { append("${s.c}C") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroFat, fontWeight = strong)) { append("${s.g}G") }
             },
-            style = DietaBotType.bodyMd.copy(fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp),
-            modifier = Modifier.padding(top = 13.dp),
+            style = type.body,
         )
-        MemoryChip(
-            if (s.permanent) MemoryChipKind.PERMANENT else MemoryChipKind.DYNAMIC,
-            background = p.surf2,
-            modifier = Modifier.padding(top = 11.dp),
-        )
-        Row(Modifier.padding(top = 16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RoutineButton("Registrar", primary = true, tag = "chat-routine-record", onClick = onRecord, modifier = Modifier.weight(1f))
-            RoutineButton("Quase igual", primary = false, tag = "chat-routine-edit", onClick = onEdit, modifier = Modifier.weight(1f))
+        MemoryChip(if (s.permanent) MemoryChipKind.PERMANENT else MemoryChipKind.DYNAMIC)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AeroButtonPrimary("Registrar", onRecord, Modifier.weight(1f).testTag("chat-routine-record"))
+            Box(Modifier.weight(QUASE_WEIGHT)) { AeroSecondaryPill("Quase igual", onEdit, Modifier.testTag("chat-routine-edit")) }
         }
     }
 }
 
-@Composable
-private fun RoutineButton(label: String, primary: Boolean, tag: String, onClick: () -> Unit, modifier: Modifier) {
-    val p = LocalPalette.current
-    Row(
-        modifier
-            .height(48.dp)
-            .clip(CircleShape)
-            .background(if (primary) p.ctaBg else p.surf2)
-            .then(if (primary) Modifier else Modifier.border(1.dp, p.line, CircleShape))
-            .dietaClick(if (primary) Haptic.Confirm else Haptic.Light, onClick = onClick)
-            .testTag(tag),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            label,
-            style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = if (primary) FontWeight.W600 else FontWeight.W500, letterSpacing = 0.sp),
-            color = if (primary) p.ctaText else p.text,
-        )
-    }
-}
+/** Card/Routine buttons: 166 and 142 dp of the 316 dp row. */
+private const val QUASE_WEIGHT = 142f / 166f

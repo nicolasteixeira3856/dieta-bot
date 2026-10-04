@@ -40,43 +40,14 @@ const SEARCH = 48;
 const FOOTER = 260; // 130 dp: CTA + gradient + nav
 const PHONE = 1688; // 844 dp
 const MIN_INK = 400; // px: below this a zone has no content to compare for presence
-// Stitch golds whose layout contradicts the canonical screen of their group: reported, not gated.
+// Stitch golds whose layout contradicts the app: reported, not gated.
 // push: the gold is a drawn lock screen; the app only posts a notification and SystemUI draws the
 // lock screen and the card (A7). Reported, never gated.
-// chatA: a copy of the old chat0 (other header), only its composer is new (A19).
-// chatS: a copy of the old chat0 too; only the routine card is compared (A29).
-// chatF, chatG, chatD: the ST9 receipt generation (other header, scrolled thread); only the receipt and
-// its stacked actions are compared (A34, RECEIPT_REGIONS).
-const GOLD_CONFLICTS = new Set(["chatG", "chatF", "chatD", "chatA", "push", "chatS"]);
-// Parts of a conflict gold that are gated on their own (gold px box x0, y0, x1, y1; best
-// vertical offset). chatA: the composer with the attached thumbnail (A19). chatS: the routine card, title to
-// buttons (A29). chatM: the thread between the header and the actions slot; the ST6 gold still draws Gravar | Trocar | Pular, which A34
-// (ADR-028) replaced by Registrar.
-const REGIONS = { chatA: [32, 1388, 748, 1664], chatS: [32, 798, 748, 1302], chatM: [0, 230, 780, 1436] };
-// A34 (ST9), per theme: the receipt(s), then the stacked actions, each with its own offset (the golds put
-// the actions 16.5, 24 and 28 dp under the receipt; the app uses 22). Same boxes as StitchGoldTest.
-const RECEIPT_REGIONS = {
-  chatG: { dark: [[48, 994, 732, 1136], [48, 1180, 732, 1488]], light: [[48, 974, 732, 1116], [48, 1152, 732, 1460]] },
-  chatD: { dark: [[48, 886, 732, 1144], [48, 1164, 732, 1472]], light: [[48, 868, 732, 1140], [48, 1160, 732, 1468]] },
-  chatF: { dark: [[68, 1096, 714, 1238], [68, 1274, 714, 1478]], light: [[48, 1118, 732, 1222], [48, 1258, 732, 1462]] },
-};
-// chatF (ST9): the photo bubble below the header (A6). Emulator: the seeded photo is not the gold's, so
-// it is reported; the JVM StitchGoldTest gates the light bubble with the gold photo.
-const PHOTO_REGIONS = {
-  chatF: { dark: [214, 224, 746, 504], light: [214, 224, 746, 526] },
-};
-// Receipt boxes reported, not gated: the light receipts are green where dark and the tokens use surf2,
-// and chatF light puts the chip on the title row; chatF dark draws receipt and buttons 314 dp wide
-// (335 dp in the other five). The chatF light buttons stay gated.
-const RECEIPT_REPORT_ONLY = new Set(["light/chatG/0", "light/chatD/0", "light/chatF/0", "dark/chatF/0", "dark/chatF/1"]);
-// Bottom-anchored and centred-dialog regions of Stitch golds (none left after A40/A41).
+const GOLD_CONFLICTS = new Set(["push"]);
+const REGIONS = {};
+// Bottom-anchored and centred-dialog regions of Stitch golds (none left after A40-A43).
 const BOTTOM_REGIONS = {};
 const CENTER_REGIONS = {};
-// Regions reported, not gated: light chatA draws the composer on the page colour (old chat0
-// generation) while the canonical light chatE uses the card colour.
-const REGION_REPORT_ONLY = new Set(["light/chatA"]);
-// Whole screens reported, not gated. chatM (A34): the actions slot changed; only the thread region is gated.
-const SCREEN_REPORT_ONLY = new Set(["dark/chatM", "light/chatM"]);
 
 // Figma golds (ADR-031) are bare frames: no status bar, the page at the frame height. The Stitch exceptions above
 // are calibrated on Stitch geometry and apply to `stitch` ids only.
@@ -89,15 +60,29 @@ const SCREEN_REPORT_ONLY = new Set(["dark/chatM", "light/chatM"]);
 // the screen is reported and the loading bubble with its label is gated.
 // chatQ (A42): the thread is taller than the phone's room (bars take 48 dp), so the list scrolls a few dp while the
 // header moves with the status bar: the screen is reported, header and thread are gated each with its own offset.
+// chatS (A43): the scene seeds another day (meta 2.000, 100 %), so the screen is reported and the header and the
+// routine card are gated.
+// Long threads (A43: chatF, chatG, chatD, chatR, chatM, chatU): the frame shows the whole thread, the phone shows its
+// newest part above the composer. The screen is reported; the header is gated from the top and the thread tail
+// (everything the phone shows under the header, down to the composer) from the bottom. `tail` is the first gold row
+// the tail box may take (chatF: under the photo, whose sample crop is the frame's own).
+const HEADER_BOX = [0, 48, 780, 136];
 const FIGMA = {
-  conflicts: new Set(["homeW", "chatL", "chatQ"]),
+  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS"]),
   // chatP (A42): Dialog/Confirm centred over the blurred Home (the capture's Home is scrolled to the Lanche card).
   center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] } },
-  regions: { homeW: [0, 80, 780, 900], chatL: [0, 500, 780, 740], chatQ: [[0, 48, 780, 136], [0, 168, 780, 1296]] },
+  regions: {
+    homeW: [0, 80, 780, 900],
+    chatL: [0, 500, 780, 740],
+    chatQ: [HEADER_BOX, [0, 168, 780, 1296]],
+    chatF: HEADER_BOX, chatG: HEADER_BOX, chatD: HEADER_BOX, chatR: HEADER_BOX, chatM: HEADER_BOX, chatU: HEADER_BOX, chatS: [HEADER_BOX, [32, 728, 748, 1256]],
+  },
+  tail: { chatF: 660, chatG: 0, chatD: 0, chatR: 0, chatM: 0, chatU: 0 },
   // Bottom-anchored zone of each Chat frame, px: its bottom stack read from the frame (actions + composer for chatQ /
-  // chatE, chips + composer for chat0, chips + the too-long box for chatX, the meal sheet for chatT) plus 48 dp, the
-  // status and navigation bars that the phone takes from the gap between the thread and that stack.
-  footer: { chat0: 364, chatL: 268, chatQ: 384, chatE: 384, chatT: 1368, chatX: 578 },
+  // chatE, chips + composer for chat0, chips + the too-long box for chatX, the attached composer for chatA, the
+  // meal sheet for chatT) plus 48 dp, the status and navigation bars that the phone takes from the gap between the
+  // thread and that stack.
+  footer: { chat0: 364, chatL: 268, chatQ: 384, chatE: 384, chatT: 1368, chatX: 578, chatA: 436 },
   bottom: { homeW: { dark: [0, 2122, 780, 2748], light: [0, 2122, 780, 2748] } },
 };
 const STITCH = { conflicts: GOLD_CONFLICTS, regions: REGIONS, bottom: BOTTOM_REGIONS };
@@ -303,34 +288,28 @@ for (const key of ids) {
   // the capture must then be as blank.
   const blankZone = goldInk < MIN_INK && appInk < MIN_INK;
   const inkOk = blankZone || (inkRatio >= 0.8 && inkRatio <= 1.25);
-  const conflict = rules.conflicts.has(id) || (stitch && SCREEN_REPORT_ONLY.has(key));
+  const conflict = rules.conflicts.has(id);
   const ok = pct <= max && inkOk;
   if (!ok && !conflict) failed = true;
   const bottom = rules.bottom[id]?.[theme];
   const own = rules.regions[id];
   const ownBoxes = own ? (Array.isArray(own[0]) ? own : [own]) : [];
+  // Thread tail (Figma long threads): bottom-aligned on the capture's bottom minus the 24 dp navigation bar.
+  const tail = stitch ? undefined : FIGMA.tail[id];
+  const tailBox = tail === undefined ? null : [0, Math.max(tail, goldRaw.h - (appRaw.h - 48 - 184) + 32), 780, goldRaw.h - 40];
   const boxes = [
     ...ownBoxes.map((box, i) => [i === 0 ? "region" : `region${i}`, () => regionScore(app, gold, box)]),
+    ...(tailBox ? [["thread tail", () => regionScore(app, gold, tailBox, appRaw.h - 48 - goldRaw.h)]] : []),
     ...(bottom ? [[stitch ? "region" : "bottom region", () => regionScore(app, gold, bottom, appRaw.h - goldRaw.h)]] : []),
   ];
   // Stitch: one region per id (the bottom one wins, as before); Figma: every region is gated.
   for (const [name, run] of stitch ? boxes.slice(-1) : boxes) {
     const part = run();
     const partOk = part <= max;
-    const reportOnly = stitch && REGION_REPORT_ONLY.has(key);
+    const reportOnly = false;
     if (!partOk && !reportOnly) failed = true;
     console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} ${name} ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
   }
-  const photo = stitch ? PHOTO_REGIONS[id]?.[theme] : undefined;
-  if (photo) console.log(`  ~ ${key} photo bubble ${regionScore(app, gold, photo).toFixed(2)}% (max ${max}%) [report only]`);
-  ((stitch && RECEIPT_REGIONS[id]?.[theme]) || []).forEach((box, i) => {
-    const part = regionScore(app, gold, box);
-    const partOk = part <= max;
-    const reportOnly = RECEIPT_REPORT_ONLY.has(`${key}/${i}`);
-    if (!partOk && !reportOnly) failed = true;
-    const name = i === 0 ? "receipt" : "actions";
-    console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} ${name} ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
-  });
   console.log(`  ${ok ? "✓" : conflict ? "~" : "✗"} ${key} ${pct.toFixed(2)}% ink ${inkRatio.toFixed(2)} (content ${content.dy / 2} dp${footerNote}, max ${max}%, ink 0.8-1.25)${conflict ? " [gold conflict: report only]" : ""}`);
 }
 process.exit(failed ? 1 : 0);

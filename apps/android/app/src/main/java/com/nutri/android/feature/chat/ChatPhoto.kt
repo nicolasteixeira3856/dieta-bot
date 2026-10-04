@@ -1,5 +1,12 @@
 package com.nutri.android.feature.chat
 
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroButtonPrimary
+import com.nutri.android.core.designsystem.aero.AeroIcon
+import com.nutri.android.core.designsystem.aero.AeroIconName
+import com.nutri.android.core.designsystem.aero.AeroText
+import com.nutri.android.core.designsystem.aero.aeroGlass
+import com.nutri.android.core.designsystem.aero.AeroDimens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -92,93 +99,90 @@ object PhotoPreviews {
         cached(path) ?: PhotoStore.preview(path)?.asImageBitmap()?.also { cache.put(path, it) }
 }
 
-/** Same 16 dp as every other bubble (ST1). */
-private val PhotoBubbleShape = BubbleShape
-private val PhotoShape = RoundedCornerShape(14.dp)
-
-/** chatF: photo card inside the user bubble, "Visão Computacional" tag, caption + time. */
+/** chatF, Chat/Photo: tinted glass user bubble (265 dp), the photo with the "Visão Computacional" tag, caption, time and ticks. */
 @Composable
 internal fun PhotoBubble(item: ChatItem.User, photoPath: String) {
-    val p = LocalPalette.current
+    val c = Aero.colors
+    val type = Aero.type
     val image by produceState(PhotoPreviews.cached(photoPath), photoPath) {
         if (value == null) value = withContext(Dispatchers.IO) { PhotoPreviews.load(photoPath) }
     }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+    val r = AeroDimens.radiusCard
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
         Column(
             Modifier
                 .width(265.dp)
-                .clip(PhotoBubbleShape)
-                .background(p.surf2)
-                .border(1.dp, p.line, PhotoBubbleShape)
-                .padding(start = 11.5.dp, end = 11.5.dp, top = 11.dp, bottom = 4.dp)
+                .aeroGlass(RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = 6.dp, bottomStart = r), fill = c.surfaceTint)
+                .padding(11.dp)
                 .testTag("chat-user-${item.id}"),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(Modifier.fillMaxWidth().height(135.dp).clip(PhotoShape).background(p.panel).testTag("chat-photo-${item.id}")) {
+            Box(Modifier.fillMaxWidth().height(135.dp).clip(PhotoShape).background(c.surface2).testTag("chat-photo-${item.id}")) {
                 image?.let {
                     Image(it, contentDescription = "Foto da refeição", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 }
                 Row(
                     Modifier
                         .align(Alignment.BottomStart)
-                        .padding(start = 10.dp, bottom = 7.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
-                        .padding(horizontal = 10.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(start = 8.dp, bottom = 8.dp)
+                        .height(26.dp)
+                        .aeroGlass(CircleShape, shadow = false, backdropBlurred = true)
+                        .padding(horizontal = 11.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = p.gold, modifier = Modifier.size(12.dp))
-                    Text("Visão Computacional", style = DietaBotType.labelMd.copy(fontSize = 9.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = Color.White)
+                    AeroIcon(AeroIconName.Sparkle, c.accentDefault, size = 12.dp)
+                    AeroText("Visão Computacional", style = type.captionStrong.copy(color = c.textPrimary), maxLines = 1)
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    item.text,
-                    style = DietaBotType.bodyLg.copy(fontSize = 13.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
-                    color = p.text,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 10.5.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted)
-                Spacer(Modifier.width(4.dp))
-                Icon(Icons.Filled.DoneAll, contentDescription = null, tint = p.gold, modifier = Modifier.size(12.dp))
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                AeroText(item.text, Modifier.weight(1f), style = type.body.copy(color = c.textPrimary))
+                AeroText(item.time, style = type.caption.copy(color = c.textDim))
+                AeroIcon(AeroIconName.Checks, c.accentDefault, size = 14.dp)
             }
         }
     }
 }
 
+private val PhotoShape = RoundedCornerShape(12.dp)
 private val ThumbShape = RoundedCornerShape(12.dp)
 
-/** chatA: 64 dp thumbnail of the composer attachment, ✕ on its top-right corner. */
+/** chatA, Chat/Composer State=Attached: 64 dp thumbnail and its ✕ (Remover foto) on the top-right corner. */
 @Composable
 internal fun AttachmentThumb(path: String, onRemove: () -> Unit) {
-    val p = LocalPalette.current
+    val c = Aero.colors
     // key(path): a replaced attachment must not keep the previous photo (produceState keeps its value across keys).
     val image by key(path) {
         produceState(PhotoPreviews.cached(path), path) {
             if (value == null) value = withContext(Dispatchers.IO) { PhotoPreviews.load(path) }
         }
     }
-    // chatA: 13 dp above and 11 dp below the thumbnail, 14.5 dp from the composer edge.
-    Box(Modifier.padding(start = 4.5.dp, top = 7.dp, bottom = 11.dp)) {
-        Box(Modifier.size(64.dp).clip(ThumbShape).background(p.panel).border(1.dp, p.line, ThumbShape).testTag("chat-attachment")) {
+    Box(Modifier.size(82.dp, 72.dp)) {
+        Box(
+            Modifier
+                .offset(6.dp, 8.dp)
+                .size(64.dp)
+                .clip(ThumbShape)
+                .background(c.surface2)
+                .border(1.dp, c.borderLine, ThumbShape)
+                .testTag("chat-attachment"),
+        ) {
             image?.let {
                 Image(it, contentDescription = "Foto anexada", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
         }
         Box(
             Modifier
-                .offset(x = 49.dp, y = (-7).dp)
+                .offset(56.dp, 0.dp)
                 .size(22.dp)
                 .clip(CircleShape)
-                .background(p.surf2)
-                .border(1.dp, p.line, CircleShape)
+                .background(c.surface2)
+                .border(1.dp, c.borderLine, CircleShape)
                 .dietaClick(onClick = onRemove)
                 .testTag("chat-attachment-remove"),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.Close, contentDescription = "Remover foto", tint = p.text, modifier = Modifier.size(14.dp))
+            AeroIcon(AeroIconName.X, c.iconPrimary, size = 14.dp, contentDescription = "Remover foto")
         }
     }
 }
