@@ -2,7 +2,7 @@
 
 ## Contexto e objetivo
 
-Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada.
+Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada. A foto e os avisos de memória no Chat seguem os golds da fonte declarada no [inventário](../../qa/README.md#golds), desenhados no Figma `Design` com o design system Aero ([ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md)).
 
 ## Escopo
 
@@ -88,3 +88,4 @@ Comportamento: `produto`. Client: `android`.
 - [A29](../../android/plans/completed/a29-chat-v2-interface.md) — Chat v2: plano de refeição, avisos de memória e sugestão da rotina
 - [A34](../../android/plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
 - [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
+- [A43](../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) — Chat records and memory on Aero

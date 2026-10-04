@@ -47,7 +47,7 @@ Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, appli
 
 ## Out of scope
 
-- Compose ([A43](../../../android/plans/a43-chat-records-memory-aero.md)). Behavior or copy changes.
+- Compose ([A43](../../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md)). Behavior or copy changes.
 
 ## Validation
 
@@ -172,7 +172,7 @@ The owner reviewed the section `Chat · D6` in Figma and closed the plan: "Revis
 
 ### Exported golds
 
-`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `chatF.png`, `chatA.png`, `chatG.png`, `chatU.png`, `chatD.png`, `chatR.png`, `chatM.png`, `chatS.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the eight ids stays `stitch` in `docs/qa/README.md`; [A43](../../../android/plans/a43-chat-records-memory-aero.md) switches it.
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `chatF.png`, `chatA.png`, `chatG.png`, `chatU.png`, `chatD.png`, `chatR.png`, `chatM.png`, `chatS.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the eight ids stays `stitch` in `docs/qa/README.md`; [A43](../../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) switches it.
 
 ### Figma MCP budget, total
 

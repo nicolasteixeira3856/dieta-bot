@@ -190,12 +190,12 @@ fun AeroFieldNumber(
 
 /**
  * Sheet/Bottom: glass sheet (top radius radius/sheet) with a grabber, a Title, the content and the action pair
- * (Button/Primary + a surface/2 secondary pill). It sits over a blurred screen, so its glass is the fill alone.
+ * (Button/Primary, absent when [primary] is null, + a surface/2 secondary pill). It sits over a blurred screen, so its glass is the fill alone.
  */
 @Composable
 fun AeroSheet(
     title: String,
-    primary: String,
+    primary: String?,
     onPrimary: () -> Unit,
     secondary: String,
     onSecondary: () -> Unit,
@@ -227,13 +227,15 @@ fun AeroSheet(
         AeroText(title, style = type.title.copy(color = c.textPrimary))
         content()
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            AeroButtonPrimary(
-                primary,
-                onPrimary,
-                modifier = if (primaryTag != null) Modifier.testTag(primaryTag) else Modifier,
-                icon = primaryIcon,
-                enabled = primaryEnabled,
-            )
+            if (primary != null) {
+                AeroButtonPrimary(
+                    primary,
+                    onPrimary,
+                    modifier = if (primaryTag != null) Modifier.testTag(primaryTag) else Modifier,
+                    icon = primaryIcon,
+                    enabled = primaryEnabled,
+                )
+            }
             AeroSecondaryPill(secondary, onSecondary, if (secondaryTag != null) Modifier.testTag(secondaryTag) else Modifier)
         }
     }

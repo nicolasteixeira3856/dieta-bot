@@ -1,5 +1,11 @@
 package com.nutri.android.feature.chat
 
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroButtonPrimary
+import com.nutri.android.core.designsystem.aero.AeroIcon
+import com.nutri.android.core.designsystem.aero.AeroText
+import com.nutri.android.core.designsystem.aero.aeroGlass
+import com.nutri.android.core.designsystem.aero.aeroLayerAlpha
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -55,24 +61,13 @@ import com.nutri.android.core.designsystem.aero.AeroIconName
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.domain.ReceiptAction
 
-/** ST9 draws the receipts and their buttons in Plus Jakarta Sans. */
-private val ReceiptTitle = DietaBotType.bodyMd.copy(fontFamily = Jakarta, fontSize = 13.5.sp, lineHeight = 20.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp)
-
-/** Receipt, its buttons and the inline confirmation: radius 14 (AGENTS card/chip). */
-private val CardShape = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
-
 /** A receipt that lost its actions by a tap on it (chatD): 50 % through one save layer (ADR-027 rule 4). */
 private const val MARKED_ALPHA = 0.5f
 
-private fun Modifier.layerAlpha(alpha: Float): Modifier = if (alpha >= 1f) this else drawWithContent {
-    drawContext.canvas.saveLayer(Rect(Offset.Zero, size), Paint().apply { this.alpha = alpha })
-    drawContent()
-    drawContext.canvas.restore()
-}
-
 /**
- * A record, replacement, skip, move or restore (A34, golds chatG / chatF / chatD). The latest receipt of its
- * slot stacks its buttons below it; a marked one is dimmed with the mark at the end of the title row.
+ * Chat/Receipt (A34, golds chatG / chatF / chatD): a record, replacement, skip, move or restore on a surface/2 card,
+ * 12 dp in from the thread edges. The latest receipt of its slot stacks its Chat/ReceiptAction buttons 16 dp below;
+ * a marked one is dimmed with the mark at the end of the row.
  */
 @Composable
 internal fun ReceiptCard(
@@ -81,57 +76,52 @@ internal fun ReceiptCard(
     onMoveConfirm: () -> Unit,
     onMoveElsewhere: () -> Unit,
 ) {
-    val p = LocalPalette.current
-    val tone = if (item.skipped) p.dim else p.good
-    // Same width as the buttons: the thread content minus 12 dp on each side (gold chatG).
+    val c = Aero.colors
+    val type = Aero.type
+    val shape = Aero.shapes.card
+    val tone = if (item.skipped) c.textDim else c.statusGood
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         Row(
             Modifier
                 .fillMaxWidth()
                 .testTag("chat-receipt-${item.id}")
-                .layerAlpha(if (item.mark != null) MARKED_ALPHA else 1f)
-                .clip(CardShape)
-                // ST9 dark: the receipt one step above its buttons (surf2 over surf).
-                .background(p.surf2)
-                .border(1.dp, p.line, CardShape)
-                // ST9 receipts: 65 dp with the chip below, 46 dp with it on the title row.
-                .padding(horizontal = 16.dp, vertical = 11.dp),
+                .aeroLayerAlpha(if (item.mark != null) MARKED_ALPHA else 1f)
+                .clip(shape)
+                .background(c.surface2)
+                .border(1.dp, c.borderLine, shape)
+                .padding(horizontal = 17.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.size(24.dp).clip(CircleShape).background(tone.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                Icon(receiptIcon(item.kind), contentDescription = null, tint = tone, modifier = Modifier.size(15.dp))
+            Box(Modifier.size(24.dp).clip(CircleShape).background(tone.copy(alpha = TINT_ALPHA)), contentAlignment = Alignment.Center) {
+                AeroIcon(receiptIcon(item.kind), if (item.kind == ReceiptKind.RESTORED) c.iconPrimary else tone, size = 15.dp)
             }
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    AeroText(
                         buildAnnotatedString {
                             append(receiptTitle(item.kind))
-                            withStyle(SpanStyle(fontWeight = FontWeight.W700)) { append(item.slotName) }
+                            withStyle(SpanStyle(fontWeight = type.captionStrong.fontWeight)) { append(item.slotName) }
                             item.slotTime?.let {
-                                withStyle(SpanStyle(color = p.dim)) { append(" · ") }
-                                withStyle(SpanStyle(color = p.muted)) { append(it) }
+                                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                                withStyle(SpanStyle(color = c.textMuted)) { append(it) }
                             }
                         },
-                        style = ReceiptTitle,
-                        color = p.text,
+                        Modifier.weight(1f, fill = false),
+                        style = type.caption.copy(color = c.textPrimary),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
                     )
                     // A restore fits its chip on the title row (chatD).
-                    if (item.kind == ReceiptKind.RESTORED) item.kcal?.let { KcalChip("$it kcal", Modifier.padding(start = 6.dp)) }
+                    if (item.kind == ReceiptKind.RESTORED) item.kcal?.let { KcalChip("$it kcal") }
                 }
-                if (item.kind != ReceiptKind.RESTORED) {
-                    receiptChip(item)?.let { KcalChip(it, Modifier.padding(top = 5.dp)) }
-                }
+                if (item.kind != ReceiptKind.RESTORED) receiptChip(item)?.let { KcalChip(it) }
             }
-            item.mark?.let { ReceiptMarkLabel(it, Modifier.padding(start = 8.dp)) }
+            item.mark?.let { ReceiptMarkLabel(it) }
         }
         MemoryChips(MemoryNotice(updated = item.memoryUpdated && item.mark == null), modifier = Modifier.align(Alignment.CenterHorizontally), horizontal = Alignment.CenterHorizontally)
         if (item.actions.isNotEmpty()) {
-            // The ST9 golds put 16 (chatD) to 28 dp (chatG) here: one gap for all (ADR-027 rule 2).
-            Column(Modifier.padding(top = 22.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.padding(top = 16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item.actions.forEach { action -> ReceiptButton(action) { onAction(action) } }
             }
         }
@@ -141,11 +131,14 @@ internal fun ReceiptCard(
     }
 }
 
-private fun receiptIcon(kind: ReceiptKind): ImageVector = when (kind) {
-    ReceiptKind.SKIPPED -> Icons.Outlined.Remove
-    ReceiptKind.RESTORED -> Icons.Outlined.History
-    ReceiptKind.MOVED -> Icons.Outlined.SwapHoriz
-    else -> Icons.Filled.DoneAll
+/** The 15 % tint of the receipt well and kcal chip (Figma: a status/good layer at 15 % opacity). */
+private const val TINT_ALPHA = 0.15f
+
+private fun receiptIcon(kind: ReceiptKind): AeroIconName = when (kind) {
+    ReceiptKind.SKIPPED -> AeroIconName.Minus
+    ReceiptKind.RESTORED -> AeroIconName.ClockCounterClockwise
+    ReceiptKind.MOVED -> AeroIconName.ArrowsLeftRight
+    else -> AeroIconName.Checks
 }
 
 private fun receiptTitle(kind: ReceiptKind) = when (kind) {
@@ -169,131 +162,102 @@ private fun receiptChip(item: ChatItem.Receipt): String? {
 
 @Composable
 private fun KcalChip(text: String, modifier: Modifier = Modifier) {
-    val p = LocalPalette.current
-    Text(
+    val c = Aero.colors
+    AeroText(
         text,
-        style = DietaBotType.labelMd.copy(fontFamily = Jakarta, fontSize = 11.5.sp, lineHeight = 17.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp),
-        color = p.good,
+        modifier.clip(RoundedCornerShape(6.dp)).background(c.statusGood.copy(alpha = TINT_ALPHA)).padding(horizontal = 6.dp, vertical = 1.dp),
+        style = Aero.type.captionStrong.copy(color = c.statusGood),
         maxLines = 1,
-        modifier = modifier.clip(RoundedCornerShape(6.dp)).background(p.good.copy(alpha = 0.15f)).padding(horizontal = 6.dp),
     )
 }
 
 @Composable
 private fun ReceiptMarkLabel(mark: ReceiptMark, modifier: Modifier = Modifier) {
-    val p = LocalPalette.current
-    Row(modifier.testTag("chat-receipt-mark"), verticalAlignment = Alignment.CenterVertically) {
-        Icon(markIcon(mark), contentDescription = null, tint = p.muted, modifier = Modifier.size(14.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(mark.label, style = DietaBotType.labelMd.copy(fontFamily = Jakarta, fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.muted, maxLines = 1)
+    val c = Aero.colors
+    Row(modifier.testTag("chat-receipt-mark"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        AeroIcon(markIcon(mark), c.iconMuted, size = 14.dp)
+        AeroText(mark.label, style = Aero.type.caption.copy(color = c.textMuted), maxLines = 1)
     }
 }
 
-private fun markIcon(mark: ReceiptMark): ImageVector = when (mark) {
-    ReceiptMark.UNDONE -> Icons.AutoMirrored.Outlined.Undo
-    ReceiptMark.DELETED -> Icons.Outlined.Delete
-    ReceiptMark.MOVED -> Icons.Outlined.SwapHoriz
-    ReceiptMark.EDITED -> Icons.Outlined.Edit
+private fun markIcon(mark: ReceiptMark): AeroIconName = when (mark) {
+    ReceiptMark.UNDONE -> AeroIconName.ArrowCounterClockwise
+    ReceiptMark.DELETED -> AeroIconName.Trash
+    ReceiptMark.MOVED -> AeroIconName.ArrowsLeftRight
+    ReceiptMark.EDITED -> AeroIconName.PencilSimple
 }
 
-/** 44 dp, radius 14, surface + 1 dp line, icon left, 15 sp semibold; Excluir in `bad` (ST9). */
+/** Chat/ReceiptAction: 44 dp glass row, 22 dp icon, Button label; Excluir in status/bad (Tone=Danger). */
 @Composable
 private fun ReceiptButton(action: ReceiptAction, onClick: () -> Unit) {
-    val p = LocalPalette.current
+    val c = Aero.colors
     val (icon, label) = when (action) {
-        ReceiptAction.UNDO -> Icons.AutoMirrored.Outlined.Undo to "Desfazer"
-        ReceiptAction.DELETE -> Icons.Filled.Delete to "Excluir"
-        ReceiptAction.MOVE -> Icons.Outlined.SwapHoriz to "Trocar refeição"
-        ReceiptAction.EDIT -> Icons.Filled.Edit to "Editar"
+        ReceiptAction.UNDO -> AeroIconName.ArrowCounterClockwise to "Desfazer"
+        ReceiptAction.DELETE -> AeroIconName.Trash to "Excluir"
+        ReceiptAction.MOVE -> AeroIconName.ArrowsLeftRight to "Trocar refeição"
+        ReceiptAction.EDIT -> AeroIconName.PencilSimple to "Editar"
     }
     val danger = action == ReceiptAction.DELETE
     Row(
         Modifier
             .fillMaxWidth()
             .height(44.dp)
-            .clip(CardShape)
-            .background(p.surf)
-            .border(1.dp, p.line, CardShape)
+            .aeroGlass(Aero.shapes.card)
             .dietaClick(if (danger) Haptic.Confirm else Haptic.Light, onClick = onClick)
-            .padding(horizontal = 14.dp)
+            .padding(horizontal = 15.dp)
             .testTag("chat-receipt-${action.name.lowercase()}"),
+        horizontalArrangement = Arrangement.spacedBy(11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, tint = if (danger) p.bad else p.muted, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.width(11.dp))
-        Text(
-            label,
-            style = DietaBotType.labelLg.copy(fontFamily = Jakarta, fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp),
-            color = if (danger) p.bad else p.text,
-            maxLines = 1,
-        )
+        AeroIcon(icon, c.iconPrimary, size = 22.dp)
+        AeroText(label, style = Aero.type.button.copy(color = if (danger) c.statusBad else c.textPrimary), maxLines = 1)
     }
 }
 
 /**
- * chatU (A34): `Substituir {slot}?` inside the conversation. Substituir in CTA tokens, Outra refeição
- * outlined. [tag]: chat-replace (below an answer) or chat-move (below a receipt).
+ * chatU (A34), Chat/Receipt State=ReplacePending: `Substituir {slot}?` inside the conversation, Substituir as
+ * Button/Primary, Outra refeição outlined. [tag]: chat-replace (below an answer) or chat-move (below a receipt).
  */
 @Composable
 internal fun ReplaceCard(confirm: ReplaceConfirm, tag: String, onReplace: () -> Unit, onElsewhere: () -> Unit, modifier: Modifier = Modifier) {
-    val p = LocalPalette.current
+    val c = Aero.colors
+    val type = Aero.type
     Column(
         modifier
             .fillMaxWidth()
-            .clip(CardShape)
-            .background(p.surf)
-            .border(1.dp, p.line, CardShape)
-            .padding(start = 18.dp, end = 18.dp, top = 15.5.dp, bottom = 16.75.dp)
+            .aeroGlass(Aero.shapes.card)
+            .padding(start = 19.dp, end = 19.dp, top = 17.dp, bottom = 19.dp)
             .testTag("$tag-card"),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(
-            "Substituir ${confirm.slot.name}?",
-            style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp),
-            color = p.text,
-        )
-        Text(
-            "${confirm.slot.name} tem ${confirm.oldKcal} kcal. Fica com ${confirm.newKcal} kcal.",
-            style = DietaBotType.bodyMd.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
-            color = p.muted,
-            modifier = Modifier.padding(top = 4.5.dp),
-        )
-        Row(Modifier.padding(top = 17.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        AeroText("Substituir ${confirm.slot.name}?", style = type.bodyStrong.copy(color = c.textPrimary))
+        AeroText("${confirm.slot.name} tem ${confirm.oldKcal} kcal. Fica com ${confirm.newKcal} kcal.", style = type.body.copy(color = c.textMuted))
+        Row(Modifier.padding(top = 16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AeroButtonPrimary("Substituir", onReplace, Modifier.weight(1f).testTag("$tag-confirm"))
+            val pill = RoundedCornerShape(percent = 50)
             Box(
                 Modifier
-                    .weight(1f)
-                    .height(44.dp)
-                    .clip(CircleShape)
-                    .background(p.ctaBg)
-                    .dietaClick(Haptic.Confirm, onClick = onReplace)
-                    .testTag("$tag-confirm"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("Substituir", style = DietaBotType.labelLg.copy(fontSize = 14.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.ctaText, maxLines = 1)
-            }
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(44.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, p.line, CircleShape)
+                    .height(58.dp)
+                    .clip(pill)
+                    .border(1.dp, c.borderLine, pill)
                     .dietaClick(onClick = onElsewhere)
+                    .padding(horizontal = 17.dp)
                     .testTag("$tag-elsewhere"),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("Outra refeição", style = DietaBotType.labelLg.copy(fontSize = 14.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                AeroText("Outra refeição", style = type.button.copy(color = c.textPrimary), maxLines = 1)
             }
         }
     }
 }
 
-/** `Não registrado` below an answer whose Registrar or Substituir expired (A34). */
+/** `Não registrado` below an answer whose Registrar or Substituir expired (A34, no gold). */
 @Composable
 internal fun NotRecordedLabel(modifier: Modifier = Modifier) {
-    val p = LocalPalette.current
-    Row(modifier.testTag("chat-not-recorded"), verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Outlined.DoNotDisturbOn, contentDescription = null, tint = p.muted, modifier = Modifier.size(14.dp))
-        Spacer(Modifier.width(4.dp))
-        Text("Não registrado", style = DietaBotType.labelMd.copy(fontSize = 12.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.muted, maxLines = 1)
+    val c = Aero.colors
+    Row(modifier.testTag("chat-not-recorded"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        AeroIcon(AeroIconName.Minus, c.iconMuted, size = 14.dp)
+        AeroText("Não registrado", style = Aero.type.caption.copy(color = c.textMuted), maxLines = 1)
     }
 }
 

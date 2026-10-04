@@ -25,7 +25,7 @@ Procedure as [A40 § Scope](a40-home-aero.md#scope) steps 1–5, for the seven g
 
 ## Out of scope
 
-- `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM` and `chatS` ([A43](../a43-chat-records-memory-aero.md)). The rest as A40.
+- `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM` and `chatS` ([A43](a43-chat-records-memory-aero.md)). The rest as A40.
 
 ## Validation
 

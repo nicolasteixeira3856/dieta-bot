@@ -178,52 +178,34 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatT_light() = check("chatT", dark = false, navDp = 0) { Chat(ChatFixtures.chatT) }
 
-    /** A34 (ST9): Substituir inside the conversation. chatE generation: whole screen gated. */
+    /** A34: Substituir inside the conversation. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatU_dark() = check("chatU", dark = true) { Chat(ChatFixtures.chatU) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatU_light() = check("chatU", dark = false) { Chat(ChatFixtures.chatU) }
 
-    /**
-     * A34 (ST9): chatF, chatG and chatD are the receipt generation (other header, scrolled thread): the receipt
-     * and its stacked actions are gated (RECEIPT_*). The light golds tint the receipt green where dark and the
-     * tokens draw it on the card colour: light is reported only (ADR-027 rules 2 and 3).
-     */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatF_dark() = check("chatF", dark = true, reportRegions = listOf(PHOTO_BUBBLE_DARK) + RECEIPT_F_DARK) { Chat(ChatFixtures.chatF) }
+    /** A34: receipts (chatF photo, chatG, chatD undone + restored). A43: Figma frames, gated whole. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h961dp-xhdpi")
+    fun chatF_dark() = check("chatF", dark = true, reportOnly = true, regions = CHAT_F_BOXES) { Chat(ChatFixtures.chatF) }
 
-    /** chatF light: the photo bubble and the buttons are gated; the receipt (green, chip on the title row) is reported. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatF_light() = check(
-        "chatF",
-        dark = false,
-        region = PHOTO_BUBBLE_LIGHT,
-        regions = RECEIPT_F_LIGHT.drop(1),
-        reportRegions = RECEIPT_F_LIGHT.take(1),
-    ) { Chat(ChatFixtures.chatF) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h961dp-xhdpi")
+    fun chatF_light() = check("chatF", dark = false, reportOnly = true, regions = CHAT_F_BOXES) { Chat(ChatFixtures.chatF) }
 
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h942dp-xhdpi")
+    fun chatD_dark() = check("chatD", dark = true) { Chat(ChatFixtures.chatD) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h942dp-xhdpi")
+    fun chatD_light() = check("chatD", dark = false) { Chat(ChatFixtures.chatD) }
+
+    /** A19: photo attached in the composer. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatD_dark() = check("chatD", dark = true, regions = RECEIPT_D_DARK) { Chat(ChatFixtures.chatD) }
+    fun chatA_dark() = check("chatA", dark = true) { Chat(ChatFixtures.chatA) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatD_light() = check("chatD", dark = false, regions = RECEIPT_D_LIGHT, gateRegion = false) { Chat(ChatFixtures.chatD) }
+    fun chatA_light() = check("chatA", dark = false) { Chat(ChatFixtures.chatA) }
 
-    /**
-     * A19: photo attached in the composer. chatA is a copy of chat0 (other header): only the composer is gated.
-     * Light gold draws the composer on the page colour (chat0 generation) while the canonical chatE light uses
-     * the card colour, so the light region is reported only.
-     */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatA_dark() = check("chatA", dark = true, region = COMPOSER_ATTACHED) { Chat(ChatFixtures.chatA) }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatA_light() = check("chatA", dark = false, region = COMPOSER_ATTACHED, gateRegion = false) { Chat(ChatFixtures.chatA) }
-
-    /**
-     * A25: text over 2000 characters. chatX is a copy of chat0 (other header): only the composer + error line is gated.
-     * Like chatA, the light gold draws the composer on the page colour (chat0 generation): light region reported only.
-     */
+    /** A25: text over 2000 characters. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatX_dark() = check("chatX", dark = true) { Chat(ChatFixtures.chatX) }
 
@@ -237,40 +219,32 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatP_light() = check("chatP", dark = false) { HomePanelScreen(HomePanelMapper.map(HomeFixtures.home0, LocalDate.parse("2026-09-25")), {}, {}, {}, initialSkip = 3) }
 
-    /**
-     * A29 (ST6): plan with the projected day and Registrar assim. The plan bubble and the bar are gated
-     * (PLAN_BUBBLE); the whole screen is reported: its header, user bubble and composer mic carry the
-     * chatE-generation delta (~1.3 points) on a text-dense screen.
-     */
+    /** A29: plan with the projected day and Registrar assim. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h882dp-xhdpi")
+    fun chatR_dark() = check("chatR", dark = true) { Chat(ChatFixtures.chatR) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h882dp-xhdpi")
+    fun chatR_light() = check("chatR", dark = false) { Chat(ChatFixtures.chatR) }
+
+    /** A29: Memória atualizada and the origin chips. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
+    fun chatM_dark() = check("chatM", dark = true) { Chat(ChatFixtures.chatM) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
+    fun chatM_light() = check("chatM", dark = false) { Chat(ChatFixtures.chatM) }
+
+    /** A29: the routine suggestion on an empty day. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatR_dark() = check("chatR", dark = true, region = PLAN_BUBBLE, reportOnly = true) { Chat(ChatFixtures.chatR) }
+    fun chatS_dark() = check("chatS", dark = true) { Chat(ChatFixtures.chatS) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatR_light() = check("chatR", dark = false, region = PLAN_BUBBLE, reportOnly = true) { Chat(ChatFixtures.chatR) }
+    fun chatS_light() = check("chatS", dark = false) { Chat(ChatFixtures.chatS) }
 
-    /**
-     * A29 (ST6): Memória atualizada + origin chips. chatE generation. The gold still draws Gravar | Trocar |
-     * Pular, which A34 (ADR-028) replaced by Registrar: the thread above the actions slot is gated (CHAT_M_THREAD),
-     * the screen is reported (ADR-027 rule 3).
-     */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatM_dark() = check("chatM", dark = true, region = CHAT_M_THREAD, reportOnly = true) { Chat(ChatFixtures.chatM) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun chatG_dark() = check("chatG", dark = true) { Chat(ChatFixtures.chatG) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatM_light() = check("chatM", dark = false, region = CHAT_M_THREAD, reportOnly = true) { Chat(ChatFixtures.chatM) }
-
-    /** A29 (ST6): chatS is a copy of chat0 (other header): only the routine card is gated (ROUTINE_CARD). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatS_dark() = check("chatS", dark = true, region = ROUTINE_CARD) { Chat(ChatFixtures.chatS) }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatS_light() = check("chatS", dark = false, region = ROUTINE_CARD) { Chat(ChatFixtures.chatS) }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatG_dark() = check("chatG", dark = true, regions = RECEIPT_G_DARK) { Chat(ChatFixtures.chatG) }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatG_light() = check("chatG", dark = false, regions = RECEIPT_G_LIGHT, gateRegion = false) { Chat(ChatFixtures.chatG) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
 
     /** cfg gold is a full-page capture (936 dp dark, 930 dp light) with the info note near the end. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h936dp-xhdpi")
@@ -366,7 +340,6 @@ class StitchGoldTest {
         save(app, File(RENDER_OUT, "$theme/$id.png"))
 
         val goldFile = File(ROOT, "docs/qa/${GoldInventory.source(goldId)}/$theme/$goldId.png")
-        val pending = !figma && id in AERO_PENDING
         val gold = BitmapFactory.decodeFile(goldFile.path) ?: error("missing gold $goldFile")
         val top = if (fullPage || figma) 0 else BAND_PX
         val raw = diff(app, gold, top)
@@ -380,13 +353,12 @@ class StitchGoldTest {
             val part = regionDiff(appBlur, goldBlur, box)
             val name = if (i == 0) "region" else "region$i"
             println("GOLD_DIFF $theme/$id $name ${"%.2f".format(part)}%")
-            if (gateRegion && !pending) assertWithMessage("$theme/$id $name differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
+            if (gateRegion) assertWithMessage("$theme/$id $name differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
         }
         reportRegions.forEachIndexed { i, box ->
             println("GOLD_DIFF $theme/$id report$i ${"%.2f".format(regionDiff(appBlur, goldBlur, box))}%")
         }
-        if ((id in GOLD_CONFLICTS && !figma) || reportOnly) return // reported only, see GOLD_CONFLICTS
-        if (!figma && id in AERO_PENDING) return // the screen is on Aero, its Stitch gold waits for its plan
+        if (reportOnly) return
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
         assertWithMessage("$theme/$id differs from the gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
     }
@@ -538,57 +510,11 @@ class StitchGoldTest {
         private const val MAX_DIFF_PERCENT = 2.0
 
         /**
-         * Migration window (A42 → A43): these ids share the Chat screen that A42 moved to Aero, while their gold stays
-         * the Stitch one until A43 draws their parts on Aero and switches their source. Measured and printed, not
-         * asserted. A43 empties this set.
+         * chatF (Figma frame): the frame crops its sample photo differently from the app's centre crop of the fixture, so
+         * the photo box is left out: header to the bubble top, the tag and caption row, and the bot answer to the end.
          */
-        private val AERO_PENDING = setOf("chatF", "chatA", "chatG", "chatU", "chatD", "chatR", "chatM", "chatS")
+        private val CHAT_F_BOXES = listOf(intArrayOf(0, 0, 780, 228), intArrayOf(0, 470, 780, 1922))
 
-        /**
-         * Golds whose layout contradicts the canonical one of their group (home1, chatE): each is a
-         * separate Stitch generation. Reported, not gated, until the owner regenerates them.
-         */
-        private val GOLD_CONFLICTS = setOf(
-            // chatF, chatG, chatD: the receipt generation (A34, ST9): only the receipt and its actions are gated.
-            "chatF", "chatG", "chatD",
-            // chatA is a copy of chat0 (same other header): only its composer is gated (COMPOSER_ATTACHED, A19).
-            "chatA",
-            // chatS is a copy of chat0 too (A29): only the routine card is gated (ROUTINE_CARD).
-            "chatS",
-        )
-
-        /**
-         * A34: the receipt(s), then the stacked actions, in gold px (x0, y0, x1, y1), per gold. Two boxes: the
-         * golds put the actions 16.5 (chatD), 24 (chatF) and 28 dp (chatG) under the receipt; the app uses 22.
-         * The chatF dark gold draws the receipt and buttons 314 dp wide (335 dp in the other five): reported only,
-         * like its photo bubble (PHOTO_BUBBLE_DARK).
-         */
-        /**
-         * chatF (ST9): the photo bubble below the header, its top scrolled under it (A6), in gold px. The dark
-         * ST9 gold re-crops the photo and bolds the caption (light and the app keep the A6 bubble): dark reported.
-         */
-        private val PHOTO_BUBBLE_DARK = intArrayOf(214, 224, 746, 504)
-        private val PHOTO_BUBBLE_LIGHT = intArrayOf(214, 224, 746, 526)
-        private val RECEIPT_G_DARK = listOf(intArrayOf(48, 994, 732, 1136), intArrayOf(48, 1180, 732, 1488))
-        private val RECEIPT_G_LIGHT = listOf(intArrayOf(48, 974, 732, 1116), intArrayOf(48, 1152, 732, 1460))
-        private val RECEIPT_F_DARK = listOf(intArrayOf(68, 1096, 714, 1238), intArrayOf(68, 1274, 714, 1478))
-        private val RECEIPT_F_LIGHT = listOf(intArrayOf(48, 1118, 732, 1222), intArrayOf(48, 1258, 732, 1462))
-        private val RECEIPT_D_DARK = listOf(intArrayOf(48, 886, 732, 1144), intArrayOf(48, 1164, 732, 1472))
-        private val RECEIPT_D_LIGHT = listOf(intArrayOf(48, 868, 732, 1140), intArrayOf(48, 1160, 732, 1468))
-
-        /** chatA composer with the attached thumbnail in gold px (x0, y0, x1, y1). */
-        private val COMPOSER_ATTACHED = intArrayOf(32, 1388, 748, 1664)
-
-        
-        
-        /** chatR: "Dieta Bot AI" label, plan bubble with the day panel, time and Registrar assim, in gold px (x0, y0, x1, y1). */
-        private val PLAN_BUBBLE = intArrayOf(32, 556, 748, 1540)
-
-        /** chatM: the thread below the header down to the actions slot, in gold px (x0, y0, x1, y1). */
-        private val CHAT_M_THREAD = intArrayOf(0, 230, 780, 1436)
-
-        /** chatS routine card (title to buttons, 1 px border) in gold px (x0, y0, x1, y1). */
-        private val ROUTINE_CARD = intArrayOf(32, 798, 748, 1302)
         private val ROOT = File("../../..")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")
         private val DIFF_OUT = File("build/outputs/stitch-gold/diff")

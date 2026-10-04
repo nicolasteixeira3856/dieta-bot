@@ -329,18 +329,14 @@ private fun Thread(
         reverseLayout = true,
         // A short thread still starts at the top, as in the golds.
         verticalArrangement = Arrangement.Top,
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp),
+        // Bottom 32 dp: the frame's two 16 dp gaps around its empty spacer when the thread fills the screen.
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
     ) {
         itemsIndexed(items, key = { _, it -> it.key }) { i, item ->
-            // 16 dp between items; the question hugs its estimate (chatE); the routine card sits
-            // 12 dp under the meta card (chatS). The oldest drawn item has none.
+            // 16 dp between items; the question hugs its estimate (chatE). The oldest drawn item has none.
             val gap = when {
                 i == items.lastIndex -> 0.dp
                 item is ChatItem.Question && !item.standalone -> 8.dp
-                item is ChatItem.Routine -> 12.dp
-                // chatU: the confirmation sits 8 dp under the answer's time; chatD: receipts 12 dp apart.
-                item is ChatItem.ReplacePrompt -> 8.dp
-                item is ChatItem.Receipt && items.getOrNull(i + 1) is ChatItem.Receipt -> 12.dp
                 else -> 16.dp
             }
             Box(Modifier.padding(top = gap)) {
@@ -380,7 +376,6 @@ private fun ThreadItem(
             tag = "chat-replace",
             onReplace = { record.onReplaceConfirm(item.estimateId) },
             onElsewhere = { record.onReplaceElsewhere(item.estimateId) },
-            modifier = Modifier.fillMaxWidth(0.88f),
         )
         is ChatItem.Greeting -> Greeting(item, ui)
         ChatItem.Loading -> LoadingBubble()
@@ -443,10 +438,11 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
                 EstimateCard(e)
                 e.slotQuestion?.let { q -> AeroText(slotQuestion(q, c.textPrimary), style = type.body.copy(color = c.textMuted)) }
             }
-            // With a follow-up question the time moves under the question bubble (chatE).
-            if (item.estimate?.question.isNullOrBlank()) BubbleTime(item.time, Modifier.align(Alignment.End))
+            // With a follow-up question the time moves under the question bubble (chatE); with memory chips, under them (chatM).
+            if (item.estimate?.question.isNullOrBlank() && !item.memory.any) BubbleTime(item.time, Modifier.align(Alignment.End))
         }
         MemoryChips(item.memory)
+        if (item.memory.any && item.estimate?.question.isNullOrBlank()) BubbleTime(item.time, Modifier.padding(top = 8.dp, start = 4.dp))
         if (item.notRecorded) NotRecordedLabel(Modifier.padding(top = 6.dp, start = 8.dp))
     }
 }
@@ -822,16 +818,6 @@ private fun ComposerRow(
 
 // ----------------------------------------------------------------------------- overlays
 
-@Composable
-private fun Scrim(scrimColor: Color, onDismiss: () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(scrimColor)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
-    )
-}
-
 /** chatT: Sheet/Bottom "Selecione a refeição" with Sheet/SlotList (Row/SlotPick per slot). */
 @Composable
 private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConfirm: () -> Unit, onClose: () -> Unit) {
@@ -876,62 +862,48 @@ private fun sheetIcon(minutes: Int): AeroIconName = when (SlotSuggestions.bandOf
 
 // ----------------------------------------------------------------------------- photo (A6)
 
+/** Photo chooser (no gold): Sheet/Bottom with Sheet/PhotoSource, Tirar foto and Escolher da galeria, Cancelar. */
 @Composable
 private fun BoxScope.PhotoSheet(onCamera: () -> Unit, onGallery: () -> Unit, onClose: () -> Unit) {
-    val p = LocalPalette.current
     BackHandler(onBack = onClose)
-    Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), onClose)
-    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
-    Column(
-        Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .clip(shape)
-            .background(if (p.isDark) p.panel else p.phone)
-            .border(1.dp, p.line.copy(alpha = 0.7f), shape)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets(bottom = 24.dp)))
-            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
-            .testTag("chat-photo-sheet"),
+    AeroScrim(onClose)
+    AeroSheet(
+        title = "Enviar foto do prato",
+        primary = null,
+        onPrimary = {},
+        secondary = "Cancelar",
+        onSecondary = onClose,
+        secondaryTag = "chat-photo-cancel",
+        bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+        modifier = Modifier.align(Alignment.BottomCenter).testTag("chat-photo-sheet"),
     ) {
-        Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
-        Text("Enviar foto do prato", style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        Text("O texto digitado vai junto como legenda. Até 16 MB.", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            PhotoSourceRow(Icons.Outlined.PhotoCamera, "Tirar foto", "chat-photo-camera", onCamera)
-            PhotoSourceRow(Icons.Outlined.PhotoLibrary, "Escolher da galeria", "chat-photo-gallery", onGallery)
+            AeroText("O texto digitado vai junto como legenda. Até 16 MB.", style = Aero.type.body.copy(color = Aero.colors.textMuted))
+            PhotoSourceRow(AeroIconName.Camera, "Tirar foto", "chat-photo-camera", onCamera)
+            PhotoSourceRow(AeroIconName.Image, "Escolher da galeria", "chat-photo-gallery", onGallery)
         }
-        Text(
-            "Cancelar",
-            style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
-            color = p.muted,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 14.dp).clip(CircleShape).dietaClick(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-photo-cancel"),
-        )
     }
 }
 
 @Composable
-private fun PhotoSourceRow(icon: ImageVector, label: String, tag: String, onClick: () -> Unit) {
-    val p = LocalPalette.current
-    val shape = RoundedCornerShape(18.dp)
+private fun PhotoSourceRow(icon: AeroIconName, label: String, tag: String, onClick: () -> Unit) {
+    val c = Aero.colors
     Row(
         Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .clip(shape)
-            .background(p.card)
-            .border(1.dp, p.line.copy(alpha = 0.6f), shape)
+            .aeroGlass(Aero.shapes.card, backdropBlurred = true)
             .dietaClick(onClick = onClick)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 17.dp)
             .testTag(tag),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(p.panel).border(1.dp, p.line.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+            Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(c.surface2).border(1.dp, c.borderLine, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center,
-        ) { Icon(icon, contentDescription = null, tint = p.gold, modifier = Modifier.size(20.dp)) }
-        Spacer(Modifier.width(14.dp))
-        Text(label, style = DietaBotType.labelLg.copy(fontWeight = FontWeight.W500), color = p.text)
+        ) { AeroIcon(icon, c.accentDefault, size = 20.dp) }
+        AeroText(label, style = Aero.type.bodyStrong.copy(color = c.textPrimary))
     }
 }
 
