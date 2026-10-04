@@ -1,0 +1,132 @@
+#!/usr/bin/env node
+// Exports Figma gold PNGs (ADR-031 § 7): each mapped frame of the file `Design` at 2x (390 px frame → 780 px)
+// through the Figma REST image export, into docs/qa/figma/{dark,light}/<id>.png.
+//
+// Needs FIGMA_TOKEN (personal access token, File content: Read-only) in the environment. The token is sent
+// only as the X-Figma-Token header to api.figma.com; it is never printed, logged or written.
+//
+// Usage: node tools/export-figma.mjs [--only home0,home1]
+//        node tools/export-figma.mjs --only <id or node id> --dry-run [--out <dir>]
+//   --dry-run writes to --out (default: the system temp dir), never to docs/qa/, and also accepts raw node ids
+//   ("9:2") to check that the token authenticates and the frame resolves before any gold is mapped.
+import path from "path";
+import fs from "fs";
+import os from "os";
+import { execFileSync } from "child_process";
+import { fileURLToPath } from "url";
+import { listArg, pngDiff, NOISE_MAX_PCT } from "./export-stitch.mjs";
+
+export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+export const FIGMA_DIR = path.join(root, "docs", "qa", "figma");
+
+export const FIGMA_FILE_KEY = "qNiqNN3vk9GpmPL3bcV9W1";
+
+// gold id → Figma node id of its frame on the `Release 1` page. Each flow plan (D3–D7) adds its ids after the
+// owner's review OK. A mapped id must exist in both themes.
+export const DARK_FRAMES = {};
+
+export const LIGHT_FRAMES = {};
+
+const NODE_ID = /^\d+:\d+$/;
+
+function token() {
+  const value = process.env.FIGMA_TOKEN;
+  if (!value) throw new Error("FIGMA_TOKEN is not set. Set it in the user environment (see docs/qa/README.md) and restart the terminal.");
+  return value;
+}
+
+// Never echoes a response body that could carry request details; only the status and Figma's own error text.
+async function figmaImages(ids) {
+  const url = `https://api.figma.com/v1/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(ids.join(","))}&format=png&scale=2`;
+  const res = await fetch(url, { headers: { "X-Figma-Token": token() } });
+  if (res.status === 403) throw new Error("Figma refused the token (403). Check that FIGMA_TOKEN is valid, not expired, and has File content: Read-only.");
+  if (res.status === 404) throw new Error(`Figma file ${FIGMA_FILE_KEY} not found (404).`);
+  if (!res.ok) throw new Error(`Figma image export failed: HTTP ${res.status}.`);
+  const body = await res.json();
+  if (body.err) throw new Error(`Figma image export failed: ${body.err}`);
+  return body.images || {};
+}
+
+async function download(url, dest) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Image download failed: HTTP ${res.status}.`);
+  fs.writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
+}
+
+function pngSize(file) {
+  const b = fs.readFileSync(file);
+  return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+}
+
+// The committed version (HEAD) of a Figma gold, or null when the gold is new.
+function gitGold(theme, id) {
+  try {
+    return execFileSync("git", ["show", `HEAD:docs/qa/figma/${theme}/${id}.png`], { cwd: root, maxBuffer: 64 << 20, stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return null;
+  }
+}
+
+// Same noise filter as export-stitch.mjs: a PNG with < NOISE_MAX_PCT % changed pixels goes back to its git version.
+function filterNoise(theme, id, dest) {
+  const old = gitGold(theme, id);
+  if (!old) return "new file";
+  const d = pngDiff(old, fs.readFileSync(dest));
+  if (!d.sameSize) return `size changed ${d.sizes}, kept`;
+  const pct = `${d.pct.toFixed(3)}% px changed`;
+  if (d.pct < NOISE_MAX_PCT) {
+    fs.writeFileSync(dest, old);
+    return `${pct}, noise → restored from git`;
+  }
+  return `${pct}, kept`;
+}
+
+// Jobs: [{theme, id, node}] for the requested ids. In a dry run a raw node id is accepted as its own job.
+export function jobs(only, dryRun) {
+  const known = new Set([...Object.keys(DARK_FRAMES), ...Object.keys(LIGHT_FRAMES)]);
+  const list = [];
+  for (const [theme, map] of [["dark", DARK_FRAMES], ["light", LIGHT_FRAMES]]) {
+    for (const [id, node] of Object.entries(map)) if (!only || only.includes(id)) list.push({ theme, id, node });
+  }
+  for (const id of only || []) {
+    if (known.has(id)) continue;
+    if (dryRun && NODE_ID.test(id)) list.push({ theme: "node", id: id.replace(":", "-"), node: id });
+    else throw new Error(`Unknown gold id: ${id}${NODE_ID.test(id) ? " (raw node ids only with --dry-run)" : ""}`);
+  }
+  return list;
+}
+
+export async function exportFigma({ only = null, dryRun = false, out = null } = {}) {
+  const list = jobs(only, dryRun);
+  if (!list.length) {
+    console.log("No Figma gold mapped yet (DARK_FRAMES / LIGHT_FRAMES are empty). Nothing to export.");
+    return 0;
+  }
+  const images = await figmaImages([...new Set(list.map((j) => j.node))]);
+  for (const job of list) {
+    const url = images[job.node];
+    if (!url) throw new Error(`${job.theme}/${job.id}: node ${job.node} did not resolve in file ${FIGMA_FILE_KEY}.`);
+    const dir = dryRun ? path.join(out || os.tmpdir(), "figma-export", job.theme) : path.join(FIGMA_DIR, job.theme);
+    fs.mkdirSync(dir, { recursive: true });
+    const dest = path.join(dir, `${job.id}.png`);
+    await download(url, dest);
+    const { width, height } = pngSize(dest);
+    const noise = dryRun ? "dry run" : filterNoise(job.theme, job.id, dest);
+    console.log(`  ✓ ${job.theme}/${job.id}.png (${job.node}) ${width}x${height}; ${noise}${dryRun ? " → " + dest : ""}`);
+  }
+  return list.length;
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  const dryRun = process.argv.includes("--dry-run");
+  const out = listArg("--out")?.[0] ?? null;
+  exportFigma({ only: listArg("--only"), dryRun, out })
+    .then((count) => {
+      if (count) console.log(`\nDone! ${count} Figma frame(s) exported${dryRun ? " (dry run, nothing written to docs/qa/)" : " to docs/qa/figma/{dark,light}/"}.`);
+    })
+    .catch((err) => {
+      console.error(err.message);
+      process.exitCode = 1;
+    });
+}

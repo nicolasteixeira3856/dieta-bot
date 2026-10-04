@@ -11,8 +11,8 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este 
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [adrs/](produto/adrs/) | — | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [Room](android/specifications/room-v2.md) | [adrs/](android/adrs/) | [plans/](android/plans/) | [qa/android/](qa/android/), [validation/](android/validation/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [adrs/](server/adrs/) | [plans/](server/plans/) | `server/tests/` |
-| [design](design/README.md) | fonte de design (Figma `Design`) | — (Figma + golds em `docs/qa/figma/`) | — | [adrs/](design/adrs/) | [índice](design/plans/README.md) | — |
-| [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [plans/](stitch/plans/) | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
+| [design](design/README.md) | fonte de design (Figma `Design`) | — (Figma + golds em `docs/qa/figma/` + `tools/export-figma.mjs`, `tools/gen-tokens.mjs`) | — | [adrs/](design/adrs/) | [índice](design/plans/README.md) | `tools/check-figma.mjs` |
+| [stitch](stitch/README.md) | gate de design congelado: referência dos fluxos não migrados, sem gates novos | — (golds + `tools/export-stitch.mjs`) | — | — | [plans/](stitch/plans/) | `tools/check-stitch.mjs` |
 | [content-policy](content-policy/README.md) | cross-cutting policy | um diretório por plano: server, Android ou infra GCP | [content handling](content-policy/specifications/content-policy.md), [identity/audit](content-policy/specifications/identity-and-audit.md) | [adrs/](content-policy/adrs/) | [índice](content-policy/plans/README.md) | [matriz](content-policy/validation/README.md) |
 | [sdd](sdd/README.md) | manutenção do fluxo | `tools/check-skills.mjs`, skills | — | — | [índice](sdd/plans/README.md) | — |
 
@@ -67,7 +67,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | Arquivo | Papel |
 |---|---|
 | [api-contract.md](api-contract.md) | contrato HTTP vigente |
-| [tokens.md](tokens.md) | valores dos tokens visuais (dono único) |
+| [tokens.md](tokens.md) | valores dos tokens visuais (dono único; seção Aero gerada do Figma `Design`) |
 | [server/deploy-gcp.md](server/deploy-gcp.md) | runbook do host GCP (ADR-013) |
 | [qa/](qa/README.md) | inventário de golds (dono único), capturas e fluxo de QA visual |
 | [`../.stitch/`](../.stitch/) | Design System oficial Google Stitch (`Nutri`) |
