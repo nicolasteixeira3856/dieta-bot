@@ -250,7 +250,7 @@ class RoborazziSmokeTest {
         )
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = dark) {
-                ConfigScreen(ui, ConfigActions())
+                AeroTheme(darkTheme = dark) { ConfigScreen(ui, ConfigActions()) }
             }
         }
         val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/$name.png")

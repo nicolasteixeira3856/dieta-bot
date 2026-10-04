@@ -317,7 +317,9 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onWorkout = vm::setWorkout,
                     )
                 }
-                ConfigScreen(ui, actions) { FlavorConfigRows(nav) }
+                AeroTheme {
+                    ConfigScreen(ui, actions) { FlavorConfigRows(nav) }
+                }
             }
             // ADR-019: dev-only tool routes (A23). prod adds none.
             flavorDestinations(nav)

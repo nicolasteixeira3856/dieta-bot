@@ -2,9 +2,6 @@ package com.nutri.android.feature.config
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -13,6 +10,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,61 +19,66 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.RestartAlt
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
-import com.nutri.android.core.designsystem.Haptic
-import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.DietaBotMeasure
-import com.nutri.android.core.designsystem.DietaBotType
-import com.nutri.android.core.designsystem.Palette
-import com.nutri.android.core.designsystem.SheetActions
 import com.nutri.android.core.designsystem.dietaClick
-import com.nutri.android.feature.onboarding.SlotsScreen
-import com.nutri.android.feature.onboarding.OnboardingUiState
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroBubbleSpec
+import com.nutri.android.core.designsystem.aero.AeroConfirmDialog
+import com.nutri.android.core.designsystem.aero.AeroFieldNumber
+import com.nutri.android.core.designsystem.aero.AeroIcon
+import com.nutri.android.core.designsystem.aero.AeroIconButton
+import com.nutri.android.core.designsystem.aero.AeroIconName
+import com.nutri.android.core.designsystem.aero.AeroMacro
+import com.nutri.android.core.designsystem.aero.AeroMacroTargetCard
+import com.nutri.android.core.designsystem.aero.AeroNoteCard
+import com.nutri.android.core.designsystem.aero.AeroNumberField
+import com.nutri.android.core.designsystem.aero.AeroOptionCard
+import com.nutri.android.core.designsystem.aero.AeroPage
+import com.nutri.android.core.designsystem.aero.AeroPageBubbles
+import com.nutri.android.core.designsystem.aero.AeroScrim
+import com.nutri.android.core.designsystem.aero.AeroSheet
+import com.nutri.android.core.designsystem.aero.AeroText
+import com.nutri.android.core.designsystem.aero.AeroTextTokens
+import com.nutri.android.core.designsystem.aero.aeroGlass
+import com.nutri.android.core.designsystem.aero.cased
 import com.nutri.android.domain.SlotModes
-import com.nutri.android.feature.onboarding.EatCard
-import com.nutri.android.feature.onboarding.KcalField
-import com.nutri.android.feature.onboarding.MacroCard
-import com.nutri.android.feature.onboarding.ModeGroup
-import com.nutri.android.feature.onboarding.PctField
-import com.nutri.android.feature.workout.WorkoutField
+import com.nutri.android.feature.onboarding.AeroOnboardingBar
+import com.nutri.android.feature.onboarding.OnboardingSlotsScreen
+import com.nutri.android.feature.onboarding.OnboardingUiState
+import com.nutri.android.feature.workout.WorkoutEditorState
 
-private val CardShape = RoundedCornerShape(16.dp)
+/*
+ * Config on Aero (A44): Figma `Design`, Release 1, section "Config e push · D7". Frame: 20 dp margins, 24 dp from
+ * the top and between blocks, 32 dp under the note; each block is a Label/Section and a glass group 12 dp below.
+ */
 
-/** Stitch cfg: secondary copy is text at ~78% in dark (#c0c7d0), the muted token in light. */
-private fun Palette.secondary(): Color = if (isDark) text.copy(alpha = 0.78f) else muted
+/** The edge bubbles of the cfg frames. */
+private val Bubbles = listOf(
+    AeroBubbleSpec((-50).dp, (-60).dp, 80.dp),
+    AeroBubbleSpec(372.dp, 520.dp, 46.dp),
+    AeroBubbleSpec((-22).dp, 820.dp, 40.dp),
+)
 
 /**
  * Config (ADR-012 cfg + wipe). Rows open edit sheets; a new ceiling asks before wiping today.
@@ -83,143 +86,123 @@ private fun Palette.secondary(): Color = if (isDark) text.copy(alpha = 0.78f) el
  */
 @Composable
 fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable ColumnScope.() -> Unit = {}) {
-    val p = LocalPalette.current
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(p.phone)
-            .drawBehind {
-                // Stitch: warm glow behind the header.
-                val r = 260.dp.toPx()
-                drawCircle(Brush.radialGradient(listOf(p.gold.copy(alpha = if (p.isDark) 0.08f else 0.10f), Color.Transparent), Offset(size.width / 2f, 0f), r), r, Offset(size.width / 2f, 0f))
-            }
-            .testTag("cfg"),
-    ) {
-        val overlay = ui.editor != null || ui.wipeConfirm
-        // Stitch wipe: backdrop-blur behind the dialog.
-        Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding()) {
-            Header(actions.onBack)
+    val scroll = rememberScrollState()
+    val overlay = ui.editor != null || ui.wipeConfirm
+    Box(Modifier.fillMaxSize().testTag("cfg")) {
+        // wipe: the page behind a dialog or sheet is blurred (Figma layer blur 8) under overlay/scrim.
+        AeroPage(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier), scroll) {
             Column(
                 Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .verticalScroll(scroll)
                     .navigationBarsPadding()
-                    .padding(start = 25.dp, end = 25.dp, bottom = 32.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                SectionLabel("Metas e limites", top = 17.dp)
-                Group {
-                    SettingRow("Meta de calorias", ui.ceilingValue, "cfg-ceiling", detail = ui.ceilingDetail, accent = true) { actions.onOpen(ConfigEditor.CEILING) }
-                    Divider()
-                    SettingRow("Compensação de treinos", ui.eatBackValue, "cfg-eat") { actions.onOpen(ConfigEditor.EAT_BACK) }
-                    Divider()
-                    SettingRow("Macronutrientes (P · C · G)", ui.macrosValue, "cfg-macros") { actions.onOpen(ConfigEditor.MACROS) }
-                }
-                if (ui.slotMode == "same") SectionLabel("Horários das refeições")
-                else Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    SectionLabel("Horários das refeições")
-                    Text(SlotModes.labels.first { it.first == ui.slotMode }.second, style = DietaBotType.labelMd.copy(fontSize = 12.sp), color = p.dim, modifier = Modifier.padding(top = 26.dp, bottom = 11.dp))
-                }
-                Group {
-                    if (ui.slotMode != "same") ui.slotGroups.forEachIndexed { i, group ->
-                        if (i > 0) Divider()
-                        SettingRow(group.name, "", "cfg-group-$i", detail = group.time) { actions.onOpenSlotGroup(i) }
-                    }
-                    else ui.slots.forEachIndexed { i, slot ->
-                        if (i > 0) Divider()
-                        SettingRow(slot.name, slot.time, "cfg-slot-$i") { actions.onOpen(ConfigEditor.SLOTS) }
+                ConfigHeader(actions.onBack)
+                Block("Metas e limites") {
+                    Group {
+                        SettingRow("Meta de calorias", ui.ceilingValue, "cfg-ceiling", detail = ui.ceilingDetail, accent = true) { actions.onOpen(ConfigEditor.CEILING) }
+                        Divider()
+                        SettingRow("Compensação de treinos", ui.eatBackValue, "cfg-eat") { actions.onOpen(ConfigEditor.EAT_BACK) }
+                        Divider()
+                        SettingRow("Macronutrientes (P · C · G)", ui.macrosValue, "cfg-macros") { actions.onOpen(ConfigEditor.MACROS) }
                     }
                 }
-                SectionLabel("Treino de hoje")
-                Group {
-                    SettingRow(
-                        "Gasto calórico do treino",
-                        ui.workoutValue,
-                        "cfg-workout",
-                        detail = "Crédito atual: ${ui.creditKcal} kcal",
-                    ) { actions.onOpen(ConfigEditor.WORKOUT) }
+                Block("Horários das refeições", trailing = SlotModes.labels.first { it.first == ui.slotMode }.second.takeIf { ui.slotMode != "same" }) {
+                    Group {
+                        if (ui.slotMode != "same") {
+                            ui.slotGroups.forEachIndexed { i, group ->
+                                if (i > 0) Divider()
+                                SettingRow(group.name, "", "cfg-group-$i", detail = group.time) { actions.onOpenSlotGroup(i) }
+                            }
+                        } else {
+                            ui.slots.forEachIndexed { i, slot ->
+                                if (i > 0) Divider()
+                                SettingRow(slot.name, slot.time, "cfg-slot-$i") { actions.onOpen(ConfigEditor.SLOTS) }
+                            }
+                        }
+                    }
                 }
-                WipeNote()
+                Block("Treino de hoje") {
+                    Group {
+                        SettingRow(
+                            "Gasto calórico do treino",
+                            ui.workoutValue,
+                            "cfg-workout",
+                            detail = "Crédito atual: ${ui.creditKcal} kcal",
+                        ) { actions.onOpen(ConfigEditor.WORKOUT) }
+                    }
+                }
+                AeroNoteCard(AeroIconName.Info, "Alterar a meta de calorias reinicia os registros do dia atual. O histórico da conversa será mantido.")
                 extra()
             }
+            AeroPageBubbles(Bubbles, scroll, Modifier.statusBarsPadding())
         }
         if (ui.editor == ConfigEditor.SLOTS) {
             val d = ui.draft
-            // Same O3 editor, Config header and final save; no new destination.
-            SlotsScreen(
+            // The O3 editor with Header/Page and the final save; no new destination.
+            OnboardingSlotsScreen(
                 ui = OnboardingUiState(slots = d.slots, slotSchedule = d.slotSchedule),
                 onCount = actions.onSlotCount, onName = actions.onSlotName, onTime = actions.onSlotTime,
                 onBack = actions.onPreviousSlots, onContinue = actions.onSave,
                 onMode = actions.onSlotMode, onCopy = actions.onCopySlots,
                 onConfirmMode = actions.onConfirmSlotMode, onCancelMode = actions.onCancelSlotMode,
-                configHeader = { Header(actions.onPreviousSlots) },
-                ctaLabel = if (d.slotSchedule.last) "Salvar" else "Continuar",
+                bar = AeroOnboardingBar.Header { ConfigHeader(actions.onPreviousSlots) },
+                cta = if (d.slotSchedule.last) "Salvar" else "Continuar",
                 ctaTag = "cfg-save",
                 tag = "cfg",
             )
-        } else ui.editor?.let { EditSheet(it, ui, actions) }
+        } else {
+            ui.editor?.let { EditSheet(it, ui, actions) }
+        }
         if (ui.wipeConfirm) WipeDialog(actions.onConfirmWipe, actions.onCancelWipe)
     }
 }
 
 // ----------------------------------------------------------------------------- list
 
+/** Header/Page: glass back button (caret-left) and the Title, 12 dp apart. */
 @Composable
-private fun Header(onBack: () -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier.fillMaxWidth().padding(start = 25.dp, end = 25.dp, top = 13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier
-                .size(37.dp)
-                .clip(CircleShape)
-                .background(p.surf2)
-                .border(1.dp, p.line, CircleShape)
-                .dietaClick(onClick = onBack)
-                .testTag("cfg-back"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Voltar", tint = p.text, modifier = Modifier.size(20.dp))
-        }
-        Spacer(Modifier.width(17.dp))
-        Text(
-            "Configurações",
-            style = DietaBotType.headlineLg.copy(fontSize = 24.5.sp, lineHeight = 32.sp, letterSpacing = (-0.02).em),
-            color = p.text,
-        )
+private fun ConfigHeader(onBack: () -> Unit) {
+    Row(Modifier.fillMaxWidth().height(44.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        AeroIconButton(AeroIconName.CaretLeft, onBack, contentDescription = "Voltar", modifier = Modifier.testTag("cfg-back"))
+        AeroText("Configurações", style = Aero.type.title.copy(color = Aero.colors.textPrimary))
     }
 }
 
+/** A block: Label/Section in text/muted (an optional Caption on the right), then the group 12 dp below. */
 @Composable
-private fun SectionLabel(text: String, top: Dp = 26.dp) {
-    val p = LocalPalette.current
-    Text(
-        text.uppercase(),
-        style = DietaBotType.labelCaps.copy(fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.04.em),
-        color = p.secondary(),
-        modifier = Modifier.padding(top = top, bottom = 11.dp),
-    )
+private fun Block(label: String, trailing: String? = null, content: @Composable ColumnScope.() -> Unit) {
+    val c = Aero.colors
+    val type = Aero.type
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // 16 dp for the label alone, 18 with the Caption (cfgS).
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            AeroText(AeroTextTokens.labelSection.cased(label), style = type.labelSection.copy(color = c.textMuted))
+            if (trailing != null) AeroText(trailing, style = type.caption.copy(color = c.textMuted), maxLines = 1)
+        }
+        content()
+    }
 }
 
+/** Glass group card of Row/Setting, divided by border/line. Also hosts the dev rows (ADR-019). */
 @Composable
 internal fun Group(content: @Composable ColumnScope.() -> Unit) {
-    val p = LocalPalette.current
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(CardShape)
-            .background(if (p.isDark) p.surf2 else p.panel)
-            .border(1.dp, p.line, CardShape),
-        content = content,
-    )
+    // The rows sit inside the 1 dp border.
+    Column(Modifier.fillMaxWidth().aeroGlass(Aero.shapes.card).padding(1.dp), content = content)
 }
 
 @Composable
 private fun Divider() {
-    Box(Modifier.fillMaxWidth().height(1.dp).background(LocalPalette.current.line))
+    Box(Modifier.fillMaxWidth().height(1.dp).background(Aero.colors.borderLine))
 }
 
+/**
+ * Row/Setting: Body title with an optional Caption detail, the value (Body text/muted, or Body/Strong accent) and
+ * the muted caret-right, 16 dp padding and 8 dp gaps; no fill, the row sits in the glass group.
+ */
 @Composable
 internal fun SettingRow(
     title: String,
@@ -229,72 +212,40 @@ internal fun SettingRow(
     accent: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val p = LocalPalette.current
+    val c = Aero.colors
+    val type = Aero.type
     Row(
         Modifier
             .fillMaxWidth()
             .dietaClick(onClick = onClick)
-            .padding(start = 17.dp, end = 15.dp, top = 16.dp, bottom = 16.dp)
+            .padding(16.dp)
             .testTag(tag),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f).padding(end = 8.dp)) {
-            Text(title, style = DietaBotType.bodyLg.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.W500), color = p.text)
-            if (detail != null) {
-                Text(detail, style = DietaBotType.labelMd.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.W400, letterSpacing = 0.06.em), color = p.secondary())
-            }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            AeroText(title, style = type.body.copy(color = c.textPrimary))
+            if (detail != null) AeroText(detail, style = type.caption.copy(color = c.textMuted))
         }
-        Text(
-            value,
-            style = DietaBotType.bodyLg.copy(fontSize = 14.sp, lineHeight = 22.sp, fontWeight = if (accent) FontWeight.W600 else FontWeight.W400, letterSpacing = 0.sp),
-            color = if (accent) p.gold else p.secondary(),
-            modifier = Modifier.testTag("$tag-value"),
-        )
-        Spacer(Modifier.width(6.dp))
-        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = p.secondary(), modifier = Modifier.size(24.dp))
+        if (value.isNotEmpty()) {
+            AeroText(
+                value,
+                Modifier.testTag("$tag-value"),
+                style = if (accent) type.bodyStrong.copy(color = c.accentDefault) else type.body.copy(color = c.textMuted),
+                maxLines = 1,
+            )
+        }
+        AeroIcon(AeroIconName.CaretRight, c.iconMuted, size = 20.dp)
     }
 }
 
-@Composable
-private fun WipeNote() {
-    val p = LocalPalette.current
-    Row(
-        Modifier
-            .padding(top = 25.dp)
-            .fillMaxWidth()
-            .clip(CardShape)
-            .background(if (p.isDark) p.surf else p.surf2)
-            .border(1.dp, p.line, CardShape)
-            .padding(start = 17.dp, end = 17.dp, top = 16.dp, bottom = 16.dp),
-    ) {
-        Icon(Icons.Outlined.Info, contentDescription = null, tint = p.secondary(), modifier = Modifier.padding(top = 2.dp).size(20.dp))
-        Spacer(Modifier.width(10.dp))
-        Text(
-            "Alterar a meta de calorias reinicia os registros do dia atual. O histórico da conversa será mantido.",
-            style = DietaBotType.bodyMd.copy(fontSize = 11.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
-            color = p.secondary(),
-        )
-    }
-}
+// ----------------------------------------------------------------------------- sheets (no gold)
 
-// ----------------------------------------------------------------------------- sheets
-
-@Composable
-private fun Scrim(color: Color, onDismiss: () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(color)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
-    )
-}
-
+/** Sheet/Bottom over the blurred list: title, the subtitle and the editor (scrolled past half the screen), Salvar + Cancelar. */
 @Composable
 private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: ConfigActions) {
-    val p = LocalPalette.current
     BackHandler(onBack = a.onClose)
-    Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), a.onClose)
-    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
+    AeroScrim(a.onClose)
     val (title, subtitle) = when (editor) {
         ConfigEditor.CEILING -> "Meta de calorias" to "Salvar um novo valor reinicia os registros de hoje."
         ConfigEditor.EAT_BACK -> "Compensação de treinos" to "Quanto do treino de hoje volta para a meta."
@@ -302,172 +253,168 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
         ConfigEditor.SLOTS -> "Horários das refeições" to "Mudar nome ou horário não apaga o que você já registrou hoje."
         ConfigEditor.WORKOUT -> "Treino de hoje" to null
     }
-    Column(
-        Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.9f)
-            .clip(shape)
-            .background(if (p.isDark) p.panel else p.phone)
-            .border(1.dp, p.line.copy(alpha = 0.7f), shape)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            .imePadding()
-            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets(bottom = 24.dp)))
-            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
-            .testTag("cfg-sheet"),
+    AeroSheet(
+        title = title,
+        primary = "Salvar",
+        onPrimary = a.onSave,
+        secondary = "Cancelar",
+        onSecondary = a.onClose,
+        primaryEnabled = ui.canSave,
+        primaryTag = "cfg-save",
+        secondaryTag = "cfg-cancel",
+        bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+        modifier = Modifier.align(Alignment.BottomCenter).imePadding().testTag("cfg-sheet"),
     ) {
-        Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
-        Text(title, style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        if (subtitle != null) {
-            Text(subtitle, style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
-        } else {
-            Spacer(Modifier.height(16.dp))
-        }
-        Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+        Column(
+            Modifier
+                .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.5f)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            if (subtitle != null) AeroText(subtitle, style = Aero.type.body.copy(color = Aero.colors.textMuted))
             when (editor) {
                 ConfigEditor.CEILING -> CeilingEditor(ui.draft, a)
                 ConfigEditor.EAT_BACK -> EatBackEditor(ui.draft, a)
                 ConfigEditor.MACROS -> MacrosEditor(ui.draft, a)
                 ConfigEditor.SLOTS -> Unit // Full-screen editor is rendered by ConfigScreen.
-                // A22: same editor as the Home sheet (homeW).
-                ConfigEditor.WORKOUT -> WorkoutField(ui.draft.workoutEditor, a.onWorkout, tag = "cfg-workout", autoFocus = true)
+                // A22: the field of the Home sheet (homeW).
+                ConfigEditor.WORKOUT -> WorkoutEditor(ui.draft.workoutEditor, a.onWorkout)
             }
         }
-        SheetActions(
-            primary = "Salvar",
-            onPrimary = a.onSave,
-            secondary = "Cancelar",
-            onSecondary = a.onClose,
-            primaryEnabled = ui.canSave,
-            primaryTag = "cfg-save",
-            secondaryTag = "cfg-cancel",
-            // A20: >= 24 dp between the last scrolled item and the actions.
-            modifier = Modifier.padding(top = 24.dp),
-        )
     }
 }
 
+private val CeilingModes = listOf(
+    Triple("same", "Mesma meta todos os dias", "Um valor fixo para a semana inteira."),
+    Triple("weekdayWeekend", "Metas separadas (útil e fim de semana)", "Sábado e domingo com limites diferentes."),
+    Triple("seven", "Personalizado por dia", "Cada dia da semana com sua própria meta."),
+)
+
 @Composable
 private fun CeilingEditor(d: ConfigDraft, a: ConfigActions) {
-    ModeGroup(d.ceilingMode, a.onCeilingMode, tag = "cfg")
-    Spacer(Modifier.height(16.dp))
-    when (d.ceilingMode) {
-        "weekdayWeekend" -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            KcalField(d.weekdayField, a.onWeekday, Modifier.weight(1f).testTag("cfg-weekday"), caption = "Dias úteis", compact = true)
-            KcalField(d.weekendField, a.onWeekend, Modifier.weight(1f).testTag("cfg-weekend"), caption = "Fim de semana", compact = true)
+    val focus = LocalFocusManager.current
+    val done = KeyboardActions(onDone = { focus.clearFocus() })
+    Column(Modifier.testTag("cfg-modes"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        CeilingModes.forEach { (value, title, body) ->
+            AeroOptionCard(title, body, selected = d.ceilingMode == value, onClick = { a.onCeilingMode(value) }, onGlass = true, modifier = Modifier.testTag("cfg-mode-$value"))
         }
-        "seven" -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    }
+    when (d.ceilingMode) {
+        "weekdayWeekend" -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            CaptionedKcal("Dias úteis", d.weekdayField, a.onWeekday, "cfg-weekday", Modifier.weight(1f))
+            CaptionedKcal("Fim de semana", d.weekendField, a.onWeekend, "cfg-weekend", Modifier.weight(1f))
+        }
+        "seven" -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             listOf("Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom").chunked(2).forEachIndexed { row, pair ->
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     pair.forEachIndexed { col, label ->
                         val i = row * 2 + col
-                        KcalField(d.dayFields[i], { a.onDay(i, it) }, Modifier.weight(1f).testTag("cfg-day-$i"), caption = label, compact = true)
+                        CaptionedKcal(label, d.dayFields[i], { a.onDay(i, it) }, "cfg-day-$i", Modifier.weight(1f))
                     }
                     if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
         }
-        else -> KcalField(d.sameField, a.onSame, Modifier.fillMaxWidth().testTag("cfg-same"))
+        else -> AeroNumberField(
+            d.sameField, a.onSame, "kcal", Modifier.fillMaxWidth(),
+            fieldModifier = Modifier.testTag("cfg-same"),
+            placeholder = "—", icon = AeroIconName.Lightning, imeAction = ImeAction.Done, keyboardActions = done, onGlass = true,
+        )
+    }
+}
+
+/** A compact kcal field with its day caption above, as O1. */
+@Composable
+private fun CaptionedKcal(caption: String, value: String, onChange: (String) -> Unit, tag: String, modifier: Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        AeroText(AeroTextTokens.labelSection.cased(caption), style = Aero.type.labelSection.copy(color = Aero.colors.textDim))
+        AeroNumberField(value, onChange, "kcal", fieldModifier = Modifier.testTag(tag), compact = true, placeholder = "—", onGlass = true)
     }
 }
 
 @Composable
 private fun EatBackEditor(d: ConfigDraft, a: ConfigActions) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        EatCard(d.eat == "zero", "0% (Não compensar)", "O gasto do treino não altera a meta do dia.", "cfg-eat-zero", { a.onEat("zero") })
-        EatCard(d.eat == "partial", "Porcentagem personalizada", "Percentual do treino somado à meta.", "cfg-eat-partial", { a.onEat("partial") }) {
-            if (d.eat == "partial") PctField(d.pct, a.onPct, tag = "cfg-pct")
-        }
-        EatCard(d.eat == "full", "100% (Compensação total)", "Todo o gasto do treino volta para a meta.", "cfg-eat-full", { a.onEat("full") })
+        AeroOptionCard("0% (Não compensar)", "O gasto do treino não altera a meta do dia.", selected = d.eat == "zero", onClick = { a.onEat("zero") }, onGlass = true, modifier = Modifier.testTag("cfg-eat-zero"))
+        AeroOptionCard(
+            "Porcentagem personalizada",
+            "Percentual do treino somado à meta.",
+            selected = d.eat == "partial",
+            onClick = { a.onEat("partial") },
+            onGlass = true,
+            modifier = Modifier.testTag("cfg-eat-partial"),
+            extra = if (d.eat == "partial") {
+                { AeroNumberField(d.pct, a.onPct, "% do treino", Modifier.padding(top = 4.dp).fillMaxWidth(), fieldModifier = Modifier.testTag("cfg-pct"), compact = true, onGlass = true) }
+            } else {
+                null
+            },
+        )
+        AeroOptionCard("100% (Compensação total)", "Todo o gasto do treino volta para a meta.", selected = d.eat == "full", onClick = { a.onEat("full") }, onGlass = true, modifier = Modifier.testTag("cfg-eat-full"))
     }
 }
 
 @Composable
 private fun MacrosEditor(d: ConfigDraft, a: ConfigActions) {
-    val p = LocalPalette.current
+    val focus = remember { List(3) { FocusRequester() } }
+    val rows = listOf(
+        Triple("Proteína", AeroMacro.Protein, "cfg-protein"),
+        Triple("Carboidrato", AeroMacro.Carbs, "cfg-carb"),
+        Triple("Gordura", AeroMacro.Fat, "cfg-fat"),
+    )
+    val values = listOf(d.proteinField, d.carbField, d.fatField)
+    val changes = listOf(a.onProtein, a.onCarb, a.onFat)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        MacroCard("Proteína", "4 kcal/g", d.proteinField, p.protein, a.onProtein, "cfg-protein")
-        MacroCard("Carboidrato", "4 kcal/g", d.carbField, p.carbs, a.onCarb, "cfg-carb")
-        MacroCard("Gordura", "9 kcal/g", d.fatField, p.fat, a.onFat, "cfg-fat")
+        rows.forEachIndexed { i, (name, macro, tag) ->
+            AeroMacroTargetCard(
+                name, if (macro == AeroMacro.Fat) "9 kcal/g" else "4 kcal/g", macro, values[i], changes[i],
+                onAdjust = { runCatching { focus[i].requestFocus() } },
+                onGlass = true,
+                modifier = Modifier.testTag(tag),
+                fieldModifier = Modifier.focusRequester(focus[i]).testTag("$tag-field"),
+            )
+        }
     }
+}
+
+/** Field/Number of the homeW sheet with the live credit line; focused on open, cursor at the end. */
+@Composable
+private fun WorkoutEditor(state: WorkoutEditorState, onChange: (String) -> Unit) {
+    val focus = remember { FocusRequester() }
+    var text by remember { mutableStateOf(TextFieldValue(state.input, TextRange(state.input.length))) }
+    if (text.text != state.input) text = TextFieldValue(state.input, TextRange(state.input.length))
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    AeroFieldNumber(
+        value = text,
+        onValueChange = { v ->
+            val clean = WorkoutEditorState.clean(v.text)
+            text = if (clean == v.text) v else TextFieldValue(clean, TextRange(clean.length))
+            if (clean != state.input) onChange(clean)
+        },
+        unit = "kcal",
+        helper = state.creditLine,
+        icon = AeroIconName.Barbell,
+        focusRequester = focus,
+        fieldTag = "cfg-workout-field",
+        helperTag = "cfg-workout-credit",
+        onGlass = true,
+    )
 }
 
 // ----------------------------------------------------------------------------- wipe
 
+/** wipe: Dialog/Confirm Tone=Danger over the blurred Config. Also used by the dev memory tool (ADR-019). */
 @Composable
 internal fun BoxScope.WipeDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
-    val p = LocalPalette.current
-    BackHandler(onBack = onCancel)
-    // Stitch wipe: near-black/80 dark, text colour/40 light (same scrim as chatP).
-    Scrim(if (p.isDark) Color(0xFF07090D).copy(alpha = 0.8f) else p.text.copy(alpha = 0.4f), onCancel)
-    val shape = RoundedCornerShape(24.dp)
-    Column(
-        Modifier
-            .align(Alignment.Center)
-            .padding(horizontal = 20.dp)
-            .fillMaxWidth()
-            .clip(shape)
-            .background(if (p.isDark) p.surf2 else p.surf)
-            .border(1.dp, p.line, shape)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            .padding(24.dp)
-            .testTag("cfg-wipe"),
-    ) {
-        // Stitch: rounded square with a ring in dark, plain circle in light.
-        val badge = if (p.isDark) RoundedCornerShape(16.dp) else CircleShape
-        Box(
-            Modifier
-                .size(if (p.isDark) 44.dp else 48.dp)
-                .clip(badge)
-                .background(p.bad.copy(alpha = if (p.isDark) 0.16f else 0.12f))
-                .then(if (p.isDark) Modifier.border(1.dp, p.bad.copy(alpha = 0.3f), badge) else Modifier),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Outlined.RestartAlt, contentDescription = null, tint = p.bad, modifier = Modifier.size(22.dp))
-        }
-        Text(
-            "Reiniciar registros de hoje?",
-            style = DietaBotType.headlineMd.copy(fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.03).em),
-            color = p.text,
-            modifier = Modifier.padding(top = 16.dp),
-        )
-        Text(
-            "Ao atualizar sua meta calórica, as refeições de hoje serão reiniciadas para o novo cálculo de saldo. O histórico da conversa e os dias anteriores serão preservados.",
-            style = DietaBotType.bodyLg.copy(fontSize = 13.7.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
-            color = p.muted,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Row(
-            Modifier
-                .padding(top = 26.dp)
-                .fillMaxWidth()
-                .height(52.dp)
-                .shadow(12.dp, CircleShape, ambientColor = p.bad, spotColor = p.bad)
-                .clip(CircleShape)
-                .background(p.bad)
-                .dietaClick(Haptic.Confirm, onClick = onConfirm)
-                .testTag("cfg-wipe-confirm"),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val on = if (p.isDark) p.ctaText else p.surf
-            Icon(Icons.Outlined.RestartAlt, contentDescription = null, tint = on, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(10.dp))
-            Text("Confirmar e reiniciar dia", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = on)
-        }
-        Box(
-            Modifier
-                .padding(top = 12.dp)
-                .fillMaxWidth()
-                .height(52.dp)
-                .clip(CircleShape)
-                .background(if (p.isDark) p.surf2 else p.panel)
-                .then(if (p.isDark) Modifier.border(1.dp, p.line, CircleShape) else Modifier)
-                .dietaClick(onClick = onCancel)
-                .testTag("cfg-wipe-cancel"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("Cancelar", style = DietaBotType.labelLg.copy(fontSize = 15.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text)
-        }
-    }
+    AeroConfirmDialog(
+        title = "Reiniciar registros de hoje?",
+        body = "Ao atualizar sua meta calórica, as refeições de hoje serão reiniciadas para o novo cálculo de saldo. O histórico da conversa e os dias anteriores serão preservados.",
+        primary = "Confirmar e reiniciar dia",
+        onPrimary = onConfirm,
+        secondary = "Cancelar",
+        onSecondary = onCancel,
+        dangerIcon = AeroIconName.ArrowCounterClockwise,
+        primaryTag = "cfg-wipe-confirm",
+        secondaryTag = "cfg-wipe-cancel",
+        modifier = Modifier.testTag("cfg-wipe"),
+    )
 }

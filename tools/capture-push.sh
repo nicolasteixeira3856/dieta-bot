@@ -92,8 +92,11 @@ EOF
   return 1
 }
 
-# First Home after onboarding asks POST_NOTIFICATIONS (Android 13+).
+# First Home after onboarding asks POST_NOTIFICATIONS (Android 13+). capture-onboarding.sh grants it up front (A21):
+# take it back so this journey sees the prompt.
 "$ADB" shell am force-stop $PKG
+"$ADB" shell pm revoke $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
+"$ADB" shell pm clear-permission-flags $PKG android.permission.POST_NOTIFICATIONS user-set user-fixed >/dev/null 2>&1
 "$ADB" shell appops set $PKG SCHEDULE_EXACT_ALARM default >/dev/null 2>&1
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 4
 expect "Home asks for notification permission" 'permission_allow_button'

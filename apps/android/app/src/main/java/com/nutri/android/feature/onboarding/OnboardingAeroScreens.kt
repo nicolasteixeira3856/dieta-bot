@@ -87,6 +87,9 @@ import kotlin.math.roundToInt
  */
 
 private val CtaHeight = 58.dp
+
+/** Disabled O1 controls (o1e): 38 % opacity through one save layer. */
+private const val DISABLED_ALPHA = 0.38f
 private val CtaBottom = 32.dp
 
 /** The edge bubbles shared by the onboarding frames: one above the top-left corner, two on the side margins. */
@@ -101,6 +104,9 @@ sealed interface AeroOnboardingBar {
     data class Stepper(val step: Int) : AeroOnboardingBar
     data class Intake(val step: Int) : AeroOnboardingBar
     data class Brand(val step: Int, val onHelp: () -> Unit) : AeroOnboardingBar
+
+    /** Another screen's own header (the Config meal editor: Header/Page), no stepper. */
+    class Header(val content: @Composable () -> Unit) : AeroOnboardingBar
 }
 
 /**
@@ -154,6 +160,7 @@ private fun TopBar(bar: AeroOnboardingBar, onBack: (() -> Unit)?) {
     val c = Aero.colors
     val type = Aero.type
     when (bar) {
+        is AeroOnboardingBar.Header -> bar.content()
         is AeroOnboardingBar.Stepper -> AeroStepper(bar.step)
         is AeroOnboardingBar.Intake, is AeroOnboardingBar.Brand -> Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(Modifier.fillMaxWidth().height(44.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -181,13 +188,13 @@ private fun TopBar(bar: AeroOnboardingBar, onBack: (() -> Unit)?) {
     }
 }
 
-/** Eyebrow "ONBOARDING n/4 • SECTION", title and subtitle (Intro frame, 8 dp apart). */
+/** Eyebrow "ONBOARDING n/4 • SECTION" (none when [step] is null), title and subtitle (Intro frame, 8 dp apart). */
 @Composable
-private fun Intro(step: String, section: String, title: String, subtitle: String, leadingDot: Boolean = false) {
+private fun Intro(step: String?, section: String, title: String, subtitle: String, leadingDot: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (step != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (leadingDot) Box(Modifier.size(6.dp).background(c.accentDefault, CircleShape))
             AeroText(AeroTextTokens.labelSection.cased(step), style = type.labelSection.copy(color = c.textMuted))
             Box(Modifier.size(4.dp).background(c.borderLine, CircleShape))
@@ -430,7 +437,8 @@ fun EatScreen(
 // ---------------------------------------------------------------- O3
 
 /**
- * O3 meal distribution on Aero. The Config meal editor keeps [SlotsScreen] until its own plan (A44).
+ * O3 meal distribution on Aero. The Config meal editor (A44) reuses it with its own [bar] (Header/Page, no
+ * eyebrow), CTA and tag prefix ("cfg").
  */
 @Composable
 fun OnboardingSlotsScreen(
@@ -445,42 +453,46 @@ fun OnboardingSlotsScreen(
     onConfirmMode: () -> Unit = {},
     onCancelMode: () -> Unit = {},
     initialPicking: Int = -1,
+    bar: AeroOnboardingBar = AeroOnboardingBar.Intake(3),
+    cta: String = "Continuar",
+    ctaTag: String = "o3-continue",
+    tag: String = "o3",
 ) {
     BackHandler(onBack = onBack)
     var picking by remember { mutableIntStateOf(initialPicking) }
     val schedule = ui.slotSchedule
     Box(Modifier.fillMaxSize()) {
         AeroOnboardingFrame(
-            bar = AeroOnboardingBar.Intake(3),
-            cta = "Continuar",
+            bar = bar,
+            cta = cta,
             ctaEnabled = ui.o3Valid,
             onCta = onContinue,
             onBack = onBack,
-            ctaTag = "o3-continue",
+            ctaTag = ctaTag,
             bubbles = if (schedule.mode == "same") bubbles(520, 820) else bubbles(560, 880),
             // o3t: the page behind the time dialog is blurred (Figma layer blur 8) under overlay/scrim.
             modifier = if (picking in ui.slots.indices) Modifier.blur(8.dp) else Modifier,
         ) {
-            Intro("Onboarding 3/4", "Rotina", "Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.")
+            Intro(if (bar is AeroOnboardingBar.Header) null else "Onboarding 3/4", "Rotina", "Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.")
             Group("Dias da semana") {
                 val modes = SlotModes.labels
                 AeroTabs(
-                    modes.map { (mode, label) -> AeroChoice(label, "o3-mode-$mode") },
+                    modes.map { (mode, label) -> AeroChoice(label, "$tag-mode-$mode") },
                     selected = modes.indexOfFirst { it.first == schedule.mode },
                     onSelect = { onMode(modes[it].first) },
                 )
             }
             if (schedule.mode != "same") {
-                GroupStep(schedule)
-                if (schedule.index > 0) CopyPill("Copiar de ${schedule.groups[schedule.index - 1].label}", onCopy)
+                GroupStep(schedule, tag)
+                if (schedule.index > 0) CopyPill("Copiar de ${schedule.groups[schedule.index - 1].label}", onCopy, tag)
             }
             Group("Quantidade de refeições") {
                 val counts = (SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS).toList()
                 AeroSegmented(
-                    counts.map { AeroChoice(it.toString(), "o3-count-$it") },
+                    counts.map { AeroChoice(it.toString(), "$tag-count-$it") },
                     selected = counts.indexOf(ui.slots.size),
                     onSelect = { onCount(counts[it]) },
-                    modifier = Modifier.testTag("o3-count"),
+                    modifier = Modifier.testTag("$tag-count"),
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -493,6 +505,7 @@ fun OnboardingSlotsScreen(
                         suggestions = SlotSuggestions.namesFor(slot.minutes),
                         onName = { onName(i, it) },
                         onPickTime = { picking = i },
+                        tag = tag,
                     )
                 }
             }
@@ -515,12 +528,12 @@ fun OnboardingSlotsScreen(
 
 /** o3s: group name, "Etapa n de m" and one segment per group. */
 @Composable
-private fun GroupStep(schedule: SlotScheduleDraft) {
+private fun GroupStep(schedule: SlotScheduleDraft, tag: String) {
     val c = Aero.colors
     val type = Aero.type
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            AeroText(schedule.group.label, Modifier.weight(1f).testTag("o3-group"), style = type.title.copy(color = c.textPrimary))
+            AeroText(schedule.group.label, Modifier.weight(1f).testTag("$tag-group"), style = type.title.copy(color = c.textPrimary))
             AeroText("Etapa ${schedule.index + 1} de ${schedule.groups.size}", style = type.caption.copy(color = c.textMuted))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -538,7 +551,7 @@ private fun GroupStep(schedule: SlotScheduleDraft) {
 
 /** o3s "Copiar de {grupo}": tinted pill with the copy icon. */
 @Composable
-private fun CopyPill(label: String, onCopy: () -> Unit) {
+private fun CopyPill(label: String, onCopy: () -> Unit, tag: String) {
     val c = Aero.colors
     val pill = RoundedCornerShape(percent = 50)
     Row(
@@ -549,7 +562,7 @@ private fun CopyPill(label: String, onCopy: () -> Unit) {
             .background(c.surfaceTint)
             .border(1.dp, c.borderLine, pill)
             .dietaClick(onClick = onCopy)
-            .testTag("o3-copy"),
+            .testTag("$tag-copy"),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {

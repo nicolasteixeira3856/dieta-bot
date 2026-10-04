@@ -110,11 +110,11 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
     fun o3s_light() = check("o3s", dark = false, fullPage = true) { O3S() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h918dp-xhdpi")
-    fun cfgS_dark() = check("cfgS", dark = true, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { CfgS() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h845dp-xhdpi")
+    fun cfgS_dark() = check("cfgS", dark = true, fullPage = true) { CfgS() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h884dp-xhdpi")
-    fun cfgS_light() = check("cfgS", dark = false, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { CfgS() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h845dp-xhdpi")
+    fun cfgS_light() = check("cfgS", dark = false, fullPage = true) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
     fun o4_dark() = check("o4", dark = true) { O4() }
@@ -247,11 +247,11 @@ class StitchGoldTest {
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
 
     /** cfg gold is a full-page capture (936 dp dark, 930 dp light) with the info note near the end. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h936dp-xhdpi")
-    fun cfg_dark() = check("cfg", dark = true, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { Cfg() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h917dp-xhdpi")
+    fun cfg_dark() = check("cfg", dark = true, fullPage = true) { Cfg() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
-    fun cfg_light() = check("cfg", dark = false, fullPage = true, footerDp = IGNORE_BOTTOM_DP) { Cfg() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h917dp-xhdpi")
+    fun cfg_light() = check("cfg", dark = false, fullPage = true) { Cfg() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun wipe_dark() = check("wipe", dark = true) { Cfg(wipe = true) }

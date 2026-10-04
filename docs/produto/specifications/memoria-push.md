@@ -2,7 +2,7 @@
 
 ## Contexto e objetivo
 
-Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada. A foto e os avisos de memória no Chat seguem os golds da fonte declarada no [inventário](../../qa/README.md#golds), desenhados no Figma `Design` com o design system Aero ([ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md)).
+Perfil editável depois do onboarding. Foto no Chat. Lembrete no horário do slot. Memória curta cifrada. A Config, o diálogo de reinício, a foto e os avisos de memória no Chat e o lembrete seguem os golds da fonte declarada no [inventário](../../qa/README.md#golds), desenhados no Figma `Design` com o design system Aero ([ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md)).
 
 ## Escopo
 
@@ -41,14 +41,14 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 6. Mudou nome/hora, modo ou dias: não apaga logs. IDs mantidos continuam associados; logs sem slot do dia vão para "Outros" (ADR-021 regra 7).
 7. Back → Home.
 8. Copy dos sheets: "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
-9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar`: dois botões pill de largura total e 52 dp. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema. Controles tocáveis têm ripple.
+9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar` do `Sheet/Bottom`: `Button/Primary` e a pílula secundária, de largura total. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema. Controles tocáveis têm ripple.
 
 ## Regras — push
 
 1. Exact alarm no horário de cada slot do dia corrente em America/Sao_Paulo (inexato quando a permissão não permite exato).
 2. Só dispara se o slot ainda não tem log nem skip.
 3. Copy: “{nome}. Ainda não registrou.”
-4. Ações: Registrar → Chat. Pular → skip + cancela o alarm daquele slot.
+4. Ações: Registrar → Chat. Pular → skip + cancela o alarm daquele slot. O app controla só o ícone pequeno (garfo e faca), o título, as ações e a cor `accent/default` do tema do sistema; o resto é o modelo do sistema.
 5. Fds: só os slots cujo days inclui sábado/domingo. Não cair para “só almoço + janta” se ele cadastrou mais. Reagendamento às 00:05 SP, no boot, ao iniciar e ao editar; o fluxo em execução troca o dia em até 30 s. Alarmes de grupos removidos são cancelados.
 6. Sem Firebase.
 
@@ -89,3 +89,4 @@ Comportamento: `produto`. Client: `android`.
 - [A34](../../android/plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
 - [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A43](../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
+- [A44](../../android/plans/pending_manual_validation/a44-config-push-aero.md) — Config and push on Aero

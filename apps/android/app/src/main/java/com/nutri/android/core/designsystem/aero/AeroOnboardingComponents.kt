@@ -226,6 +226,8 @@ fun AeroNumberField(
     decimal: Boolean = false,
     imeAction: ImeAction = ImeAction.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    /** On a sheet or card that is already glass: the glass fill alone. */
+    onGlass: Boolean = false,
 ) {
     val c = Aero.colors
     val type = Aero.type
@@ -245,7 +247,7 @@ fun AeroNumberField(
                 Modifier
                     .fillMaxWidth()
                     .height(if (compact) 52.dp else 58.dp)
-                    .aeroGlass(Aero.shapes.card, border = c.borderLine, shadow = false)
+                    .aeroGlass(Aero.shapes.card, border = c.borderLine, shadow = false, backdropBlurred = onGlass)
                     .padding(horizontal = if (compact) 15.dp else 19.dp),
                 horizontalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -369,6 +371,8 @@ fun AeroMacroTargetCard(
     onAdjust: () -> Unit,
     modifier: Modifier = Modifier,
     fieldModifier: Modifier = Modifier,
+    /** On a sheet that is already glass: the glass fill alone. */
+    onGlass: Boolean = false,
 ) {
     val c = Aero.colors
     val type = Aero.type
@@ -380,7 +384,7 @@ fun AeroMacroTargetCard(
     Row(
         modifier
             .fillMaxWidth()
-            .aeroGlass(Aero.shapes.card)
+            .aeroGlass(Aero.shapes.card, backdropBlurred = onGlass)
             .padding(horizontal = 17.dp, vertical = 15.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
