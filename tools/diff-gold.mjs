@@ -92,8 +92,11 @@ const SCREEN_REPORT_ONLY = new Set(["light/chatQ", "dark/chatM", "light/chatM"])
 // homeW (A40): the 1414 dp page puts the sheet at its end and the blurred Home above it; on the 844 dp phone the
 // sheet covers the lower Home. The screen is reported; the blurred Home on top (gold rows 40-450 dp) and the sheet
 // (bottom-anchored, 1061 dp to 40 dp above the page end) are gated.
+// o3t (A41): the frame puts Dialog/TimeWheel 300 dp down a 1268 dp page; the app centres it on the screen. The
+// dialog box (border, title, wheels, actions) is gated, aligned on the screen centre.
 const FIGMA = {
   conflicts: new Set(["homeW"]),
+  center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] } },
   regions: { homeW: [0, 80, 780, 900] },
   bottom: { homeW: { dark: [0, 2122, 780, 2748], light: [0, 2122, 780, 2748] } },
 };
@@ -258,10 +261,12 @@ for (const key of ids) {
   }
   const app = blurred(appRaw);
   const gold = blurred(goldRaw);
-  const center = stitch ? CENTER_REGIONS[id]?.[theme] : undefined;
+  const center = stitch ? CENTER_REGIONS[id]?.[theme] : FIGMA.center[id]?.[theme];
   if (center) {
     let bestDy = 0;
-    const part = regionScore(app, gold, center, Math.round((appRaw.h - goldRaw.h) / 2), (dy) => { bestDy = dy; });
+    // Stitch: the dialog is centred in the gold too; Figma: only in the app.
+    const shift = stitch ? Math.round((appRaw.h - goldRaw.h) / 2) : Math.round((appRaw.h - (center[3] - center[1])) / 2) - center[1];
+    const part = regionScore(app, gold, center, shift, (dy) => { bestDy = dy; });
     const inkRatio = dialogInk(app, center, bestDy) / Math.max(1, dialogInk(gold, center));
     const partOk = part <= max && inkRatio >= 0.8 && inkRatio <= 1.25;
     if (!partOk) failed = true;

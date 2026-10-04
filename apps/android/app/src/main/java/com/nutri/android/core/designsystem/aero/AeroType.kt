@@ -27,7 +27,7 @@ val NunitoSans = FontFamily(
     nunito(400, italic = true),
 )
 
-/** Figma line boxes: half-leading on both sides, never trimmed. */
+/** Figma line boxes: half-leading on both sides, never trimmed. AeroText also clamps a line to the line height. */
 private val figmaLines = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
 
 /** Tabular figures: every number in Aero uses them (ADR-030 § 3). */

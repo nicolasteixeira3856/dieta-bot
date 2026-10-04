@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -65,8 +64,8 @@ fun AeroHeaderDay(
     val type = Aero.type
     Row(modifier.fillMaxWidth().height(46.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            BasicText(AeroTextTokens.labelSection.cased(day), style = type.labelSection.copy(color = c.textMuted))
-            BasicText(date, if (dateTag != null) Modifier.testTag(dateTag) else Modifier, style = type.title.copy(color = c.textPrimary))
+            AeroText(AeroTextTokens.labelSection.cased(day), style = type.labelSection.copy(color = c.textMuted))
+            AeroText(date, if (dateTag != null) Modifier.testTag(dateTag) else Modifier, style = type.title.copy(color = c.textPrimary))
         }
         Spacer(Modifier.width(12.dp))
         AeroIconButton(
@@ -116,8 +115,8 @@ fun AeroRingDay(
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            BasicText(consumed, if (consumedTag != null) Modifier.testTag(consumedTag) else Modifier, style = type.heroNumber.copy(color = c.textPrimary))
-            BasicText("kcal consumidas", style = type.caption.copy(color = c.textMuted))
+            AeroText(consumed, if (consumedTag != null) Modifier.testTag(consumedTag) else Modifier, style = type.heroNumber.copy(color = c.textPrimary))
+            AeroText("kcal consumidas", style = type.caption.copy(color = c.textMuted))
             AeroChipLog(meta, if (metaTag != null) Modifier.testTag(metaTag) else Modifier, tone = AeroChipTone.Neutral)
         }
     }
@@ -174,16 +173,16 @@ fun AeroFieldNumber(
                     .then(if (fieldTag != null) Modifier.testTag(fieldTag) else Modifier),
                 decorationBox = { inner ->
                     Box {
-                        if (value.text.isEmpty()) BasicText("0", style = type.fieldNumber.copy(color = c.textDim))
+                        if (value.text.isEmpty()) AeroText("0", style = type.fieldNumber.copy(color = c.textDim))
                         inner()
                     }
                 },
             )
-            BasicText(unit, style = type.body.copy(color = c.textMuted))
+            AeroText(unit, style = type.body.copy(color = c.textMuted))
             Spacer(Modifier.weight(1f))
             if (icon != null) AeroIcon(icon, c.iconPrimary)
         }
-        BasicText(helper, if (helperTag != null) Modifier.testTag(helperTag) else Modifier, style = type.caption.copy(color = c.textMuted))
+        AeroText(helper, if (helperTag != null) Modifier.testTag(helperTag) else Modifier, style = type.caption.copy(color = c.textMuted))
     }
 }
 
@@ -211,7 +210,7 @@ fun AeroSheet(
         modifier
             .fillMaxWidth()
             .aeroGlass(Aero.shapes.sheet, backdropBlurred = true)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+            .aeroSwallowTaps()
             .padding(start = 25.dp, end = 25.dp, top = 13.dp, bottom = 32.dp + bottomInset),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
@@ -222,7 +221,7 @@ fun AeroSheet(
                 .clip(CircleShape)
                 .background(c.borderLine),
         )
-        BasicText(title, style = type.title.copy(color = c.textPrimary))
+        AeroText(title, style = type.title.copy(color = c.textPrimary))
         content()
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             AeroButtonPrimary(
@@ -243,7 +242,7 @@ fun AeroSheet(
                     .then(if (secondaryTag != null) Modifier.testTag(secondaryTag) else Modifier),
                 contentAlignment = Alignment.Center,
             ) {
-                BasicText(secondary, style = type.button.copy(color = c.textPrimary))
+                AeroText(secondary, style = type.button.copy(color = c.textPrimary))
             }
         }
     }

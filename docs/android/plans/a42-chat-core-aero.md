@@ -6,7 +6,7 @@
 - Affected code: `apps/android/` only:
   - `feature/chat/` (screen, header, composer, estimate, question, loader, slot sheet, skip dialog), chat components in `core/designsystem/aero/`, tests;
   - docs updated with the delivery: the source of `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP` and `chatX` in `docs/qa/README.md`, captures.
-- Prerequisites: [A41](a41-splash-onboarding-aero.md) and [D5](../../design/plans/completed/d5-release1-chat-core.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](pending_manual_validation/a40-home-aero.md#validation) step 3) counts as `Concluído` here.
+- Prerequisites: [A41](pending_manual_validation/a41-splash-onboarding-aero.md) and [D5](../../design/plans/completed/d5-release1-chat-core.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](pending_manual_validation/a40-home-aero.md#validation) step 3) counts as `Concluído` here.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a42-chat-core-aero.md. Implemente o plano aprovado.`
 

@@ -4,7 +4,8 @@ import android.app.Application
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithTag
-import com.nutri.android.core.designsystem.TimeWheelDialog
+import com.nutri.android.core.designsystem.aero.AeroTimeWheelDialog
+import androidx.compose.foundation.layout.fillMaxSize
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.nutri.android.core.designsystem.DietaBotTheme
@@ -49,7 +50,9 @@ class RoborazziSmokeTest {
     private fun o1e(dark: Boolean) {
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = dark) {
-                CeilingScreen(OnboardingUiState(sex = "male"), {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
+                AeroTheme(darkTheme = dark) {
+                    CeilingScreen(OnboardingUiState(sex = "male"), {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
+                }
             }
         }
         composeTestRule.onRoot().captureRoboImage(
@@ -63,7 +66,13 @@ class RoborazziSmokeTest {
 
     private fun timeWheel(dark: Boolean) {
         composeTestRule.setContent {
-            DietaBotTheme(darkTheme = dark) { TimeWheelDialog("Café da manhã", 450, {}, {}) }
+            DietaBotTheme(darkTheme = dark) {
+                AeroTheme(darkTheme = dark) {
+                    androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize()) {
+                        AeroTimeWheelDialog("Café da manhã", 450, {}, {})
+                    }
+                }
+            }
         }
         composeTestRule.onNodeWithTag("time-wheel-dialog").captureRoboImage(
             filePath = "src/test/snapshots/${if (dark) "dark" else "light"}/o3t.png",
@@ -75,7 +84,7 @@ class RoborazziSmokeTest {
     fun splash_dark() {
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = true) {
-                SplashScreen(capture = true, onDone = {})
+                AeroTheme(darkTheme = true) { SplashScreen(capture = true, onDone = {}) }
             }
         }
         val target = File("src/test/snapshots/dark/splash.png")
@@ -91,7 +100,7 @@ class RoborazziSmokeTest {
     fun splash_light() {
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = false) {
-                SplashScreen(capture = true, onDone = {})
+                AeroTheme(darkTheme = false) { SplashScreen(capture = true, onDone = {}) }
             }
         }
         val target = File("src/test/snapshots/light/splash.png")

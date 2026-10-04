@@ -19,7 +19,7 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 Inventário oficial: dono único da lista de golds, igual nos dois temas. Cada linha começa pela **fonte** dos seus ids (`stitch` ou `figma`): o gold de um id está em `docs/qa/<fonte>/{dark,light}/<id>.png`. A fonte de um fluxo passa a `figma` quando o plano de **client** do fluxo conclui; até lá o app ainda desenha o visual antigo e segue comparado com o gold Stitch ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md) § 7). Quem cria, remove ou troca a fonte de um gold atualiza esta lista e o mapa da fonte (`tools/export-stitch.mjs` ou `tools/export-figma.mjs`) na mesma entrega; `node tools/check-docs.mjs` (C7) confere que cada id está no mapa da fonte declarada.
 
 ```text
-stitch: splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
+figma: splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
 figma: home0.png · home1.png · homeX.png · homeW.png
 stitch: chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png · chatX.png
 stitch: chatR.png · chatM.png · chatS.png · chatQ.png · chatU.png · chatD.png
@@ -94,12 +94,10 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 
 ### Regressão
 
-A21 `o3t`: the ST3 gold is 780×2206, while the emulator capture is 780×1688.
-`diff-gold.mjs` aligns the complete centered dialog by half the height difference,
-then gates its border, title, five wheel rows and both actions at the same 2%
-limit and 0.8–1.25 content-presence ratio. The unchanged underlying O3 is checked
-separately; its ST4 meal-distribution changes belong to A24. Gold inputs remain
-read-only.
+`o3t`: the Figma frame is 780×2536 with `Dialog/TimeWheel` 300 dp from its top, while the app centres the dialog
+on the 780×1688 capture. `diff-gold.mjs` aligns the dialog box (gold px 48, 600 – 732, 1388) on the capture centre,
+then gates its border, title, five wheel rows and both actions at the same 2% limit and 0.8–1.25 content-presence
+ratio. The O3 behind it is checked by `o3`. Gold inputs remain read-only.
 
 Baseline Roborazzi (render JVM contra ele mesmo) em `apps/android/app/src/test/snapshots/`: `recordRoborazziDevDebug` grava, `verifyRoborazziDevDebug` falha em divergência. Não é comparação com o gold.
 

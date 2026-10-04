@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.SplashBoot
 import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroText
 import com.nutri.android.core.designsystem.aero.AeroBubble
 import com.nutri.android.core.designsystem.aero.AeroButtonPrimary
 import com.nutri.android.core.designsystem.aero.AeroChipLog
@@ -106,7 +106,7 @@ fun HomePanelScreen(
                 MacroCard(ui)
                 WorkoutRow(ui, onWorkoutOpen)
                 Timeline(ui) { confirmSkip = it }
-                BasicText(
+                AeroText(
                     SplashBoot.COPY,
                     style = Aero.type.caption.copy(color = Aero.colors.textDim, textAlign = TextAlign.Center),
                     modifier = Modifier.fillMaxWidth().testTag("home-disclaimer"),
@@ -159,7 +159,7 @@ private fun SkipDialog(slot: TimelineSlot, onConfirm: () -> Unit, onCancel: () -
                 .testTag("home-skip-dialog"),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            BasicText("Pular ${slot.name}?", style = Aero.type.title.copy(color = c.textPrimary))
+            AeroText("Pular ${slot.name}?", style = Aero.type.title.copy(color = c.textPrimary))
             Spacer(Modifier.height(12.dp))
             AeroButtonPrimary("Pular", onConfirm, modifier = Modifier.testTag("home-skip-confirm"))
             Box(
@@ -173,7 +173,7 @@ private fun SkipDialog(slot: TimelineSlot, onConfirm: () -> Unit, onCancel: () -
                     .testTag("home-skip-cancel"),
                 contentAlignment = Alignment.Center,
             ) {
-                BasicText("Cancelar", style = Aero.type.button.copy(color = c.textPrimary))
+                AeroText("Cancelar", style = Aero.type.button.copy(color = c.textPrimary))
             }
         }
     }
@@ -250,9 +250,9 @@ private fun WorkoutRow(ui: HomePanelUiState, onClick: () -> Unit) {
             AeroIcon(AeroIconName.Barbell, c.iconPrimary)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            BasicText("Treino de hoje", style = type.bodyStrong.copy(color = c.textPrimary), maxLines = 1)
+            AeroText("Treino de hoje", style = type.bodyStrong.copy(color = c.textPrimary), maxLines = 1)
             val kcal = ui.workoutKcal
-            BasicText(
+            AeroText(
                 if (kcal == null) {
                     buildAnnotatedString { withStyle(SpanStyle(color = c.accentDefault)) { append("Informar") } }
                 } else {
@@ -276,13 +276,13 @@ private fun Timeline(ui: HomePanelUiState, onEmptyTap: (TimelineSlot) -> Unit) {
     val type = Aero.type
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Row(Modifier.fillMaxWidth().height(18.dp), verticalAlignment = Alignment.CenterVertically) {
-            BasicText(
+            AeroText(
                 AeroTextTokens.labelSection.cased("Linha do tempo nutricional"),
                 style = type.labelSection.copy(color = c.textMuted),
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(8.dp))
-            BasicText("${ui.slotCount} Refeições", style = type.caption.copy(color = c.textDim))
+            AeroText("${ui.slotCount} Refeições", style = type.caption.copy(color = c.textDim))
         }
         Column(verticalArrangement = Arrangement.spacedBy(SlotGap)) {
             ui.timeline.forEachIndexed { i, slot ->
