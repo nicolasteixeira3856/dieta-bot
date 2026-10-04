@@ -21,8 +21,9 @@ Inventário oficial: dono único da lista de golds, igual nos dois temas. Cada l
 ```text
 figma: splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
 figma: home0.png · home1.png · homeX.png · homeW.png
-stitch: chat0.png · chatL.png · chatE.png · chatT.png · chatP.png · chatF.png · chatG.png · chatA.png · chatX.png
-stitch: chatR.png · chatM.png · chatS.png · chatQ.png · chatU.png · chatD.png
+figma: chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
+stitch: chatF.png · chatG.png · chatA.png
+stitch: chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
 stitch: cfg.png · cfgS.png · wipe.png · push.png
 ```
 
@@ -89,8 +90,8 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 - Presença de conteúdo: tinta da captura entre 0,8× e 1,25× a do gold.
 - **Aprovado: ≤ 2%.** Pixel a pixel sem borrão não serve de gate: a splash fica em ~1,2% só por raster.
 - Golds que divergem entre si ou do plano ([ADR-027](../android/adrs/ADR-027-golds-divergentes.md), regra até um plano futuro mudá-la): gold de estado (ex.: `o1e`) com geometria diferente do gold base (`o1`) → cada estado segue o próprio gold, o base não muda, refluxo na troca de estado é aceito; dark × light do mesmo gold → um layout com a média dos dois, desde que os dois temas passem no gate (senão: segue o dark e o light fica só reportado); valor normativo do plano/spec/tokens (opacidade, cor) × render do gold → vale o plano, a diferença vai para a lista de diffs; esmaecimento de desabilitado por save layer (`Modifier.disabledAlpha`), não `Modifier.alpha`, que o render JVM não desenha.
-- Golds Stitch que contradizem o canônico do grupo (hoje `chat0`, `chatL`, `chatG`, `chatF`, `chatA` × `chatE`; `push`, que é tela de bloqueio do sistema) ficam em `GOLD_CONFLICTS`: medidos e reportados (`~`), sem bloquear, até serem regenerados no Stitch. Parte nova de um gold conflitante tem gate por região (`REGIONS` / `region`, melhor deslocamento vertical): hoje, a bolha de foto do chatF (A6) e o composer com anexo do chatA (A19; light só reportado: o gold pinta o composer na cor da página). `light/chatQ` (A30): tela só reportada (o gold light desenha as bolhas de pergunta mais justas que o dark a partir do mesmo prompt do ST7; o app segue o dark), com a barra do Forçar estimativa em gate nos dois temas.
-- Golds Figma ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md)) são o frame puro, sem barra de status nem de navegação, com a página inteira: as exceções acima valem só para ids `stitch`. Na JVM, `StitchGoldTest` desenha o id `figma` na altura do frame, sem insets, e compara a página toda. No emulador, a captura de 844 dp é comparada com o topo do frame. `homeW` (sheet no fim da página de 1414 dp): tela só reportada, com gate na Home desfocada do topo (40–450 dp) e no sheet ancorado pela base.
+- Golds Stitch que contradizem o canônico do grupo (hoje `chatG`, `chatF`, `chatA` × `chatE`; `push`, que é tela de bloqueio do sistema) ficam em `GOLD_CONFLICTS`: medidos e reportados (`~`), sem bloquear, até serem regenerados no Stitch. Parte nova de um gold conflitante tem gate por região (`REGIONS` / `region`, melhor deslocamento vertical): hoje, a bolha de foto do chatF (A6) e o composer com anexo do chatA (A19; light só reportado: o gold pinta o composer na cor da página).
+- Golds Figma ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md)) são o frame puro, sem barra de status nem de navegação, com a página inteira: as exceções acima valem só para ids `stitch`. Na JVM, `StitchGoldTest` desenha o id `figma` na altura do frame, sem insets, e compara a página toda. No emulador, a captura de 844 dp é comparada com o topo do frame; um diálogo centrado no app (`o3t`, `chatP`) é comparado só na caixa do diálogo, alinhada ao centro da captura. `homeW` (sheet no fim da página de 1414 dp): tela só reportada, com gate na Home desfocada do topo (40–450 dp) e no sheet ancorado pela base.
 
 ### Regressão
 

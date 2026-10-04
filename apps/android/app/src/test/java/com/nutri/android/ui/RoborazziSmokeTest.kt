@@ -184,7 +184,9 @@ class RoborazziSmokeTest {
         com.nutri.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_F_PHOTO)
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = dark) {
-                ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})
+                AeroTheme(darkTheme = dark) {
+                    ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})
+                }
             }
         }
         val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/$name.png")

@@ -118,6 +118,33 @@ import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.WaitIndicator
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.formatRemaining
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroActionBar
+import com.nutri.android.core.designsystem.aero.AeroBotLabel
+import com.nutri.android.core.designsystem.aero.AeroBubbleSpec
+import com.nutri.android.core.designsystem.aero.AeroChatBubble
+import com.nutri.android.core.designsystem.aero.AeroChipLog
+import com.nutri.android.core.designsystem.aero.AeroChipTone
+import com.nutri.android.core.designsystem.aero.AeroDateChip
+import com.nutri.android.core.designsystem.aero.AeroDimens
+import com.nutri.android.core.designsystem.aero.AeroIcon
+import com.nutri.android.core.designsystem.aero.AeroIconButton
+import com.nutri.android.core.designsystem.aero.AeroIconName
+import com.nutri.android.core.designsystem.aero.AeroLoader
+import com.nutri.android.core.designsystem.aero.AeroPage
+import com.nutri.android.core.designsystem.aero.AeroPageBubbles
+import com.nutri.android.core.designsystem.aero.AeroScrim
+import com.nutri.android.core.designsystem.aero.AeroSheet
+import com.nutri.android.core.designsystem.aero.AeroSlotPickRow
+import com.nutri.android.core.designsystem.aero.AeroText
+import com.nutri.android.core.designsystem.aero.AeroTextTokens
+import com.nutri.android.core.designsystem.aero.aeroGlass
+import com.nutri.android.core.designsystem.aero.aeroGloss
+import com.nutri.android.core.designsystem.aero.cased
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import com.nutri.android.domain.ReceiptAction
 import com.nutri.android.domain.SlotBand
 import com.nutri.android.domain.SlotSuggestions
@@ -190,18 +217,18 @@ fun ChatScreen(
         focusManager.clearFocus()
         onSend()
     }
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(p.phone)
-            .drawBehind {
-                drawCircle(Brush.radialGradient(listOf(p.gold.copy(alpha = 0.10f), Color.Transparent), Offset(0f, 0f), 160.dp.toPx()), 160.dp.toPx(), Offset(0f, 0f))
-            }
-            .testTag("chat"),
-    ) {
+    // A42: the Chat on Aero (Figma `Design`, Chat · D5): page gradient, 20 dp margins, 24 dp top and bottom, 16 dp
+    // between header, thread, chips and footer, the frame's edge bubbles.
+    AeroPage(Modifier.fillMaxSize().testTag("chat")) {
         val overlay = ui.sheetFor != null || ui.photoSheet
-        // Stitch: backdrop-blur behind the sheets.
-        Column(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier).statusBarsPadding().imePadding()) {
+        // Figma: layer blur 8 behind the sheets.
+        Column(
+            Modifier
+                .fillMaxSize()
+                .then(if (overlay) Modifier.blur(8.dp) else Modifier)
+                .statusBarsPadding()
+                .imePadding(),
+        ) {
             Header(onBack)
             val record = RecordCallbacks(onReplaceConfirm, onReplaceElsewhere, onReceiptAction, onMoveConfirm, onMoveElsewhere)
             if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
@@ -210,10 +237,18 @@ fun ChatScreen(
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, camera)
             Footer(ui, onComposer, send, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
         }
+        AeroPageBubbles(ChatBubbles, null, Modifier.statusBarsPadding())
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         if (ui.photoSheet) PhotoSheet(onCamera, onGallery, onPhotoSheetClose)
     }
 }
+
+/** Edge bubbles of the Chat frames. */
+private val ChatBubbles = listOf(
+    AeroBubbleSpec(200.dp, (-50).dp, 80.dp),
+    AeroBubbleSpec(372.dp, 560.dp, 36.dp),
+    AeroBubbleSpec((-18).dp, 420.dp, 36.dp),
+)
 
 /** The record taps of thread items (A34), one object instead of five parameters per level. */
 private class RecordCallbacks(
@@ -228,38 +263,23 @@ private class RecordCallbacks(
 
 @Composable
 private fun Header(onBack: () -> Unit) {
-    val p = LocalPalette.current
+    val c = Aero.colors
+    val type = Aero.type
+    // Chat/Header: back, title with the accent dot and subtitle, and the 44 dp space of the dropped tune button.
     Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 1.dp, bottom = 12.dp),
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp).height(44.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(p.card)
-                .border(1.dp, p.line, CircleShape)
-                .dietaClick(onClick = onBack)
-                .testTag("chat-back"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Voltar", tint = p.text, modifier = Modifier.size(22.dp))
-        }
-        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Chat Dieta Bot", style = DietaBotType.headlineMd.copy(fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = (-0.025).em), color = p.text)
-                Spacer(Modifier.width(6.dp))
-                Box(Modifier.size(8.dp).clip(CircleShape).background(p.gold))
+        AeroIconButton(AeroIconName.CaretLeft, onBack, contentDescription = "Voltar", modifier = Modifier.testTag("chat-back"))
+        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                AeroText("Chat Dieta Bot", style = type.bodyStrong.copy(color = c.textPrimary))
+                Box(Modifier.size(8.dp).clip(CircleShape).background(c.accentDefault))
             }
-            Text(
-                "ASSISTENTE DE REFEIÇÕES",
-                style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W500, letterSpacing = 0.1.em),
-                color = p.muted,
-                modifier = Modifier.padding(top = 2.dp),
-            )
+            AeroText(AeroTextTokens.labelSection.cased("Assistente de refeições"), style = type.labelSection.copy(color = c.textMuted))
         }
-        // Stitch draws a "tune" button here; there is no such feature, so only its space stays.
-        Spacer(Modifier.size(38.dp))
+        Spacer(Modifier.size(44.dp))
     }
 }
 
@@ -309,15 +329,14 @@ private fun Thread(
         reverseLayout = true,
         // A short thread still starts at the top, as in the golds.
         verticalArrangement = Arrangement.Top,
-        // Bottom 2 dp: with the footer 8 dp, the last time sits 10 dp above the action bar (chatR).
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 15.dp, bottom = 2.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp),
     ) {
         itemsIndexed(items, key = { _, it -> it.key }) { i, item ->
             // 16 dp between items; the question hugs its estimate (chatE); the routine card sits
             // 12 dp under the meta card (chatS). The oldest drawn item has none.
             val gap = when {
                 i == items.lastIndex -> 0.dp
-                item is ChatItem.Question && !item.standalone -> 5.dp
+                item is ChatItem.Question && !item.standalone -> 8.dp
                 item is ChatItem.Routine -> 12.dp
                 // chatU: the confirmation sits 8 dp under the answer's time; chatD: receipts 12 dp apart.
                 item is ChatItem.ReplacePrompt -> 8.dp
@@ -371,154 +390,100 @@ private fun ThreadItem(
 }
 
 @Composable
-private fun DatePill(label: String) {
-    val p = LocalPalette.current
-    Box(Modifier.fillMaxWidth().padding(vertical = 4.dp), contentAlignment = Alignment.Center) {
-        Text(
-            label,
-            style = DietaBotType.labelCaps.copy(letterSpacing = 0.05.em),
-            color = p.muted,
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(p.card.copy(alpha = 0.8f))
-                .border(1.dp, p.line, CircleShape)
-                .padding(horizontal = 14.dp, vertical = 4.dp),
-        )
-    }
-}
+private fun DatePill(label: String) = AeroDateChip(label)
 
+/** Chat/Bubble Sender=User: tinted glass at the right, time and read ticks inside. */
 @Composable
 private fun UserBubble(item: ChatItem.User) {
-    val p = LocalPalette.current
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
-        Text(
-            item.text,
-            style = DietaBotType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 20.sp, letterSpacing = 0.sp),
-            color = p.text,
-            modifier = Modifier
-                .fillMaxWidth(0.82f)
-                .wrapContentWidth(Alignment.End)
-                .clip(UserShape)
-                .background(p.surf2)
-                .border(1.dp, p.text.copy(alpha = 0.04f), UserShape)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .testTag("chat-user-${item.id}"),
-        )
-        Row(Modifier.padding(top = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim)
-            Spacer(Modifier.width(4.dp))
-            Icon(Icons.Filled.DoneAll, contentDescription = null, tint = p.gold, modifier = Modifier.size(14.dp))
-        }
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+        AeroChatBubble(item.text, item.time, fromUser = true, maxWidth = UserBubbleMax, modifier = Modifier.testTag("chat-user-${item.id}"))
     }
 }
 
+/** User bubbles take at most 288 of the 350 dp thread; bot bubbles are 308 dp. */
+private val UserBubbleMax = 288.dp
+private const val BOT_FRACTION = 0.88f
+
 @Composable
-private fun AiLabel() {
-    val p = LocalPalette.current
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 9.dp)) {
-        Box(
-            Modifier.size(16.dp).clip(CircleShape).background(p.gold.copy(alpha = 0.2f)).border(1.dp, p.gold.copy(alpha = 0.4f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Filled.Bolt, contentDescription = null, tint = p.gold, modifier = Modifier.size(10.dp))
-        }
-        Spacer(Modifier.width(6.dp))
-        Text("Dieta Bot AI", style = DietaBotType.headlineMd.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = (-0.025).em), color = p.text)
-    }
+private fun AiLabel() = AeroBotLabel(Modifier.padding(bottom = 8.dp))
+
+/** Glass bot bubble (radius 20, 6 at the bottom left), 18 x 14 dp padding inside the 1 dp border. */
+@Composable
+private fun BotBubble(modifier: Modifier = Modifier, gap: Dp = 12.dp, content: @Composable ColumnScope.() -> Unit) {
+    val r = AeroDimens.radiusCard
+    Column(
+        modifier
+            .fillMaxWidth()
+            .aeroGlass(RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = r, bottomStart = 6.dp))
+            .padding(horizontal = 19.dp, vertical = 15.dp),
+        verticalArrangement = Arrangement.spacedBy(gap),
+        content = content,
+    )
+}
+
+@Composable
+private fun BubbleTime(time: String, modifier: Modifier = Modifier) {
+    AeroText(time, modifier, style = Aero.type.caption.copy(color = Aero.colors.textDim))
 }
 
 @Composable
 private fun AssistantBubble(item: ChatItem.Assistant) {
-    val p = LocalPalette.current
-    Column(Modifier.fillMaxWidth(0.88f), horizontalAlignment = Alignment.Start) {
+    val c = Aero.colors
+    val type = Aero.type
+    Column(Modifier.fillMaxWidth(BOT_FRACTION), horizontalAlignment = Alignment.Start) {
         AiLabel()
-        Column(
-            Modifier
-                .clip(BotShape)
-                .background(p.card)
-                .border(1.dp, p.line, BotShape)
-                .padding(16.dp)
-                .testTag("chat-bot-${item.id}"),
-        ) {
+        BotBubble(Modifier.testTag("chat-bot-${item.id}")) {
             if (item.plan != null) {
                 PlanText(item.text)
                 PlanPanel(item.plan)
             } else {
-                Text(highlighted(item.text, item.highlights, p.gold), style = DietaBotType.bodyMd.copy(fontSize = 13.5.sp, lineHeight = 21.sp, letterSpacing = 0.sp), color = p.text)
+                AeroText(highlighted(item.text, item.highlights, c.accentDefault), style = type.body.copy(color = c.textPrimary))
             }
             item.estimate?.let { e ->
                 EstimateCard(e)
-                e.slotQuestion?.let { q ->
-                    Text(
-                        slotQuestion(q, p.text),
-                        style = DietaBotType.bodyMd.copy(fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.sp),
-                        color = p.muted,
-                    )
-                }
+                e.slotQuestion?.let { q -> AeroText(slotQuestion(q, c.textPrimary), style = type.body.copy(color = c.textMuted)) }
             }
+            // With a follow-up question the time moves under the question bubble (chatE).
+            if (item.estimate?.question.isNullOrBlank()) BubbleTime(item.time, Modifier.align(Alignment.End))
         }
         MemoryChips(item.memory)
-        // With a follow-up question the time moves under the question bubble (chatE).
-        if (item.estimate?.question.isNullOrBlank()) {
-            Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
-        }
         if (item.notRecorded) NotRecordedLabel(Modifier.padding(top = 6.dp, start = 8.dp))
     }
 }
 
 /**
- * The clarifying question in its own bubble. Gold bar on the left, help icon, text in primary colour.
- * Standalone (chatQ): a question before the estimate, with the "Dieta Bot AI" label above.
+ * Chat/Question: the clarifying question in its own glass bubble, accent bar on the left, question icon, Body/Strong
+ * text and the time inside. Standalone (chatQ): a question before the estimate, with the bot label above.
  */
 @Composable
 private fun QuestionBubble(item: ChatItem.Question) {
-    val p = LocalPalette.current
-    Column(Modifier.fillMaxWidth(0.88f), horizontalAlignment = Alignment.Start) {
+    val c = Aero.colors
+    val type = Aero.type
+    val r = AeroDimens.radiusCard
+    val shape = RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = r, bottomStart = 6.dp)
+    Column(Modifier.fillMaxWidth(BOT_FRACTION), horizontalAlignment = Alignment.Start) {
         if (item.standalone) AiLabel()
-        Row(
+        Column(
             Modifier
                 .fillMaxWidth()
-                .clip(BubbleShape)
-                .drawBehind { questionFrame(p.card, p.line, p.gold) }
-                .padding(start = 19.dp, end = 16.dp, top = 16.dp, bottom = 19.dp)
+                .aeroGlass(shape)
+                .drawBehind { drawRect(c.accentDefault, size = Size(3.dp.toPx(), size.height)) }
+                .padding(start = 20.dp, end = 17.dp, top = 17.dp, bottom = 15.dp)
                 .testTag("chat-question"),
-            // Top: a question of several lines keeps the icon on its first line. Text 18 sp (ST7 gold).
-            verticalAlignment = Alignment.Top,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = null, tint = p.gold, modifier = Modifier.padding(top = 3.25.dp).size(18.dp))
-            Spacer(Modifier.width(12.dp))
-            Text(item.text, style = DietaBotType.bodyLg.copy(fontSize = 18.sp, lineHeight = 24.5.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.text)
+            // Top: a question of several lines keeps the icon on its first line.
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                AeroIcon(AeroIconName.Question, c.accentDefault, size = 20.dp, modifier = Modifier.padding(top = 2.dp))
+                AeroText(item.text, style = type.bodyStrong.copy(color = c.textPrimary))
+            }
+            BubbleTime(item.time)
         }
         MemoryChips(item.memory)
-        Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 4.dp, start = 8.dp))
     }
 }
 
-/**
- * Gold's CSS frame: 1 dp line, 3 dp gold on the left that follows the 16 dp corners. Drawn inside a
- * box clipped to [BubbleShape]: line and gold first, the card on top inset by the border widths.
- */
-private fun DrawScope.questionFrame(card: Color, line: Color, gold: Color) {
-    val edge = 1.dp.toPx()
-    val bar = 3.dp.toPx()
-    val radius = 16.dp.toPx()
-    drawRect(line)
-    // Where the corner turns from gold to line, as the browser splits the border.
-    drawRect(gold, size = Size(bar + (radius - bar) / 2, size.height))
-    val inner = RoundRect(
-        left = bar,
-        top = edge,
-        right = size.width - edge,
-        bottom = size.height - edge,
-        topLeftCornerRadius = CornerRadius(radius - bar, radius - edge),
-        topRightCornerRadius = CornerRadius(radius - edge),
-        bottomRightCornerRadius = CornerRadius(radius - edge),
-        bottomLeftCornerRadius = CornerRadius(radius - bar, radius - edge),
-    )
-    drawPath(Path().apply { addRoundRect(inner) }, card)
-}
-
-/** "Deseja registrar essa refeição no {slot}?" with the slot in text colour. */
+/** "Deseja registrar essa refeição no {slot}?" with the slot in Body/Strong primary. */
 private fun slotQuestion(q: String, emphasis: Color): AnnotatedString = buildAnnotatedString {
     val start = q.indexOf(" no ").takeIf { it >= 0 }?.plus(4)
     if (start == null || !q.endsWith("?")) {
@@ -526,174 +491,154 @@ private fun slotQuestion(q: String, emphasis: Color): AnnotatedString = buildAnn
         return@buildAnnotatedString
     }
     append(q.substring(0, start))
-    withStyle(SpanStyle(color = emphasis, fontWeight = FontWeight.W500)) { append(q.substring(start, q.length - 1)) }
+    withStyle(SpanStyle(color = emphasis, fontWeight = FontWeight.W600)) { append(q.substring(start, q.length - 1)) }
     append("?")
 }
 
-private fun highlighted(text: String, names: List<String>, gold: Color): AnnotatedString = buildAnnotatedString {
+/** The item names of the estimate in the accent, Body/Strong. */
+private fun highlighted(text: String, names: List<String>, accent: Color): AnnotatedString = buildAnnotatedString {
     append(text)
     names.filter { it.length >= 3 }.forEach { name ->
         var from = 0
         while (true) {
             val at = text.indexOf(name, from, ignoreCase = true)
             if (at < 0) break
-            addStyle(SpanStyle(color = gold, fontWeight = FontWeight.W500), at, at + name.length)
+            addStyle(SpanStyle(color = accent, fontWeight = FontWeight.W600), at, at + name.length)
             from = at + name.length
         }
     }
 }
 
+/** Chat/Estimate: ENERGIA TOTAL ~kcal, a line, and three glass macro boxes in the semantic colours. */
 @Composable
 private fun EstimateCard(e: EstimateView) {
-    val p = LocalPalette.current
+    val c = Aero.colors
+    val type = Aero.type
+    val shape = Aero.shapes.card
     Column(
         Modifier
-            // ST9: without the slot question the bubble ends 16 dp under the card (chatU, chatG).
-            .padding(top = 12.dp, bottom = if (e.slotQuestion != null) 12.dp else 0.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(p.phone.copy(alpha = 0.9f))
-            .border(1.dp, p.line, RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .clip(shape)
+            .background(c.surface2)
+            .border(1.dp, c.borderLine, shape)
+            .padding(13.dp)
             .testTag("chat-estimate"),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .drawBehind { drawLine(p.line.copy(alpha = 0.6f), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
-                .padding(bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("ENERGIA TOTAL", style = DietaBotType.labelCaps.copy(letterSpacing = 0.sp), color = p.muted, modifier = Modifier.weight(1f))
-            Text(
-                buildAnnotatedString {
-                    withStyle(SpanStyle(color = p.gold, fontFamily = Jakarta, fontSize = 18.sp, fontWeight = FontWeight.W700, letterSpacing = (-0.025).em)) { append("~${e.kcal}") }
-                    withStyle(SpanStyle(color = p.muted, fontFamily = Inter, fontSize = 12.sp)) { append(" kcal") }
-                },
-            )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
+            AeroText(AeroTextTokens.labelSection.cased("Energia total"), Modifier.weight(1f).padding(bottom = 3.dp), style = type.labelSection.copy(color = c.textMuted))
+            AeroText("~${e.kcal}", style = type.title.copy(color = c.textPrimary, fontFeatureSettings = "tnum"))
+            AeroText("kcal", Modifier.padding(bottom = 2.dp), style = type.caption.copy(color = c.textMuted))
         }
-        Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            MacroBox("PROTEÍNA", "${e.p}g P", p.protein, Modifier.weight(1f))
-            MacroBox("CARBO", "${e.c}g C", p.carbs, Modifier.weight(1f))
-            MacroBox("GORDURA", "${e.g}g G", p.fat, Modifier.weight(1f))
+        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderLine))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            MacroBox("Proteína", "${e.p}g P", c.macroProtein, Modifier.weight(1f))
+            MacroBox("Carbo", "${e.c}g C", c.macroCarbs, Modifier.weight(1f))
+            MacroBox("Gordura", "${e.g}g G", c.macroFat, Modifier.weight(1f))
         }
     }
 }
 
 @Composable
 private fun MacroBox(label: String, value: String, color: Color, modifier: Modifier) {
-    val p = LocalPalette.current
+    val type = Aero.type
     Column(
-        modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(p.card)
-            .border(1.dp, p.line, RoundedCornerShape(8.dp))
-            .padding(horizontal = 4.dp, vertical = 12.dp),
+        modifier.aeroGlass(Aero.shapes.card).padding(horizontal = 4.dp, vertical = 11.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Text(label, style = DietaBotType.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.W700, letterSpacing = 0.1.em), color = p.muted)
-        Text(value, style = DietaBotType.headlineMd.copy(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = color)
+        AeroText(AeroTextTokens.labelSection.cased(label), style = type.labelSection.copy(color = Aero.colors.textMuted), maxLines = 1, softWrap = false, overflow = TextOverflow.Visible)
+        AeroText(value, style = type.bodyStrong.copy(color = color), maxLines = 1)
     }
 }
 
+/** chat0: greeting bubble (time inside) and Chat/MetaCard. */
 @Composable
 private fun Greeting(item: ChatItem.Greeting, ui: ChatUiState) {
-    val p = LocalPalette.current
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Column(horizontalAlignment = Alignment.Start) {
-            Text(
+    val c = Aero.colors
+    val type = Aero.type
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        BotBubble(Modifier.fillMaxWidth(BOT_FRACTION).testTag("chat-greeting"), gap = 6.dp) {
+            AeroText(
                 "Olá! Descreva o que você comeu ou envie uma foto do prato para estimarmos as calorias e macros.",
-                style = DietaBotType.bodyMd.copy(lineHeight = 22.75.sp, letterSpacing = 0.sp),
-                color = p.text,
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .clip(BotShape)
-                    .background(p.card)
-                    .border(1.dp, p.line.copy(alpha = 0.3f), BotShape)
-                    .padding(14.dp)
-                    .testTag("chat-greeting"),
+                style = type.body.copy(color = c.textPrimary),
             )
-            Text(item.time, style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.dim, modifier = Modifier.padding(top = 6.dp, start = 8.dp))
+            BubbleTime(item.time, Modifier.align(Alignment.End))
         }
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(p.phone.copy(alpha = 0.9f))
-                .border(1.dp, p.line.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
-                .padding(14.dp)
+                .aeroGlass(Aero.shapes.card)
+                .padding(15.dp)
                 .testTag("chat-meta"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(p.card).border(1.dp, p.gold.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Outlined.Restaurant, contentDescription = null, tint = p.gold, modifier = Modifier.size(20.dp)) }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Meta calórica de hoje", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.text)
-                Text(
+            Box(Modifier.size(40.dp).clip(CircleShape).background(c.surfaceTint), contentAlignment = Alignment.Center) {
+                AeroIcon(AeroIconName.ForkKnife, c.accentDefault, size = 22.dp)
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                AeroText("Meta calórica de hoje", style = type.bodyStrong.copy(color = c.textPrimary))
+                AeroText(
                     "${formatRemaining(ui.metaRemaining)} / ${formatRemaining(ui.metaTotal)} kcal restantes",
-                    style = DietaBotType.labelMd.copy(fontSize = 11.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp),
-                    color = p.muted,
+                    style = type.caption.copy(color = c.textMuted),
                 )
             }
             val pct = if (ui.metaTotal > 0) (ui.metaRemaining * 100f / ui.metaTotal).roundToInt() else 0
-            Text("$pct%", style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.gold)
+            AeroText("$pct%", style = type.bodyStrong.copy(color = c.accentDefault))
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+/** chatL: Loader/Aero, the status in two lines and the bot label under the bubble. */
 @Composable
 private fun LoadingBubble() {
-    val p = LocalPalette.current
-    Column(horizontalAlignment = Alignment.Start) {
+    val c = Aero.colors
+    val type = Aero.type
+    val r = AeroDimens.radiusCard
+    Column(Modifier.fillMaxWidth(BOT_FRACTION), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
             Modifier
-                .widthIn(max = 320.dp)
-                .clip(BotShape)
-                .background(p.card)
-                .border(1.dp, p.line.copy(alpha = 0.6f), BotShape)
-                .padding(14.dp)
+                .fillMaxWidth()
+                .aeroGlass(RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = r, bottomStart = 6.dp))
+                .padding(horizontal = 17.dp, vertical = 15.dp)
                 .testTag("chat-loading"),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            LoadingIndicator(color = p.gold, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text("Analisando e calculando estimativa...", style = DietaBotType.bodyMd.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp), color = p.muted)
-                Text("MICRO & MACRONUTRIENTES", style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.05.em), color = p.dim, modifier = Modifier.padding(top = 2.dp))
+            AeroLoader()
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                AeroText("Analisando e calculando estimativa...", style = type.bodyStrong.copy(color = c.textMuted))
+                AeroText(AeroTextTokens.labelSection.cased("Micro & macronutrientes"), style = type.labelSection.copy(color = c.textDim))
             }
         }
-        Text("Dieta Bot AI", style = DietaBotType.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+        AeroText("Dieta Bot AI", Modifier.padding(start = 4.dp), style = type.caption.copy(color = c.textMuted))
     }
 }
 
+/** No gold: the failure bubble, glass with the status/bad border, tap retries. */
 @Composable
 private fun FailedBubble(onRetry: () -> Unit) {
-    val p = LocalPalette.current
-    Text(
-        "Não deu. Toque para tentar de novo.",
-        style = DietaBotType.bodyMd.copy(letterSpacing = 0.sp),
-        color = p.bad,
-        modifier = Modifier
-            .clip(BotShape)
-            .background(p.card)
-            .border(1.dp, p.bad.copy(alpha = 0.4f), BotShape)
+    val c = Aero.colors
+    val r = AeroDimens.radiusCard
+    Box(
+        Modifier
+            .aeroGlass(RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = r, bottomStart = 6.dp), border = c.statusBad)
             .dietaClick(onClick = onRetry)
-            .padding(14.dp)
+            .padding(horizontal = 19.dp, vertical = 15.dp)
             .testTag("chat-failed"),
-    )
+    ) {
+        AeroText("Não deu. Toque para tentar de novo.", style = Aero.type.body.copy(color = c.statusBad))
+    }
 }
 
 // ----------------------------------------------------------------------------- footer
 
+/** chat0: suggestion chips (Chip/Log Neutral) in a horizontal scroll, the last one cut at the edge. */
 @Composable
 private fun SuggestionRow(onPick: (String) -> Unit, onCamera: () -> Unit) {
-    val p = LocalPalette.current
     Row(
-        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Chip("📸", "Tirar foto do prato", tag = "chat-suggestion-photo", onClick = onCamera)
@@ -702,25 +647,15 @@ private fun SuggestionRow(onPick: (String) -> Unit, onCamera: () -> Unit) {
 }
 
 @Composable
-private fun Chip(emoji: String, text: String, enabled: Boolean = true, tag: String? = null, onClick: () -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier
-            .alpha(if (enabled) 1f else 0.5f)
-            .clip(CircleShape)
-            .background(p.card)
-            .border(1.dp, p.line.copy(alpha = 0.7f), CircleShape)
-            .dietaClick(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-            .then(if (tag != null) Modifier.testTag(tag) else Modifier),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(emoji, fontSize = 13.sp)
-        Text(text, style = DietaBotType.labelMd.copy(fontWeight = FontWeight.W400, letterSpacing = 0.sp), color = p.muted)
-    }
+private fun Chip(emoji: String, text: String, tag: String? = null, onClick: () -> Unit) {
+    AeroChipLog(
+        "$emoji $text",
+        Modifier.clip(CircleShape).dietaClick(onClick = onClick).then(if (tag != null) Modifier.testTag(tag) else Modifier),
+        tone = AeroChipTone.Neutral,
+    )
 }
 
+/** Actions slot (Chat/ActionBar) 10 dp above the composer, 24 dp from the bottom. */
 @Composable
 private fun Footer(
     ui: ChatUiState,
@@ -732,13 +667,11 @@ private fun Footer(
     onRecordPlan: (Long) -> Unit,
     onForceEstimate: () -> Unit,
 ) {
-    val p = LocalPalette.current
     Column(
         Modifier
             .fillMaxWidth()
-            .background(Brush.verticalGradient(listOf(Color.Transparent, p.phone.copy(alpha = 0.95f), p.phone)))
             .navigationBarsPadding()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 11.dp),
+            .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (ui.forceEstimate) {
@@ -753,97 +686,55 @@ private fun Footer(
 /** chatR: one Registrar assim in the actions slot. */
 @Composable
 private fun PlanBar(actions: EstimateActions, onClick: () -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(p.card)
-            .border(1.dp, p.line, RoundedCornerShape(18.dp))
-            .dietaClick(Haptic.Confirm, onClick = onClick)
-            .testTag("chat-record-plan"),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = p.text, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(8.dp))
-        Text("Registrar assim", style = DietaBotType.labelMd.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
-    }
+    AeroActionBar("Registrar assim", AeroIconName.CheckCircle, onClick, Modifier.testTag("chat-record-plan"))
 }
 
-/** chatQ: one Forçar estimativa in the actions slot, same bar as Registrar assim. */
+/** chatQ: one Forçar estimativa in the actions slot. */
 @Composable
 private fun ForceBar(onClick: () -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(p.card)
-            .border(1.dp, p.line, RoundedCornerShape(18.dp))
-            .dietaClick(Haptic.Light, onClick = onClick)
-            .testTag("chat-force-estimate"),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Outlined.FastForward, contentDescription = null, tint = p.text, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(8.dp))
-        Text("Forçar estimativa", style = DietaBotType.labelMd.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
-    }
+    AeroActionBar("Forçar estimativa", AeroIconName.FastForward, onClick, Modifier.testTag("chat-force-estimate"), haptic = Haptic.Light)
 }
 
+/**
+ * Chat/Composer: glass pill (Default); a 20 dp card past one line or with a photo; status/bad border, muted
+ * camera and send and "Texto muito longo" under it past the limit (TooLong, ADR-022).
+ */
 @Composable
 private fun Composer(ui: ChatUiState, onComposer: (String) -> Unit, onSend: () -> Unit, onPhoto: () -> Unit, onRemoveAttachment: () -> Unit) {
-    val p = LocalPalette.current
-    // chatA: with an attachment the pill grows into a rounded box, thumbnail on top.
-    // chatX: past one line the pill becomes a 24 dp box, buttons at the bottom.
+    val c = Aero.colors
     val attached = ui.attachment != null
     var multiLine by remember { mutableStateOf(false) }
-    val metrics = when {
-        attached -> ComposerMetrics(ComposerAttachedShape, PaddingValues(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 11.dp), buttonDp = 40, textStartDp = 16, bottomAligned = false)
-        multiLine -> ComposerMetrics(ComposerTallShape, PaddingValues(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 13.dp), buttonDp = 40, textStartDp = 12, bottomAligned = true, textEndDp = 4)
-        else -> ComposerMetrics(CircleShape, PaddingValues(horizontal = 8.dp, vertical = 6.dp), buttonDp = 36, textStartDp = 12, bottomAligned = false)
-    }
-    val border = if (ui.composerTooLong) BorderStroke(1.5.dp, p.bad) else BorderStroke(1.dp, p.line)
-    Column(Modifier.fillMaxWidth()) {
+    val tooLong = ui.composerTooLong
+    val tall = attached || multiLine || tooLong
+    val shape = if (tall) Aero.shapes.card else CircleShape
+    val stroke = if (tooLong) 1.5.dp else 1.dp
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .clip(metrics.shape)
-                .background(p.card)
-                .border(border, metrics.shape)
-                .padding(metrics.padding),
+                .aeroGlass(shape, border = if (tooLong) c.statusBad else c.borderGlass, borderWidth = stroke)
+                .padding(
+                    start = if (tooLong) 13.5.dp else 9.dp,
+                    end = if (tooLong) 13.5.dp else 9.dp,
+                    top = if (attached) 15.dp else if (tooLong) 13.5.dp else 9.dp,
+                    bottom = if (tooLong) 13.5.dp else 9.dp,
+                ),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             ui.attachment?.let { AttachmentThumb(it, onRemoveAttachment) }
-            ComposerRow(ui, onComposer, onSend, onPhoto, metrics) { lines -> multiLine = lines > 1 }
+            ComposerRow(ui, onComposer, onSend, onPhoto, bottomAligned = multiLine || tooLong) { lines -> multiLine = lines > 1 }
         }
-        if (ui.composerTooLong) {
-            // Start of the text field (chatX gold): container padding + camera.
-            val textStart = metrics.padding.calculateStartPadding(LocalLayoutDirection.current) + metrics.buttonDp.dp
-            Text(
+        if (tooLong) {
+            // Start of the text field: the 44 dp camera, the 10 dp gap and the box inset.
+            AeroText(
                 "Texto muito longo",
-                style = DietaBotType.labelMd.copy(letterSpacing = 0.sp),
-                color = p.bad,
+                Modifier.padding(start = 66.dp).testTag("chat-too-long"),
+                style = Aero.type.caption.copy(color = c.statusBad),
                 maxLines = 1,
-                modifier = Modifier.padding(start = textStart, top = 4.dp).testTag("chat-too-long"),
             )
         }
     }
 }
-
-private val ComposerAttachedShape = RoundedCornerShape(28.dp)
-private val ComposerTallShape = RoundedCornerShape(24.dp)
-
-private class ComposerMetrics(
-    val shape: Shape,
-    val padding: PaddingValues,
-    val buttonDp: Int,
-    val textStartDp: Int,
-    val bottomAligned: Boolean,
-    val textEndDp: Int = 8,
-)
 
 @Composable
 private fun ComposerRow(
@@ -851,11 +742,11 @@ private fun ComposerRow(
     onComposer: (String) -> Unit,
     onSend: () -> Unit,
     onPhoto: () -> Unit,
-    metrics: ComposerMetrics,
+    bottomAligned: Boolean,
     onLines: (Int) -> Unit,
 ) {
-    val p = LocalPalette.current
-    val buttonDp = metrics.buttonDp
+    val c = Aero.colors
+    val type = Aero.type
     val blocked = ui.composerTooLong
     // Text set from outside (chip, Quase igual) lands with the cursor at its end.
     // Only a change of ui.composer itself counts: while a keystroke travels through the VM, the
@@ -874,19 +765,19 @@ private fun ComposerRow(
             keyboard?.show()
         }
     }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = if (metrics.bottomAligned) Alignment.Bottom else Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .size(buttonDp.dp)
-                .clip(CircleShape)
-                .background(p.surf2)
-                .border(1.dp, p.text.copy(alpha = 0.05f), CircleShape)
-                .dietaClick(enabled = ui.canAttach, onClick = onPhoto)
-                .testTag("chat-photo"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Outlined.PhotoCamera, contentDescription = "Enviar foto", tint = if (blocked) p.dim else p.muted, modifier = Modifier.size(19.dp))
-        }
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = if (bottomAligned) Alignment.Bottom else Alignment.CenterVertically,
+    ) {
+        AeroIconButton(
+            AeroIconName.Camera,
+            onPhoto,
+            contentDescription = "Enviar foto",
+            tint = if (blocked) c.textDim else c.iconPrimary,
+            enabled = ui.canAttach,
+            modifier = Modifier.testTag("chat-photo"),
+        )
         BasicTextField(
             value = field,
             onValueChange = {
@@ -897,14 +788,19 @@ private fun ComposerRow(
             singleLine = false,
             maxLines = 5,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Default),
-            textStyle = DietaBotType.bodyMd.copy(letterSpacing = 0.sp, color = p.text),
-            cursorBrush = SolidColor(p.gold),
+            textStyle = type.body.copy(color = c.textPrimary),
+            cursorBrush = SolidColor(c.accentDefault),
             onTextLayout = { onLines(it.lineCount) },
-            modifier = Modifier.weight(1f).padding(start = metrics.textStartDp.dp, end = metrics.textEndDp.dp).focusRequester(focus).testTag("chat-input"),
+            modifier = Modifier.weight(1f).align(Alignment.CenterVertically).focusRequester(focus).testTag("chat-input"),
             decorationBox = { inner ->
                 Box {
                     if (ui.composer.isEmpty()) {
-                        Text("Descreva sua refeição ou envie foto...", style = DietaBotType.bodyMd.copy(letterSpacing = 0.sp), color = p.dim, maxLines = 1)
+                        AeroText(
+                            "Descreva sua refeição ou envie foto...",
+                            style = type.body.copy(color = c.textDim),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                     inner()
                 }
@@ -912,14 +808,14 @@ private fun ComposerRow(
         )
         Box(
             Modifier
-                .size(buttonDp.dp)
+                .size(44.dp)
                 .clip(CircleShape)
-                .background(if (blocked) p.surf2 else p.gold)
-                .dietaClick(enabled = ui.canSend, onClick = onSend)
+                .then(if (blocked) Modifier.background(c.surface2) else Modifier.background(c.accentDefault).aeroGloss(CircleShape))
+                .dietaClick(Haptic.Confirm, enabled = ui.canSend, onClick = onSend)
                 .testTag("chat-send"),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.ArrowUpward, contentDescription = "Enviar", tint = if (blocked) p.dim else p.onGold, modifier = Modifier.size(20.dp))
+            AeroIcon(AeroIconName.ArrowUp, if (blocked) c.textDim else c.accentOn, size = 20.dp, contentDescription = "Enviar")
         }
     }
 }
@@ -936,108 +832,46 @@ private fun Scrim(scrimColor: Color, onDismiss: () -> Unit) {
     )
 }
 
+/** chatT: Sheet/Bottom "Selecione a refeição" with Sheet/SlotList (Row/SlotPick per slot). */
 @Composable
 private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConfirm: () -> Unit, onClose: () -> Unit) {
-    val p = LocalPalette.current
     BackHandler(onBack = onClose)
-    Scrim(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.35f), onClose)
-    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
-    Column(
-        Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .clip(shape)
-            // Stitch: #14171d dark (panel), #faf9f6 light (phone).
-            .background(if (p.isDark) p.panel else p.phone)
-            .border(1.dp, p.line.copy(alpha = 0.7f), shape)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            // Stitch: ~48 dp under "Cancelar" (pb-8 + home pill). Gesture nav is 24 dp; never less.
-            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets(bottom = 24.dp)))
-            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 24.dp)
-            .testTag("chat-sheet"),
+    AeroScrim(onClose)
+    AeroSheet(
+        title = "Selecione a refeição",
+        primary = "Confirmar refeição",
+        onPrimary = onConfirm,
+        secondary = "Cancelar",
+        onSecondary = onClose,
+        primaryEnabled = ui.sheetSelection != null,
+        primaryTag = "chat-sheet-confirm",
+        secondaryTag = "chat-sheet-cancel",
+        primaryIcon = AeroIconName.ArrowRight,
+        bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+        modifier = Modifier.align(Alignment.BottomCenter).testTag("chat-sheet"),
     ) {
-        Box(Modifier.align(Alignment.CenterHorizontally).width(44.dp).height(5.dp).clip(CircleShape).background(p.dim))
-        Text("Selecione a refeição", style = DietaBotType.headlineMd.copy(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.text, modifier = Modifier.padding(top = 16.dp))
-        Text("Escolha o momento do dia para salvar este registro:", style = DietaBotType.bodyMd.copy(fontSize = 13.sp, letterSpacing = 0.sp), color = p.muted, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            ui.slots.forEach { slot -> SheetRow(slot, slot.id == ui.sheetSelection, slot.id == ui.sheetCurrent) { onSelect(slot.id) } }
-        }
-        Row(
-            Modifier
-                .padding(top = 20.dp)
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(p.gold.copy(alpha = if (ui.sheetSelection != null) 1f else 0.5f))
-                .dietaClick(Haptic.Confirm, enabled = ui.sheetSelection != null, onClick = onConfirm)
-                .testTag("chat-sheet-confirm"),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Confirmar refeição", style = DietaBotType.labelLg.copy(fontWeight = FontWeight.W700, letterSpacing = 0.sp), color = p.onGold)
-            Spacer(Modifier.width(8.dp))
-            Icon(Icons.Outlined.ArrowForward, contentDescription = null, tint = p.onGold, modifier = Modifier.size(18.dp))
-        }
-        Text(
-            "Cancelar",
-            style = DietaBotType.labelMd.copy(letterSpacing = 0.05.em),
-            color = p.muted,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 12.dp).clip(CircleShape).dietaClick(onClick = onClose).padding(horizontal = 12.dp, vertical = 2.dp).testTag("chat-sheet-cancel"),
-        )
-    }
-}
-
-@Composable
-private fun SheetRow(slot: SlotRef, selected: Boolean, current: Boolean, onClick: () -> Unit) {
-    val p = LocalPalette.current
-    val shape = RoundedCornerShape(18.dp)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(shape)
-            .background(if (selected) p.gold.copy(alpha = 0.16f) else p.card)
-            .border(if (selected) 2.dp else 1.dp, if (selected) p.gold else p.line.copy(alpha = 0.6f), shape)
-            .dietaClick(onClick = onClick)
-            .padding(horizontal = 16.dp)
-            .testTag("chat-sheet-slot-${slot.id}"),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(if (selected) p.gold else p.panel)
-                .border(1.dp, if (selected) p.gold else p.line.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(sheetIcon(slot.minutes), contentDescription = null, tint = if (selected) p.onGold else p.muted, modifier = Modifier.size(20.dp))
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text(slot.name, style = DietaBotType.labelLg.copy(fontWeight = if (selected) FontWeight.W600 else FontWeight.W500), color = p.text)
-            Text(
-                if (current) "${slot.time} (atual)" else slot.time,
-                style = DietaBotType.labelCaps.copy(fontWeight = if (selected) FontWeight.W500 else FontWeight.W400, letterSpacing = 0.sp),
-                color = if (selected) p.gold else p.muted,
-            )
-        }
-        if (selected) {
-            Box(Modifier.size(24.dp).clip(CircleShape).background(p.gold), contentAlignment = Alignment.Center) {
-                Icon(Icons.Filled.Check, contentDescription = null, tint = p.onGold, modifier = Modifier.size(16.dp))
+            AeroText("Escolha o momento do dia para salvar este registro:", style = Aero.type.body.copy(color = Aero.colors.textMuted))
+            ui.slots.forEach { slot ->
+                AeroSlotPickRow(
+                    name = slot.name,
+                    time = if (slot.id == ui.sheetCurrent) "${slot.time} (atual)" else slot.time,
+                    icon = sheetIcon(slot.minutes),
+                    selected = slot.id == ui.sheetSelection,
+                    onClick = { onSelect(slot.id) },
+                    modifier = Modifier.testTag("chat-sheet-slot-${slot.id}"),
+                )
             }
-        } else {
-            Box(Modifier.size(20.dp).border(1.dp, p.line, CircleShape))
         }
     }
 }
 
-private fun sheetIcon(minutes: Int): ImageVector = when (SlotSuggestions.bandOf(minutes)) {
-    SlotBand.BREAKFAST -> Icons.Outlined.Coffee
-    SlotBand.MORNING_SNACK, SlotBand.AFTERNOON_SNACK -> Icons.Outlined.BakeryDining
-    SlotBand.LUNCH -> Icons.Outlined.LunchDining
-    SlotBand.DINNER -> Icons.Outlined.DinnerDining
-    SlotBand.NIGHT -> Icons.Outlined.Bedtime
+private fun sheetIcon(minutes: Int): AeroIconName = when (SlotSuggestions.bandOf(minutes)) {
+    SlotBand.BREAKFAST -> AeroIconName.Coffee
+    SlotBand.MORNING_SNACK, SlotBand.AFTERNOON_SNACK -> AeroIconName.Cookie
+    SlotBand.LUNCH -> AeroIconName.ForkKnife
+    SlotBand.DINNER -> AeroIconName.BowlFood
+    SlotBand.NIGHT -> AeroIconName.Moon
 }
 
 // ----------------------------------------------------------------------------- photo (A6)
@@ -1101,26 +935,15 @@ private fun PhotoSourceRow(icon: ImageVector, label: String, tag: String, onClic
     }
 }
 
-/** One-shot message above the composer ("Foto grande demais."). */
+/** One-shot message above the composer ("Foto grande demais."), no gold: a status/bad pill. */
 @Composable
 private fun Notice(text: String, onShown: () -> Unit) {
-    val p = LocalPalette.current
     LaunchedEffect(text) {
         delay(NOTICE_MS)
         onShown()
     }
-    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
-        Text(
-            text,
-            style = DietaBotType.labelLg.copy(fontWeight = FontWeight.W500, letterSpacing = 0.sp),
-            color = p.bad,
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(p.bad.copy(alpha = 0.12f))
-                .border(1.dp, p.bad.copy(alpha = 0.3f), CircleShape)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .testTag("chat-notice"),
-        )
+    Box(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 12.dp), contentAlignment = Alignment.Center) {
+        AeroChipLog(text, Modifier.testTag("chat-notice"), tone = AeroChipTone.Bad)
     }
 }
 

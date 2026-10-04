@@ -253,33 +253,36 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 val vm: ChatViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
                 val photo = rememberPhotoLaunchers(vm)
-                ChatScreen(
-                    ui = ui,
-                    onBack = { nav.popBackStack() },
-                    onComposer = vm::setComposer,
-                    onSend = vm::send,
-                    onRetry = vm::retry,
-                    onSheetSelect = vm::selectInSheet,
-                    onSheetConfirm = vm::confirmSheet,
-                    onSheetClose = vm::closeSheet,
-                    onRegister = vm::register,
-                    onReplaceConfirm = vm::confirmReplace,
-                    onReplaceElsewhere = vm::replaceElsewhere,
-                    onReceiptAction = vm::receiptAction,
-                    onMoveConfirm = vm::confirmMove,
-                    onMoveElsewhere = vm::moveElsewhere,
-                    onPhoto = vm::openPhotoSheet,
-                    onCamera = photo.camera,
-                    onGallery = photo.gallery,
-                    onPhotoSheetClose = vm::closePhotoSheet,
-                    onNoticeShown = vm::dismissNotice,
-                    onRemoveAttachment = vm::removeAttachment,
-                    onRecordPlan = vm::recordPlan,
-                    onRoutineRecord = vm::recordRoutine,
-                    onRoutineEdit = vm::editRoutine,
-                    onForceEstimate = vm::forceEstimate,
-                    onLoadOlder = vm::loadOlder,
-                )
+                // A42: the Chat is on Aero.
+                AeroTheme {
+                    ChatScreen(
+                        ui = ui,
+                        onBack = { nav.popBackStack() },
+                        onComposer = vm::setComposer,
+                        onSend = vm::send,
+                        onRetry = vm::retry,
+                        onSheetSelect = vm::selectInSheet,
+                        onSheetConfirm = vm::confirmSheet,
+                        onSheetClose = vm::closeSheet,
+                        onRegister = vm::register,
+                        onReplaceConfirm = vm::confirmReplace,
+                        onReplaceElsewhere = vm::replaceElsewhere,
+                        onReceiptAction = vm::receiptAction,
+                        onMoveConfirm = vm::confirmMove,
+                        onMoveElsewhere = vm::moveElsewhere,
+                        onPhoto = vm::openPhotoSheet,
+                        onCamera = photo.camera,
+                        onGallery = photo.gallery,
+                        onPhotoSheetClose = vm::closePhotoSheet,
+                        onNoticeShown = vm::dismissNotice,
+                        onRemoveAttachment = vm::removeAttachment,
+                        onRecordPlan = vm::recordPlan,
+                        onRoutineRecord = vm::recordRoutine,
+                        onRoutineEdit = vm::editRoutine,
+                        onForceEstimate = vm::forceEstimate,
+                        onLoadOlder = vm::loadOlder,
+                    )
+                }
             }
             composable<RouteConfig> {
                 val vm: ConfigViewModel = hiltViewModel()

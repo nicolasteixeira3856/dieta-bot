@@ -187,6 +187,7 @@ fun BoxScope.WorkoutSheet(
             focusRequester = focus,
             fieldTag = "home-workout-field",
             helperTag = "home-workout-credit",
+            onGlass = true,
         )
     }
 }

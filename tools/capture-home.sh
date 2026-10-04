@@ -41,6 +41,12 @@ tap() { dump; local xy; xy=$(at "$1"); [ -z "$xy" ] && { echo "  ✗ not found: 
 expect() { dump; if grep -q "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo "  ✗ $1"; FAIL=1; fi; }
 to_top() { "$ADB" shell input swipe 390 500 390 1500 150; sleep 0.4; "$ADB" shell input swipe 390 500 390 1500 150; sleep 0.5; }
 
+# A42 chatP: the skip confirmation of the third slot (Lanche) over the blurred empty day.
+"$ADB" shell input swipe 390 1400 390 700 300; sleep 0.8
+tap 'text="Lanche"' && expect "Lanche asks to skip" 'text="Pular Lanche'
+"$ADB" exec-out screencap -p > "$OUT/chatP.png"; echo "  captured $THEME/chatP"
+tap 'resource-id="home-skip-cancel"' && to_top
+
 # Interactions on the empty day (after onboarding).
 tap 'resource-id="home-slot-[0-9]+"' && expect "tap empty slot asks to skip" 'text="Pular [^"]*?"'
 tap 'text="Pular"' && expect "skip redraws as Refeição pulada" 'Refeição pulada'
