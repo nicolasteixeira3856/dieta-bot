@@ -1,10 +1,10 @@
 # Plan — D5 Release 1: Chat core
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chat0,chatL,chatQ,chatE,chatT,chatP,chatX}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D4](../completed/d4-release1-splash-onboarding.md) `Concluído` (it adds `Choice/Segmented` and `Dialog/TimeWheel` patterns reused here).
+- Prerequisites: [D4](d4-release1-splash-onboarding.md) `Concluído` (it adds `Choice/Segmented` and `Dialog/TimeWheel` patterns reused here).
 - Figma MCP budget: ≤ 110 calls, with the same split-day rule.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d5-release1-chat-core.md. Implemente o plano aprovado.`
@@ -36,7 +36,7 @@ Parity points already known (ADR-031 § 4):
 
 ## Scope
 
-Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the seven golds above. Flow-specific work:
+Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the seven golds above. Flow-specific work:
 
 1. **Components:**
    - `Chat/Header`: back button, title with dot, subtitle, 44 px spacer;
@@ -55,7 +55,7 @@ Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4
 
 ## Validation
 
-As [D3 § Validation](../completed/d3-release1-home.md#validation), with 14 frames.
+As [D3 § Validation](d3-release1-home.md#validation), with 14 frames.
 
 ## Results
 
@@ -173,12 +173,28 @@ Not drawn (no gold id in D5): the failure bubble `Não deu. Toque para tentar de
    - 0 solid fills or strokes without a variable or a paint style, and 0 text without a text style, in the frames and in the new components. The one exception is the workout value `Informar` of the D3 `home0` content cloned behind the `chatP` dialog (blurred, owned by D3);
    - 0 overlapping in-flow siblings; the absolute layers are the edge bubbles, the scrims, the sheet, the dialog and the question accent bar;
    - `Componentes`: 0 components without a description, every gap between sections 160, 0 variables with `ALL_SCOPES`.
-3. Visual: the 14 frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma pending.
+3. Visual: the 14 frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma done the same day, no fixes requested.
+4. Export and checks after the OK:
+   - `node tools/export-figma.mjs --only chat0,chatL,chatQ,chatE,chatT,chatP,chatX`: 14 new files, 780 × 1688 px;
+   - `node tools/check-figma.mjs`: 38 Figma gold PNGs verified (19 dark + 19 light);
+   - `node tools/check-docs.mjs`: passed.
 
-### For the owner review
+### For the owner review (accepted)
 
 1. `chatP` is drawn as the app's skip dialog over the Home (`Pular Lanche?`, two actions), not the gold's richer dialog.
 2. `chatT` uses the Aero `Sheet/Bottom` secondary pill for `Cancelar` (the app draws a text link) and the `chatE` thread behind it.
 3. The composer has no `Blocked` variant and no counter (ADR-022); `TooLong` carries both the disabled buttons and the error copy.
 4. The question text uses `Body/Strong` (16) where the code draws 18 sp; the estimate kcal is `text/primary`, not the accent.
 5. Suggestion chips reuse `Chip/Log` Neutral with the emoji in the text.
+
+### Owner review (2026-10-04)
+
+The owner reviewed the section `Chat · D5` in Figma and gave the OK in the chat that approved D6 ("D5 aprovado: fechar e seguir"). The five points above were accepted with no changes.
+
+### Exported golds
+
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `chat0.png`, `chatL.png`, `chatQ.png`, `chatE.png`, `chatT.png`, `chatP.png`, `chatX.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the seven ids stays `stitch` in `docs/qa/README.md`; [A42](../../../android/plans/a42-chat-core-aero.md) switches it.
+
+### Figma MCP budget, total
+
+18 of 110. The review and the closure used no MCP call (export through the REST API).
