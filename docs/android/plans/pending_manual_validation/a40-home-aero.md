@@ -29,7 +29,7 @@ Move the Home screen and its four states onto Aero, matching the Figma golds, wi
 
 ## Out of scope
 
-- Other flows; Material removal ([A45](../a45-remove-material3.md)); behavior or copy.
+- Other flows; Material removal ([A45](a45-remove-material3.md)); behavior or copy.
 
 ## Validation
 

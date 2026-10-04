@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.google.common.truth.Truth.assertThat
-import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.domain.ReceiptAction
 import org.junit.Rule
 import org.junit.Test
@@ -26,7 +26,7 @@ class ChatRecordUiTest {
     private val calls = mutableListOf<String>()
 
     private fun show(ui: ChatUiState) = compose.setContent {
-        DietaBotTheme(darkTheme = true) {
+        AeroTheme(darkTheme = true) {
             ChatScreen(
                 ui = ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {},
                 onRegister = { calls += "register $it" },

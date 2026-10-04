@@ -2,7 +2,6 @@
 agp = "9.4.1"
 kotlin = "2.2.20"
 composeBom = "2026.09.00"
-material3 = "1.5.0-alpha29"
 hilt = "2.56.2"
 hiltNav = "1.2.0"
 navigation = "2.8.9"
@@ -24,7 +23,6 @@ robolectric = "4.14.1"
 androidxTestCore = "1.6.1"
 ksp = "2.2.20-2.0.4"
 roborazzi = "1.44.0"
-materialIcons = "1.7.8"
 haze = "1.7.2"
 firebaseBom = "34.19.0"
 googleServices = "4.5.0"
@@ -38,9 +36,6 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIcons" }
-compose-material3-android = { module = "androidx.compose.material3:material3-android", version.ref = "material3" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }

@@ -223,6 +223,27 @@ fun BoxScope.AeroConfirmDialog(
     }
 }
 
+/** Dialog/Confirm with one action (no gold): a Body note and Button/Primary; back and the scrim close it. */
+@Composable
+fun BoxScope.AeroNoticeDialog(body: String, button: String, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    val c = Aero.colors
+    BackHandler(onBack = onDismiss)
+    AeroScrim(onDismiss)
+    Column(
+        modifier
+            .align(Alignment.Center)
+            .padding(horizontal = 24.dp)
+            .fillMaxWidth()
+            .aeroGlass(RoundedCornerShape(AeroDimens.radiusSheet), backdropBlurred = true)
+            .aeroSwallowTaps()
+            .padding(25.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+    ) {
+        AeroText(body, style = Aero.type.body.copy(color = c.textMuted))
+        AeroButtonPrimary(button, onDismiss)
+    }
+}
+
 /** Dialog/Confirm Tone=Danger primary: 56 dp status/bad pill, 24 dp icon and the Button label in accent/on. */
 @Composable
 private fun AeroDangerButton(label: String, icon: AeroIconName, onClick: () -> Unit, modifier: Modifier = Modifier) {

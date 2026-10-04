@@ -7,7 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import com.google.common.truth.Truth.assertThat
-import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,7 +22,7 @@ class ChatMemoryChipsTest {
     val compose = createComposeRule()
 
     private fun show(ui: ChatUiState) = compose.setContent {
-        DietaBotTheme(darkTheme = true) { ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {}) }
+        AeroTheme(darkTheme = true) { ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {}) }
     }
 
     private fun top(tag: String) = compose.onNodeWithTag(tag).getUnclippedBoundsInRoot().top

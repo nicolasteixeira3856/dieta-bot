@@ -53,7 +53,7 @@ Build the Aero layer next to the current Material 3 Expressive theme, without ch
 7. **Gold test source:**
    - `StitchGoldTest` reads each id's source (`stitch`/`figma`) from the inventory table in `docs/qa/README.md` and loads the gold from the matching folder;
    - behavior is unchanged while every id is `stitch`.
-8. **AGENTS.md** (Completion): add to Live stack the line "Aero design system layer (ADR-030): `core/designsystem/aero`, flows migrate per `docs/design/plans/README.md`". Material lines stay until [A45](../a45-remove-material3.md).
+8. **AGENTS.md** (Completion): add to Live stack the line "Aero design system layer (ADR-030): `core/designsystem/aero`, flows migrate per `docs/design/plans/README.md`". Material lines stay until [A45](a45-remove-material3.md).
 
 ## Out of scope
 

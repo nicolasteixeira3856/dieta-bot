@@ -12,7 +12,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
-import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -43,7 +43,7 @@ class ChatThreadTest {
 
     private fun show(ui: ChatUiState, keyboard: Keyboard = Keyboard(), onPhoto: () -> Unit = {}, onCamera: () -> Unit = {}, onLoadOlder: () -> Unit = {}, onSend: () -> Unit = {}) {
         compose.setContent {
-            DietaBotTheme {
+            AeroTheme {
                 CompositionLocalProvider(LocalSoftwareKeyboardController provides keyboard) {
                     ChatScreen(
                         ui = ui, onBack = {}, onComposer = {}, onSend = onSend, onRetry = {},
@@ -83,7 +83,7 @@ class ChatThreadTest {
     @Test fun twoNewItemsAtOnce_followFromTheBottom() {
         var ui by mutableStateOf(long)
         compose.setContent {
-            DietaBotTheme {
+            AeroTheme {
                 ChatScreen(ui = ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})
             }
         }

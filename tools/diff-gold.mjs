@@ -5,7 +5,7 @@
 // Capture on an AVD set to the gold geometry (390 dp @ 2x):
 //   adb shell wm size 780x1688 && adb shell wm density 320
 //
-// Metric (same as StitchGoldTest): both images are box-blurred (3 passes, radius 3 px) so glyph
+// Metric (same as GoldTest): both images are box-blurred (3 passes, radius 3 px) so glyph
 // rasterisation is ignored (AGENTS: ignore font raster); then the share of pixels whose max channel
 // delta > 40 is reported. Top 40 dp and bottom 40 dp (clock, battery, nav, home pill) are ignored.
 // The system status bar height varies per device, so the best single vertical offset in +-24 dp

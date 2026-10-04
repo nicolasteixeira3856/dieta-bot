@@ -34,9 +34,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.push.PushHandler
-import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.Aero
 import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.feature.home.HomePanelScreen
 import com.nutri.android.feature.home.HomePanelViewModel
@@ -87,7 +86,9 @@ class MainActivity : ComponentActivity() {
             telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "open"))
         }
         setContent {
-            DietaBotTheme {
+            // ADR-030: Aero is the only theme. Each route also opens its own AeroTheme, so every screen keeps its own
+            // backdrop-blur state through navigation transitions.
+            AeroTheme {
                 App(screen, openChat, telemetry)
             }
         }
@@ -128,7 +129,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
     Box(
         Modifier
             .fillMaxSize()
-            .background(LocalPalette.current.bg)
+            .background(Aero.colors.bgPage)
             .semantics { testTagsAsResourceId = true },
     ) {
         NavHost(
@@ -235,7 +236,6 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         nav.navigate(RouteChat)
                     }
                 }
-                // A40: the Home is on Aero (ADR-030); the other flows keep DietaBotTheme until their plan.
                 AeroTheme {
                     HomePanelScreen(
                         ui = ui,
