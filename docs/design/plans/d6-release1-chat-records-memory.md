@@ -4,7 +4,7 @@
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat" (second row block), new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chatF,chatA,chatG,chatU,chatD,chatR,chatM,chatS}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D5](d5-release1-chat-core.md) `Concluído`.
+- Prerequisites: [D5](pending_manual_validation/d5-release1-chat-core.md) `Concluído`.
 - Figma MCP budget: ≤ 110 calls, with the same split-day rule.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d6-release1-chat-records-memory.md. Implemente o plano aprovado.`
