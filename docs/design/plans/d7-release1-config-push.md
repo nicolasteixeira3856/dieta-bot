@@ -4,7 +4,7 @@
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Config e push". Repository: `docs/qa/figma/{dark,light}/{cfg,cfgS,wipe,push}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D6](d6-release1-chat-records-memory.md) `Concluído`.
+- Prerequisites: [D6](pending_manual_validation/d6-release1-chat-records-memory.md) `Concluído`.
 - Figma MCP budget: ≤ 80 calls.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d7-release1-config-push.md. Implemente o plano aprovado.`
