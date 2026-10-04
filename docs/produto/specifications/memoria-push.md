@@ -88,5 +88,5 @@ Comportamento: `produto`. Client: `android`.
 - [A29](../../android/plans/completed/a29-chat-v2-interface.md) — Chat v2: plano de refeição, avisos de memória e sugestão da rotina
 - [A34](../../android/plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
 - [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
-- [A43](../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
-- [A44](../../android/plans/pending_manual_validation/a44-config-push-aero.md) — Config and push on Aero
+- [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
+- [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero

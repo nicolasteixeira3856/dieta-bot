@@ -1,6 +1,6 @@
 # Plan — A41 Splash and onboarding on Aero
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only:
@@ -33,7 +33,7 @@ As [A40 § Validation](a40-home-aero.md#validation), with `capture-onboarding.sh
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3).
+Implemented 2026-10-04 after the owner's named approval. The consolidated phone check was approved by the owner on 04/10/2026.
 
 ### Delivered
 
@@ -67,6 +67,6 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
 4. `./gradlew.bat :app:assembleDevRelease`: success; `app-dev-release.apk` 19,069,363 → 19,102,723 bytes (+33,360).
 5. `node tools/check-docs.mjs`: pass.
 
-### Pending (manual)
+### Manual validation
 
-- Consolidated phone check of A39–A45 ([A40 § Validation](a40-home-aero.md#validation) step 3).
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../a46-input-cursor-keyboard.md).

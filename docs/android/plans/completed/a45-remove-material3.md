@@ -1,6 +1,6 @@
 # Plan — A45 Remove Material 3 Expressive
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code:
@@ -43,7 +43,7 @@ Finish [ADR-030](../../../design/adrs/ADR-030-own-design-system-aero.md): no Mat
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3).
+Implemented 2026-10-04 after the owner's named approval. The consolidated phone check was approved by the owner on 04/10/2026.
 
 ### Delivered
 
@@ -73,6 +73,6 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
    - All gates ≤ 2 %, the same numbers as A40–A44 (no visual change). Interaction checks: every check of every script passed in dark; in light, two A34 checks of `capture-chat.sh` (the inline `Substituir` card below the answer, the composer filled by Editar) failed once while the following steps of the same scenes passed (the card was confirmed and stored 620 kcal), and the `SCENES=a34` rerun in light passed all 40 checks. The same composer check flaked once in A42; both look up the screen before the thread settles.
 4. `node tools/check-docs.mjs`: pass. `node tools/check-skills.mjs`: pass (27 skills, 137 files in each tree).
 
-### Pending (manual)
+### Manual validation
 
-- Consolidated phone check of A39–A45 ([A40 § Validation](a40-home-aero.md#validation) step 3).
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../a46-input-cursor-keyboard.md).

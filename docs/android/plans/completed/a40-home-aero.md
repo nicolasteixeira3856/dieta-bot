@@ -1,12 +1,12 @@
 # Plan — A40 Home on Aero
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only:
   - `feature/home/`, Home-specific components in `core/designsystem/aero/`, tests;
   - docs updated with the delivery: the source of `home0`, `home1`, `homeX` and `homeW` in `docs/qa/README.md`, captures in `docs/qa/android/current/{dark,light}/`.
-- Prerequisites: [A39](../pending_manual_validation/a39-aero-foundation.md) and [D3](../../../design/plans/completed/d3-release1-home.md) `Concluído` (Figma golds in `docs/qa/figma/`).
+- Prerequisites: [A39](a39-aero-foundation.md) and [D3](../../../design/plans/completed/d3-release1-home.md) `Concluído` (Figma golds in `docs/qa/figma/`).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a40-home-aero.md. Implemente o plano aprovado.`
 
@@ -46,7 +46,7 @@ Move the Home screen and its four states onto Aero, matching the Figma golds, wi
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check (Validation step 3).
+Implemented 2026-10-04 after the owner's named approval. The consolidated phone check was approved by the owner on 04/10/2026.
 
 ### Delivered
 
@@ -73,6 +73,6 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
 4. `./gradlew.bat :app:assembleDevRelease`: success; `app-dev-release.apk` 19,069,363 → 19,069,363 bytes (no measurable delta: the dex files are stored uncompressed and page-aligned).
 5. `node tools/check-docs.mjs`: pass.
 
-### Pending (manual)
+### Manual validation
 
-- Consolidated phone check of A39–A45 (Validation step 3).
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../a46-input-cursor-keyboard.md).

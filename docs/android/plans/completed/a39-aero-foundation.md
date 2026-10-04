@@ -1,6 +1,6 @@
 # Plan — A39 Aero design system foundation in Compose
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only:
@@ -69,7 +69,7 @@ Build the Aero layer next to the current Material 3 Expressive theme, without ch
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check of A39–A45 ([A40 § Validation](a40-home-aero.md#validation) step 3: glass blur on the owner's phone).
+Implemented 2026-10-04 after the owner's named approval. The consolidated phone check was approved by the owner on 04/10/2026.
 
 ### Delivered
 
@@ -102,6 +102,6 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
 5. `./gradlew.bat :app:assembleDevRelease`: success. `app-dev-release.apk` 18,345,872 → 19,069,363 bytes (+723,491: Nunito Sans roman and italic, Haze, 36 vector icons).
 6. `node tools/check-docs.mjs`: pass.
 
-### Pending (manual)
+### Manual validation
 
-- Consolidated phone check, [A40 § Validation](a40-home-aero.md#validation) step 3.
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../a46-input-cursor-keyboard.md).
