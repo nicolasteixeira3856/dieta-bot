@@ -11,6 +11,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este 
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [adrs/](produto/adrs/) | — | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [Room](android/specifications/room-v2.md) | [adrs/](android/adrs/) | [plans/](android/plans/) | [qa/android/](qa/android/), [validation/](android/validation/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [adrs/](server/adrs/) | [plans/](server/plans/) | `server/tests/` |
+| [design](design/README.md) | fonte de design (Figma `Design`) | — (Figma + golds em `docs/qa/figma/`) | — | [adrs/](design/adrs/) | [índice](design/plans/README.md) | — |
 | [stitch](stitch/README.md) | gate de design | — (golds + `tools/export-stitch.mjs`) | — | — | [plans/](stitch/plans/) | `tools/check-stitch.mjs`, `tools/verify-stitch.mjs st<n>` |
 | [content-policy](content-policy/README.md) | cross-cutting policy | um diretório por plano: server, Android ou infra GCP | [content handling](content-policy/specifications/content-policy.md), [identity/audit](content-policy/specifications/identity-and-audit.md) | [adrs/](content-policy/adrs/) | [índice](content-policy/plans/README.md) | [matriz](content-policy/validation/README.md) |
 | [sdd](sdd/README.md) | manutenção do fluxo | `tools/check-skills.mjs`, skills | — | — | [índice](sdd/plans/README.md) | — |
@@ -58,6 +59,8 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [027](android/adrs/ADR-027-golds-divergentes.md) | android | QA visual com golds divergentes: estado segue o próprio gold, média dark/light, spec vence o gold, esmaecimento por save layer |
 | [028](produto/adrs/ADR-028-registro-autonomo.md) | produto | registro autônomo no Chat, recibo com Desfazer/Excluir/Trocar refeição/Editar, Registrar na dúvida, substituição confirmada no Chat; golds `chatE`, `chatF`, `chatG` alterados, `chatU`, `chatD` novos |
 | [029](produto/adrs/ADR-029-fatos-temporarios-compactacao.md) | produto | fatos temporários (3 dias), compactação que mantém o fim aberto, dia da refeição = dia em que comeu |
+| [030](design/adrs/ADR-030-own-design-system-aero.md) | design | design system próprio "Aero" substitui o Material 3 Expressive |
+| [031](design/adrs/ADR-031-figma-source-of-truth.md) | design | arquivo Figma `Design` substitui o Stitch como fonte da UI; gate de revisão no Figma |
 
 ## Outros docs
 
