@@ -1,6 +1,7 @@
 package com.nutri.android.core.designsystem.aero
 
 import android.os.Build
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -39,24 +40,30 @@ private fun List<AeroStop>.verticalBrush(): Brush = Brush.verticalGradient(*map 
 
 /**
  * The page gradient (paint style Background/Page) and the backdrop that glass blurs. Put it on a layer behind the
- * content, not on the content's parent: use [AeroPage].
+ * content, not on the content's parent: use [AeroPage]. With [scroll], the gradient spans the whole scrolled page
+ * and moves with it, as the fill of a Figma page frame does.
  */
 @Composable
-fun Modifier.aeroPage(): Modifier {
+fun Modifier.aeroPage(scroll: ScrollState? = null): Modifier {
     val c = Aero.colors
     val haze = LocalAeroHaze.current
-    val brush = remember(c) { AeroPaints.backgroundPageStops(c).verticalBrush() }
-    return (if (haze != null) hazeSource(haze) else this).background(brush)
+    val stops = remember(c) { AeroPaints.backgroundPageStops(c).map { it.position to it.color }.toTypedArray() }
+    return (if (haze != null) hazeSource(haze) else this).drawBehind {
+        val top = -(scroll?.value ?: 0).toFloat()
+        val bottom = top + size.height + (scroll?.maxValue?.takeIf { it != Int.MAX_VALUE } ?: 0)
+        drawRect(Brush.verticalGradient(*stops, startY = top, endY = bottom))
+    }
 }
 
 /** A screen root: the page gradient as a backdrop layer, the content on top of it. */
 @Composable
 fun AeroPage(
     modifier: Modifier = Modifier,
+    scroll: ScrollState? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(modifier) {
-        Box(Modifier.matchParentSize().aeroPage())
+        Box(Modifier.matchParentSize().aeroPage(scroll))
         content()
     }
 }
@@ -89,7 +96,8 @@ fun Modifier.aeroShadow(
 /**
  * Frosted glass (paint Surface/Glass + effect Glass): backdrop blur 16 dp on API 31+, the glass fill, the top
  * sheen, a hairline border and the soft shadow. [fill] and [border] default to the glass tokens; tinted glass
- * (user bubble, chips) passes its own.
+ * (user bubble, chips) passes its own. [backdropBlurred]: the content behind is already blurred (a sheet over a
+ * Modifier.blur screen), so the glass is its fill over it, as Figma's background blur of a blurred layer looks.
  */
 @Composable
 fun Modifier.aeroGlass(
@@ -99,11 +107,12 @@ fun Modifier.aeroGlass(
     borderWidth: Dp = 1.dp,
     sheen: Boolean = true,
     shadow: Boolean = true,
+    backdropBlurred: Boolean = false,
 ): Modifier {
     val c = Aero.colors
     val haze = LocalAeroHaze.current
     val sheenBrush = remember(c) { AeroPaints.surfaceGlassStops(c).verticalBrush() }
-    val blur = aeroBlurSupported && haze != null
+    val blur = aeroBlurSupported && haze != null && !backdropBlurred
     val base = if (shadow) aeroShadow(shape, AeroEffects.glassShadowColor(c)) else this
     val backdrop = if (blur) {
         val style = remember(c, fill) {
@@ -115,6 +124,9 @@ fun Modifier.aeroGlass(
             )
         }
         Modifier.hazeEffect(haze!!, style)
+    } else if (backdropBlurred && aeroBlurSupported) {
+        // What is behind is already blurred (a sheet over a blurred screen): the glass fill alone.
+        Modifier.background(fill)
     } else {
         val alpha = if (c.isDark) FALLBACK_ALPHA_DARK else FALLBACK_ALPHA_LIGHT
         Modifier.background(fill.copy(alpha = maxOf(fill.alpha, alpha)))

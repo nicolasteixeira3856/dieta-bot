@@ -23,6 +23,7 @@ import com.nutri.android.feature.config.ConfigMapper
 import com.nutri.android.feature.config.ConfigScreen
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.feature.chat.ChatFixtures
 import com.nutri.android.feature.chat.ChatScreen
 import com.nutri.android.feature.chat.ChatUiState
@@ -121,33 +122,30 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun o4_light() = check("o4", dark = false) { O4() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1073dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1258dp-xhdpi")
     fun home0_dark() = check("home0", dark = true, fullPage = true) { Home(HomeFixtures.home0) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1073dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1258dp-xhdpi")
     fun home0_light() = check("home0", dark = false, fullPage = true) { Home(HomeFixtures.home0) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1414dp-xhdpi")
     fun home1_dark() = check("home1", dark = true, fullPage = true) { Home(HomeFixtures.home1Workout) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1414dp-xhdpi")
     fun home1_light() = check("home1", dark = false, fullPage = true) { Home(HomeFixtures.home1Workout) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1335dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1516dp-xhdpi")
     fun homeX_dark() = check("homeX", dark = true, fullPage = true) { Home(HomeFixtures.homeXWorkout) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1335dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1516dp-xhdpi")
     fun homeX_light() = check("homeX", dark = false, fullPage = true) { Home(HomeFixtures.homeXWorkout) }
 
-    /**
-     * A22 homeW: "Treino de hoje" sheet over home1. The sheet is gated on its own (the Home behind
-     * is blurred under a scrim). Heights: gold page minus the 40 px band.
-     */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1330dp-xhdpi")
-    fun homeW_dark() = check("homeW", dark = true, fullPage = true, navDp = 0, region = WORKOUT_SHEET_DARK) { HomeW() }
+    /** A22 homeW: "Treino de hoje" sheet over the blurred home1 (A40: Figma frame, 1414 dp, gated whole). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1414dp-xhdpi")
+    fun homeW_dark() = check("homeW", dark = true, fullPage = true) { HomeW() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1342dp-xhdpi")
-    fun homeW_light() = check("homeW", dark = false, fullPage = true, navDp = 0, region = WORKOUT_SHEET_LIGHT) { HomeW() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1414dp-xhdpi")
+    fun homeW_light() = check("homeW", dark = false, fullPage = true) { HomeW() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chat0_dark() = check("chat0", dark = true) { Chat(ChatFixtures.chat0) }
@@ -348,10 +346,15 @@ class StitchGoldTest {
         gateRegion: Boolean = true,
         screen: @Composable () -> Unit,
     ) {
+        // Figma golds (ADR-031) are the bare frame: no status bar, no nav bar, the page at the frame height.
+        val figma = GoldInventory.source(goldId) == "figma"
+        val statusDp = if (figma) 0 else STATUS_DP
         compose.setContent {
             DietaBotTheme(darkTheme = dark) {
-                Box(Modifier.fillMaxSize().background(LocalPalette.current.phone)) {
-                    Box(Modifier.padding(top = STATUS_DP.dp, bottom = navDp.dp)) { screen() }
+                AeroTheme(darkTheme = dark) {
+                    Box(Modifier.fillMaxSize().background(LocalPalette.current.phone)) {
+                        Box(Modifier.padding(top = statusDp.dp, bottom = if (figma) 0.dp else navDp.dp)) { screen() }
+                    }
                 }
             }
         }
@@ -366,8 +369,8 @@ class StitchGoldTest {
         val raw = diff(app, gold, top)
         val appBlur = blur(app)
         val goldBlur = blur(gold)
-        val blurred = diff(appBlur, goldBlur, top, footerDp)
-        val inkRatio = ink(appBlur, 0).toDouble() / ink(goldBlur, top).coerceAtLeast(1)
+        val blurred = diff(appBlur, goldBlur, top, if (figma) IGNORE_BOTTOM_DP else footerDp, topDp = statusDp)
+        val inkRatio = ink(appBlur, 0, figma).toDouble() / ink(goldBlur, top, figma).coerceAtLeast(1)
         save(blurred.mask, File(DIFF_OUT, "$theme-$id.png"))
         println("GOLD_DIFF $theme/$id blurred ${"%.2f".format(blurred.percent)}% raw ${"%.2f".format(raw.percent)}% ink ${"%.2f".format(inkRatio)}")
         (listOfNotNull(region) + regions).forEachIndexed { i, box ->
@@ -379,18 +382,18 @@ class StitchGoldTest {
         reportRegions.forEachIndexed { i, box ->
             println("GOLD_DIFF $theme/$id report$i ${"%.2f".format(regionDiff(appBlur, goldBlur, box))}%")
         }
-        if (id in GOLD_CONFLICTS || reportOnly) return // reported only, see GOLD_CONFLICTS
+        if ((id in GOLD_CONFLICTS && !figma) || reportOnly) return // reported only, see GOLD_CONFLICTS
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
-        assertWithMessage("$theme/$id differs from Stitch gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
+        assertWithMessage("$theme/$id differs from the gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
     }
 
     private class Diff(val percent: Double, val mask: Bitmap)
 
     /** Share of compared pixels whose max channel delta exceeds [CHANNEL_TOLERANCE]. */
-    private fun diff(app: Bitmap, gold: Bitmap, goldTop: Int, footerDp: Int = IGNORE_BOTTOM_DP): Diff {
+    private fun diff(app: Bitmap, gold: Bitmap, goldTop: Int, footerDp: Int = IGNORE_BOTTOM_DP, topDp: Int = STATUS_DP): Diff {
         val w = minOf(app.width, gold.width)
         val h = minOf(app.height, gold.height - goldTop)
-        val from = STATUS_DP * 2
+        val from = topDp * 2
         // Full-page golds: the fixed FAB/CTA sits at the page bottom without Android nav insets,
         // so the footer is left out (same as tools/diff-gold.mjs).
         val to = h - footerDp * 2
@@ -447,9 +450,9 @@ class StitchGoldTest {
     }
 
     /** Pixels off the page background (median colour) in the compared rows: catches blank captures. */
-    private fun ink(img: Bitmap, top: Int): Int {
-        val from = STATUS_DP * 2
-        val to = PHONE_ROWS.coerceAtMost(img.height - top) - IGNORE_BOTTOM_DP * 2
+    private fun ink(img: Bitmap, top: Int, fullFrame: Boolean = false): Int {
+        val from = if (fullFrame) 0 else STATUS_DP * 2
+        val to = (if (fullFrame) img.height - top else PHONE_ROWS.coerceAtMost(img.height - top)) - IGNORE_BOTTOM_DP * 2
         val sample = IntArray(0).toMutableList()
         for (y in from until to step 8) for (x in 0 until img.width step 8) sample += img.getPixel(x, y + top)
         val bg = intArrayOf(
@@ -535,7 +538,6 @@ class StitchGoldTest {
          * separate Stitch generation. Reported, not gated, until the owner regenerates them.
          */
         private val GOLD_CONFLICTS = setOf(
-            "home0", "homeX",
             // Chat: chatE is canonical. chat0/chatL use another header (body alone: ~1.2-1.4%).
             // See docs/android/plans/completed/a5-chat.md.
             "chat0", "chatL",
@@ -545,15 +547,9 @@ class StitchGoldTest {
             "chatA",
             // chatX too (A25): only its composer and the error line are gated (COMPOSER_TOO_LONG).
             "chatX",
-            // homeW (A22): only the sheet is gated (WORKOUT_SHEET_*).
-            "homeW",
             // chatS is a copy of chat0 too (A29): only the routine card is gated (ROUTINE_CARD).
             "chatS",
         )
-
-        /** homeW sheet, top edge to 40 dp above the page end (home pill), in gold px (x0, y0, x1, y1). Same as tools/diff-gold.mjs. */
-        private val WORKOUT_SHEET_DARK = intArrayOf(0, 2012, 780, 2620)
-        private val WORKOUT_SHEET_LIGHT = intArrayOf(0, 2026, 780, 2644)
 
         /**
          * A34: the receipt(s), then the stacked actions, in gold px (x0, y0, x1, y1), per gold. Two boxes: the

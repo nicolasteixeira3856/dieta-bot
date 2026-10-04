@@ -37,6 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.push.PushHandler
 import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.feature.home.HomePanelScreen
 import com.nutri.android.feature.home.HomePanelViewModel
 import com.nutri.android.feature.onboarding.CeilingScreen
@@ -224,16 +225,19 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         nav.navigate(RouteChat)
                     }
                 }
-                HomePanelScreen(
-                    ui = ui,
-                    onSkip = vm::skip,
-                    onConfig = { nav.navigate(RouteConfig) },
-                    onChat = { nav.navigate(RouteChat) },
-                    onWorkoutOpen = vm::openWorkout,
-                    onWorkoutChange = vm::setWorkout,
-                    onWorkoutSave = vm::saveWorkout,
-                    onWorkoutCancel = vm::closeWorkout,
-                )
+                // A40: the Home is on Aero (ADR-030); the other flows keep DietaBotTheme until their plan.
+                AeroTheme {
+                    HomePanelScreen(
+                        ui = ui,
+                        onSkip = vm::skip,
+                        onConfig = { nav.navigate(RouteConfig) },
+                        onChat = { nav.navigate(RouteChat) },
+                        onWorkoutOpen = vm::openWorkout,
+                        onWorkoutChange = vm::setWorkout,
+                        onWorkoutSave = vm::saveWorkout,
+                        onWorkoutCancel = vm::closeWorkout,
+                    )
+                }
             }
             composable<RouteChat> {
                 val vm: ChatViewModel = hiltViewModel()

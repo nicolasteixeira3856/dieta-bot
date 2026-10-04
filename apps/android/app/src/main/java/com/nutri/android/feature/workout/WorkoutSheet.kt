@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
@@ -53,7 +54,10 @@ import androidx.compose.ui.unit.sp
 import com.nutri.android.core.designsystem.DietaBotMeasure
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.LocalPalette
-import com.nutri.android.core.designsystem.SheetActions
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroFieldNumber
+import com.nutri.android.core.designsystem.aero.AeroIconName
+import com.nutri.android.core.designsystem.aero.AeroSheet
 
 private val FieldShape = RoundedCornerShape(DietaBotMeasure.cardDp.dp)
 
@@ -134,7 +138,10 @@ fun WorkoutField(
     }
 }
 
-/** homeW: "Treino de hoje" sheet over the Home. Salvar stores day.workoutKcal (empty = no workout). */
+/**
+ * homeW: "Treino de hoje" Aero sheet (Sheet/Bottom + Field/Number) over the blurred Home, under overlay/scrim.
+ * Salvar stores day.workoutKcal (empty = no workout).
+ */
 @Composable
 fun BoxScope.WorkoutSheet(
     state: WorkoutEditorState,
@@ -142,44 +149,44 @@ fun BoxScope.WorkoutSheet(
     onSave: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    val p = LocalPalette.current
     BackHandler(onBack = onCancel)
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = if (p.isDark) 0.6f else 0.4f))
+            .background(Aero.colors.overlayScrim)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onCancel),
     )
-    val shape = RoundedCornerShape(topStart = DietaBotMeasure.sheetTopDp.dp, topEnd = DietaBotMeasure.sheetTopDp.dp)
-    Column(
-        Modifier
+    val focus = remember { FocusRequester() }
+    var text by remember { mutableStateOf(TextFieldValue(state.input, TextRange(state.input.length))) }
+    if (text.text != state.input) text = TextFieldValue(state.input, TextRange(state.input.length))
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    AeroSheet(
+        title = "Treino de hoje",
+        primary = "Salvar",
+        onPrimary = onSave,
+        secondary = "Cancelar",
+        onSecondary = onCancel,
+        primaryTag = "home-workout-save",
+        secondaryTag = "home-workout-cancel",
+        modifier = Modifier
             .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .clip(shape)
-            .background(if (p.isDark) p.surf else p.phone)
-            .border(1.dp, p.line.copy(alpha = 0.7f), shape)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
             .imePadding()
-            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets(bottom = 24.dp)))
-            .padding(start = 24.dp, end = 24.dp, top = 25.dp)
             .testTag("home-workout-sheet"),
+        bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
     ) {
-        Box(Modifier.align(Alignment.CenterHorizontally).width(40.dp).height(6.dp).clip(CircleShape).background(p.line))
-        Text(
-            "Treino de hoje",
-            style = DietaBotType.headlineMd.copy(fontSize = 18.5.sp, lineHeight = 24.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp),
-            color = p.text,
-            modifier = Modifier.padding(top = 24.dp, bottom = 17.dp),
-        )
-        WorkoutField(state, onChange, tag = "home-workout", autoFocus = true)
-        SheetActions(
-            primary = "Salvar",
-            onPrimary = onSave,
-            secondary = "Cancelar",
-            onSecondary = onCancel,
-            primaryTag = "home-workout-save",
-            secondaryTag = "home-workout-cancel",
-            modifier = Modifier.padding(top = 24.dp),
+        AeroFieldNumber(
+            value = text,
+            onValueChange = { v ->
+                val clean = WorkoutEditorState.clean(v.text)
+                text = if (clean == v.text) v else TextFieldValue(clean, TextRange(clean.length))
+                if (clean != state.input) onChange(clean)
+            },
+            unit = "kcal",
+            helper = state.creditLine,
+            icon = AeroIconName.Barbell,
+            focusRequester = focus,
+            fieldTag = "home-workout-field",
+            helperTag = "home-workout-credit",
         )
     }
 }
