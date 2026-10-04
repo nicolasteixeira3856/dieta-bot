@@ -12,9 +12,10 @@
  * Skill trees are covered by tools/check-skills.mjs.
  *
  * C1 relative links resolve · C2 "no specification" claims · C3 plan links in specs only under Provenance
- * C4 status copies · C5 ADR status line · C6 READMEs link history folders, not files · C7 gold inventory
+ * C4 status copies · C5 ADR status line · C6 READMEs link history folders, not files
+ * C7 gold inventory = stitch map ∪ figma map, each id in the map of its declared source
  *
- * No dependencies beyond tools/export-stitch.mjs (C7). Never writes, fixes or downloads.
+ * No dependencies beyond the gold maps of tools/export-stitch.mjs and tools/export-figma.mjs (C7). Never writes, fixes or downloads.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -77,6 +78,35 @@ function adrStatus(file) {
   return fs.readFileSync(file, "utf8").split(/\r?\n/).slice(0, 10).find((l) => /^- (Status|Estado):/.test(l));
 }
 
+export const GOLD_SOURCES = ["stitch", "figma"];
+const MAP_FILES = { stitch: ["export-stitch.mjs", "DARK_SCREENS", "LIGHT_SCREENS"], figma: ["export-figma.mjs", "DARK_FRAMES", "LIGHT_FRAMES"] };
+
+/**
+ * Gold inventory of docs/qa/README.md § Golds: the fenced block, one line per group, each line
+ * "<source>: <id>.png · <id>.png …". Returns { sources: Map(id → source), problems: [text] } or null without the block.
+ */
+export function parseGoldInventory(text) {
+  const section = text.match(/^## Golds\s*$([\s\S]*?)(?=^## |(?![\s\S]))/m);
+  const block = section && section[1].match(/^ {0,3}(`{3,}|~{3,})[^\n]*\n([\s\S]*?)^ {0,3}\1/m);
+  if (!block) return null;
+  const sources = new Map();
+  const problems = [];
+  for (const line of block[2].split(/\r?\n/)) {
+    const ids = [...line.matchAll(/([A-Za-z0-9]+)\.png/g)].map((m) => m[1]);
+    if (!ids.length) continue;
+    const source = line.match(/^\s*([a-z]+):/)?.[1];
+    if (!GOLD_SOURCES.includes(source)) {
+      problems.push("line '" + line.trim() + "' does not start with a source (" + GOLD_SOURCES.join(" | ") + ":)");
+      continue;
+    }
+    for (const id of ids) {
+      if (sources.has(id)) problems.push("gold '" + id + "' is listed twice");
+      sources.set(id, source);
+    }
+  }
+  return { sources, problems };
+}
+
 async function goldInventory(root, findings) {
   const qa = "docs/qa/README.md";
   const qaFile = path.join(root, qa);
@@ -84,25 +114,31 @@ async function goldInventory(root, findings) {
     findings.push(qa + ":0 C7 missing gold inventory file");
     return;
   }
-  const text = fs.readFileSync(qaFile, "utf8");
-  const section = text.match(/^## Golds\s*$([\s\S]*?)(?=^## |(?![\s\S]))/m);
-  const block = section && section[1].match(/^ {0,3}(`{3,}|~{3,})[^\n]*\n([\s\S]*?)^ {0,3}\1/m);
-  if (!block) {
+  const inventory = parseGoldInventory(fs.readFileSync(qaFile, "utf8"));
+  if (!inventory) {
     findings.push(qa + ":0 C7 no fenced id list under '## Golds'");
     return;
   }
-  const listed = new Set([...block[2].matchAll(/([A-Za-z0-9]+)\.png/g)].map((m) => m[1]));
-  let screens;
-  try {
-    screens = await import(pathToFileURL(path.join(root, "tools", "export-stitch.mjs")).href);
-  } catch (error) {
-    findings.push("tools/export-stitch.mjs:0 C7 cannot load the gold map: " + error.message);
-    return;
+  for (const problem of inventory.problems) findings.push(qa + ":0 C7 " + problem);
+  const maps = {};
+  for (const source of GOLD_SOURCES) {
+    const [file, dark, light] = MAP_FILES[source];
+    try {
+      const mod = await import(pathToFileURL(path.join(root, "tools", file)).href);
+      maps[source] = { dark: new Set(Object.keys(mod[dark] ?? {})), light: new Set(Object.keys(mod[light] ?? {})) };
+    } catch (error) {
+      findings.push("tools/" + file + ":0 C7 cannot load the gold map: " + error.message);
+      return;
+    }
   }
-  for (const [theme, map] of [["dark", screens.DARK_SCREENS], ["light", screens.LIGHT_SCREENS]]) {
-    const ids = new Set(Object.keys(map ?? {}));
-    for (const id of ids) if (!listed.has(id)) findings.push(qa + ":0 C7 " + theme + " gold '" + id + "' is in export-stitch.mjs but not in the inventory");
-    for (const id of listed) if (!ids.has(id)) findings.push(qa + ":0 C7 " + theme + " gold '" + id + "' is in the inventory but not in export-stitch.mjs");
+  for (const theme of ["dark", "light"]) {
+    const mapped = new Set(GOLD_SOURCES.flatMap((source) => [...maps[source][theme]]));
+    for (const id of mapped) {
+      if (!inventory.sources.has(id)) findings.push(qa + ":0 C7 " + theme + " gold '" + id + "' is mapped in tools/ but not in the inventory");
+    }
+    for (const [id, source] of inventory.sources) {
+      if (!maps[source][theme].has(id)) findings.push(qa + ":0 C7 " + theme + " gold '" + id + "' is declared '" + source + "' but not in " + MAP_FILES[source][0]);
+    }
   }
 }
 

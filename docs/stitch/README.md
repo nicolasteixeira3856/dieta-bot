@@ -2,31 +2,32 @@
 
 ## Propósito
 
-Gate de design. Guarda os prompts que o dono executa no Google Stitch `Nutri` (`6282733070135794645`) e a conferência dos golds que eles geram. Regra: [docs/sdd/README.md § Gate Stitch](../sdd/README.md#gate-stitch).
+Referência congelada dos fluxos ainda não migrados para o Figma `Design` ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md) § 9). Guarda os golds do Google Stitch `Nutri` (`6282733070135794645`) de fonte `stitch` no inventário de [docs/qa/README.md](../qa/README.md), os gates que os geraram e a tabela de títulos. **Sem gates novos e sem edições no `Nutri`:** layout novo ou alterado segue o [gate de revisão no Figma](../design/plans/README.md#figma-review-gate). Regra dos gates existentes: [docs/sdd/README.md § Gate Stitch](../sdd/README.md#gate-stitch).
 
-Verificação de um gate, numa rodada: `node tools/verify-stitch.mjs st<n> --report` ([detalhes](#verificação-automática-sv1)). Antes de verificar um gate, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
+Reexportar ou conferir os golds congelados: `node tools/export-stitch.mjs --only <ids>` e `node tools/check-stitch.mjs`. Antes de mexer nesse tooling, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
 
 ## Tipo e ownership
 
-- Tipo: gate de design.
-- Executor do prompt: **o dono** (passo manual). Verificação: o agente.
+- Tipo: gate de design, congelado.
+- Executor: o agente, só para reexportar e conferir golds existentes.
 - Código: nenhum código de app. Toca só `docs/qa/stitch/`, `tools/export-stitch.mjs`, `tools/check-stitch.mjs`, `tools/verify-stitch.mjs`, os `plans/**/*.checks.json` e o inventário de golds de `docs/qa/README.md` (dono único da lista).
 
 ## Escopo
 
-- Prompt exato para o Stitch no topo de cada plano, com as instruções extras (telas a selecionar, anexos) logo abaixo.
-- Checklist visual do que o prompt precisa produzir.
-- Registro dos IDs de tela novos.
+- Golds Stitch dos fluxos com fonte `stitch` no inventário, e o tooling que os exporta e confere.
+- Os gates concluídos, como histórico e como referência de layout para os planos de design do Figma.
+- A tabela de títulos das telas.
 
 ## Fora de escopo
 
+- Gates novos ou edições no Stitch `Nutri`: layout novo vai para [design](../design/README.md).
 - Layout ou comportamento do app: [android](../android/README.md).
 - Decisão de produto: [produto](../produto/README.md). Um gate só executa uma decisão já tomada.
 
 ## Fronteiras
 
-- Um gate bloqueia um ou mais planos do android. Eles o listam em Pré-requisitos.
-- Um gate falho (o Stitch não produziu o esperado) para tudo: o agente reporta o que falta e não segue.
+- Um id deixa de usar o gold Stitch quando o plano de client do seu fluxo troca a fonte para `figma` no inventário.
+- Nos gates existentes, um gate bloqueava planos do android, que o listavam em Pré-requisitos.
 
 ## Nomes das telas (regra do dono, 29/09/2026)
 

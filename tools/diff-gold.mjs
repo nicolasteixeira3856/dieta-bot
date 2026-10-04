@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Compare emulator screencaps (docs/qa/android/current/{theme}/<id>.png) with the Stitch gold
-// (docs/qa/stitch/{theme}/<id>.png).
+// Compare emulator screencaps (docs/qa/android/current/{theme}/<id>.png) with the gold of the id's source in the
+// inventory of docs/qa/README.md (docs/qa/stitch/{theme}/<id>.png or docs/qa/figma/{theme}/<id>.png).
 //
 // Capture on an AVD set to the gold geometry (390 dp @ 2x):
 //   adb shell wm size 780x1688 && adb shell wm density 320
@@ -17,6 +17,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { PNG } from "pngjs";
+import { parseGoldInventory } from "./check-docs.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -211,10 +212,19 @@ function bestShift(app, gold, goldTop, y0, y1) {
   return best;
 }
 
+const inventory = parseGoldInventory(fs.readFileSync(path.join(root, "docs/qa/README.md"), "utf8"));
+if (!inventory) throw new Error("docs/qa/README.md has no gold inventory under '## Golds'");
+
 let failed = false;
 for (const key of ids) {
   const [theme, id] = key.split("/");
-  const goldFile = path.join(root, "docs/qa/stitch", theme, `${id}.png`);
+  const source = inventory.sources.get(id);
+  if (!source) {
+    console.error(`  ✗ ${key}: '${id}' is not in the gold inventory of docs/qa/README.md`);
+    failed = true;
+    continue;
+  }
+  const goldFile = path.join(root, "docs/qa", source, theme, `${id}.png`);
   const appFile = path.join(root, "docs/qa/android/current", theme, `${id}.png`);
   if (!fs.existsSync(appFile)) {
     console.error(`  ✗ ${key}: missing ${path.relative(root, appFile)}`);

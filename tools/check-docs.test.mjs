@@ -27,8 +27,9 @@ const BASE = {
   "docs/android/plans/completed/a1-x.md": "# Plan — A1 x\n\n- State: `Concluído`\n\nOld [gone](nowhere.md) link stays history.\n",
   "docs/android/validation/a1.md": "# Evidence\n\n[A1](../plans/completed/a1-x.md)\n",
   "docs/sdd/templates/specification.md": "## Provenance\n\n- [<ID>](<caminho do plano>) — <título>\n",
-  "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nsplash.png · chat0.png\n```\n\n## Other\n\nchatX.png is mentioned here and ignored.\n",
+  "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png · chat0.png\n```\n\n## Other\n\nchatX.png is mentioned here and ignored.\n",
   "tools/export-stitch.mjs": "export const DARK_SCREENS = { splash: 'a', chat0: 'b' };\nexport const LIGHT_SCREENS = { splash: 'c', chat0: 'd' };\n",
+  "tools/export-figma.mjs": "export const DARK_FRAMES = {};\nexport const LIGHT_FRAMES = {};\n",
 };
 
 function fixture(t, overrides = {}) {
@@ -134,9 +135,44 @@ test("C6: READMEs link history folders, not individual history plans", async (t)
 
 test("C7: the gold inventory must equal both theme maps", async (t) => {
   only(await findings(t, { "tools/export-stitch.mjs": "export const DARK_SCREENS = { splash: 1, chat0: 2, chatX: 3 };\nexport const LIGHT_SCREENS = { splash: 1, chat0: 2 };\n" }), "C7");
-  only(await findings(t, { "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nsplash.png\n```\n" }), "C7");
+  only(await findings(t, { "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png\n```\n" }), "C7");
   only(await findings(t, { "docs/qa/README.md": "# QA\n\nNo inventory.\n" }), "C7");
   only(await findings(t, { "tools/export-stitch.mjs": null }), "C7");
+  only(await findings(t, { "tools/export-figma.mjs": null }), "C7");
+});
+
+const FIGMA_CHAT0 = "export const DARK_FRAMES = { chat0: '1:1' };\nexport const LIGHT_FRAMES = { chat0: '1:2' };\n";
+const FIGMA_HOME0 = "export const DARK_FRAMES = { home0: '1:1' };\nexport const LIGHT_FRAMES = { home0: '1:2' };\n";
+
+test("C7: the inventory equals the stitch map ∪ the figma map, each id in the map of its declared source", async (t) => {
+  // in both maps, declared figma: a migrated flow keeps its Stitch golds until they are archived
+  assert.deepEqual(await findings(t, {
+    "tools/export-figma.mjs": FIGMA_CHAT0,
+    "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png\nfigma: chat0.png\n```\n",
+  }), []);
+  // only in the figma map, declared figma
+  assert.deepEqual(await findings(t, {
+    "tools/export-figma.mjs": FIGMA_HOME0,
+    "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png · chat0.png\nfigma: home0.png\n```\n",
+  }), []);
+  // declared figma, mapped only in stitch
+  only(await findings(t, { "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png\nfigma: chat0.png\n```\n" }), "C7");
+  // mapped in figma, missing from the inventory
+  only(await findings(t, { "tools/export-figma.mjs": FIGMA_HOME0 }), "C7");
+  // declared figma, mapped in one theme only
+  only(await findings(t, {
+    "tools/export-figma.mjs": "export const DARK_FRAMES = { chat0: '1:1' };\nexport const LIGHT_FRAMES = {};\n",
+    "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png\nfigma: chat0.png\n```\n",
+  }), "C7");
+});
+
+test("C7: every inventory line declares a known source and lists an id once", async (t) => {
+  only(await findings(t, { "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nsplash.png · chat0.png\n```\n" }), "C7");
+  only(await findings(t, { "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nsketch: splash.png · chat0.png\n```\n" }), "C7");
+  only(await findings(t, {
+    "tools/export-figma.mjs": FIGMA_CHAT0,
+    "docs/qa/README.md": "# QA\n\n## Golds\n\n```text\nstitch: splash.png · chat0.png\nfigma: chat0.png\n```\n",
+  }), "C7");
 });
 
 test("failing runs exit 1 and leave every fixture byte unchanged", (t) => {
