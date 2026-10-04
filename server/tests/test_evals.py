@@ -90,6 +90,8 @@ class CheckTests(unittest.TestCase):
         failing = {
             "intent": "log",
             "estimate": "absent",
+            "meal_progress": "absent",
+            "confidence": "low",
             "suggested_slot": "2",
             "kcal_range": [100, 200],
             "question": "absent",
@@ -118,6 +120,31 @@ class CheckTests(unittest.TestCase):
     def test_estimate_checks_fail_without_estimate(self) -> None:
         expect = {"suggested_slot": "1", "kcal_range": [1, 2], "meal_text_has": ["ovo"], "question": "present"}
         self.assertEqual(set(_status(expect, V1_QUESTION).values()), {FAIL})
+
+    def test_meal_progress_requires_an_estimate_or_useful_question(self) -> None:
+        from shaping import REFUSAL_OUT_OF_SCOPE, fail_chat
+
+        for output in (V1_LOG, {"estimate": None, "question": "Pequeno ou grande?"}):
+            with self.subTest(output=output):
+                self.assertEqual(_status({"meal_progress": "present"}, output), {"meal_progress": PASS})
+                self.assertEqual(_status({"meal_progress": "absent"}, output), {"meal_progress": FAIL})
+        for output in ({}, {"estimate": {}}, {"question": "  "}, {"question": 1},
+                       {"estimate": [], "question": None}, fail_chat(),
+                       {"reply": REFUSAL_OUT_OF_SCOPE, "estimate": None, "question": None}):
+            with self.subTest(output=output):
+                checks = evaluate({"meal_progress": "present"}, output, required=["meal_progress"])
+                self.assertEqual(checks["meal_progress"]["status"], FAIL)
+                self.assertEqual(_status({"meal_progress": "absent"}, output), {"meal_progress": PASS})
+
+    def test_confidence_accepts_a_value_or_list_and_requires_estimate(self) -> None:
+        for want, status in (("high", PASS), (["medium", "high"], PASS), ("low", FAIL),
+                             (["medium", "low"], FAIL)):
+            with self.subTest(want=want):
+                self.assertEqual(_status({"confidence": want}, V1_LOG), {"confidence": status})
+        for output in ({}, {"estimate": None}, {"estimate": {}}, {"estimate": {"kcal": 500}}):
+            with self.subTest(output=output):
+                checks = evaluate({"confidence": ["medium", "low"]}, output, required=["confidence"])
+                self.assertEqual(checks["confidence"]["status"], FAIL)
 
     def test_v2_fields_are_na_on_v1_output(self) -> None:
         expect = {

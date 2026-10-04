@@ -27,6 +27,8 @@ NA = "n/a"
 KNOWN = (
     "intent",
     "estimate",
+    "meal_progress",
+    "confidence",
     "suggested_slot",
     "kcal_range",
     "meal_text_has",
@@ -101,6 +103,19 @@ def _check(
     if key == "estimate":
         got = "present" if estimate else "absent"
         return _result(got == want, f"got {got}")
+
+    if key == "meal_progress":
+        question = output.get("question")
+        has_question = isinstance(question, str) and bool(question.strip())
+        got = "present" if estimate or has_question else "absent"
+        return _result(got == want, f"got {got}")
+
+    if key == "confidence":
+        if not estimate:
+            return _result(False, "no estimate")
+        got = estimate.get("confidence")
+        accepted = want if isinstance(want, list) else [want]
+        return _result(got in accepted, f"got {got}")
 
     if key in ("digest", "digest_has", "digest_not"):
         if "digest" not in output:

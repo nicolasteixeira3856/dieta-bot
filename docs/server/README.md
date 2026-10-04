@@ -31,6 +31,7 @@ cd server
 - Cases: `server/evals/cases/<id>.json`, with id, since (`v1`/`v2`/`v3`/`v4`/`v5`/`cp2`), tags, request (`ChatIn` body), expect, optional required/strict/image. Since is metadata only: v3 sends clarify_rounds, v4 also auto_record, v5 also temp_facts and structured facts.
 - Normal cases call the route's `chat_reply`; compact requests call its `compact_reply`. Both include generation, shaping, moderation and failure handling, without HTTP. Default: two workers to avoid token-rate bursts with the longer prompt; `--workers` can select up to three.
 - Expectations live in `server/evals/checks.py`. Missing versioned fields are n/a, except any expectation named in `required` fails on n/a. Record/skip_slot check the mark; top_question/top_question_not check the top-level question. Digest accepts present/absent; digest_has/digest_not check terms and require non-empty content. A failed or empty compact response cannot pass only a negative digest check.
+- `meal_progress` accepts present/absent: a nonempty estimate object or nonblank top-level question counts as progress. `confidence` accepts one value or a list and fails without an estimate. Required positive checks prevent empty/fallback outputs from passing solely through negative question checks.
 - A case passes when every applicable expectation passes in at least two of three repetitions. Strict cases require every repetition. Inspect the reported statuses; the CLI writes the report even when cases fail.
 - Reports: terminal and `logs/evals/<date-time>-<effort>.json`, outside git, with pass rate, p95 and cost. New cases use manually rewritten situations or synthetic images; never commit raw tester logs/text.
 
@@ -46,6 +47,5 @@ cd server
 ### Plans and validation
 
 - Active plans: files directly under [plans/](plans/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
-- [S17](plans/s17-unavailable-meal-details.md) — unavailable meal details and useful clarification alternatives.
 - Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
 - Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.

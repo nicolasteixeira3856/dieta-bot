@@ -1,0 +1,148 @@
+{
+  "id": "unavailable-weight-food-scope",
+  "since": "v4",
+  "tags": [
+    "s17",
+    "unavailable-detail"
+  ],
+  "request": {
+    "local_time": "2026-10-03T20:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-03",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "Jantei hoje 2 pastéis médios de carne sem saber o peso deles, 110 g de pudim de leite e 250 ml de suco de laranja sem açúcar.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "force_estimate": false
+  },
+  "expect": {
+    "intent": "log",
+    "meal_progress": "present",
+    "top_question_not": [
+      "peso",
+      "pesa",
+      "pesou",
+      "pesar",
+      "grama",
+      " kg",
+      "quilo",
+      "balança"
+    ],
+    "question_not": [
+      "peso",
+      "pesa",
+      "pesou",
+      "pesar",
+      "grama",
+      " kg",
+      "quilo",
+      "balança"
+    ],
+    "refusal": "none",
+    "estimate": "present",
+    "question": "absent",
+    "top_question": "absent",
+    "record": "auto",
+    "suggested_slot": "5",
+    "meal_text_has": [
+      "past",
+      "carne",
+      "pudim",
+      "110",
+      "250",
+      "suco"
+    ]
+  },
+  "required": [
+    "intent",
+    "meal_progress",
+    "top_question_not",
+    "question_not",
+    "refusal",
+    "estimate",
+    "question",
+    "top_question",
+    "record",
+    "suggested_slot",
+    "meal_text_has"
+  ],
+  "strict": false
+}

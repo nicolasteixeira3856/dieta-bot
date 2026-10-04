@@ -84,6 +84,7 @@ class GateTableTests(unittest.TestCase):
                 out, clarify = _gate(_model(question=empty, confidence="low"))
                 self.assertEqual(clarify, CLARIFY_RELEASED_CONFIDENT)
                 self.assertIsNone(out["estimate"]["question"])
+                self.assertEqual(out["estimate"]["confidence"], "low")
                 self.assertNotIn(CHAT_FALLBACK_QUESTION, json.dumps(out, ensure_ascii=False))
 
     def test_row3_cap_releases_at_three_rounds(self) -> None:
@@ -364,6 +365,35 @@ class ClarifyRouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Never repeat a question already asked in HISTORY", instructions)
         self.assertIn("reply states in one short line what was assumed", instructions)
         self.assertNotIn("One question per meal", instructions)
+
+    async def test_unavailable_details_release_with_honest_confidence_on_v4_and_v5(self) -> None:
+        instructions = []
+        for temp_facts in (False, True):
+            with self.subTest(temp_facts=temp_facts):
+                captured = []
+                model = _model(question=None, confidence="low")
+                model.update(record_intent="clear", meal_day="today")
+                response = await self._post(
+                    _v2_payload(facts=[], clarify_rounds=0, force_estimate=False,
+                                auto_record=True, temp_facts=temp_facts,
+                                text="Jantei macarrão com frango. Não sei peso nem tamanho."),
+                    _responds(model, captured),
+                )
+                self.assertEqual(response.status_code, 200)
+                body = response.json()
+                self.assertEqual(body["estimate"]["confidence"], "low")
+                self.assertEqual(body["estimate"]["meal_text"], MEAL)
+                self.assertIsNone(body["estimate"]["question"])
+                self.assertIsNone(body["question"])
+                self.assertEqual(body["record"], "auto")
+                self.assertNotIn("question_slot", body)
+                instructions.append(json.loads(captured[0].content)["instructions"])
+        self.assertEqual(instructions[0], instructions[1])
+        for phrase in ("known, omitted and explicitly unavailable", "EACH food and attribute",
+                       "another unit", "supplied alternative", "medium/low confidence",
+                       "measurement or correction overrides earlier unavailability",
+                       "never becomes a memory fact"):
+            self.assertIn(phrase, instructions[0])
 
 
 if __name__ == "__main__":
