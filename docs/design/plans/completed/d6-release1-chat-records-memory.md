@@ -1,10 +1,10 @@
 # Plan — D6 Release 1: Chat records, photo and memory
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat" (second row block), new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chatF,chatA,chatG,chatU,chatD,chatR,chatM,chatS}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D5](../completed/d5-release1-chat-core.md) `Concluído`.
+- Prerequisites: [D5](d5-release1-chat-core.md) `Concluído`.
 - Figma MCP budget: ≤ 110 calls, with the same split-day rule.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d6-release1-chat-records-memory.md. Implemente o plano aprovado.`
@@ -30,7 +30,7 @@ Behavior: [chat](../../../produto/specifications/chat.md) (rules 17–19 and the
 
 ## Scope
 
-Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the eight golds above. Flow-specific work:
+Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the eight golds above. Flow-specific work:
 
 1. **Components:**
    - `Chat/Receipt`: double check, Desfazer/Excluir/Trocar refeição/Editar per ADR-028; states `Saved`, `Undone`, `ReplacePending`;
@@ -51,7 +51,7 @@ Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4
 
 ## Validation
 
-As [D3 § Validation](../completed/d3-release1-home.md#validation), with 16 frames.
+As [D3 § Validation](d3-release1-home.md#validation), with 16 frames.
 
 ## Results
 
@@ -151,9 +151,13 @@ Not drawn (no gold id in D6): `Não registrado`, the skip receipt `Pulado {slot}
    - every DS element is an instance (`Chat/Header`, `Chip/Date`, `Chat/Bubble`, `Chat/Photo`, `Chat/BotLabel`, `Chat/Estimate`, `Card/MealPlan`, `Chip/Memory`, `Chat/Receipt`, `Chat/ReceiptAction`, `Chat/MetaCard`, `Card/Routine`, `Chat/ActionBar`, `Chat/Composer`, `Chip/Log`, `Button/Primary`, `IconButton/Glass`, icons); 0 orphan instances;
    - 0 solid fills or strokes without a variable or a paint style and 0 text without a text style, in the 16 frames and in the new components;
    - the frames are auto-layout columns: 0 overlapping in-flow siblings; the absolute layers are the edge bubbles, the photo tag, the ✕ of the thumbnail and the receipt tints.
-3. Visual: the 16 frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma pending.
+3. Visual: the 16 frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma done the same day, no fixes requested.
+4. Export and checks after the OK:
+   - `node tools/export-figma.mjs --only chatF,chatA,chatG,chatU,chatD,chatR,chatM,chatS`: 16 new files, 780 px wide (`chatA`, `chatU`, `chatS` 1688, `chatF` 1922, `chatG` 1804, `chatD` 1884, `chatR` 1764, `chatM` 1850 px tall), byte-identical to the images reviewed by the owner;
+   - `node tools/check-figma.mjs`: 54 Figma gold PNGs verified (27 dark + 27 light);
+   - `node tools/check-docs.mjs`: passed.
 
-### For the owner review
+### For the owner review (accepted)
 
 1. The photo is a crop of the Stitch photo (no separate file was provided); a new photo can replace it in `Chat/Photo` and the `Attached` thumbnail in one place.
 2. The `Visão Computacional` tag is an Aero glass pill (theme colors) instead of the app's black 60 % pill with white text, which has no token.
@@ -161,3 +165,15 @@ Not drawn (no gold id in D6): `Não registrado`, the skip receipt `Pulado {slot}
 4. `chatM`: the gold's `Gravar café · Trocar · Pular` bar is replaced by the one `Registrar` pill (ADR-028).
 5. Receipt and photo-chooser rows use glass buttons and `Body`/`Button` styles; the app's 13.5–15 sp sizes map to the Aero ramp in A43.
 6. Frames taller than 844 px show the whole thread (`chatF`, `chatG`, `chatD`, `chatR`, `chatM`).
+
+### Owner review (2026-10-04)
+
+The owner reviewed the section `Chat · D6` in Figma and closed the plan: "Revisei no Figma, pode exportar os golds e concluir o D6." The six points above were accepted with no changes.
+
+### Exported golds
+
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `chatF.png`, `chatA.png`, `chatG.png`, `chatU.png`, `chatD.png`, `chatR.png`, `chatM.png`, `chatS.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the eight ids stays `stitch` in `docs/qa/README.md`; [A43](../../../android/plans/a43-chat-records-memory-aero.md) switches it.
+
+### Figma MCP budget, total
+
+23 of 110. The review and the closure used no MCP call (export through the REST API).
