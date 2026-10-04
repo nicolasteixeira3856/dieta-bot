@@ -176,7 +176,7 @@ OUT
 - A message that completes or corrects a meal whose slot is `eaten` returns the estimate of the **whole meal** with that slot (ADR-017). A calorie total without food returns `estimate: null`.
 - `question`: exists only if `confidence != high`. Missing → `"Alguma porção foi diferente do que considerei?"`. Clients without `clarify_rounds` only.
 
-v3 client (`clarify_rounds` present, S13): the OUT gains a top-level `question` (string or `null`) and `estimate.question` is always `null`. A `log` turn with a material doubt is a question-only turn:
+v3 client (`clarify_rounds` present, S13): the OUT gains a top-level `question` (string or `null`) and `estimate.question` is always `null`. A `log` turn with a material, answerable doubt is a question-only turn:
 ```json
 {
   "reply": "Entendi: macarrão com frango ao molho branco.
@@ -192,6 +192,7 @@ Quanto de macarrão? E o molho era com creme de leite ou requeijão?",
 ```
 - `reply` on a question-only turn is the history text: `Entendi: {meal_text}.` + newline + the question (no `meal_text`: the question alone). The app stores it and sends it back in `messages[]`; it does not display it.
 - The server releases the estimate (`estimate` present, `question: null`) when `force_estimate` is true, confidence is high or the model asked nothing, `clarify_rounds` is 3, or the question repeats one asked in an `assistant` turn of `messages`. A v3 client never gets the generic question above.
+- Clarification distinguishes omitted from explicitly unavailable details per food/attribute. Do not ask again for an unavailable weight, brand or other detail, even approximately or in another unit. Use known counts, sizes, measures and photo context; a useful alternative may be asked if still answerable. Once none remains, estimate the whole meal with question null, honest medium/low confidence for assumed portions and a short assumption in reply. Later explicit measurements override earlier unavailability. The release gate and wire fields are unchanged; [Server Chat](server/specifications/v1-chat.md#functional-rules) owns the detailed rules.
 - `plan`, `question` and `estimate: null` turns are unchanged, with `question: null`. Fallbacks carry `question: null`.
 
 v4 client (`clarify_rounds` + `auto_record: true`, S14): the OUT also carries `record` and `skip_slot`, and `intent` may be `skip`. The server still writes nothing; the client records, checks its own guards (slot of today, no pending question) and may downgrade `auto` to `ask`.
@@ -245,7 +246,7 @@ OUT
   "model": "gpt-6-luna"
 }
 ```
-- `digest`: pt-BR prose, ≤ 400 tokens (capped at 1600 characters). Keep user-stated foods, quantities and nutrition numbers, user-named slots, skips and confirmed clarifications. Never state record status, an assistant-assumed day/slot or an unconfirmed estimate as eaten. A suggested-slot marker is not a user fact. Preserve an unanswered question and pending meal/photo description at the end as `Pergunta em aberto: {question} ({meal})`. No advice, judgement or new estimates/numbers.
+- `digest`: pt-BR prose, ≤ 400 tokens (capped at 1600 characters). Keep user-stated foods, quantities and nutrition numbers, user-named slots, skips and confirmed clarifications. Never state record status, an assistant-assumed day/slot or an unconfirmed estimate as eaten. A suggested-slot marker is not a user fact. Preserve explicit inability to supply a detail with its food/attribute scope; do not infer it from omission. An unavailable detail is closed, including after an assistant repetition. In a compound question only the unresolved, answerable part remains open. Later supplied measurements replace stale unavailability. With no open question, return facts only. Preserve an unanswered question and pending meal/photo description at the end as `Pergunta em aberto: {question} ({meal})`. No advice, judgement or new estimates/numbers.
 - Model failure/timeout or empty digest: HTTP 200 with `"digest": null` (fail-soft). The client keeps its raw messages.
 - The digest is moderated before it returns; a flag returns `"digest": null`. History is not re-moderated. Moderation error: HTTP 503 `content_policy_unavailable`.
 - Stateless: the server returns the text; the client stores it (`day_digest`).
