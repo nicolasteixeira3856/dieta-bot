@@ -1,6 +1,6 @@
 # ADR-030 — Own design system "Aero" replaces Material 3 Expressive
 
-- Status: Proposed
+- Status: Accepted (2026-10-03, with the owner's named approval of [D1](../plans/pending_manual_validation/d1-figma-file-foundation.md))
 - Date: 2026-10-03
 - Context: `design`
 - Replaces: [ADR-004](../../decisions/004-m3-expressive.md) completely once accepted (theme, motion, shapes, Expressive controls). The no-dynamic-color rule and the system-driven dark/light theme survive.

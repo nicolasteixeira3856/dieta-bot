@@ -4,7 +4,7 @@
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Home", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{home0,home1,homeX,homeW}.png` and the Home node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D1](d1-figma-file-foundation.md) and [D2](d2-figma-tooling-stitch-deprecation.md) `Concluído`.
+- Prerequisites: [D1](pending_manual_validation/d1-figma-file-foundation.md) and [D2](d2-figma-tooling-stitch-deprecation.md) `Concluído`.
 - Figma MCP budget: ≤ 80 calls.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d3-release1-home.md. Implemente o plano aprovado.`

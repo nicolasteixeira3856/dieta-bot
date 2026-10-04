@@ -11,7 +11,7 @@ Design source for the Dieta Bot UI: the own design system "Aero" ([ADR-030](adrs
 - Type: design source.
 - Executor: the agent, through the Figma MCP (variables, components, screens, gold export). The owner does the visual validation in Figma.
 - Code: no app code. Design plans may touch `docs/qa/figma/`, the design tooling in `tools/` and the generated token mirror, as each plan states.
-- Figma: file `Design`, team "Figma Student" (`team::1688381275478105695`), file key `qNiqNN3vk9GpmPL3bcV9W1`. While the foundation plan has not run, the file is still named "Dieta Bot DS".
+- Figma: file `Design`, team "Figma Student" (`team::1688381275478105695`), file key `qNiqNN3vk9GpmPL3bcV9W1`.
 
 ## Scope
 
@@ -53,3 +53,5 @@ Status: the status line of each ADR.
 ### Plans
 
 Active: the files at the root of [`plans/`](plans/). Execution order and dependencies: [plans/README.md](plans/README.md).
+
+- Pendente aprovação manual: [D1 Figma file foundation](plans/pending_manual_validation/d1-figma-file-foundation.md).
