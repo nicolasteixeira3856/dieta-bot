@@ -51,7 +51,7 @@ Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5, appli
 
 ## Out of scope
 
-- Photo, receipts, replacement, undo, plan, memory and routine states ([D6](../pending_manual_validation/d6-release1-chat-records-memory.md)). Compose ([A42](../../../android/plans/a42-chat-core-aero.md)).
+- Photo, receipts, replacement, undo, plan, memory and routine states ([D6](d6-release1-chat-records-memory.md)). Compose ([A42](../../../android/plans/a42-chat-core-aero.md)).
 
 ## Validation
 

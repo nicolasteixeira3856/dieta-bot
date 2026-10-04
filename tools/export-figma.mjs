@@ -46,6 +46,15 @@ export const DARK_FRAMES = {
   chatT: "63:2176",
   chatP: "63:2201",
   chatX: "63:2158",
+  // Chat records, photo and memory (D6)
+  chatF: "72:3213",
+  chatA: "72:3234",
+  chatG: "72:3248",
+  chatU: "72:3269",
+  chatD: "72:3290",
+  chatR: "72:3312",
+  chatM: "72:3333",
+  chatS: "72:3359",
 };
 
 export const LIGHT_FRAMES = {
@@ -71,6 +80,15 @@ export const LIGHT_FRAMES = {
   chatT: "63:1911",
   chatP: "63:2023",
   chatX: "62:1998",
+  // Chat records, photo and memory (D6)
+  chatF: "72:2465",
+  chatA: "72:2586",
+  chatG: "72:2635",
+  chatU: "72:2727",
+  chatD: "72:2849",
+  chatR: "72:2959",
+  chatM: "72:3034",
+  chatS: "72:3104",
 };
 
 const NODE_ID = /^\d+:\d+$/;
