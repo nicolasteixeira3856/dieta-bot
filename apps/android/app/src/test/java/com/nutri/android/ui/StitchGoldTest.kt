@@ -50,8 +50,8 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Renders splash + O1..O4 with the state shown in the Stitch gold and diffs them against
- * docs/qa/stitch/{theme}/<id>.png. JVM renders and diff masks land in build/outputs/stitch-gold/.
+ * Renders splash + O1..O4 with the state shown in the gold and diffs them against the gold of the id's source in
+ * the inventory of docs/qa/README.md: docs/qa/<stitch|figma>/{theme}/<id>.png (GoldInventory). JVM renders and diff masks land in build/outputs/stitch-gold/.
  * docs/qa/android/current/ is reserved for emulator screencaps (tools/diff-gold.mjs).
  *
  * Gold geometry (390 dp @ 2x): 844 dp phone centred in a 884 dp page (20 dp bands), except O3,
@@ -360,7 +360,7 @@ class StitchGoldTest {
         val theme = if (dark) "dark" else "light"
         save(app, File(RENDER_OUT, "$theme/$id.png"))
 
-        val goldFile = File(GOLD, "$theme/$goldId.png")
+        val goldFile = File(ROOT, "docs/qa/${GoldInventory.source(goldId)}/$theme/$goldId.png")
         val gold = BitmapFactory.decodeFile(goldFile.path) ?: error("missing gold $goldFile")
         val top = if (fullPage) 0 else BAND_PX
         val raw = diff(app, gold, top)
@@ -592,7 +592,6 @@ class StitchGoldTest {
         /** chatS routine card (title to buttons, 1 px border) in gold px (x0, y0, x1, y1). */
         private val ROUTINE_CARD = intArrayOf(32, 798, 748, 1302)
         private val ROOT = File("../../..")
-        private val GOLD = File(ROOT, "docs/qa/stitch")
         private val RENDER_OUT = File("build/outputs/stitch-gold/render")
         private val DIFF_OUT = File("build/outputs/stitch-gold/diff")
 

@@ -57,6 +57,7 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   Room 2.6.x for local state; schema in `docs/android/specifications/room-v2.md`. No DataStore for day state.
   Flavors dev (com.nutri.android.dev, GCP dev server) / prod (com.nutri.android) per ADR-014.
   Build and test with the dev variant: assembleDevRelease, testDevDebugUnitTest, verifyRoborazziDevDebug.
+  Aero design system layer (ADR-030): `core/designsystem/aero`, flows migrate per `docs/design/plans/README.md`.
   Telemetry: core/telemetry Telemetry interface. dev = Firebase nutri-bot-dev (Crashlytics + Analytics), prod = NoopTelemetry.
   Events carry enums and numbers only, never user text. X-Request-Id links Crashlytics to the dev server log (ADR-015).
 - server/ — FastAPI. Routes and payloads: `docs/api-contract.md`.

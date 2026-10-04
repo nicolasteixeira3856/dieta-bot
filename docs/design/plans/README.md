@@ -8,7 +8,7 @@ Each flow is one design plan (Figma, within one day of MCP budget) followed by o
 
 | Step | Design (this context) | Client ([android](../../android/README.md)) |
 |---|---|---|
-| Foundation | D1 Figma file foundation ([`completed/`](completed/)) | [A39 Aero foundation in Compose](../../android/plans/a39-aero-foundation.md) |
+| Foundation | D1 Figma file foundation ([`completed/`](completed/)) | A39 Aero foundation in Compose ([`pending_manual_validation/`](../../android/plans/pending_manual_validation/)) |
 | Tooling | D2 Figma tooling and Stitch deprecation ([`completed/`](completed/)) | — |
 | Home | D3 Release 1 — Home ([`completed/`](completed/)) | [A40 Home on Aero](../../android/plans/a40-home-aero.md) |
 | Splash and onboarding | D4 Release 1 — Splash and onboarding ([`completed/`](completed/)) | [A41 Splash and onboarding on Aero](../../android/plans/a41-splash-onboarding-aero.md) |
