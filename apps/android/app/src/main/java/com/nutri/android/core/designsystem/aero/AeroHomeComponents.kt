@@ -140,6 +140,8 @@ fun AeroFieldNumber(
     focusRequester: FocusRequester = remember { FocusRequester() },
     fieldTag: String? = null,
     helperTag: String? = null,
+    /** On a sheet or card that is already glass: the glass fill alone. */
+    onGlass: Boolean = false,
 ) {
     val c = Aero.colors
     val type = Aero.type
@@ -151,7 +153,7 @@ fun AeroFieldNumber(
             Modifier
                 .fillMaxWidth()
                 .height(58.dp + (stroke - 1.dp))
-                .aeroGlass(shape, border = if (focused) c.accentDefault else c.borderLine, borderWidth = stroke, shadow = false)
+                .aeroGlass(shape, border = if (focused) c.accentDefault else c.borderLine, borderWidth = stroke, shadow = false, backdropBlurred = onGlass)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                     runCatching { focusRequester.requestFocus() }
                 }
@@ -202,6 +204,7 @@ fun AeroSheet(
     primaryTag: String? = null,
     secondaryTag: String? = null,
     bottomInset: Dp = 0.dp,
+    primaryIcon: AeroIconName? = null,
     content: @Composable () -> Unit,
 ) {
     val c = Aero.colors
@@ -228,22 +231,10 @@ fun AeroSheet(
                 primary,
                 onPrimary,
                 modifier = if (primaryTag != null) Modifier.testTag(primaryTag) else Modifier,
+                icon = primaryIcon,
                 enabled = primaryEnabled,
             )
-            val pill = RoundedCornerShape(percent = 50)
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(58.dp)
-                    .clip(pill)
-                    .background(c.surface2)
-                    .border(1.dp, c.borderLine, pill)
-                    .dietaClick(Haptic.Light, onClick = onSecondary)
-                    .then(if (secondaryTag != null) Modifier.testTag(secondaryTag) else Modifier),
-                contentAlignment = Alignment.Center,
-            ) {
-                AeroText(secondary, style = type.button.copy(color = c.textPrimary))
-            }
+            AeroSecondaryPill(secondary, onSecondary, if (secondaryTag != null) Modifier.testTag(secondaryTag) else Modifier)
         }
     }
 }

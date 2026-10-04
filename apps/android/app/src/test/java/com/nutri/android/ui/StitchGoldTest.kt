@@ -165,17 +165,12 @@ class StitchGoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatE_light() = check("chatE", dark = false) { Chat(ChatFixtures.chatE) }
 
-    /**
-     * A30 (ST7): second question before the estimate, Forçar estimativa. Dark is gated whole. The light
-     * gold draws the question bubbles tighter than dark (line ~22 dp vs 24.5 dp, icon gap 10 vs 12 dp,
-     * ~3 dp less padding) from the same prompt: one component follows dark, so light gates only the
-     * Forçar estimativa bar (FORCE_BAR) and reports the screen.
-     */
+    /** A30: second question before the estimate, Forçar estimativa (A42: Figma frame, gated whole). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatQ_dark() = check("chatQ", dark = true, region = FORCE_BAR) { Chat(ChatFixtures.chatQ) }
+    fun chatQ_dark() = check("chatQ", dark = true) { Chat(ChatFixtures.chatQ) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatQ_light() = check("chatQ", dark = false, region = FORCE_BAR, reportOnly = true) { Chat(ChatFixtures.chatQ) }
+    fun chatQ_light() = check("chatQ", dark = false) { Chat(ChatFixtures.chatQ) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatT_dark() = check("chatT", dark = true, navDp = 0) { Chat(ChatFixtures.chatT) }
@@ -230,10 +225,17 @@ class StitchGoldTest {
      * Like chatA, the light gold draws the composer on the page colour (chat0 generation): light region reported only.
      */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatX_dark() = check("chatX", dark = true, region = COMPOSER_TOO_LONG) { Chat(ChatFixtures.chatX) }
+    fun chatX_dark() = check("chatX", dark = true) { Chat(ChatFixtures.chatX) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatX_light() = check("chatX", dark = false, region = COMPOSER_TOO_LONG, gateRegion = false) { Chat(ChatFixtures.chatX) }
+    fun chatX_light() = check("chatX", dark = false) { Chat(ChatFixtures.chatX) }
+
+    /** A42 chatP: the Home skip confirmation (Dialog/Confirm) over the blurred empty day. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatP_dark() = check("chatP", dark = true) { HomePanelScreen(HomePanelMapper.map(HomeFixtures.home0, LocalDate.parse("2026-09-25")), {}, {}, {}, initialSkip = 3) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatP_light() = check("chatP", dark = false) { HomePanelScreen(HomePanelMapper.map(HomeFixtures.home0, LocalDate.parse("2026-09-25")), {}, {}, {}, initialSkip = 3) }
 
     /**
      * A29 (ST6): plan with the projected day and Registrar assim. The plan bubble and the bar are gated
@@ -364,6 +366,7 @@ class StitchGoldTest {
         save(app, File(RENDER_OUT, "$theme/$id.png"))
 
         val goldFile = File(ROOT, "docs/qa/${GoldInventory.source(goldId)}/$theme/$goldId.png")
+        val pending = !figma && id in AERO_PENDING
         val gold = BitmapFactory.decodeFile(goldFile.path) ?: error("missing gold $goldFile")
         val top = if (fullPage || figma) 0 else BAND_PX
         val raw = diff(app, gold, top)
@@ -377,12 +380,13 @@ class StitchGoldTest {
             val part = regionDiff(appBlur, goldBlur, box)
             val name = if (i == 0) "region" else "region$i"
             println("GOLD_DIFF $theme/$id $name ${"%.2f".format(part)}%")
-            if (gateRegion) assertWithMessage("$theme/$id $name differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
+            if (gateRegion && !pending) assertWithMessage("$theme/$id $name differs from Stitch gold (blurred)").that(part).isAtMost(MAX_DIFF_PERCENT)
         }
         reportRegions.forEachIndexed { i, box ->
             println("GOLD_DIFF $theme/$id report$i ${"%.2f".format(regionDiff(appBlur, goldBlur, box))}%")
         }
         if ((id in GOLD_CONFLICTS && !figma) || reportOnly) return // reported only, see GOLD_CONFLICTS
+        if (!figma && id in AERO_PENDING) return // the screen is on Aero, its Stitch gold waits for its plan
         assertWithMessage("$theme/$id content ink vs gold").that(inkRatio).isIn(com.google.common.collect.Range.closed(0.8, 1.25))
         assertWithMessage("$theme/$id differs from the gold (blurred)").that(blurred.percent).isAtMost(MAX_DIFF_PERCENT)
     }
@@ -534,19 +538,21 @@ class StitchGoldTest {
         private const val MAX_DIFF_PERCENT = 2.0
 
         /**
+         * Migration window (A42 → A43): these ids share the Chat screen that A42 moved to Aero, while their gold stays
+         * the Stitch one until A43 draws their parts on Aero and switches their source. Measured and printed, not
+         * asserted. A43 empties this set.
+         */
+        private val AERO_PENDING = setOf("chatF", "chatA", "chatG", "chatU", "chatD", "chatR", "chatM", "chatS")
+
+        /**
          * Golds whose layout contradicts the canonical one of their group (home1, chatE): each is a
          * separate Stitch generation. Reported, not gated, until the owner regenerates them.
          */
         private val GOLD_CONFLICTS = setOf(
-            // Chat: chatE is canonical. chat0/chatL use another header (body alone: ~1.2-1.4%).
-            // See docs/android/plans/completed/a5-chat.md.
-            "chat0", "chatL",
             // chatF, chatG, chatD: the receipt generation (A34, ST9): only the receipt and its actions are gated.
             "chatF", "chatG", "chatD",
             // chatA is a copy of chat0 (same other header): only its composer is gated (COMPOSER_ATTACHED, A19).
             "chatA",
-            // chatX too (A25): only its composer and the error line are gated (COMPOSER_TOO_LONG).
-            "chatX",
             // chatS is a copy of chat0 too (A29): only the routine card is gated (ROUTINE_CARD).
             "chatS",
         )
@@ -573,12 +579,8 @@ class StitchGoldTest {
         /** chatA composer with the attached thumbnail in gold px (x0, y0, x1, y1). */
         private val COMPOSER_ATTACHED = intArrayOf(32, 1388, 748, 1664)
 
-        /** chatX composer (5 lines, red border) and "Texto muito longo" in gold px (x0, y0, x1, y1). */
-        private val COMPOSER_TOO_LONG = intArrayOf(32, 1344, 748, 1668)
-
-        /** chatQ: the Forçar estimativa bar in gold px (x0, y0, x1, y1). */
-        private val FORCE_BAR = intArrayOf(32, 1436, 748, 1544)
-
+        
+        
         /** chatR: "Dieta Bot AI" label, plan bubble with the day panel, time and Registrar assim, in gold px (x0, y0, x1, y1). */
         private val PLAN_BUBBLE = intArrayOf(32, 556, 748, 1540)
 

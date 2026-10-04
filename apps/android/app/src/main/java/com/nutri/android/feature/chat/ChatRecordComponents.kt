@@ -50,6 +50,8 @@ import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.Jakarta
 import com.nutri.android.core.designsystem.LocalPalette
+import com.nutri.android.core.designsystem.aero.AeroActionBar
+import com.nutri.android.core.designsystem.aero.AeroIconName
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.domain.ReceiptAction
 
@@ -295,24 +297,8 @@ internal fun NotRecordedLabel(modifier: Modifier = Modifier) {
     }
 }
 
-/** chatE (A34): one full-width Registrar pill in the actions slot, no gold background. */
+/** chatE (A34): one full-width Registrar in the actions slot (Chat/ActionBar). */
 @Composable
 internal fun RegisterBar(onClick: () -> Unit) {
-    val p = LocalPalette.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(44.dp)
-            .clip(CircleShape)
-            .background(p.card)
-            .border(1.dp, p.line, CircleShape)
-            .dietaClick(Haptic.Confirm, onClick = onClick)
-            .testTag("chat-register"),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = p.text, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(10.dp))
-        Text("Registrar", style = DietaBotType.labelMd.copy(fontSize = 15.sp, fontWeight = FontWeight.W600, letterSpacing = 0.sp), color = p.text, maxLines = 1)
-    }
+    AeroActionBar("Registrar", AeroIconName.CheckCircle, onClick, Modifier.testTag("chat-register"))
 }

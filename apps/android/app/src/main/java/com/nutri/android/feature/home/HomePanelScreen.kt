@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +44,7 @@ import com.nutri.android.core.designsystem.aero.AeroBubble
 import com.nutri.android.core.designsystem.aero.AeroButtonPrimary
 import com.nutri.android.core.designsystem.aero.AeroChipLog
 import com.nutri.android.core.designsystem.aero.AeroChipTone
+import com.nutri.android.core.designsystem.aero.AeroConfirmDialog
 import com.nutri.android.core.designsystem.aero.AeroHeaderDay
 import com.nutri.android.core.designsystem.aero.AeroIcon
 import com.nutri.android.core.designsystem.aero.AeroIconName
@@ -82,8 +81,10 @@ fun HomePanelScreen(
     onWorkoutChange: (String) -> Unit = {},
     onWorkoutSave: () -> Unit = {},
     onWorkoutCancel: () -> Unit = {},
+    /** Opens the skip confirmation of this slot (QA renders of chatP). */
+    initialSkip: Long? = null,
 ) {
-    var confirmSkip by remember { mutableStateOf<TimelineSlot?>(null) }
+    var confirmSkip by remember { mutableStateOf(initialSkip?.let { id -> ui.timeline.firstOrNull { it.slotId == id } }) }
     val workout = ui.workoutEditor
     val scroll = rememberScrollState()
     AeroPage(Modifier.fillMaxSize().testTag("home"), scroll) {
@@ -91,7 +92,7 @@ fun HomePanelScreen(
             Modifier
                 .fillMaxSize()
                 // homeW: the Home behind the sheet is blurred (Figma layer blur 8) and dimmed by overlay/scrim.
-                .then(if (workout != null) Modifier.blur(8.dp) else Modifier)
+                .then(if (workout != null || confirmSkip != null) Modifier.blur(8.dp) else Modifier)
                 .statusBarsPadding()
                 .verticalScroll(scroll),
         ) {
@@ -132,49 +133,21 @@ fun HomePanelScreen(
         } else {
             WorkoutSheet(workout, onWorkoutChange, onWorkoutSave, onWorkoutCancel)
         }
-    }
-    confirmSkip?.let { slot ->
-        SkipDialog(
-            slot = slot,
-            onConfirm = {
-                slot.slotId?.let(onSkip)
-                confirmSkip = null
-            },
-            onCancel = { confirmSkip = null },
-        )
-    }
-}
-
-/** Skip confirmation (no gold): an Aero glass card in the dialog window, same action pair as the sheets. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SkipDialog(slot: TimelineSlot, onConfirm: () -> Unit, onCancel: () -> Unit) {
-    val c = Aero.colors
-    BasicAlertDialog(onDismissRequest = onCancel) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .aeroGlass(Aero.shapes.card, fill = c.bgPage, backdropBlurred = true)
-                .padding(24.dp)
-                .testTag("home-skip-dialog"),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            AeroText("Pular ${slot.name}?", style = Aero.type.title.copy(color = c.textPrimary))
-            Spacer(Modifier.height(12.dp))
-            AeroButtonPrimary("Pular", onConfirm, modifier = Modifier.testTag("home-skip-confirm"))
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(58.dp)
-                    .clip(CircleShape)
-                    .background(c.surface2)
-                    .border(1.dp, c.borderLine, CircleShape)
-                    .dietaClick(Haptic.Light, onClick = onCancel)
-                    .testTag("home-skip-cancel"),
-                contentAlignment = Alignment.Center,
-            ) {
-                AeroText("Cancelar", style = Aero.type.button.copy(color = c.textPrimary))
-            }
+        // chatP: Dialog/Confirm over the blurred Home and overlay/scrim.
+        confirmSkip?.let { slot ->
+            AeroConfirmDialog(
+                title = "Pular ${slot.name}?",
+                primary = "Pular",
+                onPrimary = {
+                    slot.slotId?.let(onSkip)
+                    confirmSkip = null
+                },
+                secondary = "Cancelar",
+                onSecondary = { confirmSkip = null },
+                modifier = Modifier.testTag("home-skip-dialog"),
+                primaryTag = "home-skip-confirm",
+                secondaryTag = "home-skip-cancel",
+            )
         }
     }
 }
