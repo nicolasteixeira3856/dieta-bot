@@ -1,6 +1,6 @@
 # Plan — A38 Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` (`core/network/ChatModels.kt`, `core/database/*` (Room v9), `core/memory/FactMemory.kt`, `domain/MemoryRules.kt`, `feature/chat/PromptBuilder.kt`, `feature/chat/ChatViewModel.kt`, `src/dev/.../devtools/{FactText,DevMemoryViewModel,DevMemoryScreen}.kt`, `core/telemetry` counts, tests)
@@ -158,9 +158,10 @@ S16 is in `docs/server/plans/completed/`. A live `POST /v1/chat` to the dev serv
 - `./gradlew :app:assembleDevRelease`: **BUILD SUCCESSFUL**.
 - `node tools/check-docs.mjs`: passes. Its C4 rule flags `pending` inside a `plans/pending_manual_validation/` link target as a Provenance status marker, so the four spec Provenance entries for A38 use reference-style links (`[A38][a38]`); they become inline links when the plan closes. A separate checker fix was flagged to the owner.
 
-### Pending
+### Manual validation
 
-- Manual validation step 4 on a dev APK (owner, through `tools/distribute-dev.ps1` when a test build is asked): temp label across days 1–4, receipt actions leaving `T1`, suggested slot without "Em qual refeição?", clarify answer after a compaction. Release notes must say that an older APK cannot read a memory file with temp facts (update forward only).
+- Step 4 on the dev APK (temp label across days 1–4, receipt actions leaving `T1`, suggested slot without "Em qual refeição?", clarify answer after a compaction): executed by the owner, who confirmed it on 2026-10-04 ("Já validei, fechar") and closed the plan. The agent did not see the device run or its logs; this line records the owner's statement.
+- The reference-style Provenance links were turned back into inline links to `completed/` at closure.
 
 ## Closure
 

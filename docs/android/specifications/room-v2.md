@@ -48,6 +48,4 @@ Android owns the database. Schema version 9. Exported schemas 1–9 live in `app
 - [A28](../plans/completed/a28-memoria-v2.md) — Memória v2: fatos permanentes e dinâmicos
 - [A32](../plans/completed/a32-chat-rolagem-paginacao.md) — Chat: opens at the bottom, reverse paging, keyboard off for the photo
 - [A34](../plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
-- [A38][a38] — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
-
-[a38]: ../plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md
+- [A38](../plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail

@@ -119,9 +119,7 @@ For dev chat logs, `clarify` identifies the release/hold reason and `clarify_rou
 - [S14](../plans/completed/s14-registro-autonomo.md) — record mark and skips
 - [S15](../plans/completed/s15-registro-casos-dificeis.md) — hard record cases
 - [S16](../plans/completed/s16-dia-da-refeicao-fatos-temporarios.md) — eating day, corrections, habitual fallback, temp capability and honest digests
-- [A38][a38] — client storage and history marker
+- [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — client storage and history marker
 - [CP2](../../content-policy/plans/completed/cp2-server-content-controls.md) — content controls
 - [CP3](../../content-policy/plans/completed/cp3-server-safety-identifier.md) — safety identifier
 - [CP9](../../content-policy/plans/out_of_scope/cp9-production-audit-and-containment.md) — production audit and containment
-
-[a38]: ../../android/plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md
