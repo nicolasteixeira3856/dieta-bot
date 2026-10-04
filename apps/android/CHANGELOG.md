@@ -2,6 +2,21 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.10 — 03/10/2026
+
+### Novidades
+
+- Mandou o rótulo de um produto (foto ou digitado) que vai comer depois? A IA guarda os números por 3 dias e usa nas estimativas desses dias, mesmo que você coma em várias vezes. Registrar, Excluir, Trocar refeição, Editar ou Desfazer não apagam esse rótulo. "Esquece a lasanha" tira na hora.
+- Depois de uma estimativa ou de uma pergunta da IA, "registra na refeição de hoje" grava na refeição que ela sugeriu, sem perguntar qual.
+
+### Correções
+
+- Em conversas longas, a resposta a uma pergunta da IA não se perde mais: a pergunta e a refeição dela continuam na conversa.
+
+### Ajustes
+
+- Depois de instalar esta versão, não volte para uma versão anterior: a memória da IA pode não abrir nela.
+
 ## 0.0.9 — 02/10/2026
 
 ### Ajustes
