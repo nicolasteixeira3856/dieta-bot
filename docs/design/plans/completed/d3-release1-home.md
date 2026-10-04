@@ -1,10 +1,10 @@
 # Plan — D3 Release 1: Home
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `design`
-- Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Home", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{home0,home1,homeX,homeW}.png` and the Home node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D1](../completed/d1-figma-file-foundation.md) and [D2](../completed/d2-figma-tooling-stitch-deprecation.md) `Concluído`.
+- Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Home", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{home0,home1,homeX,homeW}.png`, the Home node ids in `tools/export-figma.mjs`, and the token mirror `docs/design/tokens.json` + `docs/tokens.md` (two new Color variables, added at the owner's review on 2026-10-04).
+- Prerequisites: [D1](d1-figma-file-foundation.md) and [D2](d2-figma-tooling-stitch-deprecation.md) `Concluído`.
 - Figma MCP budget: ≤ 80 calls.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d3-release1-home.md. Implemente o plano aprovado.`
@@ -150,7 +150,7 @@ Not drawn (no gold id): the skip confirmation `Pular {nome}?` and the `Outros` b
 - `overlay/scrim`: Light `#03122566`, Dark `#00000099` (dims the Home behind the sheet);
 - `status/bad-tint`: Light `#b93b2c1f`, Dark `#ff7a6b29` (Meta excedida pill, over node).
 
-Both are scoped to fills and have Web/Android/iOS code syntax. Mirror regenerated: `docs/design/tokens.json` and the Aero section of `docs/tokens.md` (`node tools/gen-tokens.mjs`, `--check` in sync). These two files are outside the plan's "Affected code" line; they change only because the variables did.
+Both are scoped to fills and have Web/Android/iOS code syntax. Mirror regenerated: `docs/design/tokens.json` and the Aero section of `docs/tokens.md` (`node tools/gen-tokens.mjs`, `--check` in sync). The owner kept both colors and added the two mirror files to the plan's "Affected code" line at the review.
 
 **`Release 1` → section `Home · D3`** (1960 × 3400; the `Chat · D5` section moved right to keep 160 px):
 
@@ -168,9 +168,9 @@ Both are scoped to fills and have Web/Android/iOS code syntax. Mirror regenerate
 
 ### Figma MCP budget
 
-28 calls of the 80 budgeted until the owner review: 1 `whoami`, 3 skill reads, 22 `use_figma` (7 read-only inspections and audits, 14 writes, 1 failed write rolled back by Figma and retried), 2 `get_screenshot`. The review screenshots come from the REST export (`tools/export-figma.mjs --dry-run`), which does not use the MCP.
+28 calls of the 80 budgeted: 1 `whoami`, 3 skill reads, 22 `use_figma` (7 read-only inspections and audits, 14 writes, 1 failed write rolled back by Figma and retried), 2 `get_screenshot`. The review screenshots come from the REST export (`tools/export-figma.mjs --dry-run`), which does not use the MCP.
 
-### Validation (until the owner review)
+### Validation
 
 1. Discovery table: written above before the first Figma write.
 2. Read-back of the eight frames and of `Componentes`:
@@ -178,5 +178,24 @@ Both are scoped to fills and have Web/Android/iOS code syntax. Mirror regenerate
    - 0 solid fills or strokes without a variable or a paint style, in the frames and in the touched components. The only unbound gradient is the gloss of the D1 `Button/Primary` (FAB);
    - 0 overlapping in-flow siblings; the absolute layers are the timeline guide and the edge bubbles;
    - `Componentes`: 0 components without a description, gaps between sections 160 (also from the page header), every section fits its content, 0 variables with `ALL_SCOPES`.
-3. Visual: the eight frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma: pending.
-4. `check-figma` and the export run after the owner's OK.
+3. Visual: the eight frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma done the same day, no fixes requested.
+4. Export and checks after the OK:
+   - `node tools/export-figma.mjs --only home0,home1,homeX,homeW`: 8 new files, 780 px wide (`home0` 2516, `home1` 2828, `homeX` 3032, `homeW` 2828 px tall), byte-identical to the images reviewed by the owner;
+   - `node tools/check-figma.mjs`: 8 Figma gold PNGs verified (4 dark + 4 light);
+   - `node tools/check-docs.mjs`: passed; `node --test tools/check-docs.test.mjs`: 15/15.
+
+### Owner review (2026-10-04)
+
+The owner reviewed the section `Home · D3` in Figma and closed the plan: "Revisei no Figma, pode exportar os golds e concluir o D3." Decisions on the three review points:
+
+1. Meta values that differ from the Stitch golds (`Meta 2175 kcal` in `home1`, `Meta 2100 kcal` + `Meta excedida (+180 kcal)` in `homeX`): accepted. The Figma golds may show different states from the Stitch golds without affecting the gold validation flow.
+2. `overlay/scrim` and `status/bad-tint`: kept; the token mirror files were added to "Affected code".
+3. Dropped gold-only elements and the `home0` FAB drawn from the spec: accepted.
+
+### Exported golds
+
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `home0.png`, `home1.png`, `homeX.png`, `homeW.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the four ids stays `stitch` in `docs/qa/README.md`; [A40](../../../android/plans/a40-home-aero.md) switches it.
+
+### Figma MCP budget, total
+
+28 of 80. The review and the closure used no MCP call (export through the REST API).

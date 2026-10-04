@@ -23,9 +23,21 @@ export const FIGMA_FILE_KEY = "qNiqNN3vk9GpmPL3bcV9W1";
 
 // gold id → Figma node id of its frame on the `Release 1` page. Each flow plan (D3–D7) adds its ids after the
 // owner's review OK. A mapped id must exist in both themes.
-export const DARK_FRAMES = {};
+export const DARK_FRAMES = {
+  // Home (D3)
+  home0: "40:430",
+  home1: "40:472",
+  homeX: "40:514",
+  homeW: "40:557",
+};
 
-export const LIGHT_FRAMES = {};
+export const LIGHT_FRAMES = {
+  // Home (D3)
+  home0: "39:302",
+  home1: "38:229",
+  homeX: "39:451",
+  homeW: "39:606",
+};
 
 const NODE_ID = /^\d+:\d+$/;
 
