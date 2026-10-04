@@ -29,6 +29,15 @@ export const DARK_FRAMES = {
   home1: "40:472",
   homeX: "40:514",
   homeW: "40:557",
+  // Splash and onboarding (D4)
+  splash: "54:1233",
+  o1: "54:1244",
+  o1e: "54:1276",
+  o2: "54:1308",
+  o3: "54:1332",
+  o3t: "54:1362",
+  o3s: "54:1395",
+  o4: "54:1434",
 };
 
 export const LIGHT_FRAMES = {
@@ -37,6 +46,15 @@ export const LIGHT_FRAMES = {
   home1: "38:229",
   homeX: "39:451",
   homeW: "39:606",
+  // Splash and onboarding (D4)
+  splash: "51:732",
+  o1: "51:743",
+  o1e: "51:890",
+  o2: "53:801",
+  o3: "53:911",
+  o3t: "53:1049",
+  o3s: "53:1220",
+  o4: "53:1345",
 };
 
 const NODE_ID = /^\d+:\d+$/;
