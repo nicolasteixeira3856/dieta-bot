@@ -36,7 +36,7 @@ Parity points already known (ADR-031 § 4):
 
 ## Scope
 
-Procedure as [D3 § Scope](pending_manual_validation/d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the seven golds above. Flow-specific work:
+Procedure as [D3 § Scope](completed/d3-release1-home.md#scope) steps 1, 3, 4 and 5, applied to the seven golds above. Flow-specific work:
 
 1. **Components:**
    - `Chat/Header`: back button, title with dot, subtitle, 44 px spacer;
@@ -55,7 +55,7 @@ Procedure as [D3 § Scope](pending_manual_validation/d3-release1-home.md#scope) 
 
 ## Validation
 
-As [D3 § Validation](pending_manual_validation/d3-release1-home.md#validation), with 14 frames.
+As [D3 § Validation](completed/d3-release1-home.md#validation), with 14 frames.
 
 ## Results
 
