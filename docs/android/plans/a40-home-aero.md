@@ -6,7 +6,7 @@
 - Affected code: `apps/android/` only:
   - `feature/home/`, Home-specific components in `core/designsystem/aero/`, tests;
   - docs updated with the delivery: the source of `home0`, `home1`, `homeX` and `homeW` in `docs/qa/README.md`, captures in `docs/qa/android/current/{dark,light}/`.
-- Prerequisites: [A39](a39-aero-foundation.md) and [D3](../../design/plans/completed/d3-release1-home.md) `Concluído` (Figma golds in `docs/qa/figma/`).
+- Prerequisites: [A39](pending_manual_validation/a39-aero-foundation.md) and [D3](../../design/plans/completed/d3-release1-home.md) `Concluído` (Figma golds in `docs/qa/figma/`).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a40-home-aero.md. Implemente o plano aprovado.`
 
