@@ -12,7 +12,7 @@ Each flow is one design plan (Figma, within one day of MCP budget) followed by o
 | Tooling | D2 Figma tooling and Stitch deprecation ([`completed/`](completed/)) | — |
 | Home | D3 Release 1 — Home ([`completed/`](completed/)) | [A40 Home on Aero](../../android/plans/a40-home-aero.md) |
 | Splash and onboarding | D4 Release 1 — Splash and onboarding ([`completed/`](completed/)) | [A41 Splash and onboarding on Aero](../../android/plans/a41-splash-onboarding-aero.md) |
-| Chat core | [D5 Release 1 — Chat core](pending_manual_validation/d5-release1-chat-core.md) | [A42 Chat core on Aero](../../android/plans/a42-chat-core-aero.md) |
+| Chat core | D5 Release 1 — Chat core ([`completed/`](completed/)) | [A42 Chat core on Aero](../../android/plans/a42-chat-core-aero.md) |
 | Chat records and memory | [D6 Release 1 — Chat records and memory](d6-release1-chat-records-memory.md) | [A43 Chat records and memory on Aero](../../android/plans/a43-chat-records-memory-aero.md) |
 | Config and push | [D7 Release 1 — Config and push](d7-release1-config-push.md) | [A44 Config and push on Aero](../../android/plans/a44-config-push-aero.md) |
 | Close | [D8 Archive Stitch](d8-archive-stitch.md) | [A45 Remove Material 3 Expressive](../../android/plans/a45-remove-material3.md) |

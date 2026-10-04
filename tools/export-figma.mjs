@@ -38,6 +38,14 @@ export const DARK_FRAMES = {
   o3t: "54:1362",
   o3s: "54:1395",
   o4: "54:1434",
+  // Chat core (D5)
+  chat0: "63:2079",
+  chatL: "63:2097",
+  chatQ: "63:2118",
+  chatE: "63:2136",
+  chatT: "63:2176",
+  chatP: "63:2201",
+  chatX: "63:2158",
 };
 
 export const LIGHT_FRAMES = {
@@ -55,6 +63,14 @@ export const LIGHT_FRAMES = {
   o3t: "53:1049",
   o3s: "53:1220",
   o4: "53:1345",
+  // Chat core (D5)
+  chat0: "62:1745",
+  chatL: "62:1796",
+  chatQ: "62:1842",
+  chatE: "62:1930",
+  chatT: "63:1911",
+  chatP: "63:2023",
+  chatX: "62:1998",
 };
 
 const NODE_ID = /^\d+:\d+$/;
