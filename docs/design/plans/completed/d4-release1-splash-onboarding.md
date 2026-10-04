@@ -1,10 +1,10 @@
 # Plan — D4 Release 1: Splash and onboarding
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Splash e onboarding", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{splash,o1,o1e,o2,o3,o3t,o3s,o4}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D3](../completed/d3-release1-home.md) `Concluído` (it adds `Field/Number` and `Sheet/Bottom`).
+- Prerequisites: [D3](d3-release1-home.md) `Concluído` (it adds `Field/Number` and `Sheet/Bottom`).
 - Figma MCP budget: ≤ 110 calls. If the cap is reached, stop after a complete screen and resume the next day.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d4-release1-splash-onboarding.md. Implemente o plano aprovado.`
@@ -30,7 +30,7 @@ Behavior: [perfil-onboarding](../../../produto/specifications/perfil-onboarding.
 
 ## Scope
 
-Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4 and 5 (discovery table first, Light row then Dark clone, owner review, export), applied to the eight golds above. Flow-specific work:
+Procedure as [D3 § Scope](d3-release1-home.md#scope) steps 1, 3, 4 and 5 (discovery table first, Light row then Dark clone, owner review, export), applied to the eight golds above. Flow-specific work:
 
 1. **Components:**
    - `Choice/Segmented`, the Aero replacement for the M3 `ButtonGroup` used in O1/O2: glass container with a glossy accent pill for the selected item, labels up to 3 lines;
@@ -53,7 +53,7 @@ Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4
 
 ## Validation
 
-As [D3 § Validation](../completed/d3-release1-home.md#validation), with 16 frames and the split-day rule.
+As [D3 § Validation](d3-release1-home.md#validation), with 16 frames and the split-day rule.
 
 ## Results
 
@@ -170,6 +170,21 @@ Not drawn (no gold id): the mode-discard confirmation `Descartar os horários de
    - every DS element is an instance (`Stepper/Progress`, `Choice/Segmented`, `Tabs/Weekday`, `Field/Number`, `Option/Card`, `Row/MealSlot`, `Dialog/TimeWheel`, `Card/MacroTarget`, `Card/Note`, `Button/Primary`, `IconButton/Glass`, icons); no detached copy;
    - 0 solid fills or strokes without a variable or a paint style, and 0 text without a text style, in the frames and in the new components. The only unbound gradients are the gloss of the D1 `Button/Primary` (CTA) and the D1 `Option/Card` radio;
    - 0 overlapping in-flow siblings; the absolute layers are the edge bubbles, the `o3t` scrim and dialog and the time-wheel band.
-3. Visual: the 16 frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma pending.
+3. Visual: the 16 frames exported at 2× and sent to the owner on 2026-10-04. Owner review in Figma done the same day, no fixes requested.
 
-<Export and closure follow after the owner's OK.>
+4. Export and checks after the OK:
+   - `node tools/export-figma.mjs --only splash,o1,o1e,o2,o3,o3t,o3s,o4`: 16 new files, 780 px wide (`splash` and `o2` 1688, `o1` 1958, `o1e` 1874, `o3` and `o3t` 2536, `o3s` 2540, `o4` 1730 px tall), byte-identical to the images reviewed by the owner;
+   - `node tools/check-figma.mjs`: 24 Figma gold PNGs verified (12 dark + 12 light);
+   - `node tools/check-docs.mjs`: passed; `node --test tools/check-docs.test.mjs`: 15/15.
+
+### Owner review (2026-10-04)
+
+The owner reviewed the section `Splash e onboarding · D4` in Figma and closed the plan: "Revisei no Figma, pode exportar os golds e concluir o D4." The decisions listed for the review were accepted with no changes: no toggle in `Row/MealSlot`, `Tabs/Weekday` as the O3 day-mode selector, one `Stepper/Progress` on O1–O4, the `o1` meta 2000 with the `Sugerido 2160 kcal` caption, 38 % opacity for the `o1e` disabled controls, and the `DIAS DA SEMANA` block behind the `o3t` dialog.
+
+### Exported golds
+
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `splash.png`, `o1.png`, `o1e.png`, `o2.png`, `o3.png`, `o3t.png`, `o3s.png`, `o4.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the eight ids stays `stitch` in `docs/qa/README.md`; [A41](../../../android/plans/a41-splash-onboarding-aero.md) switches it.
+
+### Figma MCP budget, total
+
+21 of 110. The review and the closure used no MCP call (export through the REST API).

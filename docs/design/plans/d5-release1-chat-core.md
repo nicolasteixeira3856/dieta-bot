@@ -4,7 +4,7 @@
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chat0,chatL,chatQ,chatE,chatT,chatP,chatX}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D4](pending_manual_validation/d4-release1-splash-onboarding.md) `Concluído` (it adds `Choice/Segmented` and `Dialog/TimeWheel` patterns reused here).
+- Prerequisites: [D4](completed/d4-release1-splash-onboarding.md) `Concluído` (it adds `Choice/Segmented` and `Dialog/TimeWheel` patterns reused here).
 - Figma MCP budget: ≤ 110 calls, with the same split-day rule.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d5-release1-chat-core.md. Implemente o plano aprovado.`
