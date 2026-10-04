@@ -54,4 +54,4 @@ Status: the status line of each ADR.
 
 Active: the files at the root of [`plans/`](plans/). Execution order and dependencies: [plans/README.md](plans/README.md).
 
-- Pendente aprovação manual: [D1 Figma file foundation](plans/pending_manual_validation/d1-figma-file-foundation.md).
+- Completed: [`plans/completed/`](plans/completed/).
