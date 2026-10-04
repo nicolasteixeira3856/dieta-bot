@@ -2,6 +2,18 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.11 — 04/10/2026
+
+### Novidades
+
+- Visual novo em todas as telas: abertura, configuração inicial, painel do dia, Chat, Configurações, diálogo de reinício do dia e lembrete. Cartões de vidro translúcido sobre um fundo em degradê azul, nova fonte, ícones novos e números mais legíveis, nos temas claro e escuro (o app segue o tema do sistema).
+
+### Ajustes
+
+- Nada muda no funcionamento: as mesmas telas, botões, textos, números e regras de antes.
+- Em celulares com Android 11 ou anterior, o vidro aparece mais opaco, sem o desfoque do fundo.
+- O app ficou cerca de 7 MB menor.
+
 ## 0.0.10 — 03/10/2026
 
 ### Novidades
