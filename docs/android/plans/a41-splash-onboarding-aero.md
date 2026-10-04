@@ -6,7 +6,7 @@
 - Affected code: `apps/android/` only:
   - splash, `feature/onboarding/`, onboarding components in `core/designsystem/aero/`, tests;
   - docs updated with the delivery: the source of `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s` and `o4` in `docs/qa/README.md`, captures.
-- Prerequisites: [A40](a40-home-aero.md) and [D4](../../design/plans/completed/d4-release1-splash-onboarding.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3) counts as `Concluído` here.
+- Prerequisites: [A40](pending_manual_validation/a40-home-aero.md) and [D4](../../design/plans/completed/d4-release1-splash-onboarding.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](pending_manual_validation/a40-home-aero.md#validation) step 3) counts as `Concluído` here.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a41-splash-onboarding-aero.md. Implemente o plano aprovado.`
 
@@ -16,7 +16,7 @@ Move the splash and O1–O4, with their states, onto Aero, matching the Figma go
 
 ## Scope
 
-Procedure as [A40 § Scope](a40-home-aero.md#scope) steps 1–5, for the eight golds of this flow (`tools/capture-onboarding.sh`). Flow-specific work:
+Procedure as [A40 § Scope](pending_manual_validation/a40-home-aero.md#scope) steps 1–5, for the eight golds of this flow (`tools/capture-onboarding.sh`). Flow-specific work:
 
 1. **`AeroSegmented`** replaces the M3 `ButtonGroup` / `ExpressiveButtonGroup` in O1 and O2: same three eat-back modes, typed % default 50, no cap (AGENTS "Product").
 2. **`AeroTimeWheelDialog`** replaces `TimeWheelDialog`'s Material look (`o3t`); the measured `o3t` regression (docs/qa § Regressão) is re-done against the Figma gold.
@@ -29,7 +29,7 @@ As A40.
 
 ## Validation
 
-As [A40 § Validation](a40-home-aero.md#validation), with `capture-onboarding.sh` and 16 images.
+As [A40 § Validation](pending_manual_validation/a40-home-aero.md#validation), with `capture-onboarding.sh` and 16 images.
 
 ## Results
 

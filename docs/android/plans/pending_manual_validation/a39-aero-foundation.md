@@ -63,13 +63,13 @@ Build the Aero layer next to the current Material 3 Expressive theme, without ch
 
 1. `./gradlew.bat :app:testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass. New Roborazzi baselines: every Aero component in Light and Dark.
 2. Visual: the component baselines are compared by eye with the Figma `Componentes` screenshots (same tokens); differences are listed in Results.
-3. Blur check on an API 31+ emulator and on an API 26–30 emulator (fallback), screenshot of `AeroGlass` over a gradient in both. The blur on the owner's phone is part of the consolidated phone check ([A40 § Validation](../a40-home-aero.md#validation) step 3).
+3. Blur check on an API 31+ emulator and on an API 26–30 emulator (fallback), screenshot of `AeroGlass` over a gradient in both. The blur on the owner's phone is part of the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3).
 4. `:app:assembleDevRelease` succeeds; the APK size delta is recorded.
 5. `node tools/check-docs.mjs` passes.
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check of A39–A45 ([A40 § Validation](../a40-home-aero.md#validation) step 3: glass blur on the owner's phone).
+Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check of A39–A45 ([A40 § Validation](a40-home-aero.md#validation) step 3: glass blur on the owner's phone).
 
 ### Delivered
 
@@ -104,4 +104,4 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
 
 ### Pending (manual)
 
-- Consolidated phone check, [A40 § Validation](../a40-home-aero.md#validation) step 3.
+- Consolidated phone check, [A40 § Validation](a40-home-aero.md#validation) step 3.

@@ -6,7 +6,7 @@
 - Affected code: `apps/android/` only:
   - `feature/chat/` (receipt, photo bubble, attachment, photo source sheet, memory chips, routine card, meal plan), components in `core/designsystem/aero/`, tests;
   - docs updated with the delivery: the source of `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM` and `chatS` in `docs/qa/README.md`, captures.
-- Prerequisites: [A42](a42-chat-core-aero.md) and [D6](../../design/plans/completed/d6-release1-chat-records-memory.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3) counts as `Concluído` here.
+- Prerequisites: [A42](a42-chat-core-aero.md) and [D6](../../design/plans/completed/d6-release1-chat-records-memory.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](pending_manual_validation/a40-home-aero.md#validation) step 3) counts as `Concluído` here.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a43-chat-records-memory-aero.md. Implemente o plano aprovado.`
 
@@ -16,7 +16,7 @@ Move the remaining Chat states onto Aero, matching the Figma golds, with no beha
 
 ## Scope
 
-Procedure as [A40 § Scope](a40-home-aero.md#scope) steps 1–5, for the eight golds of this flow. Captures:
+Procedure as [A40 § Scope](pending_manual_validation/a40-home-aero.md#scope) steps 1–5, for the eight golds of this flow. Captures:
 
 - `tools/capture-photo.sh`;
 - `tools/capture-replace.sh`;
@@ -35,7 +35,7 @@ As A40.
 
 ## Validation
 
-As [A40 § Validation](a40-home-aero.md#validation), with 16 images.
+As [A40 § Validation](pending_manual_validation/a40-home-aero.md#validation), with 16 images.
 
 ## Results
 

@@ -87,6 +87,18 @@ const REGION_REPORT_ONLY = new Set(["light/chatA", "light/chatX"]);
 // chatM (A34): the actions slot changed; only the thread region is gated.
 const SCREEN_REPORT_ONLY = new Set(["light/chatQ", "dark/chatM", "light/chatM"]);
 
+// Figma golds (ADR-031) are bare frames: no status bar, the page at the frame height. The Stitch exceptions above
+// are calibrated on Stitch geometry and apply to `stitch` ids only.
+// homeW (A40): the 1414 dp page puts the sheet at its end and the blurred Home above it; on the 844 dp phone the
+// sheet covers the lower Home. The screen is reported; the blurred Home on top (gold rows 40-450 dp) and the sheet
+// (bottom-anchored, 1061 dp to 40 dp above the page end) are gated.
+const FIGMA = {
+  conflicts: new Set(["homeW"]),
+  regions: { homeW: [0, 80, 780, 900] },
+  bottom: { homeW: { dark: [0, 2122, 780, 2748], light: [0, 2122, 780, 2748] } },
+};
+const STITCH = { conflicts: GOLD_CONFLICTS, regions: REGIONS, bottom: BOTTOM_REGIONS };
+
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
   return { w: png.width, h: png.height, d: png.data };
@@ -233,7 +245,9 @@ for (const key of ids) {
   }
   const appRaw = load(appFile);
   const goldRaw = load(goldFile);
-  if (goldRaw.w !== WIDTH && GOLD_CONFLICTS.has(id)) {
+  const rules = source === "figma" ? FIGMA : STITCH;
+  const stitch = source === "stitch";
+  if (goldRaw.w !== WIDTH && rules.conflicts.has(id)) {
     console.log(`  ~ ${key} gold is ${goldRaw.w}x${goldRaw.h}, not a phone capture [gold conflict: report only]`);
     continue;
   }
@@ -244,7 +258,7 @@ for (const key of ids) {
   }
   const app = blurred(appRaw);
   const gold = blurred(goldRaw);
-  const center = CENTER_REGIONS[id]?.[theme];
+  const center = stitch ? CENTER_REGIONS[id]?.[theme] : undefined;
   if (center) {
     let bestDy = 0;
     const part = regionScore(app, gold, center, Math.round((appRaw.h - goldRaw.h) / 2), (dy) => { bestDy = dy; });
@@ -278,20 +292,25 @@ for (const key of ids) {
   const goldInk = ink(gold, goldTop, IGNORE_TOP, phone - FOOTER);
   const inkRatio = appInk / Math.max(1, goldInk);
   const inkOk = inkRatio >= 0.8 && inkRatio <= 1.25;
-  const conflict = GOLD_CONFLICTS.has(id) || SCREEN_REPORT_ONLY.has(key);
+  const conflict = rules.conflicts.has(id) || (stitch && SCREEN_REPORT_ONLY.has(key));
   const ok = pct <= max && inkOk;
   if (!ok && !conflict) failed = true;
-  const bottom = BOTTOM_REGIONS[id]?.[theme];
-  if (REGIONS[id] || bottom) {
-    const part = bottom ? regionScore(app, gold, bottom, appRaw.h - goldRaw.h) : regionScore(app, gold, REGIONS[id]);
+  const bottom = rules.bottom[id]?.[theme];
+  const boxes = [
+    ...(rules.regions[id] ? [["region", () => regionScore(app, gold, rules.regions[id])]] : []),
+    ...(bottom ? [[stitch ? "region" : "bottom region", () => regionScore(app, gold, bottom, appRaw.h - goldRaw.h)]] : []),
+  ];
+  // Stitch: one region per id (the bottom one wins, as before); Figma: every region is gated.
+  for (const [name, run] of stitch ? boxes.slice(-1) : boxes) {
+    const part = run();
     const partOk = part <= max;
-    const reportOnly = REGION_REPORT_ONLY.has(key);
+    const reportOnly = stitch && REGION_REPORT_ONLY.has(key);
     if (!partOk && !reportOnly) failed = true;
-    console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} region ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
+    console.log(`  ${partOk ? "✓" : reportOnly ? "~" : "✗"} ${key} ${name} ${part.toFixed(2)}% (max ${max}%)${reportOnly ? " [report only]" : ""}`);
   }
-  const photo = PHOTO_REGIONS[id]?.[theme];
+  const photo = stitch ? PHOTO_REGIONS[id]?.[theme] : undefined;
   if (photo) console.log(`  ~ ${key} photo bubble ${regionScore(app, gold, photo).toFixed(2)}% (max ${max}%) [report only]`);
-  (RECEIPT_REGIONS[id]?.[theme] ?? []).forEach((box, i) => {
+  ((stitch && RECEIPT_REGIONS[id]?.[theme]) || []).forEach((box, i) => {
     const part = regionScore(app, gold, box);
     const partOk = part <= max;
     const reportOnly = RECEIPT_REPORT_ONLY.has(`${key}/${i}`);

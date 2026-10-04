@@ -86,11 +86,12 @@ fun AeroButtonPrimary(
     modifier: Modifier = Modifier,
     icon: AeroIconName? = null,
     enabled: Boolean = true,
+    fillWidth: Boolean = true,
 ) {
     val c = Aero.colors
     Row(
         modifier
-            .fillMaxWidth()
+            .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
             .height(58.dp)
             .aeroDisabled(enabled)
             .aeroShadow(pill, c.shadowGlass, radius = 18.dp, offsetY = 6.dp)
@@ -272,6 +273,10 @@ fun AeroTimelineNode(state: AeroNodeState, modifier: Modifier = Modifier) {
 
 enum class AeroMealState { Logged, Over, Skipped, Pending, Empty }
 
+/** One log line of a meal card: description and its kcal ("520 kcal"). */
+@androidx.compose.runtime.Immutable
+data class AeroMealLine(val text: String, val kcal: String)
+
 /**
  * Card/Meal: one timeline card per slot. Logged/Over show the description, kcal and one consolidated [log] chip;
  * Skipped and Pending/Empty show [description] as their one-line note.
@@ -286,6 +291,8 @@ fun AeroMealCard(
     kcal: String = "",
     log: String = "",
     onClick: (() -> Unit)? = null,
+    lines: List<AeroMealLine> = listOf(AeroMealLine(description, kcal)),
+    logTag: String? = null,
 ) {
     val c = Aero.colors
     val type = Aero.type
@@ -326,11 +333,18 @@ fun AeroMealCard(
         }
         when (state) {
             AeroMealState.Logged, AeroMealState.Over -> {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(description, Modifier.weight(1f), style = type.body.copy(color = c.textPrimary))
-                    Text(kcal, style = type.captionStrong.copy(color = if (state == AeroMealState.Over) c.statusBad else c.textMuted))
+                lines.forEach { line ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(line.text, Modifier.weight(1f), style = type.body.copy(color = c.textPrimary))
+                        Text(line.kcal, style = type.captionStrong.copy(color = if (state == AeroMealState.Over) c.statusBad else c.textMuted))
+                    }
                 }
-                AeroChipLog(log, tone = if (state == AeroMealState.Over) AeroChipTone.Bad else AeroChipTone.Accent, dot = false)
+                AeroChipLog(
+                    log,
+                    modifier = if (logTag != null) Modifier.testTag(logTag) else Modifier,
+                    tone = if (state == AeroMealState.Over) AeroChipTone.Bad else AeroChipTone.Accent,
+                    dot = false,
+                )
             }
             AeroMealState.Skipped -> Text(
                 description,

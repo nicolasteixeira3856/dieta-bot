@@ -8,6 +8,7 @@ import com.nutri.android.core.designsystem.TimeWheelDialog
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.nutri.android.core.designsystem.DietaBotTheme
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.feature.chat.ChatFixtures
 import com.nutri.android.feature.chat.ChatScreen
 import com.nutri.android.feature.config.ConfigActions
@@ -204,7 +205,7 @@ class RoborazziSmokeTest {
         val ui = HomePanelMapper.map(HomeFixtures.home1Workout, LocalDate.parse("2026-09-25"), workoutDraft = "350")
         composeTestRule.setContent {
             DietaBotTheme(darkTheme = dark) {
-                HomePanelScreen(ui, {}, {}, {})
+                AeroTheme(darkTheme = dark) { HomePanelScreen(ui, {}, {}, {}) }
             }
         }
         val target = File("src/test/snapshots/${if (dark) "dark" else "light"}/homeW.png")

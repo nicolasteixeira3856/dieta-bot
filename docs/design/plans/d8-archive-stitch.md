@@ -11,7 +11,7 @@
   - skills: `dieta-bot-stitch` removed from the four skill trees and added to "Retired".
 
   No `apps/` or `server/` code.
-- Prerequisites: [A40](../../android/plans/a40-home-aero.md) through [A44](../../android/plans/a44-config-push-aero.md) `Concluído`, which means every gold in the inventory has source `figma`.
+- Prerequisites: [A40](../../android/plans/pending_manual_validation/a40-home-aero.md) through [A44](../../android/plans/a44-config-push-aero.md) `Concluído`, which means every gold in the inventory has source `figma`.
 - Figma MCP budget: 0.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d8-archive-stitch.md. Implemente o plano aprovado.`
