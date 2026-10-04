@@ -8,7 +8,7 @@
   - `app/src/main/res/font/` (Nunito Sans) and `app/src/main/res/drawable/ph_*.xml` (Phosphor);
   - `third_party/` licenses;
   - the Gradle token task, the gold test source resolution and new Roborazzi component tests.
-- Prerequisites: [ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md) and [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md) accepted; [D1](../../design/plans/d1-figma-file-foundation.md) and [D2](../../design/plans/d2-figma-tooling-stitch-deprecation.md) `Concluído` (`docs/design/tokens.json` exists).
+- Prerequisites: [ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md) and [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md) accepted; [D1](../../design/plans/pending_manual_validation/d1-figma-file-foundation.md) and [D2](../../design/plans/d2-figma-tooling-stitch-deprecation.md) `Concluído` (`docs/design/tokens.json` exists).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a39-aero-foundation.md. Implemente o plano aprovado.`
 

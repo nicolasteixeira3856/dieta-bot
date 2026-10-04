@@ -1,6 +1,6 @@
 # ADR-031 — Figma file `Design` replaces Stitch as the UI source of truth
 
-- Status: Proposed
+- Status: Accepted (2026-10-03, with the owner's named approval of [D1](../plans/pending_manual_validation/d1-figma-file-foundation.md))
 - Date: 2026-10-03
 - Context: `design`
 - Replaces: once accepted, the owner-run Stitch gate (`docs/sdd/README.md` § Gate Stitch, AGENTS "Visual QA" and "Stitch gate") for each flow whose Figma plan is completed; after the last flow, for the whole app. [ADR-008](../../decisions/008-visual-qa.md) keeps its folder law for captures and `_legacy/`. [ADR-027](../../android/adrs/ADR-027-golds-divergentes.md) keeps its divergence rules, applied to Figma golds.
