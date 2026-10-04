@@ -35,6 +35,8 @@ Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-
 | `bg/mid` | `#8fd8f5` | `#051c36` | `DietaBotColors.bgMid` | Middle stop of the page gradient (Background/Page). |
 | `sheen/start` | `#ffffff8c` | `#ffffff0f` | `DietaBotColors.sheenStart` | Top stop of the glass sheen (paint Surface/Glass, 0%). |
 | `sheen/end` | `#ffffff00` | `#ffffff00` | `DietaBotColors.sheenEnd` | Bottom stop of the glass sheen (paint Surface/Glass, 40%), transparent. |
+| `overlay/scrim` | `#03122566` | `#00000099` | `DietaBotColors.overlayScrim` | Scrim behind a modal sheet: dims the screen underneath. Light: bg/page Dark at 40 %; Dark: black at 60 %. |
+| `status/bad-tint` | `#b93b2c1f` | `#ff7a6b29` | `DietaBotColors.statusBadTint` | Background tint of an over-the-meta element (Meta excedida pill, over node): status/bad at 12 % (Light) / 16 % (Dark). |
 
 ### Shape (modes: Value)
 
