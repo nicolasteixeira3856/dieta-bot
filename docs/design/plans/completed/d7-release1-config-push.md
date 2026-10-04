@@ -1,6 +1,6 @@
 # Plan — D7 Release 1: Config and push
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Config e push". Repository: `docs/qa/figma/{dark,light}/{cfg,cfgS,wipe,push}.png` and their node ids in `tools/export-figma.mjs`.
@@ -132,13 +132,31 @@ New component `Notification/Push` holds the system template; only the icon, titl
    - 0 solid fills or strokes without a variable or a paint style;
    - text without a text style: only the system text of `push` (clock, date, notification template in Roboto), on purpose: the system draws it;
    - 0 overlapping in-flow siblings; the absolute layers are the edge bubbles, and in `wipe` the blurred Config, the scrim and the dialog.
-3. Visual: the 8 frames exported at 2× and sent to the owner on 2026-10-04 (one fix before sending: the layout frames around the group cards clipped the card shadow into a square band).
-4. Pending: owner review in Figma, then export, `check-figma`, `check-docs` and the final readability pass on `Release 1` (Scope 4).
+3. Visual: the 8 frames exported at 2× and sent to the owner on 2026-10-04 (one fix before sending: the layout frames around the group cards clipped the card shadow into a square band). Owner review in Figma done the same day, no fixes requested.
+4. Export and checks after the OK:
+   - `node tools/export-figma.mjs --only cfg,cfgS,wipe,push`: 8 new files, 780 px wide (`cfg` 1834, `cfgS` 1690, `wipe` and `push` 1688 px tall), byte-identical to the images reviewed by the owner;
+   - `node tools/check-figma.mjs`: 62 Figma gold PNGs verified (31 dark + 31 light);
+   - `node tools/check-docs.mjs`: passed.
+5. Final readability pass on `Release 1` (Scope 4), one read-back and one page screenshot:
+   - section order left to right: `Splash e onboarding · D4`, `Home · D3`, `Chat · D5` with `Chat · D6` below it, `Config e push · D7`; 160 px between sections, 80 px pads inside every section, 0 overlapping sections or frames;
+   - three copy fixes: the page description now names the four flows and drops the old line about pilot drafts; the D7 heading became `Config e push · D7`, like the other headings; the D6 note was rewritten in pt-BR to match the other notes.
 
-### For the owner review
+### For the owner review (accepted)
 
 1. `push`: the gold's title, text and pill buttons are replaced by what the app posts (`Jantar. Ainda não registrou.`, `Registrar`, `Pular`); the system template is drawn in Roboto with Aero variables for its colors, and the notification sits below the clock as Android draws it.
 2. `push`: the date is `sexta-feira, 25 de setembro` (the fixture day 2026-09-25 is a Friday).
 3. `wipe`: one circle badge in both themes; the danger pill uses `status/bad` with `accent/on` text.
 4. The accent (meta value, push icon and actions) is `accent/default`, not the Stitch gold.
 5. The edit sheets and the full-screen meal editor have no gold id and are not drawn.
+
+### Owner review (2026-10-04)
+
+The owner reviewed the section `Config e push · D7` in Figma and closed the plan: "Revisei no Figma, pode exportar os golds e concluir o D7." The five points above were accepted with no changes.
+
+### Exported golds
+
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `cfg.png`, `cfgS.png`, `wipe.png`, `push.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the four ids stays `stitch` in `docs/qa/README.md`; [A44](../../../android/plans/a44-config-push-aero.md) switches it.
+
+### Figma MCP budget, total
+
+17 of 80: the 14 above, plus 3 for the readability pass (1 read-only `use_figma`, 1 copy write, 1 page `get_screenshot`). The export used no MCP call (REST API).
