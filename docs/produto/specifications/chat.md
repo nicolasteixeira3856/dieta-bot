@@ -108,7 +108,5 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [S15](../../server/plans/completed/s15-registro-casos-dificeis.md) — Hard record cases: skip by text, photo with a question
 - [ST9](../../stitch/plans/completed/st9-registro-autonomo.md) — Autonomous record (`chatE`, `chatF`, `chatG`, `chatU`, `chatD`)
 - [A37](../../android/plans/completed/a37-enviar-fecha-teclado.md) — Send closes the keyboard
-- [A38][a38] — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
+- [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md) — Retroactive record (a meal of another day)
-
-[a38]: ../../android/plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md

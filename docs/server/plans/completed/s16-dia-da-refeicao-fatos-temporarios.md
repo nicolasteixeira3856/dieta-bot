@@ -4,7 +4,7 @@
 - Date: 03/10/2026
 - Owning context: `server`
 - Affected code: `server/` (`main.py`, `llm.py`, `shaping.py`, `config.py`, `conversation_log.py`, `evals/`, `tests/`)
-- Prerequisites: [ADR-029](../../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md). Executes ADR-029 decisions 1 (server part), 3, 4, 5 and 6. Does not depend on [A38](../../../android/plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md); A38 depends on this plan being deployed to the dev server (rollout order below).
+- Prerequisites: [ADR-029](../../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md). Executes ADR-029 decisions 1 (server part), 3, 4, 5 and 6. Does not depend on [A38](../../../android/plans/completed/a38-fatos-temporarios-compactacao.md); A38 depends on this plan being deployed to the dev server (rollout order below).
 
 ## Authorization gate
 

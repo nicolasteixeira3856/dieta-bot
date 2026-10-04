@@ -87,6 +87,4 @@ Comportamento: `produto`. Client: `android`.
 - [A28](../../android/plans/completed/a28-memoria-v2.md) — Memória v2: fatos permanentes e dinâmicos
 - [A29](../../android/plans/completed/a29-chat-v2-interface.md) — Chat v2: plano de refeição, avisos de memória e sugestão da rotina
 - [A34](../../android/plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
-- [A38][a38] — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
-
-[a38]: ../../android/plans/pending_manual_validation/a38-fatos-temporarios-compactacao.md
+- [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail

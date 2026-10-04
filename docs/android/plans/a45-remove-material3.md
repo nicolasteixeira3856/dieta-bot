@@ -6,7 +6,7 @@
 - Affected code:
   - `apps/android/`: `core/designsystem/` (old `DietaBotTheme`, `ExpressiveButtonGroup`, M3 wrappers), every remaining `androidx.compose.material3` import in feature code, `gradle/libs.versions.toml`, `StitchGoldTest` renamed to `GoldTest`, tests;
   - docs updated with the delivery: `AGENTS.md` (Live stack, Tokens), `docs/tokens.md` (Material section removed), [ADR-004](../../decisions/004-m3-expressive.md) status line, `docs/android/README.md` scope line.
-- Prerequisites: [A44](a44-config-push-aero.md) `Concluído`.
+- Prerequisites: [A44](a44-config-push-aero.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3) counts as `Concluído` here.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a45-remove-material3.md. Implemente o plano aprovado.`
 

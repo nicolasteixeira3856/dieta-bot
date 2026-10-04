@@ -6,7 +6,7 @@
 - Affected code: `apps/android/` only:
   - the Config screens, the wipe dialog, the push notification builder (small icon, accent color, actions), tests;
   - docs updated with the delivery: the source of `cfg`, `cfgS`, `wipe` and `push` in `docs/qa/README.md`, captures.
-- Prerequisites: [A43](a43-chat-records-memory-aero.md) and [D7](../../design/plans/completed/d7-release1-config-push.md) `Concluído`.
+- Prerequisites: [A43](a43-chat-records-memory-aero.md) and [D7](../../design/plans/completed/d7-release1-config-push.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3) counts as `Concluído` here.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a44-config-push-aero.md. Implemente o plano aprovado.`
 

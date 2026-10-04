@@ -43,7 +43,7 @@ Build the Aero layer next to the current Material 3 Expressive theme, without ch
      - API 26–30: no blur, glass alpha raised (light white 85 %, dark `#0B2747` 88 %);
    - `Modifier.aeroGloss()`: the button gloss overlay.
 
-   **New dependency, named for approval:** [Haze](https://github.com/chrisbanes/haze) (Apache-2.0), at the latest stable version compatible with the current Compose BOM, for the backdrop blur. If Haze is not approved, A39 ships glass without blur on every API, and that is recorded in Results.
+   **New dependency, named for approval:** [Haze](https://github.com/chrisbanes/haze) (Apache-2.0), at the latest stable version compatible with the current Compose BOM, for the backdrop blur. Approved by the owner on 2026-10-04.
 6. **Components** (Compose versions of the D1 components, same names):
    - `AeroButtonPrimary`, `AeroIconButton`, `AeroChipLog`, `AeroProgressBar`;
    - `AeroMacroRow`, `AeroTimelineNode`, `AeroMealCard`, `AeroOptionCard`;
@@ -63,7 +63,7 @@ Build the Aero layer next to the current Material 3 Expressive theme, without ch
 
 1. `./gradlew.bat :app:testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass. New Roborazzi baselines: every Aero component in Light and Dark.
 2. Visual: the component baselines are compared by eye with the Figma `Componentes` screenshots (same tokens); differences are listed in Results.
-3. Blur check on a device with API 31+ and on an API 26–30 emulator (fallback), screenshot of `AeroGlass` over a gradient in both.
+3. Blur check on an API 31+ emulator and on an API 26–30 emulator (fallback), screenshot of `AeroGlass` over a gradient in both. The blur on the owner's phone is part of the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3).
 4. `:app:assembleDevRelease` succeeds; the APK size delta is recorded.
 5. `node tools/check-docs.mjs` passes.
 
