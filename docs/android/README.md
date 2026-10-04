@@ -12,10 +12,10 @@ Client nativo. Compose, Room, navegacao, foto, push.
 
 ## Escopo
 
-- Kotlin + Jetpack Compose + Material 3 Expressive.
+- Kotlin + Jetpack Compose + the Aero design system ([ADR-030](../design/adrs/ADR-030-own-design-system-aero.md)); no Material 3.
 - Camada ui / domain / data. Hilt, Navigation Compose, Retrofit, Room.
 - Home, onboarding, sheets, foto. DataStore so como import legado.
-- Visual QA: `docs/qa/android/current/{dark,light}/` (captura do emulador: `tools/capture-*.sh` ou `android screen capture`; medidas com `android layout`) vs gold em `docs/qa/stitch/{dark,light}/` (Stitch `Nutri`). Gate: `tools/diff-gold.mjs` + `StitchGoldTest` (ver [docs/qa](../qa/README.md)).
+- Visual QA: `docs/qa/android/current/{dark,light}/` (captura do emulador: `tools/capture-*.sh` ou `android screen capture`; medidas com `android layout`) vs gold em `docs/qa/figma/{dark,light}/` (Figma `Design`). Gate: `tools/diff-gold.mjs` + `GoldTest` (ver [docs/qa](../qa/README.md)).
 
 ## Fora de escopo
 

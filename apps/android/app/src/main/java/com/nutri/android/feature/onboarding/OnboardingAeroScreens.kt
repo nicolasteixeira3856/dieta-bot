@@ -23,9 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -47,9 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.nutri.android.core.designsystem.Haptic
 import com.nutri.android.core.designsystem.dietaClick
-import com.nutri.android.core.designsystem.rememberHaptic
 import com.nutri.android.core.designsystem.aero.Aero
 import com.nutri.android.core.designsystem.aero.AeroText
 import com.nutri.android.core.designsystem.aero.AeroBarBalance
@@ -63,6 +58,7 @@ import com.nutri.android.core.designsystem.aero.AeroMacro
 import com.nutri.android.core.designsystem.aero.AeroMacroTargetCard
 import com.nutri.android.core.designsystem.aero.AeroMealSlotRow
 import com.nutri.android.core.designsystem.aero.AeroNoteCard
+import com.nutri.android.core.designsystem.aero.AeroNoticeDialog
 import com.nutri.android.core.designsystem.aero.AeroNumberField
 import com.nutri.android.core.designsystem.aero.AeroOptionCard
 import com.nutri.android.core.designsystem.aero.AeroPage
@@ -470,8 +466,8 @@ fun OnboardingSlotsScreen(
             onBack = onBack,
             ctaTag = ctaTag,
             bubbles = if (schedule.mode == "same") bubbles(520, 820) else bubbles(560, 880),
-            // o3t: the page behind the time dialog is blurred (Figma layer blur 8) under overlay/scrim.
-            modifier = if (picking in ui.slots.indices) Modifier.blur(8.dp) else Modifier,
+            // o3t: the page behind a dialog is blurred (Figma layer blur 8) under overlay/scrim.
+            modifier = if (picking in ui.slots.indices || schedule.pendingMode != null) Modifier.blur(8.dp) else Modifier,
         ) {
             Intro(if (bar is AeroOnboardingBar.Header) null else "Onboarding 3/4", "Rotina", "Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.")
             Group("Dias da semana") {
@@ -522,8 +518,8 @@ fun OnboardingSlotsScreen(
                 onConfirm = { onTime(picking, it); picking = -1 },
             )
         }
+        SlotModeConfirmation(schedule, onConfirmMode, onCancelMode)
     }
-    SlotModeConfirmation(schedule, onConfirmMode, onCancelMode)
 }
 
 /** o3s: group name, "Etapa n de m" and one segment per group. */
@@ -590,69 +586,63 @@ fun MacrosScreen(
     onBack: () -> Unit,
     onFinish: () -> Unit,
 ) {
-    val c = Aero.colors
     var help by remember { mutableStateOf(false) }
-    val haptic = rememberHaptic()
     val grams = listOf(ui.proteinField, ui.carbField, ui.fatField).map { it.toIntOrNull() ?: 0 }
     val kcal = listOf(grams[0] * 4, grams[1] * 4, grams[2] * 9)
     val total = kcal.sum()
     val pct = kcal.map { if (total > 0) (it * 100.0 / total).roundToInt() else 0 }
     val focus = remember { List(3) { FocusRequester() } }
-    AeroOnboardingFrame(
-        bar = AeroOnboardingBar.Brand(4, onHelp = { help = true }),
-        cta = "Concluir e começar",
-        ctaEnabled = ui.o4Valid,
-        onCta = onFinish,
-        onBack = onBack,
-        ctaTag = "o4-finish",
-        bubbles = bubbles(470, 760),
-    ) {
-        Intro(
-            "Onboarding 4/4",
-            "Macronutrientes",
-            "Alvos de macronutrientes",
-            "Distribuição calculada para a sua meta diária. Você pode ajustar as quantidades.",
-            leadingDot = true,
-        )
-        SplitCard(pct)
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            val rows = listOf(
-                Triple("Proteína", "4 kcal/g • ${pct[0]}%", AeroMacro.Protein),
-                Triple("Carboidrato", "4 kcal/g • ${pct[1]}%", AeroMacro.Carbs),
-                Triple("Gordura", "9 kcal/g • ${pct[2]}%", AeroMacro.Fat),
+    Box(Modifier.fillMaxSize()) {
+        AeroOnboardingFrame(
+            bar = AeroOnboardingBar.Brand(4, onHelp = { help = true }),
+            modifier = if (help) Modifier.blur(8.dp) else Modifier,
+            cta = "Concluir e começar",
+            ctaEnabled = ui.o4Valid,
+            onCta = onFinish,
+            onBack = onBack,
+            ctaTag = "o4-finish",
+            bubbles = bubbles(470, 760),
+        ) {
+            Intro(
+                "Onboarding 4/4",
+                "Macronutrientes",
+                "Alvos de macronutrientes",
+                "Distribuição calculada para a sua meta diária. Você pode ajustar as quantidades.",
+                leadingDot = true,
             )
-            val values = listOf(ui.proteinField, ui.carbField, ui.fatField)
-            val changes = listOf(onProtein, onCarb, onFat)
-            val tags = listOf("o4-protein", "o4-carb", "o4-fat")
-            rows.forEachIndexed { i, (name, detail, macro) ->
-                AeroMacroTargetCard(
-                    name, detail, macro, values[i], changes[i],
-                    onAdjust = { runCatching { focus[i].requestFocus() } },
-                    modifier = Modifier.testTag(tags[i]),
-                    fieldModifier = Modifier.focusRequester(focus[i]).testTag("${tags[i]}-field"),
+            SplitCard(pct)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                val rows = listOf(
+                    Triple("Proteína", "4 kcal/g • ${pct[0]}%", AeroMacro.Protein),
+                    Triple("Carboidrato", "4 kcal/g • ${pct[1]}%", AeroMacro.Carbs),
+                    Triple("Gordura", "9 kcal/g • ${pct[2]}%", AeroMacro.Fat),
                 )
+                val values = listOf(ui.proteinField, ui.carbField, ui.fatField)
+                val changes = listOf(onProtein, onCarb, onFat)
+                val tags = listOf("o4-protein", "o4-carb", "o4-fat")
+                rows.forEachIndexed { i, (name, detail, macro) ->
+                    AeroMacroTargetCard(
+                        name, detail, macro, values[i], changes[i],
+                        onAdjust = { runCatching { focus[i].requestFocus() } },
+                        modifier = Modifier.testTag(tags[i]),
+                        fieldModifier = Modifier.focusRequester(focus[i]).testTag("${tags[i]}-field"),
+                    )
+                }
             }
+            AeroNoteCard(
+                AeroIconName.Info,
+                "Proporção balanceada: 30% Proteína · 40% Carboidratos · 30% Gorduras.",
+                footer = "${ui.day1Ceiling} kcal total estimada",
+                footerTag = "o4-total",
+            )
         }
-        AeroNoteCard(
-            AeroIconName.Info,
-            "Proporção balanceada: 30% Proteína · 40% Carboidratos · 30% Gorduras.",
-            footer = "${ui.day1Ceiling} kcal total estimada",
-            footerTag = "o4-total",
-        )
-    }
-    if (help) {
-        AlertDialog(
-            onDismissRequest = { help = false },
-            containerColor = c.bgPage,
-            confirmButton = { TextButton(onClick = { haptic(Haptic.Light); help = false }) { Text("OK", color = c.accentDefault) } },
-            text = {
-                Text(
-                    "P e C: 4 kcal/g. G: 9 kcal/g. Sugestão 30/40/30 sobre o teto do dia 1. Estimativa, não consulta.",
-                    style = Aero.type.body,
-                    color = c.textMuted,
-                )
-            },
-        )
+        if (help) {
+            AeroNoticeDialog(
+                "P e C: 4 kcal/g. G: 9 kcal/g. Sugestão 30/40/30 sobre o teto do dia 1. Estimativa, não consulta.",
+                "OK",
+                onDismiss = { help = false },
+            )
+        }
     }
 }
 

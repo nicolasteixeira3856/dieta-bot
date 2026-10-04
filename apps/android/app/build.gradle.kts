@@ -135,9 +135,6 @@ dependencies {
     implementation(bom)
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.material3.android)
-    implementation(libs.compose.material.icons.extended)
     // A39: backdrop blur of Aero glass on API 31+ (owner-approved 2026-10-04).
     implementation(libs.haze)
     // @Preview in main sources: the annotation must exist in release too (A9).

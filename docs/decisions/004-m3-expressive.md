@@ -1,6 +1,6 @@
 # 004 — Material 3 Expressive no client Android
 
-- Status: Accepted. Current versions: `apps/android/gradle/libs.versions.toml`.
+- Status: Superseded by [ADR-030](../design/adrs/ADR-030-own-design-system-aero.md).
 
 Substitui o trecho Expressive do 002. O client em `apps/android` usa a API pública. Sem dynamic color.
 

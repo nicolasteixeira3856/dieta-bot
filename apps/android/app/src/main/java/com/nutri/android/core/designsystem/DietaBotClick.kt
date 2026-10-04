@@ -1,13 +1,13 @@
 package com.nutri.android.core.designsystem
 
 import androidx.compose.foundation.clickable
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import com.nutri.android.core.designsystem.aero.aeroPressIndication
 
 /**
  * Touch vibration (A20). Two strengths only. The platform call honours the system
@@ -23,7 +23,7 @@ enum class Haptic {
     None,
 }
 
-/** For M3 buttons that already ripple: call it inside onClick. */
+/** For controls that handle their own click: call it inside onClick. */
 @Composable
 fun rememberHaptic(): (Haptic) -> Unit {
     val feedback = LocalHapticFeedback.current
@@ -39,7 +39,7 @@ fun rememberHaptic(): (Haptic) -> Unit {
 }
 
 /**
- * Every tappable control: M3 ripple + haptic. Clip the shape before it so the ripple follows it.
+ * Every tappable control: the Aero press veil + haptic. Clip the shape before it so the veil follows it.
  * `indication = null` stays only on scrims and sheet backgrounds that swallow taps.
  */
 @Composable
@@ -50,7 +50,7 @@ fun Modifier.dietaClick(
     onClick: () -> Unit,
 ): Modifier {
     val perform = rememberHaptic()
-    return clickable(interactionSource = null, indication = ripple(), enabled = enabled, role = role) {
+    return clickable(interactionSource = null, indication = aeroPressIndication(), enabled = enabled, role = role) {
         perform(haptic)
         onClick()
     }

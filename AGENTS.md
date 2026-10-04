@@ -49,15 +49,14 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
 
 ## Live stack
 
-- apps/android/ — Kotlin, Jetpack Compose, Material 3 Expressive
-  MaterialExpressiveTheme + MotionScheme.expressive()
-  material3 1.5.0-alpha29 (or newer 1.5 alpha) on top of the stable BOM
+- apps/android/ — Kotlin, Jetpack Compose, own design system Aero (ADR-030)
+  AeroTheme at the root: `core/designsystem/aero` (tokens generated from `docs/design/tokens.json`, Haze glass on API 31+)
+  Compose on the stable BOM; no `androidx.compose.material3` and no Material icons (Phosphor drawables)
   Official architecture: ui / domain / data
   UDF, ViewModel + UiState, Hilt, collectAsStateWithLifecycle
   Room 2.6.x for local state; schema in `docs/android/specifications/room-v2.md`. No DataStore for day state.
   Flavors dev (com.nutri.android.dev, GCP dev server) / prod (com.nutri.android) per ADR-014.
   Build and test with the dev variant: assembleDevRelease, testDevDebugUnitTest, verifyRoborazziDevDebug.
-  Aero design system layer (ADR-030): `core/designsystem/aero`, flows migrate per `docs/design/plans/README.md`.
   Telemetry: core/telemetry Telemetry interface. dev = Firebase nutri-bot-dev (Crashlytics + Analytics), prod = NoopTelemetry.
   Events carry enums and numbers only, never user text. X-Request-Id links Crashlytics to the dev server log (ADR-015).
 - server/ — FastAPI. Routes and payloads: `docs/api-contract.md`.
@@ -69,8 +68,8 @@ Dead: legacy/flutter, apps/rn. Git history keeps them. Do not restore.
 
 Two themes. Follow the system (`isSystemInDarkTheme()`). No dynamic color. No wallpaper. No settings toggle in this cut.
 
-Values (colors per theme, CTA, type sizes, radii, bar): `docs/tokens.md`, the single owner. Its Aero section mirrors the variables of the Figma file `Design` (generated: `docs/design/tokens.json` → `node tools/gen-tokens.mjs`; never edited by hand).
-Gold is an accent only. Macros use their semantic colors.
+Values (colors per theme, type, radii, spacing, effects): the variables and styles of the Figma file `Design`, exported to `docs/design/tokens.json` and mirrored in `docs/tokens.md` (`node tools/gen-tokens.mjs`; never edited by hand). The app generates its Aero tokens from that JSON.
+The accent is an accent only. Macros use their semantic colors.
 Timeline: continuous vertical guide, node markers, single consolidated meal log (e.g. 520 kcal · 28P · 52C · 22G).
 
 ## Visual QA
@@ -112,12 +111,12 @@ Project skills:
 dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual · dieta-bot-figma · dieta-bot-stitch
 
 Engineering skills:
-android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · material3-expressive
+android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · aero-compose
 
 Official Google skills (npx or `android skills`) stay.
 Apply their recipes within the approved plan, current specifications, the inventory golds and stack pins. Examples do not authorize new screens, navigation migrations, SDK/dependency upgrades, new test frameworks, global skill installation or additional agents. Execute Play-policy checks sequentially under this repository's one-agent rule.
 After a skill change, synchronize all four complete trees and run `node tools/check-skills.mjs` (read-only; `--root <path>` supports fixture checks). It verifies inventories, bytes, retired names and concrete relative Markdown references; validate YAML metadata separately.
-Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar.
+Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar, material3-expressive.
 
 ## Production gate
 

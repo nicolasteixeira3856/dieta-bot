@@ -1,8 +1,17 @@
 package com.nutri.android.feature.devtools
 
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.layout.Arrangement
+import com.nutri.android.core.designsystem.aero.Aero
+import com.nutri.android.core.designsystem.aero.AeroIconButton
+import com.nutri.android.core.designsystem.aero.AeroIconName
+import com.nutri.android.core.designsystem.aero.AeroPage
+import com.nutri.android.core.designsystem.aero.AeroText
+import com.nutri.android.core.designsystem.aero.AeroTextTokens
+import com.nutri.android.core.designsystem.aero.aeroGlass
+import com.nutri.android.core.designsystem.aero.cased
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,17 +24,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,7 +45,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,9 +53,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.nutri.android.core.designsystem.DietaBotShapes
-import com.nutri.android.core.designsystem.DietaBotType
-import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.dietaClick
 import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.feature.config.Group
@@ -115,7 +114,7 @@ private fun hideDevTools(): Boolean = runCatching {
 
 private const val HIDE_PROP = "debug.nutri.hide_dev_tools"
 
-/** A23 tool screen (ADR-019): app theme and tokens, no gold, wraps text instead of scrolling sideways. */
+/** A23 tool screen (ADR-019): Aero tokens and components, no gold, wraps text instead of scrolling sideways. */
 @Composable
 fun DevMemoryScreen(
     ui: DevMemoryUiState,
@@ -126,36 +125,26 @@ fun DevMemoryScreen(
     onConfirmWipe: () -> Unit,
     onCancelWipe: () -> Unit,
 ) {
-    val p = LocalPalette.current
-    Box(Modifier.fillMaxSize().background(p.phone).testTag("dev-memory")) {
+    val c = Aero.colors
+    val type = Aero.type
+    AeroPage(Modifier.fillMaxSize().testTag("dev-memory")) {
         Column(Modifier.fillMaxSize().statusBarsPadding().imePadding()) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 25.dp, end = 25.dp, top = 13.dp, bottom = 8.dp),
+                Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(
-                    Modifier
-                        .size(37.dp)
-                        .clip(CircleShape)
-                        .background(p.surf2)
-                        .border(1.dp, p.line, CircleShape)
-                        .dietaClick(onClick = onBack)
-                        .testTag("dev-memory-back"),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Voltar", tint = p.text, modifier = Modifier.size(20.dp))
-                }
-                Spacer(Modifier.width(17.dp))
-                Text("Memória da IA", style = DietaBotType.headlineMd.copy(fontSize = 22.sp, lineHeight = 28.sp), color = p.text, modifier = Modifier.weight(1f))
+                AeroIconButton(AeroIconName.CaretLeft, onBack, contentDescription = "Voltar", modifier = Modifier.testTag("dev-memory-back"))
+                AeroText("Memória da IA", Modifier.weight(1f), style = type.title.copy(color = c.textPrimary))
                 Box(
                     Modifier
                         .clip(CircleShape)
-                        .background(if (ui.loaded) p.ctaBg else p.surf2)
+                        .background(if (ui.loaded) c.accentDefault else c.surface2)
                         .dietaClick(onClick = { if (ui.loaded) onSave() })
                         .padding(horizontal = 18.dp, vertical = 9.dp)
                         .testTag("dev-memory-save"),
                 ) {
-                    Text("Salvar", style = DietaBotType.labelLg, color = if (ui.loaded) p.ctaText else p.dim)
+                    AeroText("Salvar", style = type.button.copy(color = if (ui.loaded) c.accentOn else c.textDim))
                 }
             }
             Column(
@@ -163,26 +152,26 @@ fun DevMemoryScreen(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
-                    .padding(start = 25.dp, end = 25.dp, bottom = 32.dp),
+                    .padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
             ) {
                 ui.error?.let {
-                    Text(it, style = DietaBotType.bodyMd, color = p.bad, modifier = Modifier.padding(top = 8.dp).testTag("dev-memory-error"))
+                    AeroText(it, Modifier.padding(top = 8.dp).testTag("dev-memory-error"), style = type.body.copy(color = c.statusBad))
                 }
                 Label("Perfil")
                 Field(ui.profileText, onProfile, "dev-profile-field", minHeight = 180, loaded = ui.loaded)
                 Label("Memória")
-                Text(ui.memorySummary, style = DietaBotType.labelMd, color = p.muted, modifier = Modifier.testTag("dev-memory-count"))
+                AeroText(ui.memorySummary, Modifier.testTag("dev-memory-count"), style = type.caption.copy(color = c.textMuted))
                 if (ui.memorySeen.isNotEmpty()) {
-                    Text(
+                    BasicText(
                         ui.memorySeen,
-                        style = mono.copy(color = p.muted),
-                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp).testTag("dev-memory-seen"),
+                        Modifier.fillMaxWidth().padding(top = 6.dp).testTag("dev-memory-seen"),
+                        style = mono.copy(color = c.textMuted),
                     )
                 }
                 Spacer(Modifier.height(8.dp))
                 Field(ui.memoryText, onMemory, "dev-memory-field", minHeight = 260, loaded = ui.loaded)
                 Label("Dia (próximo turno)")
-                Text(ui.dayText, style = mono.copy(color = p.muted), modifier = Modifier.fillMaxWidth().testTag("dev-day"))
+                BasicText(ui.dayText, Modifier.fillMaxWidth().testTag("dev-day"), style = mono.copy(color = c.textMuted))
             }
         }
         if (ui.wipeConfirm) WipeDialog(onConfirmWipe, onCancelWipe)
@@ -193,11 +182,10 @@ private val mono = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp
 
 @Composable
 private fun Label(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text.uppercase(),
-        style = DietaBotType.labelCaps.copy(fontWeight = FontWeight.W600),
-        color = LocalPalette.current.muted,
-        modifier = modifier.padding(top = 20.dp, bottom = 8.dp),
+    AeroText(
+        AeroTextTokens.labelSection.cased(text),
+        modifier.padding(top = 20.dp, bottom = 8.dp),
+        style = Aero.type.labelSection.copy(color = Aero.colors.textMuted),
     )
 }
 
@@ -209,7 +197,7 @@ private fun Label(text: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun Field(value: String, onChange: (String) -> Unit, tag: String, minHeight: Int, loaded: Boolean) {
-    val p = LocalPalette.current
+    val c = Aero.colors
     var field by remember(loaded) { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
     BasicTextField(
         value = field,
@@ -218,14 +206,12 @@ private fun Field(value: String, onChange: (String) -> Unit, tag: String, minHei
             field = it
             if (changed) onChange(it.text)
         },
-        textStyle = mono.copy(color = p.text),
-        cursorBrush = SolidColor(p.gold),
+        textStyle = mono.copy(color = c.textPrimary),
+        cursorBrush = SolidColor(c.accentDefault),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = minHeight.dp)
-            .clip(DietaBotShapes.cardRadius)
-            .background(p.surf)
-            .border(1.dp, p.line, DietaBotShapes.cardRadius)
+            .aeroGlass(Aero.shapes.card, shadow = false)
             .padding(12.dp)
             .testTag(tag),
     )

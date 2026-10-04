@@ -50,7 +50,7 @@ The REST image export needs a personal access token. The agent never sees it typ
 4. **Token mirror:**
    - the agent reads the Figma variables (one MCP call) and writes `docs/design/tokens.json` (collections, modes, values, code syntax);
    - `tools/gen-tokens.mjs` renders from it the "Aero" section of `docs/tokens.md`, with a header saying it is generated from Figma `Design` and never edited by hand;
-   - the current values move under a "Material 3 Expressive — flows not migrated" section, which [A45](../../../android/plans/a45-remove-material3.md) deletes;
+   - the current values move under a "Material 3 Expressive — flows not migrated" section, which [A45](../../../android/plans/pending_manual_validation/a45-remove-material3.md) deletes;
    - `docs/tokens.md` stays the single repository owner of token values, as a mirror of Figma.
 5. **Rules:**
    - `AGENTS.md`:

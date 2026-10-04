@@ -15,7 +15,7 @@ Each flow is one design plan (Figma, within one day of MCP budget) followed by o
 | Chat core | D5 Release 1 — Chat core ([`completed/`](completed/)) | A42 Chat core on Aero ([`pending_manual_validation/`](../../android/plans/pending_manual_validation/)) |
 | Chat records and memory | D6 Release 1 — Chat records and memory ([`completed/`](completed/)) | [A43 Chat records and memory on Aero](../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) |
 | Config and push | D7 Release 1 — Config and push ([`completed/`](completed/)) | [A44 Config and push on Aero](../../android/plans/pending_manual_validation/a44-config-push-aero.md) |
-| Close | [D8 Archive Stitch](d8-archive-stitch.md) | [A45 Remove Material 3 Expressive](../../android/plans/a45-remove-material3.md) |
+| Close | [D8 Archive Stitch](d8-archive-stitch.md) | [A45 Remove Material 3 Expressive](../../android/plans/pending_manual_validation/a45-remove-material3.md) |
 
 Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.md)):
 

@@ -35,7 +35,7 @@ Close the Stitch deprecation ([ADR-031](../adrs/ADR-031-figma-source-of-truth.md
 ## Out of scope
 
 - Deleting the Stitch project `Nutri` in Google Stitch. That is the owner's choice, outside the repository.
-- App code ([A45](../../android/plans/a45-remove-material3.md) renames the client gold test).
+- App code ([A45](../../android/plans/pending_manual_validation/a45-remove-material3.md) renames the client gold test).
 
 ## Validation
 
