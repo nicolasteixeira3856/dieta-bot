@@ -110,5 +110,5 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A37](../../android/plans/completed/a37-enviar-fecha-teclado.md) — Send closes the keyboard
 - [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md) — Retroactive record (a meal of another day)
-- [A42](../../android/plans/pending_manual_validation/a42-chat-core-aero.md) — Chat core on Aero
-- [A43](../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
+- [A42](../../android/plans/completed/a42-chat-core-aero.md) — Chat core on Aero
+- [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero

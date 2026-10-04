@@ -57,4 +57,4 @@ Comportamento: `produto`. UI: `android`.
 - [A22](../../android/plans/completed/a22-treino-home.md) — Treino na Home
 - [ST2](../../stitch/plans/completed/st2-home-treino.md) — Home: atalho de treino
 - [A24](../../android/plans/completed/a24-refeicoes-por-dia.md) — Refeições por dia da semana
-- [A40](../../android/plans/pending_manual_validation/a40-home-aero.md) — Home no Aero
+- [A40](../../android/plans/completed/a40-home-aero.md) — Home no Aero

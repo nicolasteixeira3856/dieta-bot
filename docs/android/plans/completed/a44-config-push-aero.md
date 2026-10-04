@@ -1,6 +1,6 @@
 # Plan — A44 Config and push on Aero
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only:
@@ -32,7 +32,7 @@ As [A40 § Validation](a40-home-aero.md#validation), with 8 images.
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3).
+Implemented 2026-10-04 after the owner's named approval. The consolidated phone check was approved by the owner on 04/10/2026.
 
 ### Delivered
 
@@ -66,6 +66,6 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
 - Tooling outside the plan's file list, needed for the gate: `tools/diff-gold.mjs` (wipe centre box, push as a Figma conflict, median background for the dialog ink) and `tools/capture-push.sh` (permission reset).
 - The D8 plan's link to this plan was updated to its new folder (link only, no content change), as for A40.
 
-### Pending (manual)
+### Manual validation
 
-- Consolidated phone check of A39–A45 ([A40 § Validation](a40-home-aero.md#validation) step 3).
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../a46-input-cursor-keyboard.md).

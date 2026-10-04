@@ -55,4 +55,4 @@ Dono: produto. Implementação: `android`.
 - [ST4](../../stitch/plans/completed/st4-refeicoes-por-dia.md) — Refeições por dia da semana
 - [A31](../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — O1: required profile and keyboard flow
 - [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) — Ceiling screen before the profile (`o1e`)
-- [A41](../../android/plans/pending_manual_validation/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero
+- [A41](../../android/plans/completed/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero

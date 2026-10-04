@@ -8,14 +8,14 @@ Each flow is one design plan (Figma, within one day of MCP budget) followed by o
 
 | Step | Design (this context) | Client ([android](../../android/README.md)) |
 |---|---|---|
-| Foundation | D1 Figma file foundation ([`completed/`](completed/)) | A39 Aero foundation in Compose ([`pending_manual_validation/`](../../android/plans/pending_manual_validation/)) |
+| Foundation | D1 Figma file foundation ([`completed/`](completed/)) | A39 Aero foundation in Compose ([`completed/`](../../android/plans/completed/)) |
 | Tooling | D2 Figma tooling and Stitch deprecation ([`completed/`](completed/)) | — |
-| Home | D3 Release 1 — Home ([`completed/`](completed/)) | A40 Home on Aero ([`pending_manual_validation/`](../../android/plans/pending_manual_validation/)) |
-| Splash and onboarding | D4 Release 1 — Splash and onboarding ([`completed/`](completed/)) | A41 Splash and onboarding on Aero ([`pending_manual_validation/`](../../android/plans/pending_manual_validation/)) |
-| Chat core | D5 Release 1 — Chat core ([`completed/`](completed/)) | A42 Chat core on Aero ([`pending_manual_validation/`](../../android/plans/pending_manual_validation/)) |
-| Chat records and memory | D6 Release 1 — Chat records and memory ([`completed/`](completed/)) | [A43 Chat records and memory on Aero](../../android/plans/pending_manual_validation/a43-chat-records-memory-aero.md) |
-| Config and push | D7 Release 1 — Config and push ([`completed/`](completed/)) | [A44 Config and push on Aero](../../android/plans/pending_manual_validation/a44-config-push-aero.md) |
-| Close | [D8 Archive Stitch](d8-archive-stitch.md) | [A45 Remove Material 3 Expressive](../../android/plans/pending_manual_validation/a45-remove-material3.md) |
+| Home | D3 Release 1 — Home ([`completed/`](completed/)) | A40 Home on Aero ([`completed/`](../../android/plans/completed/)) |
+| Splash and onboarding | D4 Release 1 — Splash and onboarding ([`completed/`](completed/)) | A41 Splash and onboarding on Aero ([`completed/`](../../android/plans/completed/)) |
+| Chat core | D5 Release 1 — Chat core ([`completed/`](completed/)) | A42 Chat core on Aero ([`completed/`](../../android/plans/completed/)) |
+| Chat records and memory | D6 Release 1 — Chat records and memory ([`completed/`](completed/)) | A43 Chat records and memory on Aero ([`completed/`](../../android/plans/completed/)) |
+| Config and push | D7 Release 1 — Config and push ([`completed/`](completed/)) | A44 Config and push on Aero ([`completed/`](../../android/plans/completed/)) |
+| Close | [D8 Archive Stitch](d8-archive-stitch.md) | A45 Remove Material 3 Expressive ([`completed/`](../../android/plans/completed/)) |
 
 Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.md)):
 

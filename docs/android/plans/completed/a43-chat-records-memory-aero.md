@@ -1,6 +1,6 @@
 # Plan — A43 Chat records, photo and memory on Aero
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only:
@@ -39,7 +39,7 @@ As [A40 § Validation](a40-home-aero.md#validation), with 16 images.
 
 ## Results
 
-Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manual_validation/` only for the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3).
+Implemented 2026-10-04 after the owner's named approval. The consolidated phone check was approved by the owner on 04/10/2026.
 
 ### Delivered
 
@@ -76,6 +76,6 @@ Implemented 2026-10-04 after the owner's named approval. Waits in `pending_manua
 - Thread bottom padding 32 dp (was the A42 value), read from the frames.
 - Plan § Scope 3 asked to remove the `chatF` / `chatA` regional gates: the Stitch ones are removed; the Figma `chatF` keeps a region gate (photo box out, both JVM and emulator), and the long threads use the new header + tail rule, for the reasons in the diff list.
 
-### Pending (manual)
+### Manual validation
 
-- Consolidated phone check of A39–A45 ([A40 § Validation](a40-home-aero.md#validation) step 3).
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../a46-input-cursor-keyboard.md).

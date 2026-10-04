@@ -38,7 +38,7 @@ Procedure as [D3 § Scope](../completed/d3-release1-home.md#scope) steps 1, 3, 4
 
 ## Out of scope
 
-- Compose ([A44](../../../android/plans/pending_manual_validation/a44-config-push-aero.md)). Behavior or copy changes.
+- Compose ([A44](../../../android/plans/completed/a44-config-push-aero.md)). Behavior or copy changes.
 
 ## Validation
 
@@ -155,7 +155,7 @@ The owner reviewed the section `Config e push · D7` in Figma and closed the pla
 
 ### Exported golds
 
-`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `cfg.png`, `cfgS.png`, `wipe.png`, `push.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the four ids stays `stitch` in `docs/qa/README.md`; [A44](../../../android/plans/pending_manual_validation/a44-config-push-aero.md) switches it.
+`docs/qa/figma/dark/` and `docs/qa/figma/light/`: `cfg.png`, `cfgS.png`, `wipe.png`, `push.png`, mapped in `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`). The inventory source of the four ids stays `stitch` in `docs/qa/README.md`; [A44](../../../android/plans/completed/a44-config-push-aero.md) switches it.
 
 ### Figma MCP budget, total
 
