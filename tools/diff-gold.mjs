@@ -40,10 +40,8 @@ const SEARCH = 48;
 const FOOTER = 260; // 130 dp: CTA + gradient + nav
 const PHONE = 1688; // 844 dp
 const MIN_INK = 400; // px: below this a zone has no content to compare for presence
-// Stitch golds whose layout contradicts the app: reported, not gated.
-// push: the gold is a drawn lock screen; the app only posts a notification and SystemUI draws the
-// lock screen and the card (A7). Reported, never gated.
-const GOLD_CONFLICTS = new Set(["push"]);
+// Stitch golds whose layout contradicts the app: reported, not gated (none left after A44).
+const GOLD_CONFLICTS = new Set();
 const REGIONS = {};
 // Bottom-anchored and centred-dialog regions of Stitch golds (none left after A40-A43).
 const BOTTOM_REGIONS = {};
@@ -68,9 +66,12 @@ const CENTER_REGIONS = {};
 // the tail box may take (chatF: under the photo, whose sample crop is the frame's own).
 const HEADER_BOX = [0, 48, 780, 136];
 const FIGMA = {
-  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS"]),
+  // push (A44): the frame draws a lock screen with Notification/Push; the app only posts the notification and
+  // SystemUI draws the screen and the card. Reported, never gated.
+  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS", "push"]),
   // chatP (A42): Dialog/Confirm centred over the blurred Home (the capture's Home is scrolled to the Lanche card).
-  center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] } },
+  // wipe (A44): Dialog/Confirm Tone=Danger centred over the blurred Config.
+  center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] }, wipe: { dark: [48, 424, 732, 1264], light: [48, 424, 732, 1264] } },
   regions: {
     homeW: [0, 80, 780, 900],
     chatL: [0, 500, 780, 740],
@@ -173,8 +174,13 @@ function regionScore(app, gold, [x0, y0, x1, y1], shift = 0, onBest = null) {
 
 /** Dialog content presence, using its surface at the left midpoint as background. */
 function dialogInk(img, [x0, y0, x1, y1], dy = 0) {
-  const sample = (Math.round((y0 + y1) / 2) + dy) * img.w + x0 + 8;
-  const bg = img.planes.map((p) => p[sample]);
+  // Background: the median of the box (one sampled pixel moves with the blurred page behind a glass dialog).
+  const vals = [];
+  for (let y = y0; y < y1; y += 8) for (let x = x0; x < x1; x += 8) {
+    const ay = y + dy;
+    if (ay >= 0 && ay < img.h) vals.push(img.planes.map((p) => p[ay * img.w + x]));
+  }
+  const bg = [0, 1, 2].map((c) => vals.map((v) => v[c]).sort((a, b) => a - b)[vals.length >> 1]);
   let count = 0;
   for (let y = y0 + 16; y < y1 - 16; y++) for (let x = x0 + 16; x < x1 - 16; x++) {
     const ay = y + dy;

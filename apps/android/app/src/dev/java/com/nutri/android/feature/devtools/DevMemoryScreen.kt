@@ -55,6 +55,7 @@ import com.nutri.android.core.designsystem.DietaBotShapes
 import com.nutri.android.core.designsystem.DietaBotType
 import com.nutri.android.core.designsystem.LocalPalette
 import com.nutri.android.core.designsystem.dietaClick
+import com.nutri.android.core.designsystem.aero.AeroTheme
 import com.nutri.android.feature.config.Group
 import com.nutri.android.feature.config.SettingRow
 import com.nutri.android.feature.config.WipeDialog
@@ -76,15 +77,18 @@ fun NavGraphBuilder.devMemoryDestination(nav: NavController) {
                 nav.popBackStack()
             }
         }
-        DevMemoryScreen(
-            ui = ui,
-            onBack = { nav.popBackStack() },
-            onProfile = vm::setProfile,
-            onMemory = vm::setMemory,
-            onSave = vm::save,
-            onConfirmWipe = vm::confirmWipe,
-            onCancelWipe = vm::cancelWipe,
-        )
+        // The shared wipe dialog is Aero (A44); the tool itself keeps its own look (ADR-019, no gold).
+        AeroTheme {
+            DevMemoryScreen(
+                ui = ui,
+                onBack = { nav.popBackStack() },
+                onProfile = vm::setProfile,
+                onMemory = vm::setMemory,
+                onSave = vm::save,
+                onConfirmWipe = vm::confirmWipe,
+                onCancelWipe = vm::cancelWipe,
+            )
+        }
     }
 }
 
@@ -96,7 +100,7 @@ fun NavGraphBuilder.devMemoryDestination(nav: NavController) {
 fun ColumnScope.DevMemoryConfigRow(nav: NavController) {
     val hidden by produceState<Boolean?>(null) { value = withContext(Dispatchers.IO) { hideDevTools() } }
     if (hidden != false) return
-    Spacer(Modifier.height(25.dp))
+    // The Config column puts 24 dp between blocks.
     Group {
         SettingRow("Memória da IA (dev)", "", "cfg-dev-memory") { nav.navigate(RouteDevMemory) }
     }

@@ -368,6 +368,8 @@ fun AeroOptionCard(
     modifier: Modifier = Modifier,
     badge: String? = null,
     enabled: Boolean = true,
+    /** On a sheet that is already glass: the glass fill alone. */
+    onGlass: Boolean = false,
     extra: (@Composable () -> Unit)? = null,
 ) {
     val c = Aero.colors
@@ -376,7 +378,7 @@ fun AeroOptionCard(
     Row(
         modifier
             .fillMaxWidth()
-            .aeroGlass(Aero.shapes.card, border = if (selected) c.accentDefault else c.borderGlass, borderWidth = stroke)
+            .aeroGlass(Aero.shapes.card, border = if (selected) c.accentDefault else c.borderGlass, borderWidth = stroke, backdropBlurred = onGlass)
             .dietaClick(Haptic.Light, enabled = enabled, onClick = onClick)
             .padding(20.dp + stroke),
         horizontalArrangement = Arrangement.spacedBy(16.dp),

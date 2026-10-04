@@ -168,8 +168,10 @@ fun AeroSlotPickRow(
 }
 
 /**
- * Dialog/Confirm (Tone=Default): centred glass dialog (radius 28) with a Title and the action pair, drawn in the
- * screen over overlay/scrim (the screen blurs itself behind it); back and the scrim cancel.
+ * Dialog/Confirm: centred glass dialog (radius 28) drawn in the screen over overlay/scrim (the screen blurs itself
+ * behind it); back and the scrim cancel. Tone=Default: Title and the action pair (Button/Primary + secondary pill).
+ * Tone=Danger ([dangerIcon] set): a 48 dp status/bad-tint badge with the icon, Title and [body], and a status/bad
+ * primary with the same icon.
  */
 @Composable
 fun BoxScope.AeroConfirmDialog(
@@ -181,8 +183,11 @@ fun BoxScope.AeroConfirmDialog(
     modifier: Modifier = Modifier,
     primaryTag: String? = null,
     secondaryTag: String? = null,
+    body: String? = null,
+    dangerIcon: AeroIconName? = null,
 ) {
     val c = Aero.colors
+    val type = Aero.type
     BackHandler(onBack = onSecondary)
     AeroScrim(onSecondary)
     Column(
@@ -195,11 +200,45 @@ fun BoxScope.AeroConfirmDialog(
             .padding(25.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        AeroText(title, style = Aero.type.title.copy(color = c.textPrimary))
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (dangerIcon != null) {
+                Box(Modifier.size(48.dp).clip(CircleShape).background(c.statusBadTint), contentAlignment = Alignment.Center) {
+                    AeroIcon(dangerIcon, c.statusBad)
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                AeroText(title, style = type.title.copy(color = c.textPrimary))
+                if (body != null) AeroText(body, style = type.body.copy(color = c.textMuted))
+            }
+        }
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            AeroButtonPrimary(primary, onPrimary, modifier = if (primaryTag != null) Modifier.testTag(primaryTag) else Modifier)
+            val primaryModifier = if (primaryTag != null) Modifier.testTag(primaryTag) else Modifier
+            if (dangerIcon != null) {
+                AeroDangerButton(primary, dangerIcon, onPrimary, primaryModifier)
+            } else {
+                AeroButtonPrimary(primary, onPrimary, modifier = primaryModifier)
+            }
             AeroSecondaryPill(secondary, onSecondary, if (secondaryTag != null) Modifier.testTag(secondaryTag) else Modifier)
         }
+    }
+}
+
+/** Dialog/Confirm Tone=Danger primary: 56 dp status/bad pill, 24 dp icon and the Button label in accent/on. */
+@Composable
+private fun AeroDangerButton(label: String, icon: AeroIconName, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = Aero.colors
+    Row(
+        modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(pill)
+            .background(c.statusBad)
+            .dietaClick(Haptic.Confirm, onClick = onClick),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AeroIcon(icon, c.accentOn)
+        AeroText(label, style = Aero.type.button.copy(color = c.accentOn), maxLines = 1)
     }
 }
 

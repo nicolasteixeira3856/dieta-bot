@@ -7,15 +7,18 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import com.nutri.android.MainActivity
 import com.nutri.android.R
 import com.nutri.android.core.database.slotsOfDay
 import com.nutri.android.core.database.DayRepository
-import com.nutri.android.core.designsystem.DietaBotHex
+import com.nutri.android.core.designsystem.aero.AeroDarkColors
+import com.nutri.android.core.designsystem.aero.AeroLightColors
 import com.nutri.android.core.telemetry.NoopTelemetry
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
@@ -83,7 +86,7 @@ class PushHandler @Inject constructor(
         )
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
-            .setColor(DietaBotHex.darkGold.toInt())
+            .setColor(accent())
             .setContentTitle(PushPlan.copy(name))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -95,6 +98,12 @@ class PushHandler @Inject constructor(
         @Suppress("MissingPermission") // checked above
         manager.notify(notificationId(slotId), notification)
         return true
+    }
+
+    /** Notification/Push accent: accent/default of the system theme (the template tints the small icon and actions). */
+    private fun accent(): Int {
+        val night = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        return (if (night) AeroDarkColors else AeroLightColors).accentDefault.toArgb()
     }
 
     companion object {
