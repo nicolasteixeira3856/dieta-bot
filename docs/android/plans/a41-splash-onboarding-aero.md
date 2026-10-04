@@ -6,7 +6,7 @@
 - Affected code: `apps/android/` only:
   - splash, `feature/onboarding/`, onboarding components in `core/designsystem/aero/`, tests;
   - docs updated with the delivery: the source of `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s` and `o4` in `docs/qa/README.md`, captures.
-- Prerequisites: [A40](a40-home-aero.md) and [D4](../../design/plans/completed/d4-release1-splash-onboarding.md) `Concluído`.
+- Prerequisites: [A40](a40-home-aero.md) and [D4](../../design/plans/completed/d4-release1-splash-onboarding.md) `Concluído`. A predecessor in `pending_manual_validation/` whose only open item is the consolidated phone check ([A40 § Validation](a40-home-aero.md#validation) step 3) counts as `Concluído` here.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a41-splash-onboarding-aero.md. Implemente o plano aprovado.`
 

@@ -35,11 +35,13 @@ Move the Home screen and its four states onto Aero, matching the Figma golds, wi
 
 1. `testDevDebugUnitTest`, `verifyRoborazziDevDebug` (baselines re-recorded for Home only), `assembleDevRelease`.
 2. `tools/capture-home.sh dark|light` + `node tools/diff-gold.mjs dark/home1 …`: every Home gold passes.
-3. Manual, on the owner's phone:
+3. Manual, on the owner's phone, as one consolidated check for A39–A45 (owner decision, 2026-10-04), on the dev APK that `tools/distribute-dev.ps1` ships after A45:
+   - glass blur (A39);
    - scroll smoothness of the timeline with blur (no visible jank);
-   - number legibility outdoors in both themes.
+   - number legibility outdoors in both themes;
+   - the same two checks on every migrated flow: Home, splash and onboarding, Chat, Config and push.
 
-   The plan waits in `pending_manual_validation/` for this.
+   Until the owner's OK, the plan waits in `pending_manual_validation/` and the next plan of the chain may start. After the OK, the agent closes every plan waiting on this check in one delivery.
 4. `node tools/check-docs.mjs` passes.
 
 ## Results
