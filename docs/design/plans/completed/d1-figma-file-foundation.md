@@ -1,6 +1,6 @@
 # Plan — D1 Figma file foundation
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 03/10/2026
 - Owning context: `design`
 - Affected code: none. Figma file `Design` (key `qNiqNN3vk9GpmPL3bcV9W1`) only.
@@ -81,7 +81,7 @@ Turn the 2026-10-03 pilot file ("Dieta Bot DS") into the organized, readable `De
 
 ## Results
 
-Implemented 2026-10-03 after the owner's named approval. State: `Pendente aprovação manual` (validation item 4 and the file rename below).
+Implemented 2026-10-03 after the owner's named approval. Closed `Concluído` on 2026-10-04 after the owner's manual review (validation item 4).
 
 ### Figma MCP budget
 
@@ -129,5 +129,5 @@ Implemented 2026-10-03 after the owner's named approval. State: `Pendente aprova
 3. Screenshots: one per page, sent to the owner in the session. The first pass found two legibility defects, both fixed and screenshotted again:
    - default white fills on auto-layout cells hid the Dark rows of the contrast table and the Dark effect labels;
    - a truncated typography table header.
-4. Manual (pending): the owner reads `Cores e tipografia` and `Componentes` without explanation and confirms they are understandable, and renames the file to `Design`.
+4. Manual (done 2026-10-04): the owner renamed the file to `Design`, reviewed `Cores e tipografia` and `Componentes` and closed the plan: "Renomeei e revisei, pode concluir o D1."
 5. `node tools/check-docs.mjs`: passed (52 live files, 55 link-checked).

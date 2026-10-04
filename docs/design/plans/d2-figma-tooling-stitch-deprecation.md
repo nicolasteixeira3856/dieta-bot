@@ -10,7 +10,7 @@
   - skills: the new `dieta-bot-figma` skill in the four skill trees (`.agents`, `.grok`, `.hermes`, `.claude`).
 
   No `apps/` or `server/` code.
-- Prerequisites: [D1](pending_manual_validation/d1-figma-file-foundation.md) `Concluído`.
+- Prerequisites: [D1](completed/d1-figma-file-foundation.md) `Concluído`.
 - Figma MCP budget: ≤ 10 calls (token read-back and one export dry run).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d2-figma-tooling-stitch-deprecation.md. Implemente o plano aprovado.`
