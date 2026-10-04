@@ -54,7 +54,10 @@ export function render(current, tokens) {
   const begin = current.indexOf(AERO_BEGIN);
   const end = current.indexOf(AERO_END);
   if (begin < 0 || end < begin) throw new Error("docs/tokens.md has no aero:begin / aero:end markers");
-  return current.slice(0, begin + AERO_BEGIN.length) + "\n\n" + renderAero(tokens) + "\n\n" + current.slice(end);
+  // Keeps the line endings of the checkout (CRLF on Windows with autocrlf).
+  const eol = current.includes("\r\n") ? "\r\n" : "\n";
+  const section = ("\n\n" + renderAero(tokens) + "\n\n").replace(/\n/g, eol);
+  return current.slice(0, begin + AERO_BEGIN.length) + section + current.slice(end);
 }
 
 function main() {
