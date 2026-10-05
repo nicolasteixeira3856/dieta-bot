@@ -21,6 +21,7 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 5. Perfil salvo em Room. onboardingDone=1 so no fim de O4.
 6. Prefix do chat: teto vigente, eat-back, alvos P/C/G, lista nome+hora só dos slots do dia em America/Sao_Paulo (ADR-021).
 7. Disclaimer na splash com a copy ("Estimativa nutricional, nao substitui consulta medica ou nutricional.") e na Home. As telas O1-O4 do gold nao tem disclaimer.
+8. Campos de texto (O1–O4): ao receber foco (toque, Próximo do teclado, botão de ajuste do macro), o cursor vai para o fim do valor; toques seguintes no campo focado posicionam o cursor onde o usuário tocar. O campo focado fica sempre visível acima do teclado: a página rola até ele. O botão fixo do rodapé (Continuar / Concluir e começar) fica atrás do teclado enquanto ele está aberto e volta quando ele fecha.
 
 ## Estados e falhas
 
@@ -56,3 +57,4 @@ Dono: produto. Implementação: `android`.
 - [A31](../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — O1: required profile and keyboard flow
 - [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) — Ceiling screen before the profile (`o1e`)
 - [A41](../../android/plans/completed/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero
+- [A46](../../android/plans/pending_manual_validation/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado

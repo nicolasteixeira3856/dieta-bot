@@ -19,6 +19,10 @@ PKG=com.nutri.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
 ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
+PY="$(command -v python3 || command -v python)"
+FAIL=0
+# shellcheck source=tools/input-checks.sh
+. "$ROOT/tools/input-checks.sh"
 
 center() { # center <resource-id> -> "x y"
   "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
@@ -73,6 +77,24 @@ if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then
   echo "  ✗ keyboard still open after Done on weight"
   exit 1
 fi
+# A46: split and per-day ceilings. The focused field rises above the keyboard; typing lands after the prefill.
+tap o1-mode-weekdayWeekend
+# Scroll to the end: the fields then sit above the fixed CTA, which must not take the tap.
+scroll_down; scroll_down
+before=$(text_of o1-weekend | tr -d '\r')
+tap o1-weekend
+above_ime o1-weekend "O1 Fim de semana above the keyboard"
+"$ADB" shell input text 5; sleep 0.4
+ends_at_end o1-weekend "$before" 5 "O1 Fim de semana: typing goes to the end"
+hide_kb
+to_top
+tap o1-mode-seven
+scroll_down; scroll_down; scroll_down
+tap o1-day-6
+above_ime o1-day-6 "O1 Dom above the keyboard"
+hide_kb
+to_top
+tap o1-mode-same
 scroll_down
 type_into o1-ceiling 2000
 to_top
@@ -90,6 +112,14 @@ scroll_down
 tap o3-chip-1-0
 tap o3-chip-2-0
 tap o3-chip-3-0
+# A46: the last meal name rises above the keyboard; typing lands after the chosen name.
+before=$(text_of o3-name-3 | tr -d '\r')
+tap o3-name-3
+above_ime o3-name-3 "O3 last meal name above the keyboard"
+"$ADB" shell input text x; sleep 0.4
+ends_at_end o3-name-3 "$before" x "O3 meal name: typing goes to the end"
+"$ADB" shell input keyevent 67; sleep 0.3
+hide_kb
 to_top
 shot o3
 tap o3-time-0
@@ -97,6 +127,16 @@ tap time-wheel-cancel
 tap o3-continue
 
 shot o4
+# A46: the adjust button of a computed macro focuses its grams with the cursor at the end.
+scroll_down; scroll_down
+before=$(text_of o4-carb-field | tr -d '\r')
+tap_desc "Ajustar Carboidrato"
+above_ime o4-carb-field "O4 Carboidrato above the keyboard"
+"$ADB" shell input text 5; sleep 0.4
+ends_at_end o4-carb-field "$before" 5 "O4 Carboidrato: adjust puts the cursor at the end"
+"$ADB" shell input keyevent 67; sleep 0.3
+hide_kb
+to_top
 tap o4-finish
 sleep 1.5
 
@@ -115,7 +155,6 @@ fi
 # then reopen O3 and tap the real time field. No capture-only app behavior.
 "$ADB" shell am force-stop $PKG
 for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-PY="$(command -v python3 || command -v python)"
 "$PY" - "$TMP/nutri.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
@@ -176,3 +215,4 @@ EOF
 sleep 2
 echo "  ✓ relaunch skipped onboarding; o3t captured from the real time field"
 rm -rf "$TMP"
+exit $FAIL
