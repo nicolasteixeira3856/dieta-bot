@@ -140,6 +140,12 @@ fun ChatScreen(
     onForceEstimate: () -> Unit = {},
     /** A32: the thread reached its oldest drawn items. */
     onLoadOlder: () -> Unit = {},
+    /** chatI (A47): Adicionar | Escolher outra refeição below an addition to a meal with a record. */
+    onAdditionConfirm: (estimateId: Long) -> Unit = {},
+    onAdditionElsewhere: (estimateId: Long) -> Unit = {},
+    /** chatIC (A47): Atualizar | Cancelar below a revision. */
+    onRevisionConfirm: (estimateId: Long) -> Unit = {},
+    onRevisionCancel: (estimateId: Long) -> Unit = {},
 ) {
     // A32: camera button and photo chip close the keyboard first, so the photo sheet shows whole.
     val keyboard = LocalSoftwareKeyboardController.current
@@ -173,7 +179,10 @@ fun ChatScreen(
                 .imePadding(),
         ) {
             Header(onBack)
-            val record = RecordCallbacks(onReplaceConfirm, onReplaceElsewhere, onReceiptAction, onMoveConfirm, onMoveElsewhere)
+            val record = RecordCallbacks(
+                onReplaceConfirm, onReplaceElsewhere, onReceiptAction, onMoveConfirm, onMoveElsewhere,
+                onAdditionConfirm, onAdditionElsewhere, onRevisionConfirm, onRevisionCancel,
+            )
             if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
@@ -200,6 +209,10 @@ private class RecordCallbacks(
     val onReceiptAction: (Long, ReceiptAction) -> Unit,
     val onMoveConfirm: () -> Unit,
     val onMoveElsewhere: () -> Unit,
+    val onAdditionConfirm: (Long) -> Unit,
+    val onAdditionElsewhere: (Long) -> Unit,
+    val onRevisionConfirm: (Long) -> Unit,
+    val onRevisionCancel: (Long) -> Unit,
 )
 
 // ----------------------------------------------------------------------------- header
@@ -320,6 +333,16 @@ private fun ThreadItem(
             onReplace = { record.onReplaceConfirm(item.estimateId) },
             onElsewhere = { record.onReplaceElsewhere(item.estimateId) },
         )
+        is ChatItem.AdditionPrompt -> AdditionCard(
+            item.confirm,
+            onAdd = { record.onAdditionConfirm(item.estimateId) },
+            onElsewhere = { record.onAdditionElsewhere(item.estimateId) },
+        )
+        is ChatItem.RevisionPrompt -> RevisionCard(
+            item.confirm,
+            onUpdate = { record.onRevisionConfirm(item.estimateId) },
+            onCancel = { record.onRevisionCancel(item.estimateId) },
+        )
         is ChatItem.Greeting -> Greeting(item, ui)
         ChatItem.Loading -> LoadingBubble()
         ChatItem.Failed -> FailedBubble(onRetry)
@@ -374,7 +397,7 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
             if (item.plan != null) {
                 PlanText(item.text)
                 PlanPanel(item.plan)
-            } else {
+            } else if (item.prose) {
                 AeroText(highlighted(item.text, item.highlights, c.accentDefault), style = type.body.copy(color = c.textPrimary))
             }
             item.estimate?.let { e ->
@@ -448,7 +471,10 @@ private fun highlighted(text: String, names: List<String>, accent: Color): Annot
     }
 }
 
-/** Chat/Estimate: ENERGIA TOTAL ~kcal, a line, and three glass macro boxes in the semantic colours. */
+/**
+ * Chat/Estimate: ENERGIA TOTAL ~kcal, a line, and three glass macro boxes in the semantic colours. A47: Kind=Addition
+ * names the added food with +kcal and + macros; Kind=Revision shows the revised meal over its NOVO TOTAL.
+ */
 @Composable
 private fun EstimateCard(e: EstimateView) {
     val c = Aero.colors
@@ -464,16 +490,30 @@ private fun EstimateCard(e: EstimateView) {
             .testTag("chat-estimate"),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
-            AeroText(AeroTextTokens.labelSection.cased("Energia total"), Modifier.weight(1f).padding(bottom = 3.dp), style = type.labelSection.copy(color = c.textMuted))
-            AeroText("~${e.kcal}", style = type.title.copy(color = c.textPrimary, fontFeatureSettings = "tnum"))
-            AeroText("kcal", Modifier.padding(bottom = 2.dp), style = type.caption.copy(color = c.textMuted))
+        val sign = if (e.kind == EstimateKind.ADDITION) "+" else ""
+        if (e.kind == EstimateKind.ADDITION) {
+            // The food wraps; its +kcal stays on the first line.
+            Row(Modifier.fillMaxWidth().testTag("chat-estimate-addition"), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AeroText(e.label.orEmpty(), Modifier.weight(1f).alignByBaseline(), style = type.body.copy(color = c.textPrimary))
+                AeroText("+${e.kcal}", Modifier.alignByBaseline(), style = type.title.copy(color = c.textPrimary, fontFeatureSettings = "tnum"))
+                AeroText("kcal", Modifier.alignByBaseline(), style = type.caption.copy(color = c.textMuted))
+            }
+        } else {
+            if (e.kind == EstimateKind.REVISION) e.label?.let { AeroText(it, style = type.body.copy(color = c.textPrimary)) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
+                val label = if (e.kind == EstimateKind.REVISION) "Novo total" else "Energia total"
+                AeroText(AeroTextTokens.labelSection.cased(label), Modifier.weight(1f).padding(bottom = 3.dp), style = type.labelSection.copy(color = c.textMuted))
+                // The revised total is a number to confirm, not an estimate range: no ~ (D9).
+                val kcal = if (e.kind == EstimateKind.REVISION) "${e.kcal}" else "~${e.kcal}"
+                AeroText(kcal, style = type.title.copy(color = c.textPrimary, fontFeatureSettings = "tnum"))
+                AeroText("kcal", Modifier.padding(bottom = 2.dp), style = type.caption.copy(color = c.textMuted))
+            }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderLine))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            MacroBox("Proteína", "${e.p}g P", c.macroProtein, Modifier.weight(1f))
-            MacroBox("Carbo", "${e.c}g C", c.macroCarbs, Modifier.weight(1f))
-            MacroBox("Gordura", "${e.g}g G", c.macroFat, Modifier.weight(1f))
+            MacroBox("Proteína", "${sign}${e.p}g P", c.macroProtein, Modifier.weight(1f))
+            MacroBox("Carbo", "${sign}${e.c}g C", c.macroCarbs, Modifier.weight(1f))
+            MacroBox("Gordura", "${sign}${e.g}g G", c.macroFat, Modifier.weight(1f))
         }
     }
 }
@@ -766,8 +806,9 @@ private fun ComposerRow(
 private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConfirm: () -> Unit, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     AeroScrim(onClose)
+    val addition = ui.sheetAddition
     AeroSheet(
-        title = "Selecione a refeição",
+        title = if (addition != null) "Escolher outra refeição" else "Selecione a refeição",
         primary = "Confirmar refeição",
         onPrimary = onConfirm,
         secondary = "Cancelar",
@@ -780,7 +821,15 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
         modifier = Modifier.align(Alignment.BottomCenter).testTag("chat-sheet"),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            AeroText("Escolha o momento do dia para salvar este registro:", style = Aero.type.body.copy(color = Aero.colors.textMuted))
+            if (addition != null) {
+                AeroText(
+                    "Só o acréscimo vai para a refeição escolhida. O ${addition.sourceName} fica como está.",
+                    style = Aero.type.body.copy(color = Aero.colors.textMuted),
+                )
+                AdditionBox(addition)
+            } else {
+                AeroText("Escolha o momento do dia para salvar este registro:", style = Aero.type.body.copy(color = Aero.colors.textMuted))
+            }
             ui.slots.forEach { slot ->
                 AeroSlotPickRow(
                     name = slot.name,
@@ -792,6 +841,27 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
                 )
             }
         }
+    }
+}
+
+/** chatTI (A47): the added food and its +kcal on a surface/2 box above the meals. */
+@Composable
+private fun AdditionBox(addition: SheetAddition) {
+    val c = Aero.colors
+    val type = Aero.type
+    val shape = Aero.shapes.card
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(c.surface2)
+            .border(1.dp, c.borderLine, shape)
+            .padding(horizontal = 17.dp, vertical = 12.dp)
+            .testTag("chat-sheet-addition"),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        AeroText(addition.food, Modifier.weight(1f).alignByBaseline(), style = type.body.copy(color = c.textPrimary))
+        AeroText("+${addition.kcal} kcal", Modifier.alignByBaseline(), style = type.bodyStrong.copy(color = c.textPrimary), maxLines = 1)
     }
 }
 

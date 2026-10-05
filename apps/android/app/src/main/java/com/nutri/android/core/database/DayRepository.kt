@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.withTransaction
 import com.nutri.android.domain.ReceiptRules
 import com.nutri.android.domain.SaoPaulo
+import com.nutri.android.domain.SlotCheck
 import com.nutri.android.domain.SlotChange
 import com.nutri.android.domain.SlotRecord
 import com.nutri.android.domain.SlotState
@@ -27,6 +28,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+
+/**
+ * A47: what a proposal's record also requires inside the transaction, never written. [date] is the request day (today
+ * when it commits), [wipeId] its latest wipe marker, [checks] the slots it was built from that it does not change (the
+ * source of a rerouted addition) and [open] the answer, still undecided.
+ */
+data class RecordGuard(val date: String, val wipeId: Long?, val checks: List<SlotCheck> = emptyList(), val open: Long? = null)
 
 @Singleton
 class DayRepository @Inject constructor(
@@ -221,12 +229,14 @@ class DayRepository @Inject constructor(
         receipts: List<ChatMessageEntity> = emptyList(),
         receiptMarks: Map<Long, String> = emptyMap(),
         recordStates: Map<Long, String> = emptyMap(),
+        guard: RecordGuard? = null,
     ): List<Long>? {
         importOnce()
         val now = clock.now()
         return withContext(Dispatchers.IO) {
             db.withTransaction {
                 if (changes.any { readSlot(it.date, it.slotId) != it.before }) return@withTransaction null
+                if (guard != null && !holds(guard, SaoPaulo.date(now).toString())) return@withTransaction null
                 changes.forEach { writeSlot(it.date, it.slotId, it.after) }
                 receiptMarks.forEach { (id, state) -> db.chatMessageDao().setReceiptState(id, state) }
                 recordStates.forEach { (id, state) -> db.chatMessageDao().setRecordState(id, state, null) }
@@ -238,6 +248,23 @@ class DayRepository @Inject constructor(
             }
         }
     }
+
+    /** A47: inside the transaction, the day, the wipe boundary, every read-only slot and the open answer still hold. */
+    private suspend fun holds(guard: RecordGuard, today: String): Boolean {
+        if (guard.date != today) return false
+        if (db.chatMessageDao().latestIdOf(today, ROLE_WIPED) != guard.wipeId) return false
+        if (guard.checks.any { readSlot(it.date, it.slotId) != it.state }) return false
+        val open = guard.open ?: return true
+        return db.chatMessageDao().recordStateOf(open) in OPEN_RECORD_STATES
+    }
+
+    /** A47: [id] becomes [state] only while nothing was decided on it (a tap that lost a race changes nothing). */
+    suspend fun closeOpenRecord(id: Long, state: String): Boolean =
+        withContext(Dispatchers.IO) { db.chatMessageDao().closeOpenRecord(id, state) > 0 }
+
+    /** A47: the proposal of an open answer and its record state (pending_add for a picked destination). */
+    suspend fun setMealChange(id: Long, state: String?, mealChange: String): Boolean =
+        withContext(Dispatchers.IO) { db.chatMessageDao().setMealChange(id, state, mealChange) > 0 }
 
     /** Assistant [id]: its record state; [undoData] = the pending slot of a pending_replace, else null. */
     suspend fun setRecordState(id: Long, state: String?, undoData: String? = null) =
@@ -403,6 +430,8 @@ class DayRepository @Inject constructor(
         recordMode: String? = null,
         recordSource: String? = null,
         undoData: String? = null,
+        recordState: String? = null,
+        mealChange: String? = null,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -430,6 +459,8 @@ class DayRepository @Inject constructor(
                     recordMode = recordMode,
                     recordSource = recordSource,
                     undoData = undoData,
+                    recordState = recordState,
+                    mealChange = mealChange,
                 ),
             )
         }
@@ -644,5 +675,8 @@ class DayRepository @Inject constructor(
 
         /** chat_message role written by [wipeToday]. Never rendered, never sent. */
         const val ROLE_WIPED = "wiped"
+
+        /** recordState of an answer nothing was decided on yet (A47 guard): null or a pending confirmation. */
+        private val OPEN_RECORD_STATES = setOf(null, "pending_replace", "pending_add", "pending_revise")
     }
 }

@@ -29,6 +29,10 @@ data class SlotState(val records: List<SlotRecord> = emptyList(), val skipped: B
     }
 }
 
+/** A47: a slot a record depends on but does not change (the source of a rerouted addition): it must still hold [state]. */
+@Serializable
+data class SlotCheck(val date: String, val slotId: Long, val state: SlotState)
+
 /** One slot of one day, from [before] to [after]. */
 @Serializable
 data class SlotChange(val date: String, val slotId: Long, val before: SlotState, val after: SlotState)

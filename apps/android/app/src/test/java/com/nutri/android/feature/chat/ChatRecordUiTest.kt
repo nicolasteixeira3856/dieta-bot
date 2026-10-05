@@ -35,6 +35,10 @@ class ChatRecordUiTest {
                 onReceiptAction = { id, action -> calls += "$action $id" },
                 onMoveConfirm = { calls += "move-confirm" },
                 onMoveElsewhere = { calls += "move-elsewhere" },
+                onAdditionConfirm = { calls += "add $it" },
+                onAdditionElsewhere = { calls += "add-elsewhere $it" },
+                onRevisionConfirm = { calls += "revise $it" },
+                onRevisionCancel = { calls += "revise-cancel $it" },
             )
         }
     }
@@ -102,5 +106,42 @@ class ChatRecordUiTest {
         show(ChatFixtures.chatU.copy(items = ChatFixtures.chatU.items.take(2) + bot))
         compose.onNodeWithTag("chat-not-recorded").assertIsDisplayed()
         compose.onNodeWithText("Não registrado").assertIsDisplayed()
+    }
+
+    /** A47 (chatI): labelled amounts, the + numbers of the added food, and both buttons with the answer id. */
+    @Test fun addition_labelsAndButtons() {
+        show(ChatFixtures.chatI)
+        compose.onNodeWithText("Já registrado no Jantar").assertIsDisplayed()
+        compose.onNodeWithText("Total do Jantar").assertIsDisplayed()
+        compose.onNodeWithText("620 kcal").assertIsDisplayed()
+        compose.onNodeWithText("+240").assertIsDisplayed()
+        compose.onNodeWithText("+6g P").assertIsDisplayed()
+        compose.onNodeWithText("Adicionar ao Jantar?").assertIsDisplayed()
+        // No unlabeled total and no prose in the bubble.
+        compose.onNodeWithText("~", substring = true).assertDoesNotExist()
+        compose.onNodeWithTag("chat-addition-confirm").performClick()
+        compose.onNodeWithTag("chat-addition-elsewhere").performClick()
+        assertThat(calls).containsExactly("add 31", "add-elsewhere 31").inOrder()
+    }
+
+    /** A47 (chatIC): Antes / Novo total, Atualizar | Cancelar, and no destination action. */
+    @Test fun revision_buttons_noOtherMeal() {
+        show(ChatFixtures.chatIC)
+        compose.onNodeWithText("Atualizar Jantar?").assertIsDisplayed()
+        compose.onNodeWithText("Antes").assertIsDisplayed()
+        compose.onNodeWithText("Escolher outra refeição").assertDoesNotExist()
+        compose.onNodeWithText("Outra refeição").assertDoesNotExist()
+        compose.onNodeWithTag("chat-revision-confirm").performClick()
+        compose.onNodeWithTag("chat-revision-cancel").performClick()
+        assertThat(calls).containsExactly("revise 41", "revise-cancel 41").inOrder()
+    }
+
+    /** A47 (chatTI): the picker says it directs only the added food and keeps the source. */
+    @Test fun additionPicker_namesTheAddedFoodAndTheSource() {
+        show(ChatFixtures.chatTI)
+        compose.onNodeWithText("Escolher outra refeição").assertIsDisplayed()
+        compose.onNodeWithText("Só o acréscimo vai para a refeição escolhida. O Jantar fica como está.").assertIsDisplayed()
+        compose.onNodeWithTag("chat-sheet-addition").assertIsDisplayed()
+        compose.onNodeWithText("(atual)", substring = true).assertDoesNotExist()
     }
 }

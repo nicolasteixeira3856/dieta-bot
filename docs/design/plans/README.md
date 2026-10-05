@@ -41,7 +41,7 @@ The gate for every new or changed layout ([ADR-031](../adrs/ADR-031-figma-source
 - Behavior: [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md).
 - Server: [meal-change contract](../../api-contract.md#meal-change-capability).
 - Design: D9 — Chat meal updates ([`completed/`](completed/)).
-- Client: [A47 — Chat meal updates](../../android/plans/a47-chat-meal-updates.md).
+- Client: [A47 — Chat meal updates](../../android/plans/pending_manual_validation/a47-chat-meal-updates.md).
 
 Prerequisites and execution boundaries live in each plan. This follow-up does not change the migration plans above.
 
