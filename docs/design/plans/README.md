@@ -56,7 +56,7 @@ Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Rec
 | Model | [S20](../../server/plans/s20-tali-prompt-identity.md) — Tali identity in the model instructions | D10 approved, S19 |
 | Client | [A49](../../android/plans/a49-fibrai-tali-visible-rename.md) — Fibrai and Tali in the app | D10, A48 |
 | Docs | [SD5](../../sdd/plans/sd5-fibrai-docs-prose.md) — Fibrai in documentation and skills prose | A49 |
-| Landing design | [D11](d11-landing-page.md) — Landing page ([ADR-037](../../site/adrs/ADR-037-landing-site.md)) | — |
+| Landing design | [D11](pending_manual_validation/d11-landing-page.md) — Landing page ([ADR-037](../../site/adrs/ADR-037-landing-site.md)) | — |
 | Landing site | [W1](../../site/plans/w1-landing-site.md) — Landing site on fibrai.app | D11, D10 |
 
 ## History

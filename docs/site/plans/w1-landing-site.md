@@ -10,7 +10,7 @@
   - No `apps/` or `server/` change.
 - Related documentation: [site README](../README.md), [ADR-037](../adrs/ADR-037-landing-site.md), the [gold inventory](../../qa/README.md#golds), `AGENTS.md` (Live stack, Folder law) at Completion, `docs/README.md` matrix.
 - Prerequisites:
-  - [D11](../../design/plans/d11-landing-page.md) `Concluído` with exported golds `land`, `landM` and `priv`;
+  - [D11](../../design/plans/pending_manual_validation/d11-landing-page.md) `Concluído` with exported golds `land`, `landM` and `priv`;
   - [D10](../../design/plans/d10-fibrai-tali-rename.md) golds exported, so the app screenshots show Fibrai and Tali;
   - owner setup: a Cloudflare API token scoped to Workers Scripts:Edit and the `fibrai.app` zone (Workers Routes, DNS), saved as `CLOUDFLARE_API_TOKEN` in the owner's user environment, plus `CLOUDFLARE_ACCOUNT_ID`. The token is never printed or committed.
 
