@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Read-only: every gold id mapped in tools/export-figma.mjs (either theme) has both PNGs in docs/qa/figma/{dark,light}/,
-// each 780 px wide (390 px frame at 2x). No network, no token.
+// each 780 px wide (390 px frame at 2x) unless GOLD_WIDTHS says otherwise (1440 px landing frames → 2880 px).
+// No network, no token.
 import path from "path";
 import fs from "fs";
-import { DARK_FRAMES, LIGHT_FRAMES, FIGMA_DIR } from "./export-figma.mjs";
+import { DARK_FRAMES, LIGHT_FRAMES, FIGMA_DIR, GOLD_WIDTHS } from "./export-figma.mjs";
 
 const WIDTH = 780;
 const ids = [...new Set([...Object.keys(DARK_FRAMES), ...Object.keys(LIGHT_FRAMES)])];
@@ -25,8 +26,9 @@ for (const id of ids) {
     const head = fs.readFileSync(file).subarray(0, 24);
     const width = head.readUInt32BE(16);
     const height = head.readUInt32BE(20);
-    if (head.readUInt32BE(0) !== 0x89504e47 || width !== WIDTH) {
-      console.error(`  ✗ ${theme}/${id}.png is ${width}x${height}, expected a PNG ${WIDTH} px wide`);
+    const expected = GOLD_WIDTHS[id] ?? WIDTH;
+    if (head.readUInt32BE(0) !== 0x89504e47 || width !== expected) {
+      console.error(`  ✗ ${theme}/${id}.png is ${width}x${height}, expected a PNG ${expected} px wide`);
       failed = true;
     } else {
       console.log(`  ✓ ${theme}/${id}.png ${width}x${height}`);

@@ -24,7 +24,10 @@ figma: home0.png · home1.png · homeX.png · homeW.png
 figma: chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
 figma: chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
 figma: cfg.png · cfgS.png · wipe.png · push.png
+figma: land.png · landM.png · priv.png
 ```
+
+A última linha é o site (landing de `fibrai.app`, [ADR-037](../site/adrs/ADR-037-landing-site.md)), não o app: `land` e `priv` são frames desktop de 1440 px (PNG de 2880 px) e `landM` é mobile de 390 px. Capturas do site e o loop de comparação ficam no contexto [site](../site/README.md).
 
 O nome base (`<id>.png`) é rigorosamente idêntico em `stitch/{dark,light}/`, `figma/{dark,light}/` e `android/current/{dark,light}/`.
 

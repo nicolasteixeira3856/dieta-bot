@@ -3,7 +3,7 @@
 - Status: Aguardando aprovação
 - Date: 05/10/2026
 - Owning context: `design`
-- Executable boundary: Figma `Design` (components `Componentes`, the existing flow sections on `Release 1`, the `Branding` page for the wordmark only). Repository outputs: re-exported PNGs in `docs/qa/figma/{dark,light}/` for the ids that show the old name, `tools/export-figma.mjs` if node ids change, and the temporary avatar image in `docs/design/brand/`. No `apps/` or `server/` code.
+- Executable boundary: Figma `Design` (components `Componentes`, the existing flow sections on `Release 1`, the `Branding` page for the wordmark only, and the phone screens of the section `Landing · D11` on the `Landing page` page). Repository outputs: re-exported PNGs in `docs/qa/figma/{dark,light}/` for the ids that show the old name, `tools/export-figma.mjs` if node ids change, and the temporary avatar image in `docs/design/brand/`. No `apps/` or `server/` code.
 - Prerequisites: approval of this plan accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md). [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md) accepted.
 - Figma MCP budget: at most 110 calls in one day ([ADR-031](../adrs/ADR-031-figma-source-of-truth.md) § 6). The name lives in a few components, so most frames update through their instances.
 
@@ -50,6 +50,10 @@ Replace "Dieta Bot" with "Fibrai" on brand surfaces, and with "Tali" plus the av
    - `node tools/export-figma.mjs --only <affected ids>`, then `node tools/check-figma.mjs`;
    - inventory sources do not change, because every id is already `figma`;
    - A49 compares against these PNGs.
+7. **Landing phone screens** ([D11](completed/d11-landing-page.md)):
+   - the phones of `land` and `landM` (both rows) hold static clones of the `o1`, `home1` and `chatE` golds, taken before this rename;
+   - replace each clone with a fresh clone of the renamed gold, scaled to 300 px wide, and clear its explicit Color mode so it follows the frame;
+   - add `land` and `landM` to the export list. [W1](../../site/plans/w1-landing-site.md) compares against them.
 
 ## Intended documentation changes
 
@@ -60,7 +64,7 @@ None at D10 Completion besides Results and this plan's lifecycle. The product sp
 - Final avatar art: when the owner delivers it, a follow-up design plan swaps the image fill and re-exports.
 - Logo and app icon.
 - Home, Config and push frames, unless discovery finds the name there; then they enter the same edit.
-- Compose, server and the landing page ([D11](pending_manual_validation/d11-landing-page.md)).
+- Compose, server and the landing layout ([D11](completed/d11-landing-page.md)); only the phone screens of scope item 7 change.
 
 ## Validation
 

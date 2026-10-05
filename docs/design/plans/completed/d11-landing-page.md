@@ -1,6 +1,6 @@
 # Plan — D11 Landing page (fibrai.app)
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 05/10/2026
 - Owning context: `design`
 - Executable boundary: Figma `Design`, a new page named "Landing page", plus new web components in `Componentes` under a `Web/` prefix. Repository outputs: landing golds in `docs/qa/figma/{dark,light}/`, their entries in `tools/export-figma.mjs` and the [gold inventory](../../../qa/README.md#golds). No `site/`, `apps/` or `server/` code.
@@ -163,12 +163,7 @@ Section `Landing · D11` (`106:527`), 160 px below `Exploração · D11`. The fr
 
 One review image per final frame was sent to the owner on 2026-10-05 (REST dry-run export). The plan waits in `pending_manual_validation/` for the owner's OK in Figma.
 
-**Still open after the OK (step 5):**
-
-- Map `land`, `landM` and `priv` in `tools/export-figma.mjs` and in the inventory under a `figma` "site" line.
-- Teach `tools/check-figma.mjs` the site widths (2880 px desktop, 780 px mobile at 2×). Today it accepts only 780 px.
-- Export, then run `check-figma` and `check-docs`.
-- Export the phone screens as web assets for W1.
+**Owner's OK in Figma:** 2026-10-05 ("Aprovado no Figma, pode exportar os golds").
 
 ### Owner fix 1: WCAG contrast (2026-10-05)
 
@@ -193,6 +188,23 @@ The owner found the text hard to read in Light. The ratios were measured against
 - **Dark:** every text was already ≥ 5.34.
 - **Not changed:** the app screens inside the phone frames, which are gold clones of the app.
 - **Exploration:** frames A, B and C keep the old colors as history.
+
+### Gold export (2026-10-05)
+
+- **Gold map:** `tools/export-figma.mjs` maps `land`, `landM` and `priv` (Light `106:530`, `106:716`, `106:833`; Dark `107:853`, `107:1003`, `107:1086`) and exports `GOLD_WIDTHS`.
+- **Width check:** `tools/check-figma.mjs` now checks each id against its own width: 2880 px for `land` and `priv`, 780 px for every other id.
+- **Inventory:** `docs/qa/README.md` lists them on a new `figma:` line, with a note that the line is the site and not the app.
+- **Export:** `node tools/export-figma.mjs --only land,landM,priv` wrote six new PNGs:
+  - `land` 2880 × 5136;
+  - `landM` 780 × 5880;
+  - `priv` 2880 × 1398.
+- **Checks:** `node tools/check-figma.mjs` (68 PNGs) and `node tools/check-docs.mjs` pass.
+- **No app gold changed.** `GoldTest` and `diff-gold.mjs` compare explicit app ids only.
+- **Phone-screen web assets: not exported here, on purpose.**
+  - The screens W1 needs are the tops of the `o1`, `home1` and `chatE` golds (the first 844 pt of the frame, as the phone shows them).
+  - Exporting them now would freeze the old name before [D10](../d10-fibrai-tali-rename.md).
+  - [W1](../../../site/plans/w1-landing-site.md) crops them from `docs/qa/figma/{light,dark}/` after D10.
+  - D10 also refreshes the phone clones in `land` and `landM` (its scope item 7).
 
 ### Figma MCP budget
 
