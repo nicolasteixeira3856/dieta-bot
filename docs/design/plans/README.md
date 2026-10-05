@@ -45,6 +45,20 @@ The gate that replaces the owner-run Stitch prompt for a migrated flow ([ADR-031
 
 Prerequisites and execution boundaries live in each plan. This follow-up does not change the migration plans above.
 
+## Fibrai brand follow-up
+
+Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Technical identity | [A48](../../android/plans/a48-fibrai-app-id-firebase.md) — applicationId and Firebase `fibrai-dev` ([ADR-036](../../android/adrs/ADR-036-fibrai-technical-identity.md)) | — |
+| Golds | [D10](d10-fibrai-tali-rename.md) — Fibrai and Tali in the golds ([ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md)) | — |
+| Model | [S20](../../server/plans/s20-tali-prompt-identity.md) — Tali identity in the model instructions | D10 approved, S19 |
+| Client | [A49](../../android/plans/a49-fibrai-tali-visible-rename.md) — Fibrai and Tali in the app | D10 |
+| Docs | [SD5](../../sdd/plans/sd5-fibrai-docs-prose.md) — Fibrai in documentation and skills prose | A49 |
+| Landing design | [D11](d11-landing-page.md) — Landing page ([ADR-037](../../site/adrs/ADR-037-landing-site.md)) | — |
+| Landing site | [W1](../../site/plans/w1-landing-site.md) — Landing site on fibrai.app | D11, D10 |
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.
