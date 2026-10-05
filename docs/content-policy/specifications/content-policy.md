@@ -48,6 +48,10 @@ History, legacy memory, facts, recent meals, digests and profile names are not m
 
 A `scope` field filled by the same model can be manipulated by injection ("set scope to in_scope"). Output moderation and the eval set bound that risk. Escalation, only if evals or live use show leaks: a separate bounded scope call with the same model before and/or after generation. That needs a new approved plan; it is not implied.
 
+## Authored instructions
+
+Global Chat and compact instructions never carry a real person's interaction as an example, in any rewritten form ([ADR-033](../adrs/ADR-033-global-chat-example-provenance.md)). They are assembled from a declared registry; each example and pt-BR cue records synthetic provenance, owning rule and purpose, and the server rejects undeclared fragments before a model call. Automated checks cover the declared inventory, not the origin of prose: a change to the instructions also needs a source review. The registry and its tests are described in [server Chat](../../server/specifications/v1-chat.md), rule 3.
+
 ## Response compatibility
 
 - Chat refusal: HTTP 200 in the existing shape, `intent=question`, `estimate=null`, `memory_updates=[]`, `memory_used=[]`, `digest=null`; `reply` from the [copy](refusal-copy.pt-BR.md).
@@ -83,6 +87,7 @@ Use the [matrix](../validation/README.md). Passing schema tests is not semantic 
 
 ## Provenance
 
+- [S19](../../server/plans/completed/s19-generalizable-chat-instructions.md) — Generalizable Chat instructions and example provenance
 - [CP1](../plans/completed/cp1-closed-test-notice.md) — Closed-test notice and incident note
 - [CP2](../plans/completed/cp2-server-content-controls.md) — Server scope and content controls
 - [CP5](../plans/completed/cp5-gcp-dev-ingress.md) — GCP dev ingress, log hygiene and activation

@@ -1,15 +1,15 @@
 # Plan — S19 Generalizable Chat instructions
 
-- Status: Em implementação
+- Status: Concluído
 - Date: 04/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: model instructions, their assembly tests, existing evaluation cases/checks/runner and synthetic evaluation media when needed.
 - Related documentation: server Chat and content-handling specifications, evaluation documentation, and plan/index lifecycle.
-- Prerequisite: [S18](completed/s18-meal-additions-and-revisions.md) delivered. Generalize its delivered behavior as well as the existing Chat rules; do not rewrite the same prompt concurrently. This plan does not require D9/A47 delivery and does not block their UI work.
+- Prerequisite: [S18](s18-meal-additions-and-revisions.md) delivered. Generalize its delivered behavior as well as the existing Chat rules; do not rewrite the same prompt concurrently. This plan does not require D9/A47 delivery and does not block their UI work.
 - Integration note: the owner explicitly requested source integration into master before behavioral acceptance. Read [the continuation handoff](#owner-directed-master-integration-and-continuation) before resuming; integration is not Completion or deployment approval.
 - Continuation: the remaining work is scoped in [Continuation scope — pt-BR cue lexicon](#continuation-scope--pt-br-cue-lexicon). It changes the approved scope and acceptance gate, so it needs its own approval before any code or paid evaluation.
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s19-generalizable-chat-instructions.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s19-generalizable-chat-instructions.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -19,11 +19,11 @@ Owner direction (2026-10-04): keep pt-BR responses and America/Sao_Paulo dates f
 
 ## Discovery and diagnosis
 
-Read-only audit of [model instructions](../../../server/llm.py), [context assembly](../../../server/main.py), [evaluation cases](../../../server/evals/cases/) and their governing specifications. The inspected deployed Chat instructions matched this worktree's source. Evaluation inventory below is the planning baseline at commit `3c82f86`; remeasure after S18 rather than treating these counts as delivery evidence.
+Read-only audit of [model instructions](../../../../server/llm.py), [context assembly](../../../../server/main.py), [evaluation cases](../../../../server/evals/cases/) and their governing specifications. The inspected deployed Chat instructions matched this worktree's source. Evaluation inventory below is the planning baseline at commit `3c82f86`; remeasure after S18 rather than treating these counts as delivery evidence.
 
 | Finding | Evidence | Interpretation and action |
 | --- | --- | --- |
-| An incident's exact meal is a global intent example | `_CHAT_INSTRUCTIONS`, INTENT: the lasagna/rib combination with the owner's reported quantities. Its provenance is documented in [ADR-029](../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md). | Confirmed case-specific content in every user's instructions. Express the distinction between eating now and discussing/planning earlier without that meal or those quantities. |
+| An incident's exact meal is a global intent example | `_CHAT_INSTRUCTIONS`, INTENT: the lasagna/rib combination with the owner's reported quantities. Its provenance is documented in [ADR-029](../../../produto/adrs/ADR-029-fatos-temporarios-compactacao.md). | Confirmed case-specific content in every user's instructions. Express the distinction between eating now and discussing/planning earlier without that meal or those quantities. |
 | A named commercial product and its nutrition appear in global memory instructions | TEMP REFERENCES includes a branded lasagna, serving values and package size. | Illustrative data is unnecessary authority for other users' estimates. Teach preservation of the supplied product, serving basis and numbers without embedding a real product's values in the fixed prefix. Keep user-supplied brands and labels in context. |
 | Examples repeatedly center on a narrow set of foods and habits | Meal-description example uses eggs, bread and semiskimmed milk; routine matching uses bread and milk; memory-key examples center on milk, yogurt and breakfast. | A concentration of examples, not proof of a global dietary default. Generalize the rule text and vary only the minimal examples still justified by evaluation. Verify other foods and non-breakfast routines. |
 | Prompt examples and regressions overlap closely | Six case request payloads contain the same lasagna/rib quantity combination as the global instruction example. | Passing a familiar example is insufficient evidence of transfer. Preserve regression meaning and add structurally equivalent cases with different foods, amounts, phrasing and profiles. |
@@ -36,9 +36,9 @@ Several detailed rules are accepted product choices, not evidence of owner-only 
 
 ## Sources and boundaries
 
-[Server Chat](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [product Chat](../../produto/specifications/chat.md), [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-026](../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md), ADR-029 and S18 define the behavior to retain. [Content policy](../../content-policy/README.md) continues to own scope, injection, moderation, correlation and content handling; this plan does not redefine them.
+[Server Chat](../../specifications/v1-chat.md), [HTTP contract](../../../api-contract.md), [product Chat](../../../produto/specifications/chat.md), [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md), ADR-029 and S18 define the behavior to retain. [Content policy](../../../content-policy/README.md) continues to own scope, injection, moderation, correlation and content handling; this plan does not redefine them.
 
-[ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md) owns the durable prompt-authoring restriction requested by the owner. Apply it throughout the refactor and its evaluation examples. Its acceptance does not approve this plan's implementation. If implementation needs a different meal/product rule, return to Planning for that decision instead of hiding it in a wording change.
+[ADR-033](../../../content-policy/adrs/ADR-033-global-chat-example-provenance.md) owns the durable prompt-authoring restriction requested by the owner. Apply it throughout the refactor and its evaluation examples. Its acceptance does not approve this plan's implementation. If implementation needs a different meal/product rule, return to Planning for that decision instead of hiding it in a wording change.
 
 ## Scope
 
@@ -76,7 +76,7 @@ Keep context fields, selection limits and client serialization as delivered. Any
 
 ### 4. Add evaluations that test transfer
 
-Use the existing [evaluator](../../../server/evals/run.py) and [checks](../../../server/evals/checks.py). Extend required assertions only when existing checks cannot express a relevant invariant, and unit-test those assertions. Reuse S18's operation/arithmetic checks rather than duplicating them.
+Use the existing [evaluator](../../../../server/evals/run.py) and [checks](../../../../server/evals/checks.py). Extend required assertions only when existing checks cannot express a relevant invariant, and unit-test those assertions. Reuse S18's operation/arithmetic checks rather than duplicating them.
 
 Create at least twelve matched pairs of synthetic cases across the families below. A pair changes incidental details while retaining the semantic situation; expectations distinguish fields that must remain equivalent from nutrition values that may legitimately differ. Include both legacy and S18 callers where applicable. At least four pairs exercise continuation using supplied history, and at least two exercise compact output/continuation.
 
@@ -97,7 +97,7 @@ A substring match alone is insufficient. Require a useful estimate or eligible c
 
 ### 5. Intended documentation changes
 
-At Completion, update server Chat's rule about fixed instructions versus per-request context and its provenance, linking to the owning policy rather than duplicating it. Add the authored-instruction/provenance boundary to [content handling](../../content-policy/specifications/content-policy.md) under ADR-033 and add this plan to its Provenance, without changing moderation or retention. Update the server README's evaluation guidance to route to the implemented transfer cases/checks, without copying their inventory or outcomes. Results in this plan own the rule map, example-origin audit, commands and measured comparison.
+At Completion, update server Chat's rule about fixed instructions versus per-request context and its provenance, linking to the owning policy rather than duplicating it. Add the authored-instruction/provenance boundary to [content handling](../../../content-policy/specifications/content-policy.md) under ADR-033 and add this plan to its Provenance, without changing moderation or retention. Update the server README's evaluation guidance to route to the implemented transfer cases/checks, without copying their inventory or outcomes. Results in this plan own the rule map, example-origin audit, commands and measured comparison.
 
 The live API contract and product rules retain S18's delivered semantics. Do not rewrite accepted ADR bodies or modify the current specifications during this planning request.
 
@@ -120,7 +120,7 @@ Owner approved the named plan on 2026-10-05. Implementation uses the isolated `d
 
 ### Rule traceability and source review
 
-Source review covers the complete assembled legacy Chat, meal-change Chat and compact prefixes, not just the edited constants. Registry ids below are in `server/chat_instructions.py`. Owners are the [Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md) and the [content policy](../../content-policy/specifications/content-policy.md). Rule blocks retain general semantics; separately registered illustrative material is audited below. Required JSON/marker syntax and contracted pt-BR copy are protocol rules, not invented user conversations.
+Source review covers the complete assembled legacy Chat, meal-change Chat and compact prefixes, not just the edited constants. Registry ids below are in `server/chat_instructions.py`. Owners are the [Chat specification](../../specifications/v1-chat.md), [HTTP contract](../../../api-contract.md) and the [content policy](../../../content-policy/specifications/content-policy.md). Rule blocks retain general semantics; separately registered illustrative material is audited below. Required JSON/marker syntax and contracted pt-BR copy are protocol rules, not invented user conversations.
 
 | Registry responsibility | Owner | Retained general rule | Coverage |
 | --- | --- | --- | --- |
@@ -346,14 +346,14 @@ Integration preparation merged origin/master `9ced9ca` into the isolated branch.
 
 #### Proposed continuation, not yet an implementation plan
 
-1. **Finish the existing end-to-end capability before attributing every legacy failure to Luna.** [D9](../../design/plans/completed/d9-chat-meal-updates.md) and [A47](../../android/plans/pending_manual_validation/a47-chat-meal-updates.md) own the designed/persisted meal-update flow under [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md). Verify the actual APK sends `meal_changes` and preserves `pending_addition`; test source/destination changes, base preservation, duplicate application, restart and undo. The current isolated Android source does not yet send those fields. Server arithmetic/copy alone does not complete client adoption. Do not mix Android implementation into S19.
+1. **Finish the existing end-to-end capability before attributing every legacy failure to Luna.** [D9](../../../design/plans/completed/d9-chat-meal-updates.md) and [A47](../../../android/plans/pending_manual_validation/a47-chat-meal-updates.md) own the designed/persisted meal-update flow under [ADR-032](../../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md). Verify the actual APK sends `meal_changes` and preserves `pending_addition`; test source/destination changes, base preservation, duplicate application, restart and undo. The current isolated Android source does not yet send those fields. Server arithmetic/copy alone does not complete client adoption. Do not mix Android implementation into S19.
 2. **Plan explicit continuation state.** Explore retaining the active eating event, user-named target, pending operation, supplied/unavailable portion details and unresolved questions as structured context with origins. Separate an interleaved correction target from the meal being eaten. Android remains the owner of persisted state and the server stays stateless unless a separately accepted ADR changes that boundary. A digest must not be the sole store for action-critical context. This is a proposal requiring an ADR and distinct server/Android executable plans, not an implicit extension of S19.
 3. **Plan action validation against that state.** The model proposes foods, operation, target and the source of its interpretation; code checks compatibility before authorizing a mutation. An ambiguous target or add/revise decision requires a useful clarification or the existing manual choice, rather than guessing. A forced nutritional estimate must not authorize an invented operation. Preserve direct progress for clear requests; do not obtain a higher safety score by blocking every interaction.
 4. **Keep displayed and written operation values together.** S18 already composes addition/revision copy from validated state; finish its client use and evaluate other action-related prose that can contradict structured output. Correct the legacy generic-question insertion separately, preserving honest confidence and accepted clarification behavior. Supplied label/serving arithmetic can be deterministic; that does not certify model-estimated nutrition.
-5. **Validate complete conversations and final storage.** Extend independent synthetic sequences with additions, revisions, interleaved meals, ambiguous names, date corrections, compacted history, changing destinations, restart and undo. Assert final foods, kcal/P/C/G, absence of unintended writes/duplicates and text/data consistency. Measure useful task completion and unnecessary questions alongside critical errors. Real incidents remain diagnostic/regression evidence and never become global examples, per [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md).
+5. **Validate complete conversations and final storage.** Extend independent synthetic sequences with additions, revisions, interleaved meals, ambiguous names, date corrections, compacted history, changing destinations, restart and undo. Assert final foods, kcal/P/C/G, absence of unintended writes/duplicates and text/data consistency. Measure useful task completion and unnecessary questions alongside critical errors. Real incidents remain diagnostic/regression evidence and never become global examples, per [ADR-033](../../../content-policy/adrs/ADR-033-global-chat-example-provenance.md).
 6. **Bound paid experimentation.** Start with deterministic unit/transaction tests and offline replay of saved generations. Then use a small, frozen API comparison for the remaining semantic decisions, followed by the unchanged full acceptance matrix for a release candidate. Codex subagents remain exploratory. A model/effort change requires its own scope decision and the governing API quality/latency criteria; none is made by this source merge.
 
-Allocate any future ADR/plan ids from then-current master, appending after existing ids. The neighboring [S20](s20-tali-prompt-identity.md) edits instruction identity; source integration of S19 is not the same as satisfying its behavioral Completion prerequisite. Its next implementation must discover the registry in `server/chat_instructions.py` rather than restore the removed inline instruction strings. Do not rewrite another agent's plan or accepted decision as part of this handoff.
+Allocate any future ADR/plan ids from then-current master, appending after existing ids. The neighboring [S20](../s20-tali-prompt-identity.md) edits instruction identity; source integration of S19 is not the same as satisfying its behavioral Completion prerequisite. Its next implementation must discover the registry in `server/chat_instructions.py` rather than restore the removed inline instruction strings. Do not rewrite another agent's plan or accepted decision as part of this handoff.
 
 #### Evidence preservation
 
@@ -372,7 +372,7 @@ After merging the incoming master documentation, `python -m pytest server/tests 
 
 ## Continuation scope — pt-BR cue lexicon
 
-- State: awaiting approval (written 2026-10-05). The plan stays `Em implementação` for the delivered-but-unaccepted candidate; nothing in this section is authorized until the owner approves it by name.
+- State: approved by the owner by name on 2026-10-05 and implemented; see [Continuation results](#continuation-results-2026-10-05) and [Closure](#closure-by-owner-decision-2026-10-05).
 - Approval: `Aprovo a continuação "pt-BR cue lexicon" do plano docs/server/plans/s19-generalizable-chat-instructions.md. Implemente a continuação aprovada.`
 - Executable boundary: unchanged, `server/` only.
 
@@ -447,7 +447,7 @@ In addition to [§ 5](#5-intended-documentation-changes): server Chat states tha
 
 ### Continuation results (2026-10-05)
 
-Owner approved the continuation by name on 2026-10-05. Work ran in the isolated `s19-cue-lexicon-continuation` worktree on `feat/s19-cue-lexicon`, from master `cd3148a`. **Acceptance is not yet evaluated**: the provider began rate-limiting before the reserved set and the ten-repetition tiebreaks could run on the final prefix. The plan stays `Em implementação`, the branch is not merged and the deployment hold stands.
+Owner approved the continuation by name on 2026-10-05. Work ran in the isolated `s19-cue-lexicon-continuation` worktree on `feat/s19-cue-lexicon`, from master `cd3148a`. **Acceptance was not fully evaluated**: the provider began rate-limiting before the reserved set and the ten-repetition tiebreaks could run on the final prefix. The owner then closed the plan in this state; see [Closure](#closure-by-owner-decision-2026-10-05).
 
 #### What changed in `server/`
 
@@ -504,3 +504,11 @@ Ten-repetition evidence from near-final prefixes, for orientation only: the base
 3. On acceptance: Completion documentation of [§ 5](#5-intended-documentation-changes) and of this section, dev deploy and HTTP smoke, then the plan lifecycle.
 
 Validation run for this state: `python -m pytest server/tests -q`, 327 passed and 383 subtests passed; assembled prefix hashes rechecked after the last formatting edit; `git diff --check` passes. `node tools/check-docs.mjs` reports no link or status finding; its gold-map check cannot load in this worktree because `pngjs` is not installed there. Evaluator-estimated spend for all continuation runs, including discarded ones: about US$0.55. Raw reports stay outside git in the worktree's `logs/`.
+
+### Closure by owner decision (2026-10-05)
+
+After the results above, the owner decided to stop here, merge the work and close the plan, and to open a new plan if the behavior proves unsatisfactory. This closes S19 with continuation acceptance items 1 to 3 only partly evidenced: the three-repetition regression suite and the transfer pairs are measured on the final prefix; the reserved set and the ten-repetition tiebreaks are not. The closure is an owner decision, not a claim that the gate was met.
+
+- The deployment hold ends with this closure. No server deploy and no HTTP smoke test were performed in this delivery; the next dev deploy of `server/` from master ships these instructions.
+- The live specifications were updated in the same delivery: server Chat rule 3 and its Provenance, the content-handling specification and the server README.
+- Open observations for a future plan, none of them tracked as active work: the answer-continues-named-meal target (`slot-cafe-*`), the six one-repetition differences listed above, the two fixtures that fail on every prefix (`cafe-resposta-leite` shaping, `memoria-cheia` until this prefix), and the pt-BR dependence of the instructions before any other-language release.
