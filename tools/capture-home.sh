@@ -14,9 +14,9 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android.dev
+PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
-ACTIVITY=com.nutri.android.MainActivity
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
@@ -71,9 +71,9 @@ tap 'resource-id="home-workout-save"' && expect "empty Salvar clears the workout
 
 seed() { # seed home0|home1|homeX -> capture
   "$ADB" shell am force-stop $PKG
-  rm -f "$TMP"/nutri.db*
-  for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-  "$PY" - "$TMP/nutri.db" "$1" <<'EOF'
+  rm -f "$TMP"/fibrai.db*
+  for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+  "$PY" - "$TMP/fibrai.db" "$1" <<'EOF'
 import sqlite3, sys
 db, state = sys.argv[1], sys.argv[2]
 c = sqlite3.connect(db)
@@ -106,9 +106,9 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-  "$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-  "$ADB" shell chmod 644 /data/local/tmp/nutri.db
-  "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+  "$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+  "$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+  "$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
   "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
   sleep 3
   if [ "$1" = homeW ]; then # sheet open over home1, keyboard hidden, field still focused

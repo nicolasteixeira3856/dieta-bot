@@ -1,0 +1,34 @@
+package app.fibrai.android.core.database
+
+import app.fibrai.android.domain.BudgetCalculator
+import app.fibrai.android.domain.BudgetInput
+import app.fibrai.android.domain.CeilingProfile
+import app.fibrai.android.domain.CreditPolicy
+import app.fibrai.android.domain.SameEveryDayCeiling
+import app.fibrai.android.domain.SevenDayCeiling
+import app.fibrai.android.domain.WeekdayWeekendCeiling
+import java.time.LocalDate
+
+/** Effective ceiling of [date]: base ceiling for that weekday + workout credit. reservedUpcoming = 0. */
+fun DaySnapshot.metaOn(date: LocalDate): Int = BudgetCalculator().calculate(budgetOn(date)).effectiveCeiling
+
+/** Profile, eat-back policy and workout of [date] as the [BudgetCalculator] input (eaten = 0). */
+fun DaySnapshot.budgetOn(date: LocalDate): BudgetInput = BudgetInput(
+    date = date,
+    profile = ceilingProfile(),
+    policy = when (eat) {
+        "partial" -> CreditPolicy.PARTIAL
+        "full" -> CreditPolicy.FULL
+        else -> CreditPolicy.ZERO
+    },
+    percent = pct,
+    workoutKcal = workoutKcal,
+    reservedUpcoming = 0,
+)
+
+fun DaySnapshot.ceilingProfile(): CeilingProfile = when (ceilingMode) {
+    "weekdayWeekend" -> WeekdayWeekendCeiling(kcalWeekday, kcalWeekend)
+    "seven" -> kcalDays.let { if (it.size == 7) it else List(7) { 2000 } }
+        .let { d -> SevenDayCeiling(d[0], d[1], d[2], d[3], d[4], d[5], d[6]) }
+    else -> SameEveryDayCeiling(kcalSame)
+}

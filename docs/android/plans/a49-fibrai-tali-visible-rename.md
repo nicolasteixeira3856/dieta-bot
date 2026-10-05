@@ -13,7 +13,7 @@
 - Prerequisites:
   - [D10](../../design/plans/completed/d10-fibrai-tali-rename.md) `Concluído` with exported golds, which accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md);
   - [S20](../../server/plans/s20-tali-prompt-identity.md) on the dev server is recommended but not required;
-  - [A48](a48-fibrai-app-id-firebase.md) `Concluído`, so this plan edits the moved `app/fibrai/android` sources.
+  - [A48](pending_manual_validation/a48-fibrai-app-id-firebase.md) `Concluído`, so this plan edits the moved `app/fibrai/android` sources.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a49-fibrai-tali-visible-rename.md. Implemente o plano aprovado.`
 
@@ -34,7 +34,7 @@ The user sees "Fibrai" on the launcher, splash and onboarding, and "Tali" with h
    - The temporary image is the D10 PNG imported as `R.drawable.tali_avatar`.
    - Decorative: `contentDescription = null`, because the adjacent "Tali" text carries the name.
    - The final art later replaces only the drawable.
-3. Class, package and storage names are already Fibrai from [A48](a48-fibrai-app-id-firebase.md). This plan changes only visible copy and the avatar.
+3. Class, package and storage names are already Fibrai from [A48](pending_manual_validation/a48-fibrai-app-id-firebase.md). This plan changes only visible copy and the avatar.
 4. **Specifications at Completion** (written in the present tense):
    - Chat: the AI label is the avatar plus "Tali"; the rule "Sem foto de perfil" is removed; the header title is "Tali".
    - Profile/onboarding: the splash wordmark and onboarding header say "Fibrai".
@@ -43,7 +43,7 @@ The user sees "Fibrai" on the launcher, splash and onboarding, and "Tali" with h
 
 ## Out of scope
 
-- applicationId and Firebase ([A48](a48-fibrai-app-id-firebase.md)).
+- applicationId and Firebase ([A48](pending_manual_validation/a48-fibrai-app-id-firebase.md)).
 - Server prompt ([S20](../../server/plans/s20-tali-prompt-identity.md)).
 - Launcher icon or logo, the final avatar art, the landing site.
 

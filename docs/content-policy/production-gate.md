@@ -6,7 +6,7 @@ Owner decision, 2026-09-30: the app is in a closed test (dev flavor, invite, Fir
 
 When the owner, or any prompt, talks about production, any agent must stop and apply this gate before doing anything else.
 
-Production triggers include: the `prod` flavor build or distribution (`com.nutri.android`), Google Play (any track, listing, Data Safety form or release), a public or open invite, opening registration, a production server or host, removing the invite gate, or words such as "produção", "prod", "lançar", "publicar na loja", "release pública", "go-live".
+Production triggers include: the `prod` flavor build or distribution (`app.fibrai.android`), Google Play (any track, listing, Data Safety form or release), a public or open invite, opening registration, a production server or host, removing the invite gate, or words such as "produção", "prod", "lançar", "publicar na loja", "release pública", "go-live".
 
 1. List every row in the blocker table below whose state is not `Sanado`, with its plan link and what is missing.
 2. Refuse to plan, implement, build, deploy, publish or configure production work while any blocker is open. Say so plainly.

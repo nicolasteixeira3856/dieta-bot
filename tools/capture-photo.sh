@@ -20,9 +20,9 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android.dev
+PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
-ACTIVITY=com.nutri.android.MainActivity
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
@@ -71,9 +71,9 @@ exif[0x010F] = "QA Phone"  # Make
 im.resize((8160, 6120), Image.BILINEAR).save(tmp + "/50mp.jpg", quality=95, exif=exif)
 EOF
 gallery() { # gallery <file>: newest photo in the picker, then pick it
-  "$ADB" shell rm -f /sdcard/Pictures/nutri-qa-*
-  "$ADB" push "$TMP/$1" "/sdcard/Pictures/nutri-qa-$1" >/dev/null
-  "$ADB" shell touch "/sdcard/Pictures/nutri-qa-$1"
+  "$ADB" shell rm -f /sdcard/Pictures/fibrai-qa-*
+  "$ADB" push "$TMP/$1" "/sdcard/Pictures/fibrai-qa-$1" >/dev/null
+  "$ADB" shell touch "/sdcard/Pictures/fibrai-qa-$1"
   "$ADB" shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
   tap 'resource-id="chat-photo"' && tap 'resource-id="chat-photo-gallery"' 2.5
   tap 'content-desc="Photo taken on' "${2:-4}"
@@ -161,16 +161,16 @@ gallery prato.webp
 send
 posted; got=$GOT
 if [ "$got" = "True True 2000 1116 True" ]; then echo "  ✓ WebP became JPEG 2000x1116"; else echo "  ✗ WebP: fake got '$got'"; FAIL=1; fi
-"$ADB" shell rm -f /sdcard/Pictures/nutri-qa-*
+"$ADB" shell rm -f /sdcard/Pictures/fibrai-qa-*
 
 # chatF: the gold conversation (accents adb cannot type), with the plate photo in app storage.
 "$ADB" shell am force-stop $PKG
-rm -f "$TMP"/nutri.db*
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+rm -f "$TMP"/fibrai.db*
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
 "$ADB" push "$TMP/prato.jpg" /data/local/tmp/chatf.jpg >/dev/null
 "$ADB" shell chmod 644 /data/local/tmp/chatf.jpg
 "$ADB" shell run-as $PKG sh -c "'mkdir -p files/photos; cp /data/local/tmp/chatf.jpg files/photos/chatf.jpg'"
-"$PY" - "$TMP/nutri.db" <<'EOF'
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import json, sqlite3, sys, time
 c = sqlite3.connect(sys.argv[1])
 today = c.execute("select firstDay from profile").fetchone()[0]
@@ -181,7 +181,7 @@ for table in ("chat_message", "meal_log", "slot_skip", "day_digest"):
     c.execute(f"delete from {table}")
 now = int(time.time() * 1000)
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,photoPath) values(?,?,?,?,?)",
-          (today, "user", "Almoço de hoje", now - 2000, "/data/user/0/com.nutri.android.dev/files/photos/chatf.jpg"))
+          (today, "user", "Almoço de hoje", now - 2000, "/data/user/0/app.fibrai.android.dev/files/photos/chatf.jpg"))
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
           "estimateConfidence,estimateSlotId,estimateItems,intent,recordMode,recordState) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
           (today, "assistant", "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde.",
@@ -199,9 +199,9 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 2

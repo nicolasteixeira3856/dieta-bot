@@ -15,9 +15,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")" # Git Bash: node needs a Windows path
-PKG=com.nutri.android.dev
+PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
-ACTIVITY=com.nutri.android.MainActivity
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 PY="$(command -v python3 || command -v python)"
 FAIL=0
@@ -59,7 +59,7 @@ shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
 # Splash in capture mode (it stays up), then a normal cold start into O1.
-"$ADB" shell am start -W -n $PKG/$ACTIVITY -e nutri_tela splash >/dev/null
+"$ADB" shell am start -W -n $PKG/$ACTIVITY -e fibrai_tela splash >/dev/null
 shot splash 2.5
 "$ADB" shell am force-stop $PKG
 "$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY >/dev/null
@@ -154,8 +154,8 @@ fi
 # Seed that Unicode name in the persisted test profile, as in capture-config.sh,
 # then reopen O3 and tap the real time field. No capture-only app behavior.
 "$ADB" shell am force-stop $PKG
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 c.execute("update meal_slot set name='Café da manhã' where id=(select id from meal_slot order by minutesFromMidnight limit 1)")
@@ -164,10 +164,10 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
-"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e nutri_tela o3 >/dev/null
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
+"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e fibrai_tela o3 >/dev/null
 sleep 2
 shot o3
 tap o3-time-0
@@ -175,8 +175,8 @@ shot o3t
 tap time-wheel-cancel
 # A24: use a real stored grouped profile; reach the second step through Continue.
 "$ADB" shell am force-stop $PKG
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 c.execute("update profile set slotMode='split'")
@@ -188,16 +188,16 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
-"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e nutri_tela o3 >/dev/null
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
+"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e fibrai_tela o3 >/dev/null
 sleep 2
 tap o3-continue
 shot o3s
 # Restore the original same-every-day fixture for callers such as capture-config.sh.
 "$ADB" shell am force-stop $PKG
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 c.execute("delete from meal_slot where days=96")
@@ -208,8 +208,8 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am force-stop $PKG
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 2
