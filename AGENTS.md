@@ -1,6 +1,6 @@
 # Dieta Bot — repo constitution
 
-Product name: Dieta Bot. App identifiers are `app.fibrai.android` (package, applicationId, `fibrai.db`, Firebase `fibrai-dev`) per [ADR-036](docs/android/adrs/ADR-036-fibrai-technical-identity.md); `nutri` remains only in server, VM (`nutri-api`) and Stitch IDs per ADR-016.
+Product name: Fibrai. Assistant: Tali (ADR-034, ADR-035). App identifiers are `app.fibrai.android` (package, applicationId, `fibrai.db`, Firebase `fibrai-dev`) per [ADR-036](docs/android/adrs/ADR-036-fibrai-technical-identity.md); `nutri` remains only in server, VM (`nutri-api`) and Stitch IDs per ADR-016.
 
 One agent. Job: fit the next meal into today's remaining budget, dinner first.
 

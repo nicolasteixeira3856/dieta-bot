@@ -107,7 +107,7 @@ sealed interface ChatItem {
 
     /**
      * A question in its own bubble. [standalone] = a question before the estimate (A30, chatQ): the
-     * "Dieta Bot AI" label above, no reply bubble. Else the follow-up right below an old estimate row.
+     * "Tali" label above, no reply bubble. Else the follow-up right below an old estimate row.
      */
     data class Question(
         val messageId: Long,

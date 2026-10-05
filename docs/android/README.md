@@ -49,7 +49,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 | | dev | prod |
 |---|---|---|
-| `applicationId` | `app.fibrai.android.dev` ("Dieta Bot Dev", `versionName` `-dev`) | `app.fibrai.android` ("Dieta Bot") |
+| `applicationId` | `app.fibrai.android.dev` ("Fibrai Dev", `versionName` `-dev`) | `app.fibrai.android` ("Fibrai") |
 | `local.properties` | `dev.API_PUBLIC_URL`, `dev.INVITE_CODE` (fallback nas chaves sem prefixo) | `prod.API_PUBLIC_URL`, `prod.INVITE_CODE` (obrigatórias) |
 | `BuildConfig.ENV` | `"dev"` | `"prod"` |
 
@@ -91,7 +91,7 @@ Build de teste para o celular do dono, sem cabo:
 
 - `./tools/distribute-dev.ps1 -Notes <arquivo.md>`: notas válidas → árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`fibrai-dev`, grupo `testers`) → `CHANGELOG.md` → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
 - `-Notes`: obrigatório fora do `-DryRun`. Changelog em pt-BR para o tester, escrito pelo agente a partir dos commits e planos desde a tag `dev-v0.0.*` anterior: o que ele nota no app, seções opcionais `### Novidades`, `### Correções`, `### Ajustes`, um item curto por linha. Sem nome de arquivo, id de plano, hash ou termo técnico. O script recusa arquivo ausente ou vazio, hash de commit, prefixo `feat:`/`fix(…):`/`chore:` e título `#`/`##`, sempre antes do build, sem queimar número. Arquivo temporário no scratchpad do agente.
-- Notas no App Tester: `Dieta Bot 0.0.N` + linha em branco + o arquivo. O mesmo texto entra no topo de [`apps/android/CHANGELOG.md`](../../apps/android/CHANGELOG.md) como `## 0.0.N — DD/MM/AAAA` (America/Sao_Paulo), no commit `chore(release)`.
+- Notas no App Tester: `Fibrai 0.0.N` + linha em branco + o arquivo. O mesmo texto entra no topo de [`apps/android/CHANGELOG.md`](../../apps/android/CHANGELOG.md) como `## 0.0.N — DD/MM/AAAA` (America/Sao_Paulo), no commit `chore(release)`.
 - `-DryRun`: faz o build e as conferências; não distribui, não commita, não faz push, e deixa a árvore limpa. Com `-Notes`, valida e mostra as notas.
 - Versão: `apps/android/version.properties` (`VERSION_PATCH=N`) → `versionName` `0.0.N` (+ `-dev` do flavor) e `versionCode` `N`. O Gradle falha se o arquivo faltar ou não for inteiro positivo.
 - Bump: se a tag `dev-v0.0.N` já existe, o script grava N+1; se não existe (primeira vez), publica N como está. Falha antes do commit desfaz o bump, então o número não é queimado. Nunca editar o arquivo à mão; nunca reutilizar um número.
@@ -117,7 +117,6 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
 - Pendente aprovação manual: [A47 — Chat meal updates](plans/pending_manual_validation/a47-chat-meal-updates.md).
-- [A49 — Fibrai and Tali in the app](plans/a49-fibrai-tali-visible-rename.md).
 - [A50 — Plan over budget: the choice in the Chat](plans/a50-plan-budget-choice.md).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md).
 - Histórico: [`plans/completed/`](plans/completed/).

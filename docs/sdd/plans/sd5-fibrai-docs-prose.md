@@ -8,7 +8,7 @@
   - the four skills trees (`.agents/skills`, `.grok/skills`, `.hermes/skills`, `.claude/skills`).
 
   No code.
-- Prerequisite: [A49](../../android/plans/a49-fibrai-tali-visible-rename.md) `Concluído`. The app must say Fibrai before the docs describe it that way.
+- Prerequisite: [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) `Concluído`. The app must say Fibrai before the docs describe it that way.
 
 Authorization and delivery follow [SDD](../README.md). Approval: `Aprovo o plano docs/sdd/plans/sd5-fibrai-docs-prose.md. Implemente o plano aprovado.`
 

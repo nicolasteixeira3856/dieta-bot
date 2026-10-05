@@ -22,7 +22,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-The app code has no legacy `nutri` or `DietaBot` identifier. The dev app ships as `app.fibrai.android.dev`, registered in a new Firebase project with Crashlytics, Analytics and App Distribution for the current testers. Visible copy does not change here ([A49](../a49-fibrai-tali-visible-rename.md)).
+The app code has no legacy `nutri` or `DietaBot` identifier. The dev app ships as `app.fibrai.android.dev`, registered in a new Firebase project with Crashlytics, Analytics and App Distribution for the current testers. Visible copy does not change here ([A49](a49-fibrai-tali-visible-rename.md)).
 
 ## Scope
 
@@ -101,7 +101,7 @@ They are written at distribution time (A16).
 
 ## Out of scope
 
-- Visible strings, the avatar and the splash wordmark ([A49](../a49-fibrai-tali-visible-rename.md)).
+- Visible strings, the avatar and the splash wordmark ([A49](a49-fibrai-tali-visible-rename.md)).
 - Server identifiers, the VM and the Stitch project.
 - Prod build or distribution ([production gate](../../../content-policy/production-gate.md)).
 - Deleting `nutri-bot-dev`: an owner action, after the testers move over.
