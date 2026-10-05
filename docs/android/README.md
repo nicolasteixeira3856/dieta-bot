@@ -111,11 +111,14 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 - [ADR-014](adrs/ADR-014-flavors-firebase-dev.md) — flavors dev/prod, Firebase só no dev.
 - [ADR-018](adrs/ADR-018-foto-2048.md) — foto reduzida a 2048 px no client.
 - [ADR-027](adrs/ADR-027-golds-divergentes.md) — QA visual quando os golds divergem.
+- [ADR-036](adrs/ADR-036-fibrai-technical-identity.md) — `app.fibrai.android` em todo o app (pacotes, app id, banco, ações), projeto Firebase `fibrai-dev`.
 
 ### Planos e validação
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
 - [A47 — Chat meal updates](plans/a47-chat-meal-updates.md).
+- [A48 — Fibrai technical identity: `app.fibrai.android` everywhere and Firebase `fibrai-dev`](plans/a48-fibrai-app-id-firebase.md).
+- [A49 — Fibrai and Tali in the app](plans/a49-fibrai-tali-visible-rename.md).
 - Pendentes de validação manual: [`plans/pending_manual_validation/`](plans/pending_manual_validation/).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md).
 - Histórico: [`plans/completed/`](plans/completed/).

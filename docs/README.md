@@ -14,6 +14,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este 
 | [design](design/README.md) | fonte de design (Figma `Design`) | — (Figma + golds em `docs/qa/figma/` + `tools/export-figma.mjs`, `tools/gen-tokens.mjs`) | — | [adrs/](design/adrs/) | [índice](design/plans/README.md) | `tools/check-figma.mjs` |
 | [stitch](stitch/README.md) | gate de design congelado: referência dos fluxos não migrados, sem gates novos | — (golds + `tools/export-stitch.mjs`) | — | — | [plans/](stitch/plans/) | `tools/check-stitch.mjs` |
 | [content-policy](content-policy/README.md) | cross-cutting policy | um diretório por plano: server, Android ou infra GCP | [content handling](content-policy/specifications/content-policy.md), [identity/audit](content-policy/specifications/identity-and-audit.md) | [adrs/](content-policy/adrs/) | [índice](content-policy/plans/README.md) | [matriz](content-policy/validation/README.md) |
+| [site](site/README.md) | client web (landing estática) | `site/` | — | [adrs/](site/adrs/) | [plans/](site/plans/) | `docs/qa/site/current/` (nasce no W1) |
 | [sdd](sdd/README.md) | manutenção do fluxo | `tools/check-skills.mjs`, skills | — | — | [índice](sdd/plans/README.md) | — |
 
 `specifications/`, `adrs/`, `plans/` e `validation/` nascem no primeiro artefato. Não criar vazias. Pastas de estado do plano nascem no primeiro plano que as ocupar; vazias são removidas com `rmdir`.
@@ -63,6 +64,10 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [031](design/adrs/ADR-031-figma-source-of-truth.md) | design | arquivo Figma `Design` substitui o Stitch como fonte da UI; gate de revisão no Figma |
 | [032](produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) | produto | explicit meal additions, revisions and destination semantics |
 | [033](content-policy/adrs/ADR-033-global-chat-example-provenance.md) | content-policy | global Chat example provenance |
+| [034](produto/adrs/ADR-034-fibrai-brand-tali-assistant.md) | produto | marca do produto "Fibrai", assistente "Tali"; IDs técnicos `nutri` |
+| [035](produto/adrs/ADR-035-tali-in-app-identity.md) | produto | Fibrai e Tali no app: nome visível, rótulo e bolha de avatar da assistente |
+| [036](android/adrs/ADR-036-fibrai-technical-identity.md) | android | `app.fibrai.android` em todo o app (pacotes, app id, banco, ações), projeto Firebase `fibrai-dev` |
+| [037](site/adrs/ADR-037-landing-site.md) | site | landing estática Aero em fibrai.app, Cloudflare |
 
 ## Outros docs
 

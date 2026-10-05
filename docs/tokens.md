@@ -6,7 +6,7 @@ Single repository owner of the visual token values, as a mirror of the Figma fil
 
 ## Aero
 
-Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-10-04. Never edit this section by hand: change Figma, refresh [`design/tokens.json`](design/tokens.json) and run `node tools/gen-tokens.mjs`.
+Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-10-05. Never edit this section by hand: change Figma, refresh [`design/tokens.json`](design/tokens.json) and run `node tools/gen-tokens.mjs`.
 
 ### Color (modes: Light, Dark)
 
@@ -78,5 +78,9 @@ Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-
 | `Caption/Strong` | Nunito Sans | SemiBold | 13 | 18 | 0% |
 | `Label/Section` | Nunito Sans | Bold | 12 | 16 | 8% |
 | `Button` | Nunito Sans | Bold | 16 | 24 | 0% |
+| `Web/Display` | Nunito Sans | Bold | 56 | 64 | 0% |
+| `Web/Heading` | Nunito Sans | Bold | 36 | 44 | 0% |
+| `Web/Subheading` | Nunito Sans | Bold | 28 | 36 | 0% |
+| `Web/Lead` | Nunito Sans | Regular | 20 | 30 | 0% |
 
 <!-- aero:end -->
