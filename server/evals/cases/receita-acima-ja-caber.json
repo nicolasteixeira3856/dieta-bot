@@ -1,0 +1,128 @@
+{
+  "id": "receita-acima-ja-caber",
+  "since": "v4",
+  "tags": [
+    "plan",
+    "recipe",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-06T18:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-06",
+      "eaten_kcal": 1350,
+      "eaten_p": 74,
+      "eaten_c": 168,
+      "eaten_g": 40,
+      "workout_kcal": null,
+      "remaining_kcal": 450,
+      "slots": [
+        {
+          "id": "1",
+          "text": "pão integral com requeijão e café com leite",
+          "kcal": 380,
+          "p": 18,
+          "c": 45,
+          "g": 13,
+          "status": "eaten"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "text": "arroz, feijão, bife acebolado e salada",
+          "kcal": 760,
+          "p": 48,
+          "c": 85,
+          "g": 24,
+          "status": "eaten"
+        },
+        {
+          "id": "4",
+          "text": "1 banana e 1 iogurte",
+          "kcal": 210,
+          "p": 8,
+          "c": 38,
+          "g": 3,
+          "status": "eaten"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "vou fazer uma macarronada com 150 g de macarrão cru, 150 g de carne moída e queijo ralado. me passa a receita? quero que caiba no que sobrou do dia.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "reply_not": [
+      "?"
+    ],
+    "plan_budget": {
+      "over": false,
+      "choice": "fit",
+      "limit_kcal": 450
+    }
+  },
+  "required": [
+    "plan_budget"
+  ]
+}

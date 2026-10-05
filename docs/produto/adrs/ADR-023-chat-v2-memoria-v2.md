@@ -1,6 +1,6 @@
 # ADR-023 — Chat v2 (intenção, texto da refeição, plano) e Memória v2 (permanente + dinâmica)
 
-- Estado: Aceito (30/09/2026, pelo dono, depois do S11; parte server no ar no dev, parte client nos A27, A28 e A29); partially superseded by [ADR-029](ADR-029-fatos-temporarios-compactacao.md) (decision 4: adds temporary facts; permanent and dynamic rules remain)
+- Estado: Aceito (30/09/2026, pelo dono, depois do S11; parte server no ar no dev, parte client nos A27, A28 e A29); partially superseded by [ADR-029](ADR-029-fatos-temporarios-compactacao.md) (decision 4: adds temporary facts; permanent and dynamic rules remain); partially superseded by [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (decision 3: recipe preparation becomes cooking help with steps, and the plan answer may be followed by the budget choice)
 - Data: 2026-09-30
 - Contexto: `produto`
 - Substitui: parcialmente a [spec de memória](../specifications/memoria-push.md) (regras 2–4 da memória, vigentes desde o [A8](../../android/plans/completed/a8-memoria.md)) e a regra 12 da [spec do Chat](../specifications/chat.md). Adiciona golds `chatR`, `chatM` e `chatS` à lista do `AGENTS.md` (não remove nenhum). Pode mudar o `reasoning.effort` do `AGENTS.md` (decisão 6). Estende o `POST /v1/chat` do [contrato](../../api-contract.md) de forma aditiva.

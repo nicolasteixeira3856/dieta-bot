@@ -117,6 +117,8 @@ class CheckTests(unittest.TestCase):
             "item_portions": {"absent": 70},
             "memory_used_only": ["P1"],
             "memory_update_text": [{"match": {"kind": "temp"}, "has": ["fictional"]}],
+            "items_beyond": {"given": ["ovo"], "min": 1},
+            "plan_budget": {"over": True},
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)
@@ -269,7 +271,7 @@ class CaseFileTests(unittest.TestCase):
                     self.assertTrue((run.MEDIA_DIR / case["image"]).is_file())
                 self.assertTrue(case["tags"])
                 self.assertTrue(set(case["expect"]) <= set(KNOWN))
-                body = ChatIn.model_validate(case["request"])
+                body = ChatIn.model_validate(run.case_request(case))
                 slot_ids = {s.id for s in body.profile.slots}
                 slot = case["expect"].get("suggested_slot")
                 if slot is not None:

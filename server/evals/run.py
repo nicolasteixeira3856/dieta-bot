@@ -111,6 +111,16 @@ def select_cases(
     return cases
 
 
+BUDGET_TAG = "over-budget"
+
+
+def case_request(case: dict[str, Any]) -> dict[str, Any]:
+    """The request as sent: a case tagged over-budget opts in to the plan budget capability (ADR-039)."""
+    if BUDGET_TAG in case.get("tags", []):
+        return {**case["request"], "plan_budget": True}
+    return case["request"]
+
+
 def run_once(
     llm: LlmClient,
     usage: UsageTransport,
@@ -119,7 +129,7 @@ def run_once(
     moderator: Moderator | None = None,
 ) -> dict[str, Any]:
     """One repetition, handled like the /v1/chat route. Moderation down = an error repetition."""
-    body = ChatIn.model_validate(case["request"])
+    body = ChatIn.model_validate(case_request(case))
     image = None if body.compact else _case_image(case)
     trace: dict[str, Any] = {}
     error: str | None = None

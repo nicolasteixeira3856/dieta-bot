@@ -1,6 +1,6 @@
 # ADR-026 — Questions before the estimate, capped at 3 rounds
 
-- Status: Accepted (30/09/2026, with [A30](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md))
+- Status: Accepted (30/09/2026, with [A30](../../android/plans/completed/a30-perguntas-antes-da-estimativa.md)); partially superseded by [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (decision 1: `plan` never asks, except the app-driven budget choice)
 - Date: 2026-09-30
 - Context: `produto`
 - Supersedes: partially the `AGENTS.md` Product rule "One question if confidence is not high", rule 14 of the [Chat spec](../specifications/chat.md) and rule 4 of [v1-chat](../../server/specifications/v1-chat.md) ("one question per meal"). Changes gold `chatE` (the question bubble leaves the estimate screen) and adds gold `chatQ` (27 → 28 per theme). Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively.

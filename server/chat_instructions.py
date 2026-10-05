@@ -375,15 +375,33 @@ RULES: dict[str, Rule] = {
         'When meal_day is other, including other by the before-05:00 dinner rule, reply starts with the '
         'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed.'
     )),
-    'plan': Rule('server Chat 3c; ADR-023', (
+    'plan': Rule('server Chat 3c; ADR-023/039', (
         'PLAN: identified food always has an estimate object, including a plan for a later day that also '
         'saves a temporary reference. A memory proposal does not substitute for that estimate. Preserve '
         'supplied nutrients; estimate any missing nutrients in the estimate only, never in the saved fact. '
-        'reply gives the grams of each item, the preparation in up to 3 lines when it is a recipe, and '
-        'the dish total as kcal · P · C · G. Build the dish to fit DAY remaining_kcal when possible; if it '
-        "does not fit, say by how many kcal it goes over. Do not compute the day's totals in reply (the app "
-        'shows them). A plan never asks: assume, and say in reply what you assumed; question is null and '
-        'confidence may be medium.'
+        'reply gives the grams of each item and the dish total as kcal · P · C · G. A plan never asks '
+        'about the food: assume, and say in reply what you assumed; question is null and confidence may '
+        'be medium. '
+        'COOKING: a request for a recipe or for what to make is cooking help, not a sum of the listed '
+        'foods. Name a real dish a cook would serve. The foods the user has are the base. You may add up '
+        'to 3 common, low-cost foods that change the dish, not only seasoning, chosen for flavor, volume, '
+        'protein or satiety for few kcal. Mark each added food as (opcional) in reply and include it in '
+        'items and in the totals. For a recipe, reply lists the ingredients with grams and up to 5 '
+        'numbered steps with temperature and time. A plan that is not a recipe has no preparation steps. '
+        'BUDGET: the app shows whether the dish fits the day. reply never says whether the dish fits, '
+        "what is left, or by how many kcal it goes over, and never computes the day's totals. When the "
+        'user leaves the dish to you, build it to fit DAY remaining_kcal when possible. When the user '
+        'states the foods or amounts, size the dish as they would make it and do not shrink it for the '
+        'budget. plan_budget is {reserved, choice} for a plan with an estimate and null for every other '
+        'turn. reserved lists each OTHER meal still to be eaten today that this message or MEMORY '
+        'states, as {label, kcal}: a short pt-BR label and its stated or estimated kcal. A reserved meal '
+        'never enters items, meal_text or the totals. With no such meal, reserved is empty. choice '
+        'reports what the user already said about the budget of this dish, in this message or an earlier '
+        'turn about it: over_ok when going over is fine, fit when the dish must fit the budget, the day '
+        'or what is left; otherwise null. Never ask about the budget. '
+        'BUDGET_TARGET: only when the input ends with a BUDGET_TARGET line, rebuild the same dish so '
+        'that estimate.kcal is at or below that number: shrink calorie-dense foods first and keep the '
+        'added foods where possible. items, meal_text, the totals and reply describe the rebuilt dish.'
     )),
     'history': Rule('server Chat 3d; ADR-023/029', (
         'HISTORY: RECENT contains records with explicit date, weekday, slot, foods and nutrition. '

@@ -4,7 +4,7 @@
 - Date: 05/10/2026
 - Owning context: `design`
 - Executable boundary: the plan-over-budget state in Figma `Design`; no app/server code. Repository outputs: the gold `chatRB`, its entry in `tools/export-figma.mjs`, the gold inventory and design documentation.
-- Prerequisites: acceptance of [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md) (by the approval of [S21](../../server/plans/s21-plan-cooking-and-budget-choice.md)); [D10](completed/d10-fibrai-tali-rename.md) golds in place, so the frame uses the Tali identity.
+- Prerequisites: acceptance of [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md) (by the approval of [S21](../../server/plans/completed/s21-plan-cooking-and-budget-choice.md)); [D10](completed/d10-fibrai-tali-rename.md) golds in place, so the frame uses the Tali identity.
 - Figma MCP budget: at most 40 calls, within the ceiling and rollover rules of [ADR-031](../adrs/ADR-031-figma-source-of-truth.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/design/plans/d12-plan-budget-choice.md. Implemente o plano aprovado.`
