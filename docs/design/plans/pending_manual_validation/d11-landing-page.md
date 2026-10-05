@@ -170,11 +170,35 @@ One review image per final frame was sent to the owner on 2026-10-05 (REST dry-r
 - Export, then run `check-figma` and `check-docs`.
 - Export the phone screens as web assets for W1.
 
+### Owner fix 1: WCAG contrast (2026-10-05)
+
+The owner found the text hard to read in Light. The ratios were measured against the real background: the `Background/Page` gradient at each text's position, or the glass composite of `surface/glass` + sheen over it. Targets are WCAG 2.2 AA, 4.5:1 for body text and 3:1 for large text and UI icons.
+
+**What failed (Light only):** text in `text/muted`, `text/dim` or `accent/default` placed straight on the saturated top of the gradient (`bg/top` → `bg/mid`):
+
+| Text | Before | After (`text/primary`) |
+|---|---|---|
+| Nav links (`Web/NavBar` Desktop) | 2.66 | ≥ 6.46 |
+| Eyebrow | 2.67 | ≥ 6.46 |
+| Lead (`land`, `landM`) | 2.94 / 2.85 | ≥ 7.01 |
+| Disclaimer caption | 2.89 | ≥ 6.46 |
+| `priv` "Em breve." | 3.58 | 8.81 |
+
+- **Fix:** those 17 text nodes (nav component, hero texts and `priv`, both rows) are bound to `text/primary`. No variable changed, so the app is untouched.
+- **Already passing (Light):**
+  - text on glass cards: `text/muted` ≥ 4.99;
+  - chips: `text/muted` on `surface/2` 4.87;
+  - footer: `text/dim` / `accent/default` ≥ 4.62 / 4.74;
+  - the switch icons on the glass pill: > 3:1.
+- **Dark:** every text was already ≥ 5.34.
+- **Not changed:** the app screens inside the phone frames, which are gold clones of the app.
+- **Exploration:** frames A, B and C keep the old colors as history.
+
 ### Figma MCP budget
 
-Day 1 (2026-10-05): 21 calls of 120:
+Day 1 (2026-10-05): 22 calls of 120 (the WCAG fix added one write):
 
 - 1 `whoami` and 3 skill reads;
-- 17 `use_figma`: 7 read-only inspections and 10 writes. Of the inspections, one was a syntax error. Of the writes, one hit an instance lookup error and one matched nothing.
+- 18 `use_figma`: 7 read-only inspections and 11 writes. Of the inspections, one was a syntax error. Of the writes, one hit an instance lookup error and one matched nothing.
 
 Review images come from the REST export (`tools/export-figma.mjs --dry-run`) and cost no MCP call.
