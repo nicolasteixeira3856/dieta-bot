@@ -172,11 +172,11 @@ private fun TopBar(bar: AeroOnboardingBar, onBack: (() -> Unit)?) {
                     modifier = Modifier.testTag("onboarding-back"),
                 )
                 if (bar is AeroOnboardingBar.Brand) {
-                    AeroText("Dieta Bot", Modifier.weight(1f), style = type.title.copy(color = c.textPrimary, textAlign = TextAlign.Center))
+                    AeroText("Fibrai", Modifier.weight(1f), style = type.title.copy(color = c.textPrimary, textAlign = TextAlign.Center))
                     AeroIconButton(AeroIconName.Question, bar.onHelp, contentDescription = "Ajuda", modifier = Modifier.testTag("onboarding-help"))
                 } else {
                     AeroText(
-                        AeroTextTokens.labelSection.cased("Dieta Bot Intake"),
+                        AeroTextTokens.labelSection.cased("Fibrai Intake"),
                         Modifier.weight(1f),
                         style = type.labelSection.copy(color = c.textPrimary, textAlign = TextAlign.Center),
                     )

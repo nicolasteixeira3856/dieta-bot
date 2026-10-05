@@ -31,7 +31,7 @@ The model knows it is Tali, the Fibrai assistant. It says so only when asked, an
 ## Out of scope
 
 - Any behavior, schema or contract change: no `docs/api-contract.md` change.
-- Client copy ([A49](../../android/plans/a49-fibrai-tali-visible-rename.md)).
+- Client copy ([A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md)).
 - Server identifiers, logger names and the VM (`nutri` stays per [ADR-036](../../android/adrs/ADR-036-fibrai-technical-identity.md)).
 
 ## Validation

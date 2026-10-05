@@ -22,6 +22,7 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 6. Prefix do chat: teto vigente, eat-back, alvos P/C/G, lista nome+hora só dos slots do dia em America/Sao_Paulo (ADR-021).
 7. Disclaimer na splash com a copy ("Estimativa nutricional, nao substitui consulta medica ou nutricional.") e na Home. As telas O1-O4 do gold nao tem disclaimer.
 8. Campos de texto (O1–O4): ao receber foco (toque, Próximo do teclado, botão de ajuste do macro), o cursor vai para o fim do valor; toques seguintes no campo focado posicionam o cursor onde o usuário tocar. O campo focado fica sempre visível acima do teclado: a página rola até ele. O botão fixo do rodapé (Continuar / Concluir e começar) fica atrás do teclado enquanto ele está aberto e volta quando ele fecha.
+9. Nome visível ([ADR-034](../adrs/ADR-034-fibrai-brand-tali-assistant.md)): a splash mostra o wordmark "Fibrai"; o cabeçalho do onboarding diz "Fibrai" (O4) e "FIBRAI INTAKE" (O2, O3); o app aparece como "Fibrai" ("Fibrai Dev" no flavor dev) no launcher e nas notificações.
 
 ## Estados e falhas
 
@@ -58,3 +59,4 @@ Dono: produto. Implementação: `android`.
 - [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) — Ceiling screen before the profile (`o1e`)
 - [A41](../../android/plans/completed/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
+- [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai e Tali no app

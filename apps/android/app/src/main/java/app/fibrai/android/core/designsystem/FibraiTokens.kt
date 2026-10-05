@@ -4,7 +4,7 @@ object SplashBoot {
     const val MAX_MS = 2000L
     const val DELAY_MS = 1200L
     const val COPY = "Estimativa nutricional, não substitui consulta médica ou nutricional."
-    const val WORDMARK = "Dieta Bot"
+    const val WORDMARK = "Fibrai"
     /**
      * A14: logo above the wordmark (design/brand, tools/brand-icons.ps1). Stitch gold: a 120 dp box with the
      * uploaded icon.png (symbol ≈ half of it), 16 dp above the wordmark line box (A15, measured on the gold PNG). logo_mark is the tight crop, so it is

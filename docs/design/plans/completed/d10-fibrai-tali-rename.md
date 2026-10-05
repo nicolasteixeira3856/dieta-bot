@@ -57,7 +57,7 @@ Replace "Dieta Bot" with "Fibrai" on brand surfaces, and with "Tali" plus the av
 
 ## Intended documentation changes
 
-None at D10 Completion besides Results and this plan's lifecycle. The product specifications change when [A49](../../../android/plans/a49-fibrai-tali-visible-rename.md) delivers.
+None at D10 Completion besides Results and this plan's lifecycle. The product specifications change when [A49](../../../android/plans/completed/a49-fibrai-tali-visible-rename.md) delivers.
 
 ## Out of scope
 
@@ -154,7 +154,7 @@ Read-only search of every page of the Figma file for text containing "Dieta" (20
 - **Changed golds:** 44 PNGs, 22 ids × 2 themes: `splash`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `chat0`, `chatL`, `chatQ`, `chatE`, `chatX`, `chatT`, `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `push`, `land`. No other gold has a byte diff.
 - **Inventory:** sources do not change; every id is already `figma`.
 - **Checks:** `node tools/check-figma.mjs` (68 PNGs) and `node tools/check-docs.mjs` pass.
-- **Next:** [A49](../../../android/plans/a49-fibrai-tali-visible-rename.md) compares against these PNGs and ships `docs/design/brand/tali-avatar-placeholder.png`. [W1](../../../site/plans/completed/w1-landing-site.md) takes the phone screens from `o1`, `home1` and `chatE`.
+- **Next:** [A49](../../../android/plans/completed/a49-fibrai-tali-visible-rename.md) compares against these PNGs and ships `docs/design/brand/tali-avatar-placeholder.png`. [W1](../../../site/plans/completed/w1-landing-site.md) takes the phone screens from `o1`, `home1` and `chatE`.
 
 ### Figma MCP budget
 

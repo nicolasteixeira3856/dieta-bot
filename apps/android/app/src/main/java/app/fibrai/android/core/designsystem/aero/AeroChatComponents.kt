@@ -8,6 +8,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import app.fibrai.android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +45,7 @@ import app.fibrai.android.core.designsystem.dietaClick
 
 private val pill = RoundedCornerShape(percent = 50)
 
-/** Chat/BotLabel: lightning in a tinted well + "Dieta Bot AI". */
+/** Chat/BotLabel (D10): the Label avatar + "Tali" (Caption/Strong), 6 dp apart, 20 dp high. */
 @Composable
 fun AeroBotLabel(modifier: Modifier = Modifier) {
     val c = Aero.colors
@@ -50,12 +54,26 @@ fun AeroBotLabel(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier.size(20.dp).clip(CircleShape).background(c.surfaceTint).border(1.dp, c.borderGlass, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) { AeroIcon(AeroIconName.Lightning, c.iconPrimary, size = 12.dp) }
-        AeroText("Dieta Bot AI", style = Aero.type.captionStrong.copy(color = c.textPrimary))
+        TaliAvatar(TaliAvatarSize.Label)
+        AeroText("Tali", style = Aero.type.captionStrong.copy(color = c.textPrimary))
     }
+}
+
+/** Chat/TaliAvatar sizes (D10): Header 32 dp, Label 20 dp. */
+enum class TaliAvatarSize(val dp: Dp) { Header(32.dp), Label(20.dp) }
+
+/**
+ * Chat/TaliAvatar (D10, ADR-035): the assistant image in a circle with a 1 dp border/glass ring inside. Decorative: the
+ * "Tali" text next to it carries the name. The temporary art is R.drawable.tali_avatar; the final art replaces only it.
+ */
+@Composable
+fun TaliAvatar(size: TaliAvatarSize, modifier: Modifier = Modifier) {
+    Image(
+        painterResource(R.drawable.tali_avatar),
+        contentDescription = null,
+        modifier = modifier.size(size.dp).clip(CircleShape).border(1.dp, Aero.colors.borderGlass, CircleShape),
+        contentScale = ContentScale.Crop,
+    )
 }
 
 /** Chip/Date: centred glass pill with the day ("Hoje, 25 de setembro"). */

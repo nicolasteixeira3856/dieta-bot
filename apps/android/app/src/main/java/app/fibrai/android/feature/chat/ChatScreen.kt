@@ -82,6 +82,8 @@ import app.fibrai.android.core.designsystem.aero.AeroSheet
 import app.fibrai.android.core.designsystem.aero.AeroSlotPickRow
 import app.fibrai.android.core.designsystem.aero.AeroText
 import app.fibrai.android.core.designsystem.aero.AeroTextTokens
+import app.fibrai.android.core.designsystem.aero.TaliAvatar
+import app.fibrai.android.core.designsystem.aero.TaliAvatarSize
 import app.fibrai.android.core.designsystem.aero.aeroGlass
 import app.fibrai.android.core.designsystem.aero.aeroGloss
 import app.fibrai.android.core.designsystem.aero.cased
@@ -228,12 +230,16 @@ private fun Header(onBack: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AeroIconButton(AeroIconName.CaretLeft, onBack, contentDescription = "Voltar", modifier = Modifier.testTag("chat-back"))
-        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                AeroText("Chat Dieta Bot", style = type.bodyStrong.copy(color = c.textPrimary))
-                Box(Modifier.size(8.dp).clip(CircleShape).background(c.accentDefault))
+        // D10: the Header avatar next to "Tali" + the accent dot over the subtitle, left-aligned to it, the group centred.
+        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+            TaliAvatar(TaliAvatarSize.Header)
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    AeroText("Tali", style = type.bodyStrong.copy(color = c.textPrimary))
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(c.accentDefault))
+                }
+                AeroText(AeroTextTokens.labelSection.cased("Assistente de refeições"), style = type.labelSection.copy(color = c.textMuted), maxLines = 1)
             }
-            AeroText(AeroTextTokens.labelSection.cased("Assistente de refeições"), style = type.labelSection.copy(color = c.textMuted))
         }
         Spacer(Modifier.size(44.dp))
     }
@@ -591,7 +597,7 @@ private fun LoadingBubble() {
                 AeroText(AeroTextTokens.labelSection.cased("Micro & macronutrientes"), style = type.labelSection.copy(color = c.textDim))
             }
         }
-        AeroText("Dieta Bot AI", Modifier.padding(start = 4.dp), style = type.caption.copy(color = c.textMuted))
+        AeroText("Tali", Modifier.padding(start = 4.dp), style = type.caption.copy(color = c.textMuted))
     }
 }
 

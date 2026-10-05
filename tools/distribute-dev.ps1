@@ -12,7 +12,7 @@
   3. testDevDebugUnitTest, then assembleDevRelease.
   4. Checks the APK: signer CN=Nutri (A9) with apksigner, versionName 0.0.N-dev / versionCode N with aapt2.
   5. firebase appdistribution:distribute to the "testers" group of fibrai-dev.
-     Release notes = "Dieta Bot 0.0.N" + blank line + the -Notes file.
+     Release notes = "Fibrai 0.0.N" + blank line + the -Notes file.
   6. Prepends "## 0.0.N - DD/MM/AAAA" (em dash) + the notes to apps/android/CHANGELOG.md.
      Commit "chore(release): 0.0.N-dev" (version.properties + CHANGELOG.md) + tag dev-v0.0.N, push both.
   Any failure before step 6 restores version.properties, so the number is not burned.
@@ -144,7 +144,7 @@ try {
     }
     Write-Host "ok $($apk.Name): CN=Nutri, versionName $version, versionCode $n"
 
-    $releaseNotes = "Dieta Bot 0.0.$n`n`n$notesText"
+    $releaseNotes = "Fibrai 0.0.$n`n`n$notesText"
     if ($DryRun) {
         if ($notesText) { Write-Host "release notes:`n$releaseNotes" }
         Write-Host "dry run: not distributed, not committed, not pushed"
@@ -174,7 +174,7 @@ $changelog = if ($first.Success) { $changelog.Insert($first.Index, "$section`n")
 git -C $root add "apps/android/version.properties" "apps/android/CHANGELOG.md"
 git -C $root commit --allow-empty -m "chore(release): $version" | Out-Null
 if ($LASTEXITCODE -ne 0) { Fail "distributed $version but the release commit failed: commit and tag $tag by hand" }
-git -C $root tag -a $tag -m "Dieta Bot $version (Firebase App Distribution)"
+git -C $root tag -a $tag -m "Fibrai $version (Firebase App Distribution)"
 if ($LASTEXITCODE -ne 0) { Fail "distributed $version but tagging failed: tag $tag by hand" }
 git -C $root push origin HEAD
 if ($LASTEXITCODE -ne 0) { Fail "push of the release commit failed: run git push origin HEAD" }
