@@ -1,6 +1,6 @@
 # ADR-016 — Nome visível "Dieta Bot"; IDs técnicos continuam "nutri"
 
-- Estado: Aceito (aprovação do plano A13, 2026-09-28)
+- Estado: Aceito (aprovação do plano A13, 2026-09-28); nome visível a ser substituído pelo [ADR-034](ADR-034-fibrai-brand-tali-assistant.md) quando os planos de renomeação concluírem (IDs técnicos `nutri` seguem)
 - Data: 2026-09-28
 - Contexto: `produto`
 - Substitui: parcialmente o nome "Nutri" em `AGENTS.md` e nas specs vivas. ADRs aceitos não se editam.

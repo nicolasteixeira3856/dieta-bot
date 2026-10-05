@@ -63,6 +63,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [031](design/adrs/ADR-031-figma-source-of-truth.md) | design | arquivo Figma `Design` substitui o Stitch como fonte da UI; gate de revisão no Figma |
 | [032](produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) | produto | explicit meal additions, revisions and destination semantics |
 | [033](content-policy/adrs/ADR-033-global-chat-example-provenance.md) | content-policy | global Chat example provenance |
+| [034](produto/adrs/ADR-034-fibrai-brand-tali-assistant.md) | produto | marca do produto "Fibrai", assistente "Tali"; IDs técnicos `nutri` |
 
 ## Outros docs
 

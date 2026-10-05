@@ -64,6 +64,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-028](adrs/ADR-028-registro-autonomo.md) — registro autônomo no Chat com recibo reversível.
 - [ADR-029](adrs/ADR-029-fatos-temporarios-compactacao.md) — fatos temporários (3 dias), compactação que mantém o fim aberto, dia da refeição.
 - [ADR-032](adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) — explicit meal additions, revisions and destination semantics.
+- [ADR-034](adrs/ADR-034-fibrai-brand-tali-assistant.md) — marca "Fibrai", assistente "Tali".
 
 ### Planos
 
