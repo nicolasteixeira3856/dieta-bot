@@ -1,6 +1,6 @@
 # Closed-test data map
 
-Delivered by [CP1](../plans/completed/cp1-closed-test-notice.md) on 2026-10-01. Scope: the dev flavor (`com.nutri.android.dev`), the GCP dev VM `nutri-api` and the owner's workstation, during the closed test. Tester-facing summary: [tester notice](../legal/tester-notice.pt-BR.md). Production retention belongs to [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) and [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md).
+Delivered by [CP1](../plans/completed/cp1-closed-test-notice.md) on 2026-10-01. Scope: the dev flavor (`app.fibrai.android.dev` since A48, 2026-10-05; the previous `com.nutri.android.dev` keeps its local data on a tester's phone until uninstall), the GCP dev VM `nutri-api` and the owner's workstation, during the closed test. Tester-facing summary: [tester notice](../legal/tester-notice.pt-BR.md). Production retention belongs to [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) and [CP9](../plans/out_of_scope/cp9-production-audit-and-containment.md).
 
 Facts below were read from the code on 2026-10-01 (revision `bdc5251`). "Unknown" means nobody has checked it; do not fill it with a guess.
 
@@ -8,7 +8,7 @@ Facts below were read from the code on 2026-10-01 (revision `bdc5251`). "Unknown
 
 | # | Data class | Contents | Where it lives | Who can access | Purpose | Retention |
 | --- | --- | --- | --- | --- | --- | --- |
-| D1 | Android Room database | Profile (ceiling, eat-back, macro targets, slots), days, meal logs, slot skips, day digests, chat messages with the local photo path | App-private storage (`nutri.db`); `allowBackup=false` | The tester on the device; the app | Day state and Chat thread | Until uninstall or clear-data. `Zerar hoje` deletes today's meal logs, skips and digest but keeps chat messages, profile and slots |
+| D1 | Android Room database | Profile (ceiling, eat-back, macro targets, slots), days, meal logs, slot skips, day digests, chat messages with the local photo path | App-private storage (`fibrai.db`; `nutri.db` in the previous app); `allowBackup=false` | The tester on the device; the app | Day state and Chat thread | Until uninstall or clear-data. `Zerar hoje` deletes today's meal logs, skips and digest but keeps chat messages, profile and slots |
 | D2 | Android memory file | AI memory facts (eating habits), JSON in encrypted `memory.bin` | `filesDir`, app-private | The tester on the device; the app | Context for the next estimate | Facts expire by the memory rules (ADR-023); file kept until uninstall or clear-data; `Zerar hoje` keeps it |
 | D3 | Android photos | JPEG q85, ≤2048 px, EXIF stripped (ADR-018) | `filesDir/photos`, app-private | The tester on the device; the app | Upload body and Chat thumbnail | Unsent or replaced attachments deleted at once. Sent photos stay until uninstall or clear-data |
 | D4 | Request memory on the GCP VM | Request body: text, base64 photo, history, memory, profile, day state | `api` container process memory | The running process; root on the VM | Moderation and generation for one turn | Request lifetime. The photo is detached from the body on entry and dropped after the call; never written to disk |
@@ -20,13 +20,13 @@ Facts below were read from the code on 2026-10-01 (revision `bdc5251`). "Unknown
 | D10 | OpenAI requests | Responses calls: instructions, user block (text, history, memory, profile, day), photo; `store=False`. Moderation calls: current text, photo and generated output | OpenAI API (project of the dev server key) | OpenAI under its API data policy; owner sees usage only | Generation and moderation | Not stored for app retrieval (`store=False`). Provider abuse-monitoring retention: unknown for this project (governed by OpenAI's API policy; not verified, no zero-retention agreement) |
 | D11 | OpenAI `safety_identifier` | HMAC pseudonym of the installation UUID | Sent on Responses calls; D5 record | OpenAI; owner via D5 | Abuse correlation | Server code deployed to dev 2026-10-01 ([CP3](../plans/completed/cp3-server-safety-identifier.md)) and active since 2026-10-01: secret provisioned by [CP5](../plans/completed/cp5-gcp-dev-ingress.md), header sent by dev 0.0.6 ([CP4](../plans/completed/cp4-android-installation-identity.md)). Retention follows D5 and D10 |
 | D14 | Android installation ID (CP4) | Random UUID v4, no device data | `noBackupFilesDir/installation_id`, app-private, excluded from backup | The tester on the device; the app; sent as `X-Client-Instance-Id` to the configured API origin only (D4), never to Firebase | Source of D11 | Until uninstall or clear-data. `Zerar hoje` and updates keep it. Not yet distributed |
-| D12 | Firebase telemetry (dev, ADR-014) | Crashlytics crashes, breadcrumbs and keys; Analytics events with enums and numbers (screen, route, status, latency, text-length bucket, has_photo, kcal). No user text, no photo. `X-Request-Id` links a crash to D5 (ADR-015) | Firebase project `nutri-bot-dev` | Owner and project members | Crash and usage diagnosis | Unknown: project retention settings not inspected |
+| D12 | Firebase telemetry (dev, ADR-014) | Crashlytics crashes, breadcrumbs and keys; Analytics events with enums and numbers (screen, route, status, latency, text-length bucket, has_photo, kcal). No user text, no photo. `X-Request-Id` links a crash to D5 (ADR-015) | Firebase project `fibrai-dev` since 2026-10-05 (A48); earlier events stay in the frozen `nutri-bot-dev` | Owner and project members | Crash and usage diagnosis | Unknown: project retention settings not inspected |
 | D13 | Secrets on the VM | `OPENAI_API_KEY`, invite code, `SAFETY_ID_SECRET` (since 2026-10-01) | `/opt/nutri/.env`, root-only | Root on the VM | Auth and provider access | Until rotated. Never in logs (D5 redacts them) |
 
 ## Unknowns
 
 - D10: OpenAI abuse-monitoring retention that applies to this project.
-- D12: Crashlytics and Analytics retention configured in `nutri-bot-dev`.
+- D12: Crashlytics and Analytics retention configured in `fibrai-dev` and in the frozen `nutri-bot-dev`.
 - IAM: the exact list of principals with SSH/OS Login rights on `nutri-api` was not listed in this delivery.
 
 Close an unknown by recording the checked value, date and source here. CP5 closed the D5–D7 and D9 inventory on 2026-10-01.
