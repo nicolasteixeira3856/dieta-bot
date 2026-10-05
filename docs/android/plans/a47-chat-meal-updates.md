@@ -5,7 +5,7 @@
 - Owning context: `android`
 - Executable boundary: `apps/android/` only: Chat UI/ViewModel/recorder, domain update rules, network DTOs/prompt building, Room entities/migration and relevant tests.
 - Related documentation: product Chat, Room specification, Android validation and plan/index lifecycle. Fresh emulator captures belong in the existing QA folders.
-- Prerequisites: acceptance of [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md); [S18](../../server/plans/completed/s18-meal-additions-and-revisions.md) delivered and available on the dev server; [D9](../../design/plans/pending_manual_validation/d9-chat-meal-updates.md) `Concluído` with exported golds; [A43](completed/a43-chat-records-memory-aero.md) delivered.
+- Prerequisites: acceptance of [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md); [S18](../../server/plans/completed/s18-meal-additions-and-revisions.md) delivered and available on the dev server; [D9](../../design/plans/completed/d9-chat-meal-updates.md) `Concluído` with exported golds; [A43](completed/a43-chat-records-memory-aero.md) delivered.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a47-chat-meal-updates.md. Implemente o plano aprovado.`
 
