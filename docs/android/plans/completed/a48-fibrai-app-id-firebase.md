@@ -1,6 +1,6 @@
 # Plan — A48 Fibrai technical identity: `app.fibrai.android` everywhere and Firebase `fibrai-dev`
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 05/10/2026
 - Owning context: `android`
 - Executable boundary:
@@ -14,7 +14,7 @@
   - `docs/content-policy/specifications/identity-and-audit.md` if it names the app id.
 - Prerequisites:
   - approval of this plan accepts ADR-036;
-  - no other Android plan in implementation while this one runs, because the package move rewrites every file. [A47](a47-chat-meal-updates.md) is either delivered first or rebased after this plan.
+  - no other Android plan in implementation while this one runs, because the package move rewrites every file. [A47](../pending_manual_validation/a47-chat-meal-updates.md) is either delivered first or rebased after this plan.
 
   No dependency on D10, A49 or S20.
 
@@ -167,7 +167,7 @@ Approved by the owner on 2026-10-05 ("Aprovo o plano docs/android/plans/a48-fibr
 6. Distribution: not run. `tools/distribute-dev.ps1` requires a green `testDevDebugUnitTest`, and the 3 pre-existing GoldTests stay red until A49.
 7. `node tools/check-docs.mjs` and `node tools/check-skills.mjs`: passed.
 
-### Pending
+### Pending at implementation (closed below)
 
 - **Owner, keystore:** rename `nutri-release.jks` to `fibrai-release.jks` at the repository root and set `storeFile` in `key.properties`. `*.jks` stays gitignored. After that, the agent confirms the signature SHA-256 is unchanged.
 - **Owner, Analytics:** confirm the events in the `fibrai-dev` console (Realtime or DebugView). The local gcloud token has no Analytics scope.
@@ -176,3 +176,18 @@ Approved by the owner on 2026-10-05 ("Aprovo o plano docs/android/plans/a48-fibr
   - `docs/content-policy/legal/tester-notice.pt-BR.md` (version 1) names `com.nutri.android.dev`.
   - `docs/content-policy/operations/closed-test-data-map.md` D12 says retention is configured in `nutri-bot-dev`; the same retention must be set in `fibrai-dev`.
   - Both are content-policy documents. The notice is versioned legal text, so the owner decides the new notice version and the retention setting.
+
+### Closure (2026-10-05)
+
+- **Keystore:** the owner renamed the file to `fibrai-release.jks` and pointed `storeFile` at it. The key's only alias is still `nutri`, as ADR-036 keeps the same key and alias. The owner had set `keyAlias=fibrai`, which failed packaging, so the agent restored `keyAlias=nutri` in the gitignored `key.properties`. The release signs with SHA-256 `c9978f23…7b2b8a1d`, the same certificate as before.
+- **Analytics:** confirmed by the owner in the `fibrai-dev` console.
+- **Content documents (owner request):**
+  - tester notice version 2: `app.fibrai.android.dev`, Firebase `fibrai-dev`, four testers, and the installation pseudonym that is active since dev 0.0.6;
+  - the data map now names `fibrai.db` and `fibrai-dev`. D12 retention is still unknown.
+  - Both are linked from [PR #128](https://github.com/nicolasteixeira3856/dieta-bot/pull/128).
+- **App Distribution group:** at the owner's request the group `testers` is now displayed as "Testers". It holds exactly the four testers the owner listed (the three earlier members are among them; nobody removed). No email is written in the repository.
+- **Validation 6, distribution, under an owner exception:** the owner explicitly authorized a one-time distribution without the `testDevDebugUnitTest` gate, because of the 3 known GoldTests (`chatF` ×2, `chatL` dark) that A49 fixes.
+  - The agent ran a scratchpad copy of `tools/distribute-dev.ps1` whose only differences were the repository path and that gate. Every other step ran: version, `assembleDevRelease`, `CN=Nutri` and version checks, App Distribution with the notes, CHANGELOG, `chore(release)` commit, tag and push.
+  - Result: **0.0.13-dev (versionCode 13)** to "Testers" in `fibrai-dev`, tag `dev-v0.0.13`.
+  - The notes tell testers it is a new app: install it from App Tester, uninstall the old "Dieta Bot Dev", onboarding starts over and old data does not carry over.
+- With these, the owner closed A48 ("já comece o A49"). The 3 GoldTests remain the known A49 debt.
