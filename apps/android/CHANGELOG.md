@@ -2,6 +2,17 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.14 — 05/10/2026
+
+### Novidades
+
+- O app agora se chama Fibrai. O nome aparece no ícone, na abertura e na configuração inicial.
+- A assistente do Chat agora é a Tali, com foto no topo do Chat e ao lado de cada resposta.
+
+### Ajustes
+
+- Esta versão atualiza o app novo instalado na versão anterior. Se o "Dieta Bot Dev" antigo ainda estiver no celular, pode desinstalar: ele não recebe mais atualizações.
+
 ## 0.0.13 — 05/10/2026
 
 ### Importante: app novo
