@@ -1,6 +1,6 @@
 # Plan — D10 Fibrai and Tali in the golds
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 05/10/2026
 - Owning context: `design`
 - Executable boundary: Figma `Design` (components `Componentes`, the existing flow sections on `Release 1`, the `Branding` page for the wordmark only, and the phone screens of the section `Landing · D11` on the `Landing page` page). Repository outputs: re-exported PNGs in `docs/qa/figma/{dark,light}/` for the ids that show the old name, `tools/export-figma.mjs` if node ids change, and the temporary avatar image in `docs/design/brand/`. No `apps/` or `server/` code.
@@ -50,7 +50,7 @@ Replace "Dieta Bot" with "Fibrai" on brand surfaces, and with "Tali" plus the av
    - `node tools/export-figma.mjs --only <affected ids>`, then `node tools/check-figma.mjs`;
    - inventory sources do not change, because every id is already `figma`;
    - A49 compares against these PNGs.
-7. **Landing phone screens** ([D11](../completed/d11-landing-page.md)):
+7. **Landing phone screens** ([D11](d11-landing-page.md)):
    - the phones of `land` and `landM` (both rows) hold static clones of the `o1`, `home1` and `chatE` golds, taken before this rename;
    - replace each clone with a fresh clone of the renamed gold, scaled to 300 px wide, and clear its explicit Color mode so it follows the frame;
    - add `land` and `landM` to the export list. [W1](../../../site/plans/w1-landing-site.md) compares against them.
@@ -64,7 +64,7 @@ None at D10 Completion besides Results and this plan's lifecycle. The product sp
 - Final avatar art: when the owner delivers it, a follow-up design plan swaps the image fill and re-exports.
 - Logo and app icon.
 - Home, Config and push frames, unless discovery finds the name there; then they enter the same edit.
-- Compose, server and the landing layout ([D11](../completed/d11-landing-page.md)); only the phone screens of scope item 7 change.
+- Compose, server and the landing layout ([D11](d11-landing-page.md)); only the phone screens of scope item 7 change.
 
 ## Validation
 
@@ -137,11 +137,28 @@ Read-only search of every page of the Figma file for text containing "Dieta" (20
   - the header text column is left-aligned next to the avatar (the old title was centered);
   - the `chatL` loading caption shows only "Tali", with no avatar;
   - the avatar ring is 1 px `border/glass` at both sizes.
-- The plan waits in `pending_manual_validation/` for the owner's OK in Figma. Gold export follows the OK (scope item 6).
+- The plan waited in `pending_manual_validation/` for the owner's OK in Figma.
+
+**Owner's OK in Figma:** 2026-10-05 ("Aprovado no Figma, pode exportar os golds"). The three open points stay as drawn.
+
+### Gold export (2026-10-05)
+
+- **Export:** `node tools/export-figma.mjs --only <ids>` in six batches. One request for all 23 ids timed out (`fetch failed`). No node id changed, so `tools/export-figma.mjs` is unchanged.
+- **Noise filter override:** the filter (< 0.05 % changed pixels) restored five PNGs from git, although the name had changed in them:
+  - `o3t` Light and Dark: "FIBRAI INTAKE" under the time-picker scrim;
+  - `chatT` Light: the header under the sheet scrim;
+  - `land` Light and Dark: the `chatE` phone header.
+
+  They were exported again with `--dry-run` and copied over the golds. A crop of each one shows the new name.
+- **Unchanged on purpose:** `landM` rendered identical to git (0.000 %), because its only phone shows `home1`, which has no name.
+- **Changed golds:** 44 PNGs, 22 ids × 2 themes: `splash`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `chat0`, `chatL`, `chatQ`, `chatE`, `chatX`, `chatT`, `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `push`, `land`. No other gold has a byte diff.
+- **Inventory:** sources do not change; every id is already `figma`.
+- **Checks:** `node tools/check-figma.mjs` (68 PNGs) and `node tools/check-docs.mjs` pass.
+- **Next:** [A49](../../../android/plans/a49-fibrai-tali-visible-rename.md) compares against these PNGs and ships `docs/design/brand/tali-avatar-placeholder.png`. [W1](../../../site/plans/w1-landing-site.md) takes the phone screens from `o1`, `home1` and `chatE`.
 
 ### Figma MCP budget
 
-Day 1 (2026-10-05): 22 calls of 110:
+Total: 22 calls of 110, all on day 1 (2026-10-05). The export used none:
 
 - 1 `whoami` and 3 skill reads;
 - 17 `use_figma`: 12 read-only (discovery, inspection, read-backs) and 5 writes (temporary avatar source, `Componentes`, `Release 1`, `Landing page`, `Branding`);
