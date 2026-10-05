@@ -9,7 +9,7 @@ Landing page pública do Fibrai em `fibrai.app`: o que o app faz, telas, Tali, l
 ## Tipo e ownership
 
 - Tipo: `client` (web estático).
-- Código principal: `site/` (ainda não existe; nasce no [W1](plans/w1-landing-site.md)).
+- Código principal: o projeto npm `web/` na raiz do repositório ([ADR-038](adrs/ADR-038-web-project-folder.md)); ainda não existe, nasce no [W1](plans/w1-landing-site.md). O contexto de documentação continua `site`.
 - Consumidores: visitantes públicos. Nenhum dado do usuário entra no site.
 
 ## Escopo
@@ -31,17 +31,18 @@ Landing page pública do Fibrai em `fibrai.app`: o que o app faz, telas, Tali, l
 
 Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 
-1. [ADR-037](adrs/ADR-037-landing-site.md);
+1. [ADR-037](adrs/ADR-037-landing-site.md) e [ADR-038](adrs/ADR-038-web-project-folder.md);
 2. confira os planos ativos abaixo;
-3. confira o código atual em `site/`.
+3. confira o código atual em `web/`.
 
 ## Índice
 
 ### ADRs
 
 - [ADR-037](adrs/ADR-037-landing-site.md) — site estático Aero em fibrai.app, Cloudflare.
+- [ADR-038](adrs/ADR-038-web-project-folder.md) — o código da landing fica no projeto `web/` na raiz.
 
 ### Planos
 
-- Ativos: [W1 — Landing site on fibrai.app](plans/w1-landing-site.md).
+- Ativos: [W1 — Landing page code in `web/`](plans/w1-landing-site.md), [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md).
 - Fora de escopo: nenhum.
