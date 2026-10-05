@@ -81,7 +81,7 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 
 ## Proveniência
 
-- [S18](../../server/plans/s18-meal-additions-and-revisions.md) — meal additions and revisions
+- [S18](../../server/plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions
 
 - [S17](../../server/plans/completed/s17-unavailable-meal-details.md) — Unavailable meal details and useful clarification alternatives
 

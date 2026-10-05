@@ -281,4 +281,4 @@ OUT
 
 ## Provenance
 
-- [S18](server/plans/s18-meal-additions-and-revisions.md) — meal additions and revisions
+- [S18](server/plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions

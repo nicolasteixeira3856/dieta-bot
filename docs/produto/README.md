@@ -69,4 +69,4 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 
 This context has no `plans/`. Deliveries belong to [Android](../android/README.md), [server](../server/README.md) and [design](../design/README.md); frozen Stitch history is routed by its [README](../stitch/README.md).
 
-Meal updates: [S18](../server/plans/s18-meal-additions-and-revisions.md), [D9](../design/plans/d9-chat-meal-updates.md) and [A47](../android/plans/a47-chat-meal-updates.md).
+Meal updates: [D9](../design/plans/d9-chat-meal-updates.md) and [A47](../android/plans/a47-chat-meal-updates.md).

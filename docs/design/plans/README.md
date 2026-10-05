@@ -39,7 +39,7 @@ The gate that replaces the owner-run Stitch prompt for a migrated flow ([ADR-031
 ## Meal update follow-up
 
 - Behavior: [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md).
-- Server: [S18 — Meal additions and revisions](../../server/plans/s18-meal-additions-and-revisions.md).
+- Server: [meal-change contract](../../api-contract.md#meal-change-capability).
 - Design: [D9 — Chat meal updates](d9-chat-meal-updates.md).
 - Client: [A47 — Chat meal updates](../../android/plans/a47-chat-meal-updates.md).
 
