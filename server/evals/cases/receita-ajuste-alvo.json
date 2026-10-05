@@ -1,0 +1,100 @@
+{
+  "id": "receita-ajuste-alvo",
+  "since": "v4",
+  "tags": [
+    "plan",
+    "recipe",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-08T19:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m1",
+          "name": "Desjejum",
+          "time": "08:00"
+        },
+        {
+          "id": "m2",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "m3",
+          "name": "Jantar",
+          "time": "19:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "eaten_kcal": 1300,
+      "eaten_p": 60,
+      "eaten_c": 150,
+      "eaten_g": 40,
+      "workout_kcal": null,
+      "remaining_kcal": 500,
+      "slots": [
+        {
+          "id": "m1",
+          "status": "eaten",
+          "text": "refeição registrada",
+          "kcal": 1300,
+          "p": 60,
+          "c": 150,
+          "g": 40
+        },
+        {
+          "id": "m2",
+          "status": "empty"
+        },
+        {
+          "id": "m3",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "vou fazer um risoto com 120 g de arroz arbóreo cru, 200 g de cogumelos e 40 g de parmesão. me passa a receita?"
+      },
+      {
+        "role": "assistant",
+        "text": "Risoto de cogumelos: 120 g de arroz arbóreo cru, 200 g de cogumelos, 40 g de parmesão, 60 g de cebola (opcional) e 100 g de abobrinha (opcional).\n1. Refogue a cebola por 3 min.\n2. Junte o arroz e caldo quente aos poucos por 18 min.\n3. Acrescente os cogumelos e a abobrinha por 5 min.\n4. Finalize com o parmesão.\nTotal: 760 kcal · 27 g P · 108 g C · 19 g G."
+      }
+    ],
+    "text": "Ajusta para caber em 500 kcal.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true,
+    "fit_kcal": 500
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "meal_text_has": [
+      "arroz"
+    ],
+    "plan_budget": {
+      "over": false,
+      "limit_kcal": 500
+    }
+  },
+  "required": [
+    "plan_budget"
+  ]
+}

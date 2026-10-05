@@ -1,0 +1,110 @@
+{
+  "id": "receita-sem-margem",
+  "since": "v4",
+  "tags": [
+    "plan",
+    "recipe",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-08T20:05:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "a",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "b",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "c",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "d",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "eaten_kcal": 1620,
+      "eaten_p": 60,
+      "eaten_c": 150,
+      "eaten_g": 40,
+      "workout_kcal": null,
+      "remaining_kcal": 180,
+      "slots": [
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "refeição registrada",
+          "kcal": 1620,
+          "p": 60,
+          "c": 150,
+          "g": 40
+        },
+        {
+          "id": "b",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        },
+        {
+          "id": "d",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "ainda vou tomar uma vitamina de uns 300 kcal antes de dormir. quero fazer um omelete com 3 ovos, 50 g de queijo minas e tomate, me passa a receita? precisa caber no dia.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "reply_not": [
+      "?"
+    ],
+    "meal_text_not": [
+      "vitamina"
+    ],
+    "plan_budget": {
+      "over": true,
+      "choice": "fit",
+      "limit_kcal": -120,
+      "reserved_has": [
+        "vitamina"
+      ],
+      "reserved_kcal_range": [
+        300,
+        300
+      ]
+    }
+  },
+  "required": [
+    "plan_budget"
+  ]
+}

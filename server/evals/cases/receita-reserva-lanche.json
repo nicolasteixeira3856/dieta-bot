@@ -1,0 +1,141 @@
+{
+  "id": "receita-reserva-lanche",
+  "since": "v4",
+  "tags": [
+    "plan",
+    "recipe",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-04T17:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-04",
+      "eaten_kcal": 1200,
+      "eaten_p": 67,
+      "eaten_c": 150,
+      "eaten_g": 34,
+      "workout_kcal": null,
+      "remaining_kcal": 700,
+      "slots": [
+        {
+          "id": "1",
+          "text": "cuscuz com ovo e café com leite",
+          "kcal": 480,
+          "p": 22,
+          "c": 60,
+          "g": 16,
+          "status": "eaten"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "text": "macarrão com molho de tomate e frango",
+          "kcal": 720,
+          "p": 45,
+          "c": 90,
+          "g": 18,
+          "status": "eaten"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "mais tarde vou comer uma fatia de bolo de cenoura de uns 250 kcal. pra janta tenho batata, atum em lata e cebola, me dá uma receita",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "items_beyond": {
+      "given": [
+        "batata",
+        "atum",
+        "cebola"
+      ],
+      "min": 1
+    },
+    "kcal_range": [
+      120,
+      900
+    ],
+    "meal_text_not": [
+      "bolo"
+    ],
+    "plan_budget": {
+      "limit_kcal": 450,
+      "reserved_has": [
+        "bolo"
+      ],
+      "reserved_kcal_range": [
+        250,
+        250
+      ]
+    }
+  },
+  "required": [
+    "plan_budget",
+    "items_beyond"
+  ]
+}
