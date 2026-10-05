@@ -51,7 +51,7 @@ posted() {
 }
 photos_on_device() { "$ADB" exec-out run-as $PKG ls files/photos/ 2>/dev/null | tr -d '\r' | grep -c '\.jpg$'; }
 
-# Test images: the thumbnail of the chatA gold at 1000 px (the photo attached there), the plate from the chatF gold at 2000 px, the same padded past 16 MB, a WebP, and a
+# Test images (sample input, not a comparison: the archived Stitch golds in docs/qa/_legacy/stitch/): the thumbnail of the chatA gold at 1000 px (the photo attached there), the plate from the chatF gold at 2000 px, the same padded past 16 MB, a WebP, and a
 # 50 MP (8160x6120) JPEG with EXIF orientation 6 (rotate 90) and GPS.
 PYROOT="$ROOT"
 command -v cygpath >/dev/null && PYROOT="$(cygpath -m "$ROOT")"
@@ -59,10 +59,10 @@ command -v cygpath >/dev/null && PYROOT="$(cygpath -m "$ROOT")"
 import sys
 from PIL import Image
 root, tmp = sys.argv[1], sys.argv[2]
-im = Image.open(root + "/docs/qa/stitch/dark/chatF.png").convert("RGB").crop((238, 392, 722, 662)).resize((2000, 1116), Image.LANCZOS)
+im = Image.open(root + "/docs/qa/_legacy/stitch/dark/chatF.png").convert("RGB").crop((238, 392, 722, 662)).resize((2000, 1116), Image.LANCZOS)
 im.save(tmp + "/prato.jpg", quality=92)
 im.save(tmp + "/prato.webp", quality=90)
-Image.open(root + "/docs/qa/stitch/dark/chatA.png").convert("RGB").crop((63, 1416, 187, 1540)).resize((1000, 1000), Image.LANCZOS).save(tmp + "/chata.jpg", quality=92)
+Image.open(root + "/docs/qa/_legacy/stitch/dark/chatA.png").convert("RGB").crop((63, 1416, 187, 1540)).resize((1000, 1000), Image.LANCZOS).save(tmp + "/chata.jpg", quality=92)
 data = open(tmp + "/prato.jpg", "rb").read()
 open(tmp + "/gigante.jpg", "wb").write(data + b"\0" * (17 * 1024 * 1024 - len(data)))
 exif = Image.Exif()

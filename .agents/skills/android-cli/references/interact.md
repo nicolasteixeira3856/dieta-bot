@@ -45,7 +45,7 @@ of the current screen. Visually examine each PNG before relying on it.
 
 Use screenshots for images, WebViews, visual appearance and the repository's
 gold comparison. Required app captures belong to docs/qa/android/current/dark/
-or light/; golds in docs/qa/stitch/ are separate read-only comparison inputs.
+or light/; golds in docs/qa/figma/ are separate read-only comparison inputs.
 Diagnostic captures go in scratch output. Do not claim a screenshot alone
 completes the written diff and iterative visual QA.
 

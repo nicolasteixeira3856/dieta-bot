@@ -30,7 +30,6 @@ Design source for the Dieta Bot UI: the own design system "Aero" ([ADR-030](adrs
 
 - One flow per design plan, within one day of Figma MCP budget ([ADR-031](adrs/ADR-031-figma-source-of-truth.md)).
 - A design plan unblocks the matching client plan in [android](../android/README.md).
-- While a flow is not migrated, its golds and gate stay in [stitch](../stitch/README.md), frozen.
 
 ## How to use this documentation
 

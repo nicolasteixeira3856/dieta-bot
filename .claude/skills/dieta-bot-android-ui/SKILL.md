@@ -1,11 +1,11 @@
 ---
 name: dieta-bot-android-ui
-description: Build or revise Dieta Bot Compose screens, timeline, Chat composer and Expressive controls within a named approved plan and the gold of each id's source in the inventory.
+description: Build or revise Dieta Bot Compose screens, timeline, Chat composer and Expressive controls within a named approved plan and the Figma gold of each id in the inventory.
 ---
 
 # Dieta Bot Compose UI
 
-Use [AGENTS](../../../AGENTS.md), [tokens](../../../docs/tokens.md), the owning live specification and the gold of each id from its source (figma or stitch) in the [gold inventory](../../../docs/qa/README.md). Implementation follows golds only. New/changed golds need the completed design plan (Figma review gate).
+Use [AGENTS](../../../AGENTS.md), [tokens](../../../docs/tokens.md), the owning live specification and the Figma gold of each id in the [gold inventory](../../../docs/qa/README.md). Implementation follows golds only. New/changed golds need the completed design plan (Figma review gate).
 
 Keep AeroTheme ([aero-compose](../aero-compose/SKILL.md)), both system-following palettes and semantic macro colors. No dynamic color. Use the gold/spec-specific shapes and typography: do not replace a Chat bubble or multiline composer shape with a generic card radius. The highlighted remaining value, CTA and sheet tokens remain those in the constitution.
 

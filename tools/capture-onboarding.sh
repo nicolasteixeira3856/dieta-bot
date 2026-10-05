@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Drive splash + O1..O4 on a running emulator and capture docs/qa/android/current/<theme>/.
-# Reaches the state shown in the Stitch gold through the real UI (testTag = resource-id), then
+# Reaches the state shown in the gold through the real UI (testTag = resource-id), then
 # finishes onboarding, kills the app and checks that a relaunch skips onboarding.
 #
 # Prereqs: devDebug APK installed; python3; AVD at gold geometry:

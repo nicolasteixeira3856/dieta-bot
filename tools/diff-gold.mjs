@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Compare emulator screencaps (docs/qa/android/current/{theme}/<id>.png) with the gold of the id's source in the
-// inventory of docs/qa/README.md (docs/qa/stitch/{theme}/<id>.png or docs/qa/figma/{theme}/<id>.png).
+// Compare emulator screencaps (docs/qa/android/current/{theme}/<id>.png) with the gold of an id of the
+// inventory of docs/qa/README.md (docs/qa/figma/{theme}/<id>.png).
 //
 // Capture on an AVD set to the gold geometry (390 dp @ 2x):
 //   adb shell wm size 780x1688 && adb shell wm density 320
@@ -40,15 +40,8 @@ const SEARCH = 48;
 const FOOTER = 260; // 130 dp: CTA + gradient + nav
 const PHONE = 1688; // 844 dp
 const MIN_INK = 400; // px: below this a zone has no content to compare for presence
-// Stitch golds whose layout contradicts the app: reported, not gated (none left after A44).
-const GOLD_CONFLICTS = new Set();
-const REGIONS = {};
-// Bottom-anchored and centred-dialog regions of Stitch golds (none left after A40-A43).
-const BOTTOM_REGIONS = {};
-const CENTER_REGIONS = {};
 
-// Figma golds (ADR-031) are bare frames: no status bar, the page at the frame height. The Stitch exceptions above
-// are calibrated on Stitch geometry and apply to `stitch` ids only.
+// Figma golds (ADR-031) are bare frames: no status bar, the page at the frame height.
 // homeW (A40): the 1414 dp page puts the sheet at its end and the blurred Home above it; on the 844 dp phone the
 // sheet covers the lower Home. The screen is reported; the blurred Home on top (gold rows 40-450 dp) and the sheet
 // (bottom-anchored, 1061 dp to 40 dp above the page end) are gated.
@@ -86,7 +79,6 @@ const FIGMA = {
   footer: { chat0: 364, chatL: 268, chatQ: 384, chatE: 384, chatT: 1368, chatX: 578, chatA: 436 },
   bottom: { homeW: { dark: [0, 2122, 780, 2748], light: [0, 2122, 780, 2748] } },
 };
-const STITCH = { conflicts: GOLD_CONFLICTS, regions: REGIONS, bottom: BOTTOM_REGIONS };
 
 function load(file) {
   const png = PNG.sync.read(fs.readFileSync(file));
@@ -224,13 +216,12 @@ if (!inventory) throw new Error("docs/qa/README.md has no gold inventory under '
 let failed = false;
 for (const key of ids) {
   const [theme, id] = key.split("/");
-  const source = inventory.sources.get(id);
-  if (!source) {
+  if (!inventory.ids.has(id)) {
     console.error(`  ✗ ${key}: '${id}' is not in the gold inventory of docs/qa/README.md`);
     failed = true;
     continue;
   }
-  const goldFile = path.join(root, "docs/qa", source, theme, `${id}.png`);
+  const goldFile = path.join(root, "docs/qa/figma", theme, `${id}.png`);
   const appFile = path.join(root, "docs/qa/android/current", theme, `${id}.png`);
   if (!fs.existsSync(appFile)) {
     console.error(`  ✗ ${key}: missing ${path.relative(root, appFile)}`);
@@ -239,8 +230,7 @@ for (const key of ids) {
   }
   const appRaw = load(appFile);
   const goldRaw = load(goldFile);
-  const rules = source === "figma" ? FIGMA : STITCH;
-  const stitch = source === "stitch";
+  const rules = FIGMA;
   if (goldRaw.w !== WIDTH && rules.conflicts.has(id)) {
     console.log(`  ~ ${key} gold is ${goldRaw.w}x${goldRaw.h}, not a phone capture [gold conflict: report only]`);
     continue;
@@ -252,11 +242,11 @@ for (const key of ids) {
   }
   const app = blurred(appRaw);
   const gold = blurred(goldRaw);
-  const center = stitch ? CENTER_REGIONS[id]?.[theme] : FIGMA.center[id]?.[theme];
+  const center = FIGMA.center[id]?.[theme];
   if (center) {
     let bestDy = 0;
-    // Stitch: the dialog is centred in the gold too; Figma: only in the app.
-    const shift = stitch ? Math.round((appRaw.h - goldRaw.h) / 2) : Math.round((appRaw.h - (center[3] - center[1])) / 2) - center[1];
+    // The dialog is centred in the app only, not in the frame.
+    const shift = Math.round((appRaw.h - (center[3] - center[1])) / 2) - center[1];
     const part = regionScore(app, gold, center, shift, (dy) => { bestDy = dy; });
     const inkRatio = dialogInk(app, center, bestDy) / Math.max(1, dialogInk(gold, center));
     const partOk = part <= max && inkRatio >= 0.8 && inkRatio <= 1.25;
@@ -264,16 +254,15 @@ for (const key of ids) {
     console.log(`  ${partOk ? "✓" : "✗"} ${key} centered dialog ${part.toFixed(2)}% ink ${inkRatio.toFixed(2)} (max ${max}%, ink 0.8-1.25)`);
     continue;
   }
-  // 844 dp phone inside a 884 dp page: 20 dp bands. Full-page golds (O3) have no band.
-  const goldTop = goldRaw.h === 1768 ? 40 : 0;
+  const goldTop = 0;
   // Content is top-anchored (status bar height varies), the CTA footer is bottom-anchored
   // (nav bar height varies): each region gets its own vertical offset.
   // Full-page golds scroll past the fixed CTA, so there only the content above the footer counts.
-  // A Figma frame of the phone height (844 dp) is a phone screen without bars: content and footer, no band.
-  const fullPage = goldRaw.h !== 1768 && !(source === "figma" && goldRaw.h === PHONE);
+  // A frame of the phone height (844 dp) is a phone screen without bars: content and footer.
+  const fullPage = goldRaw.h !== PHONE;
   const phone = fullPage ? appRaw.h : PHONE;
   // Bottom-anchored stack of the frame (CTA, actions + composer, chips, sheet), in px.
-  const footerPx = (stitch ? undefined : FIGMA.footer[id]) ?? FOOTER;
+  const footerPx = FIGMA.footer[id] ?? FOOTER;
   const content = bestShift(app, gold, goldTop, IGNORE_TOP, phone - footerPx);
   let differ = content.differ;
   let total = content.total;
@@ -300,16 +289,16 @@ for (const key of ids) {
   const bottom = rules.bottom[id]?.[theme];
   const own = rules.regions[id];
   const ownBoxes = own ? (Array.isArray(own[0]) ? own : [own]) : [];
-  // Thread tail (Figma long threads): bottom-aligned on the capture's bottom minus the 24 dp navigation bar.
-  const tail = stitch ? undefined : FIGMA.tail[id];
+  // Thread tail (long threads): bottom-aligned on the capture's bottom minus the 24 dp navigation bar.
+  const tail = FIGMA.tail[id];
   const tailBox = tail === undefined ? null : [0, Math.max(tail, goldRaw.h - (appRaw.h - 48 - 184) + 32), 780, goldRaw.h - 40];
   const boxes = [
     ...ownBoxes.map((box, i) => [i === 0 ? "region" : `region${i}`, () => regionScore(app, gold, box)]),
     ...(tailBox ? [["thread tail", () => regionScore(app, gold, tailBox, appRaw.h - 48 - goldRaw.h)]] : []),
-    ...(bottom ? [[stitch ? "region" : "bottom region", () => regionScore(app, gold, bottom, appRaw.h - goldRaw.h)]] : []),
+    ...(bottom ? [["bottom region", () => regionScore(app, gold, bottom, appRaw.h - goldRaw.h)]] : []),
   ];
-  // Stitch: one region per id (the bottom one wins, as before); Figma: every region is gated.
-  for (const [name, run] of stitch ? boxes.slice(-1) : boxes) {
+  // Every region is gated.
+  for (const [name, run] of boxes) {
     const part = run();
     const partOk = part <= max;
     const reportOnly = false;

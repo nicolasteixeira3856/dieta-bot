@@ -14,7 +14,7 @@ import fs from "fs";
 import os from "os";
 import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
-import { listArg, pngDiff, NOISE_MAX_PCT } from "./export-stitch.mjs";
+import { PNG } from "pngjs";
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const FIGMA_DIR = path.join(root, "docs", "qa", "figma");
@@ -150,7 +150,40 @@ function gitGold(theme, id) {
   }
 }
 
-// Same noise filter as export-stitch.mjs: a PNG with < NOISE_MAX_PCT % changed pixels goes back to its git version.
+// Noise filter: a re-export rewrites every PNG with invisible byte and pixel noise. A pixel changed when its
+// largest RGB channel delta is above NOISE_DELTA; a PNG whose changed pixels stay under NOISE_MAX_PCT (in %)
+// of the image is restored from git, so only PNGs with a real visual change stay modified.
+export const NOISE_DELTA = 40;
+export const NOISE_MAX_PCT = 0.05;
+
+export function listArg(name) {
+  const i = process.argv.indexOf(name);
+  if (i < 0) return null;
+  return (process.argv[i + 1] || "").split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+// Pixel diff of two PNG buffers: share (%) of pixels whose largest RGB channel delta is above NOISE_DELTA, and
+// the bounding box of those pixels. Images of different sizes are compared by size only.
+export function pngDiff(a, b) {
+  const pa = PNG.sync.read(a), pb = PNG.sync.read(b);
+  if (pa.width !== pb.width || pa.height !== pb.height) {
+    return { sameSize: false, pct: 100, sizes: `${pa.width}x${pa.height} → ${pb.width}x${pb.height}`, bbox: null };
+  }
+  let changed = 0, x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+  for (let y = 0; y < pa.height; y++) {
+    for (let x = 0; x < pa.width; x++) {
+      const i = (y * pa.width + x) * 4;
+      const d = Math.max(Math.abs(pa.data[i] - pb.data[i]), Math.abs(pa.data[i + 1] - pb.data[i + 1]), Math.abs(pa.data[i + 2] - pb.data[i + 2]));
+      if (d > NOISE_DELTA) {
+        changed++;
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      }
+    }
+  }
+  return { sameSize: true, pct: (100 * changed) / (pa.width * pa.height), bbox: changed ? { x0, y0, x1, y1 } : null };
+}
+
+// A PNG with < NOISE_MAX_PCT % changed pixels goes back to its git version.
 function filterNoise(theme, id, dest) {
   const old = gitGold(theme, id);
   if (!old) return "new file";

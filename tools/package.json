@@ -1,15 +1,14 @@
 {
   "name": "dieta-bot-tools",
   "private": true,
-  "description": "Visual QA tools for the Google Stitch golds",
+  "description": "Visual QA tools for the Figma golds",
   "scripts": {
-    "export:stitch": "node export-stitch.mjs",
-    "check:stitch": "node check-stitch.mjs",
+    "export:figma": "node export-figma.mjs",
+    "check:figma": "node check-figma.mjs",
     "diff:gold": "node diff-gold.mjs",
     "fake:chat": "node fake-chat-server.mjs"
   },
   "dependencies": {
-    "playwright": "^1.55.0",
     "pngjs": "^7.0.0"
   }
 }

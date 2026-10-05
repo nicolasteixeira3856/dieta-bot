@@ -20,7 +20,6 @@ infra/          host configuration
 docs/           specifications, ADRs, plans, visual QA golds
 design/         brand sources
 tools/          QA, export, deploy and distribution scripts
-.stitch/        Google Stitch design system (Nutri)
 ```
 
 Agent skills live in `.agents/skills`, `.grok/skills`, `.hermes/skills` and `.claude/skills` (kept identical).

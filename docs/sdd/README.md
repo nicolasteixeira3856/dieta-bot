@@ -47,10 +47,6 @@ Comportamento visível: job, telas, copy, onboarding, slots, o que entra no prom
 
 `design`. O arquivo Figma `Design`: design system Aero e todas as telas e estados, que o agente desenha pelo MCP do Figma. Um plano de design cobre um fluxo e termina pelo gate de revisão no Figma. Não tem código de app; toca só `docs/qa/figma/`, o tooling de design em `tools/` e o espelho gerado de tokens. Ver [Gate Figma](#gate-figma).
 
-### Gate de design (congelado)
-
-`stitch`. Prompts que o dono executava no Stitch `Nutri` e a conferência dos golds resultantes. Congelado: sem gates novos; os golds Stitch seguem como referência dos fluxos ainda não migrados. Não tem código de app. Ver [Gate Stitch](#gate-stitch).
-
 ### Cross-cutting policy
 
 Owner-authorized on 2026-09-30: [content-policy](../content-policy/README.md) owns content policy, correlation/audit requirements, incident procedures and their delivery plans. It does not replace the code ownership of server, Android or infrastructure.
@@ -110,7 +106,7 @@ Planos não são fonte de verdade do produto. Se a implementação descobrir com
 1. Comece em `docs/README.md`.
 2. Resolva o contexto dono.
 3. Leia o README do contexto e o que ele indicar.
-4. Consulte planos ativos (raiz de `plans/`), `pending_manual_validation/`, `out_of_scope/`, ADRs vigentes e validações pendentes. `completed/` e `cancelled/` são histórico: abra só para proveniência, conferência de gate Stitch ou pergunta explícita sobre histórico.
+4. Consulte planos ativos (raiz de `plans/`), `pending_manual_validation/`, `out_of_scope/`, ADRs vigentes e validações pendentes. `completed/` e `cancelled/` são histórico: abra só para proveniência ou pergunta explícita sobre histórico.
 5. Confirme no código atual.
 6. Feche decisões de produto ou arquitetura ainda abertas (A/B/C se precisar).
 
@@ -155,7 +151,7 @@ Pedido para analisar, documentar, criar spec, criar ADR ou criar plano **não** 
 
 Ao fim da implementação de qualquer plano, o agente faz sozinho, sem pedir:
 
-1. `git switch -c <tipo>/<id-do-plano>` a partir da `master` atualizada (ex.: `fix/s8-chat-json-slot`, `feat/a22-treino-home`, `docs/st1-stitch-chat`).
+1. `git switch -c <tipo>/<id-do-plano>` a partir da `master` atualizada (ex.: `fix/s8-chat-json-slot`, `feat/a22-treino-home`, `docs/d8-archive-stitch`).
 2. Commit(s) só com os arquivos do plano. Nada de `git add -A` com lixo de fora do escopo.
 3. `git push -u origin <branch>` e `gh pr create --base master` com resumo, validação executada e pendências.
 4. `gh pr merge --merge --delete-branch` (merge commit, sem squash).
@@ -173,29 +169,11 @@ Um plano de design:
 - Lê o arquivo antes de escrever, constrói o Light e clona o Dark pelo modo de variável, segue a regra de legibilidade do ADR-031 § 3 e conta as chamadas do MCP nos Results.
 - Tira um screenshot por frame composto e vai para `Pendente aprovação manual`. A revisão visual do dono no Figma é o único passo manual: não há prompt para colar.
 - Depois do OK do dono, mapeia os frames em `tools/export-figma.mjs`, exporta os golds para `docs/qa/figma/{dark,light}/` e roda `node tools/check-figma.mjs`.
-- Não muda layout nem funcionalidade do app. A fonte do id no inventário de `docs/qa/README.md` só passa a `figma` quando o plano de client do fluxo conclui.
+- Não muda layout nem funcionalidade do app.
 
 Planos de client que dependem de um plano de design o declaram em Pré-requisitos e só começam com ele em `design/plans/completed/`.
 
 Skill: `dieta-bot-figma`. Template: [plano de fluxo Figma](templates/figma-flow.md).
-
-## Gate Stitch
-
-Congelado ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md) § 9): **sem gates ST novos** e sem edições no Stitch `Nutri`. As regras abaixo descrevem os gates existentes, lidos como histórico e para conferir os golds dos fluxos ainda não migrados.
-
-Mudança de layout que precisava de gold novo ou alterado no Stitch `Nutri` era um passo manual do dono. Ela vive no contexto [stitch](../stitch/README.md), num plano de gate (`ST<n>`), separado da implementação.
-
-Um plano de gate:
-
-- Abre com o **prompt exato** que o dono cola no Stitch, marcado como bloqueio do dono. Logo abaixo, as instruções extras: quais telas selecionar, o que anexar.
-- Chama as telas pelo **título exato do Stitch**, em toda instrução ao dono (selecionar, duplicar, renomear) e dentro do próprio prompt. Nunca pelo id de gold (`chatE`), que só aparece entre parênteses, para o agente. `V2 Expressive` = dark, `V2 Light` = light, com um bloco de prompt pronto por tema. Tela nova ganha no gate o título final, que o dono aplica na cópia. A tabela título ↔ gold fica em [stitch/README.md § Nomes das telas](../stitch/README.md#nomes-das-telas-regra-do-dono-29092026) e é atualizada a cada gate.
-- Não muda layout nem funcionalidade do app. Mexe só em gold PNG (`docs/qa/stitch/`), no mapa de IDs de `tools/export-stitch.mjs` e `tools/check-stitch.mjs` e no inventário de golds de `docs/qa/README.md` (dono único da lista; o `AGENTS.md` só linka).
-- Tem uma verificação: o agente lê o projeto pelo MCP do Stitch, exporta os golds e confere um checklist. Se algo do prompt não aparece no Stitch, o agente **para na hora**, lista o que falta e não segue para nenhum plano dependente.
-- Termina `Concluído` só quando o checklist inteiro passou.
-
-Planos de implementação que dependem de um gate declaram o `ST<n>` em Pré-requisitos. O primeiro passo da implementação confere que o gate está em `stitch/plans/completed/`. Se não estiver, a implementação nem começa.
-
-Template: [plano de gate Stitch](templates/stitch-gate.md).
 
 ## Criação de um novo contexto
 
@@ -318,5 +296,4 @@ Plans and their state: [maintenance index](plans/README.md).
 - [Plano](templates/plan.md)
 - [Deferred plan — Fora de escopo](templates/out-of-scope-plan.md)
 - [Plano de fluxo Figma](templates/figma-flow.md)
-- [Plano de gate Stitch](templates/stitch-gate.md) (congelado: sem gates novos)
 - [Matriz de validação](templates/validation-matrix.md)
