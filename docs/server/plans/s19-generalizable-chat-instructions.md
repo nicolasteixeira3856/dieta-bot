@@ -1,6 +1,6 @@
 # Plan — S19 Generalizable Chat instructions
 
-- Status: Aguardando aprovação
+- Status: Em implementação
 - Date: 04/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: model instructions, their assembly tests, existing evaluation cases/checks/runner and synthetic evaluation media when needed.
@@ -114,4 +114,45 @@ Android/Room/UI/Figma changes; language or timezone changes; internationalizatio
 
 ## Results
 
-Planning only. Source inspection and the evaluation-file inventory were performed; no new prompt, evaluator implementation, model benchmark, deployment or application change was made. Populate the rule map and baseline/candidate evidence during implementation. This plan does not claim generalization has already improved.
+Owner approved the named plan on 2026-10-05. Implementation uses the isolated `debug-meal-addition` worktree on `codex/s19-generalizable-chat`, based on master `c1e8e76911ae985318b91a8c0c54196fdaabaefa` after S18. Baseline/candidate evidence and the source/provenance review are recorded below as they complete. No Android changes or additional agents.
+
+### Rule traceability and source review
+
+Source review covers the complete assembled legacy Chat, meal-change Chat and compact prefixes, not just the edited constants. Registry ids below are in `server/chat_instructions.py`. Owners are the [Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md) and the [content policy](../../content-policy/specifications/content-policy.md). All rows retain rules without illustrative examples. Required JSON/marker syntax and contracted pt-BR copy are protocol rules, not invented user conversations.
+
+| Registry responsibility | Owner | Retained general rule | Coverage |
+| --- | --- | --- | --- |
+| `product`, `product_meal_changes` | Content policy; Chat 3f/5 | Food-budget scope, contextual short answers, mixed-request separation, prohibited-content/safety categories, no instruction override, stateless/no persistence claims, pt-BR and response fields. | Existing CP2 scope/injection/safety cases and route tests; provenance tests. |
+| `context` | Chat 3/3e/4; ADR-033 | Personal foods, profile and memory stay in request context; explicit facts override assumptions; labels apply only to their product and serving basis; DAY alone proves a committed meal. | S19 pairs 01–03, 07, 09, 11 and request-isolation tests. |
+| `intent`, `intent_meal_changes` | Chat 3a; ADR-023/028/032 | Eating/portion continuation versus planning, food alone, nutrition questions, firm skip versus pending/hedged meal, matching profile slots; reaffirmation is not new consumption in the opted-in branch. | Existing record/skip/S18 cases; pairs 01, 05, 08, 10. |
+| `record`, `record_meal_changes` | Chat 3g/4; ADR-028/029/032 | Clear/unsure record intent, photo question distinction, DAY/local-time eating date, overnight dinner cutoff, discussion date versus eating date, record complaint versus day correction, identifiable pending meal reconstruction. | Existing record-hard/S16 cases; pairs 05, 07, 10, 11. |
+| `estimate`, `estimate_meal_changes` | Chat 3b/4/4a/5; HTTP meal-change contract | Draft plus material question, target priority, profile-owned ids/times, complete descriptions, all foods/items, energy including non-macro sources, null rather than fabricated zeros; delta-only draft on add. | Existing slot/clarify/S18 cases; pairs 01, 05–07, 09, 11, 14. |
+| `log`, `log_meal_changes` | Chat 4; ADR-026; S17 | Known/omitted/unavailable per food/attribute, useful alternatives, all doubts together, no repeats, honest confidence, complete continuation, accepted seasoning/cup assumptions after an answer, no bare-calorie logs, today's-only copy. Legacy branch retains its whole-meal update and relationship rules. | Existing clarification/unavailability/consolidation cases; pairs 03, 06, 11–13. |
+| `meal_changes` | Chat 4/5e; ADR-032; HTTP contract | Resolve new/add/revise and target together, preserve authoritative base, pending-delta correction versus second portion, no guessed operation, target questions, numeric/item invariants and server-composed copy. | Entire S18 set unchanged; pair 11 and opted-in variants of other pairs. |
+| `plan` | Chat 3c; ADR-023 | Portion quantities, concise recipe, remaining budget/excess, assumptions without questions, no recomputation of daily totals. | Existing plan cases and pair 08. |
+| `history` | Chat 3d; ADR-023/029 | Exact recent day/slot copy; routine first, otherwise two distinct days; ignore brand-only changes, reject differing foods/amounts or a single day; preserve copied nutrition and identify weekday. | Existing habitual/recent cases; pairs 02/04. |
+| `memory_use` | Chat 3e; ADR-023/029 | Applicable fact resolves uncertainty, only supplied ids; repeated use of the same temporary reference uses its values. | Existing memory/temp cases; pairs 02, 03, 07, 09. |
+| `memory_changes` | Chat 3e/5; ADR-023/029 | Five proposals, permanent versus dynamic, replace/forget/reinforce, routine slots, no one-off or health facts as habits, bounded keys/text. | Existing memory cases and unit tests; pairs 01–04. |
+| `temp_references` | Chat 3e; ADR-029 | Capability-gated future references, partial labels preserved without invented values, serving basis, separate T identity, no T reinforce/promotion/deletion-on-use, capacity behavior. | Existing temp cases; pairs 07–09. |
+| `digest` | Chat 7; ADR-029; S17 | Food-only user facts, no inferred record/day/slot, scoped unavailability, later measurement precedence, only unanswered answerable questions, literal open-question marker, no new nutrition/advice. | Existing compact cases; pairs 12/13. |
+
+Example-origin audit and removal classification:
+
+| Removed material | Origin assessment | Treatment |
+| --- | --- | --- |
+| Exact previously discussed meal/quantity combination | Real incident, confirmed by ADR-029 and the discovery audit. | Removed from both Chat branches. Retained only the general distinction between discussion date and eating date and between a portion report and a plan. No anonymized retelling. |
+| Named commercial product, label numbers and package size | No eligible independent-synthetic provenance. | Removed. Product/serving/value preservation remains a rule; synthetic eval labels stay request-local. |
+| Habitual-meal brand narrative and quantity counterexample | Unknown provenance; therefore ineligible. | Removed both stories, retaining all comparison conditions and exact-copy behavior. |
+| Concrete record/skip/photo/day/slot sentences, dessert example, approximate-weight example, memory-key/preference examples and food arithmetic illustration | Unknown provenance; therefore ineligible. | Replaced by semantic categories, preserving each operative distinction in the table above. No new example dishes or user phrases. |
+| Compact's illustrated food/question/answer sequence | Unknown provenance; therefore ineligible. | Removed the sequence; preserved pending-description, answered/unavailable attributes, later correction and open-question syntax rules. |
+| Numerical low-intake illustration in Chat scope | Illustration, not a policy threshold; no eligible provenance. | Kept the full very-low-intake/safety-support rule without the illustrative number. The scope/refusal behavior is unchanged. |
+
+The retained illustrative-example inventory is deliberately empty. No demonstrated ambiguity required a fictional story in the first candidate. The registry supports future reviewed synthetic examples with stable ids, owner, purpose and exact branch coverage, rejects unknown/real provenance and undeclared assembly fragments, and guards the final Chat/compact instruction argument before generation. These checks do **not** detect arbitrary incident-derived prose disguised as a rule; the source review above is separate required evidence. The ingredient/cup categories used by the accepted after-answer assumption rule remain because they are operative product behavior, not illustrative narratives.
+
+Shared estimate/fit instructions and their original scope constant are byte-identical to the baseline. Chat has its own registered, example-free rendering of the same scope policy; schemas, payload/context serialization, deterministic meal accounting, moderation, limits and model configuration are unchanged. Unit assertions that formerly required literal example sentences now require the corresponding general rule. Existing model-evaluation cases and expectations are not removed or relaxed.
+
+### Evaluation setup
+
+`logs/run_s19.py` delegates to the existing evaluator's `run_effort`/`run_once`, with two workers, actual `gpt-6-luna`, effort `none`, the same pricing/cache/latency methodology, and separate saved baseline/candidate reports. It also retains per-repetition checks, latency and usage for auditing. The captured baseline module and prefixes are ignored local evidence; the original model module is loaded before the route/evaluator for baseline calls. Existing regression inventory: 155 cases, three repetitions each. New coverage: 14 matched pairs, six repetitions per case, with five history-bearing pairs (03, 07, 08, 10, 11), two compact pairs (12/13), and a synthetic-label image/text counterpart (14). Pair 11 compares raw history with a digest. Profiles use arbitrary reordered ids, three or six named meals, and overnight schedules. Eight additional combinations are sealed in `logs/s19-reserved-seal.json`; their outputs are reserved from prompt tuning until the candidate freeze.
+
+Additional evaluator assertions validate exact supplied nutrients, item portions and energy, allowed memory ids, and product/serving/nutrient preservation in a single temporary fact. Existing S18 delta/base checks are reused. Every new expectation is required and every new case is strict; positive estimate, memory-reference or nonempty-digest checks prevent fallback/null from passing through negative substring checks. Variable estimated nutrition is not equated across different foods.

@@ -87,6 +87,7 @@ class CheckTests(unittest.TestCase):
         output["record"] = "ask"
         output["skip_slot"] = None
         output["digest"] = "Pergunta em aberto: qual leite?"
+        output["memory_used"] = ["P9"]
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -112,6 +113,10 @@ class CheckTests(unittest.TestCase):
             "digest_has": ["arroz"],
             "digest_not": ["leite"],
             "meal_change": None,
+            "estimate_values": {"kcal": 90},
+            "item_portions": {"absent": 70},
+            "memory_used_only": ["P1"],
+            "memory_update_text": [{"match": {"kind": "temp"}, "has": ["fictional"]}],
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)

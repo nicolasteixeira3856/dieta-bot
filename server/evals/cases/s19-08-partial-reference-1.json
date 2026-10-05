@@ -1,0 +1,147 @@
+{
+  "id": "s19-08-partial-reference-1",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-labels"
+  ],
+  "family": "labels",
+  "pair": "08-partial-reference",
+  "variant": 1,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "r-90",
+          "name": "Refeição principal",
+          "time": "14:30"
+        },
+        {
+          "id": "zeta",
+          "name": "Jantar",
+          "time": "02:15"
+        },
+        {
+          "id": "id-700",
+          "name": "Desjejum",
+          "time": "09:00"
+        },
+        {
+          "id": "alt-2",
+          "name": "Intervalo",
+          "time": "11:00"
+        },
+        {
+          "id": "break-5",
+          "name": "Pausa",
+          "time": "17:45"
+        },
+        {
+          "id": "end-x",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "r-90",
+          "status": "empty"
+        },
+        {
+          "id": "zeta",
+          "status": "empty"
+        },
+        {
+          "id": "id-700",
+          "status": "empty"
+        },
+        {
+          "id": "alt-2",
+          "status": "empty"
+        },
+        {
+          "id": "break-5",
+          "status": "empty"
+        },
+        {
+          "id": "end-x",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [
+      {
+        "role": "user",
+        "text": "Quero guardar os dados de um produto para outro dia."
+      },
+      {
+        "role": "assistant",
+        "text": "Pode informar o rótulo e a porção a que os números se referem."
+      }
+    ],
+    "digests": [],
+    "text": "Amanhã vou comer Pasta Fictícia Nacre. Guarde a referência: por 45 g são 130 kcal e 6 g de proteína; não tenho os outros nutrientes.",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "plan",
+    "record": "none",
+    "estimate": "absent",
+    "refusal": "none",
+    "memory_used_only": [],
+    "memory_updates_has": [
+      {
+        "op": "add",
+        "kind": "temp",
+        "category": "portion"
+      }
+    ],
+    "memory_update_text": [
+      {
+        "match": {
+          "op": "add",
+          "kind": "temp"
+        },
+        "has": [
+          "Pasta Fictícia Nacre",
+          "45",
+          "130",
+          "6"
+        ]
+      }
+    ],
+    "meal_change": null
+  },
+  "required": [
+    "intent",
+    "record",
+    "estimate",
+    "refusal",
+    "memory_used_only",
+    "memory_updates_has",
+    "memory_update_text",
+    "meal_change"
+  ]
+}

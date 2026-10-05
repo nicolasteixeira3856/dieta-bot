@@ -1,0 +1,136 @@
+{
+  "id": "s19-13-compact-open-1",
+  "since": "v5",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-compact"
+  ],
+  "family": "compact",
+  "pair": "13-compact-open",
+  "variant": 1,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "r-90",
+          "name": "Refeição principal",
+          "time": "14:30"
+        },
+        {
+          "id": "zeta",
+          "name": "Jantar",
+          "time": "02:15"
+        },
+        {
+          "id": "id-700",
+          "name": "Desjejum",
+          "time": "09:00"
+        },
+        {
+          "id": "alt-2",
+          "name": "Intervalo",
+          "time": "11:00"
+        },
+        {
+          "id": "break-5",
+          "name": "Pausa",
+          "time": "17:45"
+        },
+        {
+          "id": "end-x",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "r-90",
+          "status": "empty"
+        },
+        {
+          "id": "zeta",
+          "status": "empty"
+        },
+        {
+          "id": "id-700",
+          "status": "empty"
+        },
+        {
+          "id": "alt-2",
+          "status": "empty"
+        },
+        {
+          "id": "break-5",
+          "status": "empty"
+        },
+        {
+          "id": "end-x",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [
+      {
+        "role": "user",
+        "text": "Comi creme de mandioquinha."
+      },
+      {
+        "role": "assistant",
+        "text": "Qual foi o tamanho da porção?"
+      },
+      {
+        "role": "user",
+        "text": "Não medi o peso; posso informar o tamanho da tigela."
+      },
+      {
+        "role": "assistant",
+        "text": "A tigela era pequena, média ou grande?"
+      }
+    ],
+    "digests": [],
+    "text": "",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "compact": true
+  },
+  "expect": {
+    "digest": "present",
+    "digest_has": [
+      "creme de mandioquinha",
+      "Pergunta em aberto:",
+      "tigela"
+    ],
+    "digest_not": [
+      "registrado",
+      "300 kcal",
+      "200 g",
+      "lasanha",
+      "leite"
+    ]
+  },
+  "required": [
+    "digest",
+    "digest_has",
+    "digest_not"
+  ]
+}

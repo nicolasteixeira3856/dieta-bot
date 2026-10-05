@@ -1,0 +1,135 @@
+{
+  "id": "s19-05-overnight-1",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-profiles"
+  ],
+  "family": "profiles",
+  "pair": "05-overnight",
+  "variant": 1,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T03:45:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "r-90",
+          "name": "Refeição principal",
+          "time": "14:30"
+        },
+        {
+          "id": "zeta",
+          "name": "Jantar",
+          "time": "02:15"
+        },
+        {
+          "id": "id-700",
+          "name": "Desjejum",
+          "time": "09:00"
+        },
+        {
+          "id": "alt-2",
+          "name": "Intervalo",
+          "time": "11:00"
+        },
+        {
+          "id": "break-5",
+          "name": "Pausa",
+          "time": "17:45"
+        },
+        {
+          "id": "end-x",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "r-90",
+          "status": "empty"
+        },
+        {
+          "id": "zeta",
+          "status": "empty"
+        },
+        {
+          "id": "id-700",
+          "status": "empty"
+        },
+        {
+          "id": "alt-2",
+          "status": "empty"
+        },
+        {
+          "id": "break-5",
+          "status": "empty"
+        },
+        {
+          "id": "end-x",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [],
+    "digests": [],
+    "text": "Jantei 160 g de trigo-sarraceno cozido, sem molho ou óleo.",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "zeta",
+    "top_question": "absent",
+    "meal_text_has": [
+      "trigo-sarraceno"
+    ],
+    "item_portions": {
+      "trigo-sarraceno": 160
+    },
+    "memory_used_only": [],
+    "refusal": "none",
+    "meal_change": {
+      "operation": "new",
+      "base_slot": null
+    },
+    "reply_not": [
+      "apenas refeições de hoje",
+      "ontem"
+    ]
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "top_question",
+    "meal_text_has",
+    "item_portions",
+    "memory_used_only",
+    "refusal",
+    "meal_change",
+    "reply_not"
+  ]
+}

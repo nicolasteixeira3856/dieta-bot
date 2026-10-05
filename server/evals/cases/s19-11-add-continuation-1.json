@@ -1,0 +1,145 @@
+{
+  "id": "s19-11-add-continuation-1",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-updates"
+  ],
+  "family": "updates",
+  "pair": "11-add-continuation",
+  "variant": 1,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "r-90",
+          "name": "Refeição principal",
+          "time": "14:30"
+        },
+        {
+          "id": "zeta",
+          "name": "Jantar",
+          "time": "02:15"
+        },
+        {
+          "id": "id-700",
+          "name": "Desjejum",
+          "time": "09:00"
+        },
+        {
+          "id": "alt-2",
+          "name": "Intervalo",
+          "time": "11:00"
+        },
+        {
+          "id": "break-5",
+          "name": "Pausa",
+          "time": "17:45"
+        },
+        {
+          "id": "end-x",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 120,
+      "eaten_p": 4,
+      "eaten_c": 21,
+      "eaten_g": 2,
+      "remaining_kcal": 2180,
+      "slots": [
+        {
+          "id": "r-90",
+          "status": "empty"
+        },
+        {
+          "id": "zeta",
+          "status": "empty"
+        },
+        {
+          "id": "id-700",
+          "status": "empty"
+        },
+        {
+          "id": "alt-2",
+          "status": "empty"
+        },
+        {
+          "id": "break-5",
+          "status": "eaten",
+          "text": "100 g de quinoa cozida",
+          "kcal": 120,
+          "p": 4,
+          "c": 21,
+          "g": 2
+        },
+        {
+          "id": "end-x",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [],
+    "digests": [
+      "Na Pausa havia quinoa registrada. Houve uma correção separada no Desjejum. Depois o usuário comeu mais 65 g de ameixa. Pergunta em aberto: Em qual refeição entra essa porção extra? (ameixa)."
+    ],
+    "text": "Na Pausa, aquela que já tem quinoa.",
+    "clarify_rounds": 1,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "break-5",
+    "refusal": "none",
+    "memory_used_only": [],
+    "meal_change": {
+      "operation": "add",
+      "base_slot": "break-5",
+      "base": {
+        "text": "100 g de quinoa cozida",
+        "kcal": 120,
+        "p": 4,
+        "c": 21,
+        "g": 2
+      },
+      "slot_name": "Pausa",
+      "addition_has": [
+        "ameixa"
+      ],
+      "addition_not": [
+        "quinoa",
+        "água"
+      ],
+      "portions": {
+        "ameixa": 65
+      }
+    }
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "refusal",
+    "memory_used_only",
+    "meal_change"
+  ]
+}

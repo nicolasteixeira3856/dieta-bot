@@ -1,0 +1,110 @@
+{
+  "id": "s19-14-photo-text-0",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-photo"
+  ],
+  "family": "photo",
+  "pair": "14-photo-text",
+  "variant": 0,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "night-x",
+          "name": "Jantar",
+          "time": "03:30"
+        },
+        {
+          "id": "rise-8",
+          "name": "Desjejum",
+          "time": "11:15"
+        },
+        {
+          "id": "pause-42",
+          "name": "Pausa",
+          "time": "18:10"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "night-x",
+          "status": "empty"
+        },
+        {
+          "id": "rise-8",
+          "status": "empty"
+        },
+        {
+          "id": "pause-42",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [],
+    "digests": [],
+    "text": "Na Pausa tomei a garrafa inteira de 250 ml desta bebida. O rótulo fictício informa por 250 ml: 90 kcal, 0 g de proteína, 5 g de carboidratos e 0 g de gordura.",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "pause-42",
+    "top_question": "absent",
+    "meal_text_has": [
+      "bebida"
+    ],
+    "item_portions": {
+      "bebida": null
+    },
+    "memory_used_only": [],
+    "refusal": "none",
+    "meal_change": {
+      "operation": "new",
+      "base_slot": null
+    },
+    "estimate_values": {
+      "kcal": 90,
+      "p": 0,
+      "c": 5,
+      "g": 0
+    }
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "top_question",
+    "meal_text_has",
+    "item_portions",
+    "memory_used_only",
+    "refusal",
+    "meal_change",
+    "estimate_values"
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "id": "s19-08-partial-reference-0",
+  "since": "v5",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-labels"
+  ],
+  "family": "labels",
+  "pair": "08-partial-reference",
+  "variant": 0,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "night-x",
+          "name": "Jantar",
+          "time": "03:30"
+        },
+        {
+          "id": "rise-8",
+          "name": "Desjejum",
+          "time": "11:15"
+        },
+        {
+          "id": "pause-42",
+          "name": "Pausa",
+          "time": "18:10"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "night-x",
+          "status": "empty"
+        },
+        {
+          "id": "rise-8",
+          "status": "empty"
+        },
+        {
+          "id": "pause-42",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [
+      {
+        "role": "user",
+        "text": "Quero guardar os dados de um produto para outro dia."
+      },
+      {
+        "role": "assistant",
+        "text": "Pode informar o rótulo e a porção a que os números se referem."
+      }
+    ],
+    "digests": [],
+    "text": "Amanhã vou comer Biscoito Fictício Cedro. Guarde a referência: por 30 g são 95 kcal e 4 g de proteína; não tenho os outros nutrientes.",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true
+  },
+  "expect": {
+    "intent": "plan",
+    "record": "none",
+    "estimate": "absent",
+    "refusal": "none",
+    "memory_used_only": [],
+    "memory_updates_has": [
+      {
+        "op": "add",
+        "kind": "temp",
+        "category": "portion"
+      }
+    ],
+    "memory_update_text": [
+      {
+        "match": {
+          "op": "add",
+          "kind": "temp"
+        },
+        "has": [
+          "Biscoito Fictício Cedro",
+          "30",
+          "95",
+          "4"
+        ]
+      }
+    ]
+  },
+  "required": [
+    "intent",
+    "record",
+    "estimate",
+    "refusal",
+    "memory_used_only",
+    "memory_updates_has",
+    "memory_update_text"
+  ]
+}
