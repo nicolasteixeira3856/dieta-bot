@@ -11,7 +11,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-Design the Fibrai landing page with the owner in Figma: Aero look, the app's palette and typography, light by default with a dark/light switch, desktop and mobile. Then freeze it as golds for [W1](../../../site/plans/w1-landing-site.md).
+Design the Fibrai landing page with the owner in Figma: Aero look, the app's palette and typography, light by default with a dark/light switch, desktop and mobile. Then freeze it as golds for [W1](../../../site/plans/completed/w1-landing-site.md).
 
 ## Fixed requirements (ADR-037)
 
@@ -47,7 +47,7 @@ Design the Fibrai landing page with the owner in Figma: Aero look, the app's pal
 
 ## Out of scope
 
-- HTML/CSS: [W1](../../../site/plans/w1-landing-site.md).
+- HTML/CSS: [W1](../../../site/plans/completed/w1-landing-site.md).
 - Privacy policy text ([CP8](../../../content-policy/plans/out_of_scope/cp8-public-legal-pack.md)), contact data, logo, final avatar art.
 - App frames.
 
@@ -64,7 +64,7 @@ Approved by the owner on 2026-10-05 ("Aprovo o plano docs/design/plans/d11-landi
 
 ### Discovery (before the first write)
 
-Sources read: ADR-034, ADR-035, ADR-037, [W1](../../../site/plans/w1-landing-site.md), the Home disclaimer in code (`Estimativa nutricional, não substitui consulta médica ou nutricional.`), the AGENTS formulas and product rules, and the Figma file (variables, text, effect and paint styles, every component, the `Release 1` sections). Classes: `app` (a feature that exists in code or a live specification, so the page may state it), `copy` (text proposed for the page, decided by the owner), `out` (forbidden by ADR-037 or not in the product).
+Sources read: ADR-034, ADR-035, ADR-037, [W1](../../../site/plans/completed/w1-landing-site.md), the Home disclaimer in code (`Estimativa nutricional, não substitui consulta médica ou nutricional.`), the AGENTS formulas and product rules, and the Figma file (variables, text, effect and paint styles, every component, the `Release 1` sections). Classes: `app` (a feature that exists in code or a live specification, so the page may state it), `copy` (text proposed for the page, decided by the owner), `out` (forbidden by ADR-037 or not in the product).
 
 | Element | Class | Figma |
 |---|---|---|
@@ -203,7 +203,7 @@ The owner found the text hard to read in Light. The ratios were measured against
 - **Phone-screen web assets: not exported here, on purpose.**
   - The screens W1 needs are the tops of the `o1`, `home1` and `chatE` golds (the first 844 pt of the frame, as the phone shows them).
   - Exporting them now would freeze the old name before [D10](d10-fibrai-tali-rename.md).
-  - [W1](../../../site/plans/w1-landing-site.md) crops them from `docs/qa/figma/{light,dark}/` after D10.
+  - [W1](../../../site/plans/completed/w1-landing-site.md) crops them from `docs/qa/figma/{light,dark}/` after D10.
   - D10 also refreshes the phone clones in `land` and `landM` (its scope item 7).
 
 ### Figma MCP budget

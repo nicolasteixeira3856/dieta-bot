@@ -7,10 +7,10 @@
   - `web/wrangler.jsonc` and the Worker config in `web/`;
   - `tools/deploy-web.ps1`;
   - Cloudflare configuration of the zones `fibrai.app` and `fibrai.com.br`.
-  - No change to `web/public/` content (that is [W1](w1-landing-site.md)), `apps/` or `server/`.
+  - No change to `web/public/` content (that is [W1](completed/w1-landing-site.md)), `apps/` or `server/`.
 - Related documentation: [site README](../README.md), [ADR-037](../adrs/ADR-037-landing-site.md), [ADR-038](../adrs/ADR-038-web-project-folder.md), [production gate](../../content-policy/production-gate.md).
 - Prerequisites:
-  - [W1](w1-landing-site.md) `Concluído`;
+  - [W1](completed/w1-landing-site.md) `Concluído`;
   - owner setup:
     - a Cloudflare API token scoped to Workers Scripts:Edit and the `fibrai.app` zone (Workers Routes, DNS), saved as `CLOUDFLARE_API_TOKEN` in the owner's user environment;
     - `CLOUDFLARE_ACCOUNT_ID`.
@@ -60,7 +60,7 @@ Publish `web/public/` at `https://fibrai.app` through a Cloudflare Worker with s
 
 ## Out of scope
 
-- Page content and layout ([W1](w1-landing-site.md)).
+- Page content and layout ([W1](completed/w1-landing-site.md)).
 - E-mail on the domains, analytics, any app distribution.
 
 ## Validation

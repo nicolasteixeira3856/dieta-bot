@@ -1,27 +1,27 @@
 # Plan — W1 Landing page code in `web/`
 
-- Status: Aguardando aprovação
+- Status: Concluído
 - Date: 05/10/2026
 - Owning context: `site`
-- Executable boundary: the new npm project `web/` (`package.json`, `public/`, `tools/`). Captures go in `docs/qa/site/current/{dark,light}/`. At Completion, the documentation listed in step 8. No `apps/`, `server/` or root `tools/` change, and no hosting: [W2](w2-landing-hosting.md).
-- Related documentation: [site README](../README.md), [ADR-037](../adrs/ADR-037-landing-site.md), [ADR-038](../adrs/ADR-038-web-project-folder.md), [D11](../../design/plans/completed/d11-landing-page.md) (layout, copy, contrast), the [gold inventory](../../qa/README.md#golds), [docs/tokens.md](../../tokens.md).
+- Executable boundary: the new npm project `web/` (`package.json`, `public/`, `tools/`). Captures go in `docs/qa/site/current/{dark,light}/`. At Completion, the documentation listed in step 8. No `apps/`, `server/` or root `tools/` change, and no hosting: [W2](../w2-landing-hosting.md).
+- Related documentation: [site README](../../README.md), [ADR-037](../../adrs/ADR-037-landing-site.md), [ADR-038](../../adrs/ADR-038-web-project-folder.md), [D11](../../../design/plans/completed/d11-landing-page.md) (layout, copy, contrast), the [gold inventory](../../../qa/README.md#golds), [docs/tokens.md](../../../tokens.md).
 - Prerequisites:
-  - approval of this plan accepts [ADR-038](../adrs/ADR-038-web-project-folder.md);
-  - [D11](../../design/plans/completed/d11-landing-page.md) `Concluído` (golds `land`, `landM`, `priv`): met;
-  - [D10](../../design/plans/completed/d10-fibrai-tali-rename.md) `Concluído`. Its scope item 7 refreshes the phone screens of `land` and `landM`, and its re-exported `o1`, `home1` and `chatE` golds show Fibrai and Tali. Without it the page would ship the old name.
+  - approval of this plan accepts [ADR-038](../../adrs/ADR-038-web-project-folder.md);
+  - [D11](../../../design/plans/completed/d11-landing-page.md) `Concluído` (golds `land`, `landM`, `priv`): met;
+  - [D10](../../../design/plans/completed/d10-fibrai-tali-rename.md) `Concluído`. Its scope item 7 refreshes the phone screens of `land` and `landM`, and its re-exported `o1`, `home1` and `chatE` golds show Fibrai and Tali. Without it the page would ship the old name.
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/site/plans/w1-landing-site.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/site/plans/w1-landing-site.md. Implemente o plano aprovado.`
 
 ## Objective
 
-Build the Fibrai landing page as static HTML, CSS and a little vanilla JavaScript in `web/`, matching the D11 golds in both themes. The result runs locally and is ready for [W2](w2-landing-hosting.md) to publish.
+Build the Fibrai landing page as static HTML, CSS and a little vanilla JavaScript in `web/`, matching the D11 golds in both themes. The result runs locally and is ready for [W2](../w2-landing-hosting.md) to publish.
 
 ## Sources
 
 | Source | Gives |
 |---|---|
 | Golds `land` (desktop 1440), `landM` (mobile 390), `priv` (desktop 1440) in `docs/qa/figma/{light,dark}/` | layout, the only visual reference |
-| [D11 Results](../../design/plans/completed/d11-landing-page.md#final-composition-2026-10-05) | structure, exact pt-BR copy, the WCAG fix (hero and nav texts in `text/primary`) |
+| [D11 Results](../../../design/plans/completed/d11-landing-page.md#final-composition-2026-10-05) | structure, exact pt-BR copy, the WCAG fix (hero and nav texts in `text/primary`) |
 | `docs/design/tokens.json` | every color per mode, radius, spacing, blur, text style (including `Web/*`), paint and effect style |
 | Golds `o1`, `home1`, `chatE` | the three phone screens |
 | `@phosphor-icons/core` 2.1.1 | sun, moon and info icons (the SVGs used in Figma) |
@@ -111,13 +111,13 @@ Copy is taken verbatim from the gold and D11 Results. A copy change is a D11 fol
      - the Folder law gains `docs/qa/site/current/{dark,light}/`;
      - the Visual QA notes say that `land`, `landM` and `priv` are compared with browser captures, not the emulator.
    - `docs/README.md`: the matrix row for `site` points to `web/`.
-   - [site README](../README.md): the live page and how to preview it.
-   - [docs/qa/README.md](../../qa/README.md): the site capture folder and its gate.
+   - [site README](../../README.md): the live page and how to preview it.
+   - [docs/qa/README.md](../../../qa/README.md): the site capture folder and its gate.
 
 ## Out of scope
 
-- Hosting, domains, security headers and deploy: [W2](w2-landing-hosting.md).
-- Privacy policy text and contact data ([CP8](../../content-policy/plans/out_of_scope/cp8-public-legal-pack.md), owner).
+- Hosting, domains, security headers and deploy: [W2](../w2-landing-hosting.md).
+- Privacy policy text and contact data ([CP8](../../../content-policy/plans/out_of_scope/cp8-public-legal-pack.md), owner).
 - Copy or layout changes not in the golds (a D11 follow-up in Figma first).
 - Any way to install the app, analytics, a logo or final avatar art, languages other than pt-BR.
 
@@ -128,7 +128,7 @@ Copy is taken verbatim from the gold and D11 Results. A copy change is a D11 fol
    - `land` and `priv` at 1440 px, `landM` at 390 px;
    - light and dark;
    - saved to `docs/qa/site/current/{light,dark}/{land,landM,priv}.png` at 2× (the gold geometry).
-3. **Gold comparison:** a written diff list against each gold (layout, tokens, type size, radius, glass, phones, switch state, semantic colors), iterated until each pair passes the [docs/qa gate](../../qa/README.md#gate): blurred diff ≤ 2 %, content ink 0.8×–1.25×. Browser font rasterization is ignored, as for the emulator. The capture script reports the diff, reusing the pngjs blur-diff method of `tools/diff-gold.mjs`.
+3. **Gold comparison:** a written diff list against each gold (layout, tokens, type size, radius, glass, phones, switch state, semantic colors), iterated until each pair passes the [docs/qa gate](../../../qa/README.md#gate): blurred diff ≤ 2 %, content ink 0.8×–1.25×. Browser font rasterization is ignored, as for the emulator. The capture script reports the diff, reusing the pngjs blur-diff method of `tools/diff-gold.mjs`.
 4. **Responsive:** at 768, 1024 and 1920 px there is no horizontal scroll and no overlap, and a reported capture goes to the plan Results (no gold).
 5. **Accessibility:**
    - Lighthouse Accessibility ≥ 95 on both pages, both themes (local `npx lighthouse`);
@@ -145,4 +145,70 @@ Copy is taken verbatim from the gold and D11 Results. A copy change is a D11 fol
 
 ## Results
 
-Planning only.
+Approved by the owner on 2026-10-05 ("Aprovo o plano docs/site/plans/w1-landing-site.md. Implemente o plano aprovado."). The approval accepts [ADR-038](../../adrs/ADR-038-web-project-folder.md). Prerequisites checked before the first file: [D11](../../../design/plans/completed/d11-landing-page.md) and [D10](../../../design/plans/completed/d10-fibrai-tali-rename.md) are both `Concluído`, so the golds `o1`, `home1`, `chatE`, `land` and `landM` show Fibrai and Tali.
+
+### Delivered (`web/`, 2026-10-05)
+
+- **Project:** `web/package.json`, private, ES modules, no runtime dependency. The scripts are `tokens`, `screens`, `fonts`, `preview`, `capture`, `lighthouse` and `check`, with `:check` variants where they apply.
+- **Dev dependencies, exact versions in `package-lock.json`:**
+  - `playwright` 1.63.0, the same version as `tools/`, which reuses the installed Chromium;
+  - `pngjs` 7.0.0;
+  - `sharp` 0.35.5;
+  - `html-validate` 11.16.2;
+  - `@fontsource-variable/nunito-sans` 5.3.0.
+  - `npm audit` reports 0 vulnerabilities. A first install of `playwright` 1.55.0 had a high-severity advisory and was replaced.
+- **`public/`, 357 KB in total:**
+  - `index.html`, `privacidade/index.html` (`noindex`);
+  - `css/tokens.css` (generated), `css/site.css`;
+  - `js/theme-init.js`, `js/theme.js`;
+  - `fonts/` (Nunito Sans latin and latin-ext variable woff2, 31 KB and 28 KB, plus `OFL.txt`);
+  - `img/screens/{light,dark}/{o1,home1,chatE}.webp`, 35–42 KB each.
+- **Tokens (`tools/build-tokens.mjs`):**
+  - Custom property names follow each variable's WEB code syntax in `tokens.json` (`--color-bg-page`, `--radius-card`, `--space-md`, `--blur-glass`…). Step 2 of this plan had sketched `--bg-page`; the code syntax already in the file wins.
+  - Paint styles become `--paint-*` gradients and the effect styles become `--effect-*-blur` / `--effect-*-shadow`.
+  - Text styles become `.t-<name>` classes and `--text-<name>-{weight,size,line,tracking}` properties. The properties let the H1 and H2 switch style at the 768 px breakpoint without a typed value.
+  - The non-token layout numbers of the golds are named at the top of `site.css`.
+- **Screens (`tools/build-screens.mjs`):** the top 1688 px of each 780 px app gold, resized to 600 px wide WebP. `--check` rebuilds them in memory and compares bytes.
+- **Theme:**
+  - `theme-init.js` runs in `<head>`; there is no inline script or style anywhere (W2 CSP).
+  - The `<html>` markup also carries `data-theme="light"` as the no-script default.
+  - A skip link "Pular para o conteúdo" was added, visible only on keyboard focus (not in the gold, invisible in the captures).
+- **Phone frame:** the bezel and edge are two pseudo-elements over the screen image. Between 768 and 1100 px the phones shrink with the row and keep the 316 : 665 ratio.
+
+### Validation
+
+1. **`npm --prefix web run check`** passes:
+   - `tokens:check`, `screens:check` and the fonts check;
+   - `html-validate` (recommended rules) on 2 pages;
+   - the production guard finds no form, analytics, cookie, app or store link, inline script or style, or cross-origin `src`/`href`/CSS URL.
+2. **Captures** (`npm --prefix web run capture`, Chromium at 2×, viewport 600 px high so the page is not stretched past the gold) land in `docs/qa/site/current/{light,dark}/`. Every pair has the gold's exact size:
+
+   | Gold | Light | Dark |
+   |---|---|---|
+   | `land` 2880 × 5136 | 0.53 %, ink 1.02 | 0.37 %, ink 1.06 |
+   | `landM` 780 × 5880 | 0.54 %, ink 1.04 | 0.53 %, ink 1.08 |
+   | `priv` 2880 × 1398 | 0.02 %, ink 0.93 | 0.00 %, ink 1.05 |
+
+   **Diff list:**
+   - Layout, tokens, type sizes, radii, glass, switch state, chips, cards, avatar, note and footer match the gold. Their diff mask is empty apart from font raster.
+   - **Phone screens:** the only red areas of the masks sit inside the `o1` and `home1` phones. The Figma gold shows a clone of the app frame rescaled to 0.77×, and that rescale rounds the fractional gaps and line heights, so its content drifts up to about 4 px toward the bottom of the screen. The site shows the exact app gold (step 6), so this is accepted, not fixed.
+   - **First capture of `priv`:** at a 900 px viewport the page filled the window (1800 px against 1398). The body is now a column with the footer at the bottom, and the gold captures use a 600 px viewport.
+3. **Responsive** (reported, no gold): at 768, 1024 and 1920 px, on both pages:
+   - horizontal overflow 0 px;
+   - 0 overlapping text boxes;
+   - no console or HTTP error.
+4. **Accessibility:**
+   - `npm --prefix web run lighthouse` gives Lighthouse 13.5.0 Accessibility 100 on `/` and `/privacidade/`, light and dark. The full-page screenshot confirms the theme Lighthouse rendered.
+   - Keyboard order: skip link → Fibrai → Como funciona → Tali → Contato → "Ativar tema escuro", each with a 2 px accent focus ring on screen.
+   - Text contrast follows the D11 fix (AA).
+5. **Theme behavior** (in `capture`):
+   - first load is light under a dark system theme;
+   - the click switches to dark and updates the name to "Ativar tema claro" with `aria-pressed="true"`;
+   - the choice survives a reload and carries to `/privacidade`;
+   - with `localStorage` blocked the page renders light and the switch still works, with no error;
+   - a saved dark theme is set by the head script before paint.
+6. **Docs:** `node tools/check-docs.mjs` passes after the Completion updates (AGENTS, matrix, site README, `docs/qa/README.md`).
+
+### Not in this plan
+
+Hosting and domains: [W2](../w2-landing-hosting.md).

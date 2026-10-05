@@ -21,7 +21,7 @@ The app has no web surface today. AGENTS allows only `apps/android/` and `server
 
 1. **A new context `site` and code folder `site/`.** The site is static: HTML, CSS and a small vanilla JavaScript file for the theme switch. There is no framework, no build server and no backend.
 2. **Hosting:** a Cloudflare Worker with static assets serves `fibrai.app`. `www.fibrai.app` redirects to the apex. Deployment is `wrangler deploy` through `tools/deploy-site.ps1`, with a `CLOUDFLARE_API_TOKEN` scoped to this zone and Workers in the owner's user environment. The token is never printed or committed.
-3. **`fibrai.com.br`** becomes a Cloudflare zone in the same account with a 301 redirect to `https://fibrai.app`, path kept. This depends on the Registro.br registration, tracked in [W1](../plans/w1-landing-site.md).
+3. **`fibrai.com.br`** becomes a Cloudflare zone in the same account with a 301 redirect to `https://fibrai.app`, path kept. This depends on the Registro.br registration, tracked in [W1](../plans/completed/w1-landing-site.md).
 4. **Look:**
    - Aero tokens come from `docs/design/tokens.json`, the same source as the app, generated into CSS custom properties. No hand-copied values.
    - Nunito Sans is self-hosted (OFL), with no Google Fonts request.
@@ -66,7 +66,7 @@ The app has no web surface today. AGENTS allows only `apps/android/` and `server
 ## Relations
 
 - [ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md) (Aero), [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md) (Figma source), [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md) (brand).
-- Plans: [D11](../../design/plans/completed/d11-landing-page.md), [W1](../plans/w1-landing-site.md).
+- Plans: [D11](../../design/plans/completed/d11-landing-page.md), [W1](../plans/completed/w1-landing-site.md).
 - [Production gate](../../content-policy/production-gate.md) PG2 (privacy policy).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the replacement.

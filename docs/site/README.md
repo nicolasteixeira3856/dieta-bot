@@ -9,7 +9,7 @@ Landing page pública do Fibrai em `fibrai.app`: o que o app faz, telas, Tali, l
 ## Tipo e ownership
 
 - Tipo: `client` (web estático).
-- Código principal: o projeto npm `web/` na raiz do repositório ([ADR-038](adrs/ADR-038-web-project-folder.md)); ainda não existe, nasce no [W1](plans/w1-landing-site.md). O contexto de documentação continua `site`.
+- Código principal: o projeto npm `web/` na raiz do repositório ([ADR-038](adrs/ADR-038-web-project-folder.md)). O contexto de documentação continua `site`.
 - Consumidores: visitantes públicos. Nenhum dado do usuário entra no site.
 
 ## Escopo
@@ -35,6 +35,19 @@ Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 2. confira os planos ativos abaixo;
 3. confira o código atual em `web/`.
 
+## Código e verificação
+
+- `web/public/` é o site servido, sem etapa de build: `index.html` (golds `land` e `landM`, breakpoint 768 px) e `privacidade/index.html` (gold `priv`, `noindex`). Tema claro por padrão, troca escuro/claro guardada no `localStorage`.
+- Gerados, nunca editados à mão:
+  - `css/tokens.css`, a partir de `docs/design/tokens.json`;
+  - `img/screens/`, recorte das telas dos golds `o1`, `home1` e `chatE`; refaça depois de reexportar esses golds;
+  - `fonts/`, copiadas do pacote Nunito Sans (OFL).
+- Comandos (rode `npm --prefix web ci` uma vez antes):
+  - `npm --prefix web run preview` serve o site em `http://127.0.0.1:4173/`;
+  - `npm --prefix web run check` confere os arquivos gerados, valida o HTML e procura conteúdo proibido pelo ADR-037 § 6;
+  - `npm --prefix web run capture` grava as capturas em `docs/qa/site/current/{light,dark}/`, compara com os golds pelo gate de [docs/qa](../qa/README.md#gate) e testa responsivo e tema;
+  - `npm --prefix web run lighthouse` mede a acessibilidade (mínimo 95) nas duas páginas e nos dois temas.
+
 ## Índice
 
 ### ADRs
@@ -44,5 +57,6 @@ Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 
 ### Planos
 
-- Ativos: [W1 — Landing page code in `web/`](plans/w1-landing-site.md), [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md).
+- Ativos: [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md).
+- Concluídos: [`plans/completed/`](plans/completed/).
 - Fora de escopo: nenhum.

@@ -61,6 +61,7 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   Telemetry: core/telemetry Telemetry interface. dev = Firebase nutri-bot-dev (Crashlytics + Analytics), prod = NoopTelemetry.
   Events carry enums and numbers only, never user text. X-Request-Id links Crashlytics to the dev server log (ADR-015).
 - server/ — FastAPI. Routes and payloads: `docs/api-contract.md`.
+- web/ — Fibrai landing page (fibrai.app, ADR-037, ADR-038): static HTML, CSS and vanilla JS in `web/public/`, no framework, no build step. npm scripts only: `tokens.css` from `docs/design/tokens.json`, phone screens cut from the app golds, self-hosted Nunito Sans. Check: `npm --prefix web run check`; visual QA: `npm --prefix web run capture`. Light by default with a switch (differs from the app on purpose). No tracking, forms or way to get the app (production gate).
 - Host: GCP e2-micro us-east1 + Caddy (ADR-013). Runbook: docs/server/deploy-gcp.md. Deploy: tools/deploy-gcp.ps1
 
 Dead: legacy/flutter, apps/rn. Git history keeps them. Do not restore.
@@ -82,6 +83,7 @@ Folder law:
 - Figma gold PNGs: `docs/qa/figma/dark/<id>.png` and `docs/qa/figma/light/<id>.png` (exported from Figma `Design`)
 - Stitch gold PNGs: `docs/qa/stitch/dark/<id>.png` and `docs/qa/stitch/light/<id>.png` (exported from Stitch `Nutri`)
 - App captures: `docs/qa/android/current/dark/` and `docs/qa/android/current/light/`
+- Site captures (browser, `land`, `landM`, `priv`): `docs/qa/site/current/dark/` and `docs/qa/site/current/light/`
 - Deprecated legacy wires & old captures: `docs/qa/_legacy/`
 - Do not compare against `_legacy`
 - No PNG/JPG may sit in the `docs/qa/` root
@@ -99,6 +101,7 @@ A screen is not DONE until the agent has:
 
 Ignore in the comparison: system clock, battery, 3-button nav, font raster from the emulator.
 Do not ignore: remaining size, CTA color, sheet radius, day-1 zero chips, gold as accent only, semantic macro colors, consolidated meal entry (values in `docs/tokens.md`).
+The site golds `land`, `landM` and `priv` are compared with Chromium captures (`npm --prefix web run capture`), not the emulator; browser font raster is ignored the same way.
 
 How to export gold PNGs (agent, unattended):
 - Figma: `node tools/export-figma.mjs --only <ids>` (needs `FIGMA_TOKEN` in the user environment; never print it), check: `node tools/check-figma.mjs`

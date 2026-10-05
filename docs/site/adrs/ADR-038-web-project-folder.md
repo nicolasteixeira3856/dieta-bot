@@ -1,6 +1,6 @@
 # ADR-038 — Landing code lives in the `web/` project at the repository root
 
-- Status: Proposed (2026-10-05; accepted with the owner's approval of [W1](../plans/w1-landing-site.md))
+- Status: Accepted (2026-10-05, with the owner's named approval of [W1](../plans/completed/w1-landing-site.md))
 - Date: 2026-10-05
 - Context: `site`
 - Replaces: part of [ADR-037](ADR-037-landing-site.md) § Decision:
@@ -49,6 +49,6 @@ ADR-037 named the landing code folder `site/`. While planning the HTML/CSS/JS de
 ## Relations
 
 - [ADR-037](ADR-037-landing-site.md) (partially replaced), [ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md) (Aero tokens).
-- Plans: [W1](../plans/w1-landing-site.md) (web project), [W2](../plans/w2-landing-hosting.md) (hosting and domains).
+- Plans: [W1](../plans/completed/w1-landing-site.md) (web project), [W2](../plans/w2-landing-hosting.md) (hosting and domains).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the replacement.

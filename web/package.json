@@ -1,0 +1,24 @@
+{
+  "name": "fibrai-web",
+  "private": true,
+  "description": "Fibrai landing page (fibrai.app): static HTML, CSS and vanilla JS. ADR-037, ADR-038.",
+  "type": "module",
+  "scripts": {
+    "tokens": "node tools/build-tokens.mjs",
+    "tokens:check": "node tools/build-tokens.mjs --check",
+    "screens": "node tools/build-screens.mjs",
+    "screens:check": "node tools/build-screens.mjs --check",
+    "fonts": "node tools/copy-fonts.mjs",
+    "preview": "node tools/preview.mjs",
+    "capture": "node tools/capture.mjs",
+    "check": "node tools/check.mjs",
+    "lighthouse": "node tools/lighthouse.mjs"
+  },
+  "devDependencies": {
+    "@fontsource-variable/nunito-sans": "5.3.0",
+    "html-validate": "11.16.2",
+    "playwright": "1.63.0",
+    "pngjs": "7.0.0",
+    "sharp": "0.35.5"
+  }
+}
