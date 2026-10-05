@@ -1,0 +1,141 @@
+{
+  "id": "s19-11-add-continuation-0",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-updates"
+  ],
+  "family": "updates",
+  "pair": "11-add-continuation",
+  "variant": 0,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "night-x",
+          "name": "Jantar",
+          "time": "03:30"
+        },
+        {
+          "id": "rise-8",
+          "name": "Desjejum",
+          "time": "11:15"
+        },
+        {
+          "id": "pause-42",
+          "name": "Pausa",
+          "time": "18:10"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 120,
+      "eaten_p": 4,
+      "eaten_c": 21,
+      "eaten_g": 2,
+      "remaining_kcal": 2180,
+      "slots": [
+        {
+          "id": "night-x",
+          "status": "empty"
+        },
+        {
+          "id": "rise-8",
+          "status": "empty"
+        },
+        {
+          "id": "pause-42",
+          "status": "eaten",
+          "text": "100 g de quinoa cozida",
+          "kcal": 120,
+          "p": 4,
+          "c": 21,
+          "g": 2
+        }
+      ]
+    },
+    "messages": [
+      {
+        "role": "user",
+        "text": "Na Pausa comi a quinoa que está no registro."
+      },
+      {
+        "role": "assistant",
+        "text": "A refeição é a Pausa."
+      },
+      {
+        "role": "user",
+        "text": "Corrigindo o Desjejum: foi só água."
+      },
+      {
+        "role": "assistant",
+        "text": "A correção é do Desjejum."
+      },
+      {
+        "role": "user",
+        "text": "Adicione 75 g de kiwi, sem casca ou caroço. É uma porção extra."
+      },
+      {
+        "role": "assistant",
+        "text": "Em qual refeição entra essa porção extra?"
+      }
+    ],
+    "digests": [],
+    "text": "Na Pausa, aquela que já tem quinoa.",
+    "clarify_rounds": 1,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "pause-42",
+    "refusal": "none",
+    "memory_used_only": [],
+    "meal_change": {
+      "operation": "add",
+      "base_slot": "pause-42",
+      "base": {
+        "text": "100 g de quinoa cozida",
+        "kcal": 120,
+        "p": 4,
+        "c": 21,
+        "g": 2
+      },
+      "slot_name": "Pausa",
+      "addition_has": [
+        "kiwi"
+      ],
+      "addition_not": [
+        "quinoa",
+        "água"
+      ],
+      "portions": {
+        "kiwi": 75
+      }
+    }
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "refusal",
+    "memory_used_only",
+    "meal_change"
+  ]
+}

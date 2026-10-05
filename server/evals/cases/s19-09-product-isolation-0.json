@@ -1,0 +1,125 @@
+{
+  "id": "s19-09-product-isolation-0",
+  "since": "v5",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-labels"
+  ],
+  "family": "labels",
+  "pair": "09-product-isolation",
+  "variant": 0,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "night-x",
+          "name": "Jantar",
+          "time": "03:30"
+        },
+        {
+          "id": "rise-8",
+          "name": "Desjejum",
+          "time": "11:15"
+        },
+        {
+          "id": "pause-42",
+          "name": "Pausa",
+          "time": "18:10"
+        }
+      ]
+    },
+    "facts": [
+      {
+        "id": "T77",
+        "kind": "temp",
+        "category": "portion",
+        "key": "alva",
+        "text": "Barra Fictícia Alva: por 20 g, 80 kcal, 3 g P, 8 g C, 4 g G.",
+        "slot": null,
+        "days_seen": 4,
+        "last_seen": "2026-10-12"
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "night-x",
+          "status": "empty"
+        },
+        {
+          "id": "rise-8",
+          "status": "empty"
+        },
+        {
+          "id": "pause-42",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [],
+    "digests": [],
+    "text": "Comi 100 g de Purê Fictício Solis na Pausa. Rótulo por 100 g: 82 kcal, 2 g P, 14 g C, 2 g G.",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "pause-42",
+    "top_question": "absent",
+    "meal_text_has": [
+      "Solis"
+    ],
+    "item_portions": {
+      "Solis": 100
+    },
+    "memory_used_only": [],
+    "refusal": "none",
+    "estimate_values": {
+      "kcal": 82,
+      "p": 2,
+      "c": 14,
+      "g": 2
+    },
+    "meal_text_not": [
+      "Alva"
+    ],
+    "memory_updates_not": [
+      {
+        "id": "T77"
+      }
+    ]
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "top_question",
+    "meal_text_has",
+    "item_portions",
+    "memory_used_only",
+    "refusal",
+    "estimate_values",
+    "meal_text_not",
+    "memory_updates_not"
+  ]
+}

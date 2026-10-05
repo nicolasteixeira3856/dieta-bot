@@ -1,0 +1,169 @@
+{
+  "id": "s19-07-label-repeat-1",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-labels"
+  ],
+  "family": "labels",
+  "pair": "07-label-repeat",
+  "variant": 1,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "r-90",
+          "name": "Refeição principal",
+          "time": "14:30"
+        },
+        {
+          "id": "zeta",
+          "name": "Jantar",
+          "time": "02:15"
+        },
+        {
+          "id": "id-700",
+          "name": "Desjejum",
+          "time": "09:00"
+        },
+        {
+          "id": "alt-2",
+          "name": "Intervalo",
+          "time": "11:00"
+        },
+        {
+          "id": "break-5",
+          "name": "Pausa",
+          "time": "17:45"
+        },
+        {
+          "id": "end-x",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "facts": [
+      {
+        "id": "T61",
+        "kind": "temp",
+        "category": "portion",
+        "key": "rotulo",
+        "text": "Creme Fictício Vela: por 50 g, 120 kcal, 4 g P, 17 g C, 4 g G.",
+        "slot": null,
+        "days_seen": 4,
+        "last_seen": "2026-10-12"
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "r-90",
+          "status": "empty"
+        },
+        {
+          "id": "zeta",
+          "status": "empty"
+        },
+        {
+          "id": "id-700",
+          "status": "empty"
+        },
+        {
+          "id": "alt-2",
+          "status": "empty"
+        },
+        {
+          "id": "break-5",
+          "status": "empty"
+        },
+        {
+          "id": "end-x",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [
+      {
+        "role": "user",
+        "text": "Vou separar uma porção desse produto para a Pausa."
+      },
+      {
+        "role": "assistant",
+        "text": "Qual foi a quantidade que você comeu?"
+      }
+    ],
+    "digests": [],
+    "text": "Comi 100 g do Creme Fictício Vela na Pausa.",
+    "clarify_rounds": 1,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "break-5",
+    "top_question": "absent",
+    "meal_text_has": [
+      "Vela"
+    ],
+    "item_portions": {
+      "Vela": 100
+    },
+    "memory_used_only": [
+      "T61"
+    ],
+    "refusal": "none",
+    "meal_change": {
+      "operation": "new",
+      "base_slot": null
+    },
+    "estimate_values": {
+      "kcal": 240.0,
+      "p": 8.0,
+      "c": 34.0,
+      "g": 8.0
+    },
+    "memory_used_has": [
+      "T61"
+    ],
+    "memory_updates_not": [
+      {
+        "id": "T61"
+      }
+    ]
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "top_question",
+    "meal_text_has",
+    "item_portions",
+    "memory_used_only",
+    "refusal",
+    "meal_change",
+    "estimate_values",
+    "memory_used_has",
+    "memory_updates_not"
+  ]
+}

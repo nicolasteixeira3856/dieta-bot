@@ -1,0 +1,113 @@
+{
+  "id": "s19-12-compact-closed-0",
+  "since": "v5",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-compact"
+  ],
+  "family": "compact",
+  "pair": "12-compact-closed",
+  "variant": 0,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "night-x",
+          "name": "Jantar",
+          "time": "03:30"
+        },
+        {
+          "id": "rise-8",
+          "name": "Desjejum",
+          "time": "11:15"
+        },
+        {
+          "id": "pause-42",
+          "name": "Pausa",
+          "time": "18:10"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "night-x",
+          "status": "empty"
+        },
+        {
+          "id": "rise-8",
+          "status": "empty"
+        },
+        {
+          "id": "pause-42",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [
+      {
+        "role": "user",
+        "text": "Comi 2 unidades de bolinho de feijão."
+      },
+      {
+        "role": "assistant",
+        "text": "Qual o peso e como foi preparado?"
+      },
+      {
+        "role": "user",
+        "text": "Não sei o peso; foram assados, cada um do tamanho de uma bola de pingue-pongue."
+      },
+      {
+        "role": "assistant",
+        "text": "Quantos gramas tinha cada um?"
+      }
+    ],
+    "digests": [],
+    "text": "",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "compact": true
+  },
+  "expect": {
+    "digest": "present",
+    "digest_has": [
+      "bolinho",
+      "feijão",
+      "2",
+      "assad",
+      "peso"
+    ],
+    "digest_not": [
+      "Pergunta em aberto:",
+      "registrado",
+      "150 g",
+      "leite",
+      "lasanha",
+      "?",
+      "pergunta em aberto"
+    ]
+  },
+  "required": [
+    "digest",
+    "digest_has",
+    "digest_not"
+  ]
+}

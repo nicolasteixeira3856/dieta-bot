@@ -1,0 +1,164 @@
+{
+  "id": "s19-02-routine-1",
+  "since": "meal_changes",
+  "tags": [
+    "s19",
+    "s19-pairs",
+    "s19-memory"
+  ],
+  "family": "memory",
+  "pair": "02-routine",
+  "variant": 1,
+  "strict": true,
+  "provenance": "Independently authored from the stated product invariant; fictional profiles and products; not global prompt material.",
+  "request": {
+    "local_time": "2026-10-13T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2300,
+      "p_target": 140,
+      "c_target": 270,
+      "g_target": 75,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "r-90",
+          "name": "Refeição principal",
+          "time": "14:30"
+        },
+        {
+          "id": "zeta",
+          "name": "Jantar",
+          "time": "02:15"
+        },
+        {
+          "id": "id-700",
+          "name": "Desjejum",
+          "time": "09:00"
+        },
+        {
+          "id": "alt-2",
+          "name": "Intervalo",
+          "time": "11:00"
+        },
+        {
+          "id": "break-5",
+          "name": "Pausa",
+          "time": "17:45"
+        },
+        {
+          "id": "end-x",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "facts": [
+      {
+        "id": "D72",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "pausa",
+        "text": "120 g de edamame cozido sem óleo",
+        "slot": "break-5",
+        "days_seen": 4,
+        "last_seen": "2026-10-12"
+      },
+      {
+        "id": "P93",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "infusao",
+        "text": "Prefiro infusão sem açúcar",
+        "slot": null,
+        "days_seen": 4,
+        "last_seen": "2026-10-12"
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-13",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "remaining_kcal": 2300,
+      "slots": [
+        {
+          "id": "r-90",
+          "status": "empty"
+        },
+        {
+          "id": "zeta",
+          "status": "empty"
+        },
+        {
+          "id": "id-700",
+          "status": "empty"
+        },
+        {
+          "id": "alt-2",
+          "status": "empty"
+        },
+        {
+          "id": "break-5",
+          "status": "empty"
+        },
+        {
+          "id": "end-x",
+          "status": "empty"
+        }
+      ]
+    },
+    "messages": [],
+    "digests": [],
+    "text": "Na Pausa comi o de sempre.",
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "suggested_slot": "break-5",
+    "top_question": "absent",
+    "meal_text_has": [
+      "edamame"
+    ],
+    "item_portions": {
+      "edamame": 120
+    },
+    "memory_used_only": [
+      "D72"
+    ],
+    "refusal": "none",
+    "meal_change": {
+      "operation": "new",
+      "base_slot": null
+    },
+    "memory_used_has": [
+      "D72"
+    ],
+    "memory_updates_has": [
+      {
+        "op": "reinforce",
+        "id": "D72"
+      }
+    ]
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "suggested_slot",
+    "top_question",
+    "meal_text_has",
+    "item_portions",
+    "memory_used_only",
+    "refusal",
+    "meal_change",
+    "memory_used_has",
+    "memory_updates_has"
+  ]
+}

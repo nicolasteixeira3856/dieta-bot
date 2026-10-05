@@ -557,7 +557,7 @@ class InjectionAndInstructionTests(_Base):
                 self.assertNotIn("general question", text)
                 self.assertIn("out_of_scope", text)
                 self.assertIn("safety_support", text)
-                self.assertIn("quanto sobra se eu comer 2 pães", text)
+                self.assertIn("budget or portion arithmetic about food", text)
         self.assertIn("leave out any other topic", llm._DIGEST_INSTRUCTIONS)
 
 

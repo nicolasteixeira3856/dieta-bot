@@ -7,6 +7,7 @@ Each check returns PASS, FAIL or NA. NA = the output contract does not carry the
 from __future__ import annotations
 
 import math
+import re
 import unicodedata
 from typing import Any
 
@@ -49,6 +50,10 @@ KNOWN = (
     "digest_has",
     "digest_not",
     "meal_change",
+    "estimate_values",
+    "item_portions",
+    "memory_used_only",
+    "memory_update_text",
 )
 
 # CP2 refusal expectation: which fixed copy the reply must be. "none" = no refusal at all.
@@ -160,6 +165,68 @@ def evaluate(
 def _check(
     key: str, want: Any, output: dict[str, Any], estimate: dict[str, Any] | None
 ) -> dict[str, Any]:
+    if key in ("estimate_values", "item_portions"):
+        if not estimate:
+            return _result(False, "no estimate")
+        items = estimate.get("items")
+        if not isinstance(items, list) or not items:
+            return _result(False, "no whole-meal item breakdown")
+        for item in items:
+            if not isinstance(item, dict) or not isinstance(item.get("name"), str):
+                return _result(False, "invalid item")
+            for field in ("g", "kcal"):
+                value = item.get(field)
+                if (isinstance(value, bool) or not isinstance(value, (int, float))
+                        or not math.isfinite(value) or value < 0 or (field == "g" and value == 0)):
+                    return _result(False, "invalid item number")
+        energy = estimate.get("kcal")
+        if (isinstance(energy, bool) or not isinstance(energy, (int, float))
+                or not math.isfinite(energy) or energy <= 0
+                or not math.isclose(energy, sum(i["kcal"] for i in items), abs_tol=1e-9)):
+            return _result(False, "item energy does not match estimate")
+        if key == "estimate_values":
+            for field, expected in want.items():
+                actual = estimate.get(field)
+                if (isinstance(actual, bool) or not isinstance(actual, (int, float))
+                        or not math.isfinite(actual)
+                        or not math.isclose(actual, expected, abs_tol=1e-9)):
+                    return _result(False, f"{field}: got {actual}, expected {expected}")
+        else:
+            for food, grams in want.items():
+                matching = [i for i in items if normalize(food) in normalize(i["name"])]
+                if not matching or (grams is not None and not math.isclose(
+                        sum(i["g"] for i in matching), grams, abs_tol=1e-9)):
+                    return _result(False, f"missing or incorrect portion: {food}")
+        return _result(True, "whole-meal items, energy and expected values agree")
+
+    if key == "memory_used_only":
+        used = output.get("memory_used")
+        if not isinstance(used, list) or any(not isinstance(i, str) for i in used):
+            return _result(False, "missing/invalid memory ids")
+        return _result(set(used) <= set(want), f"cited ids {used}; allowed {want}")
+
+    if key == "memory_update_text":
+        updates = output.get("memory_updates")
+        if not isinstance(updates, list):
+            return _result(False, "missing memory updates")
+        for requirement in want:
+            matches = [u for u in updates if isinstance(u, dict)
+                       and _matches(u, requirement["match"])]
+            def grounded(update: dict[str, Any]) -> bool:
+                text = update.get("text")
+                if not isinstance(text, str) or not all(
+                        normalize(term) in normalize(text) for term in requirement["has"]):
+                    return False
+                if "numbers" in requirement:
+                    numbers = {float(n.replace(",", ".")) for n in re.findall(r"\d+(?:[.,]\d+)?", text)}
+                    if numbers != set(requirement["numbers"]):
+                        return False
+                return True
+
+            if not any(grounded(u) for u in matches):
+                return _result(False, "missing grounded fact text")
+        return _result(True, "supplied reference text retained")
+
     if key == "meal_change":
         return _change_check(want, output, estimate)
     if key == "intent":

@@ -377,13 +377,14 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
         instructions = json.loads(captured[0].content)["instructions"]
         for rule in (
             "record_intent is clear or unsure",
-            "Lanche da tarde: 200g de",
-            "Registra aí, comi tal e tal",
-            "pudim de leite com calda",
+            "a meal name followed by food",
+            "an explicit request to register it",
+            "food with no sign of having been eaten",
             "meal_day is today or other",
             "Before 05:00 local time",
             "intent is log, plan, question or skip",
-            "the Chat records only today's meals",
+            "O Chat registra apenas refeições de hoje.",
+            "If meal_day is today, that sentence is forbidden",
             "Never say in reply that you recorded, registered, noted, saved or skipped a meal",
         ):
             self.assertIn(rule, instructions)
@@ -395,10 +396,10 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
         await self._post(self._v4(), _responds(_model(), captured))
         instructions = json.loads(captured[0].content)["instructions"]
         for rule in (
-            "firmly says it will not happen today (hoje não vou jantar, vou pular o almoço hoje)",
-            "A meal that has not happened yet is not skip (ainda não almocei, não jantei ainda",
-            "A hedged skip is not skip (acho que não vou jantar",
-            "a food photo sent with a question about it (isso tem muita caloria?",
+            "firmly says it will not happen today",
+            "A meal that has not happened yet is not skip",
+            "A hedged skip is not skip",
+            "a food photo sent with a nutrition question about it",
             "that photo is log, estimate the plate, record_intent unsure",
         ):
             self.assertIn(rule, instructions)
@@ -410,15 +411,16 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
         instructions = json.loads(captured[0].content)["instructions"]
         for rule in (
             "other means the food was EATEN on another day",
-            "registra o almoço de ontem is other and never records today",
-            "A day statement alone (é de hoje) after a pure nutrition question does not become a log",
+            "asking to register food eaten on an earlier day remains other and never records today",
+            "A day statement alone after a pure nutrition question does not become a log",
             "The user's explicit facts now override DIGESTS and earlier assistant assumptions",
             "[refeição sugerida: {slot name}]",
             "never the user's words",
             "Never ask which meal when its slot was named by the user or suggested earlier",
-            "two most recent RECENT records of that slot on DIFFERENT days",
-            "Compare food type, numeric quantity and unit AFTER ignoring brand names",
-            "fewer than two days",
+            "two most recent distinct dates",
+            "remove brand names, then compare food types, quantities and units",
+            "fewer than two distinct days",
+            "reply MUST name the weekday supplied on that newest record",
             "including another portion on a later turn",
             "Recording or citing a temp fact never removes it",
             "never promote it or copy it into a habit",
