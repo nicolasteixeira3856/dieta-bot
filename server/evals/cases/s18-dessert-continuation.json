@@ -63,7 +63,12 @@
           "id": "eve",
           "status": "empty"
         }
-      ]
+      ],
+      "eaten_kcal": 390,
+      "eaten_p": 27,
+      "eaten_c": 46,
+      "eaten_g": 10,
+      "remaining_kcal": 1810
     },
     "text": "De sobremesa também comi 90 g de salada de frutas, sem açúcar.",
     "messages": [

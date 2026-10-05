@@ -235,7 +235,7 @@ Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image
 
 ### Meal-change capability
 
-Normal requests may opt into `meal_changes: true` with `clarify_rounds` present and `auto_record: true`. Other true-capability combinations return 422. Absent/false retains every older response shape. Compact ignores meal_changes and pending_addition. No model or effort change.
+Normal requests may opt into `meal_changes: true` with `clarify_rounds` present and `auto_record: true`. The capability accepts only JSON booleans. Other true-capability combinations return 422. Eaten DAY slot nutrients must be finite, nonnegative JSON numbers; strings, booleans and missing values return 422 before model generation. Validation errors for requests carrying meal-change fields expose field location, message and type, without echoing raw input; an overflowing numeric literal still returns serializable 422 JSON. Absent/false retains every older normal response shape. Compact ignores meal_changes and pending_addition. No model or effort change.
 
 The opt-in request requires a unique profile slot list and exactly one DAY state per profile slot. Optional `pending_addition: {base_slot, addition}` describes the immediately continued **unrecorded** proposal; its shapes match the response below. It requires the capability, otherwise 422. A non-null base must identify an eaten DAY slot. Nested unknown fields, nonnumeric/nonfinite/negative nutrients, empty item lists or invalid item energy/portions return 422. The caller sends it only while the captured source still matches DAY and drops it for consumed, cancelled or stale proposals. It does not become part of DAY or authorize a mutation.
 

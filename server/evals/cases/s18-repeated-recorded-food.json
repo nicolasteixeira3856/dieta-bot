@@ -63,7 +63,12 @@
           "id": "eve",
           "status": "empty"
         }
-      ]
+      ],
+      "eaten_kcal": 60,
+      "eaten_p": 1,
+      "eaten_c": 15,
+      "eaten_g": 0,
+      "remaining_kcal": 2140
     },
     "text": "No lanche foram 100 g de manga, igual ao que já está registrado.",
     "messages": [],

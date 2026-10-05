@@ -68,7 +68,12 @@
           "id": "eve",
           "status": "empty"
         }
-      ]
+      ],
+      "eaten_kcal": 540,
+      "eaten_p": 31,
+      "eaten_c": 75,
+      "eaten_g": 12,
+      "remaining_kcal": 1660
     },
     "text": "De sobremesa também comi 120 g de gelatina pronta normal.",
     "messages": [
@@ -96,8 +101,6 @@
   },
   "expect": {
     "intent": "log",
-    "estimate": "present",
-    "record": "auto",
     "refusal": "none",
     "meal_change": {
       "operation": "add",
@@ -114,17 +117,19 @@
         "gelatina"
       ],
       "addition_not": [
-        "torradas"
-      ]
+        "torradas",
+        "arroz",
+        "peixe"
+      ],
+      "allow_target_question": true,
+      "grams": 120
     },
-    "suggested_slot": "mid"
+    "meal_progress": "present"
   },
   "required": [
     "intent",
-    "estimate",
-    "record",
     "refusal",
     "meal_change",
-    "suggested_slot"
+    "meal_progress"
   ]
 }

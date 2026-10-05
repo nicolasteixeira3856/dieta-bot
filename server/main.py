@@ -16,6 +16,8 @@ from typing import Any, Literal
 
 import httpx2
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field, model_validator
 from slowapi import Limiter
@@ -45,7 +47,7 @@ from config import (
 from conversation_log import ConversationLog, now_iso
 from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
-from meal_changes import PendingAdditionIn, prepare_change, explain_change, nutrition
+from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
 from moderation import (
     IN_SCOPE,
     OUT_OF_SCOPE,
@@ -215,14 +217,23 @@ class ChatIn(BaseModel):
     auto_record: bool = False
     # ADR-029: v5 stores temporary facts and preserves the slot of a held estimate.
     temp_facts: bool = False
-    meal_changes: bool = False
+    meal_changes: bool = Field(default=False, strict=True)
     pending_addition: PendingAdditionIn | None = None
 
     @model_validator(mode="before")
     @classmethod
-    def _compact_ignores_changes(cls, data: Any) -> Any:
+    def _meal_change_input(cls, data: Any) -> Any:
         if isinstance(data, dict) and data.get("compact") is True:
             return {**data, "meal_changes": False, "pending_addition": None}
+        if isinstance(data, dict) and data.get("meal_changes") is True:
+            day = data.get("day")
+            states = day.get("slots", []) if isinstance(day, dict) else []
+            if isinstance(states, list):
+                for state in states:
+                    if isinstance(state, dict) and state.get("status") == "eaten":
+                        # Check before Pydantic could coerce strings/bools into the recorded base.
+                        for key in NUTRIENTS:
+                            number(state.get(key))
         return data
 
     @model_validator(mode="after")
@@ -316,6 +327,14 @@ def create_app(
     app.state.limiter = limiter
     app.state.conversation_log = conversation_log
     app.state.safety_ids = safety_ids
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation_handler(request: Request, exc: RequestValidationError) -> Response:
+        if isinstance(exc.body, dict) and ("meal_changes" in exc.body or "pending_addition" in exc.body):
+            # Nonfinite numeric input must not be echoed into a JSON error response.
+            errors = [{key: error[key] for key in ("loc", "msg", "type")} for error in exc.errors()]
+            return JSONResponse(status_code=422, content={"detail": errors})
+        return await request_validation_exception_handler(request, exc)
 
     @app.exception_handler(RateLimitExceeded)
     def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:

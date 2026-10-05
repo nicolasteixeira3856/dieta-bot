@@ -113,11 +113,11 @@ def test_unusable_base_never_becomes_zero(key, value):
         shape(req)
 
 
-@pytest.mark.parametrize('mutation', ['missing_item','wrong_base','wrong_total','wrong_copy'])
+@pytest.mark.parametrize('mutation', ['missing_item','wrong_base','wrong_total','wrong_copy','wrong_portion'])
 def test_eval_rejects_accounting_failures_even_with_correct_food_text(mutation):
     out = shape()
     base = request()['day']['slots'][0]
-    want = dict(operation='add',base_slot='cafe',base=base,slot_name='Cafe da manha',addition_has=['fruta'])
+    want = dict(operation='add',base_slot='cafe',base=base,slot_name='Cafe da manha',addition_has=['fruta'],portions={'fruta':50})
     assert evaluate({'meal_change':want},out)['meal_change']['status'] == 'pass'
     if mutation == 'missing_item':
         out['meal_change']['addition']['items'] = []
@@ -125,8 +125,10 @@ def test_eval_rejects_accounting_failures_even_with_correct_food_text(mutation):
         out['estimate']['meal_text'] = 'Another meal; 50 g de fruta'
     elif mutation == 'wrong_total':
         out['estimate']['p'] += 1
-    else:
+    elif mutation == 'wrong_copy':
         out['reply'] = '50 g de fruta: 40 kcal'
+    else:
+        out['meal_change']['addition']['items'][0]['g'] = 25
     assert evaluate({'meal_change':want},out)['meal_change']['status'] == 'fail'
 
 
@@ -136,6 +138,35 @@ def test_unknown_operation_cannot_be_forced(force, rounds):
     assert out['estimate'] is None and out['meal_change'] is None and out['record'] == 'none'
     assert out['memory_updates'] == []
     assert bool(out['question']) == (not force and rounds < 3)
+
+
+@pytest.mark.parametrize('force,rounds', [(False, 0), (True, 1), (False, 3)])
+def test_null_operation_with_draft_question_discards_all_numbers_before_release(force, rounds):
+    raw = model(meal_change=None)
+    raw['estimate']['question'] = 'Você quer acrescentar ou corrigir?'
+    out = shape(request(force_estimate=force, clarify_rounds=rounds), raw)
+    assert out['estimate'] is None and out['meal_change'] is None and out['record'] == 'none'
+    assert out['memory_updates'] == []
+    assert out['question'] == ('Você quer acrescentar ou corrigir?' if not force and rounds < 3 else None)
+
+
+def test_target_question_eval_does_not_accept_a_fallback_or_wrong_target():
+    want = dict(operation='add',base_slot='cafe',slot_name='Café',allow_target_question=True)
+    out = dict(meal_change=None,estimate=None,question='Foi junto do café?',record='none')
+    assert evaluate({'meal_change':want},out)['meal_change']['status'] == 'pass'
+    for changes in (dict(record='auto'),dict(question=None),dict(question='Foi junto do jantar?')):
+        assert evaluate({'meal_change':want},{**out,**changes})['meal_change']['status'] == 'fail'
+
+
+def test_eval_zero_energy_requires_an_explicit_noncaloric_fixture():
+    raw = model()
+    raw['meal_change']['addition'] = delta(meal_text='50 g de água',kcal=0,p=0,c=0,g=0,
+                                           items=[dict(name='água',g=50,kcal=0)])
+    out = shape(payload=raw)
+    want = dict(operation='add',base_slot='cafe',base=request()['day']['slots'][0],slot_name='Cafe da manha')
+    assert evaluate({'meal_change':want},out)['meal_change']['status'] == 'fail'
+    want['allow_zero_energy'] = True
+    assert evaluate({'meal_change':want},out)['meal_change']['status'] == 'pass'
 
 
 @pytest.mark.parametrize('force,rounds,released', [(False, 0, False), (True, 1, True), (False, 3, True)])
@@ -258,12 +289,17 @@ class RouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn('meal_change', response.json())
 
     async def test_invalid_pending_context_and_profile_day_validation(self):
-        variants = [request(pending_addition=dict(base_slot='unknown', addition=delta())),
+        variants = [request(meal_changes='true'), request(meal_changes=1),
+                    request(pending_addition=dict(base_slot='unknown', addition=delta())),
                     request(pending_addition=dict(base_slot='cafe', addition=delta(kcal=1e100))),
                     request(pending_addition=dict(base_slot='cafe', addition=delta(kcal='40'))),
                     request(pending_addition=dict(base_slot='cafe', addition=delta(items=[]))),
                     request(pending_addition=dict(base_slot='cafe', addition=delta(meal_text=' '))),
                     request(pending_addition=dict(base_slot='cafe', addition=delta(extra=True)))]
+        for value in (True, '301', None, -1):
+            req = request()
+            req['day']['slots'][0]['kcal'] = value
+            variants.append(req)
         for kind in ('duplicate', 'missing', 'unknown'):
             req = request()
             req['day']['slots'] = {
@@ -276,6 +312,22 @@ class RouteTests(unittest.IsolatedAsyncioTestCase):
             response, calls = await self.post(req, model())
             self.assertEqual(response.status_code, 422)
             self.assertEqual(calls, [])
+
+    async def test_nonfinite_json_number_returns_serializable_422_without_model_call(self):
+        calls = []
+        app = main.create_app(transport=_mock(_responds(model(), calls)))
+        try:
+            async with _client(app) as client:
+                for token in ('1e309', '-1e309', 'NaN'):
+                    body = json.dumps(request()).replace('301.25', token)
+                    response = await client.post('/v1/chat',
+                        headers={'X-Invite':INVITE, 'Content-Type':'application/json'}, content=body)
+                    self.assertEqual(response.status_code, 422)
+                    self.assertNotIn('input', response.json()['detail'][0])
+                    self.assertEqual(calls, [])
+        finally:
+            app.state.llm.close()
+            app.state.moderator.close()
 
     async def test_addition_description_limit_and_other_day(self):
         for size in (499, 500, 501):

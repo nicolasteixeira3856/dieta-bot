@@ -98,6 +98,13 @@ def prepare_change(payload: dict[str, Any], profile: list[dict], day: list[dict]
     if estimate is None and change is None:
         # An unresolved operation has no candidate record. The outer gate bounds the question.
         return out
+    if "meal_change" in out and change is None and isinstance(estimate, dict):
+        question = estimate.get("question")
+        if isinstance(question, str) and question.strip():
+            # An explicit null operation and a question cannot release provisional numbers.
+            # Retain the question without interpreting prose to invent an operation.
+            out.update(estimate=None, reply=question.strip())
+            return out
     if not isinstance(estimate, dict) or not isinstance(change, dict):
         raise ValueError("missing meal change")
     if set(change) != {"operation", "base_slot", "addition"}:

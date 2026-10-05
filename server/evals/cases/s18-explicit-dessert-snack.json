@@ -68,7 +68,12 @@
           "id": "eve",
           "status": "empty"
         }
-      ]
+      ],
+      "eaten_kcal": 450,
+      "eaten_p": 28,
+      "eaten_c": 61,
+      "eaten_g": 10,
+      "remaining_kcal": 1750
     },
     "text": "No lanche acrescente 80 g de doce de abóbora que comi.",
     "messages": [],

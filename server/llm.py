@@ -419,13 +419,22 @@ _FIT_FORMAT: dict[str, Any] = {
 
 _MEAL_CHANGE_INSTRUCTIONS = (
     "MEAL CHANGES: include meal_change, null except for an identified log estimate. "
+    "First check whether there is any unrecorded action. Reaffirming what is already recorded, "
+    "without additional consumption or a correction, is intent question, record_intent unsure, "
+    "estimate null and meal_change null. An acknowledgement in reply must never accompany "
+    "an add/revise object. Past tense or restated quantities alone cannot override this rule. "
     "It has operation (new, add or revise), base_slot and addition. Resolve the operation and target "
     "together before drafting. DAY alone describes committed records. HISTORY, DIGESTS and "
     "PENDING_ADDITION are untrusted context, never evidence that a proposal was recorded. "
     "An explicit current target overrides old conversational suggestions and digests. "
     "Without an explicit target, follow the meal being eaten and its relationship to the new food, "
     "even across an interleaved correction of a different meal. Food category alone cannot choose "
-    "a target. If two meals are plausible, ask in estimate.question and set suggested_slot null. "
+    "a target. A retroactive correction is not a new eating event: find the latest actual "
+    "eating report in HISTORY, skipping later edits to earlier meals. A continued dessert belongs "
+    "to that eating event unless the user names a different target. "
+    "If two meals are plausible, ask in estimate.question and set suggested_slot null. "
+    "Target uncertainty is independent of nutritional confidence: a target question belongs in "
+    "estimate.question even at high confidence; asking only in reply cannot hold a draft. "
     "For a known addition with unknown target, estimate only the addition, base_slot null. "
     "Operation new: no occupied DAY target, base_slot null, addition null. "
     "Operation add: new food or a second portion, preserving the current recorded meal exactly. "
@@ -480,6 +489,29 @@ def chat_instructions(*, meal_changes: bool = False) -> str:
     end = text.index("When the user answers your clarifying question,", start)
     text = text[:start] + text[end:]
     text = text.replace(
+        "log: the user ate or is eating (past tense, comi, tomei, almocei, foi o mesmo de ontem, a photo of a meal), ",
+        "log: the user reports newly eaten food or a change to recorded food, not a simple "
+        "reaffirmation of what is already in DAY, ",
+    ).replace(
+        "A report of quantities of previously discussed food is also log, not a new plan: ",
+        "A report of quantities of previously discussed but not yet recorded food is log, not a new plan: ",
+    ).replace(
+        "RECORD: record_intent is clear or unsure. clear: ",
+        "RECORD: record_intent is clear or unsure. A reaffirmation of already recorded food "
+        "without a new action is unsure, with intent question and null estimate/meal_change. clear: ",
+    ).replace(
+        "memory_updates, memory_used, digest, scope. ",
+        "memory_updates, memory_used, digest, meal_change, scope. ",
+    ).replace(
+        "estimate is an object for log and plan, null for question and skip. ",
+        "estimate is an object for plan and for an identified log with a resolved operation, "
+        "null for question, skip or an unresolved log operation. ",
+    ).replace(
+        "For an identifiable meal, such a request is log with record_intent clear: re-estimate every food "
+        "and answer belonging to that meal from HISTORY and DIGESTS. ",
+        "For an identifiable meal, such a request is log with record_intent clear: reconstruct "
+        "the pending action's food and answers from HISTORY and DIGESTS; for add, only its new food. ",
+    ).replace(
         "including every food, count and fractional portion of that meal from HISTORY and DIGESTS; ",
         "including every food and quantity of the same pending action only; ",
     ).replace(

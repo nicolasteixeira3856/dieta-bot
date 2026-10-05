@@ -68,7 +68,12 @@
           "c": 7,
           "g": 0
         }
-      ]
+      ],
+      "eaten_kcal": 700,
+      "eaten_p": 31,
+      "eaten_c": 69,
+      "eaten_g": 17,
+      "remaining_kcal": 1500
     },
     "text": "Foram 140 g de espaguete cozido e 90 g de peru assado. Pode registrar.",
     "messages": [
@@ -134,7 +139,11 @@
         "bovina",
         "fermentada"
       ],
-      "grams": 230
+      "grams": 230,
+      "portions": {
+        "espaguete": 140,
+        "peru": 90
+      }
     },
     "suggested_slot": "eve"
   },

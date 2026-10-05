@@ -7,7 +7,7 @@
   "strict": true,
   "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
   "request": {
-    "local_time": "2026-10-08T14:20:00-03:00",
+    "local_time": "2026-10-08T20:30:00-03:00",
     "profile": {
       "ceiling_kcal": 2200,
       "p_target": 140,
@@ -63,7 +63,12 @@
           "c": 7,
           "g": 0
         }
-      ]
+      ],
+      "eaten_kcal": 110,
+      "eaten_p": 0,
+      "eaten_c": 7,
+      "eaten_g": 0,
+      "remaining_kcal": 2090
     },
     "text": "No jantar adicione 100 ml da bebida alcoólica que tomei. O rótulo dessa porção informa 74 kcal, 0 g de proteína, 2 g de carboidrato e 0 g de gordura.",
     "messages": [],

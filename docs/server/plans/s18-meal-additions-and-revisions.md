@@ -92,8 +92,48 @@ Owner approved this named plan on 2026-10-04, including ADR-032. Implementation 
 
 Implemented: opt-in operation metadata and pending proposal context, validation before release gates, server-derived addition totals/copy, full-meal revisions, complete description bounds, output moderation coverage and legacy response compatibility.
 
-Automated validation so far: `C:/Users/Nicolas/Desktop/projetos/Pessoal/dieta-bot/server/.venv/Scripts/python.exe -m pytest server/tests -q --tb=short` from the isolated root: **281 tests and 346 subtests passed** (26.61 seconds). `node tools/check-docs.mjs`: passed. The existing Python environment and root dotenv are used read-only; no shared-checkout files were edited.
+Automated validation: `C:/Users/Nicolas/Desktop/projetos/Pessoal/dieta-bot/server/.venv/Scripts/python.exe -m pytest server/tests -q --tb=short` from the isolated root: **288 tests and 347 subtests passed** (25.31 seconds). `node tools/check-docs.mjs` and `git diff --check`: passed. The existing Python environment and root dotenv are used read-only; no shared-checkout files were edited.
 
 Prompt-change provenance: the new authored instructions contain general operation/target/delta rules from ADR-032 and this plan, plus the food-independent rounding/energy constraints in the HTTP contract. No new illustrative user case is embedded in global instructions. The synthetic accounting, meal/profile variants and fictional drink-label image live only in eval fixtures. Existing example cleanup/inventory remains owned by S19; this delivery does not declare the entire existing prompt ADR-033 compliant.
 
-Live evaluation and deployment results are being collected. The diagnostic baseline above is not implementation acceptance.
+Existing regression matrix: `logs/run_s18.py existing 3` wraps the existing `evals.run.run_effort` pipeline with one worker, actual `gpt-6-luna`, effort `none`. **89/89 cases passed** under the existing two-of-three rule: **264/267 individual repetitions**. p95 4488 ms, zero reasoning tokens, estimated US$0.0396 at the evaluator's configured rates. One failed repetition exhausted rate-limit retries; two asked unnecessary questions. A focused three-repeat follow-up of those cases passed all three cases, **8/9 repetitions** (p95 5468 ms, US$0.0013): the unqualified legacy addition with several eaten slots still sometimes asks for a destination. This variance is recorded, not treated as 267/267. The final legacy instruction string is byte-identical to that evaluated branch.
+
+New-case development exposed false clarification, missing delta metadata and a contradiction between acknowledging an existing record and proposing it again as an addition. General operation, target-question and no-change rules were corrected; no food-specific patch or deduplication by food name was added. A focused six-repeat check of reaffirmation, a recorded second portion and a second pending portion passed **18/18** (p95 6627 ms, zero reasoning tokens, US$0.0031). Synthetic DAY totals were made consistent with their slot contents before the final matrix. Intermediate failures are not acceptance evidence.
+
+Final acceptance: `logs/run_s18.py new 6 2` (the existing evaluator with `--tag s18 --effort none --repeat 6 --workers 2`) passed **29/29 strict cases and 174/174 repetitions**. Actual model `gpt-6-luna`, effort `none`, **0 reasoning tokens**, p50 **3818 ms**, p95 **4857 ms**, estimated **US$0.0301**. Usage: 1,031,760 input tokens (1,009,279 cached), 35,522 output tokens. Every critical repetition passed; the CLI exit code alone was not used as acceptance.
+
+`logs/audit_s18.py new` rechecked the saved outputs against the final expectations, including per-food portions and excluded prior foods: no failed checks. An interleaved correction may ask a target question naming the continued meal with record none; a separate explicit answer case must then release the correct addition. Both stages run six times. This tests the approved clarification path instead of forcing a guessed destination. Other direct-addition assertions remain strict. Explicit null operation plus a draft question discards the numbers and preserves only a bounded question; force/cap cannot release them. Missing or invalid metadata remains fail-safe. HTTP tests also cover nonfinite input without an unserializable error response.
+
+Per-check counts (passed / executed; absent expectations are not counted):
+
+| Check | New strict matrix | Existing matrix |
+| --- | --- | --- |
+| `confidence` | — | 3/3 |
+| `digest` | — | 15/15 |
+| `digest_has` | — | 15/15 |
+| `digest_not` | — | 15/15 |
+| `estimate` | 168/168 | 131/132 |
+| `intent` | 162/162 | 181/183 |
+| `kcal_range` | 18/18 | 9/9 |
+| `meal_change` | 156/156 | — |
+| `meal_progress` | 6/6 | 24/24 |
+| `meal_text_has` | 24/24 | 66/69 |
+| `meal_text_not` | 6/6 | 9/9 |
+| `memory_updates_has` | — | 6/6 |
+| `memory_updates_not` | — | 9/9 |
+| `memory_used_has` | — | 6/6 |
+| `question` | — | 30/30 |
+| `question_not` | — | 24/24 |
+| `record` | 168/168 | 186/189 |
+| `refusal` | 174/174 | 267/267 |
+| `reply_has` | — | 21/21 |
+| `reply_not` | 18/18 | 15/15 |
+| `skip_slot` | — | 33/33 |
+| `suggested_slot` | 138/138 | 118/120 |
+| `top_question` | 24/24 | 38/39 |
+| `top_question_not` | — | 27/27 |
+
+Evidence stays in ignored `logs/`: final report `s18-new-6-2026-10-04T22-13-50-03-00.json`, existing report `s18-existing-3-2026-10-04T21-53-37-03-00.json`, and their audits. Earlier experimental runs exposed the issues described above and were not accepted. The evaluator estimates cost at its configured rates; retry waits are not part of its per-attempt latency metric. Final strict acceptance ran without provider errors.
+
+Git delivery: [PR #103](https://github.com/nicolasteixeira3856/dieta-bot/pull/103). Dev deployment and its two smoke requests follow this code delivery; the plan remains open until those checks and lifecycle documentation are complete.
+

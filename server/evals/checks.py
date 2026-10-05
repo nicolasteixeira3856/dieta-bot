@@ -74,6 +74,12 @@ def _change_check(want: Any, output: dict[str, Any], estimate: dict | None) -> d
     change = output["meal_change"]
     if want is None:
         return _result(change is None, "expected no actionable change")
+    if change is None and estimate is None and want.get('allow_target_question'):
+        question = output.get('question')
+        valid = isinstance(question, str) and bool(question.strip()) and output.get('record') == 'none'
+        if valid:
+            valid = normalize(want['slot_name']) in normalize(question)
+        return _result(valid, "target clarification must name the continued meal and cannot record")
     if not isinstance(change, dict) or not estimate:
         return _result(False, "missing change or estimate")
     for key in ("operation", "base_slot"):
@@ -84,6 +90,8 @@ def _change_check(want: Any, output: dict[str, Any], estimate: dict | None) -> d
     addition = change.get('addition')
     if not isinstance(addition, dict) or not addition.get('items'):
         return _result(False, "no delta item breakdown")
+    if addition.get('kcal', 0) <= 0 and not want.get('allow_zero_energy', False):
+        return _result(False, "caloric fixture needs positive delta energy")
     items = addition['items']
     if addition['kcal'] != sum(it['kcal'] for it in items) or any(it['g'] <= 0 for it in items):
         return _result(False, "invalid delta energy or portion")
@@ -98,6 +106,10 @@ def _change_check(want: Any, output: dict[str, Any], estimate: dict | None) -> d
             return _result(False, f"delta {nutrient}: {addition.get(nutrient)} != {value}")
     if 'grams' in want and sum(it['g'] for it in items) != want['grams']:
         return _result(False, f"delta portions: {[it['g'] for it in items]}")
+    for food, grams in want.get('portions', {}).items():
+        actual = sum(it['g'] for it in items if normalize(food) in normalize(it['name']))
+        if actual != grams:
+            return _result(False, f"delta portion {food}: {actual} != {grams}")
     base = want.get('base')
     for key in ('kcal', 'p', 'c', 'g'):
         previous = base[key] if base else 0

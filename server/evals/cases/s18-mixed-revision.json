@@ -63,7 +63,12 @@
           "id": "eve",
           "status": "empty"
         }
-      ]
+      ],
+      "eaten_kcal": 390,
+      "eaten_p": 27,
+      "eaten_c": 46,
+      "eaten_g": 10,
+      "remaining_kcal": 1810
     },
     "text": "Corrija o almoço registrado: retire o peixe e coloque 120 g de lentilha cozida. Mantenha o arroz.",
     "messages": [],

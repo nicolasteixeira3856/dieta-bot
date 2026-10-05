@@ -63,7 +63,12 @@
           "id": "eve",
           "status": "empty"
         }
-      ]
+      ],
+      "eaten_kcal": 60,
+      "eaten_p": 1,
+      "eaten_c": 15,
+      "eaten_g": 0,
+      "remaining_kcal": 2140
     },
     "text": "A porção de amendoim era 30 g, não 60 g. Corrija a proposta.",
     "messages": [
