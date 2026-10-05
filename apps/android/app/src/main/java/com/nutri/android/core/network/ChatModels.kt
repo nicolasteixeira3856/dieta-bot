@@ -2,6 +2,7 @@ package com.nutri.android.core.network
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /** Mirrors server/main.py ChatIn (POST /v1/chat). */
 @Serializable
@@ -40,7 +41,35 @@ data class ChatIn(
      * [ChatOut.questionSlot]. No default, like [autoRecord]: the field must always go.
      */
     @SerialName("temp_facts") val tempFacts: Boolean,
+    /**
+     * The client applies meal additions and revisions (A47, ADR-032): the server answers [ChatOut.mealChange].
+     * No default, like [autoRecord]: the field must always go.
+     */
+    @SerialName("meal_changes") val mealChanges: Boolean,
+    /** The unrecorded addition the user is continuing (A47); null = none. Never on a compact request. */
+    @SerialName("pending_addition") val pendingAddition: ChatPendingAddition? = null,
 )
+
+/** An unrecorded addition sent back as context (S18 `pending_addition`): base_slot is the eaten source slot or null. */
+@Serializable
+data class ChatPendingAddition(
+    @SerialName("base_slot") val baseSlot: String?,
+    val addition: ChatAddition,
+)
+
+/** Only the newly eaten food (S18 `addition`), rounded once by the server. */
+@Serializable
+data class ChatAddition(
+    @SerialName("meal_text") val mealText: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    val items: List<ChatAdditionItem>,
+)
+
+@Serializable
+data class ChatAdditionItem(val name: String, val g: Double, val kcal: Int)
 
 /** A memory fact as the server sees it (api-contract). slot is a profile slot id or null. kind "temp" = a T id (A38). */
 @Serializable
@@ -156,4 +185,10 @@ data class ChatOut(
     @SerialName("skip_slot") val skipSlot: String? = null,
     /** Slot the server held with a question-only turn (S16, v5 client); null otherwise. */
     @SerialName("question_slot") val questionSlot: String? = null,
+    /**
+     * A47: kept raw and parsed by [com.nutri.android.domain.MealChanges], so malformed metadata never fails the
+     * whole answer. Kotlin null = absent (a server without the capability: legacy flow); [kotlinx.serialization.json.JsonNull]
+     * = the capable server sent no change.
+     */
+    @SerialName("meal_change") val mealChange: JsonElement? = null,
 )

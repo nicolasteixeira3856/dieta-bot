@@ -5,6 +5,9 @@ import com.nutri.android.core.network.ChatFact
 import com.nutri.android.core.network.ChatIn
 import com.nutri.android.domain.Fact
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayDigestEntity
 import com.nutri.android.core.database.MealLogEntity
@@ -393,5 +396,33 @@ class PromptBuilderTest {
         assertThat(PromptBuilder.rawSinceDigest(all, listOf(v8)).map { it.id }).containsExactlyElementsIn(4L..10L).inOrder()
         // The newest digest decides: a v9 one after an old v8 one.
         assertThat(PromptBuilder.rawSinceDigest(all, listOf(v8, v9)).map { it.id }).containsExactly(7L, 8L, 9L, 10L).inOrder()
+    }
+
+    /** A47: meal_changes always goes; pending_addition only when given, in the S18 shape; never on a compact request. */
+    @Test
+    fun `meal changes capability and pending addition on the wire`() {
+        val json = Json { encodeDefaults = false }
+        val plain = PromptBuilder.build(HomeFixtures.home0, msgs(12), emptyList(), "oi", now)
+        val encoded = Json.parseToJsonElement(json.encodeToString(ChatIn.serializer(), plain.body)).jsonObject
+        assertThat(encoded["meal_changes"]!!.jsonPrimitive.boolean).isTrue()
+        assertThat(encoded.containsKey("pending_addition")).isFalse()
+
+        val proposal = com.nutri.android.domain.MealProposal(
+            operation = com.nutri.android.domain.MealProposal.ADD,
+            date = "2026-09-25",
+            sourceSlotId = 4,
+            addition = com.nutri.android.domain.MealAddition(
+                "Pudim 🍮, 1 fatia", 240, 6, 38, 7, listOf(com.nutri.android.domain.AdditionItem("pudim", 100.0, 240)),
+            ),
+        )
+        val pending = PromptBuilder.pendingAddition(proposal)!!
+        val turn = PromptBuilder.build(HomeFixtures.home0, msgs(12), emptyList(), "foi no jantar", now, pendingAddition = pending)
+        val body = Json.parseToJsonElement(json.encodeToString(ChatIn.serializer(), turn.body)).jsonObject
+        assertThat(body["pending_addition"].toString()).isEqualTo(
+            """{"base_slot":"4","addition":{"meal_text":"Pudim 🍮, 1 fatia","kcal":240,"p":6,"c":38,"g":7,"items":[{"name":"pudim","g":100.0,"kcal":240}]}}""",
+        )
+        assertThat(PromptBuilder.compact(turn, turn.blocks.first()).pendingAddition).isNull()
+        // Only an addition goes back.
+        assertThat(PromptBuilder.pendingAddition(proposal.copy(operation = com.nutri.android.domain.MealProposal.REVISE))).isNull()
     }
 }

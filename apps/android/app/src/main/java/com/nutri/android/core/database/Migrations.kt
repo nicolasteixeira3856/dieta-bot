@@ -3,6 +3,13 @@ package com.nutri.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v9 -> v10: the meal-change proposal of an answer (A47). Old rows stay null: legacy record flow, nothing guessed. */
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `mealChange` TEXT")
+    }
+}
+
 /** v8 -> v9: the newest message a digest summarised (A38). Old digests stay null: cut by creation time. */
 val MIGRATION_8_9 = object : Migration(8, 9) {
     override fun migrate(db: SupportSQLiteDatabase) {

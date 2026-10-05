@@ -182,6 +182,25 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatU_light() = check("chatU", dark = false) { Chat(ChatFixtures.chatU) }
 
+    /** A47 (D9): addition to a meal with a record (930 dp frame), its meal picker and a revision. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
+    fun chatI_dark() = check("chatI", dark = true) { Chat(ChatFixtures.chatI) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
+    fun chatI_light() = check("chatI", dark = false) { Chat(ChatFixtures.chatI) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatTI_dark() = check("chatTI", dark = true) { Chat(ChatFixtures.chatTI) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatTI_light() = check("chatTI", dark = false) { Chat(ChatFixtures.chatTI) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatIC_dark() = check("chatIC", dark = true) { Chat(ChatFixtures.chatIC) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatIC_light() = check("chatIC", dark = false) { Chat(ChatFixtures.chatIC) }
+
     /** A34: receipts (chatF photo, chatG, chatD undone + restored). A43: Figma frames, gated whole. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h961dp-xhdpi")
     fun chatF_dark() = check("chatF", dark = true, reportOnly = true, regions = CHAT_F_BOXES) { Chat(ChatFixtures.chatF) }

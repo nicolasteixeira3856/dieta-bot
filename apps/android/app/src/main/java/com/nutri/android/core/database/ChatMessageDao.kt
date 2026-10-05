@@ -32,12 +32,30 @@ interface ChatMessageDao {
     @Query("SELECT * FROM chat_message WHERE date >= :fromDate AND role IN (:roles) ORDER BY createdAtEpochMs ASC, id ASC")
     suspend fun getReceiptsSince(fromDate: String, roles: List<String>): List<ChatMessageEntity>
 
-    /** Assistant rows still waiting for a tap (A34): Registrar or the inline Substituir. */
+    /** Assistant rows still waiting for a tap (A34): Registrar, the inline Substituir, Adicionar or Atualizar (A47). */
     @Query(
         "SELECT * FROM chat_message WHERE role = 'assistant' AND " +
-            "(recordState = 'pending_replace' OR (recordMode = 'ask' AND recordState IS NULL AND estimateKcal IS NOT NULL))",
+            "(recordState IN ('pending_replace', 'pending_add', 'pending_revise') OR " +
+            "(recordMode = 'ask' AND recordState IS NULL AND estimateKcal IS NOT NULL))",
     )
     suspend fun getOpenRecords(): List<ChatMessageEntity>
+
+    /** A47: an open row (nothing decided or a pending confirmation) becomes [state]; a decided row stays. Rows changed. */
+    @Query(
+        "UPDATE chat_message SET recordState = :state WHERE id = :id AND " +
+            "(recordState IS NULL OR recordState IN ('pending_replace', 'pending_add', 'pending_revise'))",
+    )
+    suspend fun closeOpenRecord(id: Long, state: String): Int
+
+    /** A47: an open row's record state and proposal (a destination picked for an addition). Rows changed. */
+    @Query(
+        "UPDATE chat_message SET recordState = :state, mealChange = :mealChange WHERE id = :id AND " +
+            "(recordState IS NULL OR recordState IN ('pending_add'))",
+    )
+    suspend fun setMealChange(id: Long, state: String?, mealChange: String): Int
+
+    @Query("SELECT recordState FROM chat_message WHERE id = :id")
+    suspend fun recordStateOf(id: Long): String?
 
     @Query("UPDATE chat_message SET recordState = :state, undoData = :undoData WHERE id = :id")
     suspend fun setRecordState(id: Long, state: String?, undoData: String?)

@@ -1,0 +1,589 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 10,
+    "identityHash": "bd0d7e7f167e284c0fe5b5e9a9ef703a",
+    "entities": [
+      {
+        "tableName": "profile",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `slotMode` TEXT NOT NULL DEFAULT 'same', `ceilingMode` TEXT NOT NULL, `kcalSame` INTEGER NOT NULL, `kcalWeekday` INTEGER NOT NULL, `kcalWeekend` INTEGER NOT NULL, `kcalDays` TEXT NOT NULL, `eat` TEXT NOT NULL, `pct` INTEGER NOT NULL, `onboardingDone` INTEGER NOT NULL, `firstDay` TEXT NOT NULL, `sex` TEXT NOT NULL DEFAULT '', `ageYears` INTEGER NOT NULL DEFAULT 0, `heightCm` INTEGER NOT NULL DEFAULT 0, `weightKg` REAL NOT NULL DEFAULT 0, `proteinTargetG` INTEGER NOT NULL DEFAULT 150, `carbTargetG` INTEGER NOT NULL DEFAULT 200, `fatTargetG` INTEGER NOT NULL DEFAULT 67, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "slotMode",
+            "columnName": "slotMode",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'same'"
+          },
+          {
+            "fieldPath": "ceilingMode",
+            "columnName": "ceilingMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kcalSame",
+            "columnName": "kcalSame",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kcalWeekday",
+            "columnName": "kcalWeekday",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kcalWeekend",
+            "columnName": "kcalWeekend",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kcalDays",
+            "columnName": "kcalDays",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eat",
+            "columnName": "eat",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pct",
+            "columnName": "pct",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "onboardingDone",
+            "columnName": "onboardingDone",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstDay",
+            "columnName": "firstDay",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sex",
+            "columnName": "sex",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "ageYears",
+            "columnName": "ageYears",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "heightCm",
+            "columnName": "heightCm",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "weightKg",
+            "columnName": "weightKg",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "proteinTargetG",
+            "columnName": "proteinTargetG",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "150"
+          },
+          {
+            "fieldPath": "carbTargetG",
+            "columnName": "carbTargetG",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "200"
+          },
+          {
+            "fieldPath": "fatTargetG",
+            "columnName": "fatTargetG",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "67"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "day",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `workoutKcal` INTEGER, `removedWindows` TEXT NOT NULL, `askedWindows` TEXT NOT NULL, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutKcal",
+            "columnName": "workoutKcal",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "removedWindows",
+            "columnName": "removedWindows",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "askedWindows",
+            "columnName": "askedWindows",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "meal_log",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL, `window` TEXT NOT NULL, `text` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `p` INTEGER NOT NULL, `stable` INTEGER NOT NULL, `slotId` INTEGER, `carbs` INTEGER NOT NULL DEFAULT 0, `fat` INTEGER NOT NULL DEFAULT 0, `source` TEXT NOT NULL DEFAULT 'user', FOREIGN KEY(`slotId`) REFERENCES `meal_slot`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "window",
+            "columnName": "window",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kcal",
+            "columnName": "kcal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "p",
+            "columnName": "p",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stable",
+            "columnName": "stable",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "slotId",
+            "columnName": "slotId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "carbs",
+            "columnName": "carbs",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "fat",
+            "columnName": "fat",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'user'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_meal_log_slotId",
+            "unique": false,
+            "columnNames": [
+              "slotId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_meal_log_slotId` ON `${TABLE_NAME}` (`slotId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "meal_slot",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "slotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "meal_slot",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `minutesFromMidnight` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL, `days` INTEGER NOT NULL DEFAULT 127)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minutesFromMidnight",
+            "columnName": "minutesFromMidnight",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sortOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "days",
+            "columnName": "days",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "127"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "slot_skip",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `slotId` INTEGER NOT NULL, PRIMARY KEY(`date`, `slotId`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "slotId",
+            "columnName": "slotId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date",
+            "slotId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "chat_message",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL, `role` TEXT NOT NULL, `text` TEXT NOT NULL, `createdAtEpochMs` INTEGER NOT NULL, `estimateKcal` INTEGER, `estimateP` INTEGER, `estimateC` INTEGER, `estimateG` INTEGER, `estimateConfidence` TEXT, `photoPath` TEXT, `estimateSlotId` INTEGER, `estimateQuestion` TEXT, `estimateItems` TEXT, `estimateMealText` TEXT, `intent` TEXT, `pendingMemory` TEXT, `memoryUsedKinds` TEXT, `memoryUpdated` INTEGER NOT NULL DEFAULT 0, `recordMode` TEXT, `recordState` TEXT, `receiptState` TEXT, `undoData` TEXT, `recordSource` TEXT, `mealChange` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtEpochMs",
+            "columnName": "createdAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estimateKcal",
+            "columnName": "estimateKcal",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateP",
+            "columnName": "estimateP",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateC",
+            "columnName": "estimateC",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateG",
+            "columnName": "estimateG",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateConfidence",
+            "columnName": "estimateConfidence",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "photoPath",
+            "columnName": "photoPath",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateSlotId",
+            "columnName": "estimateSlotId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateQuestion",
+            "columnName": "estimateQuestion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateItems",
+            "columnName": "estimateItems",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "estimateMealText",
+            "columnName": "estimateMealText",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "intent",
+            "columnName": "intent",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pendingMemory",
+            "columnName": "pendingMemory",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "memoryUsedKinds",
+            "columnName": "memoryUsedKinds",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "memoryUpdated",
+            "columnName": "memoryUpdated",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "recordMode",
+            "columnName": "recordMode",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recordState",
+            "columnName": "recordState",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "receiptState",
+            "columnName": "receiptState",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "undoData",
+            "columnName": "undoData",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recordSource",
+            "columnName": "recordSource",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mealChange",
+            "columnName": "mealChange",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_chat_message_date",
+            "unique": false,
+            "columnNames": [
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_message_date` ON `${TABLE_NAME}` (`date`)"
+          },
+          {
+            "name": "index_chat_message_createdAtEpochMs_id",
+            "unique": false,
+            "columnNames": [
+              "createdAtEpochMs",
+              "id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_message_createdAtEpochMs_id` ON `${TABLE_NAME}` (`createdAtEpochMs`, `id`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "day_digest",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `seq` INTEGER NOT NULL, `text` TEXT NOT NULL, `createdAtEpochMs` INTEGER NOT NULL, `coversUntilId` INTEGER, PRIMARY KEY(`date`, `seq`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seq",
+            "columnName": "seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtEpochMs",
+            "columnName": "createdAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "coversUntilId",
+            "columnName": "coversUntilId",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date",
+            "seq"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bd0d7e7f167e284c0fe5b5e9a9ef703a')"
+    ]
+  }
+}

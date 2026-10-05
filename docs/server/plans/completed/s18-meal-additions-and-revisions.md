@@ -11,7 +11,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-Resolve the meal being continued, explain an addition separately from the consolidated total and make the accounting verifiable by the client. Preserve earlier nutrients on a pure addition. Supply a compatible contract for [A47](../../../android/plans/a47-chat-meal-updates.md).
+Resolve the meal being continued, explain an addition separately from the consolidated total and make the accounting verifiable by the client. Preserve earlier nutrients on a pure addition. Supply a compatible contract for [A47](../../../android/plans/pending_manual_validation/a47-chat-meal-updates.md).
 
 ## Discovery evidence
 

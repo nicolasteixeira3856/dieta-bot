@@ -146,6 +146,46 @@ class DayRepositoryTest {
         assertThat(prefs.contains(key)).isFalse()
     }
 
+    /** A47: a proposal's transaction also checks day, wipe, read-only slots and the open answer; a miss writes nothing. */
+    @Test fun commitRecord_guard_checksDayWipeReadOnlySlotsAndTheOpenAnswer() = runBlocking<Unit> {
+        val repo = repository()
+        val date = "2026-03-15"
+        repo.saveSlots(listOf(MealSlot(name = "Almoço", minutesFromMidnight = 750), MealSlot(name = "Jantar", minutesFromMidnight = 1200)))
+        val (almoco, jantar) = repo.observeToday().first().slots.map { it.id }
+        repo.addLog("", "arroz", 380, 22, true, slotId = jantar, carbs = 40, fat = 14)
+        val dinner = repo.slotState(date, jantar)
+        val answer = repo.insertMessage("assistant", "pudim: +240 kcal", estimateKcal = 240, recordMode = "ask", recordState = "pending_add")
+        val add = com.nutri.android.domain.SlotRecord("pudim", 240, 6, 38, 7)
+        val change = com.nutri.android.domain.SlotChange(date, almoco, com.nutri.android.domain.SlotState.EMPTY, com.nutri.android.domain.SlotState.of(add))
+        val source = com.nutri.android.domain.SlotCheck(date, jantar, dinner)
+        fun guard(d: String = date, wipe: Long? = null, check: com.nutri.android.domain.SlotCheck = source, open: Long? = answer) =
+            RecordGuard(d, wipe, listOf(check), open)
+
+        assertThat(repo.commitRecord(listOf(change), recordStates = mapOf(answer to "recorded"), guard = guard(d = "2026-03-14"))).isNull()
+        assertThat(repo.commitRecord(listOf(change), guard = guard(wipe = 99L))).isNull()
+        assertThat(repo.commitRecord(listOf(change), guard = guard(check = source.copy(state = com.nutri.android.domain.SlotState.EMPTY)))).isNull()
+        repo.setRecordState(answer, "not_recorded")
+        assertThat(repo.commitRecord(listOf(change), guard = guard())).isNull()
+        assertThat(repo.slotState(date, almoco)).isEqualTo(com.nutri.android.domain.SlotState.EMPTY)
+        assertThat(repo.slotState(date, jantar)).isEqualTo(dinner)
+
+        repo.setRecordState(answer, "pending_add")
+        assertThat(repo.commitRecord(listOf(change), recordStates = mapOf(answer to "recorded"), guard = guard())).isNotNull()
+        assertThat(repo.slotState(date, almoco)).isEqualTo(com.nutri.android.domain.SlotState.of(add))
+        // The read-only source is never written.
+        assertThat(repo.slotState(date, jantar)).isEqualTo(dinner)
+        assertThat(repo.message(answer)!!.recordState).isEqualTo("recorded")
+        // A decided answer is never reopened by a late expiry.
+        assertThat(repo.closeOpenRecord(answer, "not_recorded")).isFalse()
+
+        repo.wipeToday()
+        val wipe = repo.latestWipeToday()
+        val again = repo.insertMessage("assistant", "x", estimateKcal = 240, recordState = "pending_add")
+        val fresh = com.nutri.android.domain.SlotCheck(date, jantar, com.nutri.android.domain.SlotState.EMPTY)
+        assertThat(repo.commitRecord(listOf(change), guard = guard(wipe = null, check = fresh, open = again))).isNull()
+        assertThat(repo.commitRecord(listOf(change), guard = guard(wipe = wipe, check = fresh, open = again))).isNotNull()
+    }
+
     private fun repository() = DayRepository(db, clock, store)
 
     private class MutableClock(var instant: Instant) : InstantClock {

@@ -116,7 +116,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 ### Planos e validação
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
-- [A47 — Chat meal updates](plans/a47-chat-meal-updates.md).
+- Pendente aprovação manual: [A47 — Chat meal updates](plans/pending_manual_validation/a47-chat-meal-updates.md).
 - [A48 — Fibrai technical identity: `app.fibrai.android` everywhere and Firebase `fibrai-dev`](plans/a48-fibrai-app-id-firebase.md).
 - [A49 — Fibrai and Tali in the app](plans/a49-fibrai-tali-visible-rename.md).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md).

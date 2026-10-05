@@ -68,6 +68,12 @@ object TelemetryEvents {
     /** A34: `auto` downgraded to `ask` by a client guard, `reason` enum. */
     const val RECORD_GUARD = "record_guard"
 
+    /**
+     * A47: an addition or revision proposal. `op` = add | revise | new | invalid, `action` = shown | confirmed |
+     * elsewhere | cancelled | expired | stale | overflow, `reason` (invalid only) = malformed | contradicts | overflow.
+     */
+    const val MEAL_UPDATE = "meal_update"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 

@@ -16,7 +16,17 @@ data class EstimateView(
     val slotQuestion: String?,
     /** Server follow-up when confidence is not high. */
     val question: String?,
+    /** A47 (chatI, chatIC): what the numbers are, from the structured proposal. */
+    val kind: EstimateKind = EstimateKind.MEAL,
+    /** ADDITION: the added food and its quantity; REVISION: the revised meal. */
+    val label: String? = null,
 )
+
+/**
+ * A47: MEAL = the whole meal (ENERGIA TOTAL ~kcal). ADDITION = only the added food, every number with a +.
+ * REVISION = the revised meal's NOVO TOTAL.
+ */
+enum class EstimateKind { MEAL, ADDITION, REVISION }
 
 /**
  * Memory notices under a bubble (A29, chatM): `Memória atualizada` when this turn changed the memory,
@@ -71,8 +81,23 @@ sealed interface ChatItem {
         val memory: MemoryNotice = MemoryNotice(),
         /** A34: an `ask` or a pending replace that expired: `Não registrado` below the bubble. */
         val notRecorded: Boolean = false,
+        /**
+         * A47: false for an addition or revision, whose answer is the server's numeric template: the cards show those
+         * numbers from the structured fields, so the prose is not repeated (chatI, chatIC).
+         */
+        val prose: Boolean = true,
     ) : ChatItem {
         override val key = "a-$id"
+    }
+
+    /** chatI (A47): Adicionar ao {slot}? right below the addition, for its current destination. */
+    data class AdditionPrompt(val estimateId: Long, val confirm: AdditionConfirm) : ChatItem {
+        override val key = "ap-$estimateId"
+    }
+
+    /** chatIC (A47): Atualizar {slot}? right below the revision. */
+    data class RevisionPrompt(val estimateId: Long, val confirm: RevisionConfirm) : ChatItem {
+        override val key = "rv-$estimateId"
     }
 
     /** chatU (A34): `Substituir {slot}?` right below the answer whose slot already has a record. */
@@ -170,6 +195,8 @@ data class ChatUiState(
     val sheetSelection: Long? = null,
     /** Slot marked "(atual)" in the sheet: the record's slot for Trocar refeição, else the slot of the hour. */
     val sheetCurrent: Long? = null,
+    /** A47 (chatTI): the sheet picks the destination of an addition only; no "(atual)", nothing picked. */
+    val sheetAddition: SheetAddition? = null,
     /** Camera / gallery chooser (A6). */
     val photoSheet: Boolean = false,
     /** JPEG attached in the composer, not sent yet (chatA). */
@@ -195,6 +222,21 @@ data class ChatUiState(
     /** Camera / gallery: off while sending and in the chatX state. */
     val canAttach: Boolean get() = !sending && !composerTooLong
 }
+
+/**
+ * chatI (A47): the destination's recorded amount and the meal after the addition, computed by the app with the same
+ * function the record uses. [total] is kcal/P/C/G of the whole meal.
+ */
+@Immutable
+data class AdditionConfirm(val slot: SlotRef, val previousKcal: Int, val total: com.nutri.android.domain.Macros)
+
+/** chatIC (A47): Antes {beforeKcal} kcal, Novo total {newKcal} kcal. */
+@Immutable
+data class RevisionConfirm(val slot: SlotRef, val beforeKcal: Int, val newKcal: Int)
+
+/** chatTI (A47): the meal picker directs only the added food; the source meal stays as it is. */
+@Immutable
+data class SheetAddition(val food: String, val kcal: Int, val sourceName: String)
 
 /** A record into a taken slot (chatU): "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */
 @Immutable

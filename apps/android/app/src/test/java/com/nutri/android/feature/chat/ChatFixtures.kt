@@ -95,6 +95,56 @@ object ChatFixtures {
         slots = slots,
     )
 
+    /** chatI (D9, A47): a pudding added to the dinner that already has 380 kcal; Adicionar asks inside the conversation. */
+    private const val PUDDING = "Pudim de leite, 1 fatia média (100 g)"
+    val chatI = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(30, "Também comi uma fatia de pudim de leite no jantar", "21:02"),
+            ChatItem.Assistant(
+                id = 31,
+                text = "",
+                time = "21:02",
+                estimate = EstimateView(240, 6, 38, 7, null, null, EstimateKind.ADDITION, PUDDING),
+                prose = false,
+            ),
+            ChatItem.AdditionPrompt(31, AdditionConfirm(slots[3], previousKcal = 380, total = Macros(620, 28, 78, 21))),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
+    /**
+     * chatTI (D9, A47): Escolher outra refeição over chatI, directing the pudding only; Lanche picked. The frame blurs the
+     * top of the chatI thread; with the confirmation below it the 844 dp thread would rest at its end, so the background
+     * stops at the answer.
+     */
+    val chatTI = chatI.copy(
+        items = chatI.items.filterNot { it is ChatItem.AdditionPrompt },
+        sheetFor = 31,
+        sheetSelection = 3,
+        sheetCurrent = null,
+        sheetAddition = SheetAddition(PUDDING, 240, "Jantar"),
+    )
+
+    /** chatIC (D9, A47): a correction of the dinner, Atualizar | Cancelar. */
+    val chatIC = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(40, "Corrigindo: o omelete do jantar foi de 3 ovos, não 2", "21:10"),
+            ChatItem.Assistant(
+                id = 41,
+                text = "",
+                time = "21:10",
+                estimate = EstimateView(455, 28, 40, 19, null, null, EstimateKind.REVISION, "Arroz, feijão e omelete de 3 ovos"),
+                prose = false,
+            ),
+            ChatItem.RevisionPrompt(41, RevisionConfirm(slots[3], beforeKcal = 380, newKcal = 455)),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
     /** chatA: empty day, the photo attached in the composer with a caption, not sent yet (A19). */
     val chatA = chat0.copy(composer = "almoço de hoje, comi tudo", attachment = CHAT_A_PHOTO)
 

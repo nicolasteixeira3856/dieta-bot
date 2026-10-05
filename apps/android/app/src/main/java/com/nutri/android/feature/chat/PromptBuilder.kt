@@ -8,16 +8,20 @@ import com.nutri.android.core.database.MealSlot
 import com.nutri.android.core.database.slotsOn
 import com.nutri.android.core.database.DaySnapshot
 import com.nutri.android.core.database.metaOn
+import com.nutri.android.core.network.ChatAddition
+import com.nutri.android.core.network.ChatAdditionItem
 import com.nutri.android.core.network.ChatDay
 import com.nutri.android.core.network.ChatDaySlot
 import com.nutri.android.core.network.ChatFact
 import com.nutri.android.core.network.ChatIn
+import com.nutri.android.core.network.ChatPendingAddition
 import com.nutri.android.core.network.ChatProfile
 import com.nutri.android.core.network.ChatRecentMeal
 import com.nutri.android.core.network.ChatSlot
 import com.nutri.android.core.network.ChatTurn
 import com.nutri.android.domain.ChatText
 import com.nutri.android.domain.Fact
+import com.nutri.android.domain.MealProposal
 import com.nutri.android.domain.SaoPaulo
 import com.nutri.android.domain.SlotSuggestions
 import java.time.Instant
@@ -70,6 +74,8 @@ object PromptBuilder {
         recentLogs: List<MealLogEntity> = emptyList(),
         /** Forçar estimativa (A30): the server releases the estimate now. */
         forceEstimate: Boolean = false,
+        /** A47: the unrecorded addition this message continues, already checked against today's DAY; else null. */
+        pendingAddition: ChatPendingAddition? = null,
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -92,6 +98,8 @@ object PromptBuilder {
                 forceEstimate = forceEstimate,
                 autoRecord = true,
                 tempFacts = true,
+                mealChanges = true,
+                pendingAddition = pendingAddition,
             ),
             blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames) }, block.last().id) },
             kept = raw.size - blocks.sumOf { it.size },
@@ -212,7 +220,24 @@ object PromptBuilder {
     }
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
-    fun compact(turn: Turn, block: CompactBlock): ChatIn = turn.body.copy(compact = true, text = "", messages = block.messages)
+    fun compact(turn: Turn, block: CompactBlock): ChatIn =
+        turn.body.copy(compact = true, text = "", messages = block.messages, pendingAddition = null)
+
+    /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
+    fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {
+        val addition = proposal.addition?.takeIf { proposal.isAddition } ?: return null
+        return ChatPendingAddition(
+            baseSlot = proposal.sourceSlotId?.toString(),
+            addition = ChatAddition(
+                mealText = addition.mealText,
+                kcal = addition.kcal,
+                p = addition.p,
+                c = addition.c,
+                g = addition.g,
+                items = addition.items.map { ChatAdditionItem(it.name, it.g, it.kcal) },
+            ),
+        )
+    }
 
     /**
      * Raw user/assistant messages of today after the newest digest and the latest wipe (Config ceiling change:

@@ -45,7 +45,10 @@ data class ChatMessageEntity(
      * no record actions at all.
      */
     val recordMode: String? = null,
-    /** Assistant rows (A34): "recorded" | "pending_replace" | "not_recorded" | null (nothing decided yet). */
+    /**
+     * Assistant rows (A34): "recorded" | "pending_replace" | "not_recorded" | null (nothing decided yet). A47 adds
+     * "pending_add" (Adicionar ao {slot}?, chatI) and "pending_revise" (Atualizar {slot}?, chatIC).
+     */
     val recordState: String? = null,
     /** Receipt rows (A34): "undone" | "deleted" | "moved" | "edited" | null (active). */
     val receiptState: String? = null,
@@ -56,6 +59,11 @@ data class ChatMessageEntity(
     val undoData: String? = null,
     /** Receipt rows (A34): "user" | "photo" | "plan" | "routine" (drives Editar). */
     val recordSource: String? = null,
+    /**
+     * Assistant rows (A47, v10): [com.nutri.android.domain.MealProposal] JSON, the versioned addition/revision proposal
+     * with the slot states it was built from. Null = no proposal (older row or a server without the capability).
+     */
+    val mealChange: String? = null,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

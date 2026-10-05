@@ -225,6 +225,98 @@ internal fun ReplaceCard(confirm: ReplaceConfirm, tag: String, onReplace: () -> 
     }
 }
 
+/**
+ * chatI (A47), Chat/Receipt State=AddPending: the destination's recorded kcal, the meal total after the addition with
+ * its macros, `Adicionar ao {slot}?`, then Adicionar over Escolher outra refeição (the long label does not fit beside it).
+ */
+@Composable
+internal fun AdditionCard(confirm: AdditionConfirm, onAdd: () -> Unit, onElsewhere: () -> Unit) {
+    val c = Aero.colors
+    val type = Aero.type
+    val slot = confirm.slot.name
+    val strong = type.captionStrong.fontWeight
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .aeroGlass(Aero.shapes.card)
+            .padding(start = 19.dp, end = 19.dp, top = 17.dp, bottom = 19.dp)
+            .testTag("chat-addition-card"),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AmountRow("Já registrado no $slot", "${confirm.previousKcal} kcal", type.body.copy(color = c.textMuted), type.body.copy(color = c.textPrimary))
+        AmountRow("Total do $slot", "${confirm.total.kcal} kcal", type.bodyStrong.copy(color = c.textPrimary), type.bodyStrong.copy(color = c.textPrimary))
+        AeroText(
+            buildAnnotatedString {
+                withStyle(SpanStyle(color = c.macroProtein, fontWeight = strong)) { append("${confirm.total.p}P") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroCarbs, fontWeight = strong)) { append("${confirm.total.c}C") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroFat, fontWeight = strong)) { append("${confirm.total.g}G") }
+            },
+            Modifier.align(Alignment.End).testTag("chat-addition-macros"),
+            style = type.captionStrong,
+        )
+        AeroText("Adicionar ao $slot?", Modifier.padding(top = 12.dp), style = type.body.copy(color = c.textPrimary))
+        Column(Modifier.padding(top = 16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            AeroButtonPrimary("Adicionar", onAdd, Modifier.testTag("chat-addition-confirm"))
+            OutlinePill("Escolher outra refeição", onElsewhere, Modifier.fillMaxWidth().testTag("chat-addition-elsewhere"))
+        }
+    }
+}
+
+/** chatIC (A47), Chat/Receipt State=RevisePending: `Atualizar {slot}?`, Antes and Novo total, Atualizar | Cancelar. */
+@Composable
+internal fun RevisionCard(confirm: RevisionConfirm, onUpdate: () -> Unit, onCancel: () -> Unit) {
+    val c = Aero.colors
+    val type = Aero.type
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .aeroGlass(Aero.shapes.card)
+            .padding(start = 19.dp, end = 19.dp, top = 17.dp, bottom = 19.dp)
+            .testTag("chat-revision-card"),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AeroText("Atualizar ${confirm.slot.name}?", style = type.bodyStrong.copy(color = c.textPrimary))
+        AmountRow("Antes", "${confirm.beforeKcal} kcal", type.body.copy(color = c.textMuted), type.body.copy(color = c.textPrimary))
+        AmountRow("Novo total", "${confirm.newKcal} kcal", type.bodyStrong.copy(color = c.textPrimary), type.bodyStrong.copy(color = c.textPrimary))
+        Row(Modifier.padding(top = 16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AeroButtonPrimary("Atualizar", onUpdate, Modifier.weight(1f).testTag("chat-revision-confirm"))
+            OutlinePill("Cancelar", onCancel, Modifier.weight(REVISION_CANCEL_WEIGHT).testTag("chat-revision-cancel"))
+        }
+    }
+}
+
+/** chatIC: Atualizar 162 dp and Cancelar 139 dp of the 309 dp row. */
+private const val REVISION_CANCEL_WEIGHT = 139f / 162f
+
+/** A labelled amount: label at the start, value at the end, value kept whole when the label wraps. */
+@Composable
+private fun AmountRow(label: String, value: String, labelStyle: androidx.compose.ui.text.TextStyle, valueStyle: androidx.compose.ui.text.TextStyle) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        AeroText(label, Modifier.weight(1f).alignByBaseline(), style = labelStyle)
+        AeroText(value, Modifier.alignByBaseline(), style = valueStyle.copy(fontFeatureSettings = "tnum"), maxLines = 1)
+    }
+}
+
+/** The outlined 58 dp pill of the inline confirmations (Outra refeição, Escolher outra refeição, Cancelar). */
+@Composable
+private fun OutlinePill(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = Aero.colors
+    val pill = RoundedCornerShape(percent = 50)
+    Box(
+        modifier
+            .height(58.dp)
+            .clip(pill)
+            .border(1.dp, c.borderLine, pill)
+            .dietaClick(onClick = onClick)
+            .padding(horizontal = 17.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        AeroText(label, style = Aero.type.button.copy(color = c.textPrimary), maxLines = 1)
+    }
+}
+
 /** `Não registrado` below an answer whose Registrar or Substituir expired (A34, no gold). */
 @Composable
 internal fun NotRecordedLabel(modifier: Modifier = Modifier) {

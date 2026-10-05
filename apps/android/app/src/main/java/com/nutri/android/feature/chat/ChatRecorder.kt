@@ -3,6 +3,7 @@ package com.nutri.android.feature.chat
 import com.nutri.android.core.database.ChatMessageEntity
 import com.nutri.android.core.database.DayRepository
 import com.nutri.android.core.database.InstantClock
+import com.nutri.android.core.database.RecordGuard
 import com.nutri.android.core.memory.FactMemory
 import com.nutri.android.core.telemetry.Telemetry
 import com.nutri.android.core.telemetry.TelemetryEvents
@@ -58,8 +59,9 @@ internal class ChatRecorder(
     /**
      * [new] into [slot] of today. Empty or skipped slot: recorded (a skip has no numbers to lose). A slot with
      * a record: [RecordOutcome.Taken] unless [expected] says the user already confirmed that exact state.
+     * [guard] (A47): the day, wipe, untouched source slots and the open answer a proposal also requires.
      */
-    suspend fun record(new: NewRecord, slot: SlotRef, expected: SlotState? = null): RecordOutcome {
+    suspend fun record(new: NewRecord, slot: SlotRef, expected: SlotState? = null, guard: RecordGuard? = null): RecordOutcome {
         val date = today().toString()
         val before = repository.slotState(date, slot.id)
         if (expected == null && before.records.isNotEmpty()) return RecordOutcome.Taken(before)
@@ -71,6 +73,7 @@ internal class ChatRecorder(
             listOf(change),
             receipts = listOf(receipt),
             recordStates = new.estimateId?.let { mapOf(it to RECORDED) }.orEmpty(),
+            guard = guard,
         )?.single() ?: return RecordOutcome.Stale
         val result = applyRoutine(emptyList(), new.routine, slot.id, new.record)
         repository.setReceiptUndo(id, UndoData(listOf(change), result?.images.orEmpty(), new.routine).encode(), result?.changed == true)
@@ -188,6 +191,10 @@ internal class ChatRecorder(
     companion object {
         const val RECORDED = "recorded"
         const val PENDING_REPLACE = "pending_replace"
+
+        /** A47: Adicionar ao {slot}? below the answer (chatI); Atualizar {slot}? (chatIC). */
+        const val PENDING_ADD = "pending_add"
+        const val PENDING_REVISE = "pending_revise"
         const val NOT_RECORDED = "not_recorded"
 
         const val UNDONE = "undone"

@@ -281,6 +281,10 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onRoutineEdit = vm::editRoutine,
                         onForceEstimate = vm::forceEstimate,
                         onLoadOlder = vm::loadOlder,
+                        onAdditionConfirm = vm::confirmAddition,
+                        onAdditionElsewhere = vm::additionElsewhere,
+                        onRevisionConfirm = vm::confirmRevision,
+                        onRevisionCancel = vm::cancelRevision,
                     )
                 }
             }
