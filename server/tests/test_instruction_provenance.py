@@ -1,11 +1,14 @@
 """Provenance declarations and request isolation; semantic origin needs source review."""
 from dataclasses import replace
 import json
+import unicodedata
 import unittest
 
 import pytest
 
-from chat_instructions import BRANCHES, EXAMPLES, RULES, Example, assemble, validate_assembled, validate_inventory
+from chat_instructions import (BRANCHES, CUE_LOCALE, CUE_MAX_WORDS, CUES, EXAMPLES, RULES, Example,
+                               assemble, validate_assembled, validate_inventory)
+from evals.run import load_cases
 from llm import chat_instructions
 import llm
 import main
@@ -71,6 +74,59 @@ def test_unassembled_example_does_not_silently_pass_inventory():
     examples, _ = declared_example()
     with pytest.raises(ValueError):
         validate_inventory(RULES, examples, BRANCHES)
+
+
+def _normalized(text):
+    plain = "".join(ch for ch in unicodedata.normalize("NFD", text.casefold())
+                    if unicodedata.category(ch) != "Mn")
+    return " ".join("".join(ch if ch.isalnum() else " " for ch in plain).split())
+
+
+def test_cues_are_declared_markers_assembled_once_per_declared_branch():
+    for cue in CUES.values():
+        assert cue.locale == CUE_LOCALE and cue.provenance == "independent_synthetic"
+        for marker in cue.markers:
+            assert len(marker.split()) <= CUE_MAX_WORDS and not any(ch.isdigit() for ch in marker)
+            for branch in BRANCHES:
+                assert (marker in assemble(branch)) or branch not in cue.branches
+    assert f"{CUE_LOCALE} cues" not in assemble("compact")
+
+
+@pytest.mark.parametrize("field,value", [
+    ("provenance", "unknown"), ("provenance", "real_user"), ("locale", ""), ("locale", "en"),
+    ("rule", "absent"), ("purpose", ""), ("meaning", ""), ("markers", ()),
+    ("markers", ("comi 200 g",)), ("markers", ("uma frase inteira de usuário",)),
+    ("markers", ("agora", "agora")), ("branches", ()), ("branches", ("absent",)),
+    ("branches", ("legacy",)),
+])
+def test_cue_needs_provenance_locale_owner_marker_shape_and_exact_coverage(field, value):
+    cues = {**CUES, "eating-now": replace(CUES["eating-now"], **{field: value})}
+    if field == "branches" and value == ("legacy",):
+        cues = {key: replace(cue, branches=value) for key, cue in CUES.items()}
+    with pytest.raises(ValueError):
+        validate_inventory(RULES, EXAMPLES, BRANCHES, cues)
+
+
+def test_undeclared_cue_block_and_unassembled_cue_fail():
+    branches = {**BRANCHES, "compact": BRANCHES["compact"] + (("cues", "digest"),)}
+    with pytest.raises(ValueError):
+        assemble("compact", branches=branches)
+    extra = {**CUES, "fixture": replace(CUES["eating-now"], rule="plan")}
+    with pytest.raises(ValueError):
+        validate_inventory(RULES, EXAMPLES, BRANCHES, extra)
+
+
+def test_no_cue_equals_a_whole_user_message_of_an_evaluation_fixture():
+    messages = set()
+    for case in load_cases():
+        request = case["request"]
+        texts = [request.get("text") or ""]
+        texts += [m["text"] for m in request.get("messages", []) if m["role"] == "user"]
+        messages.update(_normalized(text) for text in texts if text)
+    assert len(messages) > 100
+    for key, cue in CUES.items():
+        for marker in cue.markers:
+            assert _normalized(marker) not in messages, (key, marker)
 
 
 def test_model_boundary_rejects_context_appended_to_chat_and_digest(monkeypatch):

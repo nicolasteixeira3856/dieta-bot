@@ -444,3 +444,63 @@ Master carries the frozen candidate, which fails acceptance. Do not deploy `serv
 ### Intended documentation changes at Completion
 
 In addition to [§ 5](#5-intended-documentation-changes): server Chat states that the fixed instructions contain a declared pt-BR cue lexicon and contracted pt-BR copy, that both are language-specific, and that a release in another language or market requires replacing them first.
+
+### Continuation results (2026-10-05)
+
+Owner approved the continuation by name on 2026-10-05. Work ran in the isolated `s19-cue-lexicon-continuation` worktree on `feat/s19-cue-lexicon`, from master `cd3148a`. **Acceptance is not yet evaluated**: the provider began rate-limiting before the reserved set and the ten-repetition tiebreaks could run on the final prefix. The plan stays `Em implementação`, the branch is not merged and the deployment hold stands.
+
+#### What changed in `server/`
+
+- `chat_instructions.py`: a `CUES` inventory (24 cues, 115 markers, locale `pt-BR`, provenance `independent_synthetic`), rendered as one `pt-BR cues for the rule above` block after the rule it serves. `validate_inventory` rejects a cue with unknown provenance, a missing or other locale, an unowned rule, an empty purpose or meaning, a marker over four words or containing a digit, duplicate markers, or branch coverage that does not match the assembly. Compact has no cue block.
+- `tests/test_instruction_provenance.py`: negative tests for each rejection above, and a test that no cue equals a whole user message of any evaluation fixture (normalized for case, accents and punctuation). That test rejected one authored marker during development, which was replaced.
+
+Cue inventory by owning rule (purpose is recorded per cue in the registry):
+
+| Rule | Cue ids |
+| --- | --- |
+| `intent` | `eating-report`, `plan-request`, `skip-firm`, `skip-pending`, `skip-hedge`, `occasion-words` |
+| `record` | `record-request`, `accept-pending`, `nutrition-question`, `eaten-other-day`, `not-eating-day`, `eating-now`, `day-statement`, `record-complaint` |
+| `estimate` | `meal-words` |
+| `log` | `addition`, `correction`, `unavailable`, `approximate` |
+| `history` | `habitual`, `particular-day` |
+| `memory_changes` | `preference`, `forget`, `one-off` |
+
+Source review of the cues: all were authored in this session from the rule text and ordinary pt-BR grammar. None carries a food, quantity, brand, nutrient, person or date. Single common words (meal names, eating verbs, `também`, `agora`) coincide with ordinary vocabulary, which ADR-033 § 2 allows. `occasion-words` deliberately uses occasion names that appear in no fixture. One marker of `not-eating-day` was first written close to the wording of the removed incident sentence; it was replaced by a generic verb before the final runs.
+
+Examples added under scope step 5, each after cues alone were measured insufficient:
+
+| Registry id | Origin and owner | Measured reason |
+| --- | --- | --- |
+| `answer-continues-meal-v1` | Symbolic, no food or meal name; rule `estimate`. Authored from slot priority 2. | Answer to a clarifying question went to another recorded slot with similar food: 2/6 with cues only, 9–10/10 after on most runs. |
+| `open-question-table-v1` | Symbolic, no food; rule `digest`. Authored from Chat 7. | Open assistant question dropped from the digest: 2/6 before, 5–6/6 after, compact pairs 24/24 on the final run. |
+| `habitual-comparison-v1` | Invented foods, amounts and two invented brand words that appear in no fixture and not in the pre-S19 prompt; rule `history`. Authored from Chat 3d branch B. | Brand-only difference refused, or a differing amount copied, in up to half of the repetitions with prose only. |
+
+Rule text adjusted without changing documented semantics: `context` explains cue blocks; `record` states that the other-day notice depends only on the final `meal_day`, including the before-05:00 dinner rule; `log` puts that notice before the assumption line; `estimate` conditions slot priority 4 on an explicit correction or addition marker (already required by the LOG rule); `history` states the particular-day request as its own paragraph (one row is enough, no two-day comparison); `memory_use` repeats next to the citation that a logged brand, type or portion also needs `reinforce`.
+
+#### Evidence on the final prefix
+
+Final prefix: legacy 28,468 characters (`577cfea1…1fedd`), meal changes 32,229 (`bf2a7089…9e77`), compact 3,382 (`9c912f0b…2d9e`). Same runner, model `gpt-6-luna`, effort `none`, two workers, as the recorded baseline. Reasoning tokens 0.
+
+| Set | Baseline (recorded) | Final candidate | p95 ms | Input / cached / output tokens | Estimated USD |
+| --- | --- | --- | ---: | --- | ---: |
+| existing, 155 × 3 | 151/155 cases, 456/465 reps | 152/155 cases, 458/465 reps | 4251 | 3,182,130 / 3,061,147 / 77,779 | 0.0816 |
+| pairs, 28 × 6 | 22/28 cases, 159/168 reps | 26/28 cases, 166/168 reps | 3883 | 1,086,612 / 1,003,648 / 26,401 | 0.0315 |
+
+By capability, existing: legacy 364/372 → 368/372; meal changes 77/78 → 76/78; compact 15/15 → 14/15. Pairs: legacy 59/60 → 60/60; meal changes 80/84 → 82/84; compact 20/24 → 24/24. Pairs by family: memory 45/48 → 48/48, profiles 10/12 → 11/12, compact 20/24 → 24/24, temporal 12/12 → 11/12, others unchanged at full marks.
+
+Cases with fewer passing repetitions than baseline on the final prefix, each by one repetition: `digest-unavailable-now-known`, `pergunta-antes-jantar`, `s18-dinner-digest-pending-repeat`, `s18-missing-volume` (the model asked in `reply` with an incomplete `meal_change`, which the existing guard rejected with no action), `total-sem-comida`, and pair `s19-10-temporal-1`. Cases better than baseline: `memoria-cheia` 0/3 → 3/3, `cafe-resposta-leite` 0/3 → 1/3, `mesmo-cafe-ontem-recent`, `s18-interleaved-correction` and `unavailable-weight-size-known` 2/3 → 3/3. Of the 17 incumbents with a failed repetition in [Complete frozen comparison](#complete-frozen-comparison), 15 passed 3/3 on the final run; the exceptions are `cafe-resposta-leite` (1/3, a baseline failure) and `s18-missing-volume` (2/3).
+
+#### Not evaluated, and why
+
+- **Reserved set on the final prefix.** Three attempts were cut by `ModerationUnavailable: RateLimitError`, the last one stopped at the second case; none is a valid result. A prefix two small edits earlier (`56c68509…`) scored 48/48, which is development evidence only.
+- **Ten-repetition tiebreaks on the final prefix** for the six cases above, and their baseline counterparts. Not run.
+
+Ten-repetition evidence from near-final prefixes, for orientation only: the baseline scored 10/10 on `slot-cafe-20h`, `slot-cafe-repete-almoco`, `dia-pedi-estimar-ontem`, `hard-nao-jantei-ainda`, `hard-vou-pular-almoco`, `registro-pulei-sem-slot`, `hard-acho-que-nao-janto`, `registro-acrescimo`, `s18-missing-volume` and `memoria-reforco-iogurte`, 9/10 on `digest-unavailable-partial-answer` and 3/10 on `mesmo-cafe-ontem-recent`. Candidates scored between 6/10 and 10/10 on the two `slot-cafe` cases across four runs, 9–10/10 on `dia-pedi-estimar-ontem` and `hard-nao-jantei-ainda` after their last edit, 10/10 on `memoria-reforco-iogurte` after its edit and 3–7/10 on `mesmo-cafe-ontem-recent`. The pre-S19 prompt quoted the user sentence of the `slot-cafe`, `dia-pedi-estimar-ontem` and `hard-nao-jantei-ainda` fixtures; the candidate may not, by scope step 4. The two `slot-cafe` cases are the most likely to miss acceptance item 1 as written.
+
+#### Remaining work
+
+1. With provider quota available: reserved set (48 calls) and the tiebreaks (about 230 calls, estimated US$0.06–0.08) on the unchanged final prefix, one worker.
+2. If acceptance item 1 fails only on fixtures whose sentence the pre-S19 prompt quoted, that is an owner decision on the gate, not a reason to quote the fixture.
+3. On acceptance: Completion documentation of [§ 5](#5-intended-documentation-changes) and of this section, dev deploy and HTTP smoke, then the plan lifecycle.
+
+Validation run for this state: `python -m pytest server/tests -q`, 327 passed and 383 subtests passed; assembled prefix hashes rechecked after the last formatting edit; `git diff --check` passes. `node tools/check-docs.mjs` reports no link or status finding; its gold-map check cannot load in this worktree because `pngjs` is not installed there. Evaluator-estimated spend for all continuation runs, including discarded ones: about US$0.55. Raw reports stay outside git in the worktree's `logs/`.
