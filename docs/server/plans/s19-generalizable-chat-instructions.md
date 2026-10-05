@@ -6,6 +6,7 @@
 - Executable boundary: `server/` only: model instructions, their assembly tests, existing evaluation cases/checks/runner and synthetic evaluation media when needed.
 - Related documentation: server Chat and content-handling specifications, evaluation documentation, and plan/index lifecycle.
 - Prerequisite: [S18](completed/s18-meal-additions-and-revisions.md) delivered. Generalize its delivered behavior as well as the existing Chat rules; do not rewrite the same prompt concurrently. This plan does not require D9/A47 delivery and does not block their UI work.
+- Integration note: the owner explicitly requested source integration into master before behavioral acceptance. Read [the continuation handoff](#owner-directed-master-integration-and-continuation) before resuming; integration is not Completion or deployment approval.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s19-generalizable-chat-instructions.md. Implemente o plano aprovado.`
 
@@ -300,8 +301,70 @@ After the complete comparison, a scoped instruction-only experiment made current
 
 Local validation of the retained source: `python -m pytest server/tests -q` — **310 passed, 383 subtests passed**, 25.16 seconds. `node tools/check-docs.mjs` and `git diff --check` pass. The unit suite proves registry/assembly boundaries and deterministic contracts, not model behavior. No incumbent model-evaluation fixture or expectation was modified.
 
-The code and measured evidence are retained for review in a draft PR. **No merge or dev deploy** of this candidate; no APK, live policy/specification rewrite, user-memory migration or changes in the other agent's checkout. The Completion documentation updates and HTTP dev smoke remain unperformed because delivery did not pass its prerequisite validation.
+At the end of the frozen comparison, the code and measured evidence were retained in a draft PR without merging or deploying the candidate. The later owner-directed source integration is recorded below. No APK, live policy/specification rewrite, user-memory migration or changes in the other agent's checkout were performed. Completion documentation updates and HTTP dev smoke remain unperformed because behavioral acceptance was not met.
 
-Review delivery: [draft PR #109](https://github.com/nicolasteixeira3856/dieta-bot/pull/109), branch `codex/s19-generalizable-chat`. GitHub reports the draft open and mergeable with no reported checks; this does not override the failed model-evaluation gate. The isolated worktree remains on that branch for continuation, with the retained source matching the frozen comparison hashes.
+Source review and integration vehicle: [PR #109](https://github.com/nicolasteixeira3856/dieta-bot/pull/109), originating branch `codex/s19-generalizable-chat`. The PR owns its Git delivery state; merging it does not override this plan's failed model-evaluation gate. The retained model instructions match the frozen comparison hashes above.
 
 Remaining work is concrete: preserve the current user's continuation target and eating day; avoid automatic skip for an unmatched/hedged name; retain useful open questions while closing unavailable attributes; require material missing portions before action; and attribute memory/copy sources correctly. Re-run the unchanged acceptance matrix after a successful correction. These observations do not establish that another instruction rewrite is impossible, but the attempted scope-bound revisions did not meet the required standard. A change of model/effort or a broader runtime decision mechanism is outside this approved refactor and requires an explicit scope/architecture decision under SDD.
+
+### Owner-requested Codex Luna low diagnostic
+
+The owner subsequently authorized exactly two Codex subagents using `gpt-6-luna`, effort `low`, to investigate the failures without additional app API calls. This bounded experiment is an explicit exception to the default one-agent rule; it does not change the pinned app model/effort or authorize ongoing delegation.
+
+Both respondents started without the parent conversation, received opaque case ids, the exact frozen instruction branch, serialized input and per-request JSON schema, and accessed the supplied image. Expected answers, earlier responses and the other respondent's output were withheld. Each generated one initial response for all 19 scenarios that had at least one failing frozen-candidate repetition: 17 legacy Chat, one meal-change and one compact case.
+
+Responses were replayed through the unchanged route orchestration, shaping, clarification/record gates and evaluator assertions, with a saved-response provider and a local clean moderation stub. Network connections were disabled during scoring. Replaying all 63 earlier API generations in this selected subset reproduced their shaped outputs, checks, statuses and errors exactly. All 38 new responses satisfied the offline schema validator, covering every keyword used by the supplied schemas; no route execution error occurred. Moderation and API structured-output enforcement were not evaluated by this diagnostic.
+
+| Respondent / measure | Result |
+| --- | ---: |
+| Codex Luna low A | 17/19 responses passed existing assertions |
+| Codex Luna low B | 15/19 responses passed existing assertions |
+| Combined responses | 32/38 passed |
+| Scenarios passing both respondents | 14/19 |
+| Selected earlier API none repetitions, for reference only | 34/63 passed |
+
+The last row is not a controlled effort comparison: cases were selected for earlier failures, repetition counts differ, and Codex has different instructions/tooling and a shared conversation for multiple cases. There is no same-environment none control, randomized assignment, API low latency/cost measurement or evidence that every passing assertion validates all nutrition/prose. Regression to the mean and contextual dependence remain possible. These results do not establish a causal benefit from low effort or an app-wide success rate.
+
+| Remaining scenario | Observed low-effort failure | Interpretation |
+| --- | --- | --- |
+| `registro-pulei-sem-slot` | Both failed: A chose profile id 2, B id 4, for the unmatched meal name; both produced automatic skip. | More reasoning did not resolve target ambiguity; the unchanged record gate propagated each guessed target. |
+| `registro-acrescimo` | B described adding 390 kcal to a 610 kcal dinner for 1,000 kcal, but its structured estimate contained only 390 kcal and the added dessert. A included the base. | The original prose/data inconsistency persists in legacy Chat. This case does not exercise S18's deterministic addition path. |
+| `hard-foto-pergunta` | B described calories in prose but returned question intent and no structured estimate; A passed. | Contract/intent interpretation failure, not missing image access. |
+| `cafe-resposta-leite` | B returned medium confidence and a null question, after which legacy shaping inserted a generic question. A passed with high confidence. | A's pass is not a fix for deterministic shaping; raising confidence merely to avoid a question is invalid. |
+| `registro-noturno-ontem` | A correctly classified yesterday and produced no record, but omitted the required today-only explanation. | Explanatory-copy failure, distinct from a wrong write. |
+
+Both respondents passed the existing assertions for the other 14 scenarios, including named-meal continuation, current-day correction against digest, open-question retention, hedged skip, memory capacity, required drink-volume clarification and the two transfer cases. This is exploratory evidence, not completion of the corresponding fixes.
+
+**Conclusion:** low effort did not eliminate relevant failures and is not a demonstrated standalone correction. Some cases may benefit, but that hypothesis requires a controlled API comparison after the workflow is corrected. Deterministic legacy shaping requires its own code correction; arithmetic correctness and nutritional accuracy remain separate responsibilities.
+
+### Owner-directed master integration and continuation
+
+On 2026-10-05, after reviewing the failed API acceptance and Codex diagnostic, the owner explicitly requested merging all work from this worktree into master, preserving the other agent's ongoing app work, resolving integration conflicts locally, and moving this work's plan numbers to the end only if a collision exists. The owner allowed remaining work to be recorded here instead of creating another plan. This direction authorizes source integration of the known-incomplete candidate; it does not assert behavioral acceptance, complete this plan, authorize deployment, or approve the architecture proposals below for implementation.
+
+Integration preparation merged origin/master `9ced9ca` into the isolated branch. The incoming app/brand/site documentation was retained without edits, and no conflict or plan-number collision occurred. S19 remains the continuation entry point; S20 and the other incoming plans retain their identities. No command switches branches, merges, resets, cleans, builds or writes files in the other agent's checkout. The Python environment is reused read-only to run server tests in this isolated checkout.
+
+#### Proposed continuation, not yet an implementation plan
+
+1. **Finish the existing end-to-end capability before attributing every legacy failure to Luna.** [D9](../../design/plans/d9-chat-meal-updates.md) and [A47](../../android/plans/a47-chat-meal-updates.md) own the designed/persisted meal-update flow under [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md). Verify the actual APK sends `meal_changes` and preserves `pending_addition`; test source/destination changes, base preservation, duplicate application, restart and undo. The current isolated Android source does not yet send those fields. Server arithmetic/copy alone does not complete client adoption. Do not mix Android implementation into S19.
+2. **Plan explicit continuation state.** Explore retaining the active eating event, user-named target, pending operation, supplied/unavailable portion details and unresolved questions as structured context with origins. Separate an interleaved correction target from the meal being eaten. Android remains the owner of persisted state and the server stays stateless unless a separately accepted ADR changes that boundary. A digest must not be the sole store for action-critical context. This is a proposal requiring an ADR and distinct server/Android executable plans, not an implicit extension of S19.
+3. **Plan action validation against that state.** The model proposes foods, operation, target and the source of its interpretation; code checks compatibility before authorizing a mutation. An ambiguous target or add/revise decision requires a useful clarification or the existing manual choice, rather than guessing. A forced nutritional estimate must not authorize an invented operation. Preserve direct progress for clear requests; do not obtain a higher safety score by blocking every interaction.
+4. **Keep displayed and written operation values together.** S18 already composes addition/revision copy from validated state; finish its client use and evaluate other action-related prose that can contradict structured output. Correct the legacy generic-question insertion separately, preserving honest confidence and accepted clarification behavior. Supplied label/serving arithmetic can be deterministic; that does not certify model-estimated nutrition.
+5. **Validate complete conversations and final storage.** Extend independent synthetic sequences with additions, revisions, interleaved meals, ambiguous names, date corrections, compacted history, changing destinations, restart and undo. Assert final foods, kcal/P/C/G, absence of unintended writes/duplicates and text/data consistency. Measure useful task completion and unnecessary questions alongside critical errors. Real incidents remain diagnostic/regression evidence and never become global examples, per [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md).
+6. **Bound paid experimentation.** Start with deterministic unit/transaction tests and offline replay of saved generations. Then use a small, frozen API comparison for the remaining semantic decisions, followed by the unchanged full acceptance matrix for a release candidate. Codex subagents remain exploratory. A model/effort change requires its own scope decision and the governing API quality/latency criteria; none is made by this source merge.
+
+Allocate any future ADR/plan ids from then-current master, appending after existing ids. The neighboring [S20](s20-tali-prompt-identity.md) edits instruction identity; source integration of S19 is not the same as satisfying its behavioral Completion prerequisite. Its next implementation must discover the registry in `server/chat_instructions.py` rather than restore the removed inline instruction strings. Do not rewrite another agent's plan or accepted decision as part of this handoff.
+
+#### Evidence preservation
+
+Aggregate results, failure diagnosis and next work are versioned in this plan so continuation does not depend on the old worktree. Raw synthetic evaluation reports remain outside git under the existing evaluator policy. A verified archive also preserves them outside the worktree on the owner's machine:
+
+- File: `C:/Users/Nicolas/.codex/diagnostics/dieta-bot/s19-handoff-20261005-114157.zip`.
+- SHA-256: `bcfd1d292b6b488c2c08bd331359768e4acbd44d05aa4eb4207f7c39e8b1251b`.
+- Contents: 38 evidence files plus a manifest, including the frozen baseline/candidate reports and instructions, rejected-experiment evidence, both blinded Codex outputs/inputs, scoring results and offline replay helpers. Every archived file hash and the ZIP integrity were verified. No credentials, environment files or original tester conversation logs are included.
+- Frozen instruction source: commit `533f76a99ed6cd18df9f58a275977010a52f40a8`. The archive manifest distinguishes offline replay helpers from the paid API runner; inspect saved machine paths before rerunning any script.
+
+No additional paid model evaluation is required merely to merge this unchanged, explicitly incomplete candidate. Integration checks below cover source/tests/document consistency; they do not replace the failed behavioral matrix or authorize a dev deployment.
+
+#### Integration validation
+
+After merging the incoming master documentation, `python -m pytest server/tests -q` passed **310 tests and 383 subtests** in 25.69 seconds. `node tools/check-docs.mjs` passed (49 live files, 52 files link-checked); `git diff --check` passed. The three assembled instruction hashes still match the frozen comparison, and shared estimate/fit/scope strings remain byte-identical to its baseline. The repository reports no GitHub checks for this PR; this is not a passing remote CI result. No Android build, device operation, live API evaluation, server deployment or app distribution is part of this integration.
