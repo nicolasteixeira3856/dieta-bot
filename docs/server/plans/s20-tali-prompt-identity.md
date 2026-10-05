@@ -6,7 +6,7 @@
 - Executable boundary: `server/` only. The name lines of the model instructions (`server/llm.py`: `_SCOPE_RULES`, `_CHAT_INSTRUCTIONS` and any other instruction block that names the product), their assembly tests and evaluation cases that assert the name.
 - Related documentation: [server Chat specification](../specifications/v1-chat.md) if it quotes the name; [server README](../README.md) plan list.
 - Prerequisites:
-  - approval of [D10](../../design/plans/d10-fibrai-tali-rename.md), which accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md);
+  - approval of [D10](../../design/plans/pending_manual_validation/d10-fibrai-tali-rename.md), which accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md);
   - [S19](s19-generalizable-chat-instructions.md) delivered or cancelled, because both edit the same instructions and must not run at the same time.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s20-tali-prompt-identity.md. Implemente o plano aprovado.`
