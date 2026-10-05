@@ -45,6 +45,16 @@ The gate for every new or changed layout ([ADR-031](../adrs/ADR-031-figma-source
 
 Prerequisites and execution boundaries live in each plan. This follow-up does not change the migration plans above.
 
+## Plan budget follow-up
+
+Behavior: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Server | [S21](../../server/plans/s21-plan-cooking-and-budget-choice.md) — cooking help and the over-budget choice in a plan | S19, S20 |
+| Design | [D12](d12-plan-budget-choice.md) — plan over budget: the choice (`chatRB`) | S21 approved |
+| Client | [A50](../../android/plans/a50-plan-budget-choice.md) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
+
 ## Fibrai brand follow-up
 
 Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):

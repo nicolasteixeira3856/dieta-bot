@@ -68,6 +68,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [036](android/adrs/ADR-036-fibrai-technical-identity.md) | android | `app.fibrai.android` em todo o app (pacotes, app id, banco, ações), projeto Firebase `fibrai-dev` |
 | [037](site/adrs/ADR-037-landing-site.md) | site | landing estática Aero em fibrai.app, Cloudflare |
 | [038](site/adrs/ADR-038-web-project-folder.md) | site | código da landing no projeto `web/` na raiz |
+| [039](produto/adrs/ADR-039-plan-cooking-and-budget-choice.md) | produto | cooking help in a plan; server over-budget check, Pode passar / Ajustar para caber, gold `chatRB` |
 
 ## Outros docs
 
