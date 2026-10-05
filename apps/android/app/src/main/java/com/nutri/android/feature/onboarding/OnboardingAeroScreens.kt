@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -128,6 +129,9 @@ private fun AeroOnboardingFrame(
             Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
+                // A46: the scroll viewport ends at the top of the keyboard, so the focused field is brought above it.
+                // The CTA below stays behind the keyboard while it is open.
+                .imePadding()
                 .verticalScroll(scroll)
                 .navigationBarsPadding()
                 .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = gap + CtaHeight + CtaBottom),

@@ -2,6 +2,18 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.12 — 04/10/2026
+
+### Correções
+
+- Ao editar um número ou o nome de uma refeição (configuração inicial e Configurações), o cursor agora vai para o fim do valor. Antes, tocar para mudar "200" de carboidrato e digitar 5 virava "5200".
+- O campo que você está digitando sempre aparece acima do teclado. Antes, na meta de fim de semana (Metas separadas) e na meta por dia, o teclado cobria o campo.
+- Na meta de calorias das Configurações, com uma meta por dia, a janela de edição não passa mais do topo da tela quando o teclado abre: o título e o Salvar continuam visíveis.
+
+### Ajustes
+
+- Com o teclado aberto, o botão de baixo (Continuar / Salvar) fica atrás do teclado e volta quando ele fecha.
+
 ## 0.0.11 — 04/10/2026
 
 ### Novidades

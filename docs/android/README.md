@@ -116,6 +116,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
 - [A47 — Chat meal updates](plans/a47-chat-meal-updates.md).
+- Pendentes de validação manual: [`plans/pending_manual_validation/`](plans/pending_manual_validation/).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md).
 - Histórico: [`plans/completed/`](plans/completed/).
 - Validação: [`validation/`](validation/).

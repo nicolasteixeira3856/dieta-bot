@@ -292,6 +292,8 @@ Evidência de um plano vive na seção Results dele, com os números escritos no
 
 UI no client: DONE só com captura vs gold do corte, regra de `AGENTS.md`.
 
+Validação parcial no emulador (decisão do dono, 04/10/2026): quando a entrega muda só algumas telas ou fluxos, e não o app inteiro, basta rodar os scripts de captura e o `diff-gold` dos fluxos que usam o código alterado (telas e componentes compartilhados que elas usam). Os demais fluxos podem ficar de fora se a regressão JVM (`testDevDebugUnitTest`, com o `GoldTest` de todos os ids, e `verifyRoborazziDevDebug`) passar sem mudança neles. Results lista os fluxos capturados, os que ficaram de fora e por quê. Mudança que atravessa o app (tema, tokens, design system inteiro, navegação raiz) continua pedindo todos os scripts.
+
 ## Manutenção de links
 
 Criação, movimentação ou substituição:

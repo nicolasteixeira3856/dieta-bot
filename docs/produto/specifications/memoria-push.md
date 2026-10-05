@@ -42,6 +42,7 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 7. Back → Home.
 8. Copy dos sheets: "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
 9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar` do `Sheet/Bottom`: `Button/Primary` e a pílula secundária, de largura total. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema. Controles tocáveis têm ripple.
+10. Campos de texto da Config (sheets de edição e editor de refeições): o cursor vai para o fim do valor ao receber foco, e o campo focado fica visível acima do teclado. O sheet nunca passa da altura livre entre a barra de status e o teclado: o título e o par Salvar / Cancelar continuam visíveis e o conteúdo rola. No editor de refeições vale a regra 8 de [perfil-onboarding](perfil-onboarding.md).
 
 ## Regras — push
 
@@ -90,3 +91,4 @@ Comportamento: `produto`. Client: `android`.
 - [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
 - [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero
+- [A46](../../android/plans/pending_manual_validation/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.runtime.Composable
@@ -61,6 +62,7 @@ fun BoxScope.WorkoutSheet(
         secondaryTag = "home-workout-cancel",
         modifier = Modifier
             .align(Alignment.BottomCenter)
+            .statusBarsPadding()
             .imePadding()
             .testTag("home-workout-sheet"),
         bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),

@@ -19,6 +19,8 @@ PKG=com.nutri.android.dev
 ACTIVITY=com.nutri.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
+# shellcheck source=tools/input-checks.sh
+. "$ROOT/tools/input-checks.sh"
 
 # A23 (ADR-019): hide the dev-only "Memória da IA (dev)" row so cfg matches the gold. Cleared on exit.
 "$ADB" shell setprop debug.nutri.hide_dev_tools 1
@@ -83,6 +85,40 @@ expect "ceiling row 2000 kcal" 'text="2000 kcal"'
 expect "no workout: credit 0" 'Crédito atual: 0 kcal'
 dump; if grep -q 'resource-id="cfg-dev-memory"' "$TMP/ui.xml"; then echo "  ✗ dev row hidden"; FAIL=1; else echo "  ✓ dev row hidden"; fi
 shot cfg
+
+# A46: in Config the focused field rises above the keyboard and an edit starts at the end of the value.
+# Meal editor (the O3 screen): the last meal name. Back leaves the editor without saving.
+tap 'resource-id="cfg-slot-0"'
+"$ADB" shell input swipe 390 1300 390 500 300; sleep 0.6
+"$ADB" shell input swipe 390 1300 390 500 300; sleep 0.6
+before=$(text_of cfg-name-3 | tr -d '\r')
+tap 'resource-id="cfg-name-3"'
+above_ime cfg-name-3 "Config meal editor: last name above the keyboard"
+"$ADB" shell input text x; sleep 0.4
+ends_at_end cfg-name-3 "$before" x "Config meal name: typing goes to the end"
+hide_kb
+"$ADB" shell input keyevent 4; sleep 1
+expect "back leaves the meal editor" 'resource-id="cfg-ceiling"'
+# Macros sheet: the adjust button puts the cursor after the stored grams.
+tap 'resource-id="cfg-macros"'
+before=$(text_of cfg-carb-field | tr -d '\r')
+tap_desc "Ajustar Carboidrato"
+above_ime cfg-carb-field "Config Carboidrato above the keyboard"
+"$ADB" shell input text 5; sleep 0.4
+ends_at_end cfg-carb-field "$before" 5 "Config Carboidrato: adjust puts the cursor at the end"
+hide_kb
+tap 'resource-id="cfg-cancel"'
+# Ceiling sheet, one goal per day: Dom and the whole sheet (title to Salvar) above the keyboard.
+tap 'resource-id="cfg-ceiling"'
+tap 'resource-id="cfg-mode-seven"'
+"$ADB" shell input swipe 390 1250 390 750 300; sleep 0.6
+"$ADB" shell input swipe 390 1250 390 750 300; sleep 0.6
+tap 'resource-id="cfg-day-6"'
+above_ime cfg-day-6 "Config ceiling Dom above the keyboard"
+above_ime cfg-sheet "Config ceiling sheet fits above the keyboard"
+hide_kb
+tap 'resource-id="cfg-cancel"'
+expect "cancel keeps 2000 kcal before the rename" 'text="2000 kcal"'
 
 # Slot rename: relabels, no wipe.
 tap 'resource-id="cfg-slot-0"' && tap 'resource-id="cfg-chip-0-1"' && tap 'resource-id="cfg-save"'

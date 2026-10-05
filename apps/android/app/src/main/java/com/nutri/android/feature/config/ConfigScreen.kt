@@ -263,7 +263,7 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
         primaryTag = "cfg-save",
         secondaryTag = "cfg-cancel",
         bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
-        modifier = Modifier.align(Alignment.BottomCenter).imePadding().testTag("cfg-sheet"),
+        modifier = Modifier.align(Alignment.BottomCenter).statusBarsPadding().imePadding().testTag("cfg-sheet"),
     ) {
         Column(
             Modifier

@@ -232,16 +232,18 @@ fun AeroNumberField(
     val c = Aero.colors
     val type = Aero.type
     val style = if (compact) type.title else type.fieldNumber
+    // A46: an edit starts at the end of the value.
+    val cursor = rememberEndCursorField(value)
     BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = cursor.field,
+        onValueChange = { cursor.onValueChange(it, onValueChange) },
         enabled = enabled,
         singleLine = true,
         textStyle = style.copy(color = c.textPrimary),
         keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number, imeAction = imeAction),
         keyboardActions = keyboardActions,
         cursorBrush = SolidColor(c.accentDefault),
-        modifier = modifier.then(fieldModifier),
+        modifier = modifier.then(fieldModifier).endCursorOnFocus(cursor),
         decorationBox = { inner ->
             Row(
                 Modifier
@@ -300,13 +302,15 @@ fun AeroMealSlotRow(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // A46: renaming starts at the end of the name.
+            val cursor = rememberEndCursorField(name)
             BasicTextField(
-                value = name,
-                onValueChange = onName,
+                value = cursor.field,
+                onValueChange = { cursor.onValueChange(it, onName) },
                 singleLine = true,
                 textStyle = type.body.copy(color = c.textPrimary),
                 cursorBrush = SolidColor(c.accentDefault),
-                modifier = Modifier.weight(1f).testTag("$tag-name-$index"),
+                modifier = Modifier.weight(1f).endCursorOnFocus(cursor).testTag("$tag-name-$index"),
                 decorationBox = { inner ->
                     Row(
                         Modifier
