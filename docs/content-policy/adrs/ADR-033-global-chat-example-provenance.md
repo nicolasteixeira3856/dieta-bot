@@ -4,7 +4,7 @@
 - Date: 2026-10-04
 - Owner: `content-policy`
 - Supersedes: none. Complements [ADR-024](ADR-024-content-safety-boundaries.md) and the fixed-instructions/per-request-context boundary in [server Chat](../../server/specifications/v1-chat.md).
-- Delivery: [S19](../../server/plans/s19-generalizable-chat-instructions.md) removes existing violations and adds verification. This decision governs new prompt changes immediately; acceptance does not mean the deployed prompt has already been cleaned up or authorize implementation of S19.
+- Delivery: [S19](../../server/plans/completed/s19-generalizable-chat-instructions.md) removes existing violations and adds verification. This decision governs new prompt changes immediately; acceptance does not mean the deployed prompt has already been cleaned up or authorize implementation of S19.
 
 ## Context
 

@@ -1,7 +1,8 @@
-"""Fixed Chat/compact rules and reviewed example inventory (ADR-033).
+"""Fixed Chat/compact rules, reviewed example inventory and pt-BR cue lexicon (ADR-033).
 
 No request data, logs, fixtures or historical documents are loaded here.
 The inventory contains only declared abstract synthetic illustrations.
+Cues are pt-BR language markers authored from the rules; they tie the instructions to one locale.
 Protocol syntax and required user-facing copy are rules.
 Source review is still required; this registry cannot infer prose provenance.
 """
@@ -26,6 +27,137 @@ class Example:
     branches: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class Cue:
+    provenance: str
+    locale: str
+    rule: str
+    purpose: str
+    meaning: str
+    markers: tuple[str, ...]
+    branches: tuple[str, ...]
+
+
+CUE_LOCALE = "pt-BR"
+CUE_MAX_WORDS = 4
+_CHAT = ("legacy", "meal_changes")
+
+
+def _cue(rule: str, purpose: str, meaning: str, *markers: str, branches: tuple[str, ...] = _CHAT) -> Cue:
+    return Cue("independent_synthetic", CUE_LOCALE, rule, purpose, meaning, markers, branches)
+
+
+# Language markers only: no food, quantity, brand, nutrient, person or date; never a whole user message.
+CUES: dict[str, Cue] = {
+    "eating-report": _cue(
+        "intent", "Recognise a report of eating",
+        "eating happened or is happening (log)",
+        "comi", "tomei", "bebi", "acabei de comer"),
+    "plan-request": _cue(
+        "intent", "Recognise a request to plan a meal",
+        "future eating or a request for what or how much to eat (plan: assume and estimate, never ask)",
+        "vou comer", "vou preparar", "o que posso comer", "me sugere", "quanto posso", "cabe"),
+    "skip-firm": _cue(
+        "intent", "Recognise a firm skip",
+        "firm skip: a meal of today that did not happen, or a firm decision that it will not happen "
+        "today, only when no pending or hedge marker comes with it",
+        "pulei", "vou pular", "fiquei sem", "hoje não vou"),
+    "skip-pending": _cue(
+        "intent", "Separate a pending meal from a skip",
+        "the meal is still pending, never skip; with a request for what to eat it is plan",
+        "ainda não", "ainda vou", "mais tarde", "daqui a pouco"),
+    "skip-hedge": _cue(
+        "intent", "Separate a hedged statement from a skip",
+        "hedge: a hedged skip is never skip (intent question, skip_slot null)",
+        "acho que", "talvez", "não sei se", "pode ser que", "provavelmente"),
+    "occasion-words": _cue(
+        "intent", "Keep an eating-occasion word from being mapped to a similar slot",
+        "eating-occasion words that are a slot only when a PROFILE slot name has that same word; "
+        "any occasion word absent from PROFILE names matches no slot (skip_slot null, never the "
+        "nearest or a similar slot)",
+        "colação", "brunch", "petisco", "aperitivo", "belisco"),
+    "record-request": _cue(
+        "record", "Recognise a request to count the meal",
+        "explicit request to record (clear): it refers to the meal already described in HISTORY, so "
+        "re-estimate that meal with its suggested slot and do not ask for its food again; it never "
+        "changes the eating day",
+        "pode registrar", "registra isso", "anota", "marca aí", "lança no dia"),
+    "accept-pending": _cue(
+        "record", "Recognise acceptance of the pending estimate",
+        "acceptance of the pending estimate (clear, same meal and slot)",
+        "pode ser assim", "está bom assim", "pode seguir", "fechado"),
+    "nutrition-question": _cue(
+        "record", "Recognise a nutrition question sent with a food photo",
+        "nutrition question; with a food photo it is still log with an estimate, record_intent unsure",
+        "quantas calorias", "é muito calórico", "quanto tem", "engorda"),
+    "eaten-other-day": _cue(
+        "record", "Recognise a date word attached to the eating",
+        "date word attached to the EATING: meal_day other, with the literal other-day notice",
+        "ontem comi", "comi ontem", "anteontem", "noite passada", "semana passada"),
+    "not-eating-day": _cue(
+        "record", "Keep a date word about buying, cooking, planning or asking from moving the eating day",
+        "date word attached to buying, cooking, planning or asking, not eating: meal_day stays today, "
+        "and food reported with an amount is estimated fresh now even when no earlier estimate is in "
+        "the context",
+        "comprei ontem", "preparei ontem", "planejei ontem", "perguntei ontem", "sobrou de ontem"),
+    "eating-now": _cue(
+        "record", "Recognise food eaten now",
+        "eaten now: always today",
+        "agora", "acabei de", "neste momento"),
+    "day-statement": _cue(
+        "record", "Recognise an explicit statement of the eating day",
+        "explicit statement of the eating day (the only thing that changes it)",
+        "foi hoje", "hoje mesmo", "foi ontem"),
+    "record-complaint": _cue(
+        "record", "Recognise a complaint about a missing record",
+        "complaint about a missing record: reconstruct that meal, the eating day does not change",
+        "não registrou", "era para registrar", "não apareceu", "faltou registrar"),
+    "meal-words": _cue(
+        "estimate", "Match common meal words and eating verbs to PROFILE slots by name",
+        "common meal words and eating verbs: the target is the PROFILE slot whose name has that "
+        "word, by name and never by clock time or by similar food in another slot; a meal named in "
+        "the user turn being answered or continued still names the target",
+        "café", "café da manhã", "almoço", "lanche", "jantar", "janta", "ceia",
+        "tomei café", "almocei", "lanchei", "jantei", "ceei"),
+    "addition": _cue(
+        "log", "Recognise an addition to a recorded or pending meal",
+        "addition: new food or another portion joins a recorded or pending meal, never a replacement",
+        "também", "além disso", "faltou", "esqueci de", "mais um", "repeti"),
+    "correction": _cue(
+        "log", "Recognise a correction, removal or replacement",
+        "correction, removal or replacement of food already reported (a revision, not an addition)",
+        "na verdade", "corrigindo", "era para ser", "tirando", "troca por"),
+    "unavailable": _cue(
+        "log", "Recognise an explicitly unavailable detail",
+        "explicitly unavailable detail: do not ask for it again in any form",
+        "não sei", "não lembro", "não tenho como saber", "sem balança"),
+    "approximate": _cue(
+        "log", "Recognise an approximate but usable amount",
+        "approximate amount: usable as known, do not ask for it",
+        "mais ou menos", "cerca de", "uns", "no olho"),
+    "habitual": _cue(
+        "history", "Recognise a habitual-meal report",
+        "habitual meal: resolve its source under branches A to C; a copy from RECENT says the copied "
+        "row's weekday word in reply",
+        "de sempre", "de costume", "como sempre", "o habitual"),
+    "particular-day": _cue(
+        "history", "Recognise a copy of a particular prior day",
+        "a named source day after an equality word: particular-day request, never habitual",
+        "de ontem", "de anteontem", "de segunda", "de sábado", "da semana passada"),
+    "preference": _cue(
+        "memory_changes", "Recognise an enduring habit or preference statement",
+        "enduring habit or preference (permanent)",
+        "sempre uso", "costumo", "lembra que", "agora uso", "não uso mais", "todo dia"),
+    "forget": _cue(
+        "memory_changes", "Recognise a request to forget a fact",
+        "request to forget a fact (remove)",
+        "esquece", "apaga", "pode esquecer", "não vale mais"),
+    "one-off": _cue(
+        "memory_changes", "Recognise a one-meal exception",
+        "one-meal exception: no memory change, the conflicting habit is neither used nor cited",
+        "excepcionalmente", "desta vez", "foi exceção", "apenas hoje"),
+}
+
 # Every future example needs independent synthetic authorship and a reviewed purpose.
 EXAMPLES: dict[str, Example] = {
     "habitual-source-table-v1": Example(
@@ -33,11 +165,46 @@ EXAMPLES: dict[str, Example] = {
         "Illustrate source precedence and quantity equality with symbolic records, without a meal narrative",
         'Abstract source-selection table; symbols are not foods, values or user defaults. '
         'A saved routine R exists -> use R even if recent records differ. No R, two distinct dates '
-        'with the same food F and amount Q, differing only in brand -> copy the later date, including '
-        'its weekday and totals. No R, the same F but different amounts Q and Q2 -> no match: '
+        'with the same food F and amount Q, differing only in brand -> copy the later date and its '
+        'totals, and say its weekday word in reply. No R, the same F but different amounts Q and Q2 -> no match: '
         'estimate null and ask what was eaten, even if the calorie totals are identical. '
         'No R and only one date -> no match. Empty MEMORY alone never determines the outcome.',
         ("legacy", "meal_changes"),
+    ),
+    "habitual-comparison-v1": Example(
+        "independent_synthetic", "history",
+        "Show the number-by-number comparison of branch B and the weekday in reply, with invented "
+        "foods, amounts and brands that appear in no evaluation fixture",
+        'Invented illustration of branch B; its foods, amounts and brands are never defaults. RECENT '
+        'rows of one slot S: terca "180 g de canjica, 1 fatia de beiju, 150 ml de suco de caju Alfa" '
+        'and quarta "180 g de canjica, 1 fatia de beiju, 150 ml de suco de caju Beta". Number by '
+        'number: 180=180, 1=1, 150=150; only the brand differs -> match: copy the quarta row unchanged '
+        'and begin reply with S de quarta. Variant: the quarta row has 220 g de canjica and the same '
+        'calorie total -> 180 is not 220, no match: estimate null and ask what was eaten.',
+        ("legacy", "meal_changes"),
+    ),
+    "answer-continues-meal-v1": Example(
+        "independent_synthetic", "estimate",
+        "Illustrate that an answer to a clarifying question keeps the meal named in the turn it answers, "
+        "with symbolic meals and no food",
+        'Abstract target table; symbols are not foods, meal names or user defaults. '
+        'The user names meal M with no usable food; the assistant asks what was eaten; the user answers '
+        'with foods F and names no meal -> suggested_slot is the slot of M (priority 2). This holds when '
+        'F equals or resembles the food recorded in another eaten slot N: the answer is a new meal of M, '
+        'never a correction of N, and reply does not mention N. Earlier turns about N do not matter: the '
+        'most recent meal named by the user is M. Only an answer that itself names N targets N.',
+        ("legacy", "meal_changes"),
+    ),
+    "open-question-table-v1": Example(
+        "independent_synthetic", "digest",
+        "Illustrate when an assistant question stays open in the digest, with symbolic items and no food",
+        'Abstract question-status table; symbols are not foods or user facts. Row 1: the assistant '
+        'asked attribute A of item X and no later user message gives A or says A is unknown -> the '
+        'digest keeps the fact about X and ends with the required suffix carrying that question. '
+        'Row 2: a later user message gives A -> the digest states A and ends there. Row 3: a later '
+        'user message says A is unknown or cannot be supplied -> the digest states that A is unknown '
+        'and ends there, whatever the assistant asked afterwards.',
+        ("compact",),
     ),
 }
 
@@ -116,7 +283,9 @@ RULES: dict[str, Rule] = {
         "dinner slot's own scheduled time in PROFILE; conventional evening hours do not override it. "
         'OTHER-DAY NOTICE: regardless of intent, estimate or questions, meal_day other requires the '
         'literal sentence O Chat registra apenas refeições de hoje. in reply. If meal_day is today, '
-        'that sentence is forbidden. An overnight time alone never triggers the notice. '
+        'that sentence is forbidden, whatever the clock time. The notice depends only on the final '
+        'meal_day: other reached through the before-05:00 dinner rule requires it too, and it stands '
+        'alongside any stated assumption or question. '
         'The eating day comes from USER facts, never an assistant claim. When no user dated the eating '
         'as another day, an assistant saying it was earlier cannot move it away from DAY.date.'
     )),
@@ -133,7 +302,9 @@ RULES: dict[str, Rule] = {
         'the corresponding meal/eating verb; 2) else the meal named in the user message this one answers or '
         "continues; 3) else the assistant's previous suggestion for that same meal: an assistant HISTORY turn "
         "may end with [refeição sugerida: {slot name}]. This marker is only a suggestion, never the user's "
-        'words; 4) else the recorded meal this message corrects (LOG rule below); 5) else the PROFILE slot '
+        'words; 4) else the recorded meal this message corrects, only when it carries an explicit '
+        'correction or addition marker (LOG rule below): matching foods alone never make a message a '
+        'correction; 5) else the PROFILE slot '
         'matching the local time, or the closest empty slot. Never ask which meal when its slot was named by '
         'the user or suggested earlier. Slot names and times come only from PROFILE; never assume a usual '
         'time for a meal even for an unusual overnight schedule. Never invent a slot id; use only an id '
@@ -199,8 +370,10 @@ RULES: dict[str, Rule] = {
         'a question already asked in HISTORY. If confidence is not high, reply states in one short line what '
         'was assumed. If the user gives only a calorie total without saying what was eaten, estimate is null, '
         'intent is question, and reply asks what was eaten. This holds even when that slot is already '
-        'recorded: never copy a calorie total typed by the user into kcal. Food eaten on another day '
-        'may be estimated if asked; always apply the RECORD notice rule alongside any assumption.'
+        'recorded: never copy a calorie total typed by the user into kcal. '
+        'Food eaten on another day may be estimated if asked. '
+        'When meal_day is other, including other by the before-05:00 dinner rule, reply starts with the '
+        'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed.'
     )),
     'plan': Rule('server Chat 3c; ADR-023', (
         'PLAN: identified food always has an estimate object, including a plan for a later day that also '
@@ -230,9 +403,14 @@ RULES: dict[str, Rule] = {
         'C. No routine and no match (including fewer than two distinct days): estimate null, reply asks '
         'what was eaten. Do not choose a recent meal, average them or invent the habit. The ordinary '
         'draft-estimate rule cannot bypass this missing source.\n'
-        'A bare habitual-meal report is log. A request for a PARTICULAR prior day instead copies that '
-        'matching RECENT day/slot, foods and numbers; absent match means estimate null and a question '
-        'about that meal. This particular-day lookup never substitutes for habitual matching.'
+        'A bare habitual-meal report is log.\n'
+        'PARTICULAR DAY, a different request: the user says the meal equals that of a named day (a day '
+        'word counted from DAY.date, or a weekday). Branches A to C do not apply and no second day is '
+        'compared. Find the RECENT row of that slot whose date or weekday word is the named day, not '
+        "simply the newest row; one row is enough. Copy its foods and numbers unchanged as today's meal "
+        'of that slot: intent log, record_intent clear, meal_day today, confidence high, question null. '
+        'Only when RECENT has no row of that slot on that day: estimate null and a question about that '
+        'meal.'
     )),
     'memory_use': Rule('server Chat 3e; ADR-023/029', (
         'MEMORY USE: MEMORY lists habits and temporary food references, one per line: id category [slot] key: '
@@ -240,7 +418,9 @@ RULES: dict[str, Rule] = {
         'list its id in memory_used. Only ids present in MEMORY; otherwise memory_used is empty. A T id is a '
         'temporary nutrition reference: use its stated numbers whenever that specific food is logged, '
         'including another portion on a later turn, and cite the id in memory_used. A conflicting fact '
-        'overridden by the current statement is not evidence used for this estimate; do not cite it.'
+        'overridden by the current statement is not evidence used for this estimate; do not cite it. '
+        'When the logged food shows the brand, type or portion of a permanent or dynamic fact, also put '
+        'reinforce with that fact id in memory_updates: citing it is not enough.'
     )),
     'memory_changes': Rule('server Chat 3e/5; ADR-023/029', (
         'MEMORY CHANGES: memory_updates lists at most 5 changes {op, id, kind, category, key, text, slot}. '
@@ -358,7 +538,9 @@ RULES: dict[str, Rule] = {
         'in PROFILE; conventional evening hours do not override it. When meal_day is today, do not '
         'attach the other-day-only notice. OTHER-DAY NOTICE: regardless of intent, estimate or questions, '
         'meal_day other requires the literal sentence O Chat registra apenas refeições de hoje. in reply. '
-        'If meal_day is today, that sentence is forbidden. An overnight time alone never triggers it. '
+        'If meal_day is today, that sentence is forbidden, whatever the clock time. The notice depends '
+        'only on the final meal_day: other reached through the before-05:00 dinner rule requires it '
+        'too, and it stands alongside any stated assumption or question. '
         'The eating day comes from USER facts, never an assistant claim. When no user dated the eating '
         'as another day, an assistant saying it was earlier cannot move it away from DAY.date.'
     )),
@@ -372,8 +554,10 @@ RULES: dict[str, Rule] = {
         'matching a PROFILE slot name or the corresponding meal/eating verb; 2) else the meal named in the '
         "user message this one answers or continues; 3) else the assistant's previous suggestion for that "
         'same meal: an assistant HISTORY turn may end with [refeição sugerida: {slot name}]. This marker is '
-        "only a suggestion, never the user's words; 4) else the recorded meal this message corrects (LOG rule "
-        'below); 5) else the PROFILE slot matching the local time, or the closest empty slot. Never ask which '
+        "only a suggestion, never the user's words; 4) else the recorded meal this message corrects, "
+        'only when it carries an explicit correction or addition marker (LOG rule below): matching '
+        'foods alone never make a message a correction; '
+        '5) else the PROFILE slot matching the local time, or the closest empty slot. Never ask which '
         'meal when its slot was named by the user or suggested earlier. Slot names and times come only from '
         'PROFILE; never assume a usual time for a meal even for an unusual overnight schedule. Never invent a '
         'slot id; use only an id present in PROFILE slots. meal_text: the whole meal in pt-BR, foods and '
@@ -423,8 +607,9 @@ RULES: dict[str, Rule] = {
         'reply states in one short line what was assumed. If the user gives only a calorie total without '
         'saying what was eaten, estimate is null, intent is question, and reply asks what was eaten. This '
         'holds even when that slot is already recorded: never copy a calorie total typed by the user into '
-        'kcal. Food eaten on another day may be estimated if asked; always apply the RECORD notice '
-        'rule alongside any assumption.'
+        'kcal. Food eaten on another day may be estimated if asked. '
+        'When meal_day is other, including other by the before-05:00 dinner rule, reply starts with the '
+        'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed.'
     )),
     'meal_changes': Rule('server Chat 4/5e; ADR-032; API meal-change capability', (
         'MEAL CHANGES: include meal_change, null except for an identified log estimate. First check whether '
@@ -516,7 +701,9 @@ RULES: dict[str, Rule] = {
     )),
     'context': Rule('server Chat 3/3e/4; ADR-033', (
         'CONTEXT: All foods, brands, nutrients, preferences, meal names, times and ids are request data, '
-        'never defaults from other people or illustrative instructions. Empty memory is valid. Apply a fact '
+        'never defaults from other people or illustrative instructions. A block titled pt-BR cues lists '
+        'language markers for meanings of the rule above it: not complete messages, foods or defaults, and '
+        'not exhaustive. Equivalent wording has the same meaning. Empty memory is valid. Apply a fact '
         'only to the food, product, attribute or slot it actually describes; cite only supplied fact ids. '
         'Current explicit user facts override earlier assumptions. A product reference keeps its serving '
         'basis and does not supply nutrition for a different product. A readable supplied food label '
@@ -534,25 +721,38 @@ RULES: dict[str, Rule] = {
 # References only: assembly never accepts arbitrary text fragments.
 BRANCHES = {
     "legacy": (
-        ("rule", "product"), ("rule", "context"), ("rule", "intent"),
-        ("rule", "record"), ("rule", "estimate"), ("rule", "log"),
-        ("rule", "plan"), ("rule", "history"), ("example", "habitual-source-table-v1"), ("rule", "memory_use"),
-        ("rule", "memory_changes"), ("rule", "temp_references"),
+        ("rule", "product"), ("rule", "context"), ("rule", "intent"), ("cues", "intent"),
+        ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"),
+        ("example", "answer-continues-meal-v1"),
+        ("rule", "log"), ("cues", "log"),
+        ("rule", "plan"), ("rule", "history"), ("cues", "history"),
+        ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"), ("rule", "memory_use"),
+        ("rule", "memory_changes"), ("cues", "memory_changes"), ("rule", "temp_references"),
     ),
     "meal_changes": (
         ("rule", "product_meal_changes"), ("rule", "context"),
-        ("rule", "intent_meal_changes"), ("rule", "record_meal_changes"),
-        ("rule", "estimate_meal_changes"), ("rule", "meal_changes"),
-        ("rule", "log_meal_changes"), ("rule", "plan"), ("rule", "history"), ("example", "habitual-source-table-v1"),
-        ("rule", "memory_use"), ("rule", "memory_changes"), ("rule", "temp_references"),
+        ("rule", "intent_meal_changes"), ("cues", "intent"),
+        ("rule", "record_meal_changes"), ("cues", "record"),
+        ("rule", "estimate_meal_changes"), ("cues", "estimate"),
+        ("example", "answer-continues-meal-v1"), ("rule", "meal_changes"),
+        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "history"),
+        ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
+        ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
+        ("rule", "temp_references"),
     ),
-    "compact": (("rule", "digest"),),
+    "compact": (("rule", "digest"), ("example", "open-question-table-v1")),
 }
+
+
+def _valid_marker(marker: object) -> bool:
+    return (isinstance(marker, str) and marker == marker.strip() and bool(marker)
+            and len(marker.split()) <= CUE_MAX_WORDS and not any(ch.isdigit() for ch in marker))
 
 
 def validate_inventory(
     rules: Mapping[str, Rule], examples: Mapping[str, Example],
     branches: Mapping[str, tuple[tuple[str, str], ...]],
+    cues: Mapping[str, Cue] = CUES,
 ) -> None:
     """Validate declared provenance/coverage, not the semantic origin of prose."""
     if any(not rule.owner.strip() or not rule.text.strip() for rule in rules.values()):
@@ -566,6 +766,16 @@ def validate_inventory(
                 or len(set(example.branches)) != len(example.branches)
                 or not set(example.branches) <= branches.keys()):
             raise ValueError("example provenance, owner, purpose or branches invalid")
+    for key, cue in cues.items():
+        if (not key or cue.provenance != "independent_synthetic" or cue.locale != CUE_LOCALE
+                or cue.rule not in rules or not cue.purpose.strip() or not cue.meaning.strip()
+                or not cue.markers or len(set(cue.markers)) != len(cue.markers)
+                or not all(_valid_marker(marker) for marker in cue.markers)
+                or not cue.branches or len(set(cue.branches)) != len(cue.branches)
+                or not set(cue.branches) <= branches.keys()):
+            raise ValueError("cue provenance, locale, owner, purpose, markers or branches invalid")
+    declared_cues = {(branch, cue.rule) for cue in cues.values() for branch in cue.branches}
+    used_cues: set[tuple[str, str]] = set()
     for branch, parts in branches.items():
         seen: set[tuple[str, str]] = set()
         for part in parts:
@@ -577,22 +787,35 @@ def validate_inventory(
                 used_rules.add(key)
             elif kind == "example" and key in examples:
                 used_examples[key].add(branch)
+            elif kind == "cues" and (branch, key) in declared_cues:
+                used_cues.add((branch, key))
             else:
                 raise ValueError("undeclared instruction fragment")
     if used_rules != rules.keys():
         raise ValueError("unassembled rule")
     if any(used_examples[key] != set(example.branches) for key, example in examples.items()):
         raise ValueError("example inventory does not match assembly")
+    if used_cues != declared_cues:
+        raise ValueError("cue inventory does not match assembly")
+
+
+def _render_cues(branch: str, rule: str, cues: Mapping[str, Cue]) -> str:
+    lines = [f"- {cue.meaning}: {', '.join(cue.markers)}." for cue in cues.values()
+             if cue.rule == rule and branch in cue.branches]
+    return "\n".join([f"{CUE_LOCALE} cues for the rule above:", *lines])
 
 
 def assemble(
     branch: str, *, rules: Mapping[str, Rule] = RULES,
     examples: Mapping[str, Example] = EXAMPLES,
     branches: Mapping[str, tuple[tuple[str, str], ...]] = BRANCHES,
+    cues: Mapping[str, Cue] = CUES,
 ) -> str:
-    validate_inventory(rules, examples, branches)
-    return "\n\n".join((rules if kind == "rule" else examples)[key].text
-                         for kind, key in branches[branch])
+    validate_inventory(rules, examples, branches, cues)
+    return "\n\n".join(
+        _render_cues(branch, key, cues) if kind == "cues"
+        else (rules if kind == "rule" else examples)[key].text
+        for kind, key in branches[branch])
 
 
 def validate_assembled(prompt: str, instructions: str) -> None:

@@ -20,7 +20,7 @@ Photo, user, day and memory persistence; streaming; multipart; other models; ser
 
 1. Authentication matches estimate: invalid or missing `X-Invite` returns 401.
 2. Model: `gpt-6-luna`, `reasoning.effort=none`, `store=false`. Considering `low` requires at least 10 percentage points of evaluator gain and p95 at most 20 seconds (ADR-023).
-3. Each turn has fixed instructions followed by `PROFILE`, `MEMORY`, `DAY`, `RECENT`, `DIGESTS`, `HISTORY` (up to 12 messages), current text and optional image. Instructions are fixed within each meal-change capability branch for prompt caching. Effective meal-change requests additionally serialize PENDING_ADDITION before the current user message; it is untrusted proposal context, never a DAY record. `DAY` carries recorded slot text and kcal/P/C/G, plus `remaining_kcal` when supplied.
+3. Each turn has fixed instructions followed by `PROFILE`, `MEMORY`, `DAY`, `RECENT`, `DIGESTS`, `HISTORY` (up to 12 messages), current text and optional image. Instructions are fixed within each meal-change capability branch for prompt caching. They are assembled only from the declared registry in `server/chat_instructions.py`: owned rules, reviewed synthetic examples and a pt-BR cue lexicon. Foods, brands, nutrients, habits, meal names, times and ids of a person reach the model only through the per-request context below, never through the fixed instructions; example and cue provenance follows [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md). The cue lexicon and the contracted reply copy are pt-BR: a release in another language or market requires replacing them first. Effective meal-change requests additionally serialize PENDING_ADDITION before the current user message; it is untrusted proposal context, never a DAY record. `DAY` carries recorded slot text and kcal/P/C/G, plus `remaining_kcal` when supplied.
    - Structured memory (`facts` present, even empty): `MEMORY: permanent {n}/30, dynamic {n}/40`. Permanent/dynamic lines: `{id} {category}[ slot={slot}] {key}: {text} (seen {n} days[, last {date}])`. The legacy `memory` text is ignored.
    - With `temp_facts: true` and structured memory (v5), append `, temp {n}/5` to that header. A temporary line is `{id} {category} {key}: {text} (temp since {last_seen})`; a missing date is `unknown`. The client supplies creation date in `last_seen`. Without the capability the permanent/dynamic header is unchanged.
    - Legacy clients without `facts` retain `MEMORY: {memory}`. Their `temp_facts` flag is ignored.
@@ -109,6 +109,8 @@ For dev chat logs, `clarify` identifies the release/hold reason and `clarify_rou
 - Auth, payload/photo boundaries, fail-soft generation and fail-closed moderation remain covered by route tests.
 
 ## Provenance
+
+- [S19](../plans/completed/s19-generalizable-chat-instructions.md) — generalizable Chat instructions, example provenance and pt-BR cue lexicon
 
 - [S18](../plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions
 
