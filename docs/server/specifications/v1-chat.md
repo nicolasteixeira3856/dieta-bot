@@ -110,7 +110,7 @@ For dev chat logs, `clarify` identifies the release/hold reason and `clarify_rou
 
 ## Provenance
 
-- [S18](../plans/s18-meal-additions-and-revisions.md) — meal additions and revisions
+- [S18](../plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions
 
 - [S17](../plans/completed/s17-unavailable-meal-details.md) — unavailable meal details and useful clarification alternatives
 

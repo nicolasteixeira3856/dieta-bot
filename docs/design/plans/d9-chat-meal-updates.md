@@ -4,7 +4,7 @@
 - Date: 04/10/2026
 - Owning context: `design`
 - Executable boundary: the Chat meal-update flow in Figma `Design`; no app/server code. Repository outputs: the golds listed below, their entries in `tools/export-figma.mjs`, the gold inventory and design documentation.
-- Prerequisites: acceptance of [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md); [S18](../../server/plans/s18-meal-additions-and-revisions.md) and [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) delivered.
+- Prerequisites: acceptance of [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md); [S18](../../server/plans/completed/s18-meal-additions-and-revisions.md) and [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) delivered.
 - Figma MCP budget: at most 100 calls, within the ceiling and rollover rules of [ADR-031](../adrs/ADR-031-figma-source-of-truth.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/design/plans/d9-chat-meal-updates.md. Implemente o plano aprovado.`

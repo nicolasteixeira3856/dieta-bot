@@ -1,17 +1,17 @@
 # Plan — S18 Meal additions and revisions
 
-- Status: Em implementação
+- Status: Concluído
 - Date: 04/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only (`main.py`, `llm.py`, `shaping.py`, configuration, tests and evals).
 - Related documentation: the owning server/product specifications and API contract, plus plan/index/ADR lifecycle changes.
-- Prerequisites: no preceding executable plan. [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) is the product decision included in this plan's approval scope.
+- Prerequisites: no preceding executable plan. [ADR-032](../../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) is the product decision included in this plan's approval scope.
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s18-meal-additions-and-revisions.md. Implemente o plano aprovado.` This approval also accepts the linked ADR-032; it does not authorize D9 or A47 implementation.
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s18-meal-additions-and-revisions.md. Implemente o plano aprovado.` This approval also accepts the linked ADR-032; it does not authorize D9 or A47 implementation.
 
 ## Objective
 
-Resolve the meal being continued, explain an addition separately from the consolidated total and make the accounting verifiable by the client. Preserve earlier nutrients on a pure addition. Supply a compatible contract for [A47](../../android/plans/a47-chat-meal-updates.md).
+Resolve the meal being continued, explain an addition separately from the consolidated total and make the accounting verifiable by the client. Preserve earlier nutrients on a pure addition. Supply a compatible contract for [A47](../../../android/plans/a47-chat-meal-updates.md).
 
 ## Discovery evidence
 
@@ -23,11 +23,11 @@ Investigation date: 2026-10-04. Correlation references only; raw tester conversa
 - Requests `22757fdf-0438-47d9-bff6-0773c99c58c3` and `58aaeed3-005e-46fe-ba50-4eccf18b11e6` still received the prior dinner base in DAY. The second returned only the new dinner foods, losing the original addition intent and base. Request `191367a6-ffb4-4e69-ae54-4df940ef1311` then showed that replacement saved in DAY. The first wrong estimate is not observed as saved in these snapshots. Server logs do not identify the local confirmation tap; the installed app's recorder replaces the whole occupied-slot aggregate after confirmation.
 - A compact call (`5388b174-971c-4046-8d1e-0f367f5eea31`) preceded the dinner request. Its digest described the earlier conversation's snack target, while DAY reflected the owner's subsequent dinner selection. This exposes two different kinds of context; it does not prove that compaction caused the model error. DAY was sufficient to identify the actual dinner base.
 - Synthetic, text-only baseline: five situations, three repetitions each, current `gpt-6-luna` with `reasoning.effort=none`, zero reasoning tokens. Slot checks passed in all 15 outputs. An offline audit of food retention and addition totals passed 14/15: one output named the whole meal in `meal_text` but included only the addition in `items` and kcal. This is not an exact reproduction of the photo request and not a measured general failure rate.
-- Local artifacts are ignored under `logs/` in the investigation worktree. Handling follows the [data map](../../content-policy/operations/closed-test-data-map.md). Rewrite situations manually and use synthetic images for committed regression cases.
+- Local artifacts are ignored under `logs/` in the investigation worktree. Handling follows the [data map](../../../content-policy/operations/closed-test-data-map.md). Rewrite situations manually and use synthetic images for committed regression cases.
 
 ## Sources
 
-[Server Chat](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [product Chat](../../produto/specifications/chat.md), ADR-032 and the existing shaping, clarification, record and moderation pipelines. Read the actual implementation again at start; do not use an earlier report as proof of deployed behavior.
+[Server Chat](../../specifications/v1-chat.md), [HTTP contract](../../../api-contract.md), [product Chat](../../../produto/specifications/chat.md), ADR-032 and the existing shaping, clarification, record and moderation pipelines. Read the actual implementation again at start; do not use an earlier report as proof of deployed behavior.
 
 ## Scope
 
@@ -54,7 +54,7 @@ Proposed wire contract, owned here until incorporated into the API contract at C
 
 Introduce the capability without changing the pinned model/effort. New-schema instructions must distinguish incremental and whole-meal values explicitly. Keep the legacy structured-output path available while old clients remain installed.
 
-Author changed instructions under [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md). The discovery incidents above motivate general rules and independent synthetic regressions; they are not examples to embed in the global prompt. S19 owns the full existing-example cleanup and provenance-check implementation.
+Author changed instructions under [ADR-033](../../../content-policy/adrs/ADR-033-global-chat-example-provenance.md). The discovery incidents above motivate general rules and independent synthetic regressions; they are not examples to embed in the global prompt. S19 owns the full existing-example cleanup and provenance-check implementation.
 
 ### 3. Shape, validate and explain
 
@@ -70,7 +70,7 @@ Legacy callers gain clearer wording, the increased meal-description bound with s
 
 ### 4. Intended specification changes
 
-At Completion, update [server Chat](../specifications/v1-chat.md) operation/target/gate rules and [HTTP contract](../../api-contract.md) with the opt-in schema, limits, failures and examples. Update only the server-owned behavior in [product Chat](../../produto/specifications/chat.md), with a rollout qualification for clients without A47; leave unimplemented Android controls out of current behavior. Add this plan under each affected specification's Provenance. ADR adoption follows its own acceptance rule.
+At Completion, update [server Chat](../../specifications/v1-chat.md) operation/target/gate rules and [HTTP contract](../../../api-contract.md) with the opt-in schema, limits, failures and examples. Update only the server-owned behavior in [product Chat](../../../produto/specifications/chat.md), with a rollout qualification for clients without A47; leave unimplemented Android controls out of current behavior. Add this plan under each affected specification's Provenance. ADR adoption follows its own acceptance rule.
 
 ## Out of scope
 
@@ -135,5 +135,9 @@ Per-check counts (passed / executed; absent expectations are not counted):
 
 Evidence stays in ignored `logs/`: final report `s18-new-6-2026-10-04T22-13-50-03-00.json`, existing report `s18-existing-3-2026-10-04T21-53-37-03-00.json`, and their audits. Earlier experimental runs exposed the issues described above and were not accepted. The evaluator estimates cost at its configured rates; retry waits are not part of its per-attempt latency metric. Final strict acceptance ran without provider errors.
 
-Git delivery: [PR #103](https://github.com/nicolasteixeira3856/dieta-bot/pull/103). Dev deployment and its two smoke requests follow this code delivery; the plan remains open until those checks and lifecycle documentation are complete.
+Git delivery: [PR #103](https://github.com/nicolasteixeira3856/dieta-bot/pull/103), merged as `f8bd5205872f87a926878827a4568ae9fd8da63e`. The owner explicitly authorized resolving the Android index conflict; both the A47 link and the manual-validation directory link were retained. Documentation checks passed after resolution; incoming master changes did not touch server or infrastructure. GitHub reported the PR mergeable with no configured status checks. The isolated worktree follows the merged remote commit in detached HEAD because master is occupied by the other agent; no other checkout was changed. This follow-up documentation delivery records deployment evidence and closes the plan.
 
+
+Dev verification on 2026-10-04T22:21:49-03:00: `./tools/deploy-gcp.ps1 -Project dieta-bot-703426` deployed code only; `/health` returned 200. `logs/smoke_s18.py` sent independent synthetic old/new requests through HTTPS, validated the legacy shape and all four new addition totals and preserved text. Request ids: `s18-smoke-38f479ea-9dde-402e-a6a6-0f5734c88933`, `s18-smoke-b93b229c-1c0c-4253-b068-726682cf1301`. No Android build or UI validation was performed: the current APK retains the existing destination controls; D9/A47 own that change. No historical records were modified.
+
+Plan lifecycle: moved to completed and updated incoming links and active indexes. Empty state-directory audit: none removed; existing state directories contain files.
