@@ -104,4 +104,4 @@ Implemented 2026-10-04 after the owner's named approval. The consolidated phone 
 
 ### Manual validation
 
-- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](../pending_manual_validation/a46-input-cursor-keyboard.md).
+- Consolidated phone check of A39–A45 approved by the owner on 04/10/2026. The two input defects found in it (keyboard over the focused field, cursor at the start of an edited value) go to [A46](a46-input-cursor-keyboard.md).

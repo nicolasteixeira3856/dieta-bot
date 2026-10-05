@@ -57,4 +57,4 @@ Dono: produto. Implementação: `android`.
 - [A31](../../android/plans/completed/a31-o1-perfil-obrigatorio-teclado.md) — O1: required profile and keyboard flow
 - [ST8](../../stitch/plans/completed/st8-teto-sem-perfil.md) — Ceiling screen before the profile (`o1e`)
 - [A41](../../android/plans/completed/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero
-- [A46](../../android/plans/pending_manual_validation/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
+- [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado

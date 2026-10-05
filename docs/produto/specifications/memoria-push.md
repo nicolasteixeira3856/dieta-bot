@@ -91,4 +91,4 @@ Comportamento: `produto`. Client: `android`.
 - [A38](../../android/plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
 - [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero
-- [A46](../../android/plans/pending_manual_validation/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
+- [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
