@@ -63,7 +63,10 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-026](adrs/ADR-026-perguntas-antes-da-estimativa.md) — perguntas antes da estimativa, até 3 rodadas, Forçar estimativa.
 - [ADR-028](adrs/ADR-028-registro-autonomo.md) — registro autônomo no Chat com recibo reversível.
 - [ADR-029](adrs/ADR-029-fatos-temporarios-compactacao.md) — fatos temporários (3 dias), compactação que mantém o fim aberto, dia da refeição.
+- [ADR-032](adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) — explicit meal additions, revisions and destination semantics.
 
 ### Planos
 
-Este contexto não tem `plans/`. As entregas moram no contexto do código ([android](../android/README.md), [server](../server/README.md), [stitch](../stitch/README.md)).
+This context has no `plans/`. Deliveries belong to [Android](../android/README.md), [server](../server/README.md) and [design](../design/README.md); frozen Stitch history is routed by its [README](../stitch/README.md).
+
+Meal updates: [S18](../server/plans/s18-meal-additions-and-revisions.md), [D9](../design/plans/d9-chat-meal-updates.md) and [A47](../android/plans/a47-chat-meal-updates.md).

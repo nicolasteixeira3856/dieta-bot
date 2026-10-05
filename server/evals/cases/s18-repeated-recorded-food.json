@@ -1,0 +1,92 @@
+{
+  "id": "s18-repeated-recorded-food",
+  "since": "meal_changes",
+  "tags": [
+    "s18"
+  ],
+  "strict": true,
+  "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T14:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "empty"
+        },
+        {
+          "id": "mid",
+          "status": "empty"
+        },
+        {
+          "id": "pm",
+          "status": "eaten",
+          "text": "100 g de manga",
+          "kcal": 60,
+          "p": 1,
+          "c": 15,
+          "g": 0
+        },
+        {
+          "id": "eve",
+          "status": "empty"
+        }
+      ],
+      "eaten_kcal": 60,
+      "eaten_p": 1,
+      "eaten_c": 15,
+      "eaten_g": 0,
+      "remaining_kcal": 2140
+    },
+    "text": "No lanche foram 100 g de manga, igual ao que já está registrado.",
+    "messages": [],
+    "digests": [],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "estimate": "absent",
+    "record": "none",
+    "refusal": "none",
+    "meal_change": null
+  },
+  "required": [
+    "estimate",
+    "record",
+    "refusal",
+    "meal_change"
+  ]
+}

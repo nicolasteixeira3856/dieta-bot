@@ -166,7 +166,7 @@ OUT
 ```
 - `intent` (S11): `log` (ate or is eating), `plan` (will eat, asks quantities or if it fits) or `question` (nothing to estimate).
 - `estimate`: present for `log` and `plan`, `null` for `question`. A `plan` never carries a `question`.
-- `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, ≤ 160 characters. The app records this text.
+- `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, within the [meal-description bounds](#meal-change-capability). The app records this complete text; overflow returns a safe failure rather than truncated food.
 - `memory_updates` (v2 client only, else `[]`): at most 5 proposals `{op, id, kind, category, key, text, slot}`, `op` `add` | `reinforce` | `replace` | `remove`. `add` has `id: null`; the others carry an id from `facts`. `slot` is set only for `routine`. The app decides and applies them; the server stores nothing.
 - Temp proposals require v5 capability. Only `add` with null id, or `replace`/`remove` of a known T id, category `portion`/`preference`, slot null survive shaping. Temp reinforce/routine and operations on T ids with another kind are dropped. Without the flag, temp proposals are dropped. The model uses a matching reference on every portion, cites its T id and does not remove or reinforce it merely on use; the client owns lifetime/capacity.
 - `memory_used` (v2 client only, else `[]`): ids from `facts` the reply relied on, unique, at most 10.
@@ -233,6 +233,34 @@ v5 held turn (S16): when the clarify gate withholds an estimate, `question_slot`
 
 Timeout 60s. Cap 16 MB JPEG. HTTP 413 `{"detail":"photo_too_large"}` when `image_b64` is longer than 22400000 characters. Photo is not persisted.
 
+### Meal-change capability
+
+Normal requests may opt into `meal_changes: true` with `clarify_rounds` present and `auto_record: true`. The capability accepts only JSON booleans. Other true-capability combinations return 422. Eaten DAY slot nutrients must be finite, nonnegative JSON numbers; strings, booleans and missing values return 422 before model generation. Validation errors for requests carrying meal-change fields expose field location, message and type, without echoing raw input; an overflowing numeric literal still returns serializable 422 JSON. Absent/false retains every older normal response shape. Compact ignores meal_changes and pending_addition. No model or effort change.
+
+The opt-in request requires a unique profile slot list and exactly one DAY state per profile slot. Optional `pending_addition: {base_slot, addition}` describes the immediately continued **unrecorded** proposal; its shapes match the response below. It requires the capability, otherwise 422. A non-null base must identify an eaten DAY slot. Nested unknown fields, nonnumeric/nonfinite/negative nutrients, empty item lists or invalid item energy/portions return 422. The caller sends it only while the captured source still matches DAY and drops it for consumed, cancelled or stale proposals. It does not become part of DAY or authorize a mutation.
+
+Effective responses always include `meal_change`, either null or:
+
+```json
+{
+  "operation": "add",
+  "base_slot": "meal-id",
+  "addition": {
+    "meal_text": "50 g de fruta",
+    "kcal": 40, "p": 1, "c": 9, "g": 0,
+    "items": [{"name": "fruta", "g": 50, "kcal": 40}]
+  }
+}
+```
+
+- `operation`: `new`, `add`, `revise`. New has null base and addition and cannot target an occupied slot. Revise has an eaten base equal to suggested_slot, null addition, and a complete replacement estimate. An add to an eaten target has that same base id; an empty, skipped or unknown target has null base. Targets must exist in both PROFILE and DAY.
+- `addition` contains only new food, with 1–100 items in the existing shape `{name,g,kcal}`. Names are nonblank and at most 500 code points; descriptions are nonblank; grams are positive and finite; kcal/P/C/G are finite and nonnegative. Nutrients and each item's kcal round once to whole numbers, ties upward. Rounded item kcal must sum to rounded delta kcal. A positive caloric input cannot round to zero. Zero-energy, zero-macro food is allowed. Energy need not equal 4P + 4C + 9G; label values for alcohol remain valid.
+- On occupied add, the server ignores model-supplied consolidated numbers: estimate kcal/P/C/G = exact supplied DAY values + rounded delta. For example, base `301.25 / 12.5 / 30.25 / 10.75` plus the delta above produces `341.25 / 13.5 / 39.25 / 10.75`. Base nutrients must be finite and nonnegative. `estimate.items` is empty because the historical base is an aggregate without item weights; addition.items supplies the new breakdown. New/revise estimates retain the whole-meal item breakdown and energy validation.
+- Normal `estimate.meal_text` (including legacy, new and revise) and `addition.meal_text`: at most **500 Unicode code points**. For occupied additions only, composed estimate text is the exact DAY text, `; `, and delta text, at most **2000 code points**. Supplementary characters count once. Neither comma nor character truncation is allowed. Overflow fails with no action or memory proposal. Memory-fact, digest and user-message limits are unchanged.
+- Addition reply uses validated numbers: `{food}: +{delta} kcal`, `Já registrado no {slot}: {prior} kcal`, `Total do {slot}: {total} kcal`. A revision uses `Atualizar {slot}?`, `Antes: {prior} kcal`, `Novo total: {total} kcal`. The model may describe a brief food assumption in meal_text. Neither response claims recording already happened.
+- Held, refused, failed, other-day, plan and skip turns carry null meal_change. Invalid or missing metadata for a log candidate fails safely, without record or memory effects; it never falls back to the legacy update path. Unknown operation remains non-actionable even on force or the round cap. A known add with unknown target can be held for a target question, or released as the delta alone with suggested_slot null and record ask when forcing, at the cap, after a repeated question or when no target question is asked.
+- Clients still validate the captured source against actual local state before any write. Server fields are not concurrency tokens. Confirmation remains required for occupied targets. Without the capable client, the existing whole-record destination controls remain; clearer legacy prose does not make rerouting a delta safe. The server never repairs historical local records.
+
 ### compact=true (S3)
 
 Same IN. Only `messages` go to the model (no profile, day, digests, text or photo; `image_b64` is ignored). `messages` empty → HTTP 422 `{"detail":"compact_needs_messages"}`, model not called.
@@ -250,3 +278,7 @@ OUT
 - Model failure/timeout or empty digest: HTTP 200 with `"digest": null` (fail-soft). The client keeps its raw messages.
 - The digest is moderated before it returns; a flag returns `"digest": null`. History is not re-moderated. Moderation error: HTTP 503 `content_policy_unavailable`.
 - Stateless: the server returns the text; the client stores it (`day_digest`).
+
+## Provenance
+
+- [S18](server/plans/s18-meal-additions-and-revisions.md) — meal additions and revisions

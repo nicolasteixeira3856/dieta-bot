@@ -48,6 +48,7 @@ KNOWN = (
     "digest",
     "digest_has",
     "digest_not",
+    "meal_change",
 )
 
 # CP2 refusal expectation: which fixed copy the reply must be. "none" = no refusal at all.
@@ -64,6 +65,69 @@ def normalize(text: str) -> str:
     """Case- and accent-insensitive, so "Pão" matches "pao"."""
     decomposed = unicodedata.normalize("NFKD", text.casefold())
     return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+
+
+def _change_check(want: Any, output: dict[str, Any], estimate: dict | None) -> dict[str, Any]:
+    """Check delta accounting and copy, not just names in a consolidated description."""
+    if "meal_change" not in output:
+        return _result(False, "missing capability response")
+    change = output["meal_change"]
+    if want is None:
+        return _result(change is None, "expected no actionable change")
+    if change is None and estimate is None and want.get('allow_target_question'):
+        question = output.get('question')
+        valid = isinstance(question, str) and bool(question.strip()) and output.get('record') == 'none'
+        if valid:
+            valid = normalize(want['slot_name']) in normalize(question)
+        return _result(valid, "target clarification must name the continued meal and cannot record")
+    if not isinstance(change, dict) or not estimate:
+        return _result(False, "missing change or estimate")
+    for key in ("operation", "base_slot"):
+        if change.get(key) != want[key]:
+            return _result(False, f"{key}: got {change.get(key)}")
+    if change['operation'] != 'add':
+        return _result(change.get('addition') is None, "non-add has no delta")
+    addition = change.get('addition')
+    if not isinstance(addition, dict) or not addition.get('items'):
+        return _result(False, "no delta item breakdown")
+    if addition.get('kcal', 0) <= 0 and not want.get('allow_zero_energy', False):
+        return _result(False, "caloric fixture needs positive delta energy")
+    items = addition['items']
+    if addition['kcal'] != sum(it['kcal'] for it in items) or any(it['g'] <= 0 for it in items):
+        return _result(False, "invalid delta energy or portion")
+    for term in want.get('addition_has', []):
+        if normalize(term) not in normalize(' '.join(it['name'] for it in items)):
+            return _result(False, f"missing delta item: {term}")
+    for term in want.get('addition_not', []):
+        if normalize(term) in normalize(addition['meal_text'] + ' '.join(it['name'] for it in items)):
+            return _result(False, f"foreign base in delta: {term}")
+    for nutrient, value in want.get('values', {}).items():
+        if addition.get(nutrient) != value:
+            return _result(False, f"delta {nutrient}: {addition.get(nutrient)} != {value}")
+    if 'grams' in want and sum(it['g'] for it in items) != want['grams']:
+        return _result(False, f"delta portions: {[it['g'] for it in items]}")
+    for food, grams in want.get('portions', {}).items():
+        actual = sum(it['g'] for it in items if normalize(food) in normalize(it['name']))
+        if actual != grams:
+            return _result(False, f"delta portion {food}: {actual} != {grams}")
+    base = want.get('base')
+    for key in ('kcal', 'p', 'c', 'g'):
+        previous = base[key] if base else 0
+        if not math.isclose(estimate[key], previous + addition[key], abs_tol=1e-9):
+            return _result(False, f"incorrect consolidated {key}")
+    reply = output.get('reply', '')
+    if f"+{addition['kcal']} kcal" not in reply:
+        return _result(False, "missing delta copy")
+    if base:
+        if change['base_slot'] != estimate['suggested_slot'] or estimate['items'] != []:
+            return _result(False, "base mismatch or fabricated base items")
+        if estimate['meal_text'] != base['text'] + '; ' + addition['meal_text']:
+            return _result(False, "base description changed")
+        if f"Já registrado no {want['slot_name']}: {base['kcal']:g} kcal" not in reply:
+            return _result(False, "missing prior copy")
+        if f"Total do {want['slot_name']}: {estimate['kcal']:g} kcal" not in reply:
+            return _result(False, "missing total copy")
+    return _result(True, "operation, delta items, base, totals and copy agree")
 
 
 def output_intent(output: dict[str, Any]) -> tuple[str, bool]:
@@ -96,6 +160,8 @@ def evaluate(
 def _check(
     key: str, want: Any, output: dict[str, Any], estimate: dict[str, Any] | None
 ) -> dict[str, Any]:
+    if key == "meal_change":
+        return _change_check(want, output, estimate)
     if key == "intent":
         got, deduced = output_intent(output)
         return _result(got == want, f"got {got}" + (" (deduced)" if deduced else ""))

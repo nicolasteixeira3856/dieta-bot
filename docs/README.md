@@ -61,6 +61,8 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [029](produto/adrs/ADR-029-fatos-temporarios-compactacao.md) | produto | fatos temporários (3 dias), compactação que mantém o fim aberto, dia da refeição = dia em que comeu |
 | [030](design/adrs/ADR-030-own-design-system-aero.md) | design | design system próprio "Aero" substitui o Material 3 Expressive |
 | [031](design/adrs/ADR-031-figma-source-of-truth.md) | design | arquivo Figma `Design` substitui o Stitch como fonte da UI; gate de revisão no Figma |
+| [032](produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) | produto | explicit meal additions, revisions and destination semantics |
+| [033](content-policy/adrs/ADR-033-global-chat-example-provenance.md) | content-policy | global Chat example provenance |
 
 ## Outros docs
 

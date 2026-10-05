@@ -1,6 +1,6 @@
 # ADR-028 — The Chat records a meal by itself, with a receipt that can undo it
 
-- Status: Accepted (02/10/2026, with [A34](../../android/plans/completed/a34-registro-autonomo.md))
+- Status: Accepted (02/10/2026, with [A34](../../android/plans/completed/a34-registro-autonomo.md)); partially superseded by [ADR-032](ADR-032-acrescimos-e-correcoes-de-refeicoes.md) (decision 3: distinct addition/revision presentation and destination action)
 - Date: 2026-10-01
 - Context: `produto`
 - Supersedes: partially [ADR-012](ADR-012-chat-home-perfil.md) (record only after the tap on Gravar) and [ADR-017](ADR-017-registro-consolidado.md) decision 3 only in its trigger and form (the replace confirmation was opened by a tap on Gravar, as a dialog; it now arrives inline with the answer; asking before replacing stays). In the [Chat spec](../specifications/chat.md): "Registro só depois do tap no chip", rules 4–7, the "tool invisível que grava meal_log" out-of-scope line and the criterion "Gravar sem tap não altera o círculo da Home". In [v1-chat](../../server/specifications/v1-chat.md): rule 3f, "nunca gravar sozinho" in rule 4, the "ontem → grava hoje" sentence of rule 4 and the criterion "Sem tap do user o server nao grava nada" (reworded: the server still writes nothing; it tells the client what to do). Edits golds `chatE`, `chatF`, `chatG`; adds golds `chatU`, `chatD` (29 → 31 per theme). Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively.

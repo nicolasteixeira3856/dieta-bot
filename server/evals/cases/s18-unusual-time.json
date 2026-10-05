@@ -1,0 +1,115 @@
+{
+  "id": "s18-unusual-time",
+  "since": "meal_changes",
+  "tags": [
+    "s18"
+  ],
+  "strict": true,
+  "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T03:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "03:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "empty"
+        },
+        {
+          "id": "mid",
+          "status": "empty"
+        },
+        {
+          "id": "pm",
+          "status": "empty"
+        },
+        {
+          "id": "eve",
+          "status": "eaten",
+          "text": "250 ml de bebida fermentada",
+          "kcal": 110,
+          "p": 0,
+          "c": 7,
+          "g": 0
+        }
+      ],
+      "eaten_kcal": 110,
+      "eaten_p": 0,
+      "eaten_c": 7,
+      "eaten_g": 0,
+      "remaining_kcal": 2090
+    },
+    "text": "Às 03:00, na janta de hoje, também comi 70 g de cenoura cozida.",
+    "messages": [],
+    "digests": [],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "refusal": "none",
+    "meal_change": {
+      "operation": "add",
+      "base_slot": "eve",
+      "base": {
+        "text": "250 ml de bebida fermentada",
+        "kcal": 110,
+        "p": 0,
+        "c": 7,
+        "g": 0
+      },
+      "slot_name": "Jantar",
+      "addition_has": [
+        "cenoura"
+      ],
+      "addition_not": [
+        "bebida",
+        "fermentada"
+      ],
+      "grams": 70
+    },
+    "suggested_slot": "eve"
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "refusal",
+    "meal_change",
+    "suggested_slot"
+  ]
+}

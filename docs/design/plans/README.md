@@ -36,6 +36,15 @@ The gate that replaces the owner-run Stitch prompt for a migrated flow ([ADR-031
 3. Requested fixes are applied in Figma and screenshotted again.
 4. After the owner's OK, the agent exports the golds to `docs/qa/figma/{dark,light}/` and closes the plan.
 
+## Meal update follow-up
+
+- Behavior: [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md).
+- Server: [S18 — Meal additions and revisions](../../server/plans/s18-meal-additions-and-revisions.md).
+- Design: [D9 — Chat meal updates](d9-chat-meal-updates.md).
+- Client: [A47 — Chat meal updates](../../android/plans/a47-chat-meal-updates.md).
+
+Prerequisites and execution boundaries live in each plan. This follow-up does not change the migration plans above.
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.

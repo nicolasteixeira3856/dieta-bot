@@ -1,0 +1,114 @@
+{
+  "id": "s18-legacy-explicit-dessert-snack",
+  "since": "meal_changes",
+  "tags": [
+    "s18"
+  ],
+  "strict": true,
+  "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T14:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "empty"
+        },
+        {
+          "id": "mid",
+          "status": "eaten",
+          "text": "160 g de arroz e 100 g de peixe",
+          "kcal": 390,
+          "p": 27,
+          "c": 46,
+          "g": 10
+        },
+        {
+          "id": "pm",
+          "status": "eaten",
+          "text": "100 g de manga",
+          "kcal": 60,
+          "p": 1,
+          "c": 15,
+          "g": 0
+        },
+        {
+          "id": "eve",
+          "status": "empty"
+        }
+      ],
+      "eaten_kcal": 450,
+      "eaten_p": 28,
+      "eaten_c": 61,
+      "eaten_g": 10,
+      "remaining_kcal": 1750
+    },
+    "text": "No lanche acrescente 80 g de doce de abóbora que comi.",
+    "messages": [],
+    "digests": [],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": false
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "refusal": "none",
+    "suggested_slot": "pm",
+    "meal_text_has": [
+      "abóbora"
+    ],
+    "kcal_range": [
+      61,
+      1500
+    ],
+    "reply_not": [
+      "substituindo",
+      "substitui o",
+      "substituir o"
+    ]
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "refusal",
+    "suggested_slot",
+    "meal_text_has",
+    "kcal_range",
+    "reply_not"
+  ]
+}

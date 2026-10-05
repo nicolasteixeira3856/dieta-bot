@@ -16,6 +16,8 @@ from typing import Any, Literal
 
 import httpx2
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field, model_validator
 from slowapi import Limiter
@@ -24,6 +26,8 @@ from slowapi.util import get_remote_address
 
 from config import (
     CLARIFY_MAX_ROUNDS,
+    COMPOSED_MEAL_TEXT_MAX,
+    MEAL_TEXT_MAX,
     FACT_KEY_MAX,
     FACT_TEXT_MAX,
     FACTS_MAX,
@@ -43,6 +47,7 @@ from config import (
 from conversation_log import ConversationLog, now_iso
 from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
+from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
 from moderation import (
     IN_SCOPE,
     OUT_OF_SCOPE,
@@ -212,6 +217,44 @@ class ChatIn(BaseModel):
     auto_record: bool = False
     # ADR-029: v5 stores temporary facts and preserves the slot of a held estimate.
     temp_facts: bool = False
+    meal_changes: bool = Field(default=False, strict=True)
+    pending_addition: PendingAdditionIn | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _meal_change_input(cls, data: Any) -> Any:
+        if isinstance(data, dict) and data.get("compact") is True:
+            return {**data, "meal_changes": False, "pending_addition": None}
+        if isinstance(data, dict) and data.get("meal_changes") is True:
+            day = data.get("day")
+            states = day.get("slots", []) if isinstance(day, dict) else []
+            if isinstance(states, list):
+                for state in states:
+                    if isinstance(state, dict) and state.get("status") == "eaten":
+                        # Check before Pydantic could coerce strings/bools into the recorded base.
+                        for key in NUTRIENTS:
+                            number(state.get(key))
+        return data
+
+    @model_validator(mode="after")
+    def _meal_change_capability(self) -> "ChatIn":
+        if self.meal_changes and not self.records:
+            raise ValueError("meal_changes requires clarify_rounds and auto_record")
+        if self.pending_addition is not None and not self.meal_changes:
+            raise ValueError("pending_addition requires meal_changes")
+        if self.meal_changes:
+            slots = [s.id for s in self.profile.slots]
+            day_ids = [s.id for s in self.day.slots]
+            if len(set(slots)) != len(slots) or len(set(day_ids)) != len(day_ids):
+                raise ValueError("duplicate meal slots")
+            if set(day_ids) != set(slots):
+                raise ValueError("meal_changes requires current DAY for every profile slot")
+            if self.pending_addition is not None:
+                base = self.pending_addition.base_slot
+                if base is not None and not any(s.id == base and s.status == "eaten" for s in self.day.slots):
+                    raise ValueError("pending addition base must be eaten")
+                nutrition(self.pending_addition.addition.model_dump())
+        return self
 
     @model_validator(mode="after")
     def _fact_slots_in_profile(self) -> "ChatIn":
@@ -284,6 +327,14 @@ def create_app(
     app.state.limiter = limiter
     app.state.conversation_log = conversation_log
     app.state.safety_ids = safety_ids
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation_handler(request: Request, exc: RequestValidationError) -> Response:
+        if isinstance(exc.body, dict) and ("meal_changes" in exc.body or "pending_addition" in exc.body):
+            # Nonfinite numeric input must not be echoed into a JSON error response.
+            errors = [{key: error[key] for key in ("loc", "msg", "type")} for error in exc.errors()]
+            return JSONResponse(status_code=422, content={"detail": errors})
+        return await request_validation_exception_handler(request, exc)
 
     @app.exception_handler(RateLimitExceeded)
     def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:
@@ -638,6 +689,8 @@ def chat_reply(
             result.setdefault("record", RECORD_NONE)
             result.setdefault("skip_slot", None)
             record["record"] = record_log
+        if body.meal_changes:
+            result.setdefault("meal_change", None)
         record["question_slot"] = result.get("question_slot")
         return result
 
@@ -659,6 +712,7 @@ def chat_reply(
                 image_b64=image,
                 slot_ids=[s.id for s in body.profile.slots],
                 fact_ids=body.fact_ids or [],
+                meal_changes=body.meal_changes,
                 trace=record,
                 timeout=timeout,
                 safety_identifier=safety_identifier,
@@ -731,9 +785,29 @@ def shape_chat_turn(
     Returns (response, clarify, record log value or None for a client before v4).
     """
     slot_ids = [s.id for s in body.profile.slots]
+    profile = [s.model_dump() for s in body.profile.slots]
+    day = [s.model_dump() for s in body.day.slots]
+    text_limit = MEAL_TEXT_MAX
+    if body.meal_changes:
+        payload = prepare_change(payload, profile, day)
+        change = payload.get("meal_change")
+        if payload.get("intent") == "log" and payload.get("estimate") is None:
+            # No known operation: portion force/cap cannot authorize a mutation.
+            result = fail_chat()
+            can_ask = not body.force_estimate and body.clarify_rounds < CLARIFY_MAX_ROUNDS
+            question = str(payload.get("reply") or "Você quer acrescentar alimentos ou corrigir a refeição?")
+            result.update(
+                reply=question if can_ask else "Informe se quer acrescentar alimentos ou corrigir a refeição.",
+                question=question if can_ask else None,
+                record=RECORD_NONE, skip_slot=None, meal_change=None,
+            )
+            return result, CLARIFY_ASKED if can_ask else CLARIFY_NONE, RECORD_NONE_INTENT
+        if change and change["operation"] == "add" and change["base_slot"] is not None:
+            text_limit = COMPOSED_MEAL_TEXT_MAX
     result = shape_chat(
         payload, valid_slot_ids=slot_ids, fact_ids=body.fact_ids,
         skip=body.records, temp_facts=body.supports_temp,
+        meal_text_max=text_limit,
     )
     if body.clarify_rounds is None:
         return result, CLARIFY_NONE, None
@@ -744,6 +818,8 @@ def shape_chat_turn(
         clarify_rounds=body.clarify_rounds,
         force_estimate=body.force_estimate,
         history=[(m.role, m.text) for m in body.messages],
+        unresolved_target=body.meal_changes and bool(payload.get("meal_change"))
+        and payload["meal_change"]["operation"] == "add" and held_slot is None,
     )
     if body.supports_temp and clarify == CLARIFY_ASKED:
         result["question_slot"] = held_slot
@@ -756,6 +832,8 @@ def shape_chat_turn(
         force_estimate=body.force_estimate,
         photo_only=photo_only,
     )
+    if body.meal_changes:
+        explain_change(result, payload, profile, day)
     return result, clarify, record_log
 
 
@@ -864,6 +942,12 @@ def _chat_text(body: ChatIn) -> str:
         lines.append("HISTORY:")
         for m in body.messages:
             lines.append(f"{m.role}: {m.text}")
+
+    if body.meal_changes:
+        lines.append("PENDING_ADDITION: " + json.dumps(
+            body.pending_addition.model_dump() if body.pending_addition else None,
+            ensure_ascii=False,
+        ))
 
     # Client text cannot forge a section marker (CP2).
     lines = [neutralize_delimiters(line) for line in lines]

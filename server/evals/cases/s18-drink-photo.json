@@ -1,0 +1,118 @@
+{
+  "id": "s18-drink-photo",
+  "since": "meal_changes",
+  "tags": [
+    "s18"
+  ],
+  "strict": true,
+  "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T14:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "empty"
+        },
+        {
+          "id": "mid",
+          "status": "empty"
+        },
+        {
+          "id": "pm",
+          "status": "eaten",
+          "text": "100 g de manga",
+          "kcal": 60,
+          "p": 1,
+          "c": 15,
+          "g": 0
+        },
+        {
+          "id": "eve",
+          "status": "empty"
+        }
+      ],
+      "eaten_kcal": 60,
+      "eaten_p": 1,
+      "eaten_c": 15,
+      "eaten_g": 0,
+      "remaining_kcal": 2140
+    },
+    "text": "No lanche adicione esta bebida que tomei: uma garrafa inteira de 250 ml, rótulo na foto.",
+    "messages": [],
+    "digests": [],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "refusal": "none",
+    "meal_change": {
+      "operation": "add",
+      "base_slot": "pm",
+      "base": {
+        "text": "100 g de manga",
+        "kcal": 60,
+        "p": 1,
+        "c": 15,
+        "g": 0
+      },
+      "slot_name": "Lanche",
+      "addition_has": [],
+      "addition_not": [
+        "manga"
+      ],
+      "values": {
+        "kcal": 90,
+        "p": 0,
+        "c": 5,
+        "g": 0
+      }
+    },
+    "suggested_slot": "pm"
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "refusal",
+    "meal_change",
+    "suggested_slot"
+  ],
+  "image": "synthetic-s18-drink-label.png"
+}

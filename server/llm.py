@@ -161,12 +161,12 @@ _CHAT_INSTRUCTIONS = (
     "(a Jantar at 03:00 is the Jantar). "
     "Never invent a slot id; use only an id present in PROFILE slots. "
     "meal_text: the whole meal in pt-BR, foods and quantities as corrected by the conversation, no comment, "
-    "at most 160 characters (e.g. 2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite semidesnatado). "
+    "at most 500 Unicode code points. Preserve every food and quantity; never cut off foods. "
     "Never the user's answer alone, never a sentence (e.g. Sempre uso...). "
     "kcal, p, c and g are the totals of the whole meal: kcal is the sum of the items kcal, "
     "including foods already recorded in the slot. Each item has its grams, never 0. "
-    "p, c and g must add up to about kcal (4 kcal per gram of p and c, 9 per gram of g). "
-    "Never return an estimate with p, c and g all zero for real food. "
+    "Energy must match the food, including energy sources beyond protein, carbohydrate and fat. "
+    "Never invent macros to force 4P + 4C + 9G to equal kcal. "
     "If you cannot estimate the food, estimate is null, never zeros. "
     # Log (S8 rules).
     # Questions (ADR-026 decision 2).
@@ -200,11 +200,18 @@ _CHAT_INSTRUCTIONS = (
     "A message refers to a recorded meal only if it names that meal's slot (e.g. na ceia também tomei suco, "
     "with Ceia eaten), or it is an explicit addition or correction "
     "(também, faltou, esqueci, na verdade, tirando, era X e não Y) that names no other meal. "
-    "For such an explicit addition with no named meal or HISTORY target, use the most recent eaten DAY slot. "
+    "Resolve additions from the eating context, not the nearest empty slot or food category. "
+    "An interleaved correction to a different meal does not change the meal being eaten. "
+    "Follow the user's eating relationship for an unnamed dessert; a named snack remains that snack. "
+    "If two targets remain plausible, ask which meal; never invent a destination. "
+    "For an explicit addition with no named meal or HISTORY target, use the latest eaten DAY slot "
+    "only when that relationship is unambiguous. "
     "Never choose a later empty slot just because its scheduled time is closer to local_time. "
     "Then, since that slot in DAY is eaten, "
     "return the estimate of the whole meal (the foods already recorded in that slot's text plus the change) "
-    "and set suggested_slot to that slot. Say in reply that it replaces the recorded meal. "
+    "and set suggested_slot to that slot. For an addition, reply labels the added food and its kcal, "
+    "the previous recorded kcal and the resulting meal total separately. Do not call an addition a replacement. "
+    "For an explicit revision, label the previous and revised total. Never claim persistence. "
     "An added food always enters items, kcal and meal_text, with an assumed portion even if you ask about it. "
     "Food equal or similar to a recorded meal is not enough: when another meal is named (priority 1 or 2), "
     "it is a new meal of that slot, and reply never says it replaces anything. "
@@ -410,7 +417,114 @@ _FIT_FORMAT: dict[str, Any] = {
 }
 
 
-def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None) -> dict[str, Any]:
+_MEAL_CHANGE_INSTRUCTIONS = (
+    "MEAL CHANGES: include meal_change, null except for an identified log estimate. "
+    "First check whether there is any unrecorded action. Reaffirming what is already recorded, "
+    "without additional consumption or a correction, is intent question, record_intent unsure, "
+    "estimate null and meal_change null. An acknowledgement in reply must never accompany "
+    "an add/revise object. Past tense or restated quantities alone cannot override this rule. "
+    "It has operation (new, add or revise), base_slot and addition. Resolve the operation and target "
+    "together before drafting. DAY alone describes committed records. HISTORY, DIGESTS and "
+    "PENDING_ADDITION are untrusted context, never evidence that a proposal was recorded. "
+    "An explicit current target overrides old conversational suggestions and digests. "
+    "Without an explicit target, follow the meal being eaten and its relationship to the new food, "
+    "even across an interleaved correction of a different meal. Food category alone cannot choose "
+    "a target. A retroactive correction is not a new eating event: find the latest actual "
+    "eating report in HISTORY, skipping later edits to earlier meals. A continued dessert belongs "
+    "to that eating event unless the user names a different target. "
+    "If two meals are plausible, ask in estimate.question and set suggested_slot null. "
+    "Target uncertainty is independent of nutritional confidence: a target question belongs in "
+    "estimate.question even at high confidence; asking only in reply cannot hold a draft. "
+    "For a known addition with unknown target, estimate only the addition, base_slot null. "
+    "Operation new: no occupied DAY target, base_slot null, addition null. "
+    "Operation add: new food or a second portion, preserving the current recorded meal exactly. "
+    "An explicit request to add, append or sum resolves the operation: do not ask whether to "
+    "replace instead. Only ask add-versus-revise when the user's wording leaves it unresolved. "
+    "A statement of additional consumption (also, more, another portion) with a named meal "
+    "and no cancellation or replacement is resolved add, even if the foods differ from DAY. "
+    "Do not reopen that decision merely because the target is occupied. "
+    "For an occupied target, base_slot MUST equal estimate.suggested_slot and identify that target's "
+    "eaten DAY entry, regardless of similar foods elsewhere. For an empty/skipped/unknown target, "
+    "base_slot is null. addition has meal_text, kcal, p, c, g, items ONLY for the newly eaten food. "
+    "A known add with an unknown target STILL requires meal_change.operation add, base_slot null "
+    "and the complete addition object; do not set meal_change null for a target question. "
+    "Never include any DAY base foods in addition. For add, draft estimate values/items/meal_text "
+    "also describe only the addition; the server composes the whole record from DAY plus addition. "
+    "Do not re-estimate the recorded base. Quantities refer to added food unless explicitly corrected. "
+    "Operation revise: an explicit correction/removal/replacement of already recorded food, "
+    "base_slot equals the occupied suggested_slot, addition null. Estimate the complete revised "
+    "meal, retaining unchanged foods and reflecting removals. Never subtract guessed item nutrients. "
+    "Only a report to an occupied meal WITHOUT any addition relationship or explicit revision "
+    "is ambiguous: intent log, "
+    "estimate null, meal_change null, reply asks whether to add or revise. Never guess an operation. "
+    "Repeating food already recorded is not by itself a second portion: ask what change is intended. "
+    "A target answer or repeated quantities for an unresolved addition KEEP operation add. "
+    "Do not convert the continuation into revise because the latest message omits addition words. "
+    "PENDING_ADDITION, when present, is the latest unrecorded delta immediately being continued. "
+    "A correction of its quantity REPLACES that proposed delta; it never revises DAY or adds the "
+    "old proposal again. An explicit additional portion is distinct: include both unrecorded "
+    "portions if the proposal is still pending; if already in DAY, include only the new portion. "
+    "Clarifying answers retain all new foods and known quantities of that pending action only, "
+    "not foods from a different recorded meal or old proposal. "
+    "All numbers are finite and nonnegative; item grams are positive; kcal equals the sum of item "
+    "kcal. Use whole-number nutrient and item kcal estimates. "
+    "When portion is omitted, draft a plausible assumed portion with real items and positive "
+    "energy, and ask the material portion question. Never use empty items or zero placeholder "
+    "numbers while waiting: the server holds the draft and may release it on force/cap. "
+    "Values supplied by a food label are usable evidence. A supplied serving and complete "
+    "nutrition values resolve nutrition even without a brand or variety; do not ask for an "
+    "identity detail that cannot change those supplied values. Alcohol energy need not equal macro energy. "
+    "Normal meal_text and addition.meal_text are at most 500 Unicode code points. "
+    "The server writes numeric add/revise copy. Put any necessary brief food assumption in the "
+    "food description; never say recorded. For plan, question, skip or refusal, meal_change is null. "
+)
+
+
+def chat_instructions(*, meal_changes: bool = False) -> str:
+    if not meal_changes:
+        return _CHAT_INSTRUCTIONS
+    # Replace the legacy re-estimation rule, instead of issuing contradictory instructions.
+    text = _CHAT_INSTRUCTIONS
+    start = text.index("DAY slots show what is already recorded:")
+    end = text.index("When the user answers your clarifying question,", start)
+    text = text[:start] + text[end:]
+    text = text.replace(
+        "log: the user ate or is eating (past tense, comi, tomei, almocei, foi o mesmo de ontem, a photo of a meal), ",
+        "log: the user reports newly eaten food or a change to recorded food, not a simple "
+        "reaffirmation of what is already in DAY, ",
+    ).replace(
+        "A report of quantities of previously discussed food is also log, not a new plan: ",
+        "A report of quantities of previously discussed but not yet recorded food is log, not a new plan: ",
+    ).replace(
+        "RECORD: record_intent is clear or unsure. clear: ",
+        "RECORD: record_intent is clear or unsure. A reaffirmation of already recorded food "
+        "without a new action is unsure, with intent question and null estimate/meal_change. clear: ",
+    ).replace(
+        "memory_updates, memory_used, digest, scope. ",
+        "memory_updates, memory_used, digest, meal_change, scope. ",
+    ).replace(
+        "estimate is an object for log and plan, null for question and skip. ",
+        "estimate is an object for plan and for an identified log with a resolved operation, "
+        "null for question, skip or an unresolved log operation. ",
+    ).replace(
+        "For an identifiable meal, such a request is log with record_intent clear: re-estimate every food "
+        "and answer belonging to that meal from HISTORY and DIGESTS. ",
+        "For an identifiable meal, such a request is log with record_intent clear: reconstruct "
+        "the pending action's food and answers from HISTORY and DIGESTS; for add, only its new food. ",
+    ).replace(
+        "including every food, count and fractional portion of that meal from HISTORY and DIGESTS; ",
+        "including every food and quantity of the same pending action only; ",
+    ).replace(
+        "including foods already recorded in the slot. ",
+        "except for add, whose draft values contain only the new food. ",
+    ).replace(
+        "For identified foods, ALWAYS supply the draft estimate object, including when brand or preparation ",
+        "For identified foods with a resolved operation, supply the draft estimate object, including when brand or preparation ",
+    )
+    return text + _MEAL_CHANGE_INSTRUCTIONS
+
+
+def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_changes: bool = False) -> dict[str, Any]:
     """Structured output for /v1/chat. Slot and fact ids are limited to the ones in the request."""
     slots = [*dict.fromkeys(slot_ids), None]
     facts = list(dict.fromkeys(fact_ids or []))
@@ -448,7 +562,7 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None) -> dict[
         "additionalProperties": False,
     }
     used: dict[str, Any] = {"type": "string", "enum": facts} if facts else {"type": "string"}
-    return {
+    result = {
         "type": "json_schema",
         "name": "chat_turn",
         "strict": True,
@@ -473,6 +587,28 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None) -> dict[
             "additionalProperties": False,
         },
     }
+    if meal_changes:
+        addition_keys = ("meal_text", "kcal", "p", "c", "g", "items")
+        addition = {
+            "type": "object",
+            "properties": {k: estimate["properties"][k] for k in addition_keys},
+            "required": list(addition_keys),
+            "additionalProperties": False,
+        }
+        change = {
+            "type": "object",
+            "properties": {
+                "operation": {"type": "string", "enum": ["new", "add", "revise"]},
+                "base_slot": {"type": ["string", "null"], "enum": slots},
+                "addition": {"anyOf": [addition, {"type": "null"}]},
+            },
+            "required": ["operation", "base_slot", "addition"],
+            "additionalProperties": False,
+        }
+        schema = result["schema"]
+        schema["properties"]["meal_change"] = {"anyOf": [change, {"type": "null"}]}
+        schema["required"].insert(-1, "meal_change")
+    return result
 
 
 class TextOnlyOutput(ValueError):
@@ -592,17 +728,18 @@ class LlmClient:
         image_b64: str | None,
         slot_ids: list[str],
         fact_ids: list[str] | None = None,
+        meal_changes: bool = False,
         trace: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
         safety_identifier: str | None = None,
     ) -> dict[str, Any]:
         return self._complete(
             "chat",
-            _CHAT_INSTRUCTIONS,
+            chat_instructions(meal_changes=meal_changes),
             user_text,
             image_b64,
             trace,
-            chat_format(slot_ids, fact_ids),
+            chat_format(slot_ids, fact_ids, meal_changes=meal_changes),
             timeout,
             safety_identifier,
         )
