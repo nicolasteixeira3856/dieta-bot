@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Exports Figma gold PNGs (ADR-031 § 7): each mapped frame of the file `Design` at 2x (390 px frame → 780 px)
-// through the Figma REST image export, into docs/qa/figma/{dark,light}/<id>.png.
+// Exports Figma gold PNGs (ADR-031 § 7): each mapped frame of the file `Design` at 2x (390 px app frame → 780 px,
+// 1440 px landing frame → 2880 px) through the Figma REST image export, into docs/qa/figma/{dark,light}/<id>.png.
 //
 // Needs FIGMA_TOKEN (personal access token, File content: Read-only) in the environment. The token is sent
 // only as the X-Figma-Token header to api.figma.com; it is never printed, logged or written.
@@ -21,8 +21,8 @@ export const FIGMA_DIR = path.join(root, "docs", "qa", "figma");
 
 export const FIGMA_FILE_KEY = "qNiqNN3vk9GpmPL3bcV9W1";
 
-// gold id → Figma node id of its frame on the `Release 1` page. Each flow plan (D3–D7) adds its ids after the
-// owner's review OK. A mapped id must exist in both themes.
+// gold id → Figma node id of its frame on the `Release 1` page (app) or the `Landing page` page (site, D11). Each design
+// plan adds its ids after the owner's review OK. A mapped id must exist in both themes.
 export const DARK_FRAMES = {
   // Home (D3)
   home0: "40:430",
@@ -59,6 +59,10 @@ export const DARK_FRAMES = {
   cfgS: "78:3695",
   wipe: "78:3723",
   push: "78:3757",
+  // Landing site (D11)
+  land: "107:853",
+  landM: "107:1003",
+  priv: "107:1086",
 };
 
 export const LIGHT_FRAMES = {
@@ -97,7 +101,14 @@ export const LIGHT_FRAMES = {
   cfgS: "78:3520",
   wipe: "78:3596",
   push: "78:3646",
+  // Landing site (D11)
+  land: "106:530",
+  landM: "106:716",
+  priv: "106:833",
 };
+
+// PNG width at 2x for the gold ids that are not 390 px app frames (check-figma.mjs). Every other id is 780 px.
+export const GOLD_WIDTHS = { land: 2880, priv: 2880 };
 
 const NODE_ID = /^\d+:\d+$/;
 
