@@ -189,3 +189,117 @@ The symbolic compact illustration did not resolve the failures and was removed. 
 ### Frozen comparison candidate
 
 The final comparison uses unchanged candidate prefixes from this point, without consulting reserved outputs: legacy 22,293 characters (`59aa9e7703b22064ab69cc7ec031b45def22ed681ccfff5c96ee3f60c9d37792`); meal changes 26,046 (`33a7927cbfb5c4b31459e65853c9b848015d7f398ee6dc567d002e0653bb04ba`); compact 2,874 (`9a32706372521a4bca8c43311df4796e4556d90175d396ce0199b49d7d668ed6`). This is a validation freeze, not an acceptance declaration. Its complete regression, transfer and reserved results determine whether delivery is permitted.
+
+### Complete frozen comparison
+
+Candidate source commit: `533f76a99ed6cd18df9f58a275977010a52f40a8`. The eight reserved input hashes match the pre-tuning seal. All results below use actual `gpt-6-luna` with effort `none`, two evaluator workers and unchanged prefix hashes. Development failures above remain part of the evidence; they are not counted as accepted runs.
+
+| Set / version | Cases passing | Repetitions passing | Error-path repetitions | p95 ms | Input / cached / output tokens | Reasoning | Estimated USD |
+| --- | ---: | ---: | ---: | ---: | --- | ---: | ---: |
+| existing / baseline | 151/155 | 456/465 | 2 | 5628 | 2,414,247 / 2,290,161 / 75,462 | 0 | 0.0730 |
+| existing / candidate | 146/155 | 439/465 | 0 | 4246 | 2,513,061 / 2,399,903 / 76,055 | 0 | 0.0733 |
+| pairs / baseline | 22/28 | 159/168 | 0 | 5995 | 835,404 / 751,463 / 26,201 | 0 | 0.0290 |
+| pairs / candidate | 26/28 | 165/168 | 0 | 3885 | 868,944 / 794,778 / 26,617 | 0 | 0.0287 |
+| reserved / baseline | 8/8 | 48/48 | 0 | 3608 | 268,140 / 254,797 / 7,477 | 0 | 0.0076 |
+| reserved / candidate | 8/8 | 48/48 | 0 | 3442 | 279,204 / 265,400 / 7,599 | 0 | 0.0078 |
+
+Case verdicts retain each fixture's strict/majority rule. Every new case is strict. Error-path counts include provider failures and validation rejection: the baseline has one moderation connection failure and one invalid meal-change metadata rejection. Both remain failed repetitions. Costs use the evaluator's configured pricing. Latency follows its existing generation/moderation measurement; rate-limit retries reset the attempt timer, so p95 excludes their prior backoff and is not complete wall-clock latency. Rate limits during the frozen candidate runs recovered through the existing retry policy; no failed final repetition was omitted.
+
+| Set / capability | Baseline cases; repetitions | Candidate cases; repetitions |
+| --- | --- | --- |
+| existing / legacy | 121/124; 364/372 | 117/124; 348/372 |
+| existing / meal_changes | 25/26; 77/78 | 25/26; 77/78 |
+| existing / compact | 5/5; 15/15 | 4/5; 14/15 |
+| pairs / legacy | 9/10; 59/60 | 8/10; 57/60 |
+| pairs / meal_changes | 11/14; 80/84 | 14/14; 84/84 |
+| pairs / compact | 2/4; 20/24 | 4/4; 24/24 |
+| reserved / legacy | 4/4; 24/24 | 4/4; 24/24 |
+| reserved / meal_changes | 4/4; 24/24 | 4/4; 24/24 |
+
+| Transfer family | Baseline cases; repetitions | Candidate cases; repetitions |
+| --- | --- | --- |
+| compact | 2/4; 20/24 | 4/4; 24/24 |
+| composition | 2/2; 12/12 | 2/2; 12/12 |
+| labels | 6/6; 36/36 | 6/6; 36/36 |
+| memory | 6/8; 45/48 | 6/8; 45/48 |
+| photo | 2/2; 12/12 | 2/2; 12/12 |
+| profiles | 0/2; 10/12 | 2/2; 12/12 |
+| reserved | 8/8; 48/48 | 8/8; 48/48 |
+| temporal | 2/2; 12/12 | 2/2; 12/12 |
+| updates | 2/2; 12/12 | 2/2; 12/12 |
+
+Every frozen-candidate case with at least one failed repetition:
+
+| Set / case | Baseline passing reps | Candidate passing reps | Failed checks |
+| --- | ---: | ---: | --- |
+| existing / `cafe-resposta-leite` | 0/3 | 0/3 | `question`, `memory_updates_has` |
+| existing / `correcao-contra-digest` | 3/3 | 2/3 | `record` |
+| existing / `correcao-slot-sugerido-pergunta` | 3/3 | 2/3 | `intent`, `record`, `suggested_slot`, `estimate` |
+| existing / `dia-comi-ontem` | 3/3 | 2/3 | `reply_has` |
+| existing / `digest-pergunta-aberta` | 3/3 | 2/3 | `digest_has` |
+| existing / `hard-acho-que-nao-janto` | 3/3 | 2/3 | `record`, `skip_slot` |
+| existing / `hard-foto-pergunta` | 3/3 | 2/3 | `intent`, `estimate`, `record` |
+| existing / `igual-almoco-segunda` | 3/3 | 2/3 | `estimate`, `suggested_slot`, `kcal_range`, `meal_text_has`, `meal_text_not` |
+| existing / `janta-o-que-como` | 3/3 | 2/3 | `intent`, `estimate`, `suggested_slot`, `kcal_range` |
+| existing / `memoria-cheia` | 0/3 | 0/3 | `reply_has` |
+| existing / `mesmo-cafe-ontem-recent` | 2/3 | 2/3 | `intent`, `estimate`, `suggested_slot`, `kcal_range`, `meal_text_has` |
+| existing / `registro-acrescimo` | 3/3 | 2/3 | `suggested_slot`, `meal_text_has` |
+| existing / `registro-noturno-ontem` | 3/3 | 1/3 | `reply_has` |
+| existing / `registro-pulei-sem-slot` | 3/3 | 0/3 | `record`, `skip_slot` |
+| existing / `s18-missing-volume` | 3/3 | 2/3 | `estimate`, `record`, `meal_change`, `top_question` |
+| existing / `slot-cafe-20h` | 3/3 | 1/3 | `suggested_slot` |
+| existing / `slot-cafe-repete-almoco` | 3/3 | 1/3 | `suggested_slot` |
+| pairs / `s19-03-current-override-0` | 6/6 | 4/6 | `memory_used_only` |
+| pairs / `s19-04-recent-brands-0` | 6/6 | 5/6 | `reply_has` |
+
+Reports (ignored local evidence, with saved outputs, checks, usage, case hashes and prefix snapshots):
+
+- baseline existing: `logs/s19-baseline-existing-3-2026-10-05T10-05-35-03-00.json`.
+- baseline pairs: `logs/s19-baseline-pairs-6-2026-10-05T10-15-33-03-00-rescored.json`.
+- baseline reserved: `logs/s19-baseline-reserved-6-2026-10-05T11-06-10-03-00.json`.
+- candidate existing: `logs/s19-candidate-existing-3-2026-10-05T11-00-14-03-00.json`.
+- candidate pairs: `logs/s19-candidate-pairs-6-2026-10-05T11-04-55-03-00.json`.
+- candidate reserved: `logs/s19-candidate-reserved-6-2026-10-05T11-07-31-03-00.json`.
+
+Prefix size increased versus baseline: legacy +2,617 characters, meal changes +2,632, compact +241. Removal of personal examples did not yield a smaller final prefix; explicit rule relationships added text. No size, cache or cost improvement is claimed as a substitute for behavior. This limited synthetic sample is not a population-wide accuracy estimate.
+
+### Review of every incumbent with a new failed repetition
+
+All incumbent expectations are unchanged. The frozen run has 439/465 passing repetitions, versus baseline 456/465. Not every two-of-three result fails a case: the original strict flag still determines its verdict. These are observed failures under the candidate, not estimates of their frequency in users. The sample cannot establish that every isolated failure was caused by the rewrite, but acceptance remains blocked by unresolved semantic failures.
+
+| Incumbent | Inspected behavior and implication |
+| --- | --- |
+| `correcao-contra-digest` | Kept the digest's other-day classification despite the user's current correction. Estimate existed, but no record was offered. |
+| `correcao-slot-sugerido-pergunta` | Asked for food already identifiable in history instead of reconstructing the requested meal and suggested target. |
+| `dia-comi-ontem` | Correctly avoided recording an earlier-day meal, but omitted the required today-only explanation while asking about portion. |
+| `digest-pergunta-aberta` | Preserved the food/photo fact but dropped the genuinely unanswered assistant question. This is a loss of continuation context. |
+| `hard-acho-que-nao-janto` | Converted a hedged intention into `skip`; the unchanged skip path then returned an automatic skip. This is an actionable error, not a copy-only difference. |
+| `hard-foto-pergunta` | Recognized food in the image but returned question intent and no estimate; the contract requires a photo estimate with unsure record intent. |
+| `igual-almoco-segunda` | Failed to use an available specific-day RECENT meal and asked what was eaten. |
+| `janta-o-que-como` | Returned a question about available foods instead of the contracted assumed plan and estimate. |
+| `registro-acrescimo` | In the legacy path, the added food became a separate later-slot estimate and omitted the occupied meal's base. |
+| `registro-noturno-ontem` | Correctly classified the meal as other-day and did not record; omitted the required explanation in two repetitions. |
+| `registro-pulei-sem-slot` | Mapped an unmatched meal name to a profile snack and returned automatic skip in all three repetitions; the fixture requires null target/no action. |
+| `s18-missing-volume` | Invented a serving for an omitted drink volume and returned no question. Arithmetic and base preservation remained valid, but the clarification gate released an actionable addition. Preserving deterministic arithmetic alone is insufficient. |
+| `slot-cafe-20h`, `slot-cafe-repete-almoco` | The supplied profiles explicitly assign lunch to id `1` and coffee to id `3`. The current answer continues the user-named coffee, yet the candidate selected the occupied lunch with similar food in two repetitions each. Both fixtures were inspected; their expectations are valid. |
+
+Baseline failures remain distinct: `cafe-resposta-leite` and `memoria-cheia` fail all three case repetitions before and after; the former additionally omitted a permanent preference proposal in one candidate repetition, beyond its known pre-v3 generic-question mismatch. `mesmo-cafe-ontem-recent` again failed once by not reconstructing the meal. Baseline's `s18-interleaved-correction` metadata contradiction and `unavailable-weight-size-known` moderation connection failure did not recur in this frozen full run. All 465 refusal expectations passed; no policy weakening is inferred from the instruction cleanup, and this is not a claim of universal safety.
+
+The implementation changes only authored instructions/assembly and evaluation tooling. Schema, context serialization, shaping, accounting, clarification release and record gates remain unchanged. Thus these observed failures originate in model classification/content under the candidate prefix and are propagated by existing deterministic paths. They cannot be dismissed by pointing to passing registry/unit tests. Scope-bound prompt refinements above improved some cases while regressing others; this candidate does not demonstrate the plan's required behavior preservation.
+
+
+The two failed transfer cases were inspected as well. `s19-03-current-override-0` preserved the explicitly supplied food/portion and made no memory update, but attributed the estimate to the contradicted habitual fact twice. `s19-04-recent-brands-0` copied the correct food, portions and nutrients but omitted the required copied weekday once. These are distinct from fabricated nutrition, but still fail the required assertions. All original reserved cases passed on both prefixes; they did not drive a prompt change.
+
+### Additional rejected consistency experiment
+
+After the complete comparison, a scoped instruction-only experiment made current/history source priority and final response consistency more explicit. Targeted six-repeat evidence: `logs/s19-candidate-correcao-contra-digest,co-6-2026-10-05T11-12-25-03-00.json`. It did not resolve unmatched skip names or continuation targets; the latter failed four/six and six/six repetitions in the two named-slot cases. The unchanged compact prefix also showed repeated open-question omissions. This experiment is rejected, its local diff is preserved in `logs/s19-rejected-b.patch`, and the source was restored exactly to the frozen comparison commit. All three assembled prefix hashes were rechecked after restoration. No results from different candidate prefixes are pooled into a success claim.
+
+### Acceptance and remaining work
+
+**Acceptance is not met.** Validation items 3 and 4 require every critical new repetition and no unresolved semantic regressions; item 4 states: “Unresolved semantic regressions block completion.” The candidate improves the paired sample but fails that gate and regresses the incumbent suite. Neither passing provenance checks nor successful reserved cases waive it. S19 remains `Em implementação`; it is not moved to completed or represented as deployed.
+
+Local validation of the retained source: `python -m pytest server/tests -q` — **310 passed, 383 subtests passed**, 25.16 seconds. `node tools/check-docs.mjs` and `git diff --check` pass. The unit suite proves registry/assembly boundaries and deterministic contracts, not model behavior. No incumbent model-evaluation fixture or expectation was modified.
+
+The code and measured evidence are retained for review in a draft PR. **No merge or dev deploy** of this candidate; no APK, live policy/specification rewrite, user-memory migration or changes in the other agent's checkout. The Completion documentation updates and HTTP dev smoke remain unperformed because delivery did not pass its prerequisite validation.
+
+Remaining work is concrete: preserve the current user's continuation target and eating day; avoid automatic skip for an unmatched/hedged name; retain useful open questions while closing unavailable attributes; require material missing portions before action; and attribute memory/copy sources correctly. Re-run the unchanged acceptance matrix after a successful correction. These observations do not establish that another instruction rewrite is impossible, but the attempted scope-bound revisions did not meet the required standard. A change of model/effort or a broader runtime decision mechanism is outside this approved refactor and requires an explicit scope/architecture decision under SDD.
