@@ -66,7 +66,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [033](content-policy/adrs/ADR-033-global-chat-example-provenance.md) | content-policy | global Chat example provenance |
 | [034](produto/adrs/ADR-034-fibrai-brand-tali-assistant.md) | produto | marca do produto "Fibrai", assistente "Tali"; IDs técnicos `nutri` |
 | [035](produto/adrs/ADR-035-tali-in-app-identity.md) | produto | Fibrai e Tali no app: nome visível, rótulo e bolha de avatar da assistente |
-| [036](android/adrs/ADR-036-fibrai-technical-identity.md) | android | applicationId `app.fibrai.android`, projeto Firebase `fibrai-dev` |
+| [036](android/adrs/ADR-036-fibrai-technical-identity.md) | android | `app.fibrai.android` em todo o app (pacotes, app id, banco, ações), projeto Firebase `fibrai-dev` |
 | [037](site/adrs/ADR-037-landing-site.md) | site | landing estática Aero em fibrai.app, Cloudflare |
 
 ## Outros docs

@@ -4,7 +4,7 @@
 - Date: 05/10/2026
 - Owning context: `android`
 - Executable boundary:
-  - `apps/android/` only: string resources (`app_name` in main and dev), the splash wordmark constant, the onboarding header and label, the Chat header and bot label, a new avatar drawable and composable, theme names and tests;
+  - `apps/android/` only: string resources (`app_name` in main and dev), the splash wordmark constant, the onboarding header and label, the Chat header and bot label, a new avatar drawable and composable, and their tests;
   - also the tag message in `tools/distribute-dev.ps1` ("Dieta Bot" → "Fibrai").
 - Related documentation:
   - product [Chat](../../produto/specifications/chat.md) and [profile/onboarding](../../produto/specifications/perfil-onboarding.md) specifications;
@@ -13,7 +13,7 @@
 - Prerequisites:
   - [D10](../../design/plans/d10-fibrai-tali-rename.md) `Concluído` with exported golds, which accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md);
   - [S20](../../server/plans/s20-tali-prompt-identity.md) on the dev server is recommended but not required;
-  - [A48](a48-fibrai-app-id-firebase.md) may come before or after.
+  - [A48](a48-fibrai-app-id-firebase.md) `Concluído`, so this plan edits the moved `app/fibrai/android` sources.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a49-fibrai-tali-visible-rename.md. Implemente o plano aprovado.`
 
@@ -34,10 +34,7 @@ The user sees "Fibrai" on the launcher, splash and onboarding, and "Tali" with h
    - The temporary image is the D10 PNG imported as `R.drawable.tali_avatar`.
    - Decorative: `contentDescription = null`, because the adjacent "Tali" text carries the name.
    - The final art later replaces only the drawable.
-3. **Internal Kotlin names** such as `DietaBotTheme`, `DietaBotApplication`, `DietaBotDatabase`, `DietaBotTokens` and `Theme.DietaBot`:
-   - renamed to `Fibrai*` in the same delivery, following the ADR-016 rule that class names follow the visible name;
-   - except names Room or migrations depend on: the database class may be renamed, but the DB file stays `nutri.db` and the schema JSON stays valid.
-   - Tests that assert the old name are updated.
+3. Class, package and storage names are already Fibrai from [A48](a48-fibrai-app-id-firebase.md). This plan changes only visible copy and the avatar.
 4. **Specifications at Completion** (written in the present tense):
    - Chat: the AI label is the avatar plus "Tali"; the rule "Sem foto de perfil" is removed; the header title is "Tali".
    - Profile/onboarding: the splash wordmark and onboarding header say "Fibrai".
