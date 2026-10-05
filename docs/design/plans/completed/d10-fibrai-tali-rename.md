@@ -53,7 +53,7 @@ Replace "Dieta Bot" with "Fibrai" on brand surfaces, and with "Tali" plus the av
 7. **Landing phone screens** ([D11](d11-landing-page.md)):
    - the phones of `land` and `landM` (both rows) hold static clones of the `o1`, `home1` and `chatE` golds, taken before this rename;
    - replace each clone with a fresh clone of the renamed gold, scaled to 300 px wide, and clear its explicit Color mode so it follows the frame;
-   - add `land` and `landM` to the export list. [W1](../../../site/plans/w1-landing-site.md) compares against them.
+   - add `land` and `landM` to the export list. [W1](../../../site/plans/completed/w1-landing-site.md) compares against them.
 
 ## Intended documentation changes
 
@@ -154,7 +154,7 @@ Read-only search of every page of the Figma file for text containing "Dieta" (20
 - **Changed golds:** 44 PNGs, 22 ids × 2 themes: `splash`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `chat0`, `chatL`, `chatQ`, `chatE`, `chatX`, `chatT`, `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `push`, `land`. No other gold has a byte diff.
 - **Inventory:** sources do not change; every id is already `figma`.
 - **Checks:** `node tools/check-figma.mjs` (68 PNGs) and `node tools/check-docs.mjs` pass.
-- **Next:** [A49](../../../android/plans/a49-fibrai-tali-visible-rename.md) compares against these PNGs and ships `docs/design/brand/tali-avatar-placeholder.png`. [W1](../../../site/plans/w1-landing-site.md) takes the phone screens from `o1`, `home1` and `chatE`.
+- **Next:** [A49](../../../android/plans/a49-fibrai-tali-visible-rename.md) compares against these PNGs and ships `docs/design/brand/tali-avatar-placeholder.png`. [W1](../../../site/plans/completed/w1-landing-site.md) takes the phone screens from `o1`, `home1` and `chatE`.
 
 ### Figma MCP budget
 

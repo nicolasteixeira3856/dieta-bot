@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fibrai · a próxima refeição, dentro do saldo do dia</title>
+    <meta name="description" content="Você define um teto de calorias para o dia. Cada refeição, descrita em texto ou foto, recebe uma estimativa e sai do saldo. O Fibrai mostra quanto ainda cabe na próxima refeição sem tirar o espaço do jantar.">
+    <link rel="icon" href="data:,">
+    <script src="/js/theme-init.js"></script>
+    <link rel="preload" href="/fonts/nunito-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/css/tokens.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link t-body-strong" href="#conteudo">Pular para o conteúdo</a>
+
+    <div class="bubbles" aria-hidden="true">
+      <div class="bubbles__canvas">
+        <span class="bubble bubble--desktop bubble--d1"></span>
+        <span class="bubble bubble--desktop bubble--d2"></span>
+        <span class="bubble bubble--desktop bubble--d3"></span>
+        <span class="bubble bubble--desktop bubble--d4"></span>
+        <span class="bubble bubble--desktop bubble--d5"></span>
+        <span class="bubble bubble--mobile bubble--m1"></span>
+        <span class="bubble bubble--mobile bubble--m2"></span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <nav class="nav container" aria-label="Principal">
+        <a class="wordmark" href="/">Fibrai</a>
+        <div class="nav__actions">
+          <ul class="nav__links">
+            <li><a href="#como-funciona">Como funciona</a></li>
+            <li><a href="#tali">Tali</a></li>
+            <li><a href="#contato">Contato</a></li>
+          </ul>
+          <button class="theme-switch glass" type="button" data-theme-switch aria-pressed="false" aria-label="Ativar tema escuro">
+            <span class="theme-switch__segment theme-switch__segment--sun">
+              <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>
+            </span>
+            <span class="theme-switch__segment theme-switch__segment--moon">
+              <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg>
+            </span>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="conteudo">
+      <section class="hero" aria-labelledby="titulo">
+        <p class="eyebrow t-label-section">Diário de calorias com IA</p>
+        <h1 class="hero__title" id="titulo">A próxima refeição, dentro do saldo do dia.</h1>
+        <p class="hero__lead">Você define um teto de calorias para o dia. Cada refeição, descrita em texto ou foto, recebe uma estimativa e sai do saldo. O Fibrai mostra quanto ainda cabe na próxima refeição sem tirar o espaço do jantar.</p>
+        <ul class="facts" aria-label="Destaques">
+          <li class="chip t-caption-strong">Teto do dia em kcal</li>
+          <li class="chip t-caption-strong">Treino pode entrar no saldo</li>
+          <li class="chip t-caption-strong">Texto ou foto</li>
+        </ul>
+        <p class="disclaimer t-caption">Estimativa, não orientação.</p>
+      </section>
+
+      <figure class="phones" aria-label="Telas do app Fibrai">
+        <div class="phone phone--side">
+          <img class="only-light" src="/img/screens/light/o1.webp" width="600" height="1298" loading="lazy" alt="Tela de início do Fibrai: definir o teto de calorias do dia">
+          <img class="only-dark" src="/img/screens/dark/o1.webp" width="600" height="1298" loading="lazy" alt="Tela de início do Fibrai: definir o teto de calorias do dia">
+        </div>
+        <div class="phone">
+          <img class="only-light" src="/img/screens/light/home1.webp" width="600" height="1298" alt="Tela Home do Fibrai com as calorias do dia, os macros e a linha do tempo das refeições">
+          <img class="only-dark" src="/img/screens/dark/home1.webp" width="600" height="1298" loading="lazy" alt="Tela Home do Fibrai com as calorias do dia, os macros e a linha do tempo das refeições">
+        </div>
+        <div class="phone phone--side">
+          <img class="only-light" src="/img/screens/light/chatE.webp" width="600" height="1298" loading="lazy" alt="Chat com a Tali: estimativa de calorias e macros de uma refeição">
+          <img class="only-dark" src="/img/screens/dark/chatE.webp" width="600" height="1298" loading="lazy" alt="Chat com a Tali: estimativa de calorias e macros de uma refeição">
+        </div>
+      </figure>
+
+      <div class="content container">
+        <section class="section" id="como-funciona" aria-labelledby="como-funciona-titulo">
+          <h2 class="section__title" id="como-funciona-titulo">Como funciona</h2>
+          <ol class="steps">
+            <li class="step card glass">
+              <span class="step__label t-label-section">Passo 1</span>
+              <h3 class="t-title">Teto do dia</h3>
+              <p class="step__text">Um número em kcal, igual todos os dias ou diferente por dia da semana. Você escolhe quanto do treino volta para o saldo: nada, uma parte ou tudo. Sem treino informado, nada volta.</p>
+            </li>
+            <li class="step card glass">
+              <span class="step__label t-label-section">Passo 2</span>
+              <h3 class="t-title">Refeição no Chat</h3>
+              <p class="step__text">Escreva o que comeu ou mande a foto do prato. Se faltar alguma informação, a Tali faz todas as perguntas de uma vez antes de estimar.</p>
+            </li>
+            <li class="step card glass">
+              <span class="step__label t-label-section">Passo 3</span>
+              <h3 class="t-title">Saldo na Home</h3>
+              <p class="step__text">A linha do tempo do dia mostra cada refeição em kcal, proteína, carboidrato e gordura, e quanto ainda cabe na próxima.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="section" id="tali" aria-labelledby="tali-titulo">
+          <h2 class="section__title" id="tali-titulo">Tali</h2>
+          <div class="tali card glass">
+            <span class="avatar t-title" aria-hidden="true">T</span>
+            <p class="tali__text">Tali é a assistente do Fibrai no Chat. Lê o texto ou a foto da refeição, pergunta o que falta e responde com números: calorias, proteína, carboidrato e gordura. Não monta dieta nem dá orientação de saúde.</p>
+          </div>
+        </section>
+
+        <aside class="note glass t-caption" aria-label="Aviso">
+          <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2"/><path d="M144,176a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176Zm88-48A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128ZM124,96a12,12,0,1,0-12-12A12,12,0,0,0,124,96Z"/></svg>
+          <p>Os valores são estimativas feitas por IA a partir do que você escreve ou fotografa. O Fibrai não substitui nutricionista nem médico.</p>
+        </aside>
+
+        <section class="section" id="contato" aria-labelledby="contato-titulo">
+          <h2 class="section__title" id="contato-titulo">Contato</h2>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer container">
+        <div class="footer__brand">
+          <span class="t-body-strong">Fibrai</span>
+          <span class="disclaimer-small t-caption">Estimativa, não orientação.</span>
+        </div>
+        <a class="footer__link t-body-strong" href="/privacidade/">Política de privacidade</a>
+      </div>
+    </footer>
+  </body>
+</html>

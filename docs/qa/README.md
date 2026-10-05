@@ -8,6 +8,7 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 - `stitch/dark/` e `stitch/light/` — Gold PNGs exportados do projeto Google Stitch `Nutri`, congelado, para os ids de fonte `stitch`
 - `android/current/dark/` — Screencaps do emulador Android (Dark theme). Só emulador: renders JVM ficam em `build/`.
 - `android/current/light/` — Screencaps do emulador Android (Light theme)
+- `site/current/dark/` e `site/current/light/` — Capturas do navegador da landing (`land`, `landM`, `priv`), feitas por `npm --prefix web run capture` ([site](../site/README.md))
 - `_legacy/` — Telas legadas e wires antigos depreciados. **Nunca comparar contra esta pasta.**
 
 > **Regra estrita:** Nenhum arquivo PNG/JPG pode ficar na raiz de `docs/qa/`.
@@ -27,7 +28,7 @@ figma: cfg.png · cfgS.png · wipe.png · push.png
 figma: land.png · landM.png · priv.png
 ```
 
-A última linha é o site (landing de `fibrai.app`, [ADR-037](../site/adrs/ADR-037-landing-site.md)), não o app: `land` e `priv` são frames desktop de 1440 px (PNG de 2880 px) e `landM` é mobile de 390 px. Capturas do site e o loop de comparação ficam no contexto [site](../site/README.md).
+A última linha é o site (landing de `fibrai.app`, [ADR-037](../site/adrs/ADR-037-landing-site.md)), não o app: `land` e `priv` são frames desktop de 1440 px (PNG de 2880 px) e `landM` é mobile de 390 px. Eles são comparados com capturas do navegador (Chromium a 2x, página inteira) em `site/current/`, pelo mesmo gate abaixo, sem as faixas de status e navegação; a captura tem a altura exata do gold. As telas dentro dos celulares são o gold do app; a deriva de até 4 px do clone reescalado no Figma é aceita (W1, em [`site/plans/completed/`](../site/plans/completed/)).
 
 O nome base (`<id>.png`) é rigorosamente idêntico em `stitch/{dark,light}/`, `figma/{dark,light}/` e `android/current/{dark,light}/`.
 
