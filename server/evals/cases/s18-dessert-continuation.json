@@ -1,0 +1,118 @@
+{
+  "id": "s18-dessert-continuation",
+  "since": "meal_changes",
+  "tags": [
+    "s18"
+  ],
+  "strict": true,
+  "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T14:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "empty"
+        },
+        {
+          "id": "mid",
+          "status": "eaten",
+          "text": "160 g de arroz e 100 g de peixe",
+          "kcal": 390,
+          "p": 27,
+          "c": 46,
+          "g": 10
+        },
+        {
+          "id": "pm",
+          "status": "empty"
+        },
+        {
+          "id": "eve",
+          "status": "empty"
+        }
+      ]
+    },
+    "text": "De sobremesa também comi 90 g de salada de frutas, sem açúcar.",
+    "messages": [
+      {
+        "role": "user",
+        "text": "Terminei meu almoço de arroz e peixe."
+      },
+      {
+        "role": "assistant",
+        "text": "Almoço estimado em 390 kcal."
+      }
+    ],
+    "digests": [],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "refusal": "none",
+    "meal_change": {
+      "operation": "add",
+      "base_slot": "mid",
+      "base": {
+        "text": "160 g de arroz e 100 g de peixe",
+        "kcal": 390,
+        "p": 27,
+        "c": 46,
+        "g": 10
+      },
+      "slot_name": "Almoço",
+      "addition_has": [
+        "frutas"
+      ],
+      "addition_not": [
+        "arroz",
+        "peixe"
+      ]
+    },
+    "suggested_slot": "mid"
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "refusal",
+    "meal_change",
+    "suggested_slot"
+  ]
+}

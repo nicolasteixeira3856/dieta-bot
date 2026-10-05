@@ -1,6 +1,6 @@
 # Plan — S18 Meal additions and revisions
 
-- Status: Aguardando aprovação
+- Status: Em implementação
 - Date: 04/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only (`main.py`, `llm.py`, `shaping.py`, configuration, tests and evals).
@@ -88,4 +88,12 @@ Android, Room, Figma/golds, nutrition databases or web lookup inside the app, mo
 
 ## Results
 
-Implementation, unit tests, new evals and deployment are not executed by this planning request. Fill with commands, counts, failures and rollout evidence during delivery; the diagnostic baseline above is not implementation acceptance.
+Owner approved this named plan on 2026-10-04, including ADR-032. Implementation runs in the isolated `debug-meal-addition` worktree on `codex/s18-meal-additions`; no Android or design implementation is included.
+
+Implemented: opt-in operation metadata and pending proposal context, validation before release gates, server-derived addition totals/copy, full-meal revisions, complete description bounds, output moderation coverage and legacy response compatibility.
+
+Automated validation so far: `C:/Users/Nicolas/Desktop/projetos/Pessoal/dieta-bot/server/.venv/Scripts/python.exe -m pytest server/tests -q --tb=short` from the isolated root: **281 tests and 346 subtests passed** (26.61 seconds). `node tools/check-docs.mjs`: passed. The existing Python environment and root dotenv are used read-only; no shared-checkout files were edited.
+
+Prompt-change provenance: the new authored instructions contain general operation/target/delta rules from ADR-032 and this plan, plus the food-independent rounding/energy constraints in the HTTP contract. No new illustrative user case is embedded in global instructions. The synthetic accounting, meal/profile variants and fictional drink-label image live only in eval fixtures. Existing example cleanup/inventory remains owned by S19; this delivery does not declare the entire existing prompt ADR-033 compliant.
+
+Live evaluation and deployment results are being collected. The diagnostic baseline above is not implementation acceptance.

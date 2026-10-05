@@ -1,6 +1,6 @@
 # ADR-017 — Um registro por refeição, com confirmação ao substituir
 
-- Estado: Aceito (29/09/2026, com a aprovação do S8); parcialmente substituído pelo [ADR-028](ADR-028-registro-autonomo.md) (gatilho e forma da confirmação da decisão 3; perguntar antes de substituir continua)
+- Estado: Aceito (29/09/2026, com a aprovação do S8); parcialmente substituído pelo [ADR-028](ADR-028-registro-autonomo.md) (gatilho e forma da confirmação da decisão 3; perguntar antes de substituir continua) e pelo [ADR-032](ADR-032-acrescimos-e-correcoes-de-refeicoes.md) (decisão 2: preservar o registro anterior nos acréscimos)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o [ADR-012](ADR-012-chat-home-perfil.md), regra 5 ("Segundo Gravar no mesmo slot **soma**"), e a regra 5 da [home-timeline](../specifications/home-timeline.md) ("Segundo log no mesmo slot empilha").

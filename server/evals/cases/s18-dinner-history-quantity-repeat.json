@@ -1,0 +1,133 @@
+{
+  "id": "s18-dinner-history-quantity-repeat",
+  "since": "meal_changes",
+  "tags": [
+    "s18"
+  ],
+  "strict": true,
+  "provenance": "Independent synthetic accounting/relationship fixture; never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T20:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "empty"
+        },
+        {
+          "id": "mid",
+          "status": "eaten",
+          "text": "180 g de macarrão e 110 g de carne bovina",
+          "kcal": 590,
+          "p": 31,
+          "c": 62,
+          "g": 17
+        },
+        {
+          "id": "pm",
+          "status": "empty"
+        },
+        {
+          "id": "eve",
+          "status": "eaten",
+          "text": "250 ml de bebida fermentada",
+          "kcal": 110,
+          "p": 0,
+          "c": 7,
+          "g": 0
+        }
+      ]
+    },
+    "text": "Foram 140 g de espaguete cozido e 90 g de peru assado. Pode registrar.",
+    "messages": [
+      {
+        "role": "user",
+        "text": "Almocei 180 g de macarrão e 110 g de carne bovina."
+      },
+      {
+        "role": "assistant",
+        "text": "Estimativa do almoço: 590 kcal."
+      },
+      {
+        "role": "user",
+        "text": "Quero adicionar ao jantar 140 g de espaguete cozido e 90 g de peru assado que comi agora."
+      },
+      {
+        "role": "assistant",
+        "text": "É para acrescentar ao jantar já registrado?"
+      }
+    ],
+    "digests": [],
+    "clarify_rounds": 1,
+    "auto_record": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "record": "auto",
+    "refusal": "none",
+    "meal_change": {
+      "operation": "add",
+      "base_slot": "eve",
+      "base": {
+        "text": "250 ml de bebida fermentada",
+        "kcal": 110,
+        "p": 0,
+        "c": 7,
+        "g": 0
+      },
+      "slot_name": "Jantar",
+      "addition_has": [
+        "espaguete",
+        "peru"
+      ],
+      "addition_not": [
+        "bovina",
+        "fermentada"
+      ],
+      "grams": 230
+    },
+    "suggested_slot": "eve"
+  },
+  "required": [
+    "intent",
+    "estimate",
+    "record",
+    "refusal",
+    "meal_change",
+    "suggested_slot"
+  ]
+}

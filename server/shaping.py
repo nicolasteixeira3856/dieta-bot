@@ -93,6 +93,11 @@ def chat_output_texts(result: dict[str, Any]) -> list[str]:
                 + [str(item.get("name") or "") for item in estimate.get("items") or []]
             )
         )
+    change = result.get("meal_change")
+    if isinstance(change, dict) and isinstance(change.get("addition"), dict):
+        addition = change["addition"]
+        texts.append(addition.get("meal_text"))
+        texts.extend(item.get("name") for item in addition.get("items", []))
     texts.append(
         "\n".join(
             f"{update.get('key')}: {update.get('text')}" for update in result.get("memory_updates") or []
@@ -205,6 +210,7 @@ def shape_chat(
     fact_ids: list[str] | None = None,
     skip: bool = False,
     temp_facts: bool = False,
+    meal_text_max: int = MEAL_TEXT_MAX,
 ) -> dict[str, Any]:
     """fact_ids None = legacy client (no facts in the request): no memory fields, plan without card.
 
@@ -229,7 +235,7 @@ def shape_chat(
 
     estimate: dict[str, Any] | None = None
     if isinstance(raw_estimate, dict) and intent in ("log", "plan"):
-        estimate = _chat_estimate(raw_estimate, valid_ids, plan=intent == "plan")
+        estimate = _chat_estimate(raw_estimate, valid_ids, plan=intent == "plan", meal_text_max=meal_text_max)
     if legacy and intent == "plan":
         # APK <= 0.0.3 shows a card for any estimate: grams and total stay in the reply.
         estimate = None
@@ -254,7 +260,7 @@ def shape_chat(
     }
 
 
-def _chat_estimate(raw: dict[str, Any], valid_ids: set[str], *, plan: bool) -> dict[str, Any]:
+def _chat_estimate(raw: dict[str, Any], valid_ids: set[str], *, plan: bool, meal_text_max: int = MEAL_TEXT_MAX) -> dict[str, Any]:
     try:
         confidence = _confidence(raw.get("confidence"))
     except (TypeError, ValueError):
@@ -284,28 +290,21 @@ def _chat_estimate(raw: dict[str, Any], valid_ids: set[str], *, plan: bool) -> d
         "question": clean_question,
         "items": items,
         "suggested_slot": _slot_id(raw.get("suggested_slot"), valid_ids),
-        "meal_text": _meal_text(raw.get("meal_text"), items),
+        "meal_text": _meal_text(raw.get("meal_text"), items, meal_text_max),
     }
 
 
-def _meal_text(value: Any, items: list[dict[str, Any]]) -> str:
-    text = value.strip() if isinstance(value, str) else ""
-    if not text:
+def _meal_text(value: Any, items: list[dict[str, Any]], limit: int = MEAL_TEXT_MAX) -> str:
+    text = value if isinstance(value, str) else ""
+    if not text.strip():
         text = ", ".join(f"{it['name']} {_grams(it['g'])} g" for it in items if it["name"])
-    return _cut_at_comma(text, MEAL_TEXT_MAX)
+    if len(text) > limit:
+        raise ValueError("meal description too long")
+    return text
 
 
 def _grams(value: int | float) -> str:
     return str(int(value)) if float(value).is_integer() else str(value)
-
-
-def _cut_at_comma(text: str, limit: int) -> str:
-    """Over the limit: cut at the last comma before it; no comma, a plain cut."""
-    if len(text) <= limit:
-        return text
-    head = text[:limit]
-    comma = head.rfind(",")
-    return (head[:comma] if comma > 0 else head).strip()
 
 
 def _memory_updates(
@@ -392,6 +391,7 @@ def clarify_gate(
     clarify_rounds: int,
     force_estimate: bool,
     history: Iterable[tuple[str, str]],
+    unresolved_target: bool = False,
 ) -> tuple[dict[str, Any], str]:
     """v3 client (clarify_rounds present): a log with a material doubt becomes a question-only turn.
 
@@ -411,7 +411,7 @@ def clarify_gate(
 
     if force_estimate:
         clarify = CLARIFY_RELEASED_FORCE
-    elif estimate.get("confidence") == "high" or not question:
+    elif (estimate.get("confidence") == "high" and not unresolved_target) or not question:
         clarify = CLARIFY_RELEASED_CONFIDENT
     elif clarify_rounds >= CLARIFY_MAX_ROUNDS:
         clarify = CLARIFY_RELEASED_CAP

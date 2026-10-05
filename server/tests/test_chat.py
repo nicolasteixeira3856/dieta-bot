@@ -774,7 +774,7 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         for rule in (
             "return the estimate of the whole meal",
             "only a calorie total",
-            "Never return an estimate with p, c and g all zero",
+            "Never invent macros to force 4P + 4C + 9G to equal kcal",
             "keep the same suggested_slot",
             "the Chat records only today's meals",
             "Never generic",
@@ -988,17 +988,16 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
         out = shape_chat({"reply": "ok", "intent": "log", "estimate": _estimate(question=None)}, valid_slot_ids=["1"], fact_ids=[])
         self.assertEqual(out["estimate"]["question"], CHAT_FALLBACK_QUESTION)
 
-    def test_meal_text_fallback_from_items_and_cut_at_comma(self) -> None:
+    def test_meal_text_fallback_keeps_complete_description(self) -> None:
         out = shape_chat({"reply": "ok", "intent": "log", "estimate": _estimate(meal_text="  ")}, valid_slot_ids=["1"], fact_ids=[])
         self.assertEqual(out["estimate"]["meal_text"], "ovo mexido 100 g, pao frances 50.5 g")
         long_text = ", ".join(f"alimento numero {i:02d}" for i in range(20))
         out = shape_chat({"reply": "ok", "intent": "log", "estimate": _estimate(meal_text=long_text)}, valid_slot_ids=["1"], fact_ids=[])
         meal_text = out["estimate"]["meal_text"]
-        self.assertLessEqual(len(meal_text), 160)
-        self.assertTrue(meal_text.endswith("alimento numero 07"), meal_text)
+        self.assertEqual(meal_text, long_text)
         no_comma = "x" * 200
         out = shape_chat({"reply": "ok", "intent": "log", "estimate": _estimate(meal_text=no_comma)}, valid_slot_ids=["1"], fact_ids=[])
-        self.assertEqual(len(out["estimate"]["meal_text"]), 160)
+        self.assertEqual(out["estimate"]["meal_text"], no_comma)
 
     def test_memory_updates_discards(self) -> None:
         facts = ["P1", "D2"]

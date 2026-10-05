@@ -36,6 +36,8 @@ Avatar, visto, status, streaming neste corte. Registro de outro dia. UI de aceit
 20. Memória do recibo: cada recibo guarda a imagem antes/depois dos fatos que o registro mudou. Excluir, Editar, Desfazer e Trocar refeição revertem só o fato que ainda é igual à imagem "depois" (fato adicionado sai, removido volta, alterado recupera texto e dias); fato mudado depois por outro turno fica como está.
 21. Recusa de conteúdo: pedido fora do escopo, conteúdo bloqueado ou sinal de risco recebe uma resposta fixa numa bolha comum da IA, sem estimativa, sem mudança de memória e sem registro ([política de conteúdo](../../content-policy/specifications/content-policy.md); textos em [refusal-copy](../../content-policy/specifications/refusal-copy.pt-BR.md)). Moderação indisponível cai na bolha de falha. Nenhuma tela ou controle novo.
 
+22. Server meal-change capability ([ADR-032](../adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md)): additions preserve the matching DAY aggregate and add only the new food; revisions explicitly replace the complete estimate. Current eating context and explicit targets determine the meal, including across unrelated corrections. Pending proposals are not committed records. The server separates added energy, prior energy and resulting total in its reply. Normal descriptions remain complete within the [HTTP limits](../../api-contract.md#meal-change-capability); overflow cannot produce a truncated record. Unknown operation cannot be forced. **Rollout:** without a client sending meal_changes, the app retains rules 5–6 and 19 and the legacy whole-meal estimate/destination flow. The server capability alone does not add the new addition/revision controls or safe delta rerouting to the current APK.
+
 ## Estados e falhas
 
 - Estados de tela (golds do [ADR-012](../adrs/ADR-012-chat-home-perfil.md) + ADR-023 + ADR-028): `chat0`, `chatL`, `chatE` (Registrar), `chatT`, `chatF` (foto registrada sozinha), `chatG` (recibo com ações), `chatA`, `chatX`, `chatR` (plano), `chatM` (avisos de memória), `chatS` (sugestão da rotina), `chatQ` (pergunta antes da estimativa, ADR-026), `chatU` (Substituir dentro da conversa), `chatD` (substituição desfeita e restauração). `chatP` saiu do Chat (ADR-028); o gold fica como referência do pulo.
@@ -78,6 +80,8 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - "Registra na refeição de hoje" depois de uma estimativa ou pergunta que sugeriu um slot registra nesse slot.
 
 ## Proveniência
+
+- [S18](../../server/plans/s18-meal-additions-and-revisions.md) — meal additions and revisions
 
 - [S17](../../server/plans/completed/s17-unavailable-meal-details.md) — Unavailable meal details and useful clarification alternatives
 

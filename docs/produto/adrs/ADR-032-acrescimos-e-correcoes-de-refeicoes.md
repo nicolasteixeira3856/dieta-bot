@@ -1,6 +1,6 @@
 # ADR-032 — Explicit meal additions and revisions
 
-- Status: Proposto
+- Status: Accepted (2026-10-04, explicit owner approval of S18)
 - Date: 2026-10-04
 - Context: `produto`
 - Supersedes on acceptance: partially [ADR-017](ADR-017-registro-consolidado.md), decision 2 (re-estimating an existing meal on every addition), and [ADR-028](ADR-028-registro-autonomo.md), decision 3 (one replacement presentation and destination action for every update). Their other rules remain.
