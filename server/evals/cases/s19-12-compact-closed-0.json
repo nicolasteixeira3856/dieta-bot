@@ -89,7 +89,8 @@
   "expect": {
     "digest": "present",
     "digest_has": [
-      "bolinho de feijão",
+      "bolinho",
+      "feijão",
       "2",
       "assad",
       "peso"
@@ -99,7 +100,9 @@
       "registrado",
       "150 g",
       "leite",
-      "lasanha"
+      "lasanha",
+      "?",
+      "pergunta em aberto"
     ]
   },
   "required": [

@@ -16,14 +16,13 @@ from tests.test_chat import _base_chat_payload
 def declared_example():
     example = Example("independent_synthetic", "intent", "Test registry assembly syntax",
                       "Illustration: an abstract slot identifier is data.", ("legacy",))
-    examples = {"syntax-fixture": example}
+    examples = {**EXAMPLES, "syntax-fixture": example}
     branches = {**BRANCHES, "legacy": BRANCHES["legacy"] + (("example", "syntax-fixture"),)}
     return examples, branches
 
 
 def test_all_live_branches_account_for_owned_rules_and_examples():
     validate_inventory(RULES, EXAMPLES, BRANCHES)
-    assert EXAMPLES == {}  # Source-reviewed choice: no illustrative stories needed.
     assert chat_instructions() == assemble("legacy")
     assert chat_instructions(meal_changes=True) == assemble("meal_changes")
     for branch in BRANCHES:

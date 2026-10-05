@@ -108,7 +108,7 @@
   "expect": {
     "intent": "plan",
     "record": "none",
-    "estimate": "absent",
+    "estimate": "present",
     "refusal": "none",
     "memory_used_only": [],
     "memory_updates_has": [
@@ -129,10 +129,19 @@
           "45",
           "130",
           "6"
+        ],
+        "numbers": [
+          45,
+          130,
+          6
         ]
       }
     ],
-    "meal_change": null
+    "meal_change": null,
+    "estimate_values": {
+      "kcal": 130,
+      "p": 6
+    }
   },
   "required": [
     "intent",
@@ -142,6 +151,7 @@
     "memory_used_only",
     "memory_updates_has",
     "memory_update_text",
-    "meal_change"
+    "meal_change",
+    "estimate_values"
   ]
 }

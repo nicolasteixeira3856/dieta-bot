@@ -37,11 +37,12 @@ def test_memory_allowlist_is_not_presence_check():
 
 def test_partial_reference_requires_product_basis_and_given_values_in_same_fact():
     want = [{"match": {"kind": "temp", "category": "portion"},
-             "has": ["Fictional", "30 g", "95 kcal", "4 g"]}]
+             "has": ["Fictional", "30 g", "95 kcal", "4 g"], "numbers": [30, 95, 4]}]
     output = {"memory_updates": [{"kind": "temp", "category": "portion",
                                  "text": "Fictional: 95 kcal e 4 g P por 30 g"}]}
     assert evaluate({"memory_update_text": want}, output)["memory_update_text"]["status"] == "pass"
-    for text in ("Fictional: 95 kcal por 100 g", "95 kcal e 4 g P por 30 g"):
+    for text in ("Fictional: 95 kcal por 100 g", "95 kcal e 4 g P por 30 g",
+                 "Fictional: 95 kcal e 4 g P por 30 g, 0 g G"):
         output["memory_updates"][0]["text"] = text
         assert evaluate({"memory_update_text": want}, output)["memory_update_text"]["status"] == "fail"
     assert evaluate({"memory_update_text": want}, {})["memory_update_text"]["status"] == "fail"

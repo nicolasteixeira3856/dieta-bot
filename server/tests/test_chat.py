@@ -776,7 +776,8 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
             "only a calorie total",
             "Never invent macros to force 4P + 4C + 9G to equal kcal",
             "keep the same suggested_slot",
-            "the Chat records only today's meals",
+            "O Chat registra apenas refeições de hoje.",
+            "If meal_day is today, that sentence is forbidden",
             "Never generic",
         ):
             self.assertIn(rule, instructions)

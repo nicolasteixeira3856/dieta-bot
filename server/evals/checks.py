@@ -7,6 +7,7 @@ Each check returns PASS, FAIL or NA. NA = the output contract does not carry the
 from __future__ import annotations
 
 import math
+import re
 import unicodedata
 from typing import Any
 
@@ -211,9 +212,18 @@ def _check(
         for requirement in want:
             matches = [u for u in updates if isinstance(u, dict)
                        and _matches(u, requirement["match"])]
-            if not any(isinstance(u.get("text"), str) and all(
-                    normalize(term) in normalize(u["text"]) for term in requirement["has"])
-                    for u in matches):
+            def grounded(update: dict[str, Any]) -> bool:
+                text = update.get("text")
+                if not isinstance(text, str) or not all(
+                        normalize(term) in normalize(text) for term in requirement["has"]):
+                    return False
+                if "numbers" in requirement:
+                    numbers = {float(n.replace(",", ".")) for n in re.findall(r"\d+(?:[.,]\d+)?", text)}
+                    if numbers != set(requirement["numbers"]):
+                        return False
+                return True
+
+            if not any(grounded(u) for u in matches):
                 return _result(False, "missing grounded fact text")
         return _result(True, "supplied reference text retained")
 

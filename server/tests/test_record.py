@@ -383,7 +383,8 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
             "meal_day is today or other",
             "Before 05:00 local time",
             "intent is log, plan, question or skip",
-            "the Chat records only today's meals",
+            "O Chat registra apenas refeições de hoje.",
+            "If meal_day is today, that sentence is forbidden",
             "Never say in reply that you recorded, registered, noted, saved or skipped a meal",
         ):
             self.assertIn(rule, instructions)
@@ -416,9 +417,10 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
             "[refeição sugerida: {slot name}]",
             "never the user's words",
             "Never ask which meal when its slot was named by the user or suggested earlier",
-            "two most recent RECENT records of that slot on DIFFERENT days",
-            "Compare food type, numeric quantity and unit AFTER ignoring brand names",
-            "fewer than two days",
+            "two most recent distinct dates",
+            "remove brand names, then compare food types, quantities and units",
+            "fewer than two distinct days",
+            "reply MUST name the weekday supplied on that newest record",
             "including another portion on a later turn",
             "Recording or citing a temp fact never removes it",
             "never promote it or copy it into a habit",
