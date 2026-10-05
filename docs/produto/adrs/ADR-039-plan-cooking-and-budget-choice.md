@@ -1,6 +1,6 @@
 # ADR-039 — Cooking help and the over-budget choice in a plan
 
-- Status: Proposed (2026-10-05; accepted with the owner's approval of the server plan S21)
+- Status: Proposed (2026-10-05; accepted with the owner's approval of [S21](../../server/plans/s21-plan-cooking-and-budget-choice.md))
 - Date: 2026-10-05
 - Context: `produto`
 - Supersedes on acceptance: partially [ADR-023](ADR-023-chat-v2-memoria-v2.md), decision 3 (preparation "in a few lines"; the plan answer is final), and the sentence of [ADR-026](ADR-026-perguntas-antes-da-estimativa.md) decision 1 "`plan` keeps its rule (never asks)", only for the budget choice below. The rest of both remains: the app computes the projected day, **Registrar assim**, a plan never asks about the food and assumes instead. Adds gold `chatRB`. Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively.
@@ -47,7 +47,7 @@ The model also reports the user's budget choice from the conversation, if any: `
 
 ### 5. Contract and screens
 
-The fields are additive and gated by a client capability flag, like `meal_changes`. Clients without it keep today's plan text. New gold `chatRB` (plan over budget with the choice) in both themes, drawn through the Figma review gate. `chatR` is unchanged.
+The fields are additive and gated by a client capability flag, like `meal_changes`. Clients without it get no budget fields. The reply stops stating the overage for every client, so the instructions stay one cached text; those clients still see it in the projected day. New gold `chatRB` (plan over budget with the choice) in both themes, drawn through the Figma review gate. `chatR` is unchanged.
 
 ## Motivation
 
