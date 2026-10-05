@@ -120,9 +120,12 @@ class ChatViewModelTest {
     private suspend fun ChatViewModel.await(pred: (ChatUiState) -> Boolean) = withTimeout(5_000) { uiState.first(pred) }
 
     private suspend fun sendAndAwait(vm: ChatViewModel, text: String) {
+        val calls = requests.size
         vm.setComposer(text)
         vm.send()
-        vm.await { it.actions != null || it.items.any { i -> i is ChatItem.Failed } }
+        // The state from before the send may still carry the previous answer actions: wait for this turn first.
+        withTimeout(5_000) { while (requests.size == calls) delay(10) }
+        vm.await { !it.sending && it.actions != null || it.items.any { i -> i is ChatItem.Failed } }
     }
 
     private suspend fun slotIds() = repo.observeToday().first().slots.map { it.id }
@@ -426,16 +429,17 @@ class ChatViewModelTest {
     )
 
     private suspend fun sendAndAwaitAuto(vm: ChatViewModel, text: String) {
-        val before = repo.observeMessages().first().size
+        val before = repo.observeMessages().first().count { it.role == "assistant" }
         vm.setComposer(text)
         vm.send()
         vm.await { !it.sending && it.items.none { i -> i is ChatItem.Loading } }
-        // The automatic record runs right after the answer is stored.
+        // The automatic record runs right after the answer is stored. Only this turn answer counts: the previous one
+        // may already be recorded while the new one is not stored yet.
         withTimeout(5_000) {
             while (true) {
                 val rows = repo.observeMessages().first()
                 val answer = rows.lastOrNull { it.role == "assistant" }
-                if (rows.size > before + 1 && answer?.recordMode != "auto" || answer?.recordState != null) break
+                if (rows.count { it.role == "assistant" } > before && (answer?.recordMode != "auto" || answer.recordState != null)) break
                 delay(10)
             }
         }

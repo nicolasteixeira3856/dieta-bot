@@ -129,6 +129,8 @@ Request ids from the dev conversation log (only ids, operation and outcome read;
 - `089b837c-7cec-41c1-8685-d231281099a4` — **photo addition** to the Lanche: Adicionar recorded 250 + 670 = 920 kcal (61P · 111C · 24G), source `photo`, receipt `250 → 920 kcal` without Editar; Desfazer restored 250 kcal.
 - Server findings for S19/server follow-up (no client change): the revision `e8e54c12` re-estimated the dinner including the pudding that had been rerouted to the Lanche (the client showed it as a revision and nothing was written); two photo-addition turns to the dinner (`73a51107-1952-4b29-bf31-8e9554e95294`, and the text follow-up `109429f3-d641-493b-ab7b-7b7c4d85335f`) and one earlier text turn (`2a6604a5-993a-43f6-bb17-237da60223e2`) ended in the server's safe fallback (`ValueError`); the app showed the fallback and recorded nothing.
 
+Follow-up (2026-10-05, test only): the first `tools/distribute-dev.ps1` run exposed a race in the `ChatViewModelTest` send helpers (an earlier recorded answer or stale actions ended the wait before this turn answer was stored), more frequent with the longer A47 send path. `sendAndAwait` now waits for the turn request and `sendAndAwaitAuto` for the new answer row; the Chat suites passed 3 reruns in a row, and the full suite again leaves only the 3 pre-existing GoldTest failures.
+
 ### Pending manual validation
 
 Owner device check (Validation 7), not performed: distinguish the added item from the meal total; confirm an addition; route another addition to an empty and to an occupied meal; cancel a correction; undo and move a recorded whole meal. A dev test build was not requested and not distributed. The plan stays in `pending_manual_validation/` until the owner records that check.
