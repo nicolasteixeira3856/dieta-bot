@@ -43,6 +43,7 @@ The model also reports the user's budget choice from the conversation, if any: `
 - **Over, no choice:** below the plan the app shows the fixed line `Passa {over} kcal do que sobra.` (with `Reservei {kcal} kcal para {label}.` when there is a reservation) and two pills in the action position: **Pode passar** · **Ajustar para caber**. They replace **Registrar assim** while the choice is pending.
 - **Pode passar:** local, no AI call. The pills leave, **Registrar assim** returns, the plan is unchanged and the projected day shows the overage in `bad` as today.
 - **Ajustar para caber:** sends `Ajusta para caber em {budget} kcal.` with the target through the normal send/loading/failure/retry flow, as **Forçar estimativa** does. The server asks for the same dish rebuilt within the target, shrinking calorie-dense foods first and keeping the additions where possible. It verifies the result: an adjusted plan above the target is not returned as adjusted (one retry; if still above, the over state is returned and the choice shows again).
+- **Nothing left to adjust to** (dish budget below 1 kcal): no choice is shown; the projected day shows the overage.
 - **Typed answer:** the same rules apply when the user types the choice instead of tapping; the model's reported choice drives it. `over_ok` shows no question; `fit` is checked against the target like the pill.
 
 ### 5. Contract and screens
