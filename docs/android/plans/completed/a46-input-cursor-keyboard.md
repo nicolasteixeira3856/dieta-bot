@@ -1,6 +1,6 @@
 # Plan — A46 Text input: cursor at the end, focused field above the keyboard
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 04/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only:
@@ -59,7 +59,7 @@ Rule from the owner: every edit of an existing value starts with the cursor at t
 
 ## Results
 
-Implemented 04/10/2026 after the owner's named approval. Waits in `pending_manual_validation/` only for the owner's phone check (Validation step 7).
+Implemented 04/10/2026 after the owner's named approval. Owner's phone check (Validation step 7) approved on 05/10/2026.
 
 ### Delivered
 
@@ -87,6 +87,6 @@ Implemented 04/10/2026 after the owner's named approval. Waits in `pending_manua
    - Deviation from step 5, decided with the owner during the run: only the flows A46 touches were captured (`capture-onboarding`, `capture-home`, `capture-config`). `capture-push`, `capture-photo`, `capture-replace` and `capture-chat` were not rerun: Push, Chat and the photo flow use none of the changed components, and the JVM `GoldTest` of every id is unchanged.
 6. `node tools/check-docs.mjs`: pass.
 
-### Pending (manual)
+### Manual validation
 
-- Owner, phone, both themes: O1 `Metas separadas` → `Fim de semana`; O4 adjust a computed macro; Config → `Horários das refeições` (last meal name); Config → `Macronutrientes` (edit a value).
+- Approved by the owner on 05/10/2026. Owner, phone, both themes: O1 `Metas separadas` → `Fim de semana`; O4 adjust a computed macro; Config → `Horários das refeições` (last meal name); Config → `Macronutrientes` (edit a value).
