@@ -7,6 +7,7 @@
 - Related documentation: server Chat and content-handling specifications, evaluation documentation, and plan/index lifecycle.
 - Prerequisite: [S18](completed/s18-meal-additions-and-revisions.md) delivered. Generalize its delivered behavior as well as the existing Chat rules; do not rewrite the same prompt concurrently. This plan does not require D9/A47 delivery and does not block their UI work.
 - Integration note: the owner explicitly requested source integration into master before behavioral acceptance. Read [the continuation handoff](#owner-directed-master-integration-and-continuation) before resuming; integration is not Completion or deployment approval.
+- Continuation: the remaining work is scoped in [Continuation scope — pt-BR cue lexicon](#continuation-scope--pt-br-cue-lexicon). It changes the approved scope and acceptance gate, so it needs its own approval before any code or paid evaluation.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s19-generalizable-chat-instructions.md. Implemente o plano aprovado.`
 
@@ -368,3 +369,78 @@ No additional paid model evaluation is required merely to merge this unchanged, 
 #### Integration validation
 
 After merging the incoming master documentation, `python -m pytest server/tests -q` passed **310 tests and 383 subtests** in 25.69 seconds. `node tools/check-docs.mjs` passed (49 live files, 52 files link-checked); `git diff --check` passed. The three assembled instruction hashes still match the frozen comparison, and shared estimate/fit/scope strings remain byte-identical to its baseline. The repository reports no GitHub checks for this PR; this is not a passing remote CI result. No Android build, device operation, live API evaluation, server deployment or app distribution is part of this integration.
+
+## Continuation scope — pt-BR cue lexicon
+
+- State: awaiting approval (written 2026-10-05). The plan stays `Em implementação` for the delivered-but-unaccepted candidate; nothing in this section is authorized until the owner approves it by name.
+- Approval: `Aprovo a continuação "pt-BR cue lexicon" do plano docs/server/plans/s19-generalizable-chat-instructions.md. Implemente a continuação aprovada.`
+- Executable boundary: unchanged, `server/` only.
+
+### Owner decisions (2026-10-05)
+
+1. pt-BR words and constructions may stay in the fixed Chat instructions for now, as language cues, provided they are authored from the rule and carry no food, quantity, brand, nutrient, person or date.
+2. This is a known internationalization blocker, accepted for the current pt-BR-only product. It must be raised whenever releasing the app to another market or language is discussed, and it is to be fixed before such a release. This plan does not fix it.
+
+### Diagnosis of the frozen candidate
+
+Read-only review of the frozen candidate against the pre-S19 instructions (`1be6e4c^:server/llm.py`). No test or model call was run for this diagnosis; the mapping below is a source reading, not a measured ablation.
+
+The first pass classified every concrete phrase of the old prompt as an example of unknown provenance and removed all of them together. Three different kinds of material were mixed:
+
+| Class | What it was | Treatment so far | Correct treatment |
+| --- | --- | --- | --- |
+| Incident content | A reported meal with its quantities; a branded product label with its values. | Removed. | Stays removed (ADR-033 § 1). |
+| pt-BR language cues | Function words and verb constructions that map Portuguese phrasing to an intent: pending, hedge, addition/correction, plan, skip, record-request and eating-day markers; common meal words; names that match no slot. | Removed as "unknown provenance". | Not a retelling of anyone's meal. Re-author from the rule and declare (this section). |
+| Food-bearing illustrations | Short meal stories and a compact-digest sequence using a narrow set of foods. | Removed; one symbolic table added. | Add back only where a cue is measured insufficient, freshly authored and varied. |
+
+The model receives English rules and pt-BR input at reasoning effort `none`. The incumbent regressions in [Complete frozen comparison](#complete-frozen-comparison) line up with removed cues:
+
+| Regressed incumbent (baseline → candidate reps) | Removed cue class |
+| --- | --- |
+| `registro-pulei-sem-slot` (3/3 → 0/3) | Meal names that match no PROFILE slot. |
+| `hard-acho-que-nao-janto` (3/3 → 2/3) | Hedge markers on a skip. |
+| `slot-cafe-20h`, `slot-cafe-repete-almoco` (3/3 → 1/3) | Common meal words for a named slot; the continuation relation of an answer to the meal named before. |
+| `janta-o-que-como` (3/3 → 2/3) | Plan markers. |
+| `hard-foto-pergunta` (3/3 → 2/3) | Nutrition-question markers on a photo. |
+| `igual-almoco-segunda` (3/3 → 2/3) | Particular-prior-day copy phrasing. |
+| `dia-comi-ontem`, `registro-noturno-ontem` (3/3 → 2/3, 1/3) | Eating-day markers; the notice also applying alongside assumptions. |
+| `digest-pergunta-aberta` (3/3 → 2/3) | The open-question format illustration in compact. |
+
+Several of these are single failed repetitions out of three, which is within the baseline's own noise. The later abstract rule text grew each Chat prefix by about 2,600 characters without recovering them.
+
+### Scope
+
+1. **Base.** Continue from the frozen candidate (`533f76a`): keep the registry, the incident removal, the `context` rule and the transfer gains. Do not restore the pre-S19 strings.
+2. **Cue lexicon.** Add a third declared inventory beside `RULES` and `EXAMPLES` in `server/chat_instructions.py`. Each cue has a stable id, the owning rule, its purpose, provenance `independent_synthetic` and locale `pt-BR`. A cue is a marker or minimal construction (at most four words), never a full user sentence, and contains no food, quantity, brand, nutrient, person or date. Meal words and eating verbs derived from slot names are allowed. Cues are authored from the rule text and ordinary pt-BR grammar, not copied from the old prompt, logs or fixtures; when the natural marker is a single common word, coinciding with the old prompt is not a violation (ADR-033 § 2: origin and function, not a vocabulary blacklist).
+3. **Assembly.** Each rule that needs cues references them by id, so the assembled prefix stays identical across users within a capability branch. `validate_inventory` covers cues the same way as examples: undeclared, unowned, wrong-provenance, missing-locale or unassembled cues fail.
+4. **Prompt/test separation.** A unit test fails when a cue equals a whole user message of any evaluation fixture (normalized for case, accents and punctuation). Where an incumbent fixture's message is only a marker plus a meal word, the cue list for that rule must not reproduce that exact combination.
+5. **Food-bearing synthetic examples, one at a time.** Only after step 2 is measured. Add one only for a failure that cues did not fix, authored from the rule with foods, slots and amounts that appear in no fixture and not in the pre-S19 prompt; register it in `EXAMPLES` with origin and purpose. Remove it again if it is measured neutral. Expected candidates: the compact open-question format and the answer-continues-named-meal relation.
+6. **Trim, optional.** Abstract rule text added during the first pass may be removed only when a targeted run shows no loss. Not required for acceptance.
+7. **Traceability.** Extend the rule map in Results with the cue inventory (id, rule, purpose) and the source review of every cue and added example.
+
+### Acceptance (replaces Validation items 3 and 4 for the continuation; items 1, 2, 5 and 6 stand)
+
+The original "every repetition passes" gate is not reachable while the baseline itself fails 9 of 465 repetitions. Replacement:
+
+1. Run the incumbent suite at three repetitions on the new candidate. Every case with fewer passing repetitions than the recorded baseline is rerun at ten repetitions on both the baseline and the candidate prefixes. The candidate passes when no such case has fewer passing repetitions than the baseline at ten.
+2. No candidate repetition, in any case where the baseline shows none, produces an actionable error: an automatic skip from a hedged or unmatched meal, a record on the wrong slot or day, or an addition released without its required clarification.
+3. Transfer pairs: no family and no capability below the baseline; reserved set 48/48. A reserved case that drives an edit becomes development evidence and is replaced before the claim, as in the original scope.
+4. `cafe-resposta-leite` and `memoria-cheia` fail on the baseline in all repetitions and are excluded from the comparison. They are reported, not fixed here.
+5. Same model, effort, worker count and cost/latency methodology as the recorded runs. Fixtures and expectations are not deleted or weakened.
+
+Paid evaluation starts only after approval of this section.
+
+### Deployment hold
+
+Master carries the frozen candidate, which fails acceptance. Do not deploy `server/` from master to the dev VM until this continuation passes. S20 and S21 already list S19 as a prerequisite. If a server deploy becomes necessary first, restoring the pre-S19 rule text inside the registry is a separate owner decision.
+
+### Out of scope for the continuation
+
+- Internationalization of the instructions, cues or contracted pt-BR copy. Recorded as a blocker in the owner decisions above.
+- The structured continuation state and action validation proposed in [the handoff](#proposed-continuation-not-yet-an-implementation-plan) (items 2 and 3). They need their own ADR and plans.
+- Legacy shaping fixes for the two excluded baseline failures.
+- Android, schema, context serialization, model or effort changes.
+
+### Intended documentation changes at Completion
+
+In addition to [§ 5](#5-intended-documentation-changes): server Chat states that the fixed instructions contain a declared pt-BR cue lexicon and contracted pt-BR copy, that both are language-specific, and that a release in another language or market requires replacing them first.
