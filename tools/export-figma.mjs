@@ -55,6 +55,10 @@ export const DARK_FRAMES = {
   chatR: "72:3312",
   chatM: "72:3333",
   chatS: "72:3359",
+  // Chat meal updates (D9)
+  chatI: "123:4230",
+  chatIC: "123:4308",
+  chatTI: "123:4385",
   cfg: "78:3664",
   cfgS: "78:3695",
   wipe: "78:3723",
@@ -97,6 +101,10 @@ export const LIGHT_FRAMES = {
   chatR: "72:2959",
   chatM: "72:3034",
   chatS: "72:3104",
+  // Chat meal updates (D9)
+  chatI: "123:3802",
+  chatIC: "123:3909",
+  chatTI: "123:4014",
   cfg: "78:3425",
   cfgS: "78:3520",
   wipe: "78:3596",

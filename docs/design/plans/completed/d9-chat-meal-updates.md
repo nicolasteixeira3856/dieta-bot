@@ -1,6 +1,6 @@
 # Plan — D9 Chat meal updates
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 04/10/2026
 - Owning context: `design`
 - Executable boundary: the Chat meal-update flow in Figma `Design`; no app/server code. Repository outputs: the golds listed below, their entries in `tools/export-figma.mjs`, the gold inventory and design documentation.
@@ -116,9 +116,9 @@ Example data (fictional): Jantar already 380 kcal (22P · 40C · 14G); addition 
 2. Read-back of the six frames: 122 instances, 0 orphan; 0 solid fills or strokes without a variable or paint style and 0 text without a text style outside instances; 0 overlapping section children. Long food names wrap and keep the value on the row (`chatI` estimate and `chatTI` box).
 3. Regression: `chatE`, `chatU`, `chatT`, `chatF`, `chatG`, `chatD`, `chatM` exported again by REST dry run after the change; byte-identical to the committed golds in both themes.
 4. One visual fix before the review: the AddPending button group had collapsed to the old 58 px row height; it now hugs two 58 px buttons.
-5. Review images of the six frames sent to the owner on 2026-10-05. Owner review in Figma: pending.
+5. Review images of the six frames sent to the owner on 2026-10-05. Owner review in Figma done the same day, no fixes requested.
 
-### For the owner review
+### For the owner review (accepted)
 
 Figma: [section `Chat — Atualizações de refeições`](https://www.figma.com/design/qNiqNN3vk9GpmPL3bcV9W1/Design?node-id=123-3799).
 
@@ -129,4 +129,19 @@ Figma: [section `Chat — Atualizações de refeições`](https://www.figma.com/
 5. `chatTI` uses the button label as the sheet title and a new subtitle (`Só o acréscimo vai para a refeição escolhida. O Jantar fica como está.`), wording authorized by this plan's scope 3.
 6. Revision shows `NOVO TOTAL` in the estimate card and again in the confirmation card next to `Antes`.
 
-Export (scope 6) waits for the owner's OK.
+### Owner review (2026-10-05)
+
+The owner reviewed the section in Figma and closed the plan: "Revisei no Figma, pode exportar os golds e concluir o D9." The six points above were accepted with no changes.
+
+### Exported golds
+
+- `tools/export-figma.mjs`: `chatI`, `chatIC`, `chatTI` mapped in `DARK_FRAMES` and `LIGHT_FRAMES` (node ids in the table above).
+- `docs/qa/README.md` § Golds: the three ids added to the inventory. The inventory has no source column since D8 (every gold comes from Figma), so scope 6's `figma` source needs no entry.
+- `node tools/export-figma.mjs --only chatI,chatIC,chatTI`: six new files in `docs/qa/figma/{dark,light}/`, 780 px wide (`chatI` 1860, `chatIC` and `chatTI` 1688 px tall). Five are byte-identical to the images reviewed by the owner; Dark `chatI` differs only in PNG encoding (0 pixels with Δ > 40).
+- No other gold has a diff.
+- `node tools/check-figma.mjs`: 74 Figma gold PNGs verified (37 dark + 37 light). `node tools/check-docs.mjs`: passed.
+- Next: [A47](../../../android/plans/a47-chat-meal-updates.md) implements these states against the golds; the product specification changes at its Completion.
+
+### Figma MCP budget, total
+
+14 of 100. The review and the closure used no MCP call (export through the REST API).
