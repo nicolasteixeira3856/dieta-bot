@@ -61,10 +61,10 @@ Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Rec
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Technical identity | [A48](../../android/plans/a48-fibrai-app-id-firebase.md) — `app.fibrai.android` everywhere and Firebase `fibrai-dev` ([ADR-036](../../android/adrs/ADR-036-fibrai-technical-identity.md)) | no parallel Android plan |
+| Technical identity | A48 — `app.fibrai.android` everywhere and Firebase `fibrai-dev` ([`completed/`](../../android/plans/completed/)) ([ADR-036](../../android/adrs/ADR-036-fibrai-technical-identity.md)) | no parallel Android plan |
 | Golds | D10 — Fibrai and Tali in the golds ([ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md)) ([`completed/`](completed/)) | — |
 | Model | [S20](../../server/plans/s20-tali-prompt-identity.md) — Tali identity in the model instructions | D10 approved, S19 |
-| Client | [A49](../../android/plans/a49-fibrai-tali-visible-rename.md) — Fibrai and Tali in the app | D10, A48 |
+| Client | A49 — Fibrai and Tali in the app ([`completed/`](../../android/plans/completed/)) | D10, A48 |
 | Docs | [SD5](../../sdd/plans/sd5-fibrai-docs-prose.md) — Fibrai in documentation and skills prose | A49 |
 | Landing design | D11 — Landing page ([ADR-037](../../site/adrs/ADR-037-landing-site.md)) ([`completed/`](completed/)) | — |
 | Landing code | W1 — Landing page code in `web/` ([ADR-038](../../site/adrs/ADR-038-web-project-folder.md)) ([`completed/`](../../site/plans/completed/)) | D11, D10 |

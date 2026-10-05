@@ -1,6 +1,6 @@
 # ADR-036 — Technical identity: `app.fibrai.android` everywhere in the app, Firebase project for Fibrai dev
 
-- Status: Proposed (2026-10-05; accepted with the owner's approval of [A48](../plans/a48-fibrai-app-id-firebase.md))
+- Status: Accepted (2026-10-05, explicit owner approval of A48)
 - Date: 2026-10-05
 - Context: `android`
 - Replaces, when A48 completes:
@@ -68,6 +68,6 @@ ADR-016 left the final package for "a future ADR before prod", once the name was
 ## Relations
 
 - [ADR-014](ADR-014-flavors-firebase-dev.md), [ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md) (X-Request-Id), [ADR-016](../../produto/adrs/ADR-016-nome-dieta-bot.md), [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md).
-- Plan: [A48](../plans/a48-fibrai-app-id-firebase.md).
+- Plan: [A48](../plans/completed/a48-fibrai-app-id-firebase.md).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the replacement.

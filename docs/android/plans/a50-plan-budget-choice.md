@@ -9,7 +9,7 @@
   - acceptance of [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md); [S21](../../server/plans/s21-plan-cooking-and-budget-choice.md) delivered and deployed to the dev server;
   - [D12](../../design/plans/d12-plan-budget-choice.md) `Concluído` with `chatRB` exported;
   - [A47](pending_manual_validation/a47-chat-meal-updates.md) delivered (same Chat files and Room column family);
-  - [A48](a48-fibrai-app-id-firebase.md) and [A49](a49-fibrai-tali-visible-rename.md) delivered or cancelled (package rename and visible copy; no parallel Android plan).
+  - [A48](completed/a48-fibrai-app-id-firebase.md) and [A49](completed/a49-fibrai-tali-visible-rename.md) delivered or cancelled (package rename and visible copy; no parallel Android plan).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a50-plan-budget-choice.md. Implemente o plano aprovado.`
 

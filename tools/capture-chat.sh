@@ -25,9 +25,9 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android.dev
+PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
-ACTIVITY=com.nutri.android.MainActivity
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
@@ -56,25 +56,25 @@ fact_keys() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(' '.joi
 compacts() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['compacts'])"; }
 db() { # db <sql> -> rows, after a force-stop so the WAL is in the pulled files
   "$ADB" shell am force-stop $PKG
-  rm -f "$TMP"/nutri.db*
-  for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-  "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchall())" "$TMP/nutri.db" "$1"
+  rm -f "$TMP"/fibrai.db*
+  for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+  "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchall())" "$TMP/fibrai.db" "$1"
 }
 
 # Gold names the first slot "Café da manhã"; adb cannot type accents.
 "$ADB" shell am force-stop $PKG
-rm -f "$TMP"/nutri.db*
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+rm -f "$TMP"/fibrai.db*
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
 c.execute("update meal_slot set name='Café da manhã' where id=?", (first,))
 c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 
@@ -134,9 +134,9 @@ if files_has memory.txt; then echo "  ✗ A8 memory.txt still there"; FAIL=1; el
 # Since ST7/A30 chatE has no question bubble either: the questions come before the estimate (chatQ).
 seed_gold() { # seed_gold <question or empty> [noslot]: an `ask` estimate (A34); noslot = Registrar opens Trocar
 "$ADB" shell am force-stop $PKG
-rm -f "$TMP"/nutri.db*
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" "$1" "${2:-}" <<'EOF'
+rm -f "$TMP"/fibrai.db*
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" "$1" "${2:-}" <<'EOF'
 import sqlite3, sys, time
 c = sqlite3.connect(sys.argv[1])
 question = sys.argv[2] or None
@@ -158,9 +158,9 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 1.5
@@ -202,18 +202,18 @@ if [ "$inchat" = "[(0,)]" ]; then echo "  ✓ digest not in chat_message"; else 
 # camera do nothing (0 POST). Back to 2000: sends, the fake gets 2000 code points. adb cannot type
 # accents: the gold message goes without them.
 "$ADB" shell am force-stop $PKG
-rm -f "$TMP"/nutri.db*
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+rm -f "$TMP"/fibrai.db*
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 for table in ("chat_message", "day_digest", "meal_log", "slot_skip"):
     c.execute(f"delete from {table}")
 c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 1.5
@@ -297,18 +297,18 @@ print(int(datetime.datetime(d.year, d.month, d.day, h, m, tzinfo=sp).timestamp()
 }
 sql() { # sql <python body using c (sqlite3 connection) and today (iso)>
   "$ADB" shell am force-stop $PKG
-  rm -f "$TMP"/nutri.db*
-  for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-  "$PY" - "$TMP/nutri.db" "$1" <<'EOF'
+  rm -f "$TMP"/fibrai.db*
+  for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+  "$PY" - "$TMP/fibrai.db" "$1" <<'EOF'
 import sqlite3, sys, time, datetime, zoneinfo
 c = sqlite3.connect(sys.argv[1])
 today = datetime.datetime.now(zoneinfo.ZoneInfo("America/Sao_Paulo")).date().isoformat()
 exec(sys.argv[2])
 c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
 EOF
-  "$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-  "$ADB" shell chmod 644 /data/local/tmp/nutri.db
-  "$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+  "$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+  "$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+  "$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 }
 open_chat() { "$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3; tap 'resource-id="home-fab"' 1.5; }
 CLEAN='for t in ("chat_message", "day_digest", "meal_log", "slot_skip"): c.execute(f"delete from {t}")'

@@ -1,6 +1,6 @@
 # ADR-014 — Flavors dev/prod e Firebase só no dev
 
-- Estado: Aceito (aprovação do plano A10, 2026-09-28; a parte Firebase é implementada no A11)
+- Estado: Aceito (aprovação do plano A10, 2026-09-28; a parte Firebase é implementada no A11); `applicationId` do dev e projeto `nutri-bot-dev` substituídos pelo [ADR-036](ADR-036-fibrai-technical-identity.md) (A48, 2026-10-05)
 - Data: 2026-09-28
 - Contexto: `android`
 - Substitui: parcialmente `AGENTS.md` (item "Firebase" em *Do not*). Crashlytics e Analytics passam a ser permitidos, **só no flavor dev**. Gemini/Firebase AI continuam proibidos.

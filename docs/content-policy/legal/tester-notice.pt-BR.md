@@ -1,8 +1,8 @@
 # Aviso aos testers — Dieta Bot (teste fechado)
 
-Versão 1 · 2026-10-01 · vale para o app de teste (`com.nutri.android.dev`) instalado pelo Firebase App Tester.
+Versão 2 · 2026-10-05 · vale para o app de teste (`app.fibrai.android.dev`) instalado pelo Firebase App Tester. A versão 1 (2026-10-01) valia para o app anterior (`com.nutri.android.dev`).
 
-O Dieta Bot está em teste fechado com dois testers. Este aviso diz o que sai do seu celular, para onde vai e por quanto tempo fica. Não é Termos de Uso nem Política de Privacidade.
+O Dieta Bot está em teste fechado com quatro testers. Este aviso diz o que sai do seu celular, para onde vai e por quanto tempo fica. Não é Termos de Uso nem Política de Privacidade.
 
 ## O que o app envia
 
@@ -33,7 +33,7 @@ Mensagens bloqueadas pela moderação (conteúdo sexual, ameaça e categorias gr
 ## Identificação para abuso
 
 - Endereço IP: o servidor usa o IP para limitar requisições por minuto. O IP aparece nos logs técnicos do servidor (acesso), não no registro de conversa.
-- Pseudônimo da instalação: numa próxima versão, o app vai criar um código aleatório por instalação. O servidor transforma esse código num pseudônimo e manda para a OpenAI para separar uma instalação de outra em caso de abuso. Não é seu nome, e-mail nem ID do aparelho.
+- Pseudônimo da instalação: o app cria um código aleatório por instalação. O servidor transforma esse código num pseudônimo e manda para a OpenAI para separar uma instalação de outra em caso de abuso. Não é seu nome, e-mail nem ID do aparelho.
 
 IP e pseudônimo não provam quem usou o app. Um IP pode ser compartilhado (Wi-Fi, operadora, VPN).
 
@@ -43,7 +43,7 @@ As chamadas vão com `store=false`: a OpenAI não guarda a conversa para o app r
 
 ## Diagnóstico do app
 
-O app de teste envia relatórios de falha e eventos de uso ao Firebase (Crashlytics e Analytics, projeto de teste). Esses eventos levam números e códigos (tela, rota, status, tempo de resposta, faixa de tamanho da mensagem, se havia foto, valores de kcal), nunca o texto que você digitou nem a foto.
+O app de teste envia relatórios de falha e eventos de uso ao Firebase (Crashlytics e Analytics, projeto de teste `fibrai-dev`). Esses eventos levam números e códigos (tela, rota, status, tempo de resposta, faixa de tamanho da mensagem, se havia foto, valores de kcal), nunca o texto que você digitou nem a foto.
 
 ## O que isto não garante
 

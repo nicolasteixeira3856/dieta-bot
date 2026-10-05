@@ -12,7 +12,7 @@ Keep server implementation outside this client delivery. Use domain rules, Room/
 - Structured profile/day/meal state uses Room. DataStore is only a legacy import path; do not restore day-state JSON persistence.
 - Photo processing follows [ADR-018](../../../docs/android/adrs/ADR-018-foto-2048.md): apply rotation, longest side at most 2048 px without upscaling, JPEG q85, EXIF stripped, 16 MB guard.
 - Read [Chat behavior](../../../docs/produto/specifications/chat.md) and the [HTTP contract](../../../docs/api-contract.md). Client credentials are API_PUBLIC_URL + INVITE_CODE / X-Invite, never an OpenAI key.
-- Follow [NetworkModule](../../../apps/android/app/src/main/java/com/nutri/android/core/network/NetworkModule.kt): connect 20 s, read/write 60 s, overall call 65 s. Network failures use the Chat retry state; they are not low-confidence portion questions.
+- Follow [NetworkModule](../../../apps/android/app/src/main/java/app/fibrai/android/core/network/NetworkModule.kt): connect 20 s, read/write 60 s, overall call 65 s. Network failures use the Chat retry state; they are not low-confidence portion questions.
 - Home/Chat day-one chips depend on their matching specifications and golds; do not ban every chip.
 - Preserve flavor boundaries and dev-only telemetry. Events carry enums and numbers, never user text.
 

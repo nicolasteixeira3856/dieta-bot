@@ -2,6 +2,35 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.14 — 05/10/2026
+
+### Novidades
+
+- O app agora se chama Fibrai. O nome aparece no ícone, na abertura e na configuração inicial.
+- A assistente do Chat agora é a Tali, com foto no topo do Chat e ao lado de cada resposta.
+
+### Ajustes
+
+- Esta versão atualiza o app novo instalado na versão anterior. Se o "Dieta Bot Dev" antigo ainda estiver no celular, pode desinstalar: ele não recebe mais atualizações.
+
+## 0.0.13 — 05/10/2026
+
+### Importante: app novo
+
+- Esta versão é um app novo. Instale pelo Firebase App Tester e depois desinstale o "Dieta Bot Dev" antigo (os dois aparecem com o mesmo nome até a próxima versão).
+- O app novo começa do zero: você refaz a configuração inicial. Refeições, memória e conversa do app antigo não passam para o novo.
+
+### Novidades
+
+- Acrescentar um alimento a uma refeição já registrada agora mostra o item novo separado do total: a estimativa traz só o que você acrescentou (com "+"), e embaixo aparecem o que já estava registrado e o total da refeição. Nada muda até você tocar em Adicionar.
+- Em Escolher outra refeição, só o acréscimo vai para a refeição escolhida; a refeição original fica como estava. Se a escolhida já tiver registro, o Chat pergunta de novo com os números dela.
+- Correções de uma refeição perguntam "Atualizar {refeição}?" com o valor de antes e o novo total. Cancelar não muda nada.
+
+### Correções
+
+- Um acréscimo não copia mais a refeição inteira para outra refeição nem soma o mesmo alimento duas vezes.
+- Uma proposta que ficou velha (outra mensagem, virada do dia, mudança na refeição) aparece como "Não registrado" e não grava nada.
+
 ## 0.0.12 — 04/10/2026
 
 ### Correções

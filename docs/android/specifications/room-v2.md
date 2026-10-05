@@ -2,9 +2,9 @@
 
 ## Ownership
 
-Android owns the database. Schema version 10. Exported schemas 1–10 live in `apps/android/app/schemas/`. The filename keeps its historical name for incoming links.
+Android owns the database. Schema version 10. The file is `fibrai.db` ([ADR-036](../adrs/ADR-036-fibrai-technical-identity.md)). Exported schemas 1–10 live in `apps/android/app/schemas/app.fibrai.android.core.database.FibraiDatabase/`, byte-identical to their history. The filename keeps its historical name for incoming links.
 
-`DietaBotDatabase` contains `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message` and `day_digest`. Structured daily state stays in Room; DataStore is only a legacy import path. No destructive migration fallback.
+`FibraiDatabase` contains `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message` and `day_digest`. Structured daily state stays in Room; DataStore is only a legacy import path. No destructive migration fallback.
 
 ## Functional rules
 
