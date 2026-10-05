@@ -1,6 +1,6 @@
 # ADR-037 — Landing site at fibrai.app: static, Aero, Cloudflare
 
-- Status: Proposed (2026-10-05; accepted with the owner's approval of [D11](../../design/plans/d11-landing-page.md))
+- Status: Accepted (2026-10-05, with the owner's named approval of [D11](../../design/plans/pending_manual_validation/d11-landing-page.md))
 - Date: 2026-10-05
 - Context: `site`
 - Replaces: nothing. It opens the `site` context and its code folder `site/`.
@@ -26,7 +26,7 @@ The app has no web surface today. AGENTS allows only `apps/android/` and `server
    - Aero tokens come from `docs/design/tokens.json`, the same source as the app, generated into CSS custom properties. No hand-copied values.
    - Nunito Sans is self-hosted (OFL), with no Google Fonts request.
    - Glass uses `backdrop-filter` with an opaque fallback. Phosphor SVG icons.
-   - The layout comes from the Figma `Design` page "Landing page" ([D11](../../design/plans/d11-landing-page.md)), with desktop and mobile golds in both themes.
+   - The layout comes from the Figma `Design` page "Landing page" ([D11](../../design/plans/pending_manual_validation/d11-landing-page.md)), with desktop and mobile golds in both themes.
 5. **Theme:**
    - The site starts in **light** whatever the system theme is.
    - A visible switch toggles dark/light, and the choice is remembered in `localStorage`.
@@ -66,7 +66,7 @@ The app has no web surface today. AGENTS allows only `apps/android/` and `server
 ## Relations
 
 - [ADR-030](../../design/adrs/ADR-030-own-design-system-aero.md) (Aero), [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md) (Figma source), [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md) (brand).
-- Plans: [D11](../../design/plans/d11-landing-page.md), [W1](../plans/w1-landing-site.md).
+- Plans: [D11](../../design/plans/pending_manual_validation/d11-landing-page.md), [W1](../plans/w1-landing-site.md).
 - [Production gate](../../content-policy/production-gate.md) PG2 (privacy policy).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the replacement.

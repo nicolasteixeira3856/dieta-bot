@@ -54,4 +54,5 @@ Status: the status line of each ADR.
 
 Active: the files at the root of [`plans/`](plans/). Execution order and dependencies: [plans/README.md](plans/README.md).
 
+- Pending manual validation: [`plans/pending_manual_validation/`](plans/pending_manual_validation/).
 - Completed: [`plans/completed/`](plans/completed/).

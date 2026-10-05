@@ -60,7 +60,7 @@ None at D10 Completion besides Results and this plan's lifecycle. The product sp
 - Final avatar art: when the owner delivers it, a follow-up design plan swaps the image fill and re-exports.
 - Logo and app icon.
 - Home, Config and push frames, unless discovery finds the name there; then they enter the same edit.
-- Compose, server and the landing page ([D11](d11-landing-page.md)).
+- Compose, server and the landing page ([D11](pending_manual_validation/d11-landing-page.md)).
 
 ## Validation
 
