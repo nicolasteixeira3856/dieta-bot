@@ -8,7 +8,7 @@ description: Validate a Dieta Bot delivery against its approved plan, dev checks
 Use [AGENTS](../../../AGENTS.md), the approved plan and [Android validation guidance](../../../docs/android/README.md). Run relevant checks from apps/android using assembleDevRelease, testDevDebugUnitTest and verifyRoborazziDevDebug. Do not substitute aggregate test or unflavored compileDebugKotlin tasks.
 
 For changed UI:
-- Confirm the dark/light gold PNGs from the id's source in the [gold inventory](../../../docs/qa/README.md) exist and any required design plan or gate is completed.
+- Confirm the dark/light Figma gold PNGs of the id in the [gold inventory](../../../docs/qa/README.md) exist and any required design plan is completed.
 - Follow the [visual workflow](../dieta-bot-android-visual/SKILL.md): Android CLI clean captures, layout bounds/text read as UTF-8, and the existing scripted capture flows.
 - Save fresh emulator captures in docs/qa/android/current/{dark,light}/. JVM renders do not belong there.
 - Compare against the matching golds using the current QA gate and write diffs covering layout, tokens, type size, radius, ButtonGroup, CTA, timeline and semantic macros.

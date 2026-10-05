@@ -22,12 +22,12 @@ Comportamento visivel do Dieta Bot: job, telas, copy, onboarding, slots, o que e
 
 - Schema Room, Compose, push — [android](../android/README.md).
 - Rotas HTTP, LLM, host — [server](../server/README.md).
-- Política de conteúdo (escopo, recusas, moderação) — [content-policy](../content-policy/README.md). UI de aceite legal ou de idade exige plano de produto próprio e gate Stitch, e está bloqueada pelo [production gate](../content-policy/production-gate.md).
+- Política de conteúdo (escopo, recusas, moderação) — [content-policy](../content-policy/README.md). UI de aceite legal ou de idade exige plano de produto próprio e plano de design (gate Figma), e está bloqueada pelo [production gate](../content-policy/production-gate.md).
 
 ## Fronteiras e dependencias
 
 - Constituicao vigente: [`AGENTS.md`](../../AGENTS.md).
-- Visual: [`docs/tokens.md`](../tokens.md) e os golds do Google Stitch ([inventário](../qa/README.md)).
+- Visual: [`docs/tokens.md`](../tokens.md) e os golds do Figma `Design` ([inventário](../qa/README.md)).
 - Nao duplicar contrato HTTP nem schema. Link.
 
 ## Como usar esta documentacao
@@ -37,7 +37,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 1. AGENTS.md
 2. a spec do assunto (índice abaixo)
 3. os ADRs que a spec cita
-4. docs/tokens.md e o Design System Stitch (`.stitch/DESIGN.md`) para assuntos visuais
+4. docs/tokens.md e os golds do Figma `Design` ([design](../design/README.md)) para assuntos visuais
 
 ## Indice
 
@@ -69,6 +69,6 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 
 ### Planos
 
-This context has no `plans/`. Deliveries belong to [Android](../android/README.md), [server](../server/README.md) and [design](../design/README.md); frozen Stitch history is routed by its [README](../stitch/README.md).
+This context has no `plans/`. Deliveries belong to [Android](../android/README.md), [server](../server/README.md) and [design](../design/README.md); the Stitch history is routed by its [README](../stitch/README.md).
 
 Meal updates: [D9](../design/plans/d9-chat-meal-updates.md) and [A47](../android/plans/a47-chat-meal-updates.md).

@@ -1,6 +1,6 @@
 # Dieta Bot — repo constitution
 
-Product name: Dieta Bot. Technical IDs stay `nutri` (package, applicationId, nutri.db, Firebase nutri-bot-dev, VM nutri-api, Stitch project `Nutri`) per ADR-016.
+Product name: Dieta Bot. Technical IDs stay `nutri` (package, applicationId, nutri.db, Firebase nutri-bot-dev, VM nutri-api) per ADR-016.
 
 One agent. Job: fit the next meal into today's remaining budget, dinner first.
 
@@ -76,25 +76,24 @@ Timeline: continuous vertical guide, node markers, single consolidated meal log 
 
 ## Visual QA
 
-Source of truth for layout: the Figma file `Design` (key `qNiqNN3vk9GpmPL3bcV9W1`, ADR-031). Two gold sources during the migration: each gold id declares its source (`stitch` or `figma`) in the inventory. A flow switches to `figma` when its client plan completes; until then its gold is the frozen Stitch project `Nutri` (ID: `6282733070135794645`).
-Implementation must strictly follow the gold PNG of the id's source (`docs/qa/<source>/{dark,light}/`).
+Source of truth for layout: the Figma file `Design` (key `qNiqNN3vk9GpmPL3bcV9W1`, ADR-031). It is the only UI source.
+Implementation must strictly follow the gold PNG (`docs/qa/figma/{dark,light}/`).
 
 Folder law:
 - Figma gold PNGs: `docs/qa/figma/dark/<id>.png` and `docs/qa/figma/light/<id>.png` (exported from Figma `Design`)
-- Stitch gold PNGs: `docs/qa/stitch/dark/<id>.png` and `docs/qa/stitch/light/<id>.png` (exported from Stitch `Nutri`)
 - App captures: `docs/qa/android/current/dark/` and `docs/qa/android/current/light/`
 - Site captures (browser, `land`, `landM`, `priv`): `docs/qa/site/current/dark/` and `docs/qa/site/current/light/`
-- Deprecated legacy wires & old captures: `docs/qa/_legacy/`
+- Deprecated legacy wires, old captures and archived golds: `docs/qa/_legacy/`
 - Do not compare against `_legacy`
 - No PNG/JPG may sit in the `docs/qa/` root
 
-Gold inventory (ids per theme, with source): `docs/qa/README.md` § Golds, the single human-readable list. The executable maps are `tools/export-figma.mjs` and `tools/export-stitch.mjs`.
+Gold inventory (ids per theme): `docs/qa/README.md` § Golds, the single human-readable list. The executable map is `tools/export-figma.mjs`.
 
 Splash is a cold start, not a freeze. Do not treat a visible splash as a crash.
 
 A screen is not DONE until the agent has:
 
-1. The matching gold PNG in docs/qa/<source>/{dark,light}/
+1. The matching gold PNG in docs/qa/figma/{dark,light}/
 2. A fresh emulator screencap in docs/qa/android/current/{theme}/
 3. A written diff list (layout, tokens, type size, radius, ButtonGroup, CTA, timeline, semantic macros)
 4. Iterated the Compose UI until the emulator screencap matches the gold PNG
@@ -103,16 +102,14 @@ Ignore in the comparison: system clock, battery, 3-button nav, font raster from 
 Do not ignore: remaining size, CTA color, sheet radius, day-1 zero chips, gold as accent only, semantic macro colors, consolidated meal entry (values in `docs/tokens.md`).
 The site golds `land`, `landM` and `priv` are compared with Chromium captures (`npm --prefix web run capture`), not the emulator; browser font raster is ignored the same way.
 
-How to export gold PNGs (agent, unattended):
-- Figma: `node tools/export-figma.mjs --only <ids>` (needs `FIGMA_TOKEN` in the user environment; never print it), check: `node tools/check-figma.mjs`
-- Stitch (frozen flows): `node tools/export-stitch.mjs`, check: `node tools/check-stitch.mjs`
+How to export gold PNGs (agent, unattended): `node tools/export-figma.mjs --only <ids>` (needs `FIGMA_TOKEN` in the user environment; never print it), check: `node tools/check-figma.mjs`
 
 ## Skills
 
 Skills folders: `.agents/skills`, `.grok/skills`, `.hermes/skills`, and `.claude/skills` must be kept strictly synchronized with identical skill sets.
 
 Project skills:
-dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual · dieta-bot-figma · dieta-bot-stitch
+dieta-bot-android-decision · dieta-bot-android-feature · dieta-bot-android-memory · dieta-bot-android-qa · dieta-bot-android-ui · dieta-bot-android-visual · dieta-bot-figma
 
 Engineering skills:
 android-architecture · compose-stability · screenshot-testing · room-ksp-coroutines · fastapi-security · kotlin-clean · aero-compose
@@ -120,7 +117,7 @@ android-architecture · compose-stability · screenshot-testing · room-ksp-coro
 Official Google skills (npx or `android skills`) stay.
 Apply their recipes within the approved plan, current specifications, the inventory golds and stack pins. Examples do not authorize new screens, navigation migrations, SDK/dependency upgrades, new test frameworks, global skill installation or additional agents. Execute Play-policy checks sequentially under this repository's one-agent rule.
 After a skill change, synchronize all four complete trees and run `node tools/check-skills.mjs` (read-only; `--root <path>` supports fixture checks). It verifies inventories, bytes, retired names and concrete relative Markdown references; validate YAML metadata separately.
-Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar, material3-expressive.
+Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-lembrar, material3-expressive, dieta-bot-stitch.
 
 ## Production gate
 
@@ -132,7 +129,7 @@ Still allowed: explaining the blockers, reactivating and executing the blocking 
 ## How to work
 
 Implementation follows `docs/sdd/README.md`. Matrix: `docs/README.md`.
-Current state: read AGENTS → `docs/README.md` → the context README → the owning specification, then an ADR it cites and the named active plan. `plans/completed/` and `plans/cancelled/` are history: open them only for provenance, a Stitch gate check or an explicit history question.
+Current state: read AGENTS → `docs/README.md` → the context README → the owning specification, then an ADR it cites and the named active plan. `plans/completed/` and `plans/cancelled/` are history: open them only for provenance or an explicit history question.
 Single writer: state a fact (status, version, date, list, value) only in the file that owns it; everywhere else, link to that file.
 After a documentation change, run `node tools/check-docs.mjs` (read-only; `--root <path>` supports fixture checks): links, spec Provenance, status copies, ADR status lines, README routing, gold inventory.
 Everything about user-supplied content reaching the AI (scope, injection, moderation, harmful content, correlation, content logging, incidents) lives in `docs/content-policy/`. Keep that folder; do not split the topic elsewhere. Each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
@@ -145,7 +142,6 @@ Test before marking done.
 Git delivery (every implemented plan, no need to ask): new branch from an up-to-date `master` → commit only the plan's files → push → `gh pr create --base master` → `gh pr merge --merge --delete-branch` → `git switch master` → `git pull --ff-only`. Red CI or conflict: stop and report. Exception: the `chore(release)` commit + tag of `tools/distribute-dev.ps1` goes straight to `master`. Details: `docs/sdd/README.md` § Entrega git.
 
 Figma review gate: a layout change that needs a new or changed gold is drawn by the agent in the Figma file `Design` through the Figma MCP, inside a design plan (`docs/design/plans/D<n>`, one flow per plan). The owner's only manual step is the visual review in Figma; after the owner's OK the agent exports the golds. Client plans that need it list the design plan as a prerequisite and do not start until it is `Concluído`. Details: [docs/design/plans/README.md § Figma review gate](docs/design/plans/README.md#figma-review-gate) and `docs/sdd/README.md` § Gate Figma.
-Stitch gate: frozen. No new ST gates and no edits to Stitch `Nutri`; its golds stay the reference of the flows not yet migrated. Screen title ↔ gold id table: `docs/stitch/README.md` § Nomes das telas.
 
 Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1`.
 It ships the signed dev release APK through Firebase App Distribution (group `testers`: owner + Icaro, installed via Firebase App Tester).
@@ -158,7 +154,7 @@ Never edit `apps/android/version.properties` by hand. Never reuse a number. Unti
 Firebase outside ADR-014 (Crashlytics + Analytics, dev flavor only) and A16 (App Distribution of the dev APK), Gemini / Firebase AI, TDEE, eat-back cap, Health/Xiaomi, key in the client,
 VPS outside ADR-013, router port, iOS, Flutter, React Native,
 screens outside ADR-012,
-UI implementation from any source other than the gold PNGs of the inventory (Figma, or Stitch for flows not migrated),
+UI implementation from any source other than the gold PNGs of the inventory (Figma `Design`),
 Appbar / BottomNav as showcase,
 treat splash as a freeze,
 drop loose QA images in docs/qa/.

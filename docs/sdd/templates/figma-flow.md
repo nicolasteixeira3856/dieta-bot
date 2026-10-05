@@ -15,9 +15,9 @@ Draw the <Flow> states in Aero, in both themes, from the design system, with the
 
 ## Sources (feature parity, ADR-031 § 4)
 
-| Gold | Stitch title (layout reference only) | Behavior source |
+| Gold | Reference (current gold or frame, layout only) | Behavior source |
 |---|---|---|
-| `<id>` | <exact Stitch title> | <live specification> |
+| `<id>` | <current Figma frame, or none for a new state> | <live specification> |
 
 Code: `<apps/android/... feature package>`.
 
@@ -34,7 +34,7 @@ Code: `<apps/android/... feature package>`.
 3. **Screens** (section "<Flow>" on `Release <r>`):
    - Light row: <ids>, in product order, 390 px wide;
    - Dark row: clones with the `Dark` mode, no other change;
-   - frame names `<id> · <Stitch title without the theme suffix> · Light|Dark`; spacing per ADR-031 § 3;
+   - frame names `<id> · <screen title> · Light|Dark`; spacing per ADR-031 § 3;
    - the pilot draft of this flow, if any, is replaced and deleted.
 4. **Owner review** (Figma review gate):
    - one screenshot per frame is sent to the owner;
@@ -43,9 +43,8 @@ Code: `<apps/android/... feature package>`.
 5. **Export** after the OK:
    - fill the <Flow> ids in `tools/export-figma.mjs`;
    - `node tools/export-figma.mjs --only <ids>`;
+   - add new ids to the inventory of `docs/qa/README.md`;
    - `node tools/check-figma.mjs`.
-
-   The inventory source stays `stitch`; the client plan <A-id> switches it.
 
 ## Out of scope
 

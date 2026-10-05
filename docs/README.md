@@ -12,7 +12,6 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este 
 | [android](android/README.md) | client | `apps/android/` | [Room](android/specifications/room-v2.md) | [adrs/](android/adrs/) | [plans/](android/plans/) | [qa/android/](qa/android/), [validation/](android/validation/) |
 | [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [adrs/](server/adrs/) | [plans/](server/plans/) | `server/tests/` |
 | [design](design/README.md) | fonte de design (Figma `Design`) | — (Figma + golds em `docs/qa/figma/` + `tools/export-figma.mjs`, `tools/gen-tokens.mjs`) | — | [adrs/](design/adrs/) | [índice](design/plans/README.md) | `tools/check-figma.mjs` |
-| [stitch](stitch/README.md) | gate de design congelado: referência dos fluxos não migrados, sem gates novos | — (golds + `tools/export-stitch.mjs`) | — | — | [plans/](stitch/plans/) | `tools/check-stitch.mjs` |
 | [content-policy](content-policy/README.md) | cross-cutting policy | um diretório por plano: server, Android ou infra GCP | [content handling](content-policy/specifications/content-policy.md), [identity/audit](content-policy/specifications/identity-and-audit.md) | [adrs/](content-policy/adrs/) | [índice](content-policy/plans/README.md) | [matriz](content-policy/validation/README.md) |
 | [site](site/README.md) | client web (landing estática) | `web/` | — | [adrs/](site/adrs/) | [plans/](site/plans/) | `docs/qa/site/current/` |
 | [sdd](sdd/README.md) | manutenção do fluxo | `tools/check-skills.mjs`, skills | — | — | [índice](sdd/plans/README.md) | — |
@@ -24,7 +23,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este 
 - Ativos: arquivos na raiz de cada `plans/` da matriz (e o índice de `plans/`, quando existe).
 - Pendentes de aprovação manual: `plans/pending_manual_validation/`.
 - Fora de escopo: `plans/out_of_scope/`. Os que bloqueiam produção estão no [production gate](content-policy/production-gate.md), dono da lista de bloqueios.
-- Histórico: `plans/completed/` e `plans/cancelled/`. Só para proveniência, conferência de gate Stitch ou pergunta explícita sobre histórico.
+- Histórico: `plans/completed/` e `plans/cancelled/`. Só para proveniência ou pergunta explícita sobre histórico.
 
 ## ADRs
 
@@ -78,7 +77,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [tokens.md](tokens.md) | valores dos tokens visuais (dono único; seção Aero gerada do Figma `Design`) |
 | [server/deploy-gcp.md](server/deploy-gcp.md) | runbook do host GCP (ADR-013) |
 | [qa/](qa/README.md) | inventário de golds (dono único), capturas e fluxo de QA visual |
-| [`../.stitch/`](../.stitch/) | Design System oficial Google Stitch (`Nutri`) |
+| [stitch/](stitch/README.md) | histórico do Google Stitch `Nutri`, fonte de layout até o ADR-031: gates concluídos e tabela de títulos |
 
 ## Como começar uma entrega
 

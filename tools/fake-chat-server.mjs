@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// QA-only fake of POST /v1/chat (no OpenAI). Answers the Stitch chatE estimate, suggesting the
+// QA-only fake of POST /v1/chat (no OpenAI). Answers the chatE estimate, suggesting the
 // profile slot whose name starts with "Caf" (else the first). POST /__mode {"hang": true} makes
 // /v1/chat never answer (loading state, then the client's 60 s timeout). compact=true answers a
 // fixed digest like the real server (S3); empty messages -> 422. GET /__calls also counts compacts

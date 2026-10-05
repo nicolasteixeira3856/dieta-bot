@@ -4,12 +4,11 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 
 ## Folders
 
-- `figma/dark/` e `figma/light/` — Gold PNGs exportados dos frames do arquivo Figma `Design` (2x, 780 px), para os ids de fonte `figma` ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md))
-- `stitch/dark/` e `stitch/light/` — Gold PNGs exportados do projeto Google Stitch `Nutri`, congelado, para os ids de fonte `stitch`
+- `figma/dark/` e `figma/light/` — Gold PNGs exportados dos frames do arquivo Figma `Design` (2x, 780 px), a única fonte de UI ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md))
 - `android/current/dark/` — Screencaps do emulador Android (Dark theme). Só emulador: renders JVM ficam em `build/`.
 - `android/current/light/` — Screencaps do emulador Android (Light theme)
 - `site/current/dark/` e `site/current/light/` — Capturas do navegador da landing (`land`, `landM`, `priv`), feitas por `npm --prefix web run capture` ([site](../site/README.md))
-- `_legacy/` — Telas legadas e wires antigos depreciados. **Nunca comparar contra esta pasta.**
+- `_legacy/` — Telas legadas, wires antigos e os golds e o design system do Google Stitch arquivados (`stitch/`, `stitch-design-system/`; [histórico](../stitch/README.md)). **Nunca comparar contra esta pasta.**
 
 > **Regra estrita:** Nenhum arquivo PNG/JPG pode ficar na raiz de `docs/qa/`.
 
@@ -17,20 +16,20 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 
 ## Golds
 
-Inventário oficial: dono único da lista de golds, igual nos dois temas. Cada linha começa pela **fonte** dos seus ids (`stitch` ou `figma`): o gold de um id está em `docs/qa/<fonte>/{dark,light}/<id>.png`. A fonte de um fluxo passa a `figma` quando o plano de **client** do fluxo conclui; até lá o app ainda desenha o visual antigo e segue comparado com o gold Stitch ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md) § 7). Quem cria, remove ou troca a fonte de um gold atualiza esta lista e o mapa da fonte (`tools/export-stitch.mjs` ou `tools/export-figma.mjs`) na mesma entrega; `node tools/check-docs.mjs` (C7) confere que cada id está no mapa da fonte declarada.
+Inventário oficial: dono único da lista de golds, igual nos dois temas. O gold de um id está em `docs/qa/figma/{dark,light}/<id>.png`. Quem cria ou remove um gold atualiza esta lista e o mapa de `tools/export-figma.mjs` na mesma entrega; `node tools/check-docs.mjs` (C7) confere que a lista e o mapa dos dois temas são iguais.
 
 ```text
-figma: splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
-figma: home0.png · home1.png · homeX.png · homeW.png
-figma: chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
-figma: chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
-figma: cfg.png · cfgS.png · wipe.png · push.png
-figma: land.png · landM.png · priv.png
+splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
+home0.png · home1.png · homeX.png · homeW.png
+chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
+chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
+cfg.png · cfgS.png · wipe.png · push.png
+land.png · landM.png · priv.png
 ```
 
 A última linha é o site (landing de `fibrai.app`, [ADR-037](../site/adrs/ADR-037-landing-site.md)), não o app: `land` e `priv` são frames desktop de 1440 px (PNG de 2880 px) e `landM` é mobile de 390 px. Eles são comparados com capturas do navegador (Chromium a 2x, página inteira) em `site/current/`, pelo mesmo gate abaixo, sem as faixas de status e navegação; a captura tem a altura exata do gold. As telas dentro dos celulares são o gold do app; a deriva de até 4 px do clone reescalado no Figma é aceita (W1, em [`site/plans/completed/`](../site/plans/completed/)).
 
-O nome base (`<id>.png`) é rigorosamente idêntico em `stitch/{dark,light}/`, `figma/{dark,light}/` e `android/current/{dark,light}/`.
+O nome base (`<id>.png`) é rigorosamente idêntico em `figma/{dark,light}/` e `android/current/{dark,light}/`.
 
 *Nota sobre a Splash:* É tela de cold start rápido (≤2s), não um travamento. Nunca trate splash visível como crash.
 
@@ -38,7 +37,7 @@ O nome base (`<id>.png`) é rigorosamente idêntico em `stitch/{dark,light}/`, `
 
 ## Exportação dos golds
 
-Figma (fonte `figma`): frames mapeados em `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`, preenchidos pelo plano de design de cada fluxo), exportados a 2x pela API REST do Figma. Precisa de `FIGMA_TOKEN` no ambiente do usuário (token pessoal, escopo File content: Read-only); o script nunca imprime o token.
+Frames mapeados em `tools/export-figma.mjs` (`DARK_FRAMES` / `LIGHT_FRAMES`, preenchidos pelo plano de design de cada fluxo), exportados a 2x pela API REST do Figma. Precisa de `FIGMA_TOKEN` no ambiente do usuário (token pessoal, escopo File content: Read-only); o script nunca imprime o token.
 
 ```bash
 node tools/export-figma.mjs --only home0,home1
@@ -48,17 +47,7 @@ node tools/export-figma.mjs --only home0,home1
 node tools/check-figma.mjs
 ```
 
-`--dry-run [--out <pasta>]` exporta para uma pasta temporária, nunca para `docs/qa/`, e aceita também um node id cru (`9:2`) para conferir token e frame. Mesmo filtro de ruído do Stitch: PNG com menos de 0,05% dos pixels mudados volta à versão do git.
-
-Stitch (fonte `stitch`, congelado: sem gates novos): re-exportar e conferir os golds dos fluxos ainda não migrados.
-
-```bash
-node tools/export-stitch.mjs
-```
-
-```bash
-node tools/check-stitch.mjs
-```
+`--dry-run [--out <pasta>]` exporta para uma pasta temporária, nunca para `docs/qa/`, e aceita também um node id cru (`9:2`) para conferir token e frame. Filtro de ruído: PNG com menos de 0,05% dos pixels com Δ > 40 (`NOISE_MAX_PCT`, `NOISE_DELTA`) volta à versão do git; o log mostra o percentual de cada arquivo.
 
 ---
 
@@ -66,7 +55,7 @@ node tools/check-stitch.mjs
 
 A implementação de qualquer tela no client Android deve seguir este ciclo:
 
-1. Achar a fonte do id no inventário acima e garantir que o Gold PNG está em `docs/qa/<fonte>/{dark,light}/<id>.png` (`node tools/check-stitch.mjs` / `node tools/check-figma.mjs` falham em PNG com menos de 780 px).
+1. Garantir que o id está no inventário acima e o Gold PNG em `docs/qa/figma/{dark,light}/<id>.png` (`node tools/check-figma.mjs` falha em PNG com menos de 780 px).
 2. Emulador na geometria do gold (390 dp @ 2x):
    ```bash
    adb shell wm size 780x1688 && adb shell wm density 320
@@ -80,7 +69,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
    ```bash
    node tools/diff-gold.mjs            # splash + O1..O4, ou: node tools/diff-gold.mjs dark/o1 light/o1
    ```
-   O `diff-gold.mjs` lê o gold da pasta da fonte declarada no inventário.
+   O `diff-gold.mjs` lê o gold de `docs/qa/figma/`.
    Na JVM, sem emulador: `GoldTest` (`./gradlew.bat :app:testDevDebugUnitTest`), lê só `docs/qa/figma/`; renders e máscaras em `apps/android/app/build/outputs/gold/`.
 5. Escrever a lista de diffs (layout, tokens, tipo, raio, ButtonGroup, CTA, timeline, macros semânticos) no plano da tela. Posição, tamanho e texto vêm medidos do `android layout --flat -o <scratchpad>/<id>.json` (testTag = `resource-id`, `bounds` na mesma grade de pixels do gold; ler o JSON como UTF-8). Cor, tamanho de fonte e raio vêm da imagem contra o gold: o `layout` não os traz. Elemento que não aparece no `layout`: `android screen capture --annotate` no scratchpad, nunca em `docs/qa/`.
 6. Ajustar a UI Compose e repetir 3–5 até passar no gate.
@@ -94,7 +83,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 - **Aprovado: ≤ 2%.** Pixel a pixel sem borrão não serve de gate: a splash fica em ~1,2% só por raster.
 - Golds que divergem entre si ou do plano ([ADR-027](../android/adrs/ADR-027-golds-divergentes.md), regra até um plano futuro mudá-la): gold de estado (ex.: `o1e`) com geometria diferente do gold base (`o1`) → cada estado segue o próprio gold, o base não muda, refluxo na troca de estado é aceito; dark × light do mesmo gold → um layout com a média dos dois, desde que os dois temas passem no gate (senão: segue o dark e o light fica só reportado); valor normativo do plano/spec/tokens (opacidade, cor) × render do gold → vale o plano, a diferença vai para a lista de diffs; esmaecimento de desabilitado por save layer (`Modifier.disabledAlpha`), não `Modifier.alpha`, que o render JVM não desenha.
 - `push` é uma tela de bloqueio desenhada (`Notification/Push`): o app só posta a notificação (ícone, título, ações e accent) e o SystemUI desenha a tela e o cartão. Medido e reportado (`~`), sem bloquear.
-- Golds Figma ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md)) são o frame puro, sem barra de status nem de navegação, com a página inteira: as exceções acima valem só para ids `stitch`. Na JVM, `GoldTest` desenha o id `figma` na altura do frame, sem insets, e compara a página toda. No emulador, a captura de 844 dp é comparada com o topo do frame; um diálogo centrado no app (`o3t`, `chatP`) é comparado só na caixa do diálogo, alinhada ao centro da captura. `homeW` (sheet no fim da página de 1414 dp): tela só reportada, com gate na Home desfocada do topo (40–450 dp) e no sheet ancorado pela base. Conversas que enchem a tela do aparelho (`chatF`, `chatG`, `chatD`, `chatR`, `chatM`, `chatU`): tela reportada, com gate no cabeçalho (pelo topo) e na cauda da conversa até o composer (pela base); no `chatF` a foto fica fora, porque o recorte da amostra é do próprio frame. `chatS`: a cena semeia outro dia (meta 2.000, 100 %), então a tela é reportada e o gate fica no cabeçalho e no cartão da rotina.
+- Os golds ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md)) são o frame puro, sem barra de status nem de navegação, com a página inteira. Na JVM, `GoldTest` desenha o id na altura do frame, sem insets, e compara a página toda. No emulador, a captura de 844 dp é comparada com o topo do frame; um diálogo centrado no app (`o3t`, `chatP`) é comparado só na caixa do diálogo, alinhada ao centro da captura. `homeW` (sheet no fim da página de 1414 dp): tela só reportada, com gate na Home desfocada do topo (40–450 dp) e no sheet ancorado pela base. Conversas que enchem a tela do aparelho (`chatF`, `chatG`, `chatD`, `chatR`, `chatM`, `chatU`): tela reportada, com gate no cabeçalho (pelo topo) e na cauda da conversa até o composer (pela base); no `chatF` a foto fica fora, porque o recorte da amostra é do próprio frame. `chatS`: a cena semeia outro dia (meta 2.000, 100 %), então a tela é reportada e o gate fica no cabeçalho e no cartão da rotina.
 
 ### Regressão
 
@@ -105,4 +94,4 @@ ratio. The O3 behind it is checked by `o3`. Gold inputs remain read-only.
 
 Baseline Roborazzi (render JVM contra ele mesmo) em `apps/android/app/src/test/snapshots/`: `recordRoborazziDevDebug` grava, `verifyRoborazziDevDebug` falha em divergência. Não é comparação com o gold.
 
-> **Sem screenshot comparado e validado contra o gold da fonte do id, a UI NÃO está pronta.**
+> **Sem screenshot comparado e validado contra o gold, a UI NÃO está pronta.**

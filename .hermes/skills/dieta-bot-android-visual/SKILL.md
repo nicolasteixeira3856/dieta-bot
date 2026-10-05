@@ -1,11 +1,11 @@
 ---
 name: dieta-bot-android-visual
-description: Compare fresh Dieta Bot emulator captures and measured layout bounds with the dark/light gold of each id's source (Figma or Stitch) after a visual change.
+description: Compare fresh Dieta Bot emulator captures and measured layout bounds with the dark/light Figma gold of each id after a visual change.
 ---
 
 # Dieta Bot visual QA
 
-Read [AGENTS](../../../AGENTS.md), the [QA workflow](../../../docs/qa/README.md), [tokens](../../../docs/tokens.md) and the gold from the id's source in the inventory (docs/qa/figma/ or docs/qa/stitch/). Use [Android CLI interaction guidance](../android-cli/references/interact.md); discover the installed executable before treating stale PATH as an absent installation.
+Read [AGENTS](../../../AGENTS.md), the [QA workflow](../../../docs/qa/README.md), [tokens](../../../docs/tokens.md) and the gold of the id in the inventory (docs/qa/figma/). Use [Android CLI interaction guidance](../android-cli/references/interact.md); discover the installed executable before treating stale PATH as an absent installation.
 
 1. Confirm the intended device with android info or adb devices. Coordinate use with other active chats before navigating, installing instrumentation/APKs, changing theme, geometry or data. The QA tool expects device captures at 780x1688 and density 320; exported golds have different/full-page heights and need its documented offsets. Set device geometry only on a coordinated test device.
 2. For interaction flows, retain the tools/capture-*.sh scripts listed in QA. Ad hoc clean capture: android screen capture --device=<serial> -o docs/qa/android/current/<theme>/<id>.png. An adb binary screencap is a fallback when CLI capture is unavailable.
@@ -19,4 +19,4 @@ Read [AGENTS](../../../AGENTS.md), the [QA workflow](../../../docs/qa/README.md)
 9. Check the approved day-one Home and Chat states, including Chat suggestion chips, the Home Chat FAB and consolidated entries. Fail on default Material colors, coaching, missing timeline or incorrect tokens/layout.
 10. Iterate and recapture until the applicable comparisons pass. Ignore only the system/font-raster differences allowed by AGENTS. A cold-start splash is expected, not evidence of a freeze.
 
-Layout measurements support the diff; they do not approve the screen alone. Imported gold PNGs (docs/qa/figma/, docs/qa/stitch/) remain unchanged during app verification.
+Layout measurements support the diff; they do not approve the screen alone. Imported gold PNGs (docs/qa/figma/) remain unchanged during app verification.

@@ -74,7 +74,7 @@ The REST image export needs a personal access token. The agent never sees it typ
    - never print `FIGMA_TOKEN`;
    - known limits: unpublished Community libraries are invisible to the MCP; `createAutoLayout` frames come with a white fill that must be cleared.
 
-   `dieta-bot-stitch` stays until [D8](../d8-archive-stitch.md). The skills that name Stitch golds as the comparison target (`dieta-bot-android-ui`, `dieta-bot-android-visual`, `dieta-bot-android-qa`, `screenshot-testing`) change to "the gold from the id's source in the inventory", in the four trees.
+   `dieta-bot-stitch` stays until [D8](d8-archive-stitch.md). The skills that name Stitch golds as the comparison target (`dieta-bot-android-ui`, `dieta-bot-android-visual`, `dieta-bot-android-qa`, `screenshot-testing`) change to "the gold from the id's source in the inventory", in the four trees.
 
 ## Out of scope
 

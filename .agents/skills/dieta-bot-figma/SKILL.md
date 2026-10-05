@@ -22,7 +22,7 @@ File `Design`, key qNiqNN3vk9GpmPL3bcV9W1, Figma Student team. Read first: the [
 ## Building
 
 - Readability rule (ADR-031 § 3): every page has a title and a short description; groups and flows are titled sections; product order left to right, Light row above Dark row; 40 px between variants, 80 px between components or screens, 160 px between sections; nothing overlaps.
-- Frame names: `<gold id> · <Stitch title without the theme suffix> · Light|Dark`. Components and component sets carry a description (purpose, variants, tokens).
+- Frame names: `<gold id> · <screen title> · Light|Dark`. Components and component sets carry a description (purpose, variants, tokens).
 - Build Light, then clone the frame for Dark and set the Color collection mode to Dark. No other change in the Dark clone.
 - Fills and strokes bind to variables, text uses the text styles, components are instances (never detached). No raw hex outside the variables.
 - Feature parity (ADR-031 § 4): the code and the live specifications are the feature inventory. Write the discovery table (`app` / `gold-only` / `copy`) into the plan's Results before any write. A gold element without code is dropped; a spec element missing from the gold is drawn from the spec. Copy is the exact pt-BR text from the code.
@@ -30,7 +30,7 @@ File `Design`, key qNiqNN3vk9GpmPL3bcV9W1, Figma Student team. Read first: the [
 ## Review and export
 
 - One screenshot per composed frame, sent to the owner; one more per frame after a fix. Then the plan goes to pending_manual_validation/ until the owner's OK in Figma.
-- After the OK: map the frame ids in tools/export-figma.mjs (both themes), run node tools/export-figma.mjs --only <ids> and node tools/check-figma.mjs. The inventory source in docs/qa/README.md stays stitch; the flow's client plan switches it.
+- After the OK: map the frame ids in tools/export-figma.mjs (both themes), run node tools/export-figma.mjs --only <ids> and node tools/check-figma.mjs. New ids enter the inventory in docs/qa/README.md in the same delivery.
 - Token changes: read the variables and text styles (one use_figma read), rewrite docs/design/tokens.json, run node tools/gen-tokens.mjs. Never hand-edit the Aero section of docs/tokens.md.
 - FIGMA_TOKEN lives in the user environment. Never print, echo, log or commit it; check only whether it is set. A missing or refused token is an owner step.
 
@@ -40,5 +40,3 @@ File `Design`, key qNiqNN3vk9GpmPL3bcV9W1, Figma Student team. Read first: the [
 - Frames from figma.createAutoLayout come with a white fill: clear it (fills = []) unless the frame needs a bound fill. Left in place it hides Dark rows.
 - The Plugin API cannot rename the file or toggle OpenType features; those are owner steps or client checks.
 - Page context resets on every use_figma call: switch once per call with setCurrentPageAsync.
-
-Stitch is frozen: no new ST gates and no edits to Stitch Nutri. Its golds stay the layout reference of flows not yet migrated.

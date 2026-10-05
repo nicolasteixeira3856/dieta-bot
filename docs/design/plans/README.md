@@ -15,7 +15,7 @@ Each flow is one design plan (Figma, within one day of MCP budget) followed by o
 | Chat core | D5 Release 1 — Chat core ([`completed/`](completed/)) | A42 Chat core on Aero ([`completed/`](../../android/plans/completed/)) |
 | Chat records and memory | D6 Release 1 — Chat records and memory ([`completed/`](completed/)) | A43 Chat records and memory on Aero ([`completed/`](../../android/plans/completed/)) |
 | Config and push | D7 Release 1 — Config and push ([`completed/`](completed/)) | A44 Config and push on Aero ([`completed/`](../../android/plans/completed/)) |
-| Close | [D8 Archive Stitch](d8-archive-stitch.md) | A45 Remove Material 3 Expressive ([`completed/`](../../android/plans/completed/)) |
+| Close | D8 Archive Stitch ([`completed/`](completed/)) | A45 Remove Material 3 Expressive ([`completed/`](../../android/plans/completed/)) |
 
 Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.md)):
 
@@ -29,7 +29,7 @@ Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.
 
 ## Figma review gate
 
-The gate that replaces the owner-run Stitch prompt for a migrated flow ([ADR-031](../adrs/ADR-031-figma-source-of-truth.md) § 5):
+The gate for every new or changed layout ([ADR-031](../adrs/ADR-031-figma-source-of-truth.md) § 5):
 
 1. The agent builds the flow in Figma and screenshots every frame through the MCP.
 2. The plan moves to `Pendente aprovação manual`. The owner opens the file and reviews the flow section. That is the owner's only manual step.

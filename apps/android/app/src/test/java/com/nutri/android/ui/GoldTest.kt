@@ -317,7 +317,7 @@ class GoldTest {
         screen: @Composable () -> Unit,
     ) {
         // Figma golds (ADR-031) are the bare frame: no status bar, no nav bar, the page at the frame height.
-        assertWithMessage("$goldId source").that(GoldInventory.source(goldId)).isEqualTo("figma")
+        assertWithMessage("$goldId in the inventory").that(GoldInventory.contains(goldId)).isTrue()
         compose.setContent {
             AeroTheme(darkTheme = dark) {
                 Box(Modifier.fillMaxSize().background(Aero.colors.bgPage)) { screen() }

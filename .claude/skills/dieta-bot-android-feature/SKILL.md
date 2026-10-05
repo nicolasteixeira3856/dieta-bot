@@ -5,7 +5,7 @@ description: Implement a named approved Dieta Bot Android plan for a screen, dom
 
 # Dieta Bot Android implementation
 
-Read [AGENTS](../../../AGENTS.md), [SDD](../../../docs/sdd/README.md), the [Android context](../../../docs/android/README.md) and the named approved plan. Planning alone does not authorize code. Check any prerequisite Stitch gate is completed before layout work.
+Read [AGENTS](../../../AGENTS.md), [SDD](../../../docs/sdd/README.md), the [Android context](../../../docs/android/README.md) and the named approved plan. Planning alone does not authorize code. Check any prerequisite design plan is completed before layout work.
 
 Keep server implementation outside this client delivery. Use domain rules, Room/repository boundaries, screen-scoped ViewModel + UiState, and Compose as needed by the feature; do not introduce layers or tests without a relevant behavior to validate.
 
@@ -16,6 +16,6 @@ Keep server implementation outside this client delivery. Use domain rules, Room/
 - Home/Chat day-one chips depend on their matching specifications and golds; do not ban every chip.
 - Preserve flavor boundaries and dev-only telemetry. Events carry enums and numbers, never user text.
 
-From apps/android, run assembleDevRelease, testDevDebugUnitTest and verifyRoborazziDevDebug as required by the plan. Changed UI additionally needs fresh dark/light emulator captures, measured bounds and a written comparison with matching Stitch golds; use the visual skill.
+From apps/android, run assembleDevRelease, testDevDebugUnitTest and verifyRoborazziDevDebug as required by the plan. Changed UI additionally needs fresh dark/light emulator captures, measured bounds and a written comparison with matching Figma golds; use the visual skill.
 
 Record actual results, pending manual validation and plan lifecycle before the required scoped git delivery. Do not declare completion from compilation alone or include unrelated changes.

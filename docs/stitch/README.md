@@ -2,41 +2,17 @@
 
 ## Propósito
 
-Referência congelada dos fluxos ainda não migrados para o Figma `Design` ([ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md) § 9). Guarda os golds do Google Stitch `Nutri` (`6282733070135794645`) de fonte `stitch` no inventário de [docs/qa/README.md](../qa/README.md), os gates que os geraram e a tabela de títulos. **Sem gates novos e sem edições no `Nutri`:** layout novo ou alterado segue o [gate de revisão no Figma](../design/plans/README.md#figma-review-gate). Regra dos gates existentes: [docs/sdd/README.md § Gate Stitch](../sdd/README.md#gate-stitch).
+Histórico. O projeto Google Stitch `Nutri` (`6282733070135794645`) foi a fonte de layout do app até o [ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md); hoje a única fonte de UI é o arquivo Figma `Design` ([design](../design/README.md)). Este contexto não tem trabalho ativo, não recebe planos e não é fonte de gold.
 
-Reexportar ou conferir os golds congelados: `node tools/export-stitch.mjs --only <ids>` e `node tools/check-stitch.mjs`. Antes de mexer nesse tooling, leia a skill `dieta-bot-stitch` (limites conhecidos do agente e do MCP).
+## Onde está o histórico
 
-## Tipo e ownership
+- Gates `ST<n>`, a verificação automática `SV1` e os `*.checks.json`: [`plans/completed/`](plans/completed/).
+- Golds Stitch exportados: `docs/qa/_legacy/stitch/{dark,light}/`. Design system do Stitch: `docs/qa/_legacy/stitch-design-system/`. Pela regra de `_legacy`, nenhum dos dois serve de comparação.
+- Tooling (exportador, conferência, verificador e seus testes) e a skill `dieta-bot-stitch`: só no histórico do git.
 
-- Tipo: gate de design, congelado.
-- Executor: o agente, só para reexportar e conferir golds existentes.
-- Código: nenhum código de app. Toca só `docs/qa/stitch/`, `tools/export-stitch.mjs`, `tools/check-stitch.mjs`, `tools/verify-stitch.mjs`, os `plans/**/*.checks.json` e o inventário de golds de `docs/qa/README.md` (dono único da lista).
+## Leitura dos gates
 
-## Escopo
-
-- Golds Stitch dos fluxos com fonte `stitch` no inventário, e o tooling que os exporta e confere.
-- Os gates concluídos, como histórico e como referência de layout para os planos de design do Figma.
-- A tabela de títulos das telas.
-
-## Fora de escopo
-
-- Gates novos ou edições no Stitch `Nutri`: layout novo vai para [design](../design/README.md).
-- Layout ou comportamento do app: [android](../android/README.md).
-- Decisão de produto: [produto](../produto/README.md). Um gate só executa uma decisão já tomada.
-
-## Fronteiras
-
-- Um id deixa de usar o gold Stitch quando o plano de client do seu fluxo troca a fonte para `figma` no inventário.
-- Nos gates existentes, um gate bloqueava planos do android, que o listavam em Pré-requisitos.
-
-## Nomes das telas (regra do dono, 29/09/2026)
-
-No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de gold (`chat0`). Por isso:
-
-1. Toda instrução para o dono (selecionar, duplicar, renomear) e toda tela citada **dentro** de um prompt usa o **título exato do Stitch**, copiado da tabela abaixo. O id de gold (`chatE`) só aparece entre parênteses, para o agente.
-2. Tema: `V2 Expressive` = dark, `V2 Light` = light. O prompt vem em dois blocos prontos, um por tema, cada um com os títulos daquele tema.
-3. Tela nova: o gate define o título final no mesmo padrão ("… (V2 Expressive)" / "… (V2 Light)"). O dono renomeia a cópia para esse título exato, e o agente acha a tela por ele no `list_screens`.
-4. Quando um gate cria ou renomeia uma tela, a tabela abaixo é atualizada na mesma entrega.
+Os gates citam as telas pelo título do Stitch. `V2 Expressive` = dark, `V2 Light` = light. Títulos ↔ id de gold:
 
 | Gold | Dark (Stitch) | Light (Stitch) |
 |---|---|---|
@@ -71,48 +47,3 @@ No Stitch, as telas têm título ("Chat vazio (V2 Expressive)"), não o id de go
 | `cfgS` | Configurações com refeições por dia (V2 Expressive) | Configurações com refeições por dia (V2 Light) |
 | `wipe` | Reiniciar registros de hoje - Diálogo Wipe (V2 Expressive) | Reiniciar registros de hoje - Diálogo Wipe (V2 Light) |
 | `push` | Notificação do sistema - Lembrete de refeição (V2 Expressive) | Notificação do sistema - Lembrete de refeição (V2 Light) |
-
-Títulos lidos pelo MCP do Stitch (`list_screens`). Cada gate que cria ou renomeia uma tela atualiza esta tabela na mesma entrega.
-
-## Verificação automática (SV1)
-
-Cada gate tem, ao lado do plano, `plans/<gate>.checks.json` (depois de concluído, em `plans/completed/`). `node tools/verify-stitch.mjs <st1|st2|…>`:
-
-1. Acha cada tela do gate, nos dois temas: pelo ID de `tools/export-stitch.mjs` (e confere o título) ou, para tela nova, pelo título exato da tabela acima.
-2. Renderiza o HTML da tela com o mesmo render do exportador (`loadFrame`: 390 px, altura do frame).
-3. Roda as checagens e imprime uma linha por checagem (`ok` / `FALHA` / `aviso` + valor medido). Sai com código 1 se alguma falhar.
-
-Checagens declaradas por tela (`screens[].checks`):
-
-| Tipo | Campos | Passa quando |
-|---|---|---|
-| `text` | `has`, `not` | cada texto de `has` aparece e nenhum de `not` aparece no texto visível (inclui o valor de campos) |
-| `fits` | `text`, `with` (opcional), `maxHeight` (opcional) | a linha que contém `text` (e `with`) não passa da borda nem do frame de 390 px, e tem no máximo `maxHeight` px |
-| `gap` | `a`, `b`, `min` | a distância entre os dois textos é de pelo menos `min` px |
-| `visibleAbove` | `text`, `fixed` | o texto não fica coberto pelo elemento fixo que contém `fixed` (o FAB "Chat") |
-
-Sempre, sem declarar: imagens (`<img>` responde 200), coerência dark × light (mesmos textos visíveis nos dois temas; `coherence.exceptions` para diferença de propósito, `coherence.known` para defeito anterior ao gate, que vira `aviso`) e títulos repetidos no `list_screens` (`aviso`: a API mostra versões ocultas). `keep` (do gate e da tela) entra na lista "keep unchanged" do prompt de correção. `fix` numa checagem troca a frase padrão do prompt.
-
-- `--report [--out <arquivo>]`: exporta as telas do gate para uma pasta temporária e gera um HTML (padrão: `stitch-report.html` na pasta temporária do sistema; nunca em `docs/qa/`) com o gold antigo (git) e o novo lado a lado, recortados na região que mudou, as checagens e, por tela que falhou, o prompt de correção por tema com o título exato.
-- `node tools/export-stitch.mjs --only home0,homeW`: exporta só esses golds. Todo export passa pelo filtro de ruído: PNG com menos de 0,05% dos pixels com Δ > 40 (`NOISE_MAX_PCT`, `NOISE_DELTA`) volta à versão do git; o log mostra o percentual de cada arquivo.
-- Regressão sem Stitch: `node --test tools/verify-stitch.test.mjs` (fixtures em `tools/fixtures/verify-stitch/`).
-
-## Ciclo de vida
-
-| Situação | Estado | Local |
-|---|---|---|
-| Esperando o dono rodar o prompt | `Aguardando o dono no Stitch` | `plans/<gate>.md` |
-| Dono rodou; agente verificando | `Em verificação` | `plans/<gate>.md` |
-| Checklist inteiro passou, golds exportados | `Concluído` | `plans/completed/<gate>.md` |
-| Cancelado pelo dono | `Cancelado` | `plans/cancelled/<gate>.md` |
-
-Não há "aprovação" de gate: o prompt já é o que foi decidido nos ADRs. O dono rodar o prompt e avisar o agente é o gatilho da verificação.
-
-## Índice
-
-### Planos
-
-- Ativos: arquivos `st<n>-*.md` na raiz de [`plans/`](plans/).
-- Histórico (gates concluídos e seus `*.checks.json`, lidos por `tools/verify-stitch.mjs`): [`plans/completed/`](plans/completed/).
-
-ADRs que os gates executam: [ADR-020](../produto/adrs/ADR-020-estados-novos-chat-home-horario.md), [ADR-021](../produto/adrs/ADR-021-refeicoes-por-dia.md), [ADR-022](../produto/adrs/ADR-022-limite-texto-chat.md), [ADR-023](../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [ADR-026](../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](../produto/adrs/ADR-028-registro-autonomo.md).

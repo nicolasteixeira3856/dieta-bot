@@ -32,7 +32,7 @@ Client nativo. Compose, Room, navegacao, foto, push.
 
 ## Cobertura documental atual
 
-Persistência: [spec do Room](specifications/room-v2.md). Telas e comportamento: specs do [produto](../produto/README.md) + golds do Stitch ([inventário](../qa/README.md)).
+Persistência: [spec do Room](specifications/room-v2.md). Telas e comportamento: specs do [produto](../produto/README.md) + golds do Figma `Design` ([inventário](../qa/README.md)).
 
 ## Como usar esta documentacao
 
