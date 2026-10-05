@@ -66,6 +66,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-032](adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) — explicit meal additions, revisions and destination semantics.
 - [ADR-034](adrs/ADR-034-fibrai-brand-tali-assistant.md) — marca "Fibrai", assistente "Tali".
 - [ADR-035](adrs/ADR-035-tali-in-app-identity.md) — Fibrai e Tali no app: nome visível, rótulo e bolha de avatar.
+- [ADR-039](adrs/ADR-039-plan-cooking-and-budget-choice.md) — cooking help in a plan; over-budget check by the server, Pode passar / Ajustar para caber.
 
 ### Planos
 
