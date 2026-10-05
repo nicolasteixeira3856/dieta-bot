@@ -4,7 +4,7 @@
 - Date: 05/10/2026
 - Owning context: `design`
 - Executable boundary: Figma `Design`, a new page named "Landing page", plus new web components in `Componentes` under a `Web/` prefix. Repository outputs: landing golds in `docs/qa/figma/{dark,light}/`, their entries in `tools/export-figma.mjs` and the [gold inventory](../../../qa/README.md#golds). No `site/`, `apps/` or `server/` code.
-- Prerequisites: approval of this plan accepts [ADR-037](../../../site/adrs/ADR-037-landing-site.md). App screenshots used in the mockup are the current golds; after [D10](../pending_manual_validation/d10-fibrai-tali-rename.md) exports, they are replaced by the renamed ones.
+- Prerequisites: approval of this plan accepts [ADR-037](../../../site/adrs/ADR-037-landing-site.md). App screenshots used in the mockup are the current golds; after [D10](d10-fibrai-tali-rename.md) exports, they are replaced by the renamed ones.
 - Figma MCP budget: at most 120 calls a day ([ADR-031](../../adrs/ADR-031-figma-source-of-truth.md) § 6). The brainstorm may span more than one day; each day's call count goes into Results.
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/design/plans/d11-landing-page.md. Implemente o plano aprovado.`
@@ -80,7 +80,7 @@ Sources read: ADR-034, ADR-035, ADR-037, [W1](../../../site/plans/w1-landing-sit
 | Download buttons, store badges, invite, waitlist, prices, e-mail capture, testimonials, user counts, medical or nutritional advice | out | not drawn |
 | Logo | out (ADR-034 open item) | text wordmark "Fibrai" in `Title` |
 
-The phone frames hold clones of the `Release 1` gold frames, scaled to 300 px, so the Dark row follows the Color mode with no extra work. Until [D10](../pending_manual_validation/d10-fibrai-tali-rename.md) runs, those clones still show "Chat Dieta Bot" and "Dieta Bot AI"; W1 takes the screens after D10.
+The phone frames hold clones of the `Release 1` gold frames, scaled to 300 px, so the Dark row follows the Color mode with no extra work. Until [D10](d10-fibrai-tali-rename.md) runs, those clones still show "Chat Dieta Bot" and "Dieta Bot AI"; W1 takes the screens after D10.
 
 ### Delivered in Figma (2026-10-05)
 
@@ -202,7 +202,7 @@ The owner found the text hard to read in Light. The ratios were measured against
 - **No app gold changed.** `GoldTest` and `diff-gold.mjs` compare explicit app ids only.
 - **Phone-screen web assets: not exported here, on purpose.**
   - The screens W1 needs are the tops of the `o1`, `home1` and `chatE` golds (the first 844 pt of the frame, as the phone shows them).
-  - Exporting them now would freeze the old name before [D10](../pending_manual_validation/d10-fibrai-tali-rename.md).
+  - Exporting them now would freeze the old name before [D10](d10-fibrai-tali-rename.md).
   - [W1](../../../site/plans/w1-landing-site.md) crops them from `docs/qa/figma/{light,dark}/` after D10.
   - D10 also refreshes the phone clones in `land` and `landM` (its scope item 7).
 
