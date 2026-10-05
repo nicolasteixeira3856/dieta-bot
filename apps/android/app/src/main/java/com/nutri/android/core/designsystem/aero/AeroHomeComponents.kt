@@ -225,7 +225,9 @@ fun AeroSheet(
                 .background(c.borderLine),
         )
         AeroText(title, style = type.title.copy(color = c.textPrimary))
-        content()
+        // A46: when the room above the keyboard is short, the content shrinks (and scrolls, if it can) so the title
+        // and the actions stay on screen.
+        Box(Modifier.weight(1f, fill = false)) { content() }
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (primary != null) {
                 AeroButtonPrimary(
