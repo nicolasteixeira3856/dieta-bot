@@ -1,6 +1,6 @@
 # Dieta Bot — repo constitution
 
-Product name: Dieta Bot. Technical IDs stay `nutri` (package, applicationId, nutri.db, Firebase nutri-bot-dev, VM nutri-api) per ADR-016.
+Product name: Dieta Bot. App identifiers are `app.fibrai.android` (package, applicationId, `fibrai.db`, Firebase `fibrai-dev`) per [ADR-036](docs/android/adrs/ADR-036-fibrai-technical-identity.md); `nutri` remains only in server, VM (`nutri-api`) and Stitch IDs per ADR-016.
 
 One agent. Job: fit the next meal into today's remaining budget, dinner first.
 
@@ -24,7 +24,7 @@ Numbers first. Dry tone. No coach. No slogan.
 - Photo on Chat from day 1. Client sends the photo as JPEG q85, longest side ≤ 2048 px, EXIF stripped (ADR-018). ≤16 MB guard. Server estimates and deletes.
 - Disclaimer: estimate, not advice.
 - Screens: ADR-012 and its accepted successors. Every product screen and state has a gold in the inventory of `docs/qa/README.md`. Nothing else.
-- Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.nutri.hide_dev_tools=1` for the cfg capture.
+- Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.fibrai.hide_dev_tools=1` for the cfg capture.
 
 ## Splash
 
@@ -56,9 +56,9 @@ Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.
   Official architecture: ui / domain / data
   UDF, ViewModel + UiState, Hilt, collectAsStateWithLifecycle
   Room 2.6.x for local state; schema in `docs/android/specifications/room-v2.md`. No DataStore for day state.
-  Flavors dev (com.nutri.android.dev, GCP dev server) / prod (com.nutri.android) per ADR-014.
+  Flavors dev (app.fibrai.android.dev, GCP dev server) / prod (app.fibrai.android) per ADR-014 and ADR-036.
   Build and test with the dev variant: assembleDevRelease, testDevDebugUnitTest, verifyRoborazziDevDebug.
-  Telemetry: core/telemetry Telemetry interface. dev = Firebase nutri-bot-dev (Crashlytics + Analytics), prod = NoopTelemetry.
+  Telemetry: core/telemetry Telemetry interface. dev = Firebase fibrai-dev (Crashlytics + Analytics), prod = NoopTelemetry.
   Events carry enums and numbers only, never user text. X-Request-Id links Crashlytics to the dev server log (ADR-015).
 - server/ — FastAPI. Routes and payloads: `docs/api-contract.md`.
 - web/ — Fibrai landing page (fibrai.app, ADR-037, ADR-038): static HTML, CSS and vanilla JS in `web/public/`, no framework, no build step. npm scripts only: `tokens.css` from `docs/design/tokens.json`, phone screens cut from the app golds, self-hosted Nunito Sans. Check: `npm --prefix web run check`; visual QA: `npm --prefix web run capture`. Light by default with a switch (differs from the app on purpose). No tracking, forms or way to get the app (production gate).

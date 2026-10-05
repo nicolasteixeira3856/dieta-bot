@@ -12,13 +12,13 @@
         android:required="false" />
 
     <application
-        android:name=".DietaBotApplication"
+        android:name=".FibraiApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.DietaBot"
+        android:theme="@style/Theme.Fibrai"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"

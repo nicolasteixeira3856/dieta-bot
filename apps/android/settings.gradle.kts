@@ -17,5 +17,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "nutri-android"
+rootProject.name = "fibrai-android"
 include(":app")

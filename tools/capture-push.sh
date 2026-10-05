@@ -17,9 +17,9 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android.dev
+PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
-ACTIVITY=com.nutri.android.MainActivity
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
@@ -38,12 +38,12 @@ center() {
 tap() { dump; local xy; xy=$(center "$1") || { echo "  ✗ not found: $1"; FAIL=1; return 1; }; "$ADB" shell input tap $xy; sleep "${2:-1.5}"; }
 expect() { dump; if grep -qE "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo "  ✗ $1"; FAIL=1; fi; }
 check() { if [ "$2" = "$3" ]; then echo "  ✓ $1"; else echo "  ✗ $1 (got '$2', want '$3')"; FAIL=1; fi; }
-pull_db() { rm -f "$TMP"/nutri.db*; for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done; }
-sql() { pull_db; "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchone()[0])" "$TMP/nutri.db" "$1"; }
+pull_db() { rm -f "$TMP"/fibrai.db*; for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done; }
+sql() { pull_db; "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchone()[0])" "$TMP/fibrai.db" "$1"; }
 # Active slot alarms only: "tag=..." lines of live entries (history snapshots read "type=... tag=...").
 alarm_dump() { "$ADB" shell dumpsys alarm | tr -d '\r' > "$TMP/alarm.txt"; }
-alarms() { alarm_dump; grep -cE '^ +tag=\*walarm\*:com\.nutri\.android\.push\.SLOT$' "$TMP/alarm.txt"; }
-exact_alarms() { grep -A1 -E '^ +tag=\*walarm\*:com\.nutri\.android\.push\.SLOT$' "$TMP/alarm.txt" | grep -c 'window=0 exactAllowReason=permission'; }
+alarms() { alarm_dump; grep -cE '^ +tag=\*walarm\*:app\.fibrai\.android\.push\.SLOT$' "$TMP/alarm.txt"; }
+exact_alarms() { grep -A1 -E '^ +tag=\*walarm\*:app\.fibrai\.android\.push\.SLOT$' "$TMP/alarm.txt" | grep -c 'window=0 exactAllowReason=permission'; }
 notified() { "$ADB" shell dumpsys notification --noredact | tr -d '\r' | grep -c "android.title=String (${1}. Ainda não registrou.)"; }
 # Shade: expand the app notification group, then the notification titled $1, then tap its action $2.
 notification_action() {
@@ -107,7 +107,7 @@ check "POST_NOTIFICATIONS granted" "$("$ADB" shell dumpsys package $PKG | tr -d 
 # (empty), D +10 min (skipped). Names without accents: adb reads them back from dumpsys.
 "$ADB" shell am force-stop $PKG
 pull_db
-"$PY" - "$TMP/nutri.db" <<'EOF'
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys, datetime
 c = sqlite3.connect(sys.argv[1])
 now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-3)))
@@ -124,9 +124,9 @@ c.execute("insert into slot_skip(date,slotId) values(?,?)", (today, 4))
 c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
 EOF
 [ $? -eq 0 ] || { echo "  ✗ seed failed"; exit 1; }
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 
 # Without SCHEDULE_EXACT_ALARM (Android 14+ default): alarms still set, inexact (window > 0).
 "$ADB" shell appops set $PKG SCHEDULE_EXACT_ALARM deny >/dev/null 2>&1

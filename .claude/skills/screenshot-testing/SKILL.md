@@ -5,7 +5,7 @@ description: Verify Dieta Bot JVM screenshot regression with Roborazzi and disti
 
 # Screenshot regression
 
-Read [AGENTS](../../../AGENTS.md), [QA guidance](../../../docs/qa/README.md), the approved plan and the current [Roborazzi tests](../../../apps/android/app/src/test/java/com/nutri/android/ui/RoborazziSmokeTest.kt) / [gold tests](../../../apps/android/app/src/test/java/com/nutri/android/ui/GoldTest.kt).
+Read [AGENTS](../../../AGENTS.md), [QA guidance](../../../docs/qa/README.md), the approved plan and the current [Roborazzi tests](../../../apps/android/app/src/test/java/app/fibrai/android/ui/RoborazziSmokeTest.kt) / [gold tests](../../../apps/android/app/src/test/java/app/fibrai/android/ui/GoldTest.kt).
 
 From apps/android:
 - verifyRoborazziDevDebug checks existing app baselines first.

@@ -19,8 +19,8 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android.dev
-ACTIVITY=com.nutri.android.MainActivity
+PKG=app.fibrai.android.dev
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
@@ -47,25 +47,25 @@ hide_ime() { "$ADB" shell dumpsys input_method | grep -q "mInputShown=true" && {
 say() { tap 'resource-id="chat-input"' 0.4; "$ADB" shell input text "$1"; tap 'resource-id="chat-send"' 2.5; }
 db() { # db <sql> -> rows, after a force-stop so the WAL is in the pulled files
   "$ADB" shell am force-stop $PKG
-  rm -f "$TMP"/nutri.db*
-  for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-  "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchall())" "$TMP/nutri.db" "$1"
+  rm -f "$TMP"/fibrai.db*
+  for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+  "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchall())" "$TMP/fibrai.db" "$1"
 }
 
 # The last slot is the Ceia of the tester report.
 "$ADB" shell am force-stop $PKG
-rm -f "$TMP"/nutri.db*
-for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/nutri.db" <<'EOF'
+rm -f "$TMP"/fibrai.db*
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 last = c.execute("select id from meal_slot order by minutesFromMidnight desc").fetchone()[0]
 c.execute("update meal_slot set name='Ceia' where id=?", (last,))
 c.commit(); c.execute("pragma wal_checkpoint(TRUNCATE)"); c.execute("pragma journal_mode=DELETE"); c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 tap 'resource-id="home-fab"' 1.5 && expect "FAB opens Chat" 'resource-id="chat"'

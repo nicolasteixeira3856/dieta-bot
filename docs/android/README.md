@@ -49,26 +49,26 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 | | dev | prod |
 |---|---|---|
-| `applicationId` | `com.nutri.android.dev` ("Dieta Bot Dev", `versionName` `-dev`) | `com.nutri.android` ("Dieta Bot") |
+| `applicationId` | `app.fibrai.android.dev` ("Dieta Bot Dev", `versionName` `-dev`) | `app.fibrai.android` ("Dieta Bot") |
 | `local.properties` | `dev.API_PUBLIC_URL`, `dev.INVITE_CODE` (fallback nas chaves sem prefixo) | `prod.API_PUBLIC_URL`, `prod.INVITE_CODE` (obrigatórias) |
 | `BuildConfig.ENV` | `"dev"` | `"prod"` |
 
 - Uso diário: `./gradlew.bat :app:assembleDevRelease` → `app/build/outputs/apk/dev/release/app-dev-release.apk`.
 - Testes: `:app:testDevDebugUnitTest`, `verifyRoborazziDevDebug`. Sem `prod.*`, qualquer task de prod (incluindo `test`/`build` agregados) falha de propósito.
 - `-PAPI_PUBLIC_URL=...` sobrescreve só o dev (QA com `tools/fake-chat-server.mjs`).
-- O pacote Kotlin continua `com.nutri.android`. Via `adb`, abra com `com.nutri.android.dev/com.nutri.android.MainActivity`.
+- Pacote Kotlin e `namespace`: `app.fibrai.android` ([ADR-036](adrs/ADR-036-fibrai-technical-identity.md)). Via `adb`, abra com `app.fibrai.android.dev/app.fibrai.android.MainActivity`. Código que precisa do pacote instalado usa `BuildConfig.APPLICATION_ID` ou `context.packageName`, nunca o `namespace`.
 
 ## Telemetria
 
 [ADR-014](adrs/ADR-014-flavors-firebase-dev.md). Só no flavor dev.
 
-- Firebase `nutri-bot-dev` ("Nutri Dev", plano Spark), app `1:823717355877:android:d01b29a0b20b0674bd818c` (`com.nutri.android.dev`). `app/src/dev/google-services.json` fica fora do git: sem ele, o build avisa e segue.
+- Firebase `fibrai-dev` (plano Spark, Analytics ligado), app `1:353075659895:android:05bc4f6ec8410711727272` (`app.fibrai.android.dev`, "Fibrai Dev"), com os SHA-1/SHA-256 da chave de release e da chave de debug. O projeto antigo `nutri-bot-dev` está congelado. `app/src/dev/google-services.json` fica fora do git: sem ele, o build avisa e segue.
 - `core/telemetry/Telemetry` em `main`. dev → `FirebaseTelemetry` (Crashlytics + Analytics, sem Advertising ID); prod → `NoopTelemetry`, sem nenhuma classe Firebase no APK.
 - Toda chamada à API leva `X-Request-Id`, `X-App-Version` e `X-App-Env` (`RequestIdInterceptor`). O id liga o Crashlytics ao log de conversa do server de dev ([ADR-015](../server/adrs/ADR-015-log-conversa-dev.md), `tools/pull-conversations.ps1 -RequestId <id>`).
 - Non-fatals: `ApiFailure` (rede/HTTP) e `ChatFallback` (resposta "nao deu pra estimar" do server), com o `request_id`.
 - Eventos: `screen_view` (ids ADR-012), `api_call`, `chat_send`, `chat_result`, `meal_saved`, `meal_skipped`, `onboarding_complete`, `push_action`. Só enums e números; o texto do usuário nunca sai por aqui.
-- Crash de teste (só dev, só via adb): `adb shell am broadcast -a com.nutri.android.dev.TEST_CRASH -n com.nutri.android.dev/com.nutri.android.core.telemetry.TestCrashReceiver`.
-- Analytics DebugView: `adb shell setprop debug.firebase.analytics.app com.nutri.android.dev`.
+- Crash de teste (só dev, só via adb): `adb shell am broadcast -a app.fibrai.android.dev.TEST_CRASH -n app.fibrai.android.dev/app.fibrai.android.core.telemetry.TestCrashReceiver`.
+- Analytics DebugView: `adb shell setprop debug.firebase.analytics.app app.fibrai.android.dev`.
 
 ## Marca
 
@@ -81,7 +81,7 @@ Fonte em `design/brand/` (`icon.png`, `icon-mono.png`, `icon-dark-bg.png` de ref
 ## Release
 
 - `./gradlew.bat :app:assembleDevRelease` (ou `assembleProdRelease`), assinado com a chave própria.
-- Chave: `nutri-release.jks` + `key.properties` na raiz do repo, fora do git. Certificado `CN=Nutri, O=Nicolas Teixeira, C=BR`, SHA-256 `C9:97:8F:23:53:3C:F1:AD:91:C3:A7:EA:AE:57:A7:D7:88:E3:92:B9:50:D0:0F:9B:D8:A0:85:3F:7B:2B:8A:1D`.
+- Chave: `fibrai-release.jks` (o antigo `nutri-release.jks` renomeado: mesma chave e alias) + `key.properties` na raiz do repo, fora do git. Certificado `CN=Nutri, O=Nicolas Teixeira, C=BR`, SHA-256 `C9:97:8F:23:53:3C:F1:AD:91:C3:A7:EA:AE:57:A7:D7:88:E3:92:B9:50:D0:0F:9B:D8:A0:85:3F:7B:2B:8A:1D`.
 - Sem `key.properties` o build gera `app-<flavor>-release-unsigned.apk` e avisa. Nunca usa a chave de debug.
 - Perder a chave = nenhuma atualização instala por cima. Backup fora do PC é obrigatório.
 
@@ -89,14 +89,14 @@ Fonte em `design/brand/` (`icon.png`, `icon-mono.png`, `icon-dark-bg.png` de ref
 
 Build de teste para o celular do dono, sem cabo:
 
-- `./tools/distribute-dev.ps1 -Notes <arquivo.md>`: notas válidas → árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`nutri-bot-dev`, grupo `testers`) → `CHANGELOG.md` → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
+- `./tools/distribute-dev.ps1 -Notes <arquivo.md>`: notas válidas → árvore git limpa → versão → `testDevDebugUnitTest` → `assembleDevRelease` → confere `CN=Nutri` (`apksigner`) e versão (`aapt2`) → Firebase App Distribution (`fibrai-dev`, grupo `testers`) → `CHANGELOG.md` → commit `chore(release): 0.0.N-dev` + tag `dev-v0.0.N` + push.
 - `-Notes`: obrigatório fora do `-DryRun`. Changelog em pt-BR para o tester, escrito pelo agente a partir dos commits e planos desde a tag `dev-v0.0.*` anterior: o que ele nota no app, seções opcionais `### Novidades`, `### Correções`, `### Ajustes`, um item curto por linha. Sem nome de arquivo, id de plano, hash ou termo técnico. O script recusa arquivo ausente ou vazio, hash de commit, prefixo `feat:`/`fix(…):`/`chore:` e título `#`/`##`, sempre antes do build, sem queimar número. Arquivo temporário no scratchpad do agente.
 - Notas no App Tester: `Dieta Bot 0.0.N` + linha em branco + o arquivo. O mesmo texto entra no topo de [`apps/android/CHANGELOG.md`](../../apps/android/CHANGELOG.md) como `## 0.0.N — DD/MM/AAAA` (America/Sao_Paulo), no commit `chore(release)`.
 - `-DryRun`: faz o build e as conferências; não distribui, não commita, não faz push, e deixa a árvore limpa. Com `-Notes`, valida e mostra as notas.
 - Versão: `apps/android/version.properties` (`VERSION_PATCH=N`) → `versionName` `0.0.N` (+ `-dev` do flavor) e `versionCode` `N`. O Gradle falha se o arquivo faltar ou não for inteiro positivo.
 - Bump: se a tag `dev-v0.0.N` já existe, o script grava N+1; se não existe (primeira vez), publica N como está. Falha antes do commit desfaz o bump, então o número não é queimado. Nunca editar o arquivo à mão; nunca reutilizar um número.
 - Até a `1.0.0`: a virada e a regra depois dela são um plano/ADR próprio.
-- Console: `https://console.firebase.google.com/project/nutri-bot-dev/appdistribution`. O dono instala e atualiza pelo app **Firebase App Tester**.
+- Console: `https://console.firebase.google.com/project/fibrai-dev/appdistribution`. O dono instala e atualiza pelo app **Firebase App Tester**.
 
 ## Indice
 
@@ -117,7 +117,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
 - Pendente aprovação manual: [A47 — Chat meal updates](plans/pending_manual_validation/a47-chat-meal-updates.md).
-- [A48 — Fibrai technical identity: `app.fibrai.android` everywhere and Firebase `fibrai-dev`](plans/a48-fibrai-app-id-firebase.md).
+- Pendente aprovação manual: [A48 — Fibrai technical identity: `app.fibrai.android` everywhere and Firebase `fibrai-dev`](plans/pending_manual_validation/a48-fibrai-app-id-firebase.md).
 - [A49 — Fibrai and Tali in the app](plans/a49-fibrai-tali-visible-rename.md).
 - [A50 — Plan over budget: the choice in the Chat](plans/a50-plan-budget-choice.md).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md).

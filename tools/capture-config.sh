@@ -14,17 +14,17 @@ OUT="$ROOT/docs/qa/android/current/$THEME"
 TMP="$(mktemp -d)"
 command -v cygpath >/dev/null && TMP="$(cygpath -m "$TMP")"
 PY="$(command -v python3 || command -v python)"
-PKG=com.nutri.android.dev
+PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
-ACTIVITY=com.nutri.android.MainActivity
+ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 # shellcheck source=tools/input-checks.sh
 . "$ROOT/tools/input-checks.sh"
 
 # A23 (ADR-019): hide the dev-only "Memória da IA (dev)" row so cfg matches the gold. Cleared on exit.
-"$ADB" shell setprop debug.nutri.hide_dev_tools 1
-trap '"$ADB" shell setprop debug.nutri.hide_dev_tools 0' EXIT
+"$ADB" shell setprop debug.fibrai.hide_dev_tools 1
+trap '"$ADB" shell setprop debug.fibrai.hide_dev_tools 0' EXIT
 
 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1 || exit 1
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
@@ -49,16 +49,16 @@ hide_kb() { if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; t
 type_into() { tap "resource-id=\"$1\"" 0.5; "$ADB" shell input keyevent 123; for _ in 1 2 3 4 5 6; do "$ADB" shell input keyevent 67; done; [ -n "$2" ] && "$ADB" shell input text "$2"; sleep 0.3; hide_kb; }
 shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
 pull_db() {
-  rm -f "$TMP"/nutri.db*
-  for f in nutri.db nutri.db-wal nutri.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+  rm -f "$TMP"/fibrai.db*
+  for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
 }
-sql() { pull_db; "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchone()[0])" "$TMP/nutri.db" "$1"; }
+sql() { pull_db; "$PY" -c "import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute(sys.argv[2]).fetchone()[0])" "$TMP/fibrai.db" "$1"; }
 check() { local got; got=$(sql "$2"); if [ "$got" = "$3" ]; then echo "  ✓ $1"; else echo "  ✗ $1 (got $got, want $3)"; FAIL=1; fi; }
 
 # Seed the gold names (adb cannot type accents), one log of today and one chat message.
 "$ADB" shell am force-stop $PKG
 pull_db
-"$PY" - "$TMP/nutri.db" <<'EOF'
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys, time
 c = sqlite3.connect(sys.argv[1])
 today = c.execute("select firstDay from profile").fetchone()[0]
@@ -74,9 +74,9 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/nutri.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 
@@ -155,7 +155,7 @@ check "profile kept" "select onboardingDone from profile" 1
 # A24 grouped Config fixture keeps the log/chat history; verify the group editor does too.
 "$ADB" shell am force-stop $PKG
 pull_db
-"$PY" - "$TMP/nutri.db" <<'EOF'
+"$PY" - "$TMP/fibrai.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
 c.execute("update profile set slotMode='split',kcalSame=2000")
@@ -169,8 +169,8 @@ c.execute("pragma wal_checkpoint(TRUNCATE)")
 c.execute("pragma journal_mode=DELETE")
 c.close()
 EOF
-"$ADB" push "$TMP/nutri.db" /data/local/tmp/nutri.db >/dev/null
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/nutri.db-wal databases/nutri.db-shm; cp /data/local/tmp/nutri.db databases/nutri.db'"
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 2
 tap 'resource-id="home-config"'
