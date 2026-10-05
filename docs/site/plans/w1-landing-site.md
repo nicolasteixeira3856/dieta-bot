@@ -8,7 +8,7 @@
 - Prerequisites:
   - approval of this plan accepts [ADR-038](../adrs/ADR-038-web-project-folder.md);
   - [D11](../../design/plans/completed/d11-landing-page.md) `Concluído` (golds `land`, `landM`, `priv`): met;
-  - [D10](../../design/plans/d10-fibrai-tali-rename.md) `Concluído`. Its scope item 7 refreshes the phone screens of `land` and `landM`, and its re-exported `o1`, `home1` and `chatE` golds show Fibrai and Tali. Without it the page would ship the old name.
+  - [D10](../../design/plans/pending_manual_validation/d10-fibrai-tali-rename.md) `Concluído`. Its scope item 7 refreshes the phone screens of `land` and `landM`, and its re-exported `o1`, `home1` and `chatE` golds show Fibrai and Tali. Without it the page would ship the old name.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/site/plans/w1-landing-site.md. Implemente o plano aprovado.`
 

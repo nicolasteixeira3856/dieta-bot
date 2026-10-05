@@ -11,7 +11,7 @@
   - `AGENTS.md` "Product name" line;
   - [android README](../README.md); captures in `docs/qa/android/current/`.
 - Prerequisites:
-  - [D10](../../design/plans/d10-fibrai-tali-rename.md) `Concluído` with exported golds, which accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md);
+  - [D10](../../design/plans/pending_manual_validation/d10-fibrai-tali-rename.md) `Concluído` with exported golds, which accepts [ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md);
   - [S20](../../server/plans/s20-tali-prompt-identity.md) on the dev server is recommended but not required;
   - [A48](a48-fibrai-app-id-firebase.md) `Concluído`, so this plan edits the moved `app/fibrai/android` sources.
 
