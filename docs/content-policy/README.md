@@ -61,4 +61,4 @@ Legal review and publication are not achieved by code. In the closed test, teste
 
 Accepted owner constraints (2026-09-30): create and keep this context as the single home for user-content × AI safety; plan economical prevention and correlation; defer additional detection platforms (budget); add the SDD `Fora de escopo` state; keep only closed-test controls active; defer production plans with "app in closed test" as the reason; enforce them through the production gate.
 
-Architecture decisions: [ADR-024](adrs/ADR-024-content-safety-boundaries.md), [ADR-025](adrs/ADR-025-safety-correlation-audit.md). Their status lines own their status.
+Architecture decisions: [ADR-024](adrs/ADR-024-content-safety-boundaries.md), [ADR-025](adrs/ADR-025-safety-correlation-audit.md), [ADR-033](adrs/ADR-033-global-chat-example-provenance.md). Their status lines own their status.
