@@ -55,6 +55,17 @@ Behavior: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md
 | Design | [D12](d12-plan-budget-choice.md) — plan over budget: the choice (`chatRB`) | S21 approved |
 | Client | [A50](../../android/plans/a50-plan-budget-choice.md) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
 
+## Home gestures and app reset follow-up
+
+Behavior: [ADR-040](../../produto/adrs/ADR-040-home-card-gestures-app-reset.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | D14 — Home: empty card copy ([`completed/`](completed/)) | — |
+| Design | [D15](d15-config-app-reset.md) — Config: app reset (`cfg`, `cfgR`) | — |
+| Client | [A52](../../android/plans/a52-home-card-gestures.md) — Home: tap to record, long press to skip | D14 |
+| Client | [A53](../../android/plans/a53-config-app-reset.md) — Config: app reset | D15 |
+
 ## Fibrai brand follow-up
 
 Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):
