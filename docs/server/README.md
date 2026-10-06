@@ -23,10 +23,23 @@ Run locally, never on the server. The key is loaded from the repository `.env` a
 
 ```bash
 cd server
-.venv/Scripts/python -m evals.run --effort none --repeat 3
-.venv/Scripts/python -m evals.run --effort none --repeat 6 --only cafe-resposta-leite,cabe-acai
-.venv/Scripts/python -m evals.run --tag temp
+.venv/Scripts/python -m evals.run --effort none --repeat 3 --tag recipe      # the cases a change touches
+.venv/Scripts/python -m evals.run --effort none --repeat 1                   # the whole suite, once
+.venv/Scripts/python -m evals.run --tag cp2 --moderation all                 # refusal cases, real moderation
 ```
+
+How much to run (owner decision, 2026-10-05, after one day of evaluation exhausted the provider's moderation cap and took the dev Chat down):
+
+| Change | Validation | Model calls |
+| --- | --- | --- |
+| Server code only (route, shaping, log, infra) | unit tests + the three-turn HTTP smoke after the dev deploy | 0 |
+| Prompt or schema change | the cases the change touches at `--repeat 3`, then the whole suite at `--repeat 1`, compared with the last recorded full run | about 250 |
+| New or changed evaluator check | unit tests for the check; the cases that use it at `--repeat 3` | tens |
+
+- The previous full run is the baseline; do not rerun the old prompt on the same day. Rerun a baseline only when the model or effort changes.
+- A case that passes and fails across runs of the same prompt is noise, not a regression: record it and move on; fix the rule or the fixture when there is time. No ten-repetition tiebreaks and no run on both prompts to settle one case.
+- Moderation: by default only CP2 cases (`since: cp2` or tag `cp2`) call the provider's moderation endpoint; every other case gets a local clean verdict (`--moderation cp2`). The endpoint's daily request cap is per project; the evaluator and the dev server use keys from different projects ([runbook](deploy-gcp.md)). `--moderation all` restores the old behavior for a deliberate CP2 review; `--moderation none` is for offline replay only.
+- The closed test has two testers. Validation exists to catch a broken rule before they see it, not to prove a rate.
 
 - Cases: `server/evals/cases/<id>.json`, with id, since (`v1`/`v2`/`v3`/`v4`/`v5`/`meal_changes`/`cp2`), tags, request (`ChatIn` body), expect, optional required/strict/image. Since is metadata only: v3 sends clarify_rounds, v4 also auto_record, v5 also temp_facts and structured facts; meal_changes cases exercise the opted-in contract and its legacy comparison branch.
 - Normal cases call the route's `chat_reply`; compact requests call its `compact_reply`. Both include generation, shaping, moderation and failure handling, without HTTP. Default: two workers to avoid token-rate bursts with the longer prompt; `--workers` can select up to three.
@@ -34,7 +47,7 @@ cd server
 - `meal_progress` accepts present/absent: a nonempty estimate object or nonblank top-level question counts as progress. `confidence` accepts one value or a list and fails without an estimate. Required positive checks prevent empty/fallback outputs from passing solely through negative question checks.
 - `meal_change` checks operation/base, delta item presence and exclusions, optional exact portions/nutrients, retained base text, all four consolidated values and numeric reply labels. Null requires no actionable change. S18's independent synthetic cases and fictional label are regression data only, never assembled into global instructions. Run them with `--tag s18 --repeat 6`; each case is strict.
 - Transfer cases carry the tags `s19`, `s19-pairs` (matched pairs that vary foods, profiles and phrasing around one situation, with `family` and `pair` fields) or `s19-reserved` (kept out of prompt tuning). Run them with `--tag`; a prompt change is compared against the previous prefix on these and on the untagged regression cases.
-- A case passes when every applicable expectation passes in at least two of three repetitions. Strict cases require every repetition. Inspect the reported statuses; the CLI writes the report even when cases fail.
+- A case passes when every applicable expectation passes in at least two of three repetitions (at `--repeat 1`, in that one). Strict cases require every repetition. Inspect the reported statuses; the CLI writes the report even when cases fail.
 - Reports: terminal and `logs/evals/<date-time>-<effort>.json`, outside git, with pass rate, p95 and cost. New cases use manually rewritten situations or synthetic images; never commit raw tester logs/text.
 
 ## Index

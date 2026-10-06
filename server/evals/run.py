@@ -2,10 +2,12 @@
 
 Inside server/, with the .venv:
 
-    python -m evals.run --effort none low --repeat 3 [--only id,...] [--tag tag]
+    python -m evals.run --effort none low --repeat 3 [--only id,...] [--tag tag] [--moderation cp2|all|none]
 
 Same orchestration as the route (main.chat_reply: moderation, generation, scope, shaping,
-output moderation; CP2), no HTTP. A case may name a benign synthetic photo in "image".
+output moderation; CP2), no HTTP. The provider's moderation endpoint has a daily request cap per
+project, shared with the dev server, so by default only CP2 cases (since cp2 or tag cp2) reach it;
+every other case gets a local clean verdict. A case may name a benign synthetic photo in "image".
 A "strict" case (CP2 safety sets) passes only when every repetition passes: no leak is excused.
 Key: OPENAI_API_KEY from the repo-root .env via config.load_settings(). Never printed.
 Report: terminal + logs/evals/<date>-<effort>.json (outside git).
@@ -31,7 +33,7 @@ from config import MODEL, load_settings
 from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status
 from llm import LlmClient
 from main import ChatIn, chat_reply, compact_reply
-from moderation import Deadline, ModerationUnavailable, Moderator
+from moderation import CLEAN, Deadline, ModerationUnavailable, Moderator
 from shaping import fail_chat, fail_digest
 
 SERVER = Path(__file__).resolve().parent.parent
@@ -112,6 +114,26 @@ def select_cases(
 
 
 BUDGET_TAG = "over-budget"
+MODERATION_MODES = ("cp2", "all", "none")
+CP2_TAG = "cp2"
+
+
+class CleanModerator:
+    """Local clean verdict: no request leaves the machine. Benign synthetic fixtures do not need the endpoint."""
+
+    def check(self, **_: Any):
+        return CLEAN
+
+    def close(self) -> None:
+        return None
+
+
+def moderated_for_real(case: dict[str, Any], mode: str) -> bool:
+    if mode == "all":
+        return True
+    if mode == "none":
+        return False
+    return case.get("since") == CP2_TAG or CP2_TAG in case.get("tags", [])
 
 
 def case_request(case: dict[str, Any]) -> dict[str, Any]:
@@ -126,7 +148,7 @@ def run_once(
     usage: UsageTransport,
     case: dict[str, Any],
     secret: str = "",
-    moderator: Moderator | None = None,
+    moderator: "Moderator | CleanModerator | None" = None,
 ) -> dict[str, Any]:
     """One repetition, handled like the /v1/chat route. Moderation down = an error repetition."""
     body = ChatIn.model_validate(case_request(case))
@@ -191,15 +213,25 @@ def run_effort(
     api_key: str,
     workers: int = DEFAULT_WORKERS,
     transport: httpx2.BaseTransport | None = None,
+    moderation: str = "cp2",
 ) -> dict[str, Any]:
+    if moderation not in MODERATION_MODES:
+        raise ValueError(f"moderation must be one of {MODERATION_MODES}")
     usage = UsageTransport(transport)
     llm = LlmClient(api_key=api_key, transport=usage, effort=effort)
     moderator = Moderator(api_key=api_key, transport=usage)
+    clean = CleanModerator()
     jobs = [(case, i) for case in cases for i in range(repeat)]
     try:
         with ThreadPoolExecutor(max_workers=max(1, min(workers, MAX_WORKERS))) as pool:
             runs = list(
-                pool.map(lambda job: run_once(llm, usage, job[0], api_key, moderator), jobs)
+                pool.map(
+                    lambda job: run_once(
+                        llm, usage, job[0], api_key,
+                        moderator if moderated_for_real(job[0], moderation) else clean,
+                    ),
+                    jobs,
+                )
             )
     finally:
         llm.close()
@@ -207,7 +239,9 @@ def run_effort(
     per_case: dict[str, list[dict[str, Any]]] = {case["id"]: [] for case in cases}
     for (case, _), result in zip(jobs, runs):
         per_case[case["id"]].append(result)
-    return summarize(effort, cases, per_case, repeat)
+    report = summarize(effort, cases, per_case, repeat)
+    report["moderation"] = moderation
+    return report
 
 
 def summarize(
@@ -336,6 +370,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tag", action="append", help="run cases with this tag (repeatable)")
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS,
                         help=f"default {DEFAULT_WORKERS}, max {MAX_WORKERS}")
+    parser.add_argument("--moderation", choices=MODERATION_MODES, default="cp2",
+                        help="which cases call the provider's moderation endpoint (default cp2 cases only)")
     args = parser.parse_args(argv)
     if args.repeat < 1:
         parser.error("--repeat must be >= 1")
@@ -354,7 +390,8 @@ def main(argv: list[str] | None = None) -> int:
 
     for effort in args.effort:
         print(f"running {len(cases)} cases x {args.repeat} with effort={effort}...", flush=True)
-        report = run_effort(effort, cases, args.repeat, api_key, workers=args.workers)
+        report = run_effort(effort, cases, args.repeat, api_key, workers=args.workers,
+                            moderation=args.moderation)
         print_report(report)
         print(f"report: {write_report(report)}")
     return 0
