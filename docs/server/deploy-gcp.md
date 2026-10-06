@@ -30,7 +30,7 @@ Duas chaves de modelo, dois arquivos na raiz do repositório, ambos ignorados pe
 | `.env` | chave de avaliação | testes, `evals.run`, servidor local |
 | `.env.deploy` | chave do app (só a VM dev) | `./tools/deploy-gcp.ps1 -Env` |
 
-As outras linhas (`INVITE_CODE`, `SAFETY_ID_SECRET`, `SERVER_ENV` etc.) são iguais nos dois; ao mudar uma, mude nas duas. O script recusa um `.env.deploy` sem chave. Motivo: a moderação do provedor tem teto diário de requisições por chave; a avaliação não pode esgotar a cota do app.
+As outras linhas (`INVITE_CODE`, `SAFETY_ID_SECRET`, `SERVER_ENV` etc.) são iguais nos dois; ao mudar uma, mude nas duas. O script recusa um `.env.deploy` sem chave. Motivo: a moderação do provedor tem teto diário de requisições contado por **projeto**, não por chave; a chave do app precisa estar em um projeto separado do da avaliação, senão as duas dividem a mesma cota.
 
 O script empacota, envia por IAP, sobe `docker compose -f infra/gcp/compose.yml up -d --build` e espera `GET /health` = 200 em HTTPS.
 
