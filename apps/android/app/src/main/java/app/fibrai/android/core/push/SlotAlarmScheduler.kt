@@ -53,6 +53,13 @@ class SlotAlarmScheduler @Inject constructor(
         due
     }
 
+    /** App reset (ADR-040): every scheduled reminder and the resync go, and the push preferences with them. */
+    suspend fun cancelAll() = mutex.withLock {
+        scheduledIds().forEach { cancel(it) }
+        alarms.cancel(resyncIntent())
+        prefs.edit().clear().commit()
+    }
+
     fun cancel(slotId: Long) {
         alarms.cancel(slotIntent(slotId))
     }

@@ -6,6 +6,7 @@ import app.fibrai.android.core.database.DayRepository
 import app.fibrai.android.core.database.DaySnapshot
 import app.fibrai.android.core.database.InstantClock
 import app.fibrai.android.core.database.ceilingProfile
+import app.fibrai.android.core.reset.AppReset
 import app.fibrai.android.domain.CreditPolicy
 import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.domain.SlotSuggestions
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 class ConfigViewModel @Inject constructor(
     private val repository: DayRepository,
     private val clock: InstantClock,
+    private val appReset: AppReset,
 ) : ViewModel() {
     private val local = MutableStateFlow(Local())
     private val _uiState = MutableStateFlow(ConfigUiState())
@@ -39,6 +41,9 @@ class ConfigViewModel @Inject constructor(
         val editor: ConfigEditor? = null,
         val draft: ConfigDraft = ConfigDraft(),
         val wipeConfirm: Boolean = false,
+        val resetConfirm: Boolean = false,
+        val resetRunning: Boolean = false,
+        val resetDone: Boolean = false,
     )
 
     init {
@@ -46,7 +51,14 @@ class ConfigViewModel @Inject constructor(
             combine(repository.observeToday(), local) { d, l -> d to l }.collect { (d, l) ->
                 day = d
                 _uiState.value = ConfigMapper.map(d, SaoPaulo.date(clock.now()))
-                    .copy(editor = l.editor, draft = l.draft, wipeConfirm = l.wipeConfirm)
+                    .copy(
+                        editor = l.editor,
+                        draft = l.draft,
+                        wipeConfirm = l.wipeConfirm,
+                        resetConfirm = l.resetConfirm,
+                        resetRunning = l.resetRunning,
+                        resetDone = l.resetDone,
+                    )
             }
         }
     }
@@ -163,6 +175,21 @@ class ConfigViewModel @Inject constructor(
 
     /** Cancelar: the new ceiling is dropped, nothing is stored. */
     fun cancelWipe() = local.update { Local() }
+
+    /** Resetar app: the cfgR dialog. Nothing changes until Apagar tudo. */
+    fun openReset() = local.update { Local(resetConfirm = true) }
+
+    fun cancelReset() = local.update { if (it.resetRunning) it else Local() }
+
+    /** Apagar tudo (ADR-040): one reset per dialog; success opens O1, a failure closes the dialog and stays. */
+    fun confirmReset() {
+        if (!local.value.resetConfirm || local.value.resetRunning) return
+        local.update { it.copy(resetRunning = true) }
+        viewModelScope.launch {
+            val done = appReset.run()
+            local.update { if (done) Local(resetDone = true) else Local() }
+        }
+    }
 
     private fun ceilingChanged(d: ConfigDraft): Boolean {
         if (d.ceilingMode != day.ceilingMode) return true

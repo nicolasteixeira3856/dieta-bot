@@ -30,6 +30,7 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 - O1 sem idade, altura ou peso (`o1e`): modo e teto desabilitados, dica do perfil visível, Continuar desligado. Perfil gravado lido de volta é válido e abre em `o1`.
 - Teto < 800: aceita se o user digitou.
 - Reinstalacao: Room some. Onboarding de novo.
+- Resetar app na Config ([memoria-push](memoria-push.md) Config regra 11): como reinstalação, O1 vazia de novo.
 
 ## Fronteiras e ownership
 
@@ -60,3 +61,4 @@ Dono: produto. Implementação: `android`.
 - [A41](../../android/plans/completed/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
 - [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai e Tali no app
+- [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: resetar o app

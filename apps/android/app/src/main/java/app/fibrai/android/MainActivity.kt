@@ -319,7 +319,18 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onPreviousSlots = vm::previousSlotGroup,
                         onOpenSlotGroup = vm::openSlotGroup,
                         onWorkout = vm::setWorkout,
+                        onOpenReset = vm::openReset,
+                        onConfirmReset = vm::confirmReset,
+                        onCancelReset = vm::cancelReset,
                     )
+                }
+                // ADR-040: after the reset the app starts over at O1; back from O1 leaves the app.
+                LaunchedEffect(ui.resetDone) {
+                    if (ui.resetDone) {
+                        nav.navigate(RouteOnboarding) {
+                            popUpTo(nav.graph.id) { inclusive = true }
+                        }
+                    }
                 }
                 AeroTheme {
                     ConfigScreen(ui, actions) { FlavorConfigRows(nav) }

@@ -63,8 +63,8 @@ const FIGMA = {
   // SystemUI draws the screen and the card. Reported, never gated.
   conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS", "push"]),
   // chatP (A42): Dialog/Confirm centred over the blurred Home (the capture's Home is scrolled to the Lanche card).
-  // wipe (A44): Dialog/Confirm Tone=Danger centred over the blurred Config.
-  center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] }, wipe: { dark: [48, 424, 732, 1264], light: [48, 424, 732, 1264] } },
+  // wipe (A44): Dialog/Confirm Tone=Danger centred over the blurred Config. cfgR (A53): the reset dialog, same pattern.
+  center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] }, wipe: { dark: [48, 424, 732, 1264], light: [48, 424, 732, 1264] }, cfgR: { dark: [48, 448, 732, 1240], light: [48, 448, 732, 1240] } },
   regions: {
     homeW: [0, 80, 780, 900],
     chatL: [0, 500, 780, 740],

@@ -74,6 +74,9 @@ object TelemetryEvents {
      */
     const val MEAL_UPDATE = "meal_update"
 
+    /** A53: app reset in Config, `outcome` = done | failed, `step` = mark | push | files | database on failure. Enums only. */
+    const val APP_RESET = "app_reset"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 
