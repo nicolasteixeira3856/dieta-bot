@@ -74,6 +74,14 @@ def test_reply_rewrites_only_the_quoted_model_total(reply, expected):
     assert estimate_total.rewrite_reply("Total do almoço: 1.589 kcal.", 1589, 1460) == "Total do almoço: 1.460 kcal."
 
 
+def test_apply_turn_keeps_a_total_copied_from_a_supplied_record():
+    payload = {"reply": "Almoço igual: 620 kcal.", "estimate": {"kcal": 620, "p": 52, "c": 70, "g": 12,
+                                                            "items": _items(192, 76, 239)}}
+    assert estimate_total.apply_turn(payload, {620.0, 430.0}) is None
+    assert payload["estimate"]["kcal"] == 620 and payload["reply"] == "Almoço igual: 620 kcal."
+    assert estimate_total.apply_turn(payload, {430.0}) == {"model_kcal": 620, "items_kcal": 507}
+
+
 def test_apply_turn_changes_estimate_and_reply_together():
     payload = {"reply": "Estimei 589 kcal · 27 g P.", "estimate": {"kcal": 589, "p": 27, "c": 38, "g": 26,
                                                                   "items": _items(146, 150, 120, 44)}}

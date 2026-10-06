@@ -74,11 +74,20 @@ def apply(estimate: Any) -> dict[str, int] | None:
     return {"model_kcal": rounded(model_kcal) if model_kcal is not None else None, "items_kcal": total}
 
 
-def apply_turn(payload: Any) -> dict[str, int] | None:
-    """Chat turn: apply to payload.estimate and rewrite the quoted total in reply. Returns the record."""
+def apply_turn(payload: Any, keep: frozenset[float] | set[float] = frozenset()) -> dict[str, int] | None:
+    """Chat turn: apply to payload.estimate and rewrite the quoted total in reply. Returns the record.
+
+    keep: kcal of the supplied RECENT rows and eaten DAY slots. A model total equal to one of them is a
+    copied record (habitual meal, correction of a recorded meal) and keeps the record's numbers.
+    """
     if not isinstance(payload, dict):
         return None
-    change = apply(payload.get("estimate"))
+    estimate = payload.get("estimate")
+    if isinstance(estimate, dict):
+        model_kcal = _finite(estimate.get("kcal"))
+        if model_kcal is not None and any(model_kcal == float(k) for k in keep):
+            return None
+    change = apply(estimate)
     if change and change["model_kcal"] is not None and isinstance(payload.get("reply"), str):
         payload["reply"] = rewrite_reply(payload["reply"], change["model_kcal"], change["items_kcal"])
     return change
