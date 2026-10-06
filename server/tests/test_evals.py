@@ -298,6 +298,29 @@ def _usage_envelope(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 class RunTests(unittest.TestCase):
+    def test_default_moderation_reaches_the_endpoint_only_for_cp2_cases(self) -> None:
+        benign = next(c for c in run.load_cases() if c["id"] == "comi-pizza-pao-sirio")
+        cp2 = next(c for c in run.load_cases() if c.get("since") == "cp2" and not c.get("image"))
+        self.assertTrue(run.moderated_for_real(cp2, "cp2"))
+        self.assertFalse(run.moderated_for_real(benign, "cp2"))
+        self.assertTrue(run.moderated_for_real(benign, "all"))
+        self.assertFalse(run.moderated_for_real(cp2, "none"))
+        self.assertTrue(run.moderated_for_real({"tags": ["cp2"]}, "cp2"))
+        moderated: list[int] = []
+
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            if _is_moderation(request):
+                moderated.append(1)
+                return httpx2.Response(200, json=_moderation())
+            return httpx2.Response(200, json=_usage_envelope({"reply": "ok", "estimate": None, "digest": None}))
+
+        report = run.run_effort("none", [benign], 2, FAKE_KEY, transport=httpx2.MockTransport(handler))
+        self.assertEqual((len(moderated), report["moderation"]), (0, "cp2"))
+        run.run_effort("none", [cp2], 1, FAKE_KEY, transport=httpx2.MockTransport(handler))
+        self.assertGreaterEqual(len(moderated), 1)
+        with self.assertRaises(ValueError):
+            run.run_effort("none", [benign], 1, FAKE_KEY, transport=httpx2.MockTransport(handler), moderation="some")
+
     def _case(self) -> dict[str, Any]:
         return next(c for c in run.load_cases() if c["id"] == "comi-pizza-pao-sirio")
 
@@ -323,11 +346,12 @@ class RunTests(unittest.TestCase):
             return httpx2.Response(200, json=_usage_envelope(payload))
 
         report = run.run_effort(
-            "low", [self._case()], 3, FAKE_KEY, transport=httpx2.MockTransport(handler)
+            "low", [self._case()], 3, FAKE_KEY, transport=httpx2.MockTransport(handler), moderation="all"
         )
         self.assertEqual(len(seen), 3)
         # Full orchestration (CP2): input and output moderation around each generation.
         self.assertEqual(len(moderated), 6)
+        self.assertEqual(report["moderation"], "all")
         self.assertEqual({s["reasoning"]["effort"] for s in seen}, {"low"})
         self.assertEqual(report["pass_rate"], {"passed": 1, "failed": 0, "na": 0, "rate": 100.0})
         case = report["cases"][0]
@@ -378,7 +402,8 @@ class RunTests(unittest.TestCase):
                 return httpx2.Response(200, json=_usage_envelope({"digest": "Pergunta em aberto: qual o peso? (cheesecake)"}))
 
             with self.subTest(mode=mode):
-                report = run.run_effort("none", [case], 1, FAKE_KEY, transport=httpx2.MockTransport(handler))
+                report = run.run_effort("none", [case], 1, FAKE_KEY, transport=httpx2.MockTransport(handler),
+                                        moderation="all")
                 result = report["cases"][0]
                 self.assertEqual(result["status"], PASS if mode == "success" else FAIL)
                 self.assertEqual(seen[0]["text"]["format"]["schema"]["required"], ["digest"])
