@@ -6,7 +6,7 @@
 - Executable boundary: `server/` only: the `plan` rule of the Chat instructions, the `chat_turn` schema and shaping, the plan budget check and adjusted-plan verification in the `/v1/chat` route, request validation, the dev conversation log record, tests, and evaluation cases/checks/runner.
 - Related documentation: [server Chat specification](../../specifications/v1-chat.md), [HTTP contract](../../../api-contract.md), [server README](../../README.md) plan list, [ADR-039](../../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md) and the status lines of [ADR-023](../../../produto/adrs/ADR-023-chat-v2-memoria-v2.md) and [ADR-026](../../../produto/adrs/ADR-026-perguntas-antes-da-estimativa.md).
 - Prerequisites:
-  - [S19](s19-generalizable-chat-instructions.md) and [S20](../s20-tali-prompt-identity.md) delivered or cancelled: all three edit the same instructions and must not run at the same time.
+  - [S19](s19-generalizable-chat-instructions.md) and [S20](s20-tali-prompt-identity.md) delivered or cancelled: all three edit the same instructions and must not run at the same time.
 - Followed by: design plan D12 (gold `chatRB`) and Android plan A50, which consumes the capability below. A50 starts after D12 is `Concluído` and this plan is deployed to dev.
 
 Approving this plan accepts ADR-039. Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s21-plan-cooking-and-budget-choice.md. Implemente o plano aprovado.`

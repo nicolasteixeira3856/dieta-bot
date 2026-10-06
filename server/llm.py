@@ -17,7 +17,7 @@ SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
 # CP2 / ADR-024: estimate/fit scope. Chat renders the same policy in its reviewed registry.
 # The server replaces non-in_scope output with fixed copy, without model-authored refusals.
 _SCOPE_RULES = (
-    "SCOPE: Dieta Bot only helps fit meals into the user's daily food budget. "
+    "SCOPE: Fibrai only helps fit meals into the user's daily food budget. "
     "scope is in_scope for: meals, portions, food labels, recipes, food preferences, "
     "budget or portion arithmetic about food (e.g. quanto sobra se eu comer 2 pães), "
     "nutrition questions about food, a greeting, a question about this app, "

@@ -1,9 +1,10 @@
 {
-  "id": "saudacao",
+  "id": "quem-e-voce",
   "since": "v1",
   "tags": [
-    "question",
-    "intent"
+    "s20",
+    "identity",
+    "question"
   ],
   "request": {
     "local_time": "2026-09-30T09:00:00-03:00",
@@ -84,7 +85,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "oi, tudo bem?",
+    "text": "quem é você?",
     "image_b64": null,
     "compact": false
   },
@@ -92,8 +93,13 @@
     "intent": "question",
     "estimate": "absent",
     "refusal": "none",
-    "reply_not": [
+    "reply_has": [
       "Tali"
-    ]
+    ],
+    "reply_not": [
+      "Dieta Bot",
+      "Nutri"
+    ],
+    "reply_max_chars": 160
   }
 }

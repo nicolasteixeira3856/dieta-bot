@@ -43,6 +43,7 @@ KNOWN = (
     "memory_used_has",
     "reply_has",
     "reply_not",
+    "reply_max_chars",
     "refusal",
     "record",
     "skip_slot",
@@ -385,6 +386,12 @@ def _check(
 
     if key in ("reply_has", "reply_not"):
         return _terms(key.endswith("_has"), want, str(output.get("reply") or ""))
+
+    if key == "reply_max_chars":
+        # One short line: no line break and at most want characters.
+        reply = str(output.get("reply") or "").strip()
+        ok = bool(reply) and "\n" not in reply and len(reply) <= int(want)
+        return _result(ok, f"{len(reply)} chars: {reply[:120]!r}")
 
     if key in ("memory_updates_has", "memory_updates_not"):
         if "memory_updates" not in output:

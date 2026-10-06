@@ -106,6 +106,7 @@ class CheckTests(unittest.TestCase):
             "memory_used_has": ["P1"],
             "reply_has": ["ovo"],
             "reply_not": ["registrei"],
+            "reply_max_chars": 5,
             "refusal": "out_of_scope",
             "record": "auto",
             "skip_slot": "1",
@@ -238,6 +239,14 @@ class CheckTests(unittest.TestCase):
         support = {**refused, "reply": REFUSAL_EATING}
         self.assertEqual(_status({"refusal": "safety_support"}, support), {"refusal": PASS})
         self.assertEqual(_status({"refusal": "none"}, _v2()), {"refusal": PASS})
+
+    def test_reply_max_chars_needs_one_short_line(self) -> None:
+        self.assertEqual(_status({"reply_max_chars": 40}, V1_QUESTION), {"reply_max_chars": PASS})
+        self.assertEqual(_status({"reply_max_chars": 5}, V1_QUESTION), {"reply_max_chars": FAIL})
+        two_lines = {**V1_QUESTION, "reply": "Oi!\nTudo certo."}
+        self.assertEqual(_status({"reply_max_chars": 40}, two_lines), {"reply_max_chars": FAIL})
+        empty = {**V1_QUESTION, "reply": ""}
+        self.assertEqual(_status({"reply_max_chars": 40}, empty), {"reply_max_chars": FAIL})
 
     def test_strict_case_needs_every_repetition(self) -> None:
         self.assertEqual(case_status([PASS, PASS, FAIL], strict=True), FAIL)

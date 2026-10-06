@@ -12,7 +12,7 @@
   - [android README](../../README.md); captures in `docs/qa/android/current/`.
 - Prerequisites:
   - [D10](../../../design/plans/completed/d10-fibrai-tali-rename.md) `Concluído` with exported golds, which accepts [ADR-035](../../../produto/adrs/ADR-035-tali-in-app-identity.md);
-  - [S20](../../../server/plans/s20-tali-prompt-identity.md) on the dev server is recommended but not required;
+  - [S20](../../../server/plans/completed/s20-tali-prompt-identity.md) on the dev server is recommended but not required;
   - [A48](a48-fibrai-app-id-firebase.md) `Concluído`, so this plan edits the moved `app/fibrai/android` sources.
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a49-fibrai-tali-visible-rename.md. Implemente o plano aprovado.`
@@ -44,7 +44,7 @@ The user sees "Fibrai" on the launcher, splash and onboarding, and "Tali" with h
 ## Out of scope
 
 - applicationId and Firebase ([A48](a48-fibrai-app-id-firebase.md)).
-- Server prompt ([S20](../../../server/plans/s20-tali-prompt-identity.md)).
+- Server prompt ([S20](../../../server/plans/completed/s20-tali-prompt-identity.md)).
 - Launcher icon or logo, the final avatar art, the landing site.
 
 ## Validation
