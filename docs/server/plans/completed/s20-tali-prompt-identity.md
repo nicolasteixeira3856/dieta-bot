@@ -77,12 +77,15 @@ Implemented on 2026-10-05 on `feat/s20-tali-identity` from master `52eac76` (S19
      - At 195/576 repetitions (about 75 minutes) the owner told the agent to stop the tests, complete the plan and merge, and recorded the override ("pode anotar no plano que eu dei override nos testes").
      - Partial counts: 2 repetitions failed a check, 0 ended in an error. The run was stopped before its report was written, so the failing cases are not identified.
      - No comparison with the [S19](s19-generalizable-chat-instructions.md#evidence-on-the-final-prefix) baseline was made. This delivery does not claim the regression suite passed.
-3. **Dev deploy and HTTP smoke test: not performed.** The owner said not to deploy for now. The next `tools/deploy-gcp.ps1` from master ships the S19 instructions (never deployed) together with S20. The smoke test of Validation 3 ("quem é você?" and one meal turn through the dev URL) is still owed at that deploy.
+3. **Dev deploy and HTTP smoke test** (2026-10-06, at the owner's request "pode fazer o deploy no servidor dev"; at merge time the owner had asked not to deploy yet):
+   - `tools/deploy-gcp.ps1`, code only, from master `79b982c` (S20 merged over S21, which was already on the VM). `GET /health` 200 `{"ok": true, "model": "gpt-6-luna", "safety_id": "on"}`.
+   - Smoke through the dev URL with synthetic input:
+     - "quem é você?" → 200, intent `question`, no estimate: "Sou a Tali, assistente de acompanhamento alimentar do Fibrai." (`s20-smoke-cbd47d10-a645-4734-901f-419dd7c6af64`).
+     - A breakfast eating report → 200, intent `log`, estimate 347 kcal · 18.5P · 29.5C · 17.2G, slot `1`, a reply with assumptions and no name (`s20-smoke-11b2c441-c7d3-48ea-b230-0a1992142396`). The normal meal turn is unchanged.
 4. `node tools/check-docs.mjs`: passed.
 
 ### Closure by owner decision (2026-10-05)
 
 The owner closed the plan with the override above. Open items, none tracked as active work:
 
-- the full regression suite on this prefix;
-- the dev deploy and its smoke test.
+- the full regression suite on this prefix. The dev deploy and its smoke test were done afterwards (Validation 3).
