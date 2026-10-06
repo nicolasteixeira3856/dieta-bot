@@ -72,7 +72,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Marca
 
-Logo: semente de aveia estilizada com rosto mínimo (escolha do dono em 06/10/2026, plano [D13](../design/plans/d13-oat-seed-logo.md)). Fonte em `design/brand/`: `icon.svg` (vetor mestre, 1024, contorno `#3A2A14`, grão `#E9C984`, brilho `#F4E4BB`), `icon-mono.svg` (silhueta branca com o rosto vazado, máscara do ícone temático) e os rasters `icon.png`, `icon-mono.png` (1254², RGBA) e `icon-dark-bg.png` (só referência). Ao trocar o logo, edite os SVGs e rasterize de novo os PNGs.
+Logo: semente de aveia estilizada com rosto mínimo (escolha do dono em 06/10/2026, plano [D13](../design/plans/pending_manual_validation/d13-oat-seed-logo.md)). Fonte em `design/brand/`: `icon.svg` (vetor mestre, 1024, contorno `#3A2A14`, grão `#E9C984`, brilho `#F4E4BB`), `icon-mono.svg` (silhueta branca com o rosto vazado, máscara do ícone temático) e os rasters `icon.png`, `icon-mono.png` (1254², RGBA) e `icon-dark-bg.png` (só referência). Ao trocar o logo, edite os SVGs e rasterize de novo os PNGs.
 
 - `./tools/brand-icons.ps1` gera `mipmap-*/ic_launcher_foreground.png` (símbolo em 62/108 dp, dentro da área segura de 66 dp, para a ponta da casca não encostar na máscara circular), `mipmap-*/ic_launcher_monochrome.png` (ícone temático, Android 13+) e `drawable-nodpi/logo_mark.png` (splash). Rode de novo depois de trocar os arquivos da pasta.
 - `mipmap-anydpi-v26/ic_launcher(_round).xml`: fundo `@color/ic_launcher_bg` (`#0B0D10`) + foreground + monochrome. `minSdk` 26, então não há PNG legado.
@@ -118,7 +118,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 - Ativos: arquivos na raiz de [`plans/`](plans/).
 - Pendente aprovação manual: [A47 — Chat meal updates](plans/pending_manual_validation/a47-chat-meal-updates.md).
 - [A50 — Plan over budget: the choice in the Chat](plans/a50-plan-budget-choice.md).
-- [A51 — Logo-only splash](plans/a51-logo-only-splash.md) (after [D13](../design/plans/d13-oat-seed-logo.md)).
+- [A51 — Logo-only splash](plans/a51-logo-only-splash.md) (after [D13](../design/plans/pending_manual_validation/d13-oat-seed-logo.md)).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md).
 - Histórico: [`plans/completed/`](plans/completed/).
 - Validação: [`validation/`](validation/).

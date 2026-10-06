@@ -5,7 +5,7 @@
 - Owning context: `android`
 - Executable boundary: `apps/android/` (`feature/splash/SplashScreen.kt`, `core/designsystem/FibraiTokens.kt` `SplashBoot`, splash Roborazzi baselines, splash tests) and the splash emulator capture in `docs/qa/android/current/{dark,light}/`.
 - Related documentation: [perfil-onboarding](../../produto/specifications/perfil-onboarding.md) rules 7 and 9, [android README § Marca](../README.md#marca), the plan indexes.
-- Prerequisites: [D13](../../design/plans/d13-oat-seed-logo.md) `Concluído` with the `splash` golds re-exported; no parallel Android plan touching `feature/splash/`.
+- Prerequisites: [D13](../../design/plans/pending_manual_validation/d13-oat-seed-logo.md) `Concluído` with the `splash` golds re-exported; no parallel Android plan touching `feature/splash/`.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a51-logo-only-splash.md. Implemente o plano aprovado.`
 

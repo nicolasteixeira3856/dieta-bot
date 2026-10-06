@@ -24,7 +24,7 @@ Design source for the Dieta Bot UI: the own design system "Aero" ([ADR-030](adrs
 
 - Behavior and copy decisions: [produto](../produto/README.md). A design plan draws only features that exist in the code and live specifications (ADR-031 § feature parity).
 - Compose implementation: [android](../android/README.md).
-- Branding: the name is [ADR-034](../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md); the logo (oat seed) enters the `Branding` page by [D13](plans/d13-oat-seed-logo.md). Source files: `design/brand/` ([android README § Marca](../android/README.md#marca)).
+- Branding: the name is [ADR-034](../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md); the logo (oat seed) enters the `Branding` page by [D13](plans/pending_manual_validation/d13-oat-seed-logo.md). Source files: `design/brand/` ([android README § Marca](../android/README.md#marca)).
 
 ## Boundaries
 
