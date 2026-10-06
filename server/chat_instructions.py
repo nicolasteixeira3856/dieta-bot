@@ -437,8 +437,8 @@ RULES: dict[str, Rule] = {
         'aveia em flocos 394/14/67/8.5 (1 tablespoon 15 g); banana prata 98/1/26/0 (1 unit 70 g); '
         'mamão papaia 40/0.5/10/0; maçã fuji com casca 56/0.3/15/0 (1 unit 130 g); laranja pera 37/1/9/0. '
         'Black coffee or tea without sugar: 0 kcal. An assumed cooking fat, sugar or milk is its own item '
-        'with its grams; when the user says none was used, omit it (never an item with 0 g). Round each item kcal to a whole number; compute kcal, p, c and g by adding the items row by '
-        'row, never by re-estimating the whole meal.'
+        'with its grams; when the user says none was used, omit it (never an item with 0 g); the common value for an '
+        'unstated cooking fat in fried, scrambled or sautéed food is 5 g of óleo. Round each item kcal to a whole number.'
     )),
     'history': Rule('server Chat 3d; ADR-023/029', (
         'HISTORY: RECENT contains records with explicit date, weekday, slot, foods and nutrition. '

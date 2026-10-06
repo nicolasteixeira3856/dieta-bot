@@ -26,7 +26,7 @@ V1_LOG = {
         "g": 20,
         "confidence": "high",
         "question": None,
-        "items": [{"name": "ovo", "g": 100, "kcal": 150}],
+        "items": [{"name": "ovo", "g": 100, "kcal": 430}],
         "suggested_slot": "1",
     },
     "digest": None,

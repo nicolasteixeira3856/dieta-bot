@@ -48,6 +48,7 @@ from conversation_log import ConversationLog, now_iso
 from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
 from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
+import estimate_total
 import plan_budget as budgets
 from moderation import (
     IN_SCOPE,
@@ -451,13 +452,13 @@ def create_app(
                         record,
                         input_texts=[user_text],
                         image=image,
-                        generate=lambda timeout: llm.estimate_json(
+                        generate=lambda timeout: _summed(record, llm.estimate_json(
                             user_text=user_text,
                             image_b64=image,
                             trace=record,
                             timeout=timeout,
                             safety_identifier=safety_id,
-                        ),
+                        )),
                         shape=shape_estimate,
                         output_texts=estimate_output_texts,
                     ),
@@ -733,6 +734,8 @@ def chat_reply(
             )
 
         payload = call(_chat_text(body), timeout)
+        # ADR-042: the total is the sum of the items before any check or shaping reads it.
+        record["kcal_resum"] = estimate_total.apply_turn(payload, _record_totals(body))
         budget = _plan_budget(body, payload) if body.plan_budget else None
         if budget is None or payload_scope(payload) != IN_SCOPE:
             return payload
@@ -747,6 +750,8 @@ def chat_reply(
             _LOG.warning("chat adjust retry failed: %s", type(exc).__name__)
             record["raw_output"] = first_raw
             return payload
+        if payload_scope(adjusted) == IN_SCOPE:
+            record["kcal_resum"] = estimate_total.apply_turn(adjusted, _record_totals(body)) or record.get("kcal_resum")
         if payload_scope(adjusted) != IN_SCOPE or budgets.plan_kcal(adjusted) is None:
             record["raw_output"] = first_raw
             return payload
@@ -881,6 +886,20 @@ def shape_chat_turn(
     if body.meal_changes:
         explain_change(result, payload, profile, day)
     return result, clarify, record_log
+
+
+def _record_totals(body: ChatIn) -> frozenset[float]:
+    """kcal of the supplied records: a model total equal to one of them is a copy and stays (ADR-042)."""
+    return frozenset(
+        [float(m.kcal) for m in body.recent]
+        + [float(s.kcal) for s in body.day.slots if s.kcal is not None]
+    )
+
+
+def _summed(record: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    """/v1/estimate: the payload is the estimate itself (ADR-042)."""
+    record["kcal_resum"] = estimate_total.apply(payload)
+    return payload
 
 
 def _plan_budget(body: ChatIn, payload: dict[str, Any]) -> dict[str, Any] | None:
