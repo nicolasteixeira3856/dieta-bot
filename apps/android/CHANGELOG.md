@@ -2,6 +2,17 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.16 — 06/10/2026
+
+### Novidades
+
+- Configurações: nova opção "Resetar app", no fim da tela. Ela apaga tudo o que o app guarda no aparelho (perfil, metas, refeições, registros, conversa, memória e lembretes) e volta para a configuração inicial. Antes, pede confirmação; não dá para desfazer.
+- Tela inicial: tocar num card de refeição sem registro agora abre o Chat para registrar.
+
+### Ajustes
+
+- Para pular uma refeição, segure o card (toque longo). O celular vibra e pede a mesma confirmação "Pular {refeição}?" de antes. O texto do card agora diz "Toque para registrar, segura para pular".
+
 ## 0.0.15 — 06/10/2026
 
 ### Novidades
