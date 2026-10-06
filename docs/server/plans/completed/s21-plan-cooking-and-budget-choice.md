@@ -141,4 +141,6 @@ Prefix sizes: legacy 30,096 characters (`2caf4d79…b720`), meal changes 33,857 
 
 ### Deploy and smoke
 
-Recorded at the end of the delivery.
+- Dev deploy: `tools/deploy-gcp.ps1` from master `c60c372` after the merge of [PR #132](https://github.com/nicolasteixeira3856/dieta-bot/pull/132), code only; `GET /health` 200 `{"ok": true, "model": "gpt-6-luna", "safety_id": "on"}`.
+- HTTP smoke (validation 4): **not performed.** Every Chat turn through the dev URL returned 503 `content_policy_unavailable` across 18 paced attempts over 15 minutes, because the provider's moderation endpoint had reached its daily request cap earlier in the day (probe: `x-ratelimit-remaining-requests: 0`, reset about 24 h after exhaustion, around 20:00 on 2026-10-06 America/Sao_Paulo). The cap is shared by the evaluator and the dev server, so the closed-test Chat is also unavailable until it resets. The same three turns (opted-in over-budget recipe, `fit_kcal` from the pill, legacy shape) remain to be run against the dev URL once moderation answers again; the server code they exercise is covered by the route tests with mocked verdicts and by the evaluator runs above.
+- Follow-up outside this plan: the evaluator's two moderation calls per repetition consume the shared daily cap; pacing or a separate key for evaluation would protect the dev server.
