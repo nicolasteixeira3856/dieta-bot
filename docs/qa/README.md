@@ -24,7 +24,7 @@ home0.png · home1.png · homeX.png · homeW.png
 chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
 chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
 chatI.png · chatIC.png · chatTI.png
-cfg.png · cfgS.png · wipe.png · push.png
+cfg.png · cfgS.png · wipe.png · cfgR.png · push.png
 land.png · landM.png · priv.png
 ```
 

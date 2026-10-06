@@ -5,7 +5,7 @@
 - Owning context: `android`
 - Executable boundary: `apps/android/` (Config screen and ViewModel, a reset use case over Room, memory file, photo store and push, navigation, telemetry, tests) plus `tools/capture-config.sh`.
 - Related documentation: [memoria-push](../../produto/specifications/memoria-push.md) § Config, [perfil-onboarding](../../produto/specifications/perfil-onboarding.md), [Room](../specifications/room-v2.md) (no schema change), Android validation and plan indexes.
-- Prerequisites: [D15](../../design/plans/d15-config-app-reset.md) `Concluído` with `cfg` and `cfgR` exported; ADR-040 accepted. Independent of [A52](a52-home-card-gestures.md); not run in parallel with another Android plan.
+- Prerequisites: [D15](../../design/plans/completed/d15-config-app-reset.md) `Concluído` with `cfg` and `cfgR` exported; ADR-040 accepted. Independent of [A52](a52-home-card-gestures.md); not run in parallel with another Android plan.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a53-config-app-reset.md. Implemente o plano aprovado.`
 
