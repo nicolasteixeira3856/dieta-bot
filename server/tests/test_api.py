@@ -56,7 +56,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
             "g": 14,
             "confidence": "medium",
             "question": "os paes eram franceses?",
-            "items": [{"name": "pao", "g": 100, "kcal": 270}],
+            "items": [{"name": "pao", "g": 100, "kcal": 270}, {"name": "ovo", "g": 100, "kcal": 247}],
         }
         captured: list[httpx2.Request] = []
         app = self._app(_responds(payload, captured))

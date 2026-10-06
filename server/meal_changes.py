@@ -10,6 +10,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from config import MEAL_TEXT_MAX, COMPOSED_MEAL_TEXT_MAX
+import estimate_total
 
 NUTRIENTS = ("kcal", "p", "c", "g")
 
@@ -139,6 +140,8 @@ def prepare_change(payload: dict[str, Any], profile: list[dict], day: list[dict]
             raise ValueError("new meal cannot overwrite occupied target")
         if op == "revise" and base is None:
             raise ValueError("revision needs an occupied base")
+        # ADR-042: the whole-meal total is the sum of the items; a mismatch is recomputed, not refused.
+        estimate_total.apply(estimate)
         values = nutrition({k: estimate.get(k) for k in ("meal_text", *NUTRIENTS, "items")})
         estimate.update(values)
         if base is not None:

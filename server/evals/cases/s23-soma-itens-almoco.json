@@ -1,0 +1,92 @@
+{
+  "id": "s23-soma-itens-almoco",
+  "since": "v4",
+  "tags": [
+    "s23",
+    "log"
+  ],
+  "request": {
+    "local_time": "2026-10-08T12:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2100,
+      "p_target": 140,
+      "c_target": 230,
+      "g_target": 70,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "a",
+          "name": "Café",
+          "time": "06:45"
+        },
+        {
+          "id": "b",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "c",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "eaten_kcal": 310,
+      "eaten_p": 13,
+      "eaten_c": 50,
+      "eaten_g": 7,
+      "workout_kcal": null,
+      "remaining_kcal": 1790,
+      "slots": [
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "iogurte natural com aveia e banana",
+          "kcal": 310,
+          "p": 13,
+          "c": 50,
+          "g": 7
+        },
+        {
+          "id": "b",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "almoço: 200 g de arroz branco cozido, 100 g de feijão carioca e 150 g de peito de frango grelhado",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "b",
+    "record": [
+      "auto",
+      "clear"
+    ],
+    "estimate_values": {
+      "kcal": 571
+    },
+    "item_portions": {
+      "arroz": 200,
+      "feijão": 100,
+      "frango": 150
+    }
+  },
+  "note": "Every food is in the reference table: 256 + 76 + 239 = 571 kcal. The server total must equal the item sum exactly."
+}

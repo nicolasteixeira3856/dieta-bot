@@ -198,7 +198,7 @@ LEGACY_SNAPSHOT = {
         "question": QUESTION,
         "items": [
             {"name": "ovo mexido", "g": 100, "kcal": 150},
-            {"name": "pao frances", "g": 50.5, "kcal": 140},
+            {"name": "pao frances", "g": 50.5, "kcal": 290},
         ],
         "suggested_slot": "3",
         "meal_text": MEAL,

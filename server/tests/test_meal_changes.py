@@ -235,9 +235,7 @@ class RouteTests(unittest.IsolatedAsyncioTestCase):
                        dict(operation='add', base_slot=None, addition=delta()),
                        dict(operation='add', base_slot='cafe', addition=delta(kcal=55))]:
             variants.append(model(meal_change=change))
-        inconsistent = model(meal_change=dict(operation='revise', base_slot='cafe', addition=None))
-        inconsistent['estimate']['kcal'] = 999
-        variants.append(inconsistent)
+        # An energy mismatch on revise is recomputed by the server since ADR-042 (tests/test_estimate_total.py).
         for raw in variants:
             with self.subTest(raw=raw['meal_change']):
                 response, _ = await self.post(request(force_estimate=True, clarify_rounds=3), raw)

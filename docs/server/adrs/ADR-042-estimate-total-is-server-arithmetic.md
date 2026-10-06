@@ -1,6 +1,6 @@
 # ADR-042 — The estimate total is server arithmetic over the items
 
-- Status: Proposed (acceptance follows the approval of [S23](../plans/s23-estimate-total-from-items.md))
+- Status: Accepted (2026-10-06, owner approval of S23 by name)
 - Date: 2026-10-06
 - Owner: `server`
 - Complements: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md) (budget arithmetic on the server), [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md) (meal-change deltas validated and consolidated by the server), [ADR-041](../../produto/adrs/ADR-041-reference-portions-in-chat-instructions.md) (reference portions). Supersedes none.

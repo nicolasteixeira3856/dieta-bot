@@ -199,7 +199,7 @@ class SchemaTests(unittest.TestCase):
 
 
 # Responses of master before S14 for these model payloads (new fields included): byte for byte.
-_ITEMS = [{"name": "ovo mexido", "g": 100, "kcal": 150}, {"name": "pao frances", "g": 50.5, "kcal": 140}]
+_ITEMS = [{"name": "ovo mexido", "g": 100, "kcal": 150}, {"name": "pao frances", "g": 50.5, "kcal": 290}]
 V3_LOG_SNAPSHOT = {
     "reply": "Jantar de arroz, feijao e frango.",
     "intent": "log",

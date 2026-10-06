@@ -863,7 +863,8 @@ def _estimate(**kw: Any) -> dict[str, Any]:
         "g": 22,
         "confidence": "medium",
         "question": "Qual leite?",
-        "items": [{"name": "ovo mexido", "g": 100, "kcal": 150}, {"name": "pao frances", "g": 50.5, "kcal": 140}],
+        # Items sum to kcal: the server total is the item sum (ADR-042).
+        "items": [{"name": "ovo mexido", "g": 100, "kcal": 150}, {"name": "pao frances", "g": 50.5, "kcal": 290}],
         "suggested_slot": "1",
         "meal_text": "2 ovos mexidos, 1 pao frances",
     }

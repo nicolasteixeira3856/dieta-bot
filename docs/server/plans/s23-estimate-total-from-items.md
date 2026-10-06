@@ -1,6 +1,6 @@
 # Plan — S23 Estimate total computed by the server from the items
 
-- Status: Aguardando aprovação
+- Status: Em implementação
 - Date: 06/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: a pure arithmetic module, its call in the `/v1/chat` generation step (before the plan budget check and shaping) and in `/v1/estimate`, the meal-change energy validation, the reply copy adjustment, the dev conversation log record, one sentence of the `reference` rule, tests and evaluation cases. No schema, route signature or client change.

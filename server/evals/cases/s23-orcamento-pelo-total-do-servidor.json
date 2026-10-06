@@ -1,0 +1,91 @@
+{
+  "id": "s23-orcamento-pelo-total-do-servidor",
+  "since": "v4",
+  "tags": [
+    "s23",
+    "plan",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-08T19:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2100,
+      "p_target": 140,
+      "c_target": 230,
+      "g_target": 70,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "a",
+          "name": "Café",
+          "time": "06:45"
+        },
+        {
+          "id": "b",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "c",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "eaten_kcal": 1560,
+      "eaten_p": 68,
+      "eaten_c": 170,
+      "eaten_g": 62,
+      "workout_kcal": null,
+      "remaining_kcal": 540,
+      "slots": [
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "iogurte natural com aveia e banana",
+          "kcal": 310,
+          "p": 13,
+          "c": 50,
+          "g": 7
+        },
+        {
+          "id": "b",
+          "status": "eaten",
+          "text": "feijoada completa",
+          "kcal": 1250,
+          "p": 55,
+          "c": 120,
+          "g": 55
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "me monta um jantar leve com frango e legumes",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "record": "none",
+    "estimate": "present",
+    "suggested_slot": "c",
+    "plan_budget": {
+      "limit_kcal": 540
+    },
+    "estimate_values": {}
+  },
+  "note": "540 kcal left. The over state is computed from the server total (sum of items), so over_kcal must match the returned estimate."
+}
