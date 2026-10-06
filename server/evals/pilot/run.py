@@ -332,7 +332,11 @@ def render_markdown(reports: dict[str, dict[str, Any]]) -> str:
         else:
             out.append(f"**Pergunta:** {q['text']}\n")
         for n in names:
-            cr = next(x for x in reports[n]["cases"] if x["id"] == c["id"])
+            cr = next((x for x in reports[n]["cases"] if x["id"] == c["id"]), None)
+            if cr is None:
+                out.append(f"**{n}** — não executado nesta rodada")
+                out.append("")
+                continue
             mark = {PASS: "ok", FAIL: "FALHA", NA: "n/a"}[cr["status"]]
             out.append(f"**{n}** — {mark} ({cr['passes']}/{cr['repeat']})\n")
             for r in cr["runs"]:
