@@ -3,7 +3,7 @@
   Builds the launcher icon layers and the splash logo from design/brand/ (A14).
 
 .DESCRIPTION
-  design/brand/icon.png       -> mipmap-*/ic_launcher_foreground.png (symbol scaled to the 66/108 dp safe zone)
+  design/brand/icon.png       -> mipmap-*/ic_launcher_foreground.png (symbol scaled to 62/108 dp, inside the 66 dp safe zone)
   design/brand/icon-mono.png  -> mipmap-*/ic_launcher_monochrome.png (Android 13+ themed icon)
   design/brand/icon.png       -> drawable-nodpi/logo_mark.png (tight crop, 480 px) for the Compose splash
   The background layer is a color (@color/ic_launcher_bg), not an image.
@@ -15,8 +15,9 @@
 param(
     [string]$Brand = (Join-Path (Split-Path -Parent $PSScriptRoot) "design/brand"),
     [string]$Res = (Join-Path (Split-Path -Parent $PSScriptRoot) "apps/android/app/src/main/res"),
-    # Symbol side as a fraction of the 108 dp canvas: 66 dp safe zone.
-    [double]$SafeZone = 66.0 / 108.0
+    # Symbol side as a fraction of the 108 dp canvas: 62 dp, inside the 66 dp safe zone, so the husk tip
+    # of the tilted oat seed keeps ~3 dp inside the circle mask (D13).
+    [double]$SafeZone = 62.0 / 108.0
 )
 
 $ErrorActionPreference = "Stop"

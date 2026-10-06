@@ -72,11 +72,11 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 
 ## Marca
 
-Fonte em `design/brand/` (`icon.png`, `icon-mono.png`, `icon-dark-bg.png` de referência).
+Logo: semente de aveia estilizada com rosto mínimo (escolha do dono em 06/10/2026, plano D13 em [`design/plans/completed/`](../design/plans/completed/)). Fonte em `design/brand/`: `icon.svg` (vetor mestre, 1024, contorno `#3A2A14`, grão `#E9C984`, brilho `#F4E4BB`), `icon-mono.svg` (silhueta branca com o rosto vazado, máscara do ícone temático) e os rasters `icon.png`, `icon-mono.png` (1254², RGBA) e `icon-dark-bg.png` (só referência). Ao trocar o logo, edite os SVGs e rasterize de novo os PNGs.
 
-- `./tools/brand-icons.ps1` gera `mipmap-*/ic_launcher_foreground.png` (símbolo na área segura 66/108 dp), `mipmap-*/ic_launcher_monochrome.png` (ícone temático, Android 13+) e `drawable-nodpi/logo_mark.png` (splash). Rode de novo depois de trocar os arquivos da pasta.
+- `./tools/brand-icons.ps1` gera `mipmap-*/ic_launcher_foreground.png` (símbolo em 62/108 dp, dentro da área segura de 66 dp, para a ponta da casca não encostar na máscara circular), `mipmap-*/ic_launcher_monochrome.png` (ícone temático, Android 13+) e `drawable-nodpi/logo_mark.png` (splash). Rode de novo depois de trocar os arquivos da pasta.
 - `mipmap-anydpi-v26/ic_launcher(_round).xml`: fundo `@color/ic_launcher_bg` (`#0B0D10`) + foreground + monochrome. `minSdk` 26, então não há PNG legado.
-- Splash do sistema (Android 12+) mostra o foreground do ícone; a splash em Compose mostra `logo_mark` (120 dp) acima do wordmark.
+- Splash do sistema (Android 12+) mostra o foreground do ícone; a splash em Compose mostra só `logo_mark` (160 dp, centralizado), sem wordmark nem disclaimer (A51, gold `splash` do D13).
 
 ## Release
 

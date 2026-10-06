@@ -53,6 +53,7 @@ class TokensTest {
         assertThat(SplashBoot.DELAY_MS).isAtMost(SplashBoot.MAX_MS)
         assertThat(SplashBoot.MAX_MS).isEqualTo(2000L)
         assertThat(SplashBoot.COPY).isEqualTo("Estimativa nutricional, não substitui consulta médica ou nutricional.")
-        assertThat(SplashBoot.WORDMARK).isEqualTo("Fibrai")
+        assertThat(SplashBoot.LOGO_DESCRIPTION).isEqualTo("Fibrai")
+        assertThat(SplashBoot.LOGO_DP).isEqualTo(160)
     }
 }

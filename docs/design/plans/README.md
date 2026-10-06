@@ -69,6 +69,8 @@ Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Rec
 | Landing design | D11 — Landing page ([ADR-037](../../site/adrs/ADR-037-landing-site.md)) ([`completed/`](completed/)) | — |
 | Landing code | W1 — Landing page code in `web/` ([ADR-038](../../site/adrs/ADR-038-web-project-folder.md)) ([`completed/`](../../site/plans/completed/)) | D11, D10 |
 | Landing hosting | [W2](../../site/plans/w2-landing-hosting.md) — Landing hosting on fibrai.app | W1 |
+| Logo design | D13 — Oat seed logo in `Branding`; logo-only `splash` golds ([`completed/`](completed/)) | D10 |
+| Logo client | A51 — Logo-only splash in Compose ([`completed/`](../../android/plans/completed/)) | D13 |
 
 ## History
 
