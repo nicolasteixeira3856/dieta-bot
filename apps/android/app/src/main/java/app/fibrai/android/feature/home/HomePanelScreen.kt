@@ -106,7 +106,7 @@ fun HomePanelScreen(
                 Hero(ui)
                 MacroCard(ui)
                 WorkoutRow(ui, onWorkoutOpen)
-                Timeline(ui) { confirmSkip = it }
+                Timeline(ui, onRecord = onChat, onSkipAsk = { confirmSkip = it })
                 AeroText(
                     SplashBoot.COPY,
                     style = Aero.type.caption.copy(color = Aero.colors.textDim, textAlign = TextAlign.Center),
@@ -244,7 +244,7 @@ private fun WorkoutRow(ui: HomePanelUiState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Timeline(ui: HomePanelUiState, onEmptyTap: (TimelineSlot) -> Unit) {
+private fun Timeline(ui: HomePanelUiState, onRecord: () -> Unit, onSkipAsk: (TimelineSlot) -> Unit) {
     val c = Aero.colors
     val type = Aero.type
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -259,7 +259,7 @@ private fun Timeline(ui: HomePanelUiState, onEmptyTap: (TimelineSlot) -> Unit) {
         }
         Column(verticalArrangement = Arrangement.spacedBy(SlotGap)) {
             ui.timeline.forEachIndexed { i, slot ->
-                TimelineRow(slot, last = i == ui.timeline.lastIndex, onEmptyTap)
+                TimelineRow(slot, last = i == ui.timeline.lastIndex, onRecord, onSkipAsk)
             }
         }
     }
@@ -269,9 +269,12 @@ private val SlotGap = 16.dp
 private val NodeTop = 18.dp
 private val NodeSize = 24.dp
 
-/** One slot: node column (24 dp, node 18 dp down) and the meal card. The guide runs from node centre to node centre. */
+/**
+ * One slot: node column (24 dp, node 18 dp down) and the meal card. The guide runs from node centre to node centre.
+ * An empty card opens the Chat on tap and asks to skip on long press (ADR-040).
+ */
 @Composable
-private fun TimelineRow(slot: TimelineSlot, last: Boolean, onEmptyTap: (TimelineSlot) -> Unit) {
+private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit, onSkipAsk: (TimelineSlot) -> Unit) {
     val c = Aero.colors
     val tag = "home-slot-${slot.slotId ?: "outros"}"
     Row(
@@ -314,13 +317,16 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onEmptyTap: (Timeline
             time = slot.time.orEmpty(),
             description = when (slot.state) {
                 SlotState.SKIPPED -> "Refeição pulada"
-                SlotState.NEXT, SlotState.EMPTY -> "Nenhum registro · Toque para pular"
+                SlotState.NEXT, SlotState.EMPTY -> "Nenhum registro · Toque para registrar, segura para pular"
                 else -> ""
             },
             lines = slot.lines.map { AeroMealLine(it.text, "${it.kcal} kcal") },
             log = slot.summary,
             logTag = "home-summary-${slot.slotId ?: "outros"}",
-            onClick = if (tappable) ({ onEmptyTap(slot) }) else null,
+            onClick = if (tappable) onRecord else null,
+            onClickLabel = "Registrar",
+            onLongClick = if (tappable) ({ onSkipAsk(slot) }) else null,
+            onLongClickLabel = "Pular",
             modifier = Modifier.weight(1f),
         )
     }

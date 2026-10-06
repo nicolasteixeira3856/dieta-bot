@@ -133,8 +133,8 @@ class AeroComponentsTest {
         AeroMealCard(AeroMealState.Logged, "Café da manhã", "07:30", desc, kcal = "520 kcal", log = "520 kcal · 28P · 52C · 22G")
         AeroMealCard(AeroMealState.Over, "Café da manhã", "07:30", desc, kcal = "520 kcal", log = "520 kcal · 28P · 52C · 22G")
         AeroMealCard(AeroMealState.Skipped, "Café da manhã", "07:30", "Refeição pulada")
-        AeroMealCard(AeroMealState.Pending, "Café da manhã", "07:30", "Nenhum registro · Toque para pular", onClick = {})
-        AeroMealCard(AeroMealState.Empty, "Café da manhã", "07:30", "Nenhum registro · Toque para pular", onClick = {})
+        AeroMealCard(AeroMealState.Pending, "Café da manhã", "07:30", "Nenhum registro · Toque para registrar, segura para pular", onClick = {})
+        AeroMealCard(AeroMealState.Empty, "Café da manhã", "07:30", "Nenhum registro · Toque para registrar, segura para pular", onClick = {})
     }
 
     @Test fun optionCard_light() = shot("OptionCard", false) { Options() }
