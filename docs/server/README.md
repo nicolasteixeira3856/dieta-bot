@@ -51,6 +51,21 @@ How much to run (owner decision, 2026-10-05, after one day of evaluation exhaust
 - A case passes when every applicable expectation passes in at least two of three repetitions (at `--repeat 1`, in that one). Strict cases require every repetition. Inspect the reported statuses; the CLI writes the report even when cases fail.
 - Reports: terminal and `logs/evals/<date-time>-<effort>.json`, outside git, with pass rate, p95 and cost. New cases use manually rewritten situations or synthetic images; never commit raw tester logs/text.
 
+### Model pilot
+
+`server/evals/pilot/run.py` runs the same `/v1/chat` turn (same prompt, same schema, no moderation call) against `gpt-6-luna` and against Grok through xAI's OpenAI-compatible Responses API. It compares, side by side: the main-suite cases where Luna failed or flaked (`FAIL_SET`), open "creative" questions in `server/evals/pilot/cases/` (manual review; each case carries a `note` with what a good answer looks like) and one meal text repeated eight times, whose kcal spread is the measure.
+
+```bash
+cd server
+.venv/Scripts/python -m evals.pilot.run --provider luna                 # baseline
+.venv/Scripts/python -m evals.pilot.run --provider grok                 # needs XAI_API_KEY in the repo-root .env
+.venv/Scripts/python -m evals.pilot.run --report-only                   # markdown from the newest run of each provider
+```
+
+- Keys: `OPENAI_API_KEY` and `XAI_API_KEY` from the repo-root `.env` (a worktree reads the nearest `.env` up the tree, or `--env <file>`). Never printed, never deployed: the pilot is local only and changes nothing in `config.MODEL`.
+- Grok 4.7 cannot disable reasoning; the pilot uses `effort=low` (`--grok-effort`, `--grok-model` to try another model). Its list price is 20x Luna's input and 12x the output; the report projects the cost per 1000 turns.
+- Reports: `logs/evals/pilot/<stamp>-<provider>.json` and `<stamp>-report.md`, outside git. The pilot is an experiment: switching the model is a product decision (AGENTS § LLM) and needs its own ADR and plan.
+
 ## Index
 
 ### Specifications and decisions

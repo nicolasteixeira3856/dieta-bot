@@ -291,9 +291,13 @@ class LlmClient:
         api_key: str,
         transport: httpx2.BaseTransport | None = None,
         effort: str = REASONING_EFFORT,
+        model: str = MODEL,
+        base_url: str | None = None,
     ) -> None:
         # reasoning.effort: config.REASONING_EFFORT; the evaluator (S10) passes others.
+        # model and base_url: config defaults; only the pilot evaluator points elsewhere.
         self._effort = effort
+        self._model = model
         self._http: httpx2.Client | None = None
         self._openai: OpenAI | None = None
         if not api_key:
@@ -304,6 +308,7 @@ class LlmClient:
         )
         self._openai = OpenAI(
             api_key=api_key,
+            base_url=base_url,
             timeout=TIMEOUT_SECONDS,
             max_retries=0,
             http_client=self._http,
@@ -437,7 +442,7 @@ class LlmClient:
             extra["safety_identifier"] = safety_identifier
         try:
             response = self._openai.responses.create(
-                model=MODEL,
+                model=self._model,
                 reasoning={"effort": self._effort},
                 instructions=instructions,
                 input=[{"role": "user", "content": content}],

@@ -1,0 +1,139 @@
+{
+  "id": "criativo-receita-3-ingredientes",
+  "since": "pilot",
+  "tags": [
+    "pilot",
+    "creative",
+    "recipe"
+  ],
+  "request": {
+    "local_time": "2026-10-06T18:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-06",
+      "eaten_kcal": 1265,
+      "eaten_p": 84,
+      "eaten_c": 144,
+      "eaten_g": 37,
+      "workout_kcal": null,
+      "remaining_kcal": 735,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, café sem açúcar",
+          "kcal": 430,
+          "p": 24,
+          "c": 38,
+          "g": 20
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "150 g de mamão",
+          "kcal": 65,
+          "p": 1,
+          "c": 16,
+          "g": 0
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "arroz (150 g), feijão (100 g), frango grelhado (150 g), salada de alface e tomate",
+          "kcal": 620,
+          "p": 52,
+          "c": 70,
+          "g": 12
+        },
+        {
+          "id": "4",
+          "status": "eaten",
+          "text": "1 iogurte natural, 100 g de morango",
+          "kcal": 150,
+          "p": 7,
+          "c": 20,
+          "g": 5
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "me manda uma receita que usa frango, abobrinha e ovo",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "record": "none",
+    "estimate": "present",
+    "reply_has": [
+      "kcal"
+    ],
+    "suggested_slot": "5",
+    "kcal_range": [
+      250,
+      800
+    ],
+    "items_beyond": {
+      "given": [
+        "frango",
+        "abobrinha",
+        "ovo"
+      ],
+      "min": 1
+    }
+  },
+  "note": "Receita com 3 ingredientes dados. Esperado: preparo curto, porções em gramas, total em kcal; pode acrescentar tempero/óleo."
+}
