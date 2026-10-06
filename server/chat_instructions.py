@@ -374,7 +374,9 @@ RULES: dict[str, Rule] = {
         'measure, size or household measure), cooking fat or oil, milk type, sugar or sweetener and usual '
         'coffee or tea amounts are likewise assumed with their common value, stated in one short reply '
         'line, and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
-        'over the common value. A food with no usable amount keeps the portion question above. '
+        'over the common value, and these common-value assumptions alone do not lower confidence. This applies '
+        'only when EVERY food of the message carries its own amount; if any food has none, ask for that portion '
+        'as above: assumed typical portions never replace that question. '
         'Never repeat '
         'a question already asked in HISTORY. If confidence is not high, reply states in one short line what '
         'was assumed. If the user gives only a calorie total without saying what was eaten, estimate is null, '
@@ -435,7 +437,8 @@ RULES: dict[str, Rule] = {
         'aveia em flocos 394/14/67/8.5 (1 tablespoon 15 g); banana prata 98/1/26/0 (1 unit 70 g); '
         'mamão papaia 40/0.5/10/0; maçã fuji com casca 56/0.3/15/0 (1 unit 130 g); laranja pera 37/1/9/0. '
         'Black coffee or tea without sugar: 0 kcal. An assumed cooking fat, sugar or milk is its own item '
-        'with its grams; compute kcal, p, c and g by adding the items row by row, never by re-estimating the whole meal.'
+        'with its grams; when the user says none was used, omit it (never an item with 0 g). Round each item kcal to a whole number; compute kcal, p, c and g by adding the items row by '
+        'row, never by re-estimating the whole meal.'
     )),
     'history': Rule('server Chat 3d; ADR-023/029', (
         'HISTORY: RECENT contains records with explicit date, weekday, slot, foods and nutrition. '
@@ -663,7 +666,9 @@ RULES: dict[str, Rule] = {
         'measure, size or household measure), cooking fat or oil, milk type, sugar or sweetener and usual '
         'coffee or tea amounts are likewise assumed with their common value, stated in one short reply '
         'line, and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
-        'over the common value. A food with no usable amount keeps the portion question above. '
+        'over the common value, and these common-value assumptions alone do not lower confidence. This applies '
+        'only when EVERY food of the message carries its own amount; if any food has none, ask for that portion '
+        'as above: assumed typical portions never replace that question. '
         'Never repeat a question already asked in HISTORY. If confidence is not high, '
         'reply states in one short line what was assumed. If the user gives only a calorie total without '
         'saying what was eaten, estimate is null, intent is question, and reply asks what was eaten. This '
@@ -783,10 +788,10 @@ RULES: dict[str, Rule] = {
 BRANCHES = {
     "legacy": (
         ("rule", "product"), ("rule", "context"), ("rule", "intent"), ("cues", "intent"),
-        ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"), ("rule", "reference"),
+        ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"),
         ("example", "answer-continues-meal-v1"),
         ("rule", "log"), ("cues", "log"),
-        ("rule", "plan"), ("rule", "history"), ("cues", "history"),
+        ("rule", "plan"), ("rule", "reference"), ("rule", "history"), ("cues", "history"),
         ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"), ("rule", "memory_use"),
         ("rule", "memory_changes"), ("cues", "memory_changes"), ("rule", "temp_references"),
     ),
@@ -794,9 +799,9 @@ BRANCHES = {
         ("rule", "product_meal_changes"), ("rule", "context"),
         ("rule", "intent_meal_changes"), ("cues", "intent"),
         ("rule", "record_meal_changes"), ("cues", "record"),
-        ("rule", "estimate_meal_changes"), ("cues", "estimate"), ("rule", "reference"),
+        ("rule", "estimate_meal_changes"), ("cues", "estimate"),
         ("example", "answer-continues-meal-v1"), ("rule", "meal_changes"),
-        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "history"),
+        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "reference"), ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
         ("rule", "temp_references"),

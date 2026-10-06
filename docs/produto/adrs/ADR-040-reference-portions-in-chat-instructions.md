@@ -4,7 +4,7 @@
 - Date: 2026-10-06
 - Owner: `produto`
 - Complements: [ADR-026](ADR-026-perguntas-antes-da-estimativa.md) (questions before the estimate: narrowed for a fully quantified first message), [ADR-028](ADR-028-registro-autonomo.md) (record when in doubt), [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md) (generic reference data in fixed instructions, with recorded provenance), [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (cooking help). Supersedes none.
-- Delivery: [S22](../../server/plans/s22-open-requests-and-estimate-stability.md).
+- Delivery: [S22](../../server/plans/completed/s22-open-requests-and-estimate-stability.md).
 
 ## Context
 
