@@ -2,6 +2,16 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.15 — 06/10/2026
+
+### Novidades
+
+- Logo nova: uma semente de aveia estilizada, com um rostinho discreto. Ela aparece no ícone do app, no ícone temático do Android 13 e na abertura.
+
+### Ajustes
+
+- A abertura agora mostra só o logo, centralizado e maior. O nome e o aviso de estimativa saíram da abertura; o aviso continua na tela inicial.
+
 ## 0.0.14 — 05/10/2026
 
 ### Novidades
