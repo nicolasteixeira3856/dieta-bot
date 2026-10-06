@@ -68,6 +68,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-035](adrs/ADR-035-tali-in-app-identity.md) — Fibrai e Tali no app: nome visível, rótulo e bolha de avatar.
 - [ADR-039](adrs/ADR-039-plan-cooking-and-budget-choice.md) — cooking help in a plan; over-budget check by the server, Pode passar / Ajustar para caber.
 - [ADR-040](adrs/ADR-040-home-card-gestures-app-reset.md) — empty Home card: tap opens the Chat, long press skips; app reset in Config.
+- [ADR-041](adrs/ADR-041-reference-portions-in-chat-instructions.md) — reference portions (TACO) in the Chat instructions; open requests answered as plans; fully quantified first message estimated, not questioned.
 
 ### Planos
 

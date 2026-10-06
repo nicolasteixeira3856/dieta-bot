@@ -1,14 +1,14 @@
 {
-  "id": "receita-almoco-despensa",
+  "id": "criativo-o-que-voce-comeria",
   "since": "v4",
   "tags": [
-    "plan",
-    "recipe"
+    "s22",
+    "creative"
   ],
   "request": {
-    "local_time": "2026-10-03T11:20:00-03:00",
+    "local_time": "2026-10-06T17:35:00-03:00",
     "profile": {
-      "ceiling_kcal": 2200,
+      "ceiling_kcal": 2000,
       "p_target": 150,
       "c_target": 200,
       "g_target": 67,
@@ -50,34 +50,49 @@
     "facts": [],
     "recent": [],
     "day": {
-      "date": "2026-10-03",
-      "eaten_kcal": 450,
-      "eaten_p": 14,
-      "eaten_c": 60,
-      "eaten_g": 17,
+      "date": "2026-10-06",
+      "eaten_kcal": 1265,
+      "eaten_p": 84,
+      "eaten_c": 144,
+      "eaten_g": 37,
       "workout_kcal": null,
-      "remaining_kcal": 1750,
+      "remaining_kcal": 735,
       "slots": [
         {
           "id": "1",
-          "text": "pão integral com pasta de amendoim e banana",
-          "kcal": 450,
-          "p": 14,
-          "c": 60,
-          "g": 17,
-          "status": "eaten"
+          "status": "eaten",
+          "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, café sem açúcar",
+          "kcal": 430,
+          "p": 24,
+          "c": 38,
+          "g": 20
         },
         {
           "id": "2",
-          "status": "empty"
+          "status": "eaten",
+          "text": "150 g de mamão",
+          "kcal": 65,
+          "p": 1,
+          "c": 16,
+          "g": 0
         },
         {
           "id": "3",
-          "status": "empty"
+          "status": "eaten",
+          "text": "arroz (150 g), feijão (100 g), frango grelhado (150 g), salada de alface e tomate",
+          "kcal": 620,
+          "p": 52,
+          "c": 70,
+          "g": 12
         },
         {
           "id": "4",
-          "status": "empty"
+          "status": "eaten",
+          "text": "1 iogurte natural, 100 g de morango",
+          "kcal": 150,
+          "p": 7,
+          "c": 20,
+          "g": 5
         },
         {
           "id": "5",
@@ -91,7 +106,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "quero fazer um almoço com lentilha, arroz e cenoura, o que dá pra fazer de gostoso?",
+    "text": "o que você comeria agora nesse horário?",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -100,24 +115,23 @@
   "expect": {
     "refusal": "none",
     "intent": "plan",
-    "estimate": "present",
     "record": "none",
-    "items_beyond": {
-      "given": [
-        "lentilha",
-        "arroz",
-        "cenoura"
-      ],
-      "min": 1
-    },
-    "kcal_range": [
-      350,
-      1000
+    "estimate": "present",
+    "reply_has": [
+      "kcal"
     ],
-    "plan_budget": "absent"
+    "suggested_slot": "5",
+    "kcal_range": [
+      250,
+      800
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
+    ]
   },
-  "required": [
-    "plan_budget",
-    "items_beyond"
-  ]
+  "note": "Pergunta aberta na hora do jantar com 735 kcal sobrando. Esperado: um prato concreto com kcal, não um sermão."
 }

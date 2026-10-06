@@ -13,7 +13,7 @@ os.environ["INVITE_CODE"] = "convite-teste"
 import httpx2
 
 from evals import run
-from evals.checks import FAIL, KNOWN, NA, PASS, case_status, evaluate, repetition_status
+from evals.checks import CASE_LEVEL, FAIL, KNOWN, NA, PASS, case_status, evaluate, repetition_status
 from main import ChatIn
 from tests.test_api import FAKE_KEY, _envelope, _is_moderation, _moderation
 
@@ -279,7 +279,9 @@ class CaseFileTests(unittest.TestCase):
                 if case.get("image"):
                     self.assertTrue((run.MEDIA_DIR / case["image"]).is_file())
                 self.assertTrue(case["tags"])
-                self.assertTrue(set(case["expect"]) <= set(KNOWN))
+                self.assertTrue(set(case["expect"]) <= set(KNOWN) | set(CASE_LEVEL))
+                if case.get("repeat") is not None:
+                    self.assertGreaterEqual(case["repeat"], 2)
                 body = ChatIn.model_validate(run.case_request(case))
                 slot_ids = {s.id for s in body.profile.slots}
                 slot = case["expect"].get("suggested_slot")

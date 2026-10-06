@@ -1,0 +1,109 @@
+{
+  "id": "s22-cafe-quantificado-memoria-leite",
+  "since": "v4",
+  "tags": [
+    "s22",
+    "consistency-rule",
+    "log",
+    "memory"
+  ],
+  "request": {
+    "local_time": "2026-10-07T07:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 130,
+      "c_target": 180,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "2",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "3",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "4",
+          "name": "Jantar",
+          "time": "19:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [
+      {
+        "id": "P2",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "leite",
+        "text": "Toma leite desnatado.",
+        "slot": null,
+        "days_seen": 9,
+        "last_seen": "2026-10-06"
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-07",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 1800,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "1 pão de forma integral com 1 ovo mexido e 1 copo de 200 ml de leite",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "1",
+    "record": "ask",
+    "kcal_range": [
+      180,
+      320
+    ],
+    "question": "absent",
+    "memory_used_has": [
+      "P2"
+    ],
+    "question_not": [
+      "leite"
+    ]
+  },
+  "note": "Milk type is in MEMORY. Expected: skim milk used and cited, never asked. A bare food list without an eating verb is unsure (ADR-028 decision 2), so the mark is ask."
+}

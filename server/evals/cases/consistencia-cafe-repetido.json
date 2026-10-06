@@ -1,14 +1,15 @@
 {
-  "id": "receita-almoco-despensa",
+  "id": "consistencia-cafe-repetido",
   "since": "v4",
   "tags": [
-    "plan",
-    "recipe"
+    "s22",
+    "consistency",
+    "log"
   ],
   "request": {
-    "local_time": "2026-10-03T11:20:00-03:00",
+    "local_time": "2026-10-06T08:10:00-03:00",
     "profile": {
-      "ceiling_kcal": 2200,
+      "ceiling_kcal": 2000,
       "p_target": 150,
       "c_target": 200,
       "g_target": 67,
@@ -50,22 +51,17 @@
     "facts": [],
     "recent": [],
     "day": {
-      "date": "2026-10-03",
-      "eaten_kcal": 450,
-      "eaten_p": 14,
-      "eaten_c": 60,
-      "eaten_g": 17,
+      "date": "2026-10-06",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
       "workout_kcal": null,
-      "remaining_kcal": 1750,
+      "remaining_kcal": 2000,
       "slots": [
         {
           "id": "1",
-          "text": "pão integral com pasta de amendoim e banana",
-          "kcal": 450,
-          "p": 14,
-          "c": 60,
-          "g": 17,
-          "status": "eaten"
+          "status": "empty"
         },
         {
           "id": "2",
@@ -91,7 +87,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "quero fazer um almoço com lentilha, arroz e cenoura, o que dá pra fazer de gostoso?",
+    "text": "2 ovos mexidos, 1 pão francês e 200 ml de leite",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -99,25 +95,16 @@
   },
   "expect": {
     "refusal": "none",
-    "intent": "plan",
+    "intent": "log",
     "estimate": "present",
-    "record": "none",
-    "items_beyond": {
-      "given": [
-        "lentilha",
-        "arroz",
-        "cenoura"
-      ],
-      "min": 1
-    },
+    "suggested_slot": "1",
     "kcal_range": [
-      350,
-      1000
+      380,
+      480
     ],
-    "plan_budget": "absent"
+    "record": "ask",
+    "kcal_spread": 10
   },
-  "required": [
-    "plan_budget",
-    "items_beyond"
-  ]
+  "note": "Same message repeated 8x, a bare food list with amounts and no eating verb: ADR-028 decision 2 makes it unsure, so the mark is ask in every repetition. The measure is kcal_spread across repetitions. Reference: 2 eggs 146 + bread roll 150 + whole milk 120 = 416 kcal, plus about 45 kcal of cooking fat.",
+  "repeat": 8
 }
