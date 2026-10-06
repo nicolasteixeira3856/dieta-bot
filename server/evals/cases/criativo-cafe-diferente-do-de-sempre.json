@@ -1,8 +1,8 @@
 {
   "id": "criativo-cafe-diferente-do-de-sempre",
-  "since": "pilot",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative",
     "memory"
   ],
@@ -163,6 +163,13 @@
     ],
     "meal_text_not": [
       "pão francês"
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
   "note": "Tem rotina D1 na memória. Esperado: usar a memória para evitar o de sempre (sem pão francês) e manter o leite semidesnatado."

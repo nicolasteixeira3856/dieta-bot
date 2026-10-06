@@ -59,6 +59,9 @@ KNOWN = (
     "plan_budget",
 )
 
+# Case-level expectations (S22): judged across the repetitions of a case in evals.run, never per repetition.
+CASE_LEVEL = ("kcal_spread",)
+
 # CP2 refusal expectation: which fixed copy the reply must be. "none" = no refusal at all.
 REFUSALS = {
     "out_of_scope": (REFUSAL_OUT_OF_SCOPE, REFUSAL_PHOTO),
@@ -195,6 +198,8 @@ def evaluate(
     estimate = output.get("estimate") if isinstance(output.get("estimate"), dict) else None
 
     for key, want in expect.items():
+        if key in CASE_LEVEL:
+            continue
         if key not in KNOWN:
             raise ValueError(f"unknown expectation: {key}")
         results[key] = _check(key, want, output, estimate)
@@ -439,6 +444,28 @@ def _result(ok: bool, detail: str) -> dict[str, Any]:
 
 def _na(detail: str) -> dict[str, Any]:
     return {"status": NA, "detail": detail}
+
+
+def spread_check(want: Any, outputs: list[dict[str, Any]]) -> dict[str, Any]:
+    """kcal_spread (S22): (max - min) / median of the estimate kcal across repetitions, in percent, at most want.
+
+    Every repetition must carry an estimate with a positive kcal; otherwise the check fails.
+    """
+    kcals = []
+    for output in outputs:
+        estimate = output.get("estimate") if isinstance(output.get("estimate"), dict) else None
+        kcal = estimate.get("kcal") if estimate else None
+        if isinstance(kcal, bool) or not isinstance(kcal, (int, float)) or kcal <= 0:
+            return _result(False, f"repetition without estimate kcal: {kcal}")
+        kcals.append(float(kcal))
+    if not kcals:
+        return _result(False, "no repetition")
+    ordered = sorted(kcals)
+    mid = len(ordered) // 2
+    median = ordered[mid] if len(ordered) % 2 else (ordered[mid - 1] + ordered[mid]) / 2
+    spread = 100 * (ordered[-1] - ordered[0]) / median
+    detail = f"{ordered[0]:g}-{ordered[-1]:g} kcal, median {median:g}, spread {spread:.0f}% (max {want}%)"
+    return _result(spread <= float(want), detail)
 
 
 def repetition_status(results: dict[str, dict[str, Any]]) -> str:

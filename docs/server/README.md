@@ -47,13 +47,14 @@ How much to run (owner decision, 2026-10-05, after one day of evaluation exhaust
 - `reply_has`/`reply_not` check terms in the reply; `reply_max_chars` requires a nonblank reply on one line within that many characters.
 - `meal_progress` accepts present/absent: a nonempty estimate object or nonblank top-level question counts as progress. `confidence` accepts one value or a list and fails without an estimate. Required positive checks prevent empty/fallback outputs from passing solely through negative question checks.
 - `meal_change` checks operation/base, delta item presence and exclusions, optional exact portions/nutrients, retained base text, all four consolidated values and numeric reply labels. Null requires no actionable change. S18's independent synthetic cases and fictional label are regression data only, never assembled into global instructions. Run them with `--tag s18 --repeat 6`; each case is strict.
+- S22 cases carry the tag `s22`: open questions (`creative`, each with a `note` describing a good answer), one meal text repeated (`consistency`, with `repeat` and the case-level `kcal_spread` expectation: the kcal band across repetitions as a percentage of the median, at most the given value; a case may set `repeat` to run more repetitions than the CLI asks) and the first-message rules (`consistency-rule`). Run them with `--tag s22`.
 - Transfer cases carry the tags `s19`, `s19-pairs` (matched pairs that vary foods, profiles and phrasing around one situation, with `family` and `pair` fields) or `s19-reserved` (kept out of prompt tuning). Run them with `--tag`; a prompt change is compared against the previous prefix on these and on the untagged regression cases.
 - A case passes when every applicable expectation passes in at least two of three repetitions (at `--repeat 1`, in that one). Strict cases require every repetition. Inspect the reported statuses; the CLI writes the report even when cases fail.
 - Reports: terminal and `logs/evals/<date-time>-<effort>.json`, outside git, with pass rate, p95 and cost. New cases use manually rewritten situations or synthetic images; never commit raw tester logs/text.
 
 ### Model pilot
 
-`server/evals/pilot/run.py` runs the same `/v1/chat` turn (same prompt, same schema, no moderation call) against `gpt-6-luna` and against Grok through xAI's OpenAI-compatible Responses API. It compares, side by side: the main-suite cases where Luna failed or flaked (`FAIL_SET`), open "creative" questions in `server/evals/pilot/cases/` (manual review; each case carries a `note` with what a good answer looks like) and one meal text repeated eight times, whose kcal spread is the measure.
+`server/evals/pilot/run.py` runs the same `/v1/chat` turn (same prompt, same schema, no moderation call) against `gpt-6-luna` and against Grok through xAI's OpenAI-compatible Responses API. It compares, side by side: the main-suite cases where Luna failed or flaked (`FAIL_SET`) and the main-suite cases tagged `s22` (open questions for manual review, the repeated meal judged by `kcal_spread`, the first-message rules). `--luna-effort` runs the same cases at another effort for an A/B.
 
 ```bash
 cd server
@@ -64,7 +65,7 @@ cd server
 
 - Keys: `OPENAI_API_KEY` and `XAI_API_KEY` from the repo-root `.env` (a worktree reads the nearest `.env` up the tree, or `--env <file>`). Never printed, never deployed: the pilot is local only and changes nothing in `config.MODEL`.
 - Grok 4.7 cannot disable reasoning; the pilot uses `effort=low` (`--grok-effort`, `--grok-model` to try another model). Its list price is 20x Luna's input and 12x the output; the report projects the cost per 1000 turns.
-- Reports: `logs/evals/pilot/<stamp>-<provider>.json` and `<stamp>-report.md`, outside git. The pilot is an experiment: switching the model is a product decision (AGENTS § LLM) and needs its own ADR and plan.
+- Reports: `logs/evals/pilot/<stamp>-<provider>-<effort>.json` and `<stamp>-report.md`, outside git. Switching the model is a product decision (AGENTS § LLM) and needs its own ADR and plan; the Grok comparison of 2026-10-06 is recorded in S22.
 
 ## Index
 

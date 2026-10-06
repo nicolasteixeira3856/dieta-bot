@@ -30,7 +30,7 @@ from typing import Any
 import httpx2
 
 from config import MODEL, load_settings
-from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status
+from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status, spread_check
 from llm import LlmClient
 from main import ChatIn, chat_reply, compact_reply
 from moderation import CLEAN, Deadline, ModerationUnavailable, Moderator
@@ -221,7 +221,7 @@ def run_effort(
     llm = LlmClient(api_key=api_key, transport=usage, effort=effort)
     moderator = Moderator(api_key=api_key, transport=usage)
     clean = CleanModerator()
-    jobs = [(case, i) for case in cases for i in range(repeat)]
+    jobs = [(case, i) for case in cases for i in range(int(case.get("repeat") or repeat))]
     try:
         with ThreadPoolExecutor(max_workers=max(1, min(workers, MAX_WORKERS))) as pool:
             runs = list(
@@ -255,6 +255,12 @@ def summarize(
         reps = per_case[case["id"]]
         status = case_status([r["status"] for r in reps], strict=bool(case.get("strict")))
         failed: dict[str, list[str]] = {}
+        if "kcal_spread" in case["expect"]:
+            # S22: one verdict across the repetitions; a case may ask for more of them with "repeat".
+            spread = spread_check(case["expect"]["kcal_spread"], [r["output"] for r in reps])
+            if spread["status"] == FAIL:
+                status = FAIL
+                failed["kcal_spread"] = [spread["detail"]]
         for rep in reps:
             for name, check in rep["checks"].items():
                 if check["status"] == FAIL:
@@ -270,7 +276,7 @@ def summarize(
                 "strict": bool(case.get("strict")),
                 "status": status,
                 "passes": sum(1 for r in reps if r["status"] == PASS),
-                "repeat": repeat,
+                "repeat": len(reps),
                 "failed_checks": failed,
                 "na_checks": na,
                 "raw_outputs": [r["raw_output"] for r in reps if r["status"] == FAIL],

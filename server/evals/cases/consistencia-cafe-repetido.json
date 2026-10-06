@@ -1,12 +1,13 @@
 {
-  "id": "criativo-ifood-sem-estourar",
-  "since": "pilot",
+  "id": "consistencia-cafe-repetido",
+  "since": "v4",
   "tags": [
-    "pilot",
-    "creative"
+    "s22",
+    "consistency",
+    "log"
   ],
   "request": {
-    "local_time": "2026-10-06T19:40:00-03:00",
+    "local_time": "2026-10-06T08:10:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -51,48 +52,28 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 1425,
-      "eaten_p": 80,
-      "eaten_c": 164,
-      "eaten_g": 47,
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
       "workout_kcal": null,
-      "remaining_kcal": 575,
+      "remaining_kcal": 2000,
       "slots": [
         {
           "id": "1",
-          "status": "eaten",
-          "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, café sem açúcar",
-          "kcal": 430,
-          "p": 24,
-          "c": 38,
-          "g": 20
+          "status": "empty"
         },
         {
           "id": "2",
-          "status": "eaten",
-          "text": "150 g de mamão",
-          "kcal": 65,
-          "p": 1,
-          "c": 16,
-          "g": 0
+          "status": "empty"
         },
         {
           "id": "3",
-          "status": "eaten",
-          "text": "feijoada com arroz, couve e laranja",
-          "kcal": 780,
-          "p": 48,
-          "c": 90,
-          "g": 22
+          "status": "empty"
         },
         {
           "id": "4",
-          "status": "eaten",
-          "text": "1 iogurte natural, 100 g de morango",
-          "kcal": 150,
-          "p": 7,
-          "c": 20,
-          "g": 5
+          "status": "empty"
         },
         {
           "id": "5",
@@ -106,7 +87,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "o que peço no ifood que não estoure o dia?",
+    "text": "2 ovos mexidos, 1 pão francês e 200 ml de leite",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -114,17 +95,16 @@
   },
   "expect": {
     "refusal": "none",
-    "intent": "plan",
-    "record": "none",
+    "intent": "log",
     "estimate": "present",
-    "reply_has": [
-      "kcal"
-    ],
-    "suggested_slot": "5",
+    "suggested_slot": "1",
     "kcal_range": [
-      200,
-      600
-    ]
+      380,
+      480
+    ],
+    "record": "ask",
+    "kcal_spread": 10
   },
-  "note": "Sobram 575 kcal. Esperado: 1-2 pedidos reais de delivery (ex.: marmita, poke, wrap) com kcal estimada."
+  "note": "Same message repeated 8x, a bare food list with amounts and no eating verb: ADR-028 decision 2 makes it unsure, so the mark is ask in every repetition. The measure is kcal_spread across repetitions. Reference: 2 eggs 146 + bread roll 150 + whole milk 120 = 416 kcal, plus about 45 kcal of cooking fat.",
+  "repeat": 8
 }

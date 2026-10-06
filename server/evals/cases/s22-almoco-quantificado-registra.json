@@ -1,0 +1,99 @@
+{
+  "id": "s22-almoco-quantificado-registra",
+  "since": "v4",
+  "tags": [
+    "s22",
+    "consistency-rule",
+    "log"
+  ],
+  "request": {
+    "local_time": "2026-10-07T13:05:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 130,
+      "c_target": 180,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "2",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "3",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "4",
+          "name": "Jantar",
+          "time": "19:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-07",
+      "eaten_kcal": 320,
+      "eaten_p": 12,
+      "eaten_c": 48,
+      "eaten_g": 9,
+      "workout_kcal": null,
+      "remaining_kcal": 1480,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "tapioca com queijo e café preto",
+          "kcal": 320,
+          "p": 12,
+          "c": 48,
+          "g": 9
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "almoço: 150 g de arroz, 1 concha de feijão, 120 g de patinho grelhado e salada de alface e tomate",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "2",
+    "record": [
+      "auto",
+      "clear"
+    ],
+    "kcal_range": [
+      480,
+      700
+    ],
+    "question": "absent"
+  },
+  "note": "Every food has an amount; salad has no gram but is a leaf salad. Expected: record, assumptions declared, no question."
+}

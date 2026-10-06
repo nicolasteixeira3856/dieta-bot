@@ -1,13 +1,13 @@
 {
-  "id": "criativo-receita-3-ingredientes",
-  "since": "pilot",
+  "id": "criativo-despensa-arroz-ovo-banana",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative",
     "recipe"
   ],
   "request": {
-    "local_time": "2026-10-06T18:10:00-03:00",
+    "local_time": "2026-10-06T19:00:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -107,7 +107,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "me manda uma receita que usa frango, abobrinha e ovo",
+    "text": "tenho só arroz, ovo e banana em casa, o que dá pra fazer no jantar?",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -126,14 +126,13 @@
       250,
       800
     ],
-    "items_beyond": {
-      "given": [
-        "frango",
-        "abobrinha",
-        "ovo"
-      ],
-      "min": 1
-    }
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
+    ]
   },
-  "note": "Receita com 3 ingredientes dados. Esperado: preparo curto, porções em gramas, total em kcal; pode acrescentar tempero/óleo."
+  "note": "Despensa pobre. Esperado: prato factível com só isso (mais sal/óleo), sem inventar ingredientes que a pessoa não tem."
 }

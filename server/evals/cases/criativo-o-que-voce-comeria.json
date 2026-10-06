@@ -1,12 +1,12 @@
 {
-  "id": "criativo-sem-ideia-ceia",
-  "since": "pilot",
+  "id": "criativo-o-que-voce-comeria",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative"
   ],
   "request": {
-    "local_time": "2026-10-06T20:40:00-03:00",
+    "local_time": "2026-10-06T17:35:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -51,12 +51,12 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 1645,
-      "eaten_p": 110,
-      "eaten_c": 162,
-      "eaten_g": 59,
+      "eaten_kcal": 1265,
+      "eaten_p": 84,
+      "eaten_c": 144,
+      "eaten_g": 37,
       "workout_kcal": null,
-      "remaining_kcal": 355,
+      "remaining_kcal": 735,
       "slots": [
         {
           "id": "1",
@@ -96,12 +96,7 @@
         },
         {
           "id": "5",
-          "status": "eaten",
-          "text": "omelete de 3 ovos com espinafre e 1 fatia de pão integral",
-          "kcal": 380,
-          "p": 26,
-          "c": 18,
-          "g": 22
+          "status": "empty"
         },
         {
           "id": "6",
@@ -111,7 +106,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "estou sem ideia do que comer na ceia",
+    "text": "o que você comeria agora nesse horário?",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -125,11 +120,18 @@
     "reply_has": [
       "kcal"
     ],
-    "suggested_slot": "6",
+    "suggested_slot": "5",
     "kcal_range": [
-      80,
-      400
+      250,
+      800
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "355 kcal sobrando. Esperado: 1-2 opções leves com números."
+  "note": "Pergunta aberta na hora do jantar com 735 kcal sobrando. Esperado: um prato concreto com kcal, não um sermão."
 }

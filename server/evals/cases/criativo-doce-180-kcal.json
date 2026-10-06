@@ -1,12 +1,12 @@
 {
-  "id": "criativo-o-que-voce-comeria",
-  "since": "pilot",
+  "id": "criativo-doce-180-kcal",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative"
   ],
   "request": {
-    "local_time": "2026-10-06T17:35:00-03:00",
+    "local_time": "2026-10-06T21:05:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -51,12 +51,12 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 1265,
-      "eaten_p": 84,
-      "eaten_c": 144,
-      "eaten_g": 37,
+      "eaten_kcal": 1820,
+      "eaten_p": 114,
+      "eaten_c": 184,
+      "eaten_g": 65,
       "workout_kcal": null,
-      "remaining_kcal": 735,
+      "remaining_kcal": 180,
       "slots": [
         {
           "id": "1",
@@ -96,7 +96,12 @@
         },
         {
           "id": "5",
-          "status": "empty"
+          "status": "eaten",
+          "text": "strogonoff de frango com arroz e batata palha",
+          "kcal": 555,
+          "p": 30,
+          "c": 40,
+          "g": 28
         },
         {
           "id": "6",
@@ -106,7 +111,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "o que você comeria agora nesse horário?",
+    "text": "quero algo doce que caiba no que sobrou",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -120,11 +125,18 @@
     "reply_has": [
       "kcal"
     ],
-    "suggested_slot": "5",
+    "suggested_slot": "6",
     "kcal_range": [
-      250,
-      800
+      60,
+      200
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "Pergunta aberta na hora do jantar com 735 kcal sobrando. Esperado: um prato concreto com kcal, não um sermão."
+  "note": "Sobram 180 kcal. Esperado: doce concreto dentro de 180 kcal; falha se estourar ou se fugir ('melhor não comer doce')."
 }

@@ -8,8 +8,8 @@ Inside server/, with the .venv:
     python -m evals.pilot.run --report-only                   # rebuild the report from the newest runs
 
 Case sets: "fail" = cases of the main suite where gpt-6-luna failed or flaked in the recorded
-runs (FAIL_SET below); "creative" = open questions in evals/pilot/cases (no gold answer, manual
-review); "consistency" = one meal text repeated, the kcal spread is the measure.
+runs (FAIL_SET below); "creative" and "consistency" = the main-suite cases tagged s22 (open questions
+with a note for manual review; one meal text repeated, judged by kcal_spread).
 Same orchestration as the route (main.chat_reply / compact_reply), no HTTP, no moderation call
 (local clean verdict: the provider's moderation cap stays with the dev server).
 Keys are read from the repo-root .env by name and never printed.
@@ -33,10 +33,9 @@ from dotenv import load_dotenv
 
 from config import load_settings
 from evals import run as base
-from evals.checks import FAIL, NA, PASS, case_status
+from evals.checks import FAIL, NA, PASS
 from llm import LlmClient
 
-PILOT_CASES_DIR = Path(__file__).resolve().parent / "cases"
 REPORT_DIR = base.REPORT_DIR / "pilot"
 
 # Cases of the main suite that failed or flaked for gpt-6-luna in logs/evals (2026-10-02..05).
@@ -82,7 +81,8 @@ PROVIDERS: dict[str, dict[str, Any]] = {
         "price": {"input": 2.00, "cached_input": 2.00, "output": 6.00},
     },
 }
-SETS = ("fail", "creative", "consistency")
+# rule = the other s22 cases (quantified first message, memory precedence), judged by the ordinary checks.
+SETS = ("fail", "creative", "consistency", "rule")
 
 
 def load_pilot_cases(sets: tuple[str, ...] = SETS) -> list[dict[str, Any]]:
@@ -93,9 +93,11 @@ def load_pilot_cases(sets: tuple[str, ...] = SETS) -> list[dict[str, Any]]:
             case = dict(main_cases[case_id])
             case["set"] = "fail"
             cases.append(case)
-    pilot = base.load_cases(PILOT_CASES_DIR)
-    for case in pilot:
-        case["set"] = "consistency" if "consistency" in case.get("tags", []) else "creative"
+    for case in base.load_cases():
+        tags = case.get("tags", [])
+        if "s22" not in tags or case["id"] in FAIL_SET:
+            continue
+        case["set"] = ("consistency" if "consistency" in tags else "creative" if "creative" in tags else "rule")
         if case["set"] in sets:
             cases.append(case)
     return cases
@@ -135,8 +137,6 @@ def run_provider(
     for case_report, case in zip(report["cases"], cases):
         reps = per_case[case["id"]]
         case_report["set"] = case["set"]
-        case_report["repeat"] = len(reps)
-        case_report["status"] = case_status([r["status"] for r in reps], strict=bool(case.get("strict")))
         case_report["note"] = case.get("note")
         case_report["question"] = _question(case)
         case_report["runs"] = [
@@ -289,6 +289,7 @@ def render_markdown(reports: dict[str, dict[str, Any]]) -> str:
         ("Conjunto `fail` (falhas conhecidas do Luna)", lambda r: _pct(r["by_set"]["fail"])),
         ("Conjunto `creative`", lambda r: _pct(r["by_set"]["creative"])),
         ("Conjunto `consistency`", lambda r: _pct(r["by_set"]["consistency"])),
+        ("Conjunto `rule` (regras S22)", lambda r: _pct(r["by_set"].get("rule", {"passed": 0, "failed": 0, "na": 0, "rate": None}))),
         ("Latência p50 / p95", lambda r: f"{r['latency_ms']['p50']} / {r['latency_ms']['p95']} ms"),
         ("Tokens por chamada (entrada / saída / raciocínio)",
          lambda r: f"{r['tokens_per_call']['input']} / {r['tokens_per_call']['output']} / {r['tokens_per_call']['reasoning']}"),

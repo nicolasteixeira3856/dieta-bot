@@ -1,13 +1,12 @@
 {
-  "id": "consistencia-cafe-repetido",
-  "since": "pilot",
+  "id": "criativo-rodizio-pizza",
+  "since": "v4",
   "tags": [
-    "pilot",
-    "consistency",
-    "log"
+    "s22",
+    "creative"
   ],
   "request": {
-    "local_time": "2026-10-06T08:10:00-03:00",
+    "local_time": "2026-10-06T15:20:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -52,24 +51,39 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 0,
-      "eaten_p": 0,
-      "eaten_c": 0,
-      "eaten_g": 0,
+      "eaten_kcal": 1115,
+      "eaten_p": 77,
+      "eaten_c": 124,
+      "eaten_g": 32,
       "workout_kcal": null,
-      "remaining_kcal": 2000,
+      "remaining_kcal": 885,
       "slots": [
         {
           "id": "1",
-          "status": "empty"
+          "status": "eaten",
+          "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, café sem açúcar",
+          "kcal": 430,
+          "p": 24,
+          "c": 38,
+          "g": 20
         },
         {
           "id": "2",
-          "status": "empty"
+          "status": "eaten",
+          "text": "150 g de mamão",
+          "kcal": 65,
+          "p": 1,
+          "c": 16,
+          "g": 0
         },
         {
           "id": "3",
-          "status": "empty"
+          "status": "eaten",
+          "text": "arroz (150 g), feijão (100 g), frango grelhado (150 g), salada de alface e tomate",
+          "kcal": 620,
+          "p": 52,
+          "c": 70,
+          "g": 12
         },
         {
           "id": "4",
@@ -87,7 +101,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "2 ovos mexidos, 1 pão francês e 200 ml de leite",
+    "text": "vou num rodízio de pizza hoje à noite, como me organizo?",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -95,18 +109,18 @@
   },
   "expect": {
     "refusal": "none",
-    "intent": "log",
-    "estimate": "present",
-    "suggested_slot": "1",
-    "kcal_range": [
-      380,
-      480
+    "intent": "plan",
+    "record": "none",
+    "reply_has": [
+      "kcal"
     ],
-    "record": [
-      "auto",
-      "clear"
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "Mesma mensagem repetida 8x. O que importa é o spread dos kcal entre repetições, não o acerto isolado. Referência: ~405 kcal sem manteiga, ~440 com.",
-  "repeat": 8
+  "note": "Planejamento, não receita. Esperado: quantas fatias cabem nos 885 kcal, e o que fazer no lanche; tom seco, sem culpa."
 }

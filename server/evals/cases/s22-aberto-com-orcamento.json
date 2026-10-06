@@ -1,0 +1,109 @@
+{
+  "id": "s22-aberto-com-orcamento",
+  "since": "v4",
+  "tags": [
+    "s22",
+    "creative"
+  ],
+  "request": {
+    "local_time": "2026-10-07T15:50:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 130,
+      "c_target": 180,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "2",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "3",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "4",
+          "name": "Jantar",
+          "time": "19:30"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-07",
+      "eaten_kcal": 1000,
+      "eaten_p": 42,
+      "eaten_c": 138,
+      "eaten_g": 31,
+      "workout_kcal": null,
+      "remaining_kcal": 800,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "tapioca com queijo e café preto",
+          "kcal": 320,
+          "p": 12,
+          "c": 48,
+          "g": 9
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "macarrão à bolonhesa e salada",
+          "kcal": 680,
+          "p": 30,
+          "c": 90,
+          "g": 22
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "tenho uns 250 kcal pro lanche e nenhuma ideia, me dá uma",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 3,
+    "auto_record": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "record": "none",
+    "estimate": "present",
+    "suggested_slot": "3",
+    "kcal_range": [
+      120,
+      300
+    ],
+    "reply_has": [
+      "kcal"
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
+    ]
+  },
+  "note": "Budget stated in the message. Expected: one concrete snack at or under 250 kcal with grams."
+}

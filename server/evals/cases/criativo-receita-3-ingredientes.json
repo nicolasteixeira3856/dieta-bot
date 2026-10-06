@@ -1,13 +1,13 @@
 {
-  "id": "criativo-jantar-romantico-600",
-  "since": "pilot",
+  "id": "criativo-receita-3-ingredientes",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative",
     "recipe"
   ],
   "request": {
-    "local_time": "2026-10-06T16:45:00-03:00",
+    "local_time": "2026-10-06T18:10:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -107,7 +107,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "jantar romântico pra dois hoje, quero gastar no máximo 600 kcal na minha parte, o que faço?",
+    "text": "me manda uma receita que usa frango, abobrinha e ovo",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -123,9 +123,24 @@
     ],
     "suggested_slot": "5",
     "kcal_range": [
-      350,
-      620
+      250,
+      800
+    ],
+    "items_beyond": {
+      "given": [
+        "frango",
+        "abobrinha",
+        "ovo"
+      ],
+      "min": 1
+    },
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "Receita com restrição explícita de 600 kcal na porção da pessoa. Esperado: prato para dois com a porção individual dentro de 600 kcal."
+  "note": "Receita com 3 ingredientes dados. Esperado: preparo curto, porções em gramas, total em kcal; pode acrescentar tempero/óleo."
 }

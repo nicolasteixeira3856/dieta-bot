@@ -1,12 +1,12 @@
 {
-  "id": "criativo-rodizio-pizza",
-  "since": "pilot",
+  "id": "criativo-sem-ideia-ceia",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative"
   ],
   "request": {
-    "local_time": "2026-10-06T15:20:00-03:00",
+    "local_time": "2026-10-06T20:40:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -51,12 +51,12 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 1115,
-      "eaten_p": 77,
-      "eaten_c": 124,
-      "eaten_g": 32,
+      "eaten_kcal": 1645,
+      "eaten_p": 110,
+      "eaten_c": 162,
+      "eaten_g": 59,
       "workout_kcal": null,
-      "remaining_kcal": 885,
+      "remaining_kcal": 355,
       "slots": [
         {
           "id": "1",
@@ -87,11 +87,21 @@
         },
         {
           "id": "4",
-          "status": "empty"
+          "status": "eaten",
+          "text": "1 iogurte natural, 100 g de morango",
+          "kcal": 150,
+          "p": 7,
+          "c": 20,
+          "g": 5
         },
         {
           "id": "5",
-          "status": "empty"
+          "status": "eaten",
+          "text": "omelete de 3 ovos com espinafre e 1 fatia de pão integral",
+          "kcal": 380,
+          "p": 26,
+          "c": 18,
+          "g": 22
         },
         {
           "id": "6",
@@ -101,7 +111,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "vou num rodízio de pizza hoje à noite, como me organizo?",
+    "text": "estou sem ideia do que comer na ceia",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -111,9 +121,22 @@
     "refusal": "none",
     "intent": "plan",
     "record": "none",
+    "estimate": "present",
     "reply_has": [
       "kcal"
+    ],
+    "suggested_slot": "6",
+    "kcal_range": [
+      80,
+      400
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "Planejamento, não receita. Esperado: quantas fatias cabem nos 885 kcal, e o que fazer no lanche; tom seco, sem culpa."
+  "note": "355 kcal sobrando. Esperado: 1-2 opções leves com números."
 }

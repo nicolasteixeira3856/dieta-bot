@@ -1,12 +1,13 @@
 {
-  "id": "criativo-doce-180-kcal",
-  "since": "pilot",
+  "id": "criativo-jantar-romantico-600",
+  "since": "v4",
   "tags": [
-    "pilot",
-    "creative"
+    "s22",
+    "creative",
+    "recipe"
   ],
   "request": {
-    "local_time": "2026-10-06T21:05:00-03:00",
+    "local_time": "2026-10-06T16:45:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -51,12 +52,12 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 1820,
-      "eaten_p": 114,
-      "eaten_c": 184,
-      "eaten_g": 65,
+      "eaten_kcal": 1265,
+      "eaten_p": 84,
+      "eaten_c": 144,
+      "eaten_g": 37,
       "workout_kcal": null,
-      "remaining_kcal": 180,
+      "remaining_kcal": 735,
       "slots": [
         {
           "id": "1",
@@ -96,12 +97,7 @@
         },
         {
           "id": "5",
-          "status": "eaten",
-          "text": "strogonoff de frango com arroz e batata palha",
-          "kcal": 555,
-          "p": 30,
-          "c": 40,
-          "g": 28
+          "status": "empty"
         },
         {
           "id": "6",
@@ -111,7 +107,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "quero algo doce que caiba no que sobrou",
+    "text": "jantar romântico pra dois hoje, quero gastar no máximo 600 kcal na minha parte, o que faço?",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -125,11 +121,18 @@
     "reply_has": [
       "kcal"
     ],
-    "suggested_slot": "6",
+    "suggested_slot": "5",
     "kcal_range": [
-      60,
-      200
+      350,
+      620
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "Sobram 180 kcal. Esperado: doce concreto dentro de 180 kcal; falha se estourar ou se fugir ('melhor não comer doce')."
+  "note": "Receita com restrição explícita de 600 kcal na porção da pessoa. Esperado: prato para dois com a porção individual dentro de 600 kcal."
 }

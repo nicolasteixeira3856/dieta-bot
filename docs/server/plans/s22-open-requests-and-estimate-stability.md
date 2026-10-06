@@ -1,6 +1,6 @@
 # Plan — S22 Open requests answered as plans, stable first-message estimates
 
-- Status: Aguardando aprovação
+- Status: Em implementação
 - Date: 06/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: the `plan`, `log`, `record` and `memory_use` rules and the `plan-request` cues of the Chat instructions registry (`server/chat_instructions.py`), one new rule with reference portions, tests, evaluation cases and the pilot runner (`server/evals/`). No route, schema, shaping or client change.

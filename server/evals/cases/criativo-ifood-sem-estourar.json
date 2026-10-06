@@ -1,12 +1,12 @@
 {
-  "id": "criativo-pre-treino-30-min",
-  "since": "pilot",
+  "id": "criativo-ifood-sem-estourar",
+  "since": "v4",
   "tags": [
-    "pilot",
+    "s22",
     "creative"
   ],
   "request": {
-    "local_time": "2026-10-06T16:00:00-03:00",
+    "local_time": "2026-10-06T19:40:00-03:00",
     "profile": {
       "ceiling_kcal": 2000,
       "p_target": 150,
@@ -51,12 +51,12 @@
     "recent": [],
     "day": {
       "date": "2026-10-06",
-      "eaten_kcal": 1115,
-      "eaten_p": 77,
-      "eaten_c": 124,
-      "eaten_g": 32,
+      "eaten_kcal": 1425,
+      "eaten_p": 80,
+      "eaten_c": 164,
+      "eaten_g": 47,
       "workout_kcal": null,
-      "remaining_kcal": 885,
+      "remaining_kcal": 575,
       "slots": [
         {
           "id": "1",
@@ -79,15 +79,20 @@
         {
           "id": "3",
           "status": "eaten",
-          "text": "arroz (150 g), feijão (100 g), frango grelhado (150 g), salada de alface e tomate",
-          "kcal": 620,
-          "p": 52,
-          "c": 70,
-          "g": 12
+          "text": "feijoada com arroz, couve e laranja",
+          "kcal": 780,
+          "p": 48,
+          "c": 90,
+          "g": 22
         },
         {
           "id": "4",
-          "status": "empty"
+          "status": "eaten",
+          "text": "1 iogurte natural, 100 g de morango",
+          "kcal": 150,
+          "p": 7,
+          "c": 20,
+          "g": 5
         },
         {
           "id": "5",
@@ -101,7 +106,7 @@
     },
     "digests": [],
     "messages": [],
-    "text": "sugere um lanche pré-treino rápido pra daqui 30 min",
+    "text": "o que peço no ifood que não estoure o dia?",
     "image_b64": null,
     "compact": false,
     "clarify_rounds": 3,
@@ -115,11 +120,18 @@
     "reply_has": [
       "kcal"
     ],
-    "suggested_slot": "4",
+    "suggested_slot": "5",
     "kcal_range": [
-      100,
-      400
+      200,
+      600
+    ],
+    "reply_not": [
+      "devagar",
+      "água",
+      "satisfeito",
+      "confira",
+      "aplicativo"
     ]
   },
-  "note": "Esperado: algo de preparo rápido e digestão fácil, com kcal; aceitar que eat_back é zero (sem crédito de treino)."
+  "note": "Sobram 575 kcal. Esperado: 1-2 pedidos reais de delivery (ex.: marmita, poke, wrap) com kcal estimada."
 }

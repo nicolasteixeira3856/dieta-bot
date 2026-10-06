@@ -56,7 +56,8 @@ CUES: dict[str, Cue] = {
     "plan-request": _cue(
         "intent", "Recognise a request to plan a meal",
         "future eating or a request for what or how much to eat (plan: assume and estimate, never ask)",
-        "vou comer", "vou preparar", "o que posso comer", "me sugere", "quanto posso", "cabe"),
+        "vou comer", "vou preparar", "o que posso comer", "me sugere", "quanto posso", "cabe",
+        "o que peço", "o que você comeria", "sem ideia", "como me organizo", "me surpreende"),
     "skip-firm": _cue(
         "intent", "Recognise a firm skip",
         "firm skip: a meal of today that did not happen, or a firm decision that it will not happen "
@@ -261,7 +262,7 @@ RULES: dict[str, Rule] = {
         'or estimated even without repeating an eating verb, or explicit acceptance of the pending estimate. '
         'unsure: food with no sign of having been eaten, a doubt mixed with food, a hypothetical, or a food '
         'photo sent with a nutrition question about it: that photo is log, estimate the plate, record_intent '
-        'unsure. For plan and question, record_intent is unsure. meal_day is today or other. Today means '
+        'unsure. A bare list of foods with amounts, with no eating verb, meal name or request, is unsure whatever the time of day: estimate it and let the app offer the record. For plan and question, record_intent is unsure. meal_day is today or other. Today means '
         "DAY.date at the supplied local_time, for the entire dialogue, never the server's calendar or a date "
         'outside this input. An undated eating statement in HISTORY and its later answers keep that day; past '
         'tense alone does not mean yesterday. other means the food was EATEN on another day. A past-day word '
@@ -368,7 +369,13 @@ RULES: dict[str, Rule] = {
         'only about a food the answers left with no portion at all and that changes the estimate materially, '
         'using only details the user can still supply; otherwise question is null, with confidence reflecting '
         'the remaining uncertainty. After an answer, amounts of butter, sauce, oil, cream, cheese or '
-        'seasoning, and a usual cup of coffee, café com leite or tea, are assumed, never asked. Never repeat '
+        'seasoning, and a usual cup of coffee, café com leite or tea, are assumed, never asked. '
+        'FIRST MESSAGE: when every food of the current message already has a usable amount (count, '
+        'measure, size or household measure), cooking fat or oil, milk type, sugar or sweetener and usual '
+        'coffee or tea amounts are likewise assumed with their common value, stated in one short reply '
+        'line, and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
+        'over the common value. A food with no usable amount keeps the portion question above. '
+        'Never repeat '
         'a question already asked in HISTORY. If confidence is not high, reply states in one short line what '
         'was assumed. If the user gives only a calorie total without saying what was eaten, estimate is null, '
         'intent is question, and reply asks what was eaten. This holds even when that slot is already '
@@ -384,6 +391,13 @@ RULES: dict[str, Rule] = {
         'reply gives the grams of each item and the dish total as kcal · P · C · G. A plan never asks '
         'about the food: assume, and say in reply what you assumed; question is null and confidence may '
         'be medium. '
+        'OPEN REQUEST: a request about what to eat, order or make, how to organise a meal out, or a '
+        'message saying the user has no idea what to eat, is a plan with a dish. reply names one concrete '
+        'dish or order (at most two alternatives) with the grams of each item and the total. reply never '
+        'gives behavioural advice (how fast to eat, drinking water, stopping when satisfied, listening to '
+        'hunger) and never defers to an external source (the delivery app, the restaurant, a label the '
+        'user does not have). When the user names a venue or occasion, the dish is what that venue '
+        'typically serves, sized under BUDGET below. '
         'COOKING: a request for a recipe or for what to make is cooking help, not a sum of the listed '
         'foods. Name a real dish a cook would serve. The foods the user has are the base. You may add up '
         'to 3 common, low-cost foods that change the dish, not only seasoning, chosen for flavor, volume, '
@@ -404,6 +418,24 @@ RULES: dict[str, Rule] = {
         'BUDGET_TARGET: only when the input ends with a BUDGET_TARGET line, rebuild the same dish so '
         'that estimate.kcal is at or below that number: shrink calorie-dense foods first and keep the '
         'added foods where possible. items, meal_text, the totals and reply describe the rebuilt dish.'
+    )),
+    'reference': Rule('server Chat 3/4a; ADR-040', (
+        'REFERENCE PORTIONS: per 100 g as kcal/P/C/G, from the Tabela Brasileira de Composição de '
+        'Alimentos (TACO, 4th ed.; milk from the IBGE table). When a food of the current message '
+        'is one of these foods, scale its kcal and macros to the stated amount; deviate '
+        'only for a stated preparation or brand and say so. Other foods: estimate as usual. '
+        'pão francês 300/8/59/3 (1 unit 50 g); pão de forma integral 253/9/50/4 (1 slice 25 g); '
+        'arroz branco cozido 128/2.5/28/0.2; feijão carioca cozido 76/5/14/0.5 (1 concha 100 g); '
+        'ovo cozido ou mexido 146/13/0.6/9.5 (1 unit 50 g, the cooking fat is its own item); ovo frito 240/16/1/19 (1 unit 50 g); '
+        'peito de frango grelhado 159/32/0/2.5; patinho grelhado 219/36/0/7; acém moído cozido 212/27/0/11; '
+        'batata inglesa cozida 52/1/12/0; leite integral 60/3/4.5/3 (1 glass 200 ml); '
+        'leite desnatado 34/3.4/5/0.1; iogurte natural 51/4/2/3 (1 pot 170 g); '
+        'queijo minas frescal 264/17/3/20 (1 slice 30 g); manteiga 726/0.4/0/82 (1 teaspoon 5 g); '
+        'óleo de soja 884/0/0/100 (1 tablespoon 8 g); açúcar cristal 387/0/100/0 (1 teaspoon 5 g); '
+        'aveia em flocos 394/14/67/8.5 (1 tablespoon 15 g); banana prata 98/1/26/0 (1 unit 70 g); '
+        'mamão papaia 40/0.5/10/0; maçã fuji com casca 56/0.3/15/0 (1 unit 130 g); laranja pera 37/1/9/0. '
+        'Black coffee or tea without sugar: 0 kcal. An assumed cooking fat, sugar or milk is its own item '
+        'with its grams; compute kcal, p, c and g by adding the items row by row, never by re-estimating the whole meal.'
     )),
     'history': Rule('server Chat 3d; ADR-023/029', (
         'HISTORY: RECENT contains records with explicit date, weekday, slot, foods and nutrition. '
@@ -440,7 +472,8 @@ RULES: dict[str, Rule] = {
         'including another portion on a later turn, and cite the id in memory_used. A conflicting fact '
         'overridden by the current statement is not evidence used for this estimate; do not cite it. '
         'When the logged food shows the brand, type or portion of a permanent or dynamic fact, also put '
-        'reinforce with that fact id in memory_updates: citing it is not enough.'
+        'reinforce with that fact id in memory_updates: citing it is not enough. A fact used to avoid, '
+        'contrast or vary from a habit (a plan different from the usual) is also cited in memory_used.'
     )),
     'memory_changes': Rule('server Chat 3e/5; ADR-023/029', (
         'MEMORY CHANGES: memory_updates lists at most 5 changes {op, id, kind, category, key, text, slot}. '
@@ -535,7 +568,7 @@ RULES: dict[str, Rule] = {
         'referring to food previously discussed or estimated even without repeating an eating verb, or '
         'explicit acceptance of the pending estimate. unsure: food with no sign of having been eaten, a doubt '
         'mixed with food, a hypothetical, or a food photo sent with a nutrition question about it: that photo '
-        'is log, estimate the plate, record_intent unsure. For plan and question, record_intent is unsure. '
+        'is log, estimate the plate, record_intent unsure. A bare list of foods with amounts, with no eating verb, meal name or request, is unsure whatever the time of day: estimate it and let the app offer the record. For plan and question, record_intent is unsure. '
         'meal_day is today or other. Today means DAY.date at the supplied local_time, for the entire '
         "dialogue, never the server's calendar or a date outside this input. An undated eating statement in "
         'HISTORY and its later answers keep that day; past tense alone does not mean yesterday. other means '
@@ -625,7 +658,13 @@ RULES: dict[str, Rule] = {
         'changes the estimate materially, using only details the user can still supply; otherwise question is '
         'null, with confidence reflecting the remaining uncertainty. After an answer, amounts of butter, '
         'sauce, oil, cream, cheese or seasoning, and a usual cup of coffee, café com leite or tea, are '
-        'assumed, never asked. Never repeat a question already asked in HISTORY. If confidence is not high, '
+        'assumed, never asked. '
+        'FIRST MESSAGE: when every food of the current message already has a usable amount (count, '
+        'measure, size or household measure), cooking fat or oil, milk type, sugar or sweetener and usual '
+        'coffee or tea amounts are likewise assumed with their common value, stated in one short reply '
+        'line, and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
+        'over the common value. A food with no usable amount keeps the portion question above. '
+        'Never repeat a question already asked in HISTORY. If confidence is not high, '
         'reply states in one short line what was assumed. If the user gives only a calorie total without '
         'saying what was eaten, estimate is null, intent is question, and reply asks what was eaten. This '
         'holds even when that slot is already recorded: never copy a calorie total typed by the user into '
@@ -744,7 +783,7 @@ RULES: dict[str, Rule] = {
 BRANCHES = {
     "legacy": (
         ("rule", "product"), ("rule", "context"), ("rule", "intent"), ("cues", "intent"),
-        ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"),
+        ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"), ("rule", "reference"),
         ("example", "answer-continues-meal-v1"),
         ("rule", "log"), ("cues", "log"),
         ("rule", "plan"), ("rule", "history"), ("cues", "history"),
@@ -755,7 +794,7 @@ BRANCHES = {
         ("rule", "product_meal_changes"), ("rule", "context"),
         ("rule", "intent_meal_changes"), ("cues", "intent"),
         ("rule", "record_meal_changes"), ("cues", "record"),
-        ("rule", "estimate_meal_changes"), ("cues", "estimate"),
+        ("rule", "estimate_meal_changes"), ("cues", "estimate"), ("rule", "reference"),
         ("example", "answer-continues-meal-v1"), ("rule", "meal_changes"),
         ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
