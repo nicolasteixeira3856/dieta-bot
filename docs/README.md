@@ -69,7 +69,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [037](site/adrs/ADR-037-landing-site.md) | site | landing estática Aero em fibrai.app, Cloudflare |
 | [038](site/adrs/ADR-038-web-project-folder.md) | site | código da landing no projeto `web/` na raiz |
 | [039](produto/adrs/ADR-039-plan-cooking-and-budget-choice.md) | produto | cooking help in a plan; server over-budget check, Pode passar / Ajustar para caber, gold `chatRB` |
-| [040](produto/adrs/ADR-040-reference-portions-in-chat-instructions.md) | produto | reference portions (TACO) in the Chat instructions; open requests answered as plans; fully quantified first message estimated, not questioned |
+| [041](produto/adrs/ADR-041-reference-portions-in-chat-instructions.md) | produto | reference portions (TACO) in the Chat instructions; open requests answered as plans; fully quantified first message estimated, not questioned |
 
 ## Outros docs
 

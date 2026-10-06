@@ -1,4 +1,4 @@
-# ADR-040 — Reference portions in the Chat instructions; open requests answered as plans
+# ADR-041 — Reference portions in the Chat instructions; open requests answered as plans
 
 - Status: Accepted (2026-10-06, owner approval of S22 by name)
 - Date: 2026-10-06

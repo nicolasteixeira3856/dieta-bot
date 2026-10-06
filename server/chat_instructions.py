@@ -421,7 +421,7 @@ RULES: dict[str, Rule] = {
         'that estimate.kcal is at or below that number: shrink calorie-dense foods first and keep the '
         'added foods where possible. items, meal_text, the totals and reply describe the rebuilt dish.'
     )),
-    'reference': Rule('server Chat 3/4a; ADR-040', (
+    'reference': Rule('server Chat 3/4a; ADR-041', (
         'REFERENCE PORTIONS: per 100 g as kcal/P/C/G, from the Tabela Brasileira de Composição de '
         'Alimentos (TACO, 4th ed.; milk from the IBGE table). When a food of the current message '
         'is one of these foods, scale its kcal and macros to the stated amount; deviate '

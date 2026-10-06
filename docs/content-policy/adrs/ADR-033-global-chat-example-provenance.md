@@ -1,6 +1,6 @@
 # ADR-033 — Global Chat example provenance
 
-- Status: Accepted (2026-10-04, explicit owner direction in this conversation to prohibit owner/user incidents from becoming global Chat examples); complemented by [ADR-040](../../produto/adrs/ADR-040-reference-portions-in-chat-instructions.md) (generic reference portions in the fixed instructions, with recorded provenance)
+- Status: Accepted (2026-10-04, explicit owner direction in this conversation to prohibit owner/user incidents from becoming global Chat examples); complemented by [ADR-041](../../produto/adrs/ADR-041-reference-portions-in-chat-instructions.md) (generic reference portions in the fixed instructions, with recorded provenance)
 - Date: 2026-10-04
 - Owner: `content-policy`
 - Supersedes: none. Complements [ADR-024](ADR-024-content-safety-boundaries.md) and the fixed-instructions/per-request-context boundary in [server Chat](../../server/specifications/v1-chat.md).
