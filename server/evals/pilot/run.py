@@ -202,7 +202,7 @@ def _answer(output: dict[str, Any]) -> dict[str, Any]:
 
 def write_json(report: dict[str, Any], stamp: str) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    path = REPORT_DIR / f"{stamp}-{report['provider']}.json"
+    path = REPORT_DIR / f"{stamp}-{report['provider']}-{report['effort']}.json"
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
@@ -210,7 +210,7 @@ def write_json(report: dict[str, Any], stamp: str) -> Path:
 def latest_reports() -> dict[str, dict[str, Any]]:
     found: dict[str, dict[str, Any]] = {}
     for name in PROVIDERS:
-        paths = sorted(REPORT_DIR.glob(f"*-{name}.json"))
+        paths = sorted(REPORT_DIR.glob(f"*-{name}*.json"), key=lambda p: p.stat().st_mtime)
         if paths:
             found[name] = json.loads(paths[-1].read_text(encoding="utf-8"))
             found[name]["_file"] = paths[-1].name
@@ -383,6 +383,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=base.DEFAULT_WORKERS)
     parser.add_argument("--grok-model", default=None, help=f"default {PROVIDERS['grok']['model']}")
     parser.add_argument("--grok-effort", default=None, choices=("low", "medium", "high"))
+    parser.add_argument("--luna-effort", default=None, choices=("none", "minimal", "low", "medium", "high"))
     parser.add_argument("--report-only", action="store_true", help="markdown from the newest run of each provider")
     parser.add_argument("--env", default=None, help="an extra .env to read keys from (default: the nearest .env up the tree, so a worktree finds the main checkout)")
     args = parser.parse_args(argv)
@@ -413,7 +414,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{PROVIDERS[name]['key_env']} missing in the repo-root .env", file=sys.stderr)
             return 2
         model = args.grok_model if name == "grok" else None
-        effort = args.grok_effort if name == "grok" else None
+        effort = args.grok_effort if name == "grok" else args.luna_effort
         calls = sum(int(c.get("repeat") or args.repeat) for c in cases)
         print(f"[{name}] {len(cases)} cases, {calls} calls, model {model or PROVIDERS[name]['model']}...", flush=True)
         report = run_provider(name, cases, args.repeat, key, args.workers, model=model, effort=effort)
