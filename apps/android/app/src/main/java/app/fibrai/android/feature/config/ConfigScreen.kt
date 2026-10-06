@@ -136,6 +136,11 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
                     }
                 }
                 AeroNoteCard(AeroIconName.Info, "Alterar a meta de calorias reinicia os registros do dia atual. O histórico da conversa será mantido.")
+                Block("Dados") {
+                    Group {
+                        SettingRow("Resetar app", "", "cfg-reset", detail = "Apaga tudo e refaz o onboarding") { actions.onOpenReset() }
+                    }
+                }
                 extra()
             }
             AeroPageBubbles(Bubbles, scroll, Modifier.statusBarsPadding())
@@ -158,6 +163,7 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
             ui.editor?.let { EditSheet(it, ui, actions) }
         }
         if (ui.wipeConfirm) WipeDialog(actions.onConfirmWipe, actions.onCancelWipe)
+        if (ui.resetConfirm) ResetDialog(actions.onConfirmReset, actions.onCancelReset)
     }
 }
 
@@ -401,6 +407,23 @@ private fun WorkoutEditor(state: WorkoutEditorState, onChange: (String) -> Unit)
 }
 
 // ----------------------------------------------------------------------------- wipe
+
+/** cfgR: Dialog/Confirm Tone=Danger over the blurred Config (ADR-040). */
+@Composable
+internal fun BoxScope.ResetDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
+    AeroConfirmDialog(
+        title = "Resetar o app?",
+        body = "Apaga perfil, metas, refeições, registros, conversa e memória deste aparelho. Depois você refaz o onboarding. Não dá para desfazer.",
+        primary = "Apagar tudo",
+        onPrimary = onConfirm,
+        secondary = "Cancelar",
+        onSecondary = onCancel,
+        dangerIcon = AeroIconName.ArrowCounterClockwise,
+        primaryTag = "cfg-reset-confirm",
+        secondaryTag = "cfg-reset-cancel",
+        modifier = Modifier.testTag("cfg-reset-dialog"),
+    )
+}
 
 /** wipe: Dialog/Confirm Tone=Danger over the blurred Config. Also used by the dev memory tool (ADR-019). */
 @Composable

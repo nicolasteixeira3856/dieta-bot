@@ -43,6 +43,7 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 8. Copy dos sheets: "Treino de hoje" sem texto de apoio abaixo do título; "Horários das refeições": "Mudar nome ou horário não apaga o que você já registrou hoje."
 9. Editor de refeições em tela cheia: Continuar por grupo, Salvar na última etapa; Voltar recua ou cancela na primeira. Todo sheet termina no par `Salvar` / `Cancelar` do `Sheet/Bottom`: `Button/Primary` e a pílula secundária, de largura total. Salvar vibra (confirmação), Cancelar vibra leve. A vibração segue a configuração de vibração ao toque do sistema. Controles tocáveis têm ripple.
 10. Campos de texto da Config (sheets de edição e editor de refeições): o cursor vai para o fim do valor ao receber foco, e o campo focado fica visível acima do teclado. O sheet nunca passa da altura livre entre a barra de status e o teclado: o título e o par Salvar / Cancelar continuam visíveis e o conteúdo rola. No editor de refeições vale a regra 8 de [perfil-onboarding](perfil-onboarding.md).
+11. Resetar app ([ADR-040](../adrs/ADR-040-home-card-gestures-app-reset.md)): último bloco "Dados", linha "Resetar app" / "Apaga tudo e refaz o onboarding". Toque abre o diálogo `cfgR` ("Resetar o app?", **Apagar tudo** / **Cancelar**). Cancelar ou back não muda nada. Apagar tudo apaga, nesta ordem, como uma reinstalação: marca o onboarding como não feito, cancela os lembretes e o resync e limpa as notificações e preferências de push, apaga o arquivo de memória e as fotos do Chat, esvazia todas as tabelas do Room. Depois abre a O1 vazia sem back stack (back sai do app). Fica o installation id ([ADR-025](../../content-policy/adrs/ADR-025-safety-correlation-audit.md)). Um reset interrompido termina no próximo cold start, antes da O1. Falha: o diálogo fecha e a Config continua. Telemetria `app_reset` só com enums.
 
 ## Regras — push
 
@@ -65,6 +66,7 @@ Comportamento: `produto`. Client: `android`.
 - [ADR-021](../adrs/ADR-021-refeicoes-por-dia.md)
 - [ADR-023](../adrs/ADR-023-chat-v2-memoria-v2.md)
 - [ADR-029](../adrs/ADR-029-fatos-temporarios-compactacao.md)
+- [ADR-040](../adrs/ADR-040-home-card-gestures-app-reset.md)
 
 ## Critérios de aceite funcionais
 
@@ -72,6 +74,7 @@ Comportamento: `produto`. Client: `android`.
 - Temporário vale para estimativas dos dias seguintes até ter 3 dias; registros e ações do recibo nunca o removem nem o restauram.
 - Push não dispara se o slot já foi gravado ou pulado.
 - Wipe do teto não apaga dias anteriores nem o arquivo de memória.
+- Resetar app deixa o Room vazio, sem memória, fotos nem lembretes, e abre a O1; o installation id continua.
 
 ## Proveniência
 
@@ -92,3 +95,4 @@ Comportamento: `produto`. Client: `android`.
 - [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
 - [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
+- [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: resetar o app

@@ -293,6 +293,9 @@ fun AeroMealCard(
     onClick: (() -> Unit)? = null,
     lines: List<AeroMealLine> = listOf(AeroMealLine(description, kcal)),
     logTag: String? = null,
+    onClickLabel: String? = null,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null,
 ) {
     val c = Aero.colors
     val type = Aero.type
@@ -308,7 +311,19 @@ fun AeroMealCard(
             .fillMaxWidth()
             .aeroLayerAlpha(if (state == AeroMealState.Skipped) 0.6f else 1f)
             .aeroGlass(shape, border = border)
-            .then(if (onClick != null) Modifier.dietaClick(Haptic.Light, onClick = onClick) else Modifier)
+            .then(
+                if (onClick != null) {
+                    Modifier.dietaClick(
+                        Haptic.Light,
+                        onClickLabel = onClickLabel,
+                        onLongClickLabel = onLongClickLabel,
+                        onLongClick = onLongClick,
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier
+                },
+            )
             .padding(horizontal = 21.dp, vertical = 17.dp),
         verticalArrangement = Arrangement.spacedBy(if (logged) 12.dp else 8.dp),
     ) {

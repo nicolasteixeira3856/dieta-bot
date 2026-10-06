@@ -62,6 +62,7 @@ export const DARK_FRAMES = {
   cfg: "78:3664",
   cfgS: "78:3695",
   wipe: "78:3723",
+  cfgR: "135:4375",
   push: "78:3757",
   // Landing site (D11)
   land: "107:853",
@@ -108,6 +109,7 @@ export const LIGHT_FRAMES = {
   cfg: "78:3425",
   cfgS: "78:3520",
   wipe: "78:3596",
+  cfgR: "135:4306",
   push: "78:3646",
   // Landing site (D11)
   land: "106:530",

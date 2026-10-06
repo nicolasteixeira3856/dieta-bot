@@ -65,6 +65,12 @@ data class ConfigUiState(
     val draft: ConfigDraft = ConfigDraft(),
     /** Ceiling changed: "Reiniciar registros de hoje?" is up. */
     val wipeConfirm: Boolean = false,
+    /** cfgR: "Resetar o app?" is up (ADR-040). */
+    val resetConfirm: Boolean = false,
+    /** The reset is running: the dialog ignores taps. */
+    val resetRunning: Boolean = false,
+    /** The reset finished: the route opens O1 with no back stack. */
+    val resetDone: Boolean = false,
 ) {
     val canSave: Boolean
         get() = editor?.let { draft.valid(it) } ?: false
@@ -99,4 +105,7 @@ class ConfigActions(
     val onPreviousSlots: () -> Unit = {},
     val onOpenSlotGroup: (Int) -> Unit = {},
     val onWorkout: (String) -> Unit = {},
+    val onOpenReset: () -> Unit = {},
+    val onConfirmReset: () -> Unit = {},
+    val onCancelReset: () -> Unit = {},
 )

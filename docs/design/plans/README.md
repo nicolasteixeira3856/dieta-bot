@@ -25,7 +25,7 @@ Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.
 | Splash and onboarding | `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4` |
 | Chat core | `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP`, `chatX` |
 | Chat records and memory | `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS` |
-| Config and push | `cfg`, `cfgS`, `wipe`, `push` |
+| Config and push | `cfg`, `cfgS`, `wipe`, `cfgR`, `push` |
 
 ## Figma review gate
 
@@ -54,6 +54,17 @@ Behavior: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md
 | Server | S21 — cooking help and the over-budget choice in a plan, delivered ([history](../../server/plans/completed/)) | S19, S20 |
 | Design | [D12](d12-plan-budget-choice.md) — plan over budget: the choice (`chatRB`) | S21 approved |
 | Client | [A50](../../android/plans/a50-plan-budget-choice.md) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
+
+## Home gestures and app reset follow-up
+
+Behavior: [ADR-040](../../produto/adrs/ADR-040-home-card-gestures-app-reset.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | D14 — Home: empty card copy ([`completed/`](completed/)) | — |
+| Design | D15 — Config: app reset (`cfg`, `cfgR`) ([`completed/`](completed/)) | — |
+| Client | [A52](../../android/plans/pending_manual_validation/a52-home-card-gestures.md) — Home: tap to record, long press to skip | D14 |
+| Client | [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: app reset | D15 |
 
 ## Fibrai brand follow-up
 
