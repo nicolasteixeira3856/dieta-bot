@@ -74,6 +74,7 @@ cd server
 - [v1-chat](specifications/v1-chat.md) and [HTTP contract](../api-contract.md).
 - [ADR-013](adrs/ADR-013-gcp-host.md) — host.
 - [ADR-015](adrs/ADR-015-log-conversa-dev.md) — dev conversation log.
+- [ADR-042](adrs/ADR-042-estimate-total-is-server-arithmetic.md) — estimate total computed by the server from the items.
 - [ADR-033](../content-policy/adrs/ADR-033-global-chat-example-provenance.md) — global Chat example provenance.
 - Each ADR's own status line is authoritative.
 
