@@ -55,6 +55,8 @@ KNOWN = (
     "item_portions",
     "memory_used_only",
     "memory_update_text",
+    "items_beyond",
+    "plan_budget",
 )
 
 # CP2 refusal expectation: which fixed copy the reply must be. "none" = no refusal at all.
@@ -71,6 +73,44 @@ def normalize(text: str) -> str:
     """Case- and accent-insensitive, so "Pão" matches "pao"."""
     decomposed = unicodedata.normalize("NFKD", text.casefold())
     return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+
+
+def _budget_check(want: Any, output: dict[str, Any], estimate: dict | None) -> dict[str, Any]:
+    """plan_budget (ADR-039). "absent": no key (client without the capability). None: key present, null.
+
+    A dict checks over, choice, reserved_has, reserved_kcal_range, limit_kcal, and always that
+    over_kcal is the server arithmetic of the returned estimate against limit_kcal.
+    """
+    if want == "absent":
+        return _result("plan_budget" not in output, "plan_budget present" if "plan_budget" in output else "absent")
+    if "plan_budget" not in output:
+        return _result(False, "no plan_budget in output")
+    got = output["plan_budget"]
+    if want is None:
+        return _result(got is None, f"got {got}")
+    if not isinstance(got, dict) or not estimate:
+        return _result(False, f"got {got}")
+    limit, over, reserved = got.get("limit_kcal"), got.get("over_kcal"), got.get("reserved")
+    kcal = estimate.get("kcal")
+    if (not isinstance(limit, int) or not isinstance(over, int) or not isinstance(reserved, list)
+            or not isinstance(kcal, (int, float)) or over != max(0, math.ceil(kcal - limit))):
+        return _result(False, f"inconsistent arithmetic: {got} for {kcal} kcal")
+    if "over" in want and (over > 0) != want["over"]:
+        return _result(False, f"over_kcal {over} with {kcal} kcal against {limit}")
+    if "choice" in want and got.get("choice") != want["choice"]:
+        return _result(False, f"choice {got.get('choice')}")
+    if "limit_kcal" in want and limit != want["limit_kcal"]:
+        return _result(False, f"limit_kcal {limit}")
+    labels = normalize(" ".join(str(r.get("label", "")) for r in reserved if isinstance(r, dict)))
+    missing = [term for term in want.get("reserved_has", []) if normalize(term) not in labels]
+    if missing:
+        return _result(False, f"reserved missing {missing} in {reserved}")
+    if "reserved_kcal_range" in want:
+        total = sum(r.get("kcal", 0) for r in reserved if isinstance(r, dict))
+        low, high = want["reserved_kcal_range"]
+        if not low <= total <= high:
+            return _result(False, f"reserved kcal {total}")
+    return _result(True, f"{got}")
 
 
 def _change_check(want: Any, output: dict[str, Any], estimate: dict | None) -> dict[str, Any]:
@@ -199,6 +239,18 @@ def _check(
                         sum(i["g"] for i in matching), grams, abs_tol=1e-9)):
                     return _result(False, f"missing or incorrect portion: {food}")
         return _result(True, "whole-meal items, energy and expected values agree")
+
+    if key == "items_beyond":
+        # Cooking help (ADR-039): the dish adds foods the user did not list.
+        items = estimate.get("items") if estimate else None
+        if not isinstance(items, list):
+            return _result(False, "no item breakdown")
+        names = [i.get("name", "") for i in items if isinstance(i, dict)]
+        extras = [n for n in names if not any(normalize(g) in normalize(n) for g in want["given"])]
+        return _result(len(extras) >= want["min"], f"extras {extras}; need {want['min']}")
+
+    if key == "plan_budget":
+        return _budget_check(want, output, estimate)
 
     if key == "memory_used_only":
         used = output.get("memory_used")

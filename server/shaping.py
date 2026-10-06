@@ -93,6 +93,9 @@ def chat_output_texts(result: dict[str, Any]) -> list[str]:
                 + [str(item.get("name") or "") for item in estimate.get("items") or []]
             )
         )
+    budget = result.get("plan_budget")
+    if isinstance(budget, dict):
+        texts.extend(entry.get("label") for entry in budget.get("reserved") or [])
     change = result.get("meal_change")
     if isinstance(change, dict) and isinstance(change.get("addition"), dict):
         addition = change["addition"]

@@ -139,6 +139,11 @@ Optional field (S16, ADR-029):
 ```
 - `temp_facts`: boolean, default `false`. **v5 capability** = true with `facts` present; ignored for legacy clients without facts. Enables temporary proposals and the held `question_slot` below. V5 clients also send `clarify_rounds` and `auto_record`. Android support belongs to [A38](android/plans/completed/a38-fatos-temporarios-compactacao.md); the server must support T facts before that client ships.
 
+Optional fields (S21, ADR-039), see [Plan-budget capability](#plan-budget-capability):
+```json
+{"plan_budget": true, "fit_kcal": 450}
+```
+
 OUT
 ```json
 {
@@ -165,6 +170,7 @@ OUT
 }
 ```
 - `intent` (S11): `log` (ate or is eating), `plan` (will eat, asks quantities or if it fits) or `question` (nothing to estimate).
+- A `plan` reply never states whether the dish fits the day or by how much it goes over, for any client; the app shows the projected day. A recipe plan lists ingredients with grams and up to five numbered steps, and may include up to three foods marked `(opcional)` that are part of `estimate.items` and the totals (ADR-039).
 - `estimate`: present for `log` and `plan`, `null` for `question`. A `plan` never carries a `question`.
 - `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, within the [meal-description bounds](#meal-change-capability). The app records this complete text; overflow returns a safe failure rather than truncated food.
 - `memory_updates` (v2 client only, else `[]`): at most 5 proposals `{op, id, kind, category, key, text, slot}`, `op` `add` | `reinforce` | `replace` | `remove`. `add` has `id: null`; the others carry an id from `facts`. `slot` is set only for `routine`. The app decides and applies them; the server stores nothing.
@@ -261,6 +267,29 @@ Effective responses always include `meal_change`, either null or:
 - Held, refused, failed, other-day, plan and skip turns carry null meal_change. Invalid or missing metadata for a log candidate fails safely, without record or memory effects; it never falls back to the legacy update path. Unknown operation remains non-actionable even on force or the round cap. A known add with unknown target can be held for a target question, or released as the delta alone with suggested_slot null and record ask when forcing, at the cap, after a repeated question or when no target question is asked.
 - Clients still validate the captured source against actual local state before any write. Server fields are not concurrency tokens. Confirmation remains required for occupied targets. Without the capable client, the existing whole-record destination controls remain; clearer legacy prose does not make rerouting a delta safe. The server never repairs historical local records.
 
+### Plan-budget capability
+
+Normal requests may opt into `plan_budget: true` with `clarify_rounds` present and `auto_record: true`. The capability accepts only JSON booleans; other combinations return 422. `fit_kcal`: optional integer 1–5000, sent with **Ajustar para caber**; it requires the capability, otherwise 422. Absent or false keeps every older response shape. Compact ignores both fields. No model or effort change.
+
+Effective responses always include `plan_budget`, either null or:
+
+```json
+{
+  "limit_kcal": 450,
+  "over_kcal": 310,
+  "reserved": [{"label": "fatia de bolo", "kcal": 250}],
+  "choice": null
+}
+```
+
+- Present for an in-scope `plan` of today with an estimate when the request carries `day.remaining_kcal`. Null for every other intent, a held or refused turn, a fallback, another meal day or a missing `remaining_kcal`.
+- `reserved`: at most three other meals still to be eaten today that the user stated, each a label of 1–40 characters and an integer 1–3000 kcal (stated, or estimated by the model). They are not part of the plan's items, `meal_text` or any record.
+- `limit_kcal`: `fit_kcal` when sent, otherwise `day.remaining_kcal` minus the reserved kcal. May be zero or negative.
+- `over_kcal`: `estimate.kcal` minus `limit_kcal`, rounded up, never below zero. The server computes it; the model never does.
+- `choice`: `over_ok`, `fit` or null, what the user already said about the budget of this dish.
+- Adjusting (`fit_kcal` sent, or `choice` `fit`) with `limit_kcal` ≥ 1 and the plan over it: the server asks the model once for the same dish within the target and returns that plan when it is valid. A plan still above the target returns with `over_kcal` > 0; there is no further attempt. With `limit_kcal` < 1 no adjustment is tried.
+- A plan stays `record: none`. The server stores nothing. Dev chat log metadata adds `plan_budget` (this object or null) and `adjust_retry` (boolean).
+
 ### compact=true (S3)
 
 Same IN. Only `messages` go to the model (no profile, day, digests, text or photo; `image_b64` is ignored). `messages` empty → HTTP 422 `{"detail":"compact_needs_messages"}`, model not called.
@@ -281,4 +310,5 @@ OUT
 
 ## Provenance
 
+- [S21](server/plans/completed/s21-plan-cooking-and-budget-choice.md) — cooking help and the plan budget check
 - [S18](server/plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions

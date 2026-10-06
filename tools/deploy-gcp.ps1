@@ -4,7 +4,10 @@
 
 .EXAMPLE
   ./tools/deploy-gcp.ps1          # code only
-  ./tools/deploy-gcp.ps1 -Env     # code + repo-root .env (never read or printed here)
+  ./tools/deploy-gcp.ps1 -Env     # code + repo-root .env.deploy (never read or printed here)
+
+.NOTES
+  .env.deploy carries the app's own model key; .env keeps the evaluation key (tests, evals). Both ignored by git.
 #>
 param(
     [switch]$Env,
@@ -46,10 +49,11 @@ gcloud compute scp $pkg "${Vm}:/tmp/nutri-deploy.tgz" @common
 if ($LASTEXITCODE -ne 0) { throw "scp of package failed" }
 Remove-Item $pkg -Force
 
-# 3. Optional .env: copied as-is, CRLF stripped on the VM, mode 600.
+# 3. Optional .env.deploy: copied as-is to /opt/nutri/.env, CRLF stripped on the VM, mode 600.
 if ($Env) {
-    $envFile = Join-Path $root ".env"
-    if (-not (Test-Path $envFile)) { throw ".env not found at repo root" }
+    $envFile = Join-Path $root ".env.deploy"
+    if (-not (Test-Path $envFile)) { throw ".env.deploy not found at repo root (copy .env and set the app's OPENAI_API_KEY)" }
+    if (Select-String -Path $envFile -Pattern '^OPENAI_API_KEY=(COLE_AQUI|\s*$)' -Quiet) { throw ".env.deploy still has no OPENAI_API_KEY" }
     gcloud compute scp $envFile "${Vm}:/tmp/nutri.env" @common
     if ($LASTEXITCODE -ne 0) { throw "scp of .env failed" }
     Invoke-Remote "sudo mkdir -p /opt/nutri && sudo install -m 600 -o root -g root /tmp/nutri.env /opt/nutri/.env && sudo sed -i 's/\r$//' /opt/nutri/.env && rm -f /tmp/nutri.env"

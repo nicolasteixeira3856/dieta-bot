@@ -9,6 +9,7 @@ import httpx2
 from openai import OpenAI
 
 from chat_instructions import assemble, validate_assembled
+import plan_budget
 from config import MEAL_DAYS, MODEL, REASONING_EFFORT, RECORD_INTENTS, TIMEOUT_SECONDS
 
 SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
@@ -216,11 +217,13 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
                 "memory_updates": {"type": "array", "items": update},
                 "memory_used": {"type": "array", "items": used},
                 "digest": {"type": "null"},
+                # ADR-039: one shape for every client, so the schema family stays cacheable.
+                "plan_budget": plan_budget.SCHEMA,
                 "scope": _SCOPE_SCHEMA,
             },
             "required": [
                 "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slot",
-                "memory_updates", "memory_used", "digest", "scope",
+                "memory_updates", "memory_used", "digest", "plan_budget", "scope",
             ],
             "additionalProperties": False,
         },

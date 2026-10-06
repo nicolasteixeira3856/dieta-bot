@@ -1,5 +1,7 @@
 .env
 **/.env
+.env.deploy
+**/.env.deploy
 secrets.env
 *.pem
 *.key

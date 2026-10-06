@@ -20,8 +20,17 @@ Decisão: [ADR-013](adrs/ADR-013-gcp-host.md). Plano de origem: [S5](plans/compl
 
 ```powershell
 ./tools/deploy-gcp.ps1          # código (server/ + infra/gcp/)
-./tools/deploy-gcp.ps1 -Env     # código + .env da raiz
+./tools/deploy-gcp.ps1 -Env     # código + .env.deploy da raiz (vira /opt/nutri/.env na VM)
 ```
+
+Duas chaves de modelo, dois arquivos na raiz do repositório, ambos ignorados pelo git:
+
+| Arquivo | `OPENAI_API_KEY` | Quem lê |
+| --- | --- | --- |
+| `.env` | chave de avaliação | testes, `evals.run`, servidor local |
+| `.env.deploy` | chave do app (só a VM dev) | `./tools/deploy-gcp.ps1 -Env` |
+
+As outras linhas (`INVITE_CODE`, `SAFETY_ID_SECRET`, `SERVER_ENV` etc.) são iguais nos dois; ao mudar uma, mude nas duas. O script recusa um `.env.deploy` sem chave. Motivo: a moderação do provedor tem teto diário de requisições contado por **projeto**, não por chave; a chave do app precisa estar em um projeto separado do da avaliação, senão as duas dividem a mesma cota.
 
 O script empacota, envia por IAP, sobe `docker compose -f infra/gcp/compose.yml up -d --build` e espera `GET /health` = 200 em HTTPS.
 
@@ -67,7 +76,7 @@ gcloud compute ssh nutri-api --zone us-east1-b --tunnel-through-iap --command "s
 
 ## Segredo do safety identifier
 
-`SAFETY_ID_SECRET` (32 bytes aleatórios, hex) e `SERVER_ENV=dev` ficam no `.env` da raiz e chegam à VM por `./tools/deploy-gcp.ps1 -Env` (root:root 600). Nunca imprimir o valor, commitar, nem rodar `docker compose config` sem `-q` na VM (o resolvido expõe o `.env`). `/health` mostra `safety_id: on`.
+`SAFETY_ID_SECRET` (32 bytes aleatórios, hex) e `SERVER_ENV=dev` ficam no `.env` e no `.env.deploy` da raiz e chegam à VM por `./tools/deploy-gcp.ps1 -Env` (root:root 600). Nunca imprimir o valor, commitar, nem rodar `docker compose config` sem `-q` na VM (o resolvido expõe o `.env`). `/health` mostra `safety_id: on`.
 
 Trocar o segredo muda todos os pseudônimos (`safety_identifier`). Só com motivo (vazamento) e registro.
 
@@ -75,7 +84,7 @@ Trocar o segredo muda todos os pseudônimos (`safety_identifier`). Só com motiv
 
 Só se houver abuso observado ou vazamento do convite.
 
-1. Gravar o novo valor na linha `INVITE_CODE=` do `.env` da raiz **e** na linha `dev.INVITE_CODE=` de `apps/android/local.properties`. Não imprimir nem commitar.
+1. Gravar o novo valor na linha `INVITE_CODE=` do `.env` e do `.env.deploy` da raiz **e** na linha `dev.INVITE_CODE=` de `apps/android/local.properties`. Não imprimir nem commitar.
 2. `./tools/deploy-gcp.ps1 -Env`.
 3. Novo build de teste pelo A16: `./tools/distribute-dev.ps1 -Notes <notas.md>` (versão sobe sozinha). Os testers atualizam pelo Firebase App Tester.
 4. Conferir: o convite antigo recebe 401 e o novo passa.
