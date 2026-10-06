@@ -11,6 +11,9 @@ import app.fibrai.android.core.database.DayRepository
 import app.fibrai.android.core.database.InstantClock
 import app.fibrai.android.core.database.MealSlot
 import app.fibrai.android.core.database.FibraiDatabase
+import app.fibrai.android.core.reset.AppReset
+import app.fibrai.android.core.reset.ResetSteps
+import app.fibrai.android.core.telemetry.NoopTelemetry
 import app.fibrai.android.feature.home.HomePanelUiState
 import app.fibrai.android.feature.home.HomePanelViewModel
 import java.io.File
@@ -45,6 +48,21 @@ class ConfigViewModelTest {
     private lateinit var vm: ConfigViewModel
     private val clock = MutableClock(Instant.parse("2026-09-25T18:00:00-03:00"))
 
+    /** Room steps go to the real repository; push and files only count. [failAt] makes that step throw. */
+    private val calls = mutableListOf<String>()
+    private var failAt: String? = null
+    private val steps = object : ResetSteps {
+        private fun step(name: String) {
+            calls += name
+            if (failAt == name) error("step failed")
+        }
+        override suspend fun markOnboardingPending() { step("mark"); repo.markOnboardingPending() }
+        override suspend fun clearPush() = step("push")
+        override suspend fun deleteFiles() = step("files")
+        override suspend fun clearDatabase() { step("database"); repo.clearAll() }
+        override suspend fun leftover() = repo.hasRows()
+    }
+
     @Before
     fun setUp() = runBlocking<Unit> {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -65,7 +83,7 @@ class ConfigViewModelTest {
         val cafe = repo.observeToday().first().slots.first().id
         repo.addLog("", "2 ovos", 380, 22, true, slotId = cafe)
         repo.insertMessage("user", "2 ovos")
-        vm = ConfigViewModel(repo, clock)
+        vm = ConfigViewModel(repo, clock, AppReset(steps, NoopTelemetry))
         awaitUi { it.loaded }
     }
 
@@ -74,6 +92,46 @@ class ConfigViewModelTest {
         db.close()
         storeScope.cancel()
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun reset_cancel_changesNothing() = runBlocking<Unit> {
+        vm.openReset()
+        assertThat(vm.uiState.value.resetConfirm).isTrue()
+        vm.cancelReset()
+        assertThat(vm.uiState.value.resetConfirm).isFalse()
+        assertThat(calls).isEmpty()
+        assertThat(repo.observeToday().first().onboardingDone).isTrue()
+        assertThat(repo.hasRows()).isTrue()
+    }
+
+    @Test
+    fun reset_confirm_runsStepsInOrder_emptiesRoom_onceOnDoubleTap() = runBlocking<Unit> {
+        vm.openReset()
+        vm.confirmReset()
+        vm.confirmReset()
+        awaitUi { it.resetDone }
+        assertThat(calls).containsExactly("mark", "push", "files", "database").inOrder()
+        assertThat(repo.hasRows()).isFalse()
+        val day = repo.observeToday().first()
+        assertThat(day.onboardingDone).isFalse()
+        assertThat(day.slots).isEmpty()
+        assertThat(day.logs).isEmpty()
+        assertThat(repo.messagesOf(day.date)).isEmpty()
+    }
+
+    @Test
+    fun reset_failure_staysOnConfig_rerunCompletes() = runBlocking<Unit> {
+        failAt = "files"
+        vm.openReset()
+        vm.confirmReset()
+        awaitUi { !it.resetConfirm && !it.resetRunning }
+        assertThat(vm.uiState.value.resetDone).isFalse()
+        // Cut short after the mark: the next cold start lands on onboarding and finishes it.
+        assertThat(repo.observeToday().first().onboardingDone).isFalse()
+        failAt = null
+        assertThat(AppReset(steps, NoopTelemetry).finishInterrupted()).isTrue()
+        assertThat(repo.hasRows()).isFalse()
     }
 
     @Test

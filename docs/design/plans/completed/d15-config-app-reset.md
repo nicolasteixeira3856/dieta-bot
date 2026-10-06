@@ -11,7 +11,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-Draw the reset entry on Config and its confirmation (ADR-040 decision 2), for [A53](../../../android/plans/a53-config-app-reset.md).
+Draw the reset entry on Config and its confirmation (ADR-040 decision 2), for [A53](../../../android/plans/pending_manual_validation/a53-config-app-reset.md).
 
 ## Sources and proposed gold
 
@@ -76,4 +76,4 @@ The setting row has no icon or danger tone (`Value tone` = Accent \| Muted only)
 
 ### Export (06/10/2026)
 
-`cfgR` mapped in `tools/export-figma.mjs` (Light `135:4306`, Dark `135:4375`) and added to the [gold inventory](../../../qa/README.md#golds). `node tools/export-figma.mjs --only cfg,cfgR`: `cfg` 1834 → 2094 px (both themes), `cfgR` new (both themes). `node tools/check-figma.mjs`: 76 golds verified. `node tools/check-docs.mjs` passes. Next: [A53](../../../android/plans/a53-config-app-reset.md).
+`cfgR` mapped in `tools/export-figma.mjs` (Light `135:4306`, Dark `135:4375`) and added to the [gold inventory](../../../qa/README.md#golds). `node tools/export-figma.mjs --only cfg,cfgR`: `cfg` 1834 → 2094 px (both themes), `cfgR` new (both themes). `node tools/check-figma.mjs`: 76 golds verified. `node tools/check-docs.mjs` passes. Next: [A53](../../../android/plans/pending_manual_validation/a53-config-app-reset.md).

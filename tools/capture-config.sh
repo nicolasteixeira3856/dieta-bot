@@ -180,7 +180,30 @@ expect "weekend full-screen editor" 'text="Sáb e Dom"'
 tap 'resource-id="cfg-save"'
 check "group save preserves chat" "select count(*) from chat_message where role='user'" 1
 
-"$ADB" shell input keyevent 4; sleep 0.8
-expect "back returns Home" 'resource-id="home"'
+# A53 (ADR-040): Resetar app. Cancelar keeps everything; Apagar tudo erases Room, memory, photos and
+# reminders, keeps the installation id, opens O1 with no back stack.
+"$ADB" shell run-as $PKG sh -c "'echo sealed > files/memory.bin; mkdir -p files/photos; echo jpeg > files/photos/p.jpg'"
+id_before=$("$ADB" exec-out run-as $PKG cat no_backup/installation_id 2>/dev/null)
+alarms() { "$ADB" shell dumpsys alarm | grep -c "Alarm{.*$PKG}"; }
+echo "  · alarms of the package before reset: $(alarms)"
+"$ADB" shell input swipe 390 1300 390 300 300; sleep 0.6
+"$ADB" shell input swipe 390 1300 390 300 300; sleep 0.6
+tap 'resource-id="cfg-reset"' && expect "reset dialog up" 'resource-id="cfg-reset-dialog"'
+shot cfgR
+tap 'resource-id="cfg-reset-cancel"'
+expect "cancel stays on Config" 'resource-id="cfg-reset"'
+check "cancel kept the profile" "select onboardingDone from profile" 1
+tap 'resource-id="cfg-reset"' && tap 'resource-id="cfg-reset-confirm"' 2
+expect "reset opens O1" 'resource-id="o1-sex-male"'
+for t in profile day meal_log meal_slot slot_skip chat_message day_digest; do check "reset emptied $t" "select count(*) from $t" 0; done
+files=$("$ADB" shell run-as $PKG sh -c "'ls files/memory.bin files/photos 2>/dev/null | wc -l'" | tr -d ' ')
+if [ "$files" = "0" ]; then echo "  ✓ memory and photos deleted"; else echo "  ✗ memory or photos left ($files)"; FAIL=1; fi
+id_after=$("$ADB" exec-out run-as $PKG cat no_backup/installation_id 2>/dev/null)
+if [ -n "$id_before" ] && [ "$id_before" = "$id_after" ]; then echo "  ✓ installation id kept"; else echo "  ✗ installation id changed or missing"; FAIL=1; fi
+left=$(alarms); if [ "$left" -le 1 ]; then echo "  ✓ no slot reminder left ($left alarm: the daily resync at most)"; else echo "  ✗ $left alarms left"; FAIL=1; fi
+"$ADB" shell input keyevent 4; sleep 1
+if "$ADB" shell dumpsys activity activities | grep -m1 "topResumedActivity" | grep -q "$PKG"; then echo "  ✗ back from O1 stayed in the app"; FAIL=1; else echo "  ✓ back from O1 leaves the app"; fi
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+expect "relaunch after reset opens O1" 'resource-id="o1-sex-male"'
 rm -rf "$TMP"
 exit $FAIL

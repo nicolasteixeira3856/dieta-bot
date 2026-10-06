@@ -262,12 +262,18 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
 
-    /** cfg gold is a full-page capture (936 dp dark, 930 dp light) with the info note near the end. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h917dp-xhdpi")
+    /** cfg gold is a full-page capture (1047 dp) ending on the Dados block (D15). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1047dp-xhdpi")
     fun cfg_dark() = check("cfg", dark = true) { Cfg() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h917dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1047dp-xhdpi")
     fun cfg_light() = check("cfg", dark = false) { Cfg() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun cfgR_dark() = check("cfgR", dark = true) { Cfg(reset = true) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun cfgR_light() = check("cfgR", dark = false) { Cfg(reset = true) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun wipe_dark() = check("wipe", dark = true) { Cfg(wipe = true) }
@@ -275,8 +281,8 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun wipe_light() = check("wipe", dark = false) { Cfg(wipe = true) }
 
-    @Composable private fun Cfg(wipe: Boolean = false) =
-        ConfigScreen(ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(wipeConfirm = wipe), ConfigActions())
+    @Composable private fun Cfg(wipe: Boolean = false, reset: Boolean = false) =
+        ConfigScreen(ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(wipeConfirm = wipe, resetConfirm = reset), ConfigActions())
 
     @Composable private fun Chat(ui: ChatUiState) =
         ChatScreen(ui, onBack = {}, onComposer = {}, onSend = {}, onRetry = {}, onSheetSelect = {}, onSheetConfirm = {}, onSheetClose = {})

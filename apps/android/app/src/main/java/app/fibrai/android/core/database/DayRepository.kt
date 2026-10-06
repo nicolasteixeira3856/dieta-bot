@@ -323,6 +323,26 @@ class DayRepository @Inject constructor(
         }
     }
 
+    /** App reset, first step (ADR-040): an interrupted reset lands on onboarding. No profile, nothing to mark. */
+    suspend fun markOnboardingPending() {
+        withContext(Dispatchers.IO) {
+            db.withTransaction {
+                db.profileDao().get()?.let { db.profileDao().upsert(it.copy(onboardingDone = 0)) }
+            }
+        }
+    }
+
+    /** App reset, last step (ADR-040): every table emptied, schema unchanged. */
+    suspend fun clearAll() {
+        withContext(Dispatchers.IO) { db.clearAllTables() }
+    }
+
+    /** True when any table still has a row: an interrupted reset left something behind. */
+    suspend fun hasRows(): Boolean = withContext(Dispatchers.IO) {
+        db.query("SELECT 1 FROM profile UNION ALL SELECT 1 FROM day UNION ALL SELECT 1 FROM meal_log UNION ALL SELECT 1 FROM meal_slot UNION ALL SELECT 1 FROM slot_skip UNION ALL SELECT 1 FROM chat_message UNION ALL SELECT 1 FROM day_digest LIMIT 1", null)
+            .use { it.moveToFirst() }
+    }
+
     /** Config: a new ceiling restarts today (spec memoria-push, Config rule 5). One transaction. */
     suspend fun changeCeiling(
         ceilingMode: String,
