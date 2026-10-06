@@ -41,6 +41,7 @@ Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 - Gerados, nunca editados à mão:
   - `css/tokens.css`, a partir de `docs/design/tokens.json`;
   - `img/screens/`, recorte das telas dos golds `o1`, `home1` e `chatE`; refaça depois de reexportar esses golds;
+  - `img/favicon.svg` e `img/favicon-{32,180,512}.png`, o logo (semente de aveia) de `design/brand/icon.svg`; refaça depois de trocar o logo ([android README § Marca](../android/README.md#marca));
   - `fonts/`, copiadas do pacote Nunito Sans (OFL).
 - Comandos (rode `npm --prefix web ci` uma vez antes):
   - `npm --prefix web run preview` serve o site em `http://127.0.0.1:4173/`;
