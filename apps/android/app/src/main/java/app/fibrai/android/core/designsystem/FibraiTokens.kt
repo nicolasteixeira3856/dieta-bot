@@ -3,15 +3,12 @@ package app.fibrai.android.core.designsystem
 object SplashBoot {
     const val MAX_MS = 2000L
     const val DELAY_MS = 1200L
+    /** Disclaimer shown on the Home (perfil-onboarding rule 7). The splash no longer shows it (A51). */
     const val COPY = "Estimativa nutricional, não substitui consulta médica ou nutricional."
-    const val WORDMARK = "Fibrai"
-    /**
-     * A14: logo above the wordmark (design/brand, tools/brand-icons.ps1). Stitch gold: a 120 dp box with the
-     * uploaded icon.png (symbol ≈ half of it), 16 dp above the wordmark line box (A15, measured on the gold PNG). logo_mark is the tight crop, so it is
-     * drawn at LOGO_DP inside the LOGO_BOX_DP box.
-     */
-    const val LOGO_BOX_DP = 120
-    const val LOGO_DP = 60
+    /** Accessibility label of the splash logo: the name is not drawn on the splash since A51. */
+    const val LOGO_DESCRIPTION = "Fibrai"
+    /** Logo alone, centered, 160 dp tall on the splash (Figma gold `splash`, D13). logo_mark is the tight square crop. */
+    const val LOGO_DP = 160
 }
 
 fun formatRemaining(n: Int): String {

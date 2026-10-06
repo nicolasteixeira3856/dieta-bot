@@ -1,10 +1,10 @@
 # Plan — D13 Oat seed logo and logo-only splash
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 06/10/2026
 - Owning context: `design`
 - Executable boundary: the `Branding` page and the `splash` frames in Figma `Design`; no app/server code. Repository outputs: the re-exported golds `splash` (dark, light) and design documentation.
-- Prerequisites: the brand sources in `design/brand/` already replaced by the owner-chosen oat seed (this plan's Discovery records them); [D10](../completed/d10-fibrai-tali-rename.md) golds in place.
+- Prerequisites: the brand sources in `design/brand/` already replaced by the owner-chosen oat seed (this plan's Discovery records them); [D10](d10-fibrai-tali-rename.md) golds in place.
 - Figma MCP budget: at most 25 calls, within the ceiling and rollover rules of [ADR-031](../../adrs/ADR-031-figma-source-of-truth.md).
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approved on 06/10/2026 (`Aprovo o plano docs/design/plans/d13-oat-seed-logo.md. Implemente o plano aprovado.`).
@@ -81,6 +81,6 @@ Live `splash` frames (`51:732` Light, `54:1233` Dark, section `Splash e onboardi
 
 10 of 25: whoami 1, skill reads 2, metadata 2, use_figma 3 (discovery, Branding, splash), screenshots 2.
 
-### Owner gate
+### Owner gate and export
 
-Screenshots of both frames sent to the owner on 06/10/2026. Waiting for the review in Figma. After the OK: `node tools/export-figma.mjs --only splash`, `node tools/check-figma.mjs`, `node tools/check-docs.mjs`, move to `completed/`.
+Screenshots of both frames sent to the owner on 06/10/2026; owner OK in chat the same day, no fix requested. `node tools/export-figma.mjs --only splash` re-exported `docs/qa/figma/{dark,light}/splash.png` (780 × 1688, about 4.1 % of pixels changed per theme); `node tools/check-figma.mjs` verifies all 74 golds; `node tools/check-docs.mjs` passes. Frame ids unchanged in `tools/export-figma.mjs`. Client follow-up: [A51](../../../android/plans/a51-logo-only-splash.md).

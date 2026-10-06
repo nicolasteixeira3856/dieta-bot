@@ -20,9 +20,9 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 4. O4: P/C/G derivados 30/40/30 sobre o teto do dia 1 (4/4/9 kcal/g). Campos editaveis; editado nao e recalculado. Barra de proporcao reflete os gramas. Rodape: "{teto do dia 1} KCAL TOTAL ESTIMADA".
 5. Perfil salvo em Room. onboardingDone=1 so no fim de O4.
 6. Prefix do chat: teto vigente, eat-back, alvos P/C/G, lista nome+hora só dos slots do dia em America/Sao_Paulo (ADR-021).
-7. Disclaimer na splash com a copy ("Estimativa nutricional, nao substitui consulta medica ou nutricional.") e na Home. As telas O1-O4 do gold nao tem disclaimer.
+7. Disclaimer na Home com a copy ("Estimativa nutricional, nao substitui consulta medica ou nutricional."). A splash e as telas O1-O4 do gold nao tem disclaimer (splash desde A51).
 8. Campos de texto (O1–O4): ao receber foco (toque, Próximo do teclado, botão de ajuste do macro), o cursor vai para o fim do valor; toques seguintes no campo focado posicionam o cursor onde o usuário tocar. O campo focado fica sempre visível acima do teclado: a página rola até ele. O botão fixo do rodapé (Continuar / Concluir e começar) fica atrás do teclado enquanto ele está aberto e volta quando ele fecha.
-9. Nome visível ([ADR-034](../adrs/ADR-034-fibrai-brand-tali-assistant.md)): a splash mostra o wordmark "Fibrai"; o cabeçalho do onboarding diz "Fibrai" (O4) e "FIBRAI INTAKE" (O2, O3); o app aparece como "Fibrai" ("Fibrai Dev" no flavor dev) no launcher e nas notificações.
+9. Nome visível ([ADR-034](../adrs/ADR-034-fibrai-brand-tali-assistant.md)): a splash mostra só o logo (semente de aveia, 160 dp, centralizado; sem wordmark desde A51); o cabeçalho do onboarding diz "Fibrai" (O4) e "FIBRAI INTAKE" (O2, O3); o app aparece como "Fibrai" ("Fibrai Dev" no flavor dev) no launcher e nas notificações.
 
 ## Estados e falhas
 
