@@ -127,15 +127,31 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(body["model"], "gpt-6-luna")
         self.assertEqual(len(captured), 1)
 
-    async def test_chat_instructions_name_the_assistant_dieta_bot(self) -> None:
-        """S7 / ADR-016: the model introduces itself with the visible product name."""
+    async def test_chat_instructions_name_the_assistant_tali(self) -> None:
+        """S20 / ADR-035: the model is Tali, the Fibrai assistant; the old names are gone."""
         captured: list[httpx2.Request] = []
         app = self._app(_responds({"reply": "oi", "estimate": None, "digest": None}, captured))
         async with _client(app) as client:
             await client.post("/v1/chat", headers={"X-Invite": INVITE}, json=_base_chat_payload())
         instructions = json.loads(captured[0].content)["instructions"]
-        self.assertIn("Dieta Bot", instructions)
+        self.assertIn("You are Tali, the meal-tracking chat assistant of the Fibrai app.", instructions)
+        self.assertIn("Use the name Tali only when the user asks who you are", instructions)
+        self.assertIn("SCOPE: Fibrai only helps", instructions)
+        self.assertNotIn("Dieta Bot", instructions)
         self.assertNotIn("Nutri", instructions)
+
+    def test_every_instruction_branch_uses_the_fibrai_names(self) -> None:
+        """S20: both Chat branches and the estimate/fit routes carry the new names only."""
+        import llm
+        from chat_instructions import assemble
+
+        for branch in ("legacy", "meal_changes"):
+            text = assemble(branch)
+            self.assertIn("You are Tali, the meal-tracking chat assistant of the Fibrai app.", text)
+            self.assertNotIn("Dieta Bot", text)
+        for text in (llm._ESTIMATE_INSTRUCTIONS, llm._FIT_INSTRUCTIONS):
+            self.assertIn("SCOPE: Fibrai only helps", text)
+            self.assertNotIn("Dieta Bot", text)
 
     async def test_chat_general_question_returns_null_estimate(self) -> None:
         model_payload = {

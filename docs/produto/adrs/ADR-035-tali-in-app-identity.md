@@ -56,6 +56,6 @@
 ## Relations
 
 - [ADR-034](ADR-034-fibrai-brand-tali-assistant.md) (names), [ADR-016](ADR-016-nome-dieta-bot.md) (visible-name predecessor), [ADR-012](ADR-012-chat-home-perfil.md) (screens), [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md) (Figma gate).
-- Plans: [D10](../../design/plans/completed/d10-fibrai-tali-rename.md), [S20](../../server/plans/s20-tali-prompt-identity.md), [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md).
+- Plans: [D10](../../design/plans/completed/d10-fibrai-tali-rename.md), [S20](../../server/plans/completed/s20-tali-prompt-identity.md), [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md).
 
 Once accepted, this ADR is not edited. A later change needs a new ADR that declares the replacement.

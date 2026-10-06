@@ -2,7 +2,7 @@
 
 ## Purpose and ownership
 
-Dieta Bot's HTTP API estimates meals and portions that fit the supplied budget. It neither computes the ceiling nor stores the day. Code owner: `server/`; consumer: [Android](../android/README.md). Infrastructure: `server/docker-compose.yml`, `infra/`, `infra/gcp/` and the [deployment runbook](deploy-gcp.md).
+Fibrai's HTTP API estimates meals and portions that fit the supplied budget. It neither computes the ceiling nor stores the day. Code owner: `server/`; consumer: [Android](../android/README.md). Infrastructure: `server/docker-compose.yml`, `infra/`, `infra/gcp/` and the [deployment runbook](deploy-gcp.md).
 
 ## Scope and boundaries
 
@@ -31,6 +31,7 @@ cd server
 - Cases: `server/evals/cases/<id>.json`, with id, since (`v1`/`v2`/`v3`/`v4`/`v5`/`meal_changes`/`cp2`), tags, request (`ChatIn` body), expect, optional required/strict/image. Since is metadata only: v3 sends clarify_rounds, v4 also auto_record, v5 also temp_facts and structured facts; meal_changes cases exercise the opted-in contract and its legacy comparison branch.
 - Normal cases call the route's `chat_reply`; compact requests call its `compact_reply`. Both include generation, shaping, moderation and failure handling, without HTTP. Default: two workers to avoid token-rate bursts with the longer prompt; `--workers` can select up to three.
 - Expectations live in `server/evals/checks.py`. Missing versioned fields are n/a, except any expectation named in `required` fails on n/a. Record/skip_slot check the mark; top_question/top_question_not check the top-level question. Digest accepts present/absent; digest_has/digest_not check terms and require non-empty content. A failed or empty compact response cannot pass only a negative digest check.
+- `reply_has`/`reply_not` check terms in the reply; `reply_max_chars` requires a nonblank reply on one line within that many characters.
 - `meal_progress` accepts present/absent: a nonempty estimate object or nonblank top-level question counts as progress. `confidence` accepts one value or a list and fails without an estimate. Required positive checks prevent empty/fallback outputs from passing solely through negative question checks.
 - `meal_change` checks operation/base, delta item presence and exclusions, optional exact portions/nutrients, retained base text, all four consolidated values and numeric reply labels. Null requires no actionable change. S18's independent synthetic cases and fictional label are regression data only, never assembled into global instructions. Run them with `--tag s18 --repeat 6`; each case is strict.
 - Transfer cases carry the tags `s19`, `s19-pairs` (matched pairs that vary foods, profiles and phrasing around one situation, with `family` and `pair` fields) or `s19-reserved` (kept out of prompt tuning). Run them with `--tag`; a prompt change is compared against the previous prefix on these and on the untagged regression cases.
@@ -50,7 +51,6 @@ cd server
 ### Plans and validation
 
 - Active plans: files directly under [plans/](plans/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
-- [S20 — Tali identity in the model instructions](plans/s20-tali-prompt-identity.md).
 - [S21 — Cooking help and the over-budget choice in a plan](plans/s21-plan-cooking-and-budget-choice.md).
 - Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
 - Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.
