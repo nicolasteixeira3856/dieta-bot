@@ -38,17 +38,22 @@ if m:
 EOF
 }
 tap() { dump; local xy; xy=$(at "$1"); [ -z "$xy" ] && { echo "  ✗ not found: $1"; FAIL=1; return 1; }; "$ADB" shell input tap $xy; sleep 1; }
+hold() { dump; local xy; xy=$(at "$1"); [ -z "$xy" ] && { echo "  ✗ not found: $1"; FAIL=1; return 1; }; "$ADB" shell input swipe $xy $xy 800; sleep 1; }
 expect() { dump; if grep -q "$2" "$TMP/ui.xml"; then echo "  ✓ $1"; else echo "  ✗ $1"; FAIL=1; fi; }
 to_top() { "$ADB" shell input swipe 390 500 390 1500 150; sleep 0.4; "$ADB" shell input swipe 390 500 390 1500 150; sleep 0.5; }
 
-# A42 chatP: the skip confirmation of the third slot (Lanche) over the blurred empty day.
+# A42 chatP: the skip confirmation of the third slot (Lanche) over the blurred empty day (long press, A52).
 "$ADB" shell input swipe 390 1400 390 700 300; sleep 0.8
-tap 'text="Lanche"' && expect "Lanche asks to skip" 'text="Pular Lanche'
+hold 'text="Lanche"' && expect "long press on Lanche asks to skip" 'text="Pular Lanche'
 "$ADB" exec-out screencap -p > "$OUT/chatP.png"; echo "  captured $THEME/chatP"
 tap 'resource-id="home-skip-cancel"' && to_top
 
 # Interactions on the empty day (after onboarding).
-tap 'resource-id="home-slot-[0-9]+"' && expect "tap empty slot asks to skip" 'text="Pular [^"]*?"'
+# A52: tap on an empty card opens the Chat; long press asks to skip.
+tap 'resource-id="home-slot-[0-9]+"' && expect "tap empty slot opens Chat" 'resource-id="chat"'
+if grep -q 'text="Pular [^"]*?"' "$TMP/ui.xml"; then echo "  ✗ tap asked to skip"; FAIL=1; else echo "  ✓ tap does not skip"; fi
+"$ADB" shell input keyevent 4; sleep 0.8; expect "back returns Home" 'resource-id="home"'
+to_top; hold 'resource-id="home-slot-[0-9]+"' && expect "long press on empty slot asks to skip" 'text="Pular [^"]*?"'
 tap 'text="Pular"' && expect "skip redraws as Refeição pulada" 'Refeição pulada'
 to_top; tap 'resource-id="home-fab"' && expect "FAB opens Chat" 'resource-id="chat"'
 "$ADB" shell input keyevent 4; sleep 0.8; expect "back returns Home" 'resource-id="home"'

@@ -63,7 +63,7 @@ Behavior: [ADR-040](../../produto/adrs/ADR-040-home-card-gestures-app-reset.md).
 |---|---|---|
 | Design | D14 — Home: empty card copy ([`completed/`](completed/)) | — |
 | Design | D15 — Config: app reset (`cfg`, `cfgR`) ([`completed/`](completed/)) | — |
-| Client | [A52](../../android/plans/a52-home-card-gestures.md) — Home: tap to record, long press to skip | D14 |
+| Client | [A52](../../android/plans/pending_manual_validation/a52-home-card-gestures.md) — Home: tap to record, long press to skip | D14 |
 | Client | [A53](../../android/plans/a53-config-app-reset.md) — Config: app reset | D15 |
 
 ## Fibrai brand follow-up

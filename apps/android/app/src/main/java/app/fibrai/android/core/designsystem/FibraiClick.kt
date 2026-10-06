@@ -1,6 +1,7 @@
 package app.fibrai.android.core.designsystem
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -41,16 +42,38 @@ fun rememberHaptic(): (Haptic) -> Unit {
 /**
  * Every tappable control: the Aero press veil + haptic. Clip the shape before it so the veil follows it.
  * `indication = null` stays only on scrims and sheet backgrounds that swallow taps.
+ * [onLongClick] (Home empty card, ADR-040) adds a long press with the platform long-press haptic.
  */
 @Composable
 fun Modifier.dietaClick(
     haptic: Haptic = Haptic.Light,
     enabled: Boolean = true,
     role: Role? = Role.Button,
+    onClickLabel: String? = null,
+    onLongClickLabel: String? = null,
+    onLongClick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ): Modifier {
     val perform = rememberHaptic()
-    return clickable(interactionSource = null, indication = aeroPressIndication(), enabled = enabled, role = role) {
+    if (onLongClick == null) {
+        return clickable(interactionSource = null, indication = aeroPressIndication(), enabled = enabled, onClickLabel = onClickLabel, role = role) {
+            perform(haptic)
+            onClick()
+        }
+    }
+    val feedback = LocalHapticFeedback.current
+    return combinedClickable(
+        interactionSource = null,
+        indication = aeroPressIndication(),
+        enabled = enabled,
+        onClickLabel = onClickLabel,
+        role = role,
+        onLongClickLabel = onLongClickLabel,
+        onLongClick = {
+            feedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            onLongClick()
+        },
+    ) {
         perform(haptic)
         onClick()
     }
