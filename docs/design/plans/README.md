@@ -98,6 +98,16 @@ Behavior: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Ord
 | Server | [S27](../../server/plans/s27-planned-slot.md) — planned slot in DAY | S24 |
 | Client | [A58](../../android/plans/a58-planned-meal-reservation.md) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
 
+## Skips next to other actions follow-up
+
+Behavior: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Server | [S29](../../server/plans/s29-skip-slots.md) — skip slots next to any intent | — |
+| Design | [D19](d19-skips-with-other-actions.md) — two receipts and the delete proposal (`chatSK`, `chatSD`) | D6, D9 |
+| Client | [A59](../../android/plans/a59-skips-with-other-actions.md) — skips next to other actions in the Chat | D19, S29 on dev |
+
 Deferred by owner decision (2026-10-06): goal weight and date, [A56](../../android/plans/out_of_scope/a56-goal-weight.md).
 
 ## Fibrai brand follow-up

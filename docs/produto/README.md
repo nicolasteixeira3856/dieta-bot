@@ -73,6 +73,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-044](adrs/ADR-044-assistant-tone-and-closures.md) — assistant tone chosen by the user (`seco` | `duro`); day and week closure.
 - [ADR-045](adrs/ADR-045-rich-replies-in-chat-bubbles.md) — emphasis, lists and a small table inside the Chat bubbles.
 - [ADR-046](adrs/ADR-046-planned-meal-reservation.md) — a plan can be reserved for its meal before it is eaten.
+- [ADR-047](adrs/ADR-047-skips-alongside-other-actions.md) — skips stated next to other actions; a skip over a record asks to delete it.
 
 ### Planos
 
@@ -80,4 +81,4 @@ This context has no `plans/`. Deliveries belong to [Android](../android/README.m
 
 Meal updates: D9 and A47 (history: [`completed/`](../design/plans/completed/), [`completed/`](../android/plans/completed/)).
 
-Protein-first plan and tone: [S24](../server/plans/s24-protein-first-plan.md) (ADR-043); D16 ([`completed/`](../design/plans/completed/)), [S25](../server/plans/s25-tone-and-closures.md) and [A55](../android/plans/a55-tone-choice-and-closures.md) (ADR-044). Reply formatting: D17 ([`completed/`](../design/plans/completed/)), [S26](../server/plans/s26-reply-formatting-subset.md) and [A57](../android/plans/a57-rich-reply-rendering.md) (ADR-045). Planned meal reservation: D18 ([`completed/`](../design/plans/completed/)), [S27](../server/plans/s27-planned-slot.md) and [A58](../android/plans/a58-planned-meal-reservation.md) (ADR-046). Deferred by owner decision: goal weight, [A56](../android/plans/out_of_scope/a56-goal-weight.md).
+Protein-first plan and tone: [S24](../server/plans/s24-protein-first-plan.md) (ADR-043); D16 ([`completed/`](../design/plans/completed/)), [S25](../server/plans/s25-tone-and-closures.md) and [A55](../android/plans/a55-tone-choice-and-closures.md) (ADR-044). Reply formatting: D17 ([`completed/`](../design/plans/completed/)), [S26](../server/plans/s26-reply-formatting-subset.md) and [A57](../android/plans/a57-rich-reply-rendering.md) (ADR-045). Planned meal reservation: D18 ([`completed/`](../design/plans/completed/)), [S27](../server/plans/s27-planned-slot.md) and [A58](../android/plans/a58-planned-meal-reservation.md) (ADR-046). Skips next to other actions: [S29](../server/plans/s29-skip-slots.md), [D19](../design/plans/d19-skips-with-other-actions.md) and [A59](../android/plans/a59-skips-with-other-actions.md) (ADR-047). Deferred by owner decision: goal weight, [A56](../android/plans/out_of_scope/a56-goal-weight.md).

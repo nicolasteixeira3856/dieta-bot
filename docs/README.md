@@ -76,6 +76,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [044](produto/adrs/ADR-044-assistant-tone-and-closures.md) | produto | assistant tone chosen by the user (`seco` \| `duro`); day and week closure |
 | [045](produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md) | produto | emphasis, lists and a small table inside the Chat bubbles; golds `chatR`, `chatE` changed, `chatRK` new |
 | [046](produto/adrs/ADR-046-planned-meal-reservation.md) | produto | a plan can be reserved for its meal before it is eaten; `planned` slot state, golds `chatRL`, `homeP` |
+| [047](produto/adrs/ADR-047-skips-alongside-other-actions.md) | produto | skips as a list next to any intent, one receipt each; a skip over a record asks to delete it; golds `chatSK`, `chatSD` |
 
 ## Outros docs
 
