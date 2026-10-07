@@ -1,10 +1,10 @@
 # Plan — D20 Figma review: stale frames, Chat actions in the thread, copying messages
 
-- Status: Pendente aprovação manual (owner review in Figma, 07/10/2026)
+- Status: Concluído (07/10/2026, owner OK, golds exported)
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Splash e onboarding", "Chat", "Chat · D6" and "Config e push" (only the frames listed below); components in `Componentes` only if a variant is missing. Repository: `docs/qa/figma/{dark,light}/<ids>.png` of the changed frames, `tools/export-figma.mjs` only if a node id changes, and `tools/diff-gold.mjs` rules that exist only because of a stale frame.
-- Prerequisites: D12, D16, D17, D18 and D19 `Concluído` ([history](../completed/)); A60 merged (the app the frames are compared with, 0.0.18-dev).
+- Prerequisites: D12, D16, D17, D18 and D19 `Concluído` ([history](./)); A60 merged (the app the frames are compared with, 0.0.18-dev).
 - Figma MCP budget: ≤ 110 calls (at most 120 a day, ADR-031 § 6).
 
 One review plan for several flows by owner decision (07/10/2026): the frames are small corrections of existing golds plus one layout change (the Chat actions) and the two copy states, and the client plan [A61](../../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) waits for all of them. Approving this plan accepts [ADR-048](../../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d20-figma-review-inline-actions.md. Implemente o plano aprovado.`
@@ -161,4 +161,15 @@ Figma MCP budget: 18 of 110 calls (whoami, 2 skill reads, 15 `use_figma`) at the
 
 The Light user-bubble time (`text/dim` on the tinted bubble) is under 4.5:1 with or without selection, in every Chat gold: a token issue outside this plan, reported to the owner. Figma MCP: 5 more calls (23 of 110).
 
-Pending: the owner reviews the sections "Chat · D5", "Chat · D6" (only the frames above), "Chat — Plano acima do orçamento", "Splash e onboarding · D4", "Config e push · D7" and the two new components in Figma. After the OK: export (Scope 6).
+**OK (07/10/2026).** The owner approved every frame in Figma ("Aprovado no Figma"), including the selection with `surface/selected`, `border/selected` and the `bg/page` backing.
+
+### Export (07/10/2026)
+
+- `chatCP` (Dark `173:6008`, Light `173:5878`) and `chatCC` (Dark `173:6031`, Light `173:5960`) mapped in `tools/export-figma.mjs`; both added to the inventory of [docs/qa/README.md](../../../qa/README.md) and to the Chat core row of the golds table in [this folder's README](../README.md). No other node id changed.
+- `node tools/export-figma.mjs --only chatQ,chatE,chatR,chatRB,chatRK,chatRL,chatCP,chatCC,o1,o1e,o2,o3,o3s,o3t,o4,cfgS,cfgT`: 34 PNGs. The noise filter restored Dark `o1`, `o1e` and `o3t` (0.045–0.049 % of pixels changed, under its 0.05 % threshold: the counter digit and the low-contrast fifth segment); the fresh exports were kept, since the change is real. Sizes: `chatRB` 780 × 2004, `chatCP` 780 × 1804, `chatCC` 780 × 1896, `cfgS` 780 × 1804; `chatR`, `chatRK` and `chatRL` are 4 px taller than before (2 dp), the others keep their size.
+- `node tools/check-figma.mjs`: 100 golds verified (50 dark + 50 light).
+- `tools/diff-gold.mjs`: removed the stale-frame exceptions (the `chatRB` tail start, `themeConflicts` of `chatE` Dark and `cfgT` Light, the `cfgT` sheet region); the `chatQ` and `chatE` bottom zones are the composer alone (268 px); `cfgT` gets the bottom-anchored sheet zone of `chatT` (1042 px) and passes in both themes against the A60 captures; `chatCP` and `chatCC` join the long-thread rules (header box and tail). Until A61 recaptures, the current captures of the changed golds no longer match, by design.
+- Handed to [A61](../../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md): the `app gap` O1–O4 counter `n/5` with five segments; the selection look (`surface/selected` band, `border/selected` 2 px ring, opaque `bg/page` backing under the selected bubble, since the Haze glass blurs the page and not the band); the `GoldTest` report-only exception of `cfgS` (in `apps/`, outside this plan's boundary) can go once the row is rendered.
+- Outside this plan: the site's phone screens (`web/public/img/screens/*/chatE.webp`) follow `chatE` and were already stale before D20 (`npm --prefix web run check`); the Light `text/dim` contrast of the user-bubble time (Owner review, round 1).
+
+Figma MCP budget: 23 of 110 calls (whoami, 2 skill reads, 20 `use_figma`).

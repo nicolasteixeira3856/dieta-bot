@@ -23,7 +23,7 @@ Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.
 |---|---|
 | Home | `home0`, `home1`, `homeX`, `homeW`, `homeC`, `homeK`, `homeP` |
 | Splash and onboarding | `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `o5` |
-| Chat core | `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP`, `chatX` |
+| Chat core | `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP`, `chatX`, `chatCP`, `chatCC` |
 | Chat records and memory | `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `chatRK`, `chatRB`, `chatRL` |
 | Config and push | `cfg`, `cfgS`, `wipe`, `cfgR`, `cfgT`, `push` |
 
@@ -116,7 +116,7 @@ Behavior: [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scrol
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D20](pending_manual_validation/d20-figma-review-inline-actions.md) — stale frames, Chat actions in the thread, copying messages (`chatCP`, `chatCC`) | D12, D16–D19, A60 merged |
+| Design | D20 — stale frames, Chat actions in the thread, copying messages (`chatCP`, `chatCC`), delivered ([history](completed/)) | D12, D16–D19, A60 merged |
 | Client | [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (parts A and B) |
 
 ## Fibrai brand follow-up
