@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.testTag
@@ -262,9 +263,18 @@ fun BoxScope.AeroNoticeDialog(body: String, button: String, onDismiss: () -> Uni
     }
 }
 
-/** Dialog/Confirm Tone=Danger primary: 56 dp status/bad pill, 24 dp icon and the Button label in accent/on. */
+/**
+ * Dialog/Confirm Tone=Danger primary: 56 dp status/bad pill, 24 dp icon and the Button label in [content] (accent/on in
+ * the dialog; status/on-bad, white in both themes, in the Chat's Excluir e pular, chatSD).
+ */
 @Composable
-private fun AeroDangerButton(label: String, icon: AeroIconName, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun AeroDangerButton(
+    label: String,
+    icon: AeroIconName,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: Color = Aero.colors.accentOn,
+) {
     val c = Aero.colors
     Row(
         modifier
@@ -276,8 +286,8 @@ private fun AeroDangerButton(label: String, icon: AeroIconName, onClick: () -> U
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AeroIcon(icon, c.accentOn)
-        AeroText(label, style = Aero.type.button.copy(color = c.accentOn), maxLines = 1)
+        AeroIcon(icon, content)
+        AeroText(label, style = Aero.type.button.copy(color = content), maxLines = 1)
     }
 }
 

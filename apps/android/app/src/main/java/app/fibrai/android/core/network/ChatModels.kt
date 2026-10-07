@@ -46,6 +46,11 @@ data class ChatIn(
      * No default, like [autoRecord]: the field must always go.
      */
     @SerialName("meal_changes") val mealChanges: Boolean,
+    /**
+     * The client applies skips listed next to any intent (A59, ADR-047): the server answers [ChatOut.skipSlots]. No
+     * default, like [mealChanges]: the field must always go; a compact request sends false.
+     */
+    @SerialName("skip_slots") val skipSlots: Boolean,
     /** The unrecorded addition the user is continuing (A47); null = none. Never on a compact request. */
     @SerialName("pending_addition") val pendingAddition: ChatPendingAddition? = null,
 )
@@ -191,4 +196,9 @@ data class ChatOut(
      * = the capable server sent no change.
      */
     @SerialName("meal_change") val mealChange: JsonElement? = null,
+    /**
+     * A59: profile slot ids the message says did not happen today, next to any intent, in profile order. Null = a server
+     * without the capability: the single [skipSlot] path.
+     */
+    @SerialName("skip_slots") val skipSlots: List<String>? = null,
 )

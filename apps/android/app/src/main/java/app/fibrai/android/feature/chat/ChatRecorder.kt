@@ -4,6 +4,7 @@ import app.fibrai.android.core.database.ChatMessageEntity
 import app.fibrai.android.core.database.DayRepository
 import app.fibrai.android.core.database.InstantClock
 import app.fibrai.android.core.database.RecordGuard
+import app.fibrai.android.core.database.SkipMove
 import app.fibrai.android.core.memory.FactMemory
 import app.fibrai.android.core.telemetry.Telemetry
 import app.fibrai.android.core.telemetry.TelemetryEvents
@@ -14,6 +15,7 @@ import app.fibrai.android.domain.ReceiptRules
 import app.fibrai.android.domain.RecordedMeal
 import app.fibrai.android.domain.RoutineUpdate
 import app.fibrai.android.domain.SaoPaulo
+import app.fibrai.android.domain.SkipOutcomes
 import app.fibrai.android.domain.SlotChange
 import app.fibrai.android.domain.SlotRecord
 import app.fibrai.android.domain.SlotState
@@ -86,6 +88,42 @@ internal class ChatRecorder(
         val change = SlotChange(date, slot.id, SlotState.EMPTY, SlotState.SKIPPED)
         val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change)))
         return repository.commitRecord(listOf(change), receipts = listOf(receipt), recordStates = mapOf(estimateId to RECORDED)) != null
+    }
+
+    /**
+     * A59 (ADR-047): a slot listed in `skip_slots` that is empty now is skipped with its own receipt, and the answer's
+     * skip moves from pending to skipped in the same transaction. False when the slot or the skip moved meanwhile.
+     */
+    suspend fun skipListed(answerId: Long, slot: SlotRef): Boolean {
+        val date = today().toString()
+        val change = SlotChange(date, slot.id, SlotState.EMPTY, SlotState.SKIPPED)
+        val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change)))
+        return repository.commitRecord(
+            listOf(change),
+            receipts = listOf(receipt),
+            skip = SkipMove(answerId, slot.id, from = null, to = SkipOutcomes.SKIPPED, state = SlotState.EMPTY),
+        ) != null
+    }
+
+    /**
+     * Excluir e pular (A59, chatSD): the slot's records leave as Excluir does and the slot is skipped, in one transaction
+     * that rechecks the day, the wipe, the slot against [state] and the open proposal. [recordReceipt], the active
+     * receipt of those records, is marked Excluído and its memory change reverted; the skip receipt keeps that revert, so
+     * Desfazer brings the records and the memory back. Null when anything moved.
+     */
+    suspend fun deleteAndSkip(answerId: Long, slot: SlotRef, state: SlotState, recordReceipt: ChatMessageEntity?, guard: RecordGuard): Long? {
+        val change = SlotChange(guard.date, slot.id, state, SlotState.SKIPPED)
+        val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change)))
+        val id = repository.commitRecord(
+            listOf(change),
+            receipts = listOf(receipt),
+            receiptMarks = recordReceipt?.let { mapOf(it.id to DELETED) }.orEmpty(),
+            guard = guard,
+            skip = SkipMove(answerId, slot.id, from = SkipOutcomes.PENDING_DELETE, to = SkipOutcomes.DELETED),
+        )?.single() ?: return null
+        val images = revert(recordReceipt?.let { UndoData.decode(it.undoData)?.facts }.orEmpty())
+        if (images.isNotEmpty()) repository.setReceiptUndo(id, UndoData(listOf(change), images).encode(), false)
+        return id
     }
 
     /**
@@ -166,11 +204,13 @@ internal class ChatRecorder(
         return edit.result
     }
 
-    private suspend fun revert(images: List<FactImage>) {
-        if (images.isEmpty()) return
-        val edit = runCatching { memory.revertAndApply(images, emptyList(), today()) }.getOrNull() ?: return
+    /** Reverts [images]; returns the images of that revert (reverting them puts the facts back), empty when nothing ran. */
+    private suspend fun revert(images: List<FactImage>): List<FactImage> {
+        if (images.isEmpty()) return emptyList()
+        val edit = runCatching { memory.revertAndApply(images, emptyList(), today()) }.getOrNull() ?: return emptyList()
         reverted(edit.reverted, edit.kept)
         onMemory(edit.result)
+        return edit.result.images
     }
 
     private fun reverted(reverted: Int, kept: Int) =

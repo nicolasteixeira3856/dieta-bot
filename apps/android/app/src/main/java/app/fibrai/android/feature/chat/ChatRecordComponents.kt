@@ -2,6 +2,7 @@ package app.fibrai.android.feature.chat
 
 import app.fibrai.android.core.designsystem.aero.Aero
 import app.fibrai.android.core.designsystem.aero.AeroButtonPrimary
+import app.fibrai.android.core.designsystem.aero.AeroDangerButton
 import app.fibrai.android.core.designsystem.aero.AeroIcon
 import app.fibrai.android.core.designsystem.aero.AeroText
 import app.fibrai.android.core.designsystem.aero.aeroGlass
@@ -314,6 +315,43 @@ private fun OutlinePill(label: String, onClick: () -> Unit, modifier: Modifier =
         contentAlignment = Alignment.Center,
     ) {
         AeroText(label, style = Aero.type.button.copy(color = c.textPrimary), maxLines = 1)
+    }
+}
+
+/**
+ * chatSD (A59), Chat/Receipt State=SkipDeletePending: `Pular {slot}?` and the record it removes, Excluir e pular (the
+ * Dialog/Confirm danger pill, label and icon in status/on-bad) over Manter registro (outlined), full width.
+ */
+@Composable
+internal fun SkipDeleteCard(confirm: SkipDeleteConfirm, onDelete: () -> Unit, onKeep: () -> Unit) {
+    val c = Aero.colors
+    val type = Aero.type
+    val slot = confirm.slot.name
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .aeroGlass(Aero.shapes.card)
+            .padding(start = 19.dp, end = 19.dp, top = 17.dp, bottom = 19.dp)
+            .testTag("chat-skip-delete-card"),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AeroText("Pular $slot?", style = type.bodyStrong.copy(color = c.textPrimary))
+        AeroText("$slot tem ${confirm.kcal} kcal registrados. O registro sai e o $slot fica pulado.", style = type.body.copy(color = c.textMuted))
+        Column(Modifier.padding(top = 16.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            AeroDangerButton("Excluir e pular", AeroIconName.Trash, onDelete, Modifier.testTag("chat-skip-delete-confirm"), content = c.statusOnBad)
+            OutlinePill("Manter registro", onKeep, Modifier.fillMaxWidth().testTag("chat-skip-delete-keep"))
+        }
+    }
+}
+
+/** A59: a listed skip that ended without one: `Registro mantido` (Manter registro) or `Não registrado` (receipt mark style). */
+@Composable
+internal fun SkipMarkLabel(kept: Boolean, modifier: Modifier = Modifier) {
+    if (!kept) return NotRecordedLabel(modifier)
+    val c = Aero.colors
+    Row(modifier.testTag("chat-skip-kept"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        AeroIcon(AeroIconName.Check, c.iconMuted, size = 14.dp)
+        AeroText("Registro mantido", style = Aero.type.caption.copy(color = c.textMuted), maxLines = 1)
     }
 }
 

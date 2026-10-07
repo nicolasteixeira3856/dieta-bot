@@ -100,6 +100,16 @@ sealed interface ChatItem {
         override val key = "rv-$estimateId"
     }
 
+    /** chatSD (A59): `Pular {slot}?` below an answer that skipped a meal with a record, after its receipts. */
+    data class SkipDeletePrompt(val answerId: Long, val confirm: SkipDeleteConfirm) : ChatItem {
+        override val key = "sd-$answerId-${confirm.slot.id}"
+    }
+
+    /** A59: a listed skip that ended without a skip: [kept] = `Registro mantido`, else `Não registrado`. */
+    data class SkipMark(val answerId: Long, val slotId: Long, val kept: Boolean) : ChatItem {
+        override val key = "sm-$answerId-$slotId"
+    }
+
     /** chatU (A34): `Substituir {slot}?` right below the answer whose slot already has a record. */
     data class ReplacePrompt(val estimateId: Long, val confirm: ReplaceConfirm) : ChatItem {
         override val key = "rp-$estimateId"
@@ -237,6 +247,10 @@ data class RevisionConfirm(val slot: SlotRef, val beforeKcal: Int, val newKcal: 
 /** chatTI (A47): the meal picker directs only the added food; the source meal stays as it is. */
 @Immutable
 data class SheetAddition(val food: String, val kcal: Int, val sourceName: String)
+
+/** A skip of a meal with a record (chatSD): "{slot} tem {kcal} kcal registrados." */
+@Immutable
+data class SkipDeleteConfirm(val slot: SlotRef, val kcal: Int)
 
 /** A record into a taken slot (chatU): "{slot} tem {oldKcal} kcal. Fica com {newKcal} kcal." */
 @Immutable

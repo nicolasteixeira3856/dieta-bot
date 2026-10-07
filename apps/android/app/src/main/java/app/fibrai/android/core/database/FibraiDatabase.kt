@@ -14,7 +14,7 @@ import androidx.room.TypeConverters
         ChatMessageEntity::class,
         DayDigestEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 @TypeConverters(FibraiConverters::class)

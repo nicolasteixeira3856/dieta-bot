@@ -182,6 +182,19 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatU_light() = check("chatU", dark = false) { Chat(ChatFixtures.chatU) }
 
+    /** A59 (D19): a record and a skip in one message (1050 dp frame), and the skip of a meal with a record. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1050dp-xhdpi")
+    fun chatSK_dark() = check("chatSK", dark = true) { Chat(ChatFixtures.chatSK) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1050dp-xhdpi")
+    fun chatSK_light() = check("chatSK", dark = false) { Chat(ChatFixtures.chatSK) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatSD_dark() = check("chatSD", dark = true) { Chat(ChatFixtures.chatSD) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun chatSD_light() = check("chatSD", dark = false) { Chat(ChatFixtures.chatSD) }
+
     /** A47 (D9): addition to a meal with a record (930 dp frame), its meal picker and a revision. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
     fun chatI_dark() = check("chatI", dark = true) { Chat(ChatFixtures.chatI) }

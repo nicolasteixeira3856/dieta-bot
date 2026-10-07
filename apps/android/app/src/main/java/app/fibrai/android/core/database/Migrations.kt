@@ -3,6 +3,13 @@ package app.fibrai.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** v10 -> v11: the skips listed with an answer (A59). Old rows stay null: nothing to apply. */
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `skipOutcomes` TEXT")
+    }
+}
+
 /** v9 -> v10: the meal-change proposal of an answer (A47). Old rows stay null: legacy record flow, nothing guessed. */
 val MIGRATION_9_10 = object : Migration(9, 10) {
     override fun migrate(db: SupportSQLiteDatabase) {

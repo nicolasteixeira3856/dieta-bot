@@ -15,7 +15,9 @@
 #   AVD at gold geometry (wm size 780x1688, wm density 320); python3; curl.
 # SCENES=a34 only onboarding + the A34 scenes.
 # SCENES=a54 only onboarding + the A54 scene: an `auto` addition into the empty dinner is recorded, the next DAY says eaten.
-# Usage: [SCENES=v2|a30|a32|a34|a54] tools/capture-chat.sh dark|light
+# SCENES=a59 only onboarding + the A59 scenes: a meal and a skip in one message (two receipts), a skip over a record
+#   (Excluir e pular, Desfazer, Manter registro, expiry on the next send) and the chatSK, chatSD golds.
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -751,6 +753,123 @@ expect "gold chatD: Desfeito" 'text="Desfeito"'
 expect "gold chatD: Restaurado with actions" 'chat-receipt-delete'
 expect "gold chatD: Restaurado em Jantar" 'Restaurado em Jantar'
 shot chatD
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a59 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+skips_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['skipSlots'])"; }
+# Slots by name, the seeding helpers of A34 and a lunch record (the skip over a record).
+A59_SEED='
+import json
+slots = {n: i for i, n in c.execute("select id, name from meal_slot")}
+cafe = next(i for n, i in slots.items() if n.startswith("Caf"))
+almoco = next(i for n, i in slots.items() if n.startswith("Alm"))
+now = int(time.time() * 1000)
+def rec(text, kcal, p, cc, g, source="user"):
+    return {"text": text, "kcal": kcal, "p": p, "c": cc, "g": g, "source": source, "window": "", "stable": True}
+def state(*records, skipped=False):
+    return {"records": list(records), "skipped": skipped}
+def log(slot, r):
+    c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)",
+              (today, "", r["text"], r["kcal"], r["p"], slot, r["c"], r["g"], r["source"]))
+def msg(role, text, at, **kw):
+    cols = ["date", "role", "text", "createdAtEpochMs"] + list(kw)
+    c.execute(f"insert into chat_message({chr(44).join(cols)}) values({chr(44).join(chr(63) * len(cols))})", [today, role, text, now - at] + list(kw.values()))
+    return c.execute("select max(id) from chat_message").fetchone()[0]
+lunch = rec("arroz, feijão e frango grelhado", 640, 42, 70, 18)
+'
+LUNCH='log(almoco, lunch)'
+set_clock 0 12:40
+
+echo "  A59: a meal and a skip in one message -> two receipts"
+sql "$CLEAN"
+fake_mode '{"record": "auto", "skips": ["Alm"], "reply": "Almoco de hoje fora. Identifiquei 2 paes e 2 ovos."}'
+open_chat
+say "pulei%so%salmoco,%sno%scafe%scomi%s2%spaes%se%s2%sovos"; kb_off
+[ "$(skips_sent)" = "True" ] && echo "  ✓ skip_slots true on the wire" || { echo "  ✗ skip_slots sent: $(skips_sent)"; FAIL=1; }
+expect "two receipts: Registrado em, then Pulado" 'Pulado.*Registrado em'
+rows=$(db "select m.name, l.kcal from meal_log l join meal_slot m on m.id = l.slotId")
+case "$rows" in "[('Café da manhã', 380)]") echo "  ✓ breakfast recorded: $rows";; *) echo "  ✗ meal_log: $rows"; FAIL=1;; esac
+rows=$(db "select m.name from slot_skip s join meal_slot m on m.id = s.slotId")
+case "$rows" in "[('Almoço',)]"|"[('Almoco',)]") echo "  ✓ lunch skipped: $rows";; *) echo "  ✗ slot_skip: $rows"; FAIL=1;; esac
+rows=$(db "select count(*) from chat_message where role = 'skipped'")
+[ "$rows" = "[(1,)]" ] && echo "  ✓ one skip receipt" || { echo "  ✗ skip receipts: $rows"; FAIL=1; }
+
+echo "  A59: skipping a meal with a record asks first (chatSD), Excluir e pular, then Desfazer"
+sql "$CLEAN$A59_SEED$LUNCH"
+fake_mode '{"skip": "Alm", "skips": ["Alm"], "reply": "Almoco de hoje fora."}'
+open_chat
+say "acabei%snao%salmocando"; kb_off
+expect "delete proposal below the answer" 'resource-id="chat-skip-delete-card"'
+[ "$(db "select kcal from meal_log")" = "[(640,)]" ] && echo "  ✓ nothing changed before the tap" || { echo "  ✗ meal_log changed before the tap"; FAIL=1; }
+open_chat
+tap 'resource-id="chat-skip-delete-confirm"' 1.5
+expect "skip receipt after Excluir e pular" 'Pulado'
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ record removed" || { echo "  ✗ meal_log after Excluir e pular"; FAIL=1; }
+[ "$(db "select count(*) from slot_skip")" = "[(1,)]" ] && echo "  ✓ lunch skipped" || { echo "  ✗ slot_skip after Excluir e pular"; FAIL=1; }
+open_chat
+tap 'resource-id="chat-receipt-undo"' 1.5
+expect "Desfazer brings the lunch back" 'Restaurado em'
+[ "$(db "select kcal from meal_log")" = "[(640,)]" ] && echo "  ✓ record restored" || { echo "  ✗ meal_log after Desfazer"; FAIL=1; }
+[ "$(db "select count(*) from slot_skip")" = "[(0,)]" ] && echo "  ✓ skip removed" || { echo "  ✗ slot_skip after Desfazer"; FAIL=1; }
+
+echo "  A59: Manter registro"
+sql "$CLEAN$A59_SEED$LUNCH"
+open_chat
+say "nao%salmocei"; kb_off
+open_chat
+tap 'resource-id="chat-skip-delete-keep"' 1.5
+expect "card marked Registro mantido" 'text="Registro mantido"'
+[ "$(db "select kcal from meal_log")" = "[(640,)]" ] && echo "  ✓ record kept" || { echo "  ✗ meal_log after Manter registro"; FAIL=1; }
+
+echo "  A59: the proposal expires on the next send"
+sql "$CLEAN$A59_SEED$LUNCH"
+open_chat
+say "nao%salmocei"; kb_off
+fake_mode '{"record": "none", "reply": "Ok."}'
+say "obrigado"; kb_off
+open_chat
+if has chat-skip-delete-card; then echo "  ✗ proposal alive after a send"; FAIL=1; else echo "  ✓ proposal gone after a send"; fi
+expect "expired proposal: Não registrado" 'resource-id="chat-not-recorded"'
+fake_mode '{}'
+
+echo "  A59 gold: chatSK"
+set_clock 0 07:42
+sql "$CLEAN$A59_SEED"'
+c.execute("insert into meal_slot(name,minutesFromMidnight,sortOrder,days) values(?,?,?,?)", ("Pré-treino", 360, -1, 127))
+pre = c.execute("select id from meal_slot where name = ?", ("Pré-treino",)).fetchone()[0]
+eggs = rec("2 ovos mexidos e 1 pão francês", 320, 17, 29, 16)
+log(cafe, eggs)
+c.execute("insert into slot_skip(date, slotId) values(?, ?)", (today, pre))
+msg("user", "Pulei o pré-treino. No café comi 2 ovos mexidos e 1 pão francês.", 60000)
+answer = msg("assistant", "Pré-treino de hoje fora. Identifiquei 2 ovos mexidos e 1 pão francês. A estimativa total é de:", 0,
+    estimateKcal=320, estimateP=17, estimateC=29, estimateG=16, estimateConfidence="high", estimateSlotId=cafe,
+    estimateItems="2 ovos mexidos" + chr(10) + "1 pão francês", intent="log", recordMode="auto", recordState="recorded",
+    skipOutcomes=json.dumps({"date": today, "with": "log", "slots": [{"slotId": pre, "state": state(), "outcome": "skipped"}]}))
+msg("logged", "Café da manhã", -1000, estimateKcal=320, estimateSlotId=cafe, recordSource="user",
+    undoData=json.dumps({"slots": [{"date": today, "slotId": cafe, "before": state(), "after": state(eggs)}]}))
+msg("skipped", "Pré-treino", -2000, estimateSlotId=pre,
+    undoData=json.dumps({"slots": [{"date": today, "slotId": pre, "before": state(), "after": state(skipped=True)}]}))
+'
+open_chat
+expect "gold chatSK: log receipt actions" 'chat-receipt-delete.*chat-receipt-move.*chat-receipt-edit'
+expect "gold chatSK: Pulado Pré-treino with Desfazer" 'chat-receipt-undo'
+shot chatSK
+
+echo "  A59 gold: chatSD"
+set_clock 0 14:05
+sql "$CLEAN$A59_SEED$LUNCH"'
+c.execute("delete from meal_slot where name = ?", ("Pré-treino",))
+msg("user", "Acabei não almoçando hoje.", 60000)
+msg("assistant", "Almoço de hoje fora.", 0, intent="skip", recordMode="auto",
+    skipOutcomes=json.dumps({"date": today, "with": "skip", "slots": [{"slotId": almoco, "state": state(lunch), "outcome": "pending_delete"}]}))
+'
+open_chat
+expect "gold chatSD: Pular Almoço?" 'text="Pular Almoço\?"'
+expect "gold chatSD: copy" 'text="Almoço tem 640 kcal registrados. O registro sai e o Almoço fica pulado."'
+expect "gold chatSD: Excluir e pular over Manter registro" 'chat-skip-delete-confirm.*chat-skip-delete-keep'
+shot chatSD
+sql "$CLEAN"
 fi
 
 if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a54 ]; then

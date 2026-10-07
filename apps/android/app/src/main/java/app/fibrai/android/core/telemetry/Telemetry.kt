@@ -34,6 +34,7 @@ object TelemetryEvents {
     const val CHAT_SEND = "chat_send"
     const val CHAT_RESULT = "chat_result"
     const val MEAL_SAVED = "meal_saved"
+    /** `from` = home | push | chat; A59 adds `with` (log | plan | question | skip) on a Chat skip. */
     const val MEAL_SKIPPED = "meal_skipped"
     const val ONBOARDING_COMPLETE = "onboarding_complete"
     const val PUSH_ACTION = "push_action"
@@ -73,6 +74,9 @@ object TelemetryEvents {
      * elsewhere | cancelled | expired | stale | overflow, `reason` (invalid only) = malformed | contradicts | overflow.
      */
     const val MEAL_UPDATE = "meal_update"
+
+    /** A59: the delete-and-skip proposal (chatSD), `action` = shown | confirmed | kept | expired | undone. Enum only. */
+    const val SKIP_DELETE = "skip_delete"
 
     /** A53: app reset in Config, `outcome` = done | failed, `step` = mark | push | files | database on failure. Enums only. */
     const val APP_RESET = "app_reset"

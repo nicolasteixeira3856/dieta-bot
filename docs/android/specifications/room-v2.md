@@ -1,8 +1,8 @@
-# Specification — Room persistence (v10)
+# Specification — Room persistence (v11)
 
 ## Ownership
 
-Android owns the database. Schema version 10. The file is `fibrai.db` ([ADR-036](../adrs/ADR-036-fibrai-technical-identity.md)). Exported schemas 1–10 live in `apps/android/app/schemas/app.fibrai.android.core.database.FibraiDatabase/`, byte-identical to their history. The filename keeps its historical name for incoming links.
+Android owns the database. Schema version 11. The file is `fibrai.db` ([ADR-036](../adrs/ADR-036-fibrai-technical-identity.md)). Exported schemas 1–11 live in `apps/android/app/schemas/app.fibrai.android.core.database.FibraiDatabase/`, byte-identical to their history. The filename keeps its historical name for incoming links.
 
 `FibraiDatabase` contains `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message` and `day_digest`. Structured daily state stays in Room; DataStore is only a legacy import path. No destructive migration fallback.
 
@@ -22,6 +22,7 @@ Android owns the database. Schema version 10. The file is `fibrai.db` ([ADR-036]
 12. `wipeToday` deletes only today's logs/skips/digests, preserves profile/slots/workout/Chat/memory, and inserts a `wiped` Chat marker. `changeCeiling` saves the ceiling and wipes in one transaction. The prompt restarts after the marker.
 13. Prompt totals include all today's logs, including those outside today's meal group. Its slot lists include only today's slots, with eaten/skipped/empty status.
 14. `MealLogDao.getBetween(from, to)` (inclusive ISO dates) feeds the Chat `recent`: the 7 days before today in America/Sao_Paulo (`DayRepository.recentLogs`).
+15. v11 adds nullable `chat_message.skipOutcomes`: on an assistant row, the versioned `SkipOutcomes` JSON of the skips the answer listed ([ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md)): request day, latest `wiped` id of that day, the answer's intent, and per listed slot (in order) its id, the state it held when the skip was applied and the outcome (`skipped` | `already` | `pending_delete` | `deleted` | `kept` | `expired` | `failed`; absent = not applied yet). It is stored with the answer, before any write; null = no skips (older row or a server without the capability). Every outcome change is conditional on the stored outcome (`DayRepository.moveSkip`, or `commitRecord(skip = SkipMove(...))` in the same transaction as the slot write), so a skip is never applied twice. Excluir e pular commits the slot from the shown state to skipped with a `RecordGuard` (request day and wipe), marks the record's active receipt `deleted` and inserts a `skipped` receipt whose `UndoData` keeps the memory revert; `recordState` is unchanged for the log part.
 
 ## Migrations and validation
 
@@ -33,6 +34,7 @@ Android owns the database. Schema version 10. The file is `fibrai.db` ([ADR-036]
 - `MIGRATION_6_7` executes only `CREATE INDEX IF NOT EXISTS index_chat_message_createdAtEpochMs_id`. No data change.
 - `MIGRATION_8_9` executes only `ALTER TABLE `day_digest` ADD COLUMN `coversUntilId` INTEGER`. Old digests stay null and keep the time cut.
 - `MIGRATION_9_10` executes only `ALTER TABLE `chat_message` ADD COLUMN `mealChange` TEXT`. Old rows stay null: no proposal is guessed, records, receipts, undo data, photos and memory are untouched (`MigrationV9V10Test` undoes a migrated receipt).
+- `MIGRATION_10_11` executes only `ALTER TABLE `chat_message` ADD COLUMN `skipOutcomes` TEXT`. Old rows stay null: nothing to apply; records, receipts, proposals and memory are untouched (`MigrationV10V11Test` undoes a migrated receipt).
 - `MIGRATION_7_8` executes only five `ALTER TABLE `chat_message` ADD COLUMN` statements (`recordMode`, `recordState`, `receiptState`, `undoData`, `recordSource`). Old rows stay null: old estimates and receipts show no actions.
 - Schemas are exported by KSP. Debug assets include these schemas for `MigrationTestHelper`; release does not package them.
 - Tests validate old migrations, the real v3 and v4 fixtures with `MigrationTestHelper`, weekly filtering/rollover, slot-save history preservation and Chat replacement/wipe behavior. Device evidence: [A24 validation](../validation/a24-refeicoes-por-dia.md).
@@ -52,3 +54,4 @@ Android owns the database. Schema version 10. The file is `fibrai.db` ([ADR-036]
 - [A34](../plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
 - [A38](../plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A47](../plans/completed/a47-chat-meal-updates.md) — Chat meal updates
+- [A59](../plans/pending_manual_validation/a59-skips-with-other-actions.md) — Skips next to other actions in the Chat
