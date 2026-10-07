@@ -132,7 +132,7 @@ The same sweep with `text/muted` (`#486781`) finds about 250 Light runs under 4.
 
 ## Results
 
-**Prerequisites (07/10/2026):** D20 `Concluído`; A61 merged ([nicolasteixeira3856/dieta-bot#183](https://github.com/nicolasteixeira3856/dieta-bot/pull/183)). [D22](d22-chatm-action-in-thread.md) is drawn in Figma and waits for the owner's review of `chatM`: D21 leaves `chatM` out of its export so it does not ship D22's unreviewed frame; D22's own export carries the new `text/dim` (the frame binds the variable).
+**Prerequisites (07/10/2026):** D20 `Concluído`; A61 merged ([nicolasteixeira3856/dieta-bot#183](https://github.com/nicolasteixeira3856/dieta-bot/pull/183)). [D22](../completed/d22-chatm-action-in-thread.md) was drawn in Figma and waited for the owner's review of `chatM` when this sweep ran, so `chatM` was held out of D21. D22 closed during D21's review (merged 07/10/2026) and exported `chatM` before the `text/dim` write: its Light gold still carries `#546a7d` (1,630 ink pixels, none of `#435463`). `chatM` therefore joins D21's export.
 
 **Discovery** (before any write): `tools/contrast-gold.mjs` added; the sweep refreshed on `master` after A61.
 
@@ -143,7 +143,7 @@ The same sweep with `text/muted` (`#486781`) finds about 250 Light runs under 4.
 
 Light failures by gold (text runs under 4.5): `cfgS` 4, `chatL` 4, `home0`, `home1`, `homeX`, `homeC`, `homeK`, `homeP` 2 each (`{n} Refeições`), `chatM`, `chatQ`, `chatSD` 2, one bubble time in each of `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSK`, `chatU`, `chatX`, and the phone screens of `land` (2) and `landM` (1). Same elements and values as the Finding table.
 
-Light PNGs with `text/dim` ink (the export list): `cfg`, `cfgS`, `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatL`, `chatM`, `chatP`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatT`, `chatTI`, `chatU`, `chatX`, `home0`, `home1`, `homeC`, `homeK`, `homeP`, `homeW`, `homeX`, `o1`, `o1e`, `o3`, `o3s`, `o4`, `push`, `land`, `landM`, `priv` (43; `chatM` is held for D22, so 42 are exported).
+Light PNGs with `text/dim` ink (the export list): `cfg`, `cfgS`, `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatL`, `chatM`, `chatP`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatT`, `chatTI`, `chatU`, `chatX`, `home0`, `home1`, `homeC`, `homeK`, `homeP`, `homeW`, `homeX`, `o1`, `o1e`, `o3`, `o3s`, `o4`, `push`, `land`, `landM`, `priv` (43).
 
 **Figma** (07/10/2026, one write, then a read of every variable):
 
@@ -162,7 +162,7 @@ Light PNGs with `text/dim` ink (the export list): `cfg`, `cfgS`, `chat0`, `chatA
 | `--theme dark` | 247 text runs; worst 4.65 (`chatX`); 0 under 4.5 (unchanged) |
 | Pixel diff against the current golds | every changed pixel moves by ≤ 40 (`land`: 0.008 % above, the phone-screen glyphs); Dark has only blur noise (`chatP` 1.9 % and `homeW` 0.24 % of pixels by ≤ 40 behind the scrim) |
 
-34 Light PNGs carry `#435463` ink: `cfgS`, `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatL`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatU`, `chatX`, `home0`, `home1`, `homeC`, `homeK`, `homeP`, `homeX`, `o1e`, `o3`, `o3s`, `land`, `landM`, `priv`. The other 8 of the list (`cfg`, `chatP`, `chatT`, `chatTI`, `homeW`, `o1`, `o4`, `push`) only had pixels that happened to match `#546a7d` (blended or behind a scrim), not the variable: their dry-run export is unchanged (or blur noise only) and they are not exported. That is the export list after the OK.
+34 Light PNGs carry `#435463` ink: `cfgS`, `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatL`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatU`, `chatX`, `home0`, `home1`, `homeC`, `homeK`, `homeP`, `homeX`, `o1e`, `o3`, `o3s`, `land`, `landM`, `priv`. The other 8 of the list (`cfg`, `chatP`, `chatT`, `chatTI`, `homeW`, `o1`, `o4`, `push`) only had pixels that happened to match `#546a7d` (blended or behind a scrim), not the variable: their dry-run export is unchanged (or blur noise only) and they are not exported. With `chatM` (exported by D22 before the write, old colour), that is the export list after the OK: 35 Light ids.
 
 Review sheet sent to the owner: `{n} Refeições` 3.46 → 4.81, `Seg–Sex · Sáb–Dom` 3.56 → 4.95, user-bubble time 3.69 → 5.13, Tali-bubble time 4.36 → 6.05, `MICRO & MACRONUTRIENTES` 4.45 → 6.19.
 
