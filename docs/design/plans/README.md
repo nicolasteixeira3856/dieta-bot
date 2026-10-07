@@ -118,8 +118,8 @@ Behavior: [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scrol
 |---|---|---|
 | Design | D20 — stale frames, Chat actions in the thread, copying messages (`chatCP`, `chatCC`), delivered ([history](completed/)) | D12, D16–D19, A60 merged |
 | Client | [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (parts A and B) |
-| Design | [D22](pending_manual_validation/d22-chatm-action-in-thread.md) — `chatM` with Registrar in the thread (missed by D20) | D20, A61 merged |
-| Client | `chatM` gated whole in `GoldTest` and captured on the emulator (written after D22) | D22 |
+| Design | D22 — `chatM` with Registrar in the thread (missed by D20), delivered ([history](completed/)) | D20, A61 merged |
+| Client | [A62](../../android/plans/a62-chatm-gold-gate.md) — `chatM` gated whole in `GoldTest` and captured on the emulator | D22 |
 
 ## Text contrast follow-up
 

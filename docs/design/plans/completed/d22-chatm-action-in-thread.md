@@ -1,6 +1,6 @@
 # Plan — D22 Chat: `chatM` with Registrar in the thread
 
-- Status: Pendente aprovação manual (owner review in Figma, 07/10/2026)
+- Status: Concluído (07/10/2026)
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat · D6", frames `chatM` Light (`72:3034`) and Dark (`72:3333`) only; no new component. Repository: `docs/qa/figma/{dark,light}/chatM.png`; `tools/export-figma.mjs` only if a node id changes.
@@ -107,8 +107,29 @@ Registrar sits 12 px under the time line in all four frames and keeps its 350 ×
    - `chatM` is 780 × 1854 in both themes. Registrar sits under the answer and the composer stays alone, as in the `GoldTest` render of the A61 code.
    - `chatT` shows no pixel above the noise threshold against the current gold in either theme: the change is hidden by the sheet. The export noise filter will keep its bytes; only the Figma structure changes.
 
-Figma MCP budget: 5 of 12 calls (whoami, 2 skill reads, 1 read, 1 write) at the first review.
+Figma MCP budget: 5 of 12 calls (whoami, 2 skill reads, 1 read, 1 write).
 
 ### Owner review
 
-Pending: visual OK in Figma for `chatM` (Light `72:3034`, Dark `72:3333`). `chatT` has no visible change.
+**OK (07/10/2026).** The owner approved the frames in Figma ("Aprovado no Figma") on the first round, with no fixes.
+
+### Export (07/10/2026)
+
+- `node tools/export-figma.mjs --only chatM,chatT`:
+  - `chatM` is 780 × 1850 → 780 × 1854 in both themes, with fresh bytes kept;
+  - `chatT` changed 0.000 % of its pixels in both themes, so the noise filter restored its bytes from git. Only the Figma structure changed.
+  - No node id changed in `tools/export-figma.mjs`.
+- `node tools/check-figma.mjs`: 100 golds verified (50 dark + 50 light).
+- `tools/diff-gold.mjs`: no change. `chatM` keeps its long-thread rules (`HEADER_BOX`, tail 0). It never had a rule for the pinned slot.
+- Gold check (the A61 code against the new gold; `GoldTest`, run with `--rerun` because the gold PNG is not a Gradle input):
+
+  | Measure | Dark | Light |
+  |---|---|---|
+  | Blurred diff of the whole frame | 0.44 % | 1.51 % |
+  | Header and thread region | 0.04 % | 0.11 % |
+  | Old action zone | 0.00 % | 0.00 % |
+
+  `chatT` scores 0.00 % in both themes.
+- **Hand-over:** [A62](../../../android/plans/a62-chatm-gold-gate.md) removes the `GoldTest` exception (`CHAT_M_BOXES`, `CHAT_M_ACTION`, `reportOnly`), moves the qualifier to 927 dp and adds the emulator capture of `chatM`.
+
+Figma MCP budget: 5 of 12 calls in total.
