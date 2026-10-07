@@ -4,7 +4,7 @@
 - Date: 06/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Splash and onboarding", "Config and push", "Home"; new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{o5,cfgT,homeC,homeK,cfg}.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D4, D3 and D7 `Concluído` ([history](../completed/)); [D12](../d12-plan-budget-choice.md) may run in parallel (other frames).
+- Prerequisites: D4, D3 and D7 `Concluído` ([history](../completed/)); [D12](d12-plan-budget-choice.md) may run in parallel (other frames).
 - Figma MCP budget: ≤ 90 calls (at most 120 a day, ADR-031 § 6).
 
 Approving this plan accepts [ADR-044](../../../produto/adrs/ADR-044-assistant-tone-and-closures.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d16-tone-and-closures.md. Implemente o plano aprovado.`
