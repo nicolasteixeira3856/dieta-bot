@@ -66,6 +66,18 @@ Behavior: [ADR-040](../../produto/adrs/ADR-040-home-card-gestures-app-reset.md).
 | Client | [A52](../../android/plans/pending_manual_validation/a52-home-card-gestures.md) — Home: tap to record, long press to skip | D14 |
 | Client | [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: app reset | D15 |
 
+## Tone and closures follow-up
+
+Behavior: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md) and [ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Client fix | [A54](../../android/plans/a54-auto-record-addition-empty-slot.md) — auto-record of an addition into an empty meal | A47 |
+| Server | [S24](../../server/plans/s24-protein-first-plan.md) — protein-first plan inside the meal window | S23 |
+| Design | [D16](d16-tone-and-closures.md) — tone choice and closures (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`) | D3, D4, D7 |
+| Server | [S25](../../server/plans/s25-tone-and-closures.md) — tone per user and `/v1/close` | S24 |
+| Client | [A55](../../android/plans/a55-tone-choice-and-closures.md) — tone choice, day and week closure | D16, S25 on dev, A50, A54 |
+
 ## Fibrai brand follow-up
 
 Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):

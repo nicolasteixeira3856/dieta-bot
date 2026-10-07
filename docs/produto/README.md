@@ -69,9 +69,13 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-039](adrs/ADR-039-plan-cooking-and-budget-choice.md) — cooking help in a plan; over-budget check by the server, Pode passar / Ajustar para caber.
 - [ADR-040](adrs/ADR-040-home-card-gestures-app-reset.md) — empty Home card: tap opens the Chat, long press skips; app reset in Config.
 - [ADR-041](adrs/ADR-041-reference-portions-in-chat-instructions.md) — reference portions (TACO) in the Chat instructions; open requests answered as plans; fully quantified first message estimated, not questioned.
+- [ADR-043](adrs/ADR-043-plan-objective-protein-and-meal-window.md) — a plan targets the protein gap inside the meal window; closing lines per remaining slot.
+- [ADR-044](adrs/ADR-044-assistant-tone-and-closures.md) — assistant tone chosen by the user (`seco` | `duro`); day and week closure.
 
 ### Planos
 
 This context has no `plans/`. Deliveries belong to [Android](../android/README.md), [server](../server/README.md) and [design](../design/README.md); the Stitch history is routed by its [README](../stitch/README.md).
 
 Meal updates: D9 ([`completed/`](../design/plans/completed/)) and [A47](../android/plans/pending_manual_validation/a47-chat-meal-updates.md).
+
+Protein-first plan and tone: [S24](../server/plans/s24-protein-first-plan.md) (ADR-043); [D16](../design/plans/d16-tone-and-closures.md), [S25](../server/plans/s25-tone-and-closures.md) and [A55](../android/plans/a55-tone-choice-and-closures.md) (ADR-044); the auto-record defect in [A54](../android/plans/a54-auto-record-addition-empty-slot.md).

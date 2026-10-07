@@ -72,6 +72,8 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [040](produto/adrs/ADR-040-home-card-gestures-app-reset.md) | produto | empty Home card: tap opens Chat, long press skips; app reset in Config, gold `cfgR` |
 | [041](produto/adrs/ADR-041-reference-portions-in-chat-instructions.md) | produto | reference portions (TACO) in the Chat instructions; open requests answered as plans; fully quantified first message estimated, not questioned |
 | [042](server/adrs/ADR-042-estimate-total-is-server-arithmetic.md) | server | estimate total computed by the server as the sum of the item kcal; macros scaled |
+| [043](produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md) | produto | a plan targets the protein gap inside the meal window; closing lines per remaining slot |
+| [044](produto/adrs/ADR-044-assistant-tone-and-closures.md) | produto | assistant tone chosen by the user (`seco` \| `duro`); day and week closure |
 
 ## Outros docs
 
