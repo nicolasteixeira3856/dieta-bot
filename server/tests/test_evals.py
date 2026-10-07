@@ -86,6 +86,7 @@ class CheckTests(unittest.TestCase):
         output["question"] = "Qual leite?"
         output["record"] = "ask"
         output["skip_slot"] = None
+        output["skip_slots"] = []
         output["digest"] = "Pergunta em aberto: qual leite?"
         output["memory_used"] = ["P9"]
         failing = {
@@ -110,6 +111,7 @@ class CheckTests(unittest.TestCase):
             "refusal": "out_of_scope",
             "record": "auto",
             "skip_slot": "1",
+            "skip_slots": ["1"],
             "digest": "absent",
             "digest_has": ["arroz"],
             "digest_not": ["leite"],
@@ -203,6 +205,14 @@ class CheckTests(unittest.TestCase):
             {"record": NA, "skip_slot": NA},
         )
 
+    def test_skip_slots_check(self) -> None:
+        """S29: skip_slots compared as a set of ids; NA on an output without the field."""
+        logged = {**_v2(), "question": None, "record": "auto", "skip_slot": None, "skip_slots": ["3", "1"]}
+        self.assertEqual(_status({"skip_slots": ["1", "3"]}, logged), {"skip_slots": PASS})
+        self.assertEqual(_status({"skip_slots": ["1"]}, logged), {"skip_slots": FAIL})
+        self.assertEqual(_status({"skip_slots": []}, {**logged, "skip_slots": []}), {"skip_slots": PASS})
+        self.assertEqual(_status({"skip_slots": []}, _v2()), {"skip_slots": NA})
+
     def test_v1_intent_is_deduced_from_estimate(self) -> None:
         self.assertEqual(_status({"intent": "log"}, V1_LOG), {"intent": PASS})
         self.assertEqual(_status({"intent": "plan"}, V1_LOG), {"intent": FAIL})
@@ -270,7 +280,7 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "meal_changes", "cp2"))
+                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "meal_changes", "skip_slots", "cp2"))
                 self.assertTrue(set(case.get("required", [])) <= set(case["expect"]))
                 if case["since"] == "v5":
                     self.assertTrue(case["request"]["temp_facts"])

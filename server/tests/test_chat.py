@@ -653,7 +653,7 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             schema["required"],
             [
-                "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slot",
+                "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slots",
                 "memory_updates", "memory_used", "digest", "plan_budget", "scope",
             ],
         )

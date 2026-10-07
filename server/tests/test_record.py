@@ -47,7 +47,7 @@ def _model(intent: str = "log", **fields: Any) -> dict[str, Any]:
         "estimate": None if intent in ("question", "skip") else estimate,
         "record_intent": "clear",
         "meal_day": "today",
-        "skip_slot": None,
+        "skip_slots": [],
         "memory_updates": [],
         "memory_used": [],
         "digest": None,
@@ -100,14 +100,14 @@ class RecordGateTests(unittest.TestCase):
         self.assertEqual((out["record"], log), ("none", RECORD_NONE_INTENT))
 
     def test_row3_other_day_is_none_for_log_and_skip(self) -> None:
-        for payload in (_model(meal_day="other"), _model("skip", meal_day="other", skip_slot="1")):
+        for payload in (_model(meal_day="other"), _model("skip", meal_day="other", skip_slots=["1"])):
             with self.subTest(intent=payload["intent"]):
                 out, log = _gate(payload)
                 self.assertEqual((out["record"], log), ("none", RECORD_NONE_OTHER_DAY))
                 self.assertIsNone(out["skip_slot"])
 
     def test_row4_skip_with_profile_slot_is_auto(self) -> None:
-        out, log = _gate(_model("skip", skip_slot="1", reply="Ok."))
+        out, log = _gate(_model("skip", skip_slots=["1"], reply="Ok."))
         self.assertEqual((out["record"], log), ("auto", RECORD_AUTO_SKIP))
         self.assertEqual(out["intent"], "skip")
         self.assertEqual(out["skip_slot"], "1")
@@ -115,9 +115,9 @@ class RecordGateTests(unittest.TestCase):
         self.assertEqual(out["reply"], "Ok.")
 
     def test_row5_skip_without_valid_slot_becomes_question(self) -> None:
-        for slot in (None, "9", ""):
-            with self.subTest(slot=slot):
-                out, log = _gate(_model("skip", skip_slot=slot))
+        for slots in ([], ["9"], [""], [None]):
+            with self.subTest(slots=slots):
+                out, log = _gate(_model("skip", skip_slots=slots))
                 self.assertEqual((out["record"], log), ("none", RECORD_NONE_SKIP_SLOT))
                 self.assertEqual(out["intent"], "question")
                 self.assertIsNone(out["skip_slot"])
@@ -166,7 +166,7 @@ class RecordGateTests(unittest.TestCase):
 
 class SkipShapingTests(unittest.TestCase):
     def test_skip_before_v4_is_a_question_with_the_reply(self) -> None:
-        payload = _model("skip", skip_slot="1", reply="Ok, sem cafe hoje.")
+        payload = _model("skip", skip_slots=["1"], reply="Ok, sem cafe hoje.")
         for fact_ids in (None, []):
             with self.subTest(legacy=fact_ids is None):
                 out = shape_chat(payload, valid_slot_ids=SLOTS, fact_ids=fact_ids)
@@ -177,7 +177,7 @@ class SkipShapingTests(unittest.TestCase):
                     self.assertNotIn(key, out)
 
     def test_skip_never_carries_an_estimate(self) -> None:
-        payload = {**_model("skip", skip_slot="1"), "estimate": _estimate()}
+        payload = {**_model("skip", skip_slots=["1"]), "estimate": _estimate()}
         self.assertIsNone(shape_chat(payload, valid_slot_ids=SLOTS, fact_ids=[], skip=True)["estimate"])
 
 
@@ -188,14 +188,14 @@ class SchemaTests(unittest.TestCase):
         self.assertEqual(props["intent"]["enum"], ["log", "plan", "question", "skip"])
         self.assertEqual(props["record_intent"], {"type": "string", "enum": ["clear", "unsure"]})
         self.assertEqual(props["meal_day"], {"type": "string", "enum": ["today", "other"]})
-        self.assertEqual(props["skip_slot"], {"type": ["string", "null"], "enum": ["1", "3", None]})
+        self.assertEqual(props["skip_slots"], {"type": "array", "items": {"type": "string", "enum": ["1", "3"]}})
         self.assertEqual(set(schema["required"]), set(props))
         self.assertEqual(schema["required"][-1], "scope")
         self.assertFalse(schema["additionalProperties"])
 
-    def test_profile_without_slots_allows_only_null_skip_slot(self) -> None:
+    def test_profile_without_slots_allows_only_an_empty_skip_list(self) -> None:
         props = chat_format([])["schema"]["properties"]
-        self.assertEqual(props["skip_slot"]["enum"], [None])
+        self.assertEqual(props["skip_slots"], {"type": "array", "items": {"type": "null"}})
 
 
 # Responses of master before S14 for these model payloads (new fields included): byte for byte.
@@ -275,7 +275,7 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_v4_skip_is_auto_with_slot(self) -> None:
         response = await self._post(
-            self._v4(text="pulei o cafe hoje"), _responds(_model("skip", skip_slot="1"), [])
+            self._v4(text="pulei o cafe hoje"), _responds(_model("skip", skip_slots=["1"]), [])
         )
         body = response.json()
         self.assertEqual((body["intent"], body["record"], body["skip_slot"]), ("skip", "auto", "1"))
@@ -361,7 +361,7 @@ class RecordRouteTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.content, _bytes(V3_LOG_SNAPSHOT))
 
     async def test_skip_before_v4_is_the_pre_s14_response_byte_for_byte(self) -> None:
-        payload = _model("skip", skip_slot="1", reply="Ok, cafe pulado.")
+        payload = _model("skip", skip_slots=["1"], reply="Ok, cafe pulado.")
         for request, snapshot in (
             (_v2_payload(), LEGACY_SKIP_SNAPSHOT),
             (_v2_payload(facts=[], auto_record=True), LEGACY_SKIP_SNAPSHOT),

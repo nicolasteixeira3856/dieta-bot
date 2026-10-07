@@ -167,6 +167,8 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
     """Structured output for /v1/chat. Slot and fact ids are limited to the ones in the request."""
     slots = [*dict.fromkeys(slot_ids), None]
     facts = list(dict.fromkeys(fact_ids or []))
+    # A profile without slots can skip nothing: the only valid list is empty.
+    skip_item = {"type": "string", "enum": slots[:-1]} if len(slots) > 1 else {"type": "null"}
     item = _ITEM_SCHEMA
     estimate = {
         "type": "object",
@@ -213,7 +215,8 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
                 "estimate": {"anyOf": [estimate, {"type": "null"}]},
                 "record_intent": {"type": "string", "enum": list(RECORD_INTENTS)},
                 "meal_day": {"type": "string", "enum": list(MEAL_DAYS)},
-                "skip_slot": {"type": ["string", "null"], "enum": slots},
+                # ADR-047: every slot the message skips, next to any intent (all clients; S29).
+                "skip_slots": {"type": "array", "items": skip_item},
                 "memory_updates": {"type": "array", "items": update},
                 "memory_used": {"type": "array", "items": used},
                 "digest": {"type": "null"},
@@ -222,7 +225,7 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
                 "scope": _SCOPE_SCHEMA,
             },
             "required": [
-                "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slot",
+                "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slots",
                 "memory_updates", "memory_used", "digest", "plan_budget", "scope",
             ],
             "additionalProperties": False,

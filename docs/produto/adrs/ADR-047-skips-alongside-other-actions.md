@@ -1,6 +1,6 @@
 # ADR-047 — Skips stated alongside other actions; a skip over a record asks to delete it
 
-- Status: Proposed
+- Status: Accepted (2026-10-07, with the owner's approval of S29)
 - Date: 2026-10-07
 - Context: `produto`
 - Supersedes: partially [ADR-028](ADR-028-registro-autonomo.md) decision 4 (a skip is no longer only a turn of its own; a skip of a slot with a record asks to delete it instead of changing nothing) and the "one automatic action per answer" rule of decision 2 (one record plus the skips of other slots); partially [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list: `chatSK`, `chatSD` new).
@@ -57,6 +57,6 @@ Rejected by the owner: two receipts keep the actions of each slot independent.
 
 - Specifications affected: [chat](../specifications/chat.md) rules 4, 5 and 7, states and acceptance criteria; [v1-chat](../../server/specifications/v1-chat.md) rules 3a, 3f, 5 and 5d; [HTTP contract](../../api-contract.md) (`skip_slots`); [Room](../../android/specifications/room-v2.md).
 - Related ADRs: ADR-028, ADR-032, ADR-046, ADR-020.
-- Consuming contexts: [server](../../server/README.md) ([S29](../../server/plans/s29-skip-slots.md)), [design](../../design/README.md) ([D19](../../design/plans/d19-skips-with-other-actions.md)), [android](../../android/README.md) ([A59](../../android/plans/a59-skips-with-other-actions.md)).
+- Consuming contexts: [server](../../server/README.md) ([S29](../../server/plans/completed/s29-skip-slots.md)), [design](../../design/README.md) ([D19](../../design/plans/d19-skips-with-other-actions.md)), [android](../../android/README.md) ([A59](../../android/plans/a59-skips-with-other-actions.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

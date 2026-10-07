@@ -491,7 +491,8 @@ def record_gate(
     if payload.get("meal_day") == "other":
         return out, RECORD_NONE_OTHER_DAY
     if intent == INTENT_SKIP:
-        slot = _slot_id(payload.get("skip_slot"), set(valid_slot_ids))
+        listed = skipped_slots(payload, valid_slot_ids)
+        slot = listed[0] if listed else None
         if slot is None:
             out["intent"] = "question"
             return out, RECORD_NONE_SKIP_SLOT
@@ -505,6 +506,30 @@ def record_gate(
         return out, RECORD_AUTO_LOG
     out["record"] = RECORD_ASK
     return out, RECORD_ASK_UNSURE
+
+
+def skipped_slots(payload: dict[str, Any], valid_slot_ids: Iterable[str]) -> list[str]:
+    """The model's skip_slots (ADR-047): profile ids only, in profile order, without repeats.
+
+    The slot of the meal the same turn logs is never skipped: the log wins.
+    """
+    order = list(dict.fromkeys(valid_slot_ids))
+    raw = payload.get("skip_slots")
+    listed = {_slot_id(value, set(order)) for value in raw} if isinstance(raw, list) else set()
+    estimate = payload.get("estimate")
+    if payload.get("intent") == "log" and isinstance(estimate, dict):
+        listed.discard(_slot_id(estimate.get("suggested_slot"), set(order)))
+    return [slot for slot in order if slot in listed]
+
+
+def skip_list(payload: dict[str, Any], valid_slot_ids: Iterable[str]) -> list[str]:
+    """skip_slots of an opted-in client (S29): empty on a refusal or a meal of another day.
+
+    Fallbacks never reach this: they get the empty default of the response.
+    """
+    if payload_scope(payload) != IN_SCOPE or payload.get("meal_day") == "other":
+        return []
+    return skipped_slots(payload, valid_slot_ids)
 
 
 def record_fields(payload: dict[str, Any]) -> dict[str, str | None]:

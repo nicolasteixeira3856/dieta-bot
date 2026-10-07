@@ -7,7 +7,7 @@
 - Related documentation: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md), [product Chat](../../produto/specifications/chat.md) rules 4, 5, 7 and 19, [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
 - Prerequisites:
   - [D19](../../design/plans/d19-skips-with-other-actions.md) `Concluído` with `chatSK` and `chatSD` exported;
-  - [S29](../../server/plans/s29-skip-slots.md) delivered and deployed to the dev server;
+  - [S29](../../server/plans/completed/s29-skip-slots.md) delivered and deployed to the dev server;
   - no parallel Android plan. A59 does not depend on A50, A55, A57 or A58: whichever runs later rebases and takes the next Room version. With A58 delivered, a planned slot is skipped at once (ADR-046); without it, that clause has nothing to do.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a59-skips-with-other-actions.md. Implemente o plano aprovado.`

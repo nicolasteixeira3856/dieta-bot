@@ -1,0 +1,98 @@
+{
+  "id": "s29-dois-pulos",
+  "since": "skip_slots",
+  "tags": [
+    "s29"
+  ],
+  "request": {
+    "local_time": "2026-10-08T15:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 160,
+      "c_target": 220,
+      "g_target": 70,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Pré-treino",
+          "time": "06:00"
+        },
+        {
+          "id": "2",
+          "name": "Café da manhã",
+          "time": "08:30"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2200,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "Hoje pulei o café da manhã e o almoço.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true,
+    "skip_slots": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "skip",
+    "record": "auto",
+    "skip_slot": "2",
+    "skip_slots": [
+      "2",
+      "3"
+    ],
+    "estimate": "absent"
+  }
+}

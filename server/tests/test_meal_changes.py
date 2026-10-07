@@ -32,7 +32,7 @@ def delta(**kw):
 
 def model(**kw):
     out = dict(reply='Estimativa.', intent='log', record_intent='clear', meal_day='today',
-               scope='in_scope', skip_slot=None, digest=None, memory_updates=[_update()], memory_used=[],
+               scope='in_scope', skip_slots=[], digest=None, memory_updates=[_update()], memory_used=[],
                estimate={**delta(), 'suggested_slot': 'cafe', 'confidence': 'high', 'question': None},
                meal_change=dict(operation='add', base_slot='cafe', addition=delta()))
     out.update(kw)

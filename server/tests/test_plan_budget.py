@@ -31,7 +31,7 @@ def plan(kcal=800, *, reserved=(), choice=None, **overrides):
         estimate=dict(kcal=kcal, p=30, c=60, g=20, confidence="medium", question=None,
                       items=[dict(name="base", g=100, kcal=kcal)], suggested_slot="cafe",
                       meal_text="100 g de base"),
-        record_intent="unsure", meal_day="today", skip_slot=None, memory_updates=[], memory_used=[],
+        record_intent="unsure", meal_day="today", skip_slots=[], memory_updates=[], memory_used=[],
         digest=None, plan_budget=dict(reserved=list(reserved), choice=choice), scope="in_scope",
     )
     out.update(overrides)

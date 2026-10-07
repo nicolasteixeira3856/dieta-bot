@@ -1,0 +1,98 @@
+{
+  "id": "s29-pulo-mesmo-slot",
+  "since": "skip_slots",
+  "tags": [
+    "s29"
+  ],
+  "request": {
+    "local_time": "2026-10-08T13:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 160,
+      "c_target": 220,
+      "g_target": 70,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Pré-treino",
+          "time": "06:00"
+        },
+        {
+          "id": "2",
+          "name": "Café da manhã",
+          "time": "08:30"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "eaten_kcal": 300,
+      "eaten_p": 16,
+      "eaten_c": 29,
+      "eaten_g": 12,
+      "workout_kcal": null,
+      "remaining_kcal": 1900,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "2 ovos mexidos e 1 pão francês",
+          "kcal": 300,
+          "p": 16,
+          "c": 29,
+          "g": 12
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "Pulei o almoço de verdade, só comi 1 banana no lugar.",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true,
+    "skip_slots": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "suggested_slot": "3",
+    "skip_slots": []
+  }
+}
