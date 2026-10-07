@@ -1,6 +1,6 @@
 # ADR-045 — Emphasis, lists and a small table inside the Chat bubbles
 
-- Status: Proposto (owner decision of 2026-10-06; the status changes with the first approval among S26, A57 and D17)
+- Status: Accepted (2026-10-06, with the owner's approval of D17 and S26)
 - Date: 2026-10-06
 - Context: `produto`
 - Supersedes: partially [ADR-012](ADR-012-chat-home-perfil.md) rule 2 (bubbles carry plain prose) and [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list: `chatR` and `chatE` change, `chatRK` is new). Complements [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) and [ADR-044](ADR-044-assistant-tone-and-closures.md).
@@ -53,6 +53,6 @@ Rejected: a larger surface for injection through the reply; the subset is text w
 
 - Specifications affected: [chat](../specifications/chat.md) rules 2 and 16, [v1-chat](../../server/specifications/v1-chat.md) rules 3 and 5, [HTTP contract](../../api-contract.md) (`reply` format).
 - Related ADRs: ADR-012, ADR-020, ADR-039, ADR-042, ADR-043, ADR-044, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md).
-- Consuming contexts: [design](../../design/README.md) ([D17](../../design/plans/d17-rich-replies.md)), [server](../../server/README.md) ([S26](../../server/plans/s26-reply-formatting-subset.md)), [android](../../android/README.md) ([A57](../../android/plans/a57-rich-reply-rendering.md)).
+- Consuming contexts: [design](../../design/README.md) ([D17](../../design/plans/pending_manual_validation/d17-rich-replies.md)), [server](../../server/README.md) ([S26](../../server/plans/s26-reply-formatting-subset.md)), [android](../../android/README.md) ([A57](../../android/plans/a57-rich-reply-rendering.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

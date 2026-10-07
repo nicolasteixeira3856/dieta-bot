@@ -84,7 +84,7 @@ Behavior: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md).
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D17](d17-rich-replies.md) — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) | D5, D6, D12 |
+| Design | [D17](pending_manual_validation/d17-rich-replies.md) — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) | D5, D6, D12 |
 | Server | [S26](../../server/plans/s26-reply-formatting-subset.md) — reply formatting subset | S24 |
 | Client | [A57](../../android/plans/a57-rich-reply-rendering.md) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
 

@@ -6,7 +6,7 @@
 - Executable boundary: `apps/android/` (a parser in `domain`, the assistant bubble composables in `feature/chat`, Aero text and list components in `core/designsystem/aero`, Roborazzi baselines, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-chat.sh`.
 - Related documentation: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md), [product Chat](../../produto/specifications/chat.md) rules 2, 8, 12 and 16, [HTTP contract](../../api-contract.md), [aero-compose skill](../../../.claude/skills/aero-compose/SKILL.md).
 - Prerequisites:
-  - [D17](../../design/plans/d17-rich-replies.md) `Concluído` with `chatR`, `chatE` and `chatRK` exported;
+  - [D17](../../design/plans/pending_manual_validation/d17-rich-replies.md) `Concluído` with `chatR`, `chatE` and `chatRK` exported;
   - [S26](../../server/plans/s26-reply-formatting-subset.md) delivered and deployed to the dev server;
   - [A50](a50-plan-budget-choice.md), [A54](completed/a54-auto-record-addition-empty-slot.md) and [A55](a55-tone-choice-and-closures.md) delivered or cancelled (same Chat files; no parallel Android plan).
 
