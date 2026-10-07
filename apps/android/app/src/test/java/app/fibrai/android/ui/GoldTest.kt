@@ -256,11 +256,11 @@ class GoldTest {
     fun chatR_light() = check("chatR", dark = false) { Chat(ChatFixtures.chatR) }
 
     /** A29: Memória atualizada and the origin chips. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
-    fun chatM_dark() = check("chatM", dark = true, reportOnly = true, regions = CHAT_M_BOXES, reportRegions = CHAT_M_ACTION) { Chat(ChatFixtures.chatM) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h927dp-xhdpi")
+    fun chatM_dark() = check("chatM", dark = true) { Chat(ChatFixtures.chatM) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
-    fun chatM_light() = check("chatM", dark = false, reportOnly = true, regions = CHAT_M_BOXES, reportRegions = CHAT_M_ACTION) { Chat(ChatFixtures.chatM) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h927dp-xhdpi")
+    fun chatM_light() = check("chatM", dark = false) { Chat(ChatFixtures.chatM) }
 
     /** A29: the routine suggestion on an empty day. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -625,13 +625,6 @@ class GoldTest {
          * assim, each at its best offset.
          */
         private val CHAT_RK_BOXES = listOf(intArrayOf(0, 0, 780, 1370), intArrayOf(0, 1450, 780, 2054))
-
-        /**
-         * chatM (A29) was not redrawn by D20: its Registrar still sits above the composer, where A61 (ADR-048) draws it
-         * 12 dp under the answer. Gated: the header and the thread down to the time; the action zone is reported.
-         */
-        private val CHAT_M_BOXES = listOf(intArrayOf(0, 0, 780, 1500))
-        private val CHAT_M_ACTION = listOf(intArrayOf(0, 1500, 780, 1690))
 
         private val CHAT_F_BOXES = listOf(intArrayOf(0, 0, 780, 228), intArrayOf(0, 470, 780, 1922))
 

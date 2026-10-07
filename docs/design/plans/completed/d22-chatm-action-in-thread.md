@@ -130,6 +130,6 @@ Figma MCP budget: 5 of 12 calls (whoami, 2 skill reads, 1 read, 1 write).
   | Old action zone | 0.00 % | 0.00 % |
 
   `chatT` scores 0.00 % in both themes.
-- **Hand-over:** [A62](../../../android/plans/a62-chatm-gold-gate.md) removes the `GoldTest` exception (`CHAT_M_BOXES`, `CHAT_M_ACTION`, `reportOnly`), moves the qualifier to 927 dp and adds the emulator capture of `chatM`.
+- **Hand-over:** [A62](../../../android/plans/completed/a62-chatm-gold-gate.md) removes the `GoldTest` exception (`CHAT_M_BOXES`, `CHAT_M_ACTION`, `reportOnly`), moves the qualifier to 927 dp and adds the emulator capture of `chatM`.
 
 Figma MCP budget: 5 of 12 calls in total.
