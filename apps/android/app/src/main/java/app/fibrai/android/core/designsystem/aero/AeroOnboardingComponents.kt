@@ -66,9 +66,9 @@ fun Modifier.aeroAccentSheen(shape: Shape = pill): Modifier {
     return clip(shape).background(c.accentDefault).drawBehind { drawOutline(shape.createOutline(size, layoutDirection, this), brush) }
 }
 
-/** Stepper/Progress: four 8 dp segments, the first [step] filled. */
+/** Stepper/Progress: five 8 dp segments (one per onboarding step, D20), the first [step] filled. */
 @Composable
-fun AeroStepper(step: Int, modifier: Modifier = Modifier, count: Int = 4) {
+fun AeroStepper(step: Int, modifier: Modifier = Modifier, count: Int = 5) {
     val c = Aero.colors
     Row(modifier.fillMaxWidth().height(AeroDimens.sizeBar), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         repeat(count) { i ->

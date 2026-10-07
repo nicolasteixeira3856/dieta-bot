@@ -32,6 +32,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -43,7 +50,7 @@ import app.fibrai.android.core.designsystem.dietaClick
 
 /*
  * D5 components of the Figma `Design` (Componentes, section "Chat"): Chat/BotLabel, Chip/Date, Chat/ActionBar,
- * Loader/Aero, Row/SlotPick and Dialog/Confirm (Tone=Default).
+ * Loader/Aero, Row/SlotPick and Dialog/Confirm (Tone=Default). D20: Chat/SelectionBar, Chat/CopyToast and the selection.
  */
 
 private val pill = RoundedCornerShape(percent = 50)
@@ -355,5 +362,72 @@ fun AeroChoiceBar(
         ) {
             AeroText(right, style = type.button.copy(color = c.accentOn, textAlign = TextAlign.Center), maxLines = 2)
         }
+    }
+}
+
+/**
+ * Chat/SelectionBar (D20, ADR-048): in place of Chat/Header while messages are selected. ✕ (ends the selection), the
+ * count in the header title style, and one Copy icon button labelled Copiar.
+ */
+@Composable
+fun AeroSelectionBar(count: Int, onClose: () -> Unit, onCopy: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp).height(44.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AeroIconButton(AeroIconName.X, onClose, contentDescription = "Cancelar seleção", modifier = Modifier.testTag("chat-selection-close"))
+        AeroText(
+            "$count",
+            Modifier.weight(1f).testTag("chat-selection-count"),
+            style = Aero.type.bodyStrong.copy(color = Aero.colors.textPrimary),
+            maxLines = 1,
+        )
+        AeroIconButton(AeroIconName.Copy, onCopy, contentDescription = "Copiar", modifier = Modifier.testTag("chat-copy"))
+    }
+}
+
+/**
+ * Chat/CopyToast (D20): the app's own copy confirmation (Android 12 and earlier; 13+ shows the system overlay). The
+ * Chip/Date glass pill, a check in the accent and the label, centred.
+ */
+@Composable
+fun AeroCopyToast(label: String, modifier: Modifier = Modifier) {
+    val c = Aero.colors
+    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Row(
+            Modifier.height(36.dp).aeroGlass(pill).padding(horizontal = 15.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AeroIcon(AeroIconName.Check, c.accentDefault, size = 16.dp)
+            AeroText(label, style = Aero.type.captionStrong.copy(color = c.textPrimary), maxLines = 1)
+        }
+    }
+}
+
+/**
+ * A selected message row (D20): the surface/selected band across the screen width, 6 dp over and under the row. The
+ * thread pads its items by [inset] on each side; the band is drawn past that padding, behind the row.
+ */
+fun Modifier.aeroSelectedRow(selected: Boolean, color: Color, inset: Dp = 20.dp): Modifier = if (!selected) this else drawBehind {
+    val x = inset.toPx()
+    val y = 6.dp.toPx()
+    drawRect(color, topLeft = Offset(-x, -y), size = Size(size.width + 2 * x, size.height + 2 * y))
+}
+
+/**
+ * A selected bubble (D20): an opaque bg/page backing under the glass, so the band does not show through it, and the
+ * 2 dp border/selected ring inside its edge, over the glass border. The bubble keeps its size.
+ */
+@Composable
+fun Modifier.aeroSelectedBubble(selected: Boolean, shape: Shape): Modifier {
+    if (!selected) return this
+    val c = Aero.colors
+    return background(c.bgPage, shape).drawWithContent {
+        drawContent()
+        val w = 2.dp.toPx()
+        val outline = shape.createOutline(Size(size.width - w, size.height - w), layoutDirection, this)
+        translate(w / 2, w / 2) { drawOutline(outline, c.borderSelected, style = Stroke(w)) }
     }
 }

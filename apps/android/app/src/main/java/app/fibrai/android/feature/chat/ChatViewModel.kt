@@ -148,6 +148,13 @@ class ChatViewModel @Inject constructor(
         val pendingAddition: MealProposal? = null,
         /** A60 part A: the pending send is Ajustar para caber with this target; a retry keeps it. */
         val pendingFit: Int? = null,
+        /** A61 part B (chatCP): keys of the selected text bubbles, and the day the selection started. */
+        val selected: Set<String> = emptySet(),
+        val selectedOn: String? = null,
+        /** The latest wipe of today when the selection started: a newer wipe ends it. */
+        val selectedWipe: Long = 0,
+        /** A61 part B (chatCC, Android 12 and earlier): messages just copied, for the app's own confirmation. */
+        val copied: Int? = null,
     )
 
     private sealed interface Sheet {
@@ -175,6 +182,9 @@ class ChatViewModel @Inject constructor(
 
     /** A47: answers with a record tap in flight ([once]). */
     private val inFlight = mutableSetOf<Long>()
+
+    /** The latest wipe row of today in the last render (A61: a wipe ends the selection). */
+    private var wipeMark = 0L
 
     /** Facts after expiration, for the routine card (A29). Reloaded after every memory change. */
     private val facts = MutableStateFlow<List<Fact>>(emptyList())
@@ -273,7 +283,7 @@ class ChatViewModel @Inject constructor(
         local.update {
             it.copy(
                 composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, pendingForce = false,
-                failed = false, sentOnce = true, pendingAddition = null, pendingFit = null,
+                failed = false, sentOnce = true, pendingAddition = null, pendingFit = null, selected = emptySet(),
             )
         }
         viewModelScope.launch { post(text, photo) }
@@ -287,9 +297,50 @@ class ChatViewModel @Inject constructor(
         if (!_uiState.value.forceEstimate || local.value.pending != null) return
         val round = PromptBuilder.clarifyRounds(todayMessages.filter { it.date == SaoPaulo.date(clock.now()).toString() })
         telemetry.event(TelemetryEvents.CHAT_FORCE_ESTIMATE, mapOf("round" to round))
-        local.update { it.copy(pending = FORCE_TEXT, pendingPhoto = null, pendingForce = true, failed = false, sentOnce = true, pendingAddition = null, pendingFit = null) }
+        local.update {
+            it.copy(pending = FORCE_TEXT, pendingPhoto = null, pendingForce = true, failed = false, sentOnce = true, pendingAddition = null, pendingFit = null, selected = emptySet())
+        }
         viewModelScope.launch { post(FORCE_TEXT, force = true) }
     }
+
+    /** A61 part B (ADR-048): a long press on a text bubble starts the selection with it, or toggles it while selecting. */
+    fun longPress(key: String) = toggleSelected(key)
+
+    /** While selecting, a tap on a text bubble adds or removes it; removing the last one ends the selection. */
+    fun tapWhileSelecting(key: String) {
+        if (_uiState.value.selected.isNotEmpty()) toggleSelected(key)
+    }
+
+    /** ✕, the system back, or a tap on an action. */
+    fun clearSelection() = local.update { it.copy(selected = emptySet()) }
+
+    private fun toggleSelected(key: String) {
+        val ui = _uiState.value
+        if (ui.items.none { it.key == key && it.copyText != null }) return
+        val next = if (key in ui.selected) ui.selected - key else ui.selected + key
+        local.update { it.copy(selected = next, selectedOn = SaoPaulo.date(clock.now()).toString(), selectedWipe = wipeMark) }
+    }
+
+    /**
+     * Copiar: the selected messages' text in conversation order, a blank line apart, and the selection ends. Null when
+     * nothing is selected. The caller puts the text on the clipboard; telemetry counts the messages, never the text.
+     */
+    fun copySelection(): String? {
+        val ui = _uiState.value
+        val picked = ui.items.filter { it.key in ui.selected }.mapNotNull { item -> item.copyText?.let { item to it } }
+        if (picked.isEmpty()) return null
+        local.update { it.copy(selected = emptySet()) }
+        telemetry.event(
+            TelemetryEvents.MESSAGE_COPIED,
+            mapOf("count" to picked.size, "has_user" to picked.any { it.first is ChatItem.User }, "has_tali" to picked.any { it.first !is ChatItem.User }),
+        )
+        return picked.joinToString("\n\n") { it.second }
+    }
+
+    /** Android 12 and earlier (chatCC): the app's own confirmation of [count] copied messages. */
+    fun showCopied(count: Int) = local.update { it.copy(copied = count) }
+
+    fun dismissCopied() = local.update { it.copy(copied = null) }
 
     fun retry() {
         val text = local.value.pending ?: return
@@ -1273,6 +1324,7 @@ class ChatViewModel @Inject constructor(
             ?.let { PlanBudget.decode(it.planBudget) }?.takeIf { it.choosing }
         val stalePending = mutableListOf<ChatMessageEntity>()
         val wipeToday = todayRows.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
+        wipeMark = wipeToday ?: 0L
 
         val items = mutableListOf<ChatItem>()
         var lastDate: String? = null
@@ -1398,6 +1450,10 @@ class ChatViewModel @Inject constructor(
         routine?.let { items += ChatItem.Routine(it) }
         routine?.takeIf { shownRoutines.add(it.factId + "@" + it.slot.id) }?.let { routineEvent("shown") }
         val meta = d.metaOn(today)
+        // A61 part B: the selection holds while its messages are drawn, on the day it started, before a send or a wipe.
+        val selected = if (l.selectedOn != todayIso || l.pending != null || (wipeToday ?: 0L) != l.selectedWipe) emptySet() else {
+            items.filter { it.key in l.selected && it.copyText != null }.mapTo(LinkedHashSet()) { it.key }
+        }
         return ChatUiState(
             items = items,
             composer = l.composer,
@@ -1423,6 +1479,8 @@ class ChatViewModel @Inject constructor(
             sheetAddition = sheetAddition,
             routine = routine,
             focusComposer = l.focusComposer,
+            selected = selected,
+            copied = l.copied,
         )
     }
 

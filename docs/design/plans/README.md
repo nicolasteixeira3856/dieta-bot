@@ -117,7 +117,7 @@ Behavior: [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scrol
 | Step | Plan | Depends on |
 |---|---|---|
 | Design | D20 — stale frames, Chat actions in the thread, copying messages (`chatCP`, `chatCC`), delivered ([history](completed/)) | D12, D16–D19, A60 merged |
-| Client | [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (parts A and B) |
+| Client | [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (parts A and B) |
 
 ## Text contrast follow-up
 

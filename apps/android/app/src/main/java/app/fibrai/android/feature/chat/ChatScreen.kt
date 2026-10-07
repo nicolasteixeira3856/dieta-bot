@@ -1,6 +1,21 @@
 package app.fibrai.android.feature.chat
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import app.fibrai.android.core.designsystem.aero.AeroCopyToast
+import app.fibrai.android.core.designsystem.aero.AeroSelectionBar
+import app.fibrai.android.core.designsystem.aero.aeroSelectedBubble
+import app.fibrai.android.core.designsystem.aero.aeroSelectedRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -158,6 +173,13 @@ fun ChatScreen(
     onBudgetFit: (estimateId: Long) -> Unit = {},
     /** chatR (A60 part D): Reservar para o {slot}. */
     onReserve: (estimateId: Long) -> Unit = {},
+    /** chatCP (A61 part B): long press on a text bubble, a tap on one while selecting, ✕ / back, Copiar. */
+    onLongPress: (key: String) -> Unit = {},
+    onSelectTap: (key: String) -> Unit = {},
+    onSelectionClose: () -> Unit = {},
+    onCopy: () -> Unit = {},
+    /** chatCC (A61 part B): the app's own copy confirmation went away. */
+    onCopiedShown: () -> Unit = {},
 ) {
     // A32: camera button and photo chip close the keyboard first, so the photo sheet shows whole.
     val keyboard = LocalSoftwareKeyboardController.current
@@ -190,18 +212,30 @@ fun ChatScreen(
                 .statusBarsPadding()
                 .imePadding(),
         ) {
-            Header(onBack)
+            // chatCP: while messages are selected, the selection bar takes the header's place.
+            if (ui.selected.isEmpty()) Header(onBack) else AeroSelectionBar(ui.selected.size, onSelectionClose, onCopy, Modifier.testTag("chat-selection"))
+            // A tap on an action ends the selection first (ADR-048).
+            val end = { if (ui.selected.isNotEmpty()) onSelectionClose() }
             val record = RecordCallbacks(
-                onReplaceConfirm, onReplaceElsewhere, onReceiptAction, onMoveConfirm, onMoveElsewhere,
-                onAdditionConfirm, onAdditionElsewhere, onRevisionConfirm, onRevisionCancel, onSkipDelete, onSkipKeep,
+                { end(); onReplaceConfirm(it) }, { end(); onReplaceElsewhere(it) }, { id, a -> end(); onReceiptAction(id, a) },
+                { end(); onMoveConfirm() }, { end(); onMoveElsewhere() }, { end(); onAdditionConfirm(it) }, { end(); onAdditionElsewhere(it) },
+                { end(); onRevisionConfirm(it) }, { end(); onRevisionCancel(it) }, { a, s -> end(); onSkipDelete(a, s) }, { a, s -> end(); onSkipKeep(a, s) },
             )
-            if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
+            val answer = AnswerCallbacks(
+                { end(); onRegister(it) }, { end(); onRecordPlan(it) }, { end(); onForceEstimate() },
+                { end(); onBudgetOverOk(it) }, { end(); onBudgetFit(it) }, { end(); onReserve(it) },
+            )
+            val select = SelectCallbacks(onLongPress, onSelectTap)
+            if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, answer, select, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
+            ui.copied?.let { CopyToast(it, onCopiedShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, camera)
-            Footer(ui, onComposer, send, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate, onBudgetOverOk, onBudgetFit, onReserve)
+            Footer(ui, onComposer, send, photo, onRemoveAttachment)
         }
         AeroPageBubbles(ChatBubbles, null, Modifier.statusBarsPadding())
+        // The sheets register their back after this one, so an open sheet closes first.
+        BackHandler(enabled = ui.selected.isNotEmpty(), onBack = onSelectionClose)
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
         if (ui.photoSheet) PhotoSheet(onCamera, onGallery, onPhotoSheetClose)
     }
@@ -228,6 +262,19 @@ private class RecordCallbacks(
     val onSkipDelete: (Long, Long) -> Unit,
     val onSkipKeep: (Long, Long) -> Unit,
 )
+
+/** The action taps of the latest answer (A61: drawn in the thread, under their message). */
+private class AnswerCallbacks(
+    val onRegister: (Long) -> Unit,
+    val onRecordPlan: (Long) -> Unit,
+    val onForceEstimate: () -> Unit,
+    val onBudgetOverOk: (Long) -> Unit,
+    val onBudgetFit: (Long) -> Unit,
+    val onReserve: (Long) -> Unit,
+)
+
+/** A61 part B: the long press and the selection taps of the text bubbles. */
+private class SelectCallbacks(val onLongPress: (String) -> Unit, val onTap: (String) -> Unit)
 
 // ----------------------------------------------------------------------------- header
 
@@ -271,10 +318,12 @@ private fun Thread(
     onRoutineEdit: () -> Unit,
     onLoadOlder: () -> Unit,
     record: RecordCallbacks,
+    answer: AnswerCallbacks,
+    select: SelectCallbacks,
     modifier: Modifier,
 ) {
     val list = rememberLazyListState()
-    val items = ui.newestFirst
+    val items = remember(ui.newestFirst, ui.actions, ui.forceEstimate) { threadRows(ui) }
     val newest = items.firstOrNull()
     val seen = remember { arrayOf(newest?.key) }
     LaunchedEffect(newest?.key) {
@@ -284,7 +333,7 @@ private fun Thread(
         val added = items.indexOfFirst { it.key == seen[0] }.coerceAtLeast(0)
         seen[0] = newest.key
         // Follows only from the bottom or for the user's own send; scrolled up, nothing jumps.
-        val own = newest is ChatItem.Loading || newest is ChatItem.User && newest.pending
+        val own = (newest as? ThreadRow.Item)?.item.let { it is ChatItem.Loading || it is ChatItem.User && it.pending }
         if (own || list.firstVisibleItemIndex <= added + 1) list.animateScrollToItem(0)
     }
     val nearOldest by remember {
@@ -306,15 +355,24 @@ private fun Thread(
         // Bottom 32 dp: the frame's two 16 dp gaps around its empty spacer when the thread fills the screen.
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
     ) {
-        itemsIndexed(items, key = { _, it -> it.key }) { i, item ->
-            // 16 dp between items; the question hugs its estimate (chatE). The oldest drawn item has none.
+        itemsIndexed(items, key = { _, it -> it.key }) { i, row ->
+            // 16 dp between items; the question hugs its estimate (chatE); the actions sit 12 dp under their
+            // message (D20). The oldest drawn item has none.
+            val item = (row as? ThreadRow.Item)?.item
             val gap = when {
                 i == items.lastIndex -> 0.dp
+                row is ThreadRow.Actions -> 12.dp
                 item is ChatItem.Question && !item.standalone -> 8.dp
                 else -> 16.dp
             }
             Box(Modifier.padding(top = gap)) {
-                ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit, record)
+                when {
+                    item == null -> AnswerActions(ui, answer)
+                    item.copyText != null -> SelectableRow(item.key, ui.selected, select) { selected ->
+                        ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit, record, selected)
+                    }
+                    else -> ThreadItem(item, ui, onRetry, onRoutineRecord, onRoutineEdit, record)
+                }
             }
         }
         if (ui.loadingOlder) {
@@ -330,6 +388,94 @@ private fun Thread(
 /** Older page requested when the oldest drawn item is this close to the end of the list. */
 private const val OLDER_THRESHOLD = 5
 
+/**
+ * A61 part B (chatCP): a text bubble row. A long press selects it (platform long-press haptic); while selecting, a tap
+ * adds or removes it. Selected: the surface/selected band across the screen behind the row.
+ */
+@Composable
+private fun SelectableRow(key: String, selection: Set<String>, select: SelectCallbacks, content: @Composable (selected: Boolean) -> Unit) {
+    val haptic = LocalHapticFeedback.current
+    val selected = key in selection
+    val selecting = selection.isNotEmpty()
+    val onLong by rememberUpdatedState {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        select.onLongPress(key)
+    }
+    val onTap by rememberUpdatedState { if (selecting) select.onTap(key) }
+    // Plain gestures, not a clickable: the bubble's own nodes (tags, chips, links) keep their semantics unmerged, and the
+    // buttons inside the row consume their taps first.
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .aeroSelectedRow(selected, Aero.colors.surfaceSelected)
+            .pointerInput(key) { detectTapGestures(onLongPress = { onLong() }, onTap = { onTap() }) }
+            .semantics {
+                this.selected = selected
+                onLongClick("Selecionar mensagem") { onLong(); true }
+                if (selecting) onClick { onTap(); true }
+            }
+            .testTag("chat-row-$key"),
+    ) { content(selected) }
+}
+
+/** A row of the thread: a [ChatItem], or the action stack of the latest answer (A61, ADR-048 decision 1). */
+private sealed interface ThreadRow {
+    val key: String
+
+    class Item(val item: ChatItem) : ThreadRow {
+        override val key get() = item.key
+    }
+
+    class Actions(override val key: String) : ThreadRow
+}
+
+/**
+ * [ChatUiState.newestFirst] with the action stack right under its message: Forçar estimativa under the latest
+ * question, an estimate's actions under its answer (and its follow-up question, chatE). Its own key, so it scrolls
+ * and recomposes with the thread.
+ */
+private fun threadRows(ui: ChatUiState): List<ThreadRow> {
+    val items = ui.newestFirst
+    val rows = items.mapTo(ArrayList<ThreadRow>(items.size + 1)) { ThreadRow.Item(it) }
+    val actions = ui.actions
+    val (key, at) = when {
+        ui.forceEstimate -> {
+            val q = items.indexOfFirst { it is ChatItem.Question && it.standalone }
+            "force-${(items.getOrNull(q) as? ChatItem.Question)?.messageId}" to q
+        }
+        actions != null -> {
+            val own = setOf("a-${actions.estimateId}", "q-${actions.estimateId}")
+            "actions-${actions.estimateId}" to items.indexOfFirst { it.key in own }
+        }
+        else -> return rows
+    }
+    rows.add(at.coerceAtLeast(0), ThreadRow.Actions(key))
+    return rows
+}
+
+/** The stack of the latest answer: Forçar estimativa, Registrar, Registrar assim + Reservar, or the two pills. */
+@Composable
+private fun AnswerActions(ui: ChatUiState, on: AnswerCallbacks) {
+    Column(Modifier.fillMaxWidth().testTag("chat-answer-actions"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val actions = ui.actions
+        when {
+            ui.forceEstimate -> ForceBar(on.onForceEstimate)
+            actions == null -> Unit
+            actions.choice != null -> AeroChoiceBar(
+                "Pode passar", "Ajustar para caber", { on.onBudgetOverOk(actions.estimateId) }, { on.onBudgetFit(actions.estimateId) },
+                leftTag = "chat-budget-over-ok", rightTag = "chat-budget-fit",
+            )
+            actions.plan -> {
+                PlanBar(actions) { on.onRecordPlan(actions.estimateId) }
+                actions.reserve?.let { slot ->
+                    AeroActionBar("Reservar para o ${slot.name}", AeroIconName.CalendarCheck, { on.onReserve(actions.estimateId) }, Modifier.testTag("chat-reserve"))
+                }
+            }
+            else -> RegisterBar { on.onRegister(actions.estimateId) }
+        }
+    }
+}
+
 @Composable
 private fun ThreadItem(
     item: ChatItem,
@@ -338,12 +484,13 @@ private fun ThreadItem(
     onRoutineRecord: () -> Unit,
     onRoutineEdit: () -> Unit,
     record: RecordCallbacks,
+    selected: Boolean = false,
 ) {
     when (item) {
         is ChatItem.DateSeparator -> DatePill(item.label)
-        is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it) } ?: UserBubble(item)
-        is ChatItem.Assistant -> AssistantBubble(item)
-        is ChatItem.Question -> QuestionBubble(item)
+        is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it, selected) } ?: UserBubble(item, selected)
+        is ChatItem.Assistant -> AssistantBubble(item, selected)
+        is ChatItem.Question -> QuestionBubble(item, selected)
         is ChatItem.Receipt -> ReceiptCard(item, { record.onReceiptAction(item.id, it) }, record.onMoveConfirm, record.onMoveElsewhere)
         is ChatItem.ReplacePrompt -> ReplaceCard(
             item.confirm,
@@ -379,11 +526,20 @@ private fun DatePill(label: String) = AeroDateChip(label)
 
 /** Chat/Bubble Sender=User: tinted glass at the right, time and read ticks inside. */
 @Composable
-private fun UserBubble(item: ChatItem.User) {
+private fun UserBubble(item: ChatItem.User, selected: Boolean = false) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-        AeroChatBubble(item.text, item.time, fromUser = true, maxWidth = UserBubbleMax, modifier = Modifier.testTag("chat-user-${item.id}"))
+        AeroChatBubble(
+            item.text, item.time, fromUser = true, maxWidth = UserBubbleMax,
+            modifier = Modifier.aeroSelectedBubble(selected, UserTailShape).testTag("chat-user-${item.id}"),
+        )
     }
 }
+
+/** Chat/Bubble Sender=User: radius 20, 6 at the bottom right (the selection ring follows it). */
+private val UserTailShape = RoundedCornerShape(topStart = AeroDimens.radiusCard, topEnd = AeroDimens.radiusCard, bottomEnd = 6.dp, bottomStart = AeroDimens.radiusCard)
+
+/** Glass bot bubble and question: radius 20, 6 at the bottom left. */
+private val BotTailShape = RoundedCornerShape(topStart = AeroDimens.radiusCard, topEnd = AeroDimens.radiusCard, bottomEnd = AeroDimens.radiusCard, bottomStart = 6.dp)
 
 /** User bubbles take at most 288 of the 350 dp thread; bot bubbles are 308 dp. */
 private val UserBubbleMax = 288.dp
@@ -412,12 +568,12 @@ private fun BubbleTime(time: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AssistantBubble(item: ChatItem.Assistant) {
+private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     Column(Modifier.fillMaxWidth(BOT_FRACTION), horizontalAlignment = Alignment.Start) {
         AiLabel()
-        BotBubble(Modifier.testTag("chat-bot-${item.id}")) {
+        BotBubble(Modifier.aeroSelectedBubble(selected, BotTailShape).testTag("chat-bot-${item.id}")) {
             val blocks = item.blocks
             if (item.plan != null) {
                 if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else PlanText(item.text)
@@ -450,7 +606,7 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
  * text and the time inside. Standalone (chatQ): a question before the estimate, with the bot label above.
  */
 @Composable
-private fun QuestionBubble(item: ChatItem.Question) {
+private fun QuestionBubble(item: ChatItem.Question, selected: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     val r = AeroDimens.radiusCard
@@ -460,6 +616,7 @@ private fun QuestionBubble(item: ChatItem.Question) {
         Column(
             Modifier
                 .fillMaxWidth()
+                .aeroSelectedBubble(selected, shape)
                 .aeroGlass(shape)
                 .drawBehind { drawRect(c.accentDefault, size = Size(3.dp.toPx(), size.height)) }
                 .padding(start = 20.dp, end = 17.dp, top = 17.dp, bottom = 15.dp)
@@ -666,47 +823,21 @@ private fun Chip(emoji: String, text: String, tag: String? = null, onClick: () -
     )
 }
 
-/** Actions slot (Chat/ActionBar) 10 dp above the composer, 24 dp from the bottom. */
+/** The composer alone at the bottom, 24 dp from it (A61: the actions moved into the thread). */
 @Composable
 private fun Footer(
     ui: ChatUiState,
     onComposer: (String) -> Unit,
     onSend: () -> Unit,
-    onRegister: (Long) -> Unit,
     onPhoto: () -> Unit,
     onRemoveAttachment: () -> Unit,
-    onRecordPlan: (Long) -> Unit,
-    onForceEstimate: () -> Unit,
-    onBudgetOverOk: (Long) -> Unit,
-    onBudgetFit: (Long) -> Unit,
-    onReserve: (Long) -> Unit,
 ) {
-    Column(
+    Box(
         Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        if (ui.forceEstimate) {
-            ForceBar(onForceEstimate)
-        } else {
-            ui.actions?.let {
-                when {
-                    it.choice != null -> AeroChoiceBar(
-                        "Pode passar", "Ajustar para caber", { onBudgetOverOk(it.estimateId) }, { onBudgetFit(it.estimateId) },
-                        leftTag = "chat-budget-over-ok", rightTag = "chat-budget-fit",
-                    )
-                    it.plan -> {
-                        PlanBar(it) { onRecordPlan(it.estimateId) }
-                        it.reserve?.let { slot ->
-                            AeroActionBar("Reservar para o ${slot.name}", AeroIconName.CalendarCheck, { onReserve(it.estimateId) }, Modifier.testTag("chat-reserve"))
-                        }
-                    }
-                    else -> RegisterBar { onRegister(it.estimateId) }
-                }
-            }
-        }
         Composer(ui, onComposer, onSend, onPhoto, onRemoveAttachment)
     }
 }
@@ -731,13 +862,13 @@ private fun ReservedLabel(slot: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** chatR: one Registrar assim in the actions slot. */
+/** chatR: Registrar assim under the plan. */
 @Composable
 private fun PlanBar(actions: EstimateActions, onClick: () -> Unit) {
     AeroActionBar("Registrar assim", AeroIconName.CheckCircle, onClick, Modifier.testTag("chat-record-plan"))
 }
 
-/** chatQ: one Forçar estimativa in the actions slot. */
+/** chatQ: Forçar estimativa under the latest question. */
 @Composable
 private fun ForceBar(onClick: () -> Unit) {
     AeroActionBar("Forçar estimativa", AeroIconName.FastForward, onClick, Modifier.testTag("chat-force-estimate"), haptic = Haptic.Light)
@@ -1002,3 +1133,16 @@ private fun Notice(text: String, onShown: () -> Unit) {
 }
 
 private const val NOTICE_MS = 3_000L
+
+/** chatCC (A61 part B, Android 12 and earlier): `Mensagem copiada` / `{n} mensagens copiadas` 10 dp above the composer, ~2 s. */
+@Composable
+private fun CopyToast(count: Int, onShown: () -> Unit) {
+    LaunchedEffect(count) {
+        delay(COPIED_MS)
+        onShown()
+    }
+    val label = if (count == 1) "Mensagem copiada" else "$count mensagens copiadas"
+    AeroCopyToast(label, Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp).semantics { liveRegion = LiveRegionMode.Polite }.testTag("chat-copied"))
+}
+
+private const val COPIED_MS = 2_000L

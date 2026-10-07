@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import app.fibrai.android.core.database.MealSlot
 import app.fibrai.android.domain.ProjectedDay
 import app.fibrai.android.domain.ReceiptAction
+import app.fibrai.android.domain.ReplyMarkup
 import app.fibrai.android.domain.SlotSuggestions
 
 @Immutable
@@ -227,6 +228,10 @@ data class ChatUiState(
     val focusComposer: Int = 0,
     /** The first page arrived: until then the thread is not composed (A32). */
     val loaded: Boolean = true,
+    /** A61 part B (chatCP): keys of the selected text bubbles; not empty = the selection bar replaces the header. */
+    val selected: Set<String> = emptySet(),
+    /** A61 part B (chatCC): messages just copied, shown by the app on Android 12 and earlier. */
+    val copied: Int? = null,
     /** The last page came back full: older rows may exist within the 60 days. */
     val hasOlder: Boolean = false,
     /** A page of older rows is on its way: indicator at the visual top. */
@@ -284,6 +289,19 @@ data class BudgetChoice(val limitKcal: Int, val overKcal: Int)
 /** chatRB: `Passa {overKcal} kcal do que sobra.` and one `Reservei {kcal} kcal para {label}.` per reservation. */
 @Immutable
 data class BudgetNote(val overKcal: Int, val reserved: List<Pair<Int, String>>)
+
+/**
+ * A61 part B (ADR-048): what Copiar takes from a text bubble, null when the item is not selectable. The user's text as
+ * typed (a photo only with its caption), a Tali reply as shown without markers (bullets keep `- `, table rows
+ * `{item}: {gramas}`), a question. Never receipts, cards, chips, the greeting or the meta card.
+ */
+val ChatItem.copyText: String?
+    get() = when (this) {
+        is ChatItem.User -> text.takeIf { it.isNotBlank() && !pending }
+        is ChatItem.Assistant -> text.takeIf { prose && it.isNotBlank() }?.let { if (blocks != null) ReplyMarkup.plain(it, bullet = "- ") else it }
+        is ChatItem.Question -> text.takeIf { it.isNotBlank() }
+        else -> null
+    }
 
 internal fun List<MealSlot>.refs() = sortedBy { it.minutesFromMidnight }
     .map { SlotRef(it.id, it.name, SlotSuggestions.format(it.minutesFromMidnight), it.minutesFromMidnight) }

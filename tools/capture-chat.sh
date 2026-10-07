@@ -20,7 +20,11 @@
 # SCENES=a50|a55|a57|a58 (or a60 for the four): A60 parts A-D: chatRB (Pode passar, Ajustar, recreation), the tone in
 #   Config (cfg, cfgT) and on the wire, the day and week closures through the dev-only broadcast (homeC, homeK, offline,
 #   collapse), formatted replies (chatR, chatRK, chatE, plain history and records), the reservation (chatRL, homeP).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60] tools/capture-chat.sh dark|light
+# SCENES=a61 only onboarding + A61: a plan's actions under it scroll with the thread while the composer stays; long press
+#   selects (1), a tap on the reply adds it (2), a tap on a receipt changes nothing (chatCP), Copiar ends the selection and
+#   Colar in the composer gives both messages as plain text (PASTE=1, see the scene); the app's copy confirmation
+#   (chatCC) on Android 12 and earlier only (an API 30 AVD at gold geometry); back and ✕ end the selection.
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -960,9 +964,9 @@ say "mais%suma"; kb_off
 if has chat-budget-fit; then echo "  ✗ pills with nothing to adjust to"; FAIL=1; else echo "  ✓ limit 0: no pills (chatR)"; fi
 # Gold thread (D12).
 sql "$CLEAN$A60_DAY"'
-RECIPE = NL.join(["Macarrão com atum ao sugo:", "• 80 g de macarrão cru", "• 1 lata de atum em água (120 g)", "• 150 g de molho de tomate",
-    "• 20 g de queijo ralado (opcional)", "1. Cozinhe o macarrão por 9 min.", "2. Aqueça o molho com o atum por 5 min.",
-    "3. Misture e finalize com o queijo.", "Total: ~620 kcal · 42P · 70C · 18G"])
+RECIPE = NL.join(["Macarrão com atum ao sugo:", "- 80 g de macarrão cru", "- 1 lata de atum em água (120 g)", "- 150 g de molho de tomate",
+    "- 20 g de queijo ralado (opcional)", "1. Cozinhe o macarrão por 9 min.", "2. Aqueça o molho com o atum por 5 min.",
+    "3. Misture e finalize com o queijo.", "Total: ~**620 kcal** · 42P · 70C · 18G"])
 msg("user", "Me passa uma receita de macarrão com atum pro jantar? Mais tarde ainda como uma fatia de bolo.", 2000)
 msg("assistant", RECIPE, 1000, estimateKcal=620, estimateP=42, estimateC=70, estimateG=18, estimateConfidence="medium", estimateSlotId=jantar,
     intent="plan", recordMode="none",
@@ -1177,6 +1181,135 @@ start_app
 expect "collapsed: Ontem: 1300 de 2175 kcal" 'Ontem: 1300 de 2175 kcal'
 "$ADB" shell am force-stop $PKG
 fi
+fi
+
+# ------------------------------------------------------------------ A61: actions in the thread, copying messages (ADR-048)
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a61 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+box() { # box <tag> -> "x1 y1 x2 y2" of the first node with that resource-id, empty when not drawn
+  dump; "$PY" - "$1" "$TMP/ui.xml" <<'EOF'
+import re, sys
+m = re.search(r'resource-id="' + re.escape(sys.argv[1]) + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', open(sys.argv[2], encoding="utf-8").read())
+print(" ".join(m.groups()) if m else "")
+EOF
+}
+hold() { # hold <tag>: long press on its centre
+  local b; b=$(box "$1"); [ -z "$b" ] && { echo "  ✗ not found: $1"; FAIL=1; return 1; }
+  set -- $b; "$ADB" shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 900; sleep 1
+}
+count_is() { # count_is <n>: the selection bar shows n
+  dump; "$PY" - "$1" "$TMP/ui.xml" <<'EOF'
+import re, sys
+m = re.search(r'<node[^>]*text="([^"]*)"[^>]*resource-id="chat-selection-count"', open(sys.argv[2], encoding="utf-8").read())
+sys.exit(0 if m and m.group(1) == sys.argv[1] else 1)
+EOF
+}
+A61_SEED='
+import json
+slots = {n: i for i, n in c.execute("select id, name from meal_slot")}
+cafe = next(i for n, i in slots.items() if n.startswith("Caf"))
+jantar = next(i for n, i in slots.items() if n.startswith("Jan"))
+now = int(time.time() * 1000)
+def msg(role, text, at, **kw):
+    cols = ["date", "role", "text", "createdAtEpochMs"] + list(kw)
+    c.execute(f"insert into chat_message({chr(44).join(cols)}) values({chr(44).join(chr(63) * len(cols))})", [today, role, text, now - at] + list(kw.values()))
+    return c.execute("select max(id) from chat_message").fetchone()[0]
+NL = chr(10)
+'
+set_clock 0 20:15
+
+echo "  A61 part A: a plan's actions sit under it and scroll with the thread; the composer stays"
+sql "$CLEAN$A61_SEED"'
+for i in range(4):
+    msg("user", f"Pergunta {i + 1} sobre o dia", 9000 - i * 2000)
+    msg("assistant", "Resposta curta. " * 12, 8000 - i * 2000)
+msg("user", "Não sei o que jantar. Me dá umas ideias?", 1500)
+msg("assistant", NL.join(["Duas opções para o jantar:", "- **Pizza de pão sírio** · **420 kcal**", "- **Omelete de forno** · **360 kcal**",
+    "Primeira opção: ~**420 kcal** · 40P · 38C · 12G"]), 1000, estimateKcal=420, estimateP=40, estimateC=38, estimateG=12,
+    estimateConfidence="high", estimateSlotId=jantar, estimateMealText="Pizza de pão sírio", intent="plan", recordMode="none")
+'
+open_chat
+plan0=$(box chat-record-plan); input0=$(box chat-input)
+[ -n "$plan0" ] && echo "  ✓ Registrar assim drawn: $plan0" || { echo "  ✗ no Registrar assim"; FAIL=1; }
+set -- $plan0 $input0
+[ "${4:-0}" -lt "${6:-0}" ] && echo "  ✓ the stack ends above the composer" || { echo "  ✗ stack over the composer ($plan0 / $input0)"; FAIL=1; }
+"$ADB" shell input swipe 390 500 390 900 400; sleep 1.2
+plan1=$(box chat-record-plan); input1=$(box chat-input)
+p0=$(echo "$plan0" | cut -d' ' -f2); p1=$(echo "$plan1" | cut -d' ' -f2)
+if [ -z "$plan1" ] || [ "${p1:-0}" -gt "${p0:-0}" ]; then echo "  ✓ the stack moved with the thread (${p0} -> ${p1:-off screen})"; else echo "  ✗ the stack did not move ($plan0 -> $plan1)"; FAIL=1; fi
+[ "$input1" = "$input0" ] && echo "  ✓ the composer stayed ($input0)" || { echo "  ✗ the composer moved ($input0 -> $input1)"; FAIL=1; }
+"$ADB" shell input swipe 390 900 390 300 300; sleep 1
+tap 'resource-id="chat-record-plan"' 1.5
+expect "Registrar assim still records from the thread" 'resource-id="chat-receipt-delete"|resource-id="chat-sheet"'
+
+echo "  A61 part B: long press selects, taps toggle, a receipt is never selected, Copiar"
+COPY_SEED='
+eggs = "2 pães franceses com 2 ovos mexidos no café da manhã"
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", eggs, 380, 22, cafe, 36, 16, "user"))
+u = msg("user", eggs, 3000)
+a = msg("assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", 2000, estimateKcal=380, estimateP=22, estimateC=36,
+    estimateG=16, estimateConfidence="high", estimateSlotId=cafe, estimateItems="2 pães franceses" + NL + "2 ovos mexidos", intent="log",
+    recordMode="auto", recordState="recorded")
+r = {"text": eggs, "kcal": 380, "p": 22, "c": 36, "g": 16, "source": "user", "window": "", "stable": True}
+msg("logged", "Café da manhã", 1000, estimateKcal=380, estimateSlotId=cafe, recordSource="user",
+    undoData=json.dumps({"slots": [{"date": today, "slotId": cafe, "before": {"records": [], "skipped": False}, "after": {"records": [r], "skipped": False}}]}))
+'
+sql "$CLEAN$A61_SEED$COPY_SEED"
+open_chat
+ids=$(db "select id, role from chat_message order by id")
+uid=$(echo "$ids" | "$PY" -c "import ast,sys; print([i for i, r in ast.literal_eval(sys.stdin.read()) if r == 'user'][0])")
+aid=$(echo "$ids" | "$PY" -c "import ast,sys; print([i for i, r in ast.literal_eval(sys.stdin.read()) if r == 'assistant'][0])")
+rid=$(echo "$ids" | "$PY" -c "import ast,sys; print([i for i, r in ast.literal_eval(sys.stdin.read()) if r == 'logged'][0])")
+open_chat
+hold "chat-row-u-$uid"
+count_is 1 && echo "  ✓ long press on the user bubble: selection bar with 1" || { echo "  ✗ selection bar after the long press"; FAIL=1; }
+tap "resource-id=\"chat-row-a-$aid\"" 1
+count_is 2 && echo "  ✓ a tap on the Tali reply: 2" || { echo "  ✗ count after the tap on the reply"; FAIL=1; }
+tap "resource-id=\"chat-receipt-$rid\"" 1
+count_is 2 && echo "  ✓ a tap on the receipt changes nothing" || { echo "  ✗ the receipt changed the selection"; FAIL=1; }
+shot chatCP
+tap 'resource-id="chat-copy"' 1.5
+if has chat-selection; then echo "  ✗ the selection is still open after Copiar"; FAIL=1; else echo "  ✓ Copiar ends the selection"; fi
+# Colar in the composer: the copied text, plain. PASTE=1 only: the paste key comes from a keyboard source (the field's
+# text toolbar cannot be read by uiautomator, a dpad paste does not reach the field), and Gboard then stays in its
+# physical-keyboard mode until the AVD restarts without saving its snapshot, which breaks the keyboard checks of the
+# other scripts (input-checks.sh).
+if [ "${PASTE:-0}" = 1 ]; then
+tap 'resource-id="chat-input"' 1.5
+"$ADB" shell input keyevent KEYCODE_PASTE; sleep 1.5
+dump
+"$PY" - "$TMP/ui.xml" <<'EOF' && echo "  ✓ pasted: both messages in order, a blank line apart, no markers" || { echo "  ✗ pasted text"; FAIL=1; }
+import html, re, sys
+xml = open(sys.argv[1], encoding="utf-8").read()
+m = re.search(r'<node[^>]*text="([^"]*)"[^>]*resource-id="chat-input"', xml)
+text = html.unescape(m.group(1)) if m else ""
+want = "2 pães franceses com 2 ovos mexidos no café da manhã\n\nIdentifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:"
+print("   ", repr(text[:160]))
+sys.exit(0 if text == want and "**" not in text else 1)
+EOF
+else echo "  · Colar check skipped (PASTE=1 runs it)"; fi
+kb_off
+echo "  A61 part B: the copy confirmation (the app's own on Android 12 and earlier, the system's on 13+)"
+open_chat
+hold "chat-row-u-$uid"
+tap 'resource-id="chat-copy"' 0.3
+if [ "$("$ADB" shell getprop ro.build.version.sdk | tr -d '')" -le 32 ]; then
+  expect "Mensagem copiada above the composer" 'text="Mensagem copiada"'
+  shot chatCC 0.2
+  sleep 2.5
+  if has chat-copied; then echo "  ✗ the confirmation stayed"; FAIL=1; else echo "  ✓ the confirmation goes away by itself"; fi
+else
+  if has chat-copied; then echo "  ✗ the app's confirmation on Android 13+"; FAIL=1; else echo "  ✓ Android 13+: no confirmation of the app's own (the system overlay shows it)"; fi
+fi
+echo "  A61 part B: back and ✕ end the selection"
+open_chat
+hold "chat-row-u-$uid"
+has chat-selection && "$ADB" shell input keyevent 4 && sleep 1
+if has chat-selection; then echo "  ✗ back kept the selection"; FAIL=1; elif has chat; then echo "  ✓ back ends the selection and stays in the Chat"; else echo "  ✗ back left the Chat"; FAIL=1; fi
+hold "chat-row-a-$aid"
+tap 'resource-id="chat-selection-close"' 1
+if has chat-selection; then echo "  ✗ ✕ kept the selection"; FAIL=1; else echo "  ✓ ✕ ends the selection"; fi
+"$ADB" shell am force-stop $PKG
 fi
 
 "$ADB" shell settings put global auto_time 1

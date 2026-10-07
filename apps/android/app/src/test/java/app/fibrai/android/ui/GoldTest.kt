@@ -107,11 +107,11 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
     fun o3s_light() = check("o3s", dark = false) { O3S() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h845dp-xhdpi")
-    fun cfgS_dark() = check("cfgS", dark = true, reportOnly = true, region = CFG_S_TOP) { CfgS() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun cfgS_dark() = check("cfgS", dark = true) { CfgS() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h845dp-xhdpi")
-    fun cfgS_light() = check("cfgS", dark = false, reportOnly = true, region = CFG_S_TOP) { CfgS() }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun cfgS_light() = check("cfgS", dark = false) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
     fun o4_dark() = check("o4", dark = true) { O4() }
@@ -157,10 +157,10 @@ class GoldTest {
     fun chatL_light() = check("chatL", dark = false) { Chat(ChatFixtures.chatL) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatE_dark() = check("chatE", dark = true, reportOnly = true, regions = darkSkip(1688, 570, 735)) { Chat(ChatFixtures.chatE) }
+    fun chatE_dark() = check("chatE", dark = true) { Chat(ChatFixtures.chatE) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatE_light() = check("chatE", dark = false, reportOnly = true, regions = threadBoxes(1688)) { Chat(ChatFixtures.chatE) }
+    fun chatE_light() = check("chatE", dark = false) { Chat(ChatFixtures.chatE) }
 
     /** A30: second question before the estimate, Forçar estimativa (A42: Figma frame, gated whole). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -249,18 +249,18 @@ class GoldTest {
     fun chatP_light() = check("chatP", dark = false) { HomePanelScreen(HomePanelMapper.map(HomeFixtures.home0, LocalDate.parse("2026-09-25")), {}, {}, {}, initialSkip = 3) }
 
     /** A29: plan with the projected day and Registrar assim. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h928dp-xhdpi")
-    fun chatR_dark() = check("chatR", dark = true, reportOnly = true, regions = darkSkip(1856, 570, 640)) { Chat(ChatFixtures.chatR) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
+    fun chatR_dark() = check("chatR", dark = true) { Chat(ChatFixtures.chatR) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h928dp-xhdpi")
-    fun chatR_light() = check("chatR", dark = false, reportOnly = true, regions = threadBoxes(1856)) { Chat(ChatFixtures.chatR) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h930dp-xhdpi")
+    fun chatR_light() = check("chatR", dark = false) { Chat(ChatFixtures.chatR) }
 
     /** A29: Memória atualizada and the origin chips. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
-    fun chatM_dark() = check("chatM", dark = true) { Chat(ChatFixtures.chatM) }
+    fun chatM_dark() = check("chatM", dark = true, reportOnly = true, regions = CHAT_M_BOXES, reportRegions = CHAT_M_ACTION) { Chat(ChatFixtures.chatM) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
-    fun chatM_light() = check("chatM", dark = false) { Chat(ChatFixtures.chatM) }
+    fun chatM_light() = check("chatM", dark = false, reportOnly = true, regions = CHAT_M_BOXES, reportRegions = CHAT_M_ACTION) { Chat(ChatFixtures.chatM) }
 
     /** A29: the routine suggestion on an empty day. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -274,6 +274,19 @@ class GoldTest {
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
+
+    /** chatCP, chatCC (D20, A61 part B): two messages selected; the copy confirmation of Android 12 and earlier. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun chatCP_dark() = check("chatCP", dark = true) { Chat(ChatFixtures.chatCP) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun chatCP_light() = check("chatCP", dark = false) { Chat(ChatFixtures.chatCP) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h948dp-xhdpi")
+    fun chatCC_dark() = check("chatCC", dark = true) { Chat(ChatFixtures.chatCC) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h948dp-xhdpi")
+    fun chatCC_light() = check("chatCC", dark = false) { Chat(ChatFixtures.chatCC) }
 
     /** cfg gold is a full-page capture (1047 dp) ending on the Dados block (D15). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1104dp-xhdpi")
@@ -295,18 +308,18 @@ class GoldTest {
     fun wipe_light() = check("wipe", dark = false) { Cfg(wipe = true) }
 
     /** chatRL (D18, A60 part D): the reserved plan. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h896dp-xhdpi")
-    fun chatRL_dark() = check("chatRL", dark = true, reportOnly = true, regions = threadBoxes(1792)) { Chat(ChatFixtures.chatRL) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h898dp-xhdpi")
+    fun chatRL_dark() = check("chatRL", dark = true) { Chat(ChatFixtures.chatRL) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h896dp-xhdpi")
-    fun chatRL_light() = check("chatRL", dark = false, reportOnly = true, regions = threadBoxes(1792)) { Chat(ChatFixtures.chatRL) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h898dp-xhdpi")
+    fun chatRL_light() = check("chatRL", dark = false) { Chat(ChatFixtures.chatRL) }
 
     /** chatRK (D17, A60 part C): the recipe with its table and steps. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1065dp-xhdpi")
-    fun chatRK_dark() = check("chatRK", dark = true, reportOnly = true, regions = threadBoxes(2130)) { Chat(ChatFixtures.chatRK) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1067dp-xhdpi")
+    fun chatRK_dark() = check("chatRK", dark = true, reportOnly = true, regions = CHAT_RK_BOXES) { Chat(ChatFixtures.chatRK) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1065dp-xhdpi")
-    fun chatRK_light() = check("chatRK", dark = false, reportOnly = true, regions = threadBoxes(2130)) { Chat(ChatFixtures.chatRK) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1067dp-xhdpi")
+    fun chatRK_light() = check("chatRK", dark = false, reportOnly = true, regions = CHAT_RK_BOXES) { Chat(ChatFixtures.chatRK) }
 
     /** homeP (D18, A60 part D): the dinner reserved on the timeline. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1496dp-xhdpi")
@@ -316,11 +329,11 @@ class GoldTest {
     fun homeP_light() = check("homeP", dark = false) { Home(HOME_P_DAY) }
 
     /** chatRB (D12, A60 part A). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h904dp-xhdpi")
-    fun chatRB_dark() = check("chatRB", dark = true, reportOnly = true, regions = threadBoxes(1808)) { Chat(ChatFixtures.chatRB) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1002dp-xhdpi")
+    fun chatRB_dark() = check("chatRB", dark = true) { Chat(ChatFixtures.chatRB) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h904dp-xhdpi")
-    fun chatRB_light() = check("chatRB", dark = false, reportOnly = true, regions = threadBoxes(1808)) { Chat(ChatFixtures.chatRB) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1002dp-xhdpi")
+    fun chatRB_light() = check("chatRB", dark = false) { Chat(ChatFixtures.chatRB) }
 
     /** o5 (D16, A60 part B): the tone, Seco preselected. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -599,39 +612,26 @@ class GoldTest {
         private const val BLUR_RADIUS = 3
         private const val MAX_DIFF_PERCENT = 2.0
 
+        /** homeK: the page down to the week card, then the day card and the timeline, each at its best offset (2 dp apart). */
+        private val HOME_K_BOXES = listOf(intArrayOf(0, 0, 780, 1690), intArrayOf(0, 1690, 780, 3588))
+
         /**
          * chatF (Figma frame): the frame crops its sample photo differently from the app's centre crop of the fixture, so
          * the photo box is left out: header to the bubble top, the tag and caption row, and the bot answer to the end.
          */
         /**
-         * cfgS (A44) was drawn before the Tom da Tali row (D16): the rows below the macros moved one row down, beyond the
-         * region search. Gated: the header and the first three rows; the rest is reported until the gold is redrawn.
+         * chatRK: the app fits "finalize" on the third step's first line where the Figma text wraps it (font raster), so
+         * everything below moves one line: the bubble down to the steps, and the total, the day panel and Registrar
+         * assim, each at its best offset.
          */
-        private val CFG_S_TOP = intArrayOf(0, 0, 780, 700)
-
-        /** homeK: the page down to the week card, then the day card and the timeline, each at its best offset (2 dp apart). */
-        private val HOME_K_BOXES = listOf(intArrayOf(0, 0, 780, 1690), intArrayOf(0, 1690, 780, 3588))
+        private val CHAT_RK_BOXES = listOf(intArrayOf(0, 0, 780, 1370), intArrayOf(0, 1450, 780, 2054))
 
         /**
-         * D12, D17 and D18 drew the Chat thread 6 dp lower than the earlier Chat golds (and the app): the header, the
-         * thread and the actions slot are gated each at its own best offset.
+         * chatM (A29) was not redrawn by D20: its Registrar still sits above the composer, where A61 (ADR-048) draws it
+         * 12 dp under the answer. Gated: the header and the thread down to the time; the action zone is reported.
          */
-        /**
-         * The dark chatR and chatE golds (D17) draw their first paragraph in the page colour (unreadable): that band
-         * [skipFrom, skipTo) is left out; the header, the rest of the thread and the actions slot are gated.
-         */
-        fun darkSkip(heightPx: Int, skipFrom: Int, skipTo: Int): List<IntArray> = listOf(
-            intArrayOf(0, 0, 780, 150),
-            intArrayOf(0, 150, 780, skipFrom),
-            intArrayOf(0, skipTo, 780, heightPx - 330),
-            intArrayOf(0, heightPx - 330, 780, heightPx - 80),
-        )
-
-        fun threadBoxes(heightPx: Int): List<IntArray> = listOf(
-            intArrayOf(0, 0, 780, 150),
-            intArrayOf(0, 150, 780, heightPx - 330),
-            intArrayOf(0, heightPx - 330, 780, heightPx - 80),
-        )
+        private val CHAT_M_BOXES = listOf(intArrayOf(0, 0, 780, 1500))
+        private val CHAT_M_ACTION = listOf(intArrayOf(0, 1500, 780, 1690))
 
         private val CHAT_F_BOXES = listOf(intArrayOf(0, 0, 780, 228), intArrayOf(0, 470, 780, 1922))
 
