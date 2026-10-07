@@ -38,6 +38,8 @@ Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-
 | `overlay/scrim` | `#03122566` | `#00000099` | `DietaBotColors.overlayScrim` | Scrim behind a modal sheet: dims the screen underneath. Light: bg/page Dark at 40 %; Dark: black at 60 %. |
 | `status/bad-tint` | `#b93b2c1f` | `#ff7a6b29` | `DietaBotColors.statusBadTint` | Background tint of an over-the-meta element (Meta excedida pill, over node): status/bad at 12 % (Light) / 16 % (Dark). |
 | `status/on-bad` | `#ffffff` | `#ffffff` | `DietaBotColors.statusOnBad` | Text and icons on a status/bad fill (Excluir e pular in chatSD): white in both themes. |
+| `surface/selected` | `#0c66bc4d` | `#4fc3f74d` | `DietaBotColors.surfaceSelected` | Selected chat row (chatCP, ADR-048): band behind the whole row, accent family at 30 %; darker than the page in Light, lighter in Dark. Text on it keeps WCAG AA. The selected bubble sits on an opaque bg/page backing (the band never shows through the glass) and carries the border/selected ring, the 3:1 state cue. |
+| `border/selected` | `#0a4f91` | `#4fc3f7` | `DietaBotColors.borderSelected` | Ring (2 px, inside) of a selected chat bubble (chatCP, ADR-048): the WCAG 1.4.11 state cue, at least 3:1 against the bubble and against surface/selected in both themes. |
 
 ### Shape (modes: Value)
 

@@ -141,8 +141,24 @@ No stale gold outside the table of Sources. `app gap` items handed to A61: **(1)
 2. Read-back (`use_figma`) of the 34 changed frames: instances everywhere a DS component exists (16–36 per frame), zero visible solid paints without a variable or style, Dark frames in mode Dark and Light frames in Light (the onboarding and `cfgS` Light frames use the collection default, Light, as before); in the six action frames and in `chatCP`/`chatCC` the `Actions` stacks are inside `Thread` and the `Footer` holds only the composer (plus the toast in `chatCC`); `Chat/SelectionBar` and `Chat/CopyToast` are components with instances in both themes.
 3. Review images via `node tools/export-figma.mjs --only <node ids> --dry-run` (no MCP calls). Fixed during the build: `620 kcal` was regular in the first pass of `chatRB`.
 
-Figma MCP budget: 18 of 110 calls (whoami, 2 skill reads, 15 `use_figma`).
+Figma MCP budget: 18 of 110 calls (whoami, 2 skill reads, 15 `use_figma`) at the first review.
 
 ### Owner review
+
+**Round 1 (07/10/2026).** The owner found the `chatCP` highlight weak in both themes (low contrast, no sense of "selected") and asked for WCAG: darker in Light, lighter in Dark. Measured on the exported frames against the real page gradient behind the rows: WCAG 1.4.11 (3:1 for a state) cannot be met by the band alone in either theme, because a band 3:1 away from the page would push the `Tali` label (`text/primary`) under 4.5:1 (Light needs band luminance ≤ 0.12 for 3:1 and ≥ 0.27 for the label; Dark ≥ 0.17 and ≤ 0.16). Fix, with the owner's direction and two new variables (mirrored into `docs/design/tokens.json`, `docs/tokens.md` with `node tools/gen-tokens.mjs`, and `web/public/css/tokens.css` with `npm --prefix web run tokens`; the app generates `AeroColors.surfaceSelected` and `borderSelected` from the JSON):
+
+- `surface/selected` (`#0c66bc4d` Light, `#4fc3f74d` Dark): the band behind the selected row, twice the earlier emphasis, darker than the page in Light and lighter in Dark.
+- `border/selected` (`#0a4f91` Light, `#4fc3f7` Dark): a 2 px inside ring on each selected bubble, the 3:1 state cue. The bubble keeps its size (stroke in layout, padding minus 1).
+- An opaque `bg/page` backing under each selected bubble, so the band does not show through the glass. This is also how the app renders: the Haze glass blurs the page background, not the row band.
+
+| Measure (exported pixels) | Light | Dark | Needs |
+|---|---|---|---|
+| Band vs the unselected page beside it | 1.34–1.40 | 1.92–1.95 | (cue below) |
+| Ring vs the bubble / vs the band | 7.58 / 3.50 | 8.26 / 4.98 | 3:1 |
+| `Tali` label on the band | 5.90 | 7.41 | 4.5:1 |
+| Time `20:15` in the selected Tali bubble | 5.10 (4.63 unselected) | 5.93 (5.85) | 4.5:1 |
+| Time in the selected user bubble | 4.15 (3.69 unselected) | 4.93 (4.72) | 4.5:1 |
+
+The Light user-bubble time (`text/dim` on the tinted bubble) is under 4.5:1 with or without selection, in every Chat gold: a token issue outside this plan, reported to the owner. Figma MCP: 5 more calls (23 of 110).
 
 Pending: the owner reviews the sections "Chat · D5", "Chat · D6" (only the frames above), "Chat — Plano acima do orçamento", "Splash e onboarding · D4", "Config e push · D7" and the two new components in Figma. After the OK: export (Scope 6).
