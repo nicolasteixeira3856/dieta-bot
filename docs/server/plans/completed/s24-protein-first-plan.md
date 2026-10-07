@@ -120,5 +120,5 @@ Known gap: without history every meal expects an equal share of the ceiling, so 
 
 1. `pytest -q` in `server/`: 450 passed, 422 subtests passed.
 2. Evaluation as above; the full suite was not run (owner decision, cost).
-3. Dev deploy with `tools/deploy-gcp.ps1` from the merged master; smoke recorded below.
+3. Dev deploy with `tools/deploy-gcp.ps1` from the merged master (PR #153), then from the two smoke follow-ups: PR #166 and #167 (a closing the model writes without a food, `Lanche: ~435 kcal · P 33`, is rebuilt once instead of duplicated) and PR #168 (a closing must end its line: the answered meal's total followed by more macros is prose). Smoke on the dev URL, request ids `s24-smoke-1791381660-0..2`, `s24-smoke-1791381921-3`, `s24-smoke-1791382051-4..5`: an open dinner with 980 kcal left and a supper reserved at 150 returned two options and `limit_kcal` 830; the toast-and-jam dinner came back with `Para a proteína (opcional): 150 g de frango desfiado, +239 kcal · P 48 g` and 53 g of protein; a lunch log returned one closing line per remaining meal with the server's numbers (`a definir` where the fixture has no history).
 4. `node tools/check-docs.mjs`: passed.
