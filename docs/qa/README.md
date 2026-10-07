@@ -23,7 +23,7 @@ splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.
 home0.png · home1.png · homeX.png · homeW.png · homeC.png · homeK.png · homeP.png
 chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
 chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
-chatRK.png · chatRB.png · chatRL.png
+chatRK.png · chatRB.png · chatRL.png · chatSK.png · chatSD.png
 chatI.png · chatIC.png · chatTI.png
 cfg.png · cfgS.png · wipe.png · cfgR.png · cfgT.png · push.png
 land.png · landM.png · priv.png

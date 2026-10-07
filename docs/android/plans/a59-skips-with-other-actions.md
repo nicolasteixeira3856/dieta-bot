@@ -6,7 +6,7 @@
 - Executable boundary: `apps/android/` (network DTOs and request flag, Chat ViewModel and recorder, the skip receipts, the delete-and-skip proposal card, Room column and migration, telemetry, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`.
 - Related documentation: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md), [product Chat](../../produto/specifications/chat.md) rules 4, 5, 7 and 19, [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
 - Prerequisites:
-  - [D19](../../design/plans/pending_manual_validation/d19-skips-with-other-actions.md) `Concluído` with `chatSK` and `chatSD` exported;
+  - [D19](../../design/plans/completed/d19-skips-with-other-actions.md) `Concluído` with `chatSK` and `chatSD` exported;
   - [S29](../../server/plans/completed/s29-skip-slots.md) delivered and deployed to the dev server;
   - no parallel Android plan. A59 does not depend on A50, A55, A57 or A58: whichever runs later rebases and takes the next Room version. With A58 delivered, a planned slot is skipped at once (ADR-046); without it, that clause has nothing to do.
 

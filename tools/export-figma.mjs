@@ -65,6 +65,9 @@ export const DARK_FRAMES = {
   chatRK: "147:5274",
   chatRB: "144:5179",
   chatRL: "151:5399",
+  // Skips next to other actions (D19)
+  chatSK: "155:6914",
+  chatSD: "155:6936",
   // Chat meal updates (D9)
   chatI: "123:4230",
   chatIC: "123:4308",
@@ -123,6 +126,9 @@ export const LIGHT_FRAMES = {
   chatRK: "147:5180",
   chatRB: "144:5081",
   chatRL: "151:5326",
+  // Skips next to other actions (D19)
+  chatSK: "155:6711",
+  chatSD: "155:6839",
   // Chat meal updates (D9)
   chatI: "123:3802",
   chatIC: "123:3909",
