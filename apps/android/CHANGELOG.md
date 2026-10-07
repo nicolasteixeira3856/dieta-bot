@@ -2,6 +2,22 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.18 — 07/10/2026
+
+### Novidades
+
+- Tom da Tali: escolha como ela fala com você. **Seco** mostra só os números; **Duro** cobra o que estourou e o que faltou, sem rodeio. A escolha aparece no fim do cadastro e pode ser trocada em Configurações → Tom da Tali.
+- Fechamento do dia às 22h: uma notificação e um cartão na tela inicial com as calorias, os macros, as refeições que faltaram e um texto curto no tom escolhido. No domingo vem também o fechamento da semana. Sem internet, o cartão mostra só os números e o texto chega na próxima vez que você abrir o app.
+- Respostas mais fáceis de ler: números importantes em negrito, opções em lista, passos numerados e uma tabela de porções nas receitas.
+- Reservar um plano: quando a Tali sugere um prato para uma refeição, o botão **Reservar** guarda esse plano. A refeição aparece como planejada na linha do tempo e, quando você registra o que comeu, o recibo mostra a diferença para o plano.
+- Quando um plano passa do que sobra no dia, você escolhe: **Pode passar** ou **Ajustar para caber**.
+- Pular refeição junto com outra coisa: dá para dizer numa mesma mensagem "pulei o almoço" e o que comeu em outra refeição; o Chat registra uma e pula a outra, cada uma com o seu recibo e Desfazer.
+- Pular uma refeição que já tinha registro agora pergunta antes: **Excluir e pular** ou **Manter registro**.
+
+### Ajustes
+
+- O cadastro agora tem 5 telas; o botão da tela de macros passou a ser **Continuar**.
+
 ## 0.0.17 — 06/10/2026
 
 ### Correções
