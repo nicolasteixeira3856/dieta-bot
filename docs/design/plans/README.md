@@ -105,7 +105,7 @@ Behavior: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md)
 | Step | Plan | Depends on |
 |---|---|---|
 | Server | S29 — skip slots next to any intent, delivered ([history](../../server/plans/completed/)) | — |
-| Design | [D19](d19-skips-with-other-actions.md) — two receipts and the delete proposal (`chatSK`, `chatSD`) | D6, D9 |
+| Design | [D19](pending_manual_validation/d19-skips-with-other-actions.md) — two receipts and the delete proposal (`chatSK`, `chatSD`) | D6, D9 |
 | Client | [A59](../../android/plans/a59-skips-with-other-actions.md) — skips next to other actions in the Chat | D19, S29 on dev |
 
 Deferred by owner decision (2026-10-06): goal weight and date, [A56](../../android/plans/out_of_scope/a56-goal-weight.md).
