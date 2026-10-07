@@ -823,6 +823,17 @@ RULES: dict[str, Rule] = {
         'history, digests and pending proposals explain the conversation without proving that an action was '
         'saved.'
     )),
+    'planned': Rule('server Chat 3/4/5; ADR-046', (
+        'PLANNED: a DAY slot with status planned holds a dish the user reserved for that meal in the app, '
+        'with its kcal and macros; nothing of it was eaten, and it is not a recorded meal. Food reported as '
+        'eaten in a planned slot is a new meal of that slot (with meal_change: operation new, base_slot '
+        'null): estimate what was actually eaten, never the plan. Never write the difference to the plan or '
+        'compare the totals: the server adds that line. Under TONE duro, one adjustment for the meals still '
+        'open may follow. A plan for a planned slot is allowed: answer the dish; it replaces the reservation '
+        'only if the user reserves it again in the app. A WINDOWS meal marked planejado gets no CLOSING '
+        'line. You never reserve, lock or keep a plan: never say in reply that a meal was reserved, locked, '
+        'kept or saved for later.'
+    )),
     'format': Rule('server Chat 3/5; ADR-045', (
         'FORMAT: reply may use only this subset, and nothing else. **bold** only on the numbers that decide '
         '(the dish or meal kcal, grams, protein), the dish name and a one-word verdict; never a whole '
@@ -898,7 +909,7 @@ _CAPABILITY = {
         ("rule", "plan"), ("rule", "closing"), ("rule", "reference"), ("rule", "history"), ("cues", "history"),
         ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"), ("rule", "memory_use"),
         ("rule", "memory_changes"), ("cues", "memory_changes"), ("rule", "temp_references"),
-        ("rule", "skips"), ("rule", "format"),
+        ("rule", "skips"), ("rule", "planned"), ("rule", "format"),
     ),
     "meal_changes": (
         ("rule", "product_meal_changes"), ("rule", "context"),
@@ -910,7 +921,7 @@ _CAPABILITY = {
         ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
-        ("rule", "temp_references"), ("rule", "skips"), ("rule", "format"),
+        ("rule", "temp_references"), ("rule", "skips"), ("rule", "planned"), ("rule", "format"),
     ),
 }
 

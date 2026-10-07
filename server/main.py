@@ -152,12 +152,25 @@ class ProfileIn(BaseModel):
 
 class DaySlotIn(BaseModel):
     id: str
-    status: Literal["empty", "eaten", "skipped"]
+    status: Literal["empty", "eaten", "skipped", "planned"]
     text: str | None = None
     kcal: float | None = None
     p: float | None = None
     c: float | None = None
     g: float | None = None
+
+    @model_validator(mode="after")
+    def _planned_carries_the_plan(self) -> "DaySlotIn":
+        """ADR-046 (S30 part C): a planned slot carries the plan's text and numbers, nothing eaten."""
+        if self.status != "planned":
+            return self
+        if not isinstance(self.text, str) or not self.text.strip() or len(self.text) > COMPOSED_MEAL_TEXT_MAX:
+            raise ValueError("planned slot needs the plan text")
+        for key in NUTRIENTS:
+            value = getattr(self, key)
+            if value is None or number(value) < 0:
+                raise ValueError("planned slot needs finite nonnegative kcal, p, c and g")
+        return self
 
 
 class DayIn(BaseModel):
@@ -253,7 +266,7 @@ class ChatIn(BaseModel):
             states = day.get("slots", []) if isinstance(day, dict) else []
             if isinstance(states, list):
                 for state in states:
-                    if isinstance(state, dict) and state.get("status") == "eaten":
+                    if isinstance(state, dict) and state.get("status") in ("eaten", "planned"):
                         # Check before Pydantic could coerce strings/bools into the recorded base.
                         for key in NUTRIENTS:
                             number(state.get(key))
@@ -653,6 +666,7 @@ def create_app(
                     "meal_window": None,
                     "tone": body.profile.tone,
                     "format_stripped": None,
+                    "plan_difference": None,
                 },
             )
         finally:
@@ -841,6 +855,7 @@ def chat_reply(
     def shape(payload: dict[str, Any]) -> dict[str, Any]:
         record.update(record_fields(payload))
         result, record["clarify"], record_log = shape_chat_turn(body, payload, photo_only=photo_only)
+        record["plan_difference"] = _plan_difference(body, payload, result)
         if result.get("intent") == "plan" and result.get("estimate"):
             window = _meal_window(body, payload)
             record["meal_window"] = window.log() if window else None
@@ -1085,7 +1100,7 @@ def _record_totals(body: ChatIn) -> frozenset[float]:
     """kcal of the supplied records: a model total equal to one of them is a copy and stays (ADR-042)."""
     return frozenset(
         [float(m.kcal) for m in body.recent]
-        + [float(s.kcal) for s in body.day.slots if s.kcal is not None]
+        + [float(s.kcal) for s in body.day.slots if s.kcal is not None and s.status == "eaten"]
     )
 
 
@@ -1207,6 +1222,34 @@ def _close_day(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) ->
         now=_now(body), usual=_usual_foods(body),
         complete=meal_window.windows_line(slots, _expected(body, slots), body.day.remaining_kcal, 0, _now(body)) is not None,
     )
+
+
+_PLAN_DIFFERENCE = re.compile(r"[ \t]*[+\u2212-]?\s?\d+(?:\.\d{3})*\s*kcal\s+(?:sobre o|abaixo do) plano\.?", re.IGNORECASE)
+
+
+def _plan_difference(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) -> int | None:
+    """ADR-046: a released log into a planned slot ends its prose with the difference to the plan.
+
+    Server arithmetic over DAY and the server total (rule 4a); a difference the model wrote is replaced.
+    Returns the difference in kcal for the dev log, None when the clause does not apply.
+    """
+    estimate = result.get("estimate")
+    if (result.get("intent") != "log" or not isinstance(estimate, dict) or payload.get("meal_day") == "other"
+            or not isinstance(result.get("reply"), str)):
+        return None
+    state = next((s for s in body.day.slots if s.id == estimate.get("suggested_slot")), None)
+    if state is None or state.status != "planned":
+        return None
+    difference = meal_window.rounded(float(estimate.get("kcal") or 0)) - meal_window.rounded(float(state.kcal))
+    if difference > 0:
+        clause = f"+{difference} kcal sobre o plano."
+    elif difference < 0:
+        clause = f"\u2212{-difference} kcal abaixo do plano."
+    else:
+        clause = "Igual ao plano."
+    reply = _PLAN_DIFFERENCE.sub("", result["reply"]).rstrip()
+    result["reply"] = f"{reply}\n{clause}" if reply else clause
+    return difference
 
 
 def _format(result: dict[str, Any], record: dict[str, Any]) -> None:
