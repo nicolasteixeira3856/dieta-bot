@@ -1,16 +1,16 @@
 # Plan — A58 Reserve a plan for its meal
 
-- Status: Aguardando aprovação
+- Status: Cancelado (07/10/2026, dono: "ao invés de ter vários planos, concentre tudo num plano só, 1 para server e 1 para app"); scope carried unchanged into [A60](../a60-tone-formatting-planned-skips.md)
 - Date: 06/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (Room entity and migration for the planned state, `BudgetCalculator`, Chat plan bubble and ViewModel, receipts, Home timeline, network DTOs, telemetry, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`.
-- Related documentation: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md), [product Chat](../../produto/specifications/chat.md) rules 16 and 19, [home-timeline](../../produto/specifications/home-timeline.md), [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
+- Related documentation: [ADR-046](../../../produto/adrs/ADR-046-planned-meal-reservation.md), [product Chat](../../../produto/specifications/chat.md) rules 16 and 19, [home-timeline](../../../produto/specifications/home-timeline.md), [Room](../../specifications/room-v2.md), [HTTP contract](../../../api-contract.md).
 - Prerequisites:
-  - [D18](../../design/plans/completed/d18-planned-meal.md) `Concluído` with `chatR`, `chatRL`, `homeP` exported;
-  - [S27](../../server/plans/s27-planned-slot.md) delivered and deployed to the dev server;
-  - [A50](a50-plan-budget-choice.md), [A54](completed/a54-auto-record-addition-empty-slot.md), [A55](a55-tone-choice-and-closures.md) and [A57](a57-rich-reply-rendering.md) delivered or cancelled (same Chat, Home and Room files; no parallel Android plan).
+  - [D18](../../../design/plans/completed/d18-planned-meal.md) `Concluído` with `chatR`, `chatRL`, `homeP` exported;
+  - [S27](../../../server/plans/s27-planned-slot.md) delivered and deployed to the dev server;
+  - [A50](../a50-plan-budget-choice.md), [A54](../completed/a54-auto-record-addition-empty-slot.md), [A55](../a55-tone-choice-and-closures.md) and [A57](../a57-rich-reply-rendering.md) delivered or cancelled (same Chat, Home and Room files; no parallel Android plan).
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a58-planned-meal-reservation.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a58-planned-meal-reservation.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -44,11 +44,11 @@ One tap reserves a plan for its meal: the slot shows as planned on the timeline,
 
 ### Intended specification changes
 
-At Completion: [product Chat](../../produto/specifications/chat.md) rules 16 (the pill, `chatRL`), 19 (receipt line, undo), 22 (a planned slot is not occupied); [home-timeline](../../produto/specifications/home-timeline.md) (`homeP`, gestures); [Room](../specifications/room-v2.md); Provenance lines; ADR-046 status to Accepted (if not already).
+At Completion: [product Chat](../../../produto/specifications/chat.md) rules 16 (the pill, `chatRL`), 19 (receipt line, undo), 22 (a planned slot is not occupied); [home-timeline](../../../produto/specifications/home-timeline.md) (`homeP`, gestures); [Room](../../specifications/room-v2.md); Provenance lines; ADR-046 status to Accepted (if not already).
 
 ## Out of scope
 
-- Server (S27), design (D18), reservations for another day, a reservation without a plan bubble, production (blocked by the [production gate](../../content-policy/production-gate.md)).
+- Server (S27), design (D18), reservations for another day, a reservation without a plan bubble, production (blocked by the [production gate](../../../content-policy/production-gate.md)).
 
 ## Validation
 
