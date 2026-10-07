@@ -1,6 +1,7 @@
 # Plan — A59 Skips next to other actions in the Chat
 
 - Status: Pendente aprovação manual
+- Note: cancelled in PR #171 (scope folded into A60 part E) while it was being implemented; restored and merged as implemented by owner decision (07/10/2026). A60 carries it as part E, delivered.
 - Date: 07/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (network DTOs and request flag, Chat ViewModel and recorder, the skip receipts, the delete-and-skip proposal card, Room column and migration, telemetry, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`.

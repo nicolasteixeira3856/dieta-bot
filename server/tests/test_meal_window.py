@@ -130,6 +130,26 @@ class ClosingFallbackTests(unittest.TestCase):
         self.assertEqual(out.split(chr(10)), ["Assumi 30 g de alface.", "Jantar: frango com arroz ~400 kcal · P 30", "Ceia: a definir ~400 kcal · P 30"])
 
 
+class ClosingWithoutFoodTests(unittest.TestCase):
+    def test_a_closing_without_a_food_is_rebuilt_once(self):
+        slots = [Slot("1", "Café", "eaten", 400, 20, "07:30"), Slot("2", "Almoço", "empty", time="12:30"),
+                 Slot("3", "Jantar", "empty", time="19:30"), Slot("4", "Ceia", "empty", time="22:00")]
+        expected = {s.id: 400 for s in slots}
+        reply = chr(10).join(["Almoço ~477 kcal.", "Jantar: ~435 kcal · P 33", "Ceia: ~435 kcal · P 33"])
+        out = mw.close_reply(reply, slots, expected, 1200, 90, "2", 400, 30, now="12:40", usual={"3": "frango"}, complete=True)
+        self.assertEqual(out.split(chr(10)), ["Almoço ~477 kcal.", "Jantar: frango ~400 kcal · P 30", "Ceia: a definir ~400 kcal · P 30"])
+
+
+class ClosingEndsItsLineTests(unittest.TestCase):
+    def test_a_meal_total_followed_by_more_macros_is_prose(self):
+        slots = [Slot("1", "Café", "eaten", 400, 20, "07:30"), Slot("2", "Almoço", "empty", time="12:30"),
+                 Slot("3", "Jantar", "empty", time="19:30")]
+        expected = {s.id: 400 for s in slots}
+        prose = "Assumi 30 g de alface. Almoço: arroz e frango ~474 kcal · P 58 g · C 52 g · G 6 g."
+        out = mw.close_reply(chr(10).join([prose, "Jantar: frango ~435 kcal · P 33"]), slots, expected, 1200, 90, "2", 474, 58, now="12:40")
+        self.assertEqual(out.split(chr(10)), [prose, "Jantar: frango ~726 kcal · P 32"])
+
+
 class LinesTests(unittest.TestCase):
     expected = {"1": 400, "2": 600, "3": 300, "4": 600, "5": 200}
 

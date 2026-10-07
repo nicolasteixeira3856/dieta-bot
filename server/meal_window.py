@@ -249,7 +249,7 @@ def windows_line(
 
 
 _CLOSING = re.compile(
-    r"(?:(?<=^)|(?<=\n)|(?<=\. )|(?<=; ))(?P<name>[^.:\n;]{1,40}?): (?P<food>(?:(?!kcal)[^\n])+?) ~\d+ kcal · P \d+(?: g)?[.;]?(?=\s|$)",
+    r"(?:(?<=^)|(?<=\n)|(?<=\. )|(?<=; ))(?P<name>[^.:\n;]{1,40}?): (?P<food>(?:(?!kcal)[^\n])*?) ?~\d+ kcal · P \d+(?: g)?[.;]?(?=[ \t]*(?:\n|$))",
     re.MULTILINE,
 )
 
@@ -282,20 +282,24 @@ def close_reply(
     left_p = rounded(remaining_p - (p - before_p))
     numbers = {s.id: (k, q) for s, (_, k, q) in zip(others, windows(others, expected, left_kcal, left_p))}
     closings: dict[str, str] = {}
+    named: set[str] = set()
     body = reply
     for m in list(_CLOSING.finditer(reply))[::-1]:
         slot = by_key.get(_slot_key(m.group("name")))
         if slot is None:
             continue
-        if slot.id in numbers and slot.id not in closings:
-            closings[slot.id] = m.group("food").strip().rstrip(".;")
+        named.add(slot.id)
+        food = m.group("food").strip().rstrip(".;")
+        if slot.id in numbers and slot.id not in closings and food:
+            closings[slot.id] = food
         body = body[: m.start()] + body[m.end():]
     prose = "\n".join(line.rstrip() for line in body.split("\n") if line.strip()).strip()
     # With complete (a WINDOWS line was served), a meal the model left out still gets its line: the slot's
     # latest RECENT food when there is one, else "a definir"; the numbers are the server's either way (ADR-043 decision 6).
     lines = []
     for s in others:
-        food = closings.get(s.id) or ((usual or {}).get(s.id) or "a definir" if complete else None)
+        # A closing the model wrote without a food (`Lanche: ~435 kcal · P 33`) is rebuilt like a missing one.
+        food = closings.get(s.id) or (usual or {}).get(s.id) or ("a definir" if complete or s.id in named else None)
         if food is None:
             continue
         lines.append(f"{s.name}: {food} ~{numbers[s.id][0]} kcal · P {numbers[s.id][1]}")

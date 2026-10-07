@@ -159,6 +159,10 @@ Ao fim da implementação de qualquer plano, o agente faz sozinho, sem pedir:
 
 Exceções: o commit `chore(release)` + tag do `tools/distribute-dev.ps1` (A16) continua indo direto na `master`, porque faz parte do deploy e não de um plano. PR com CI vermelho ou conflito não é mergeado: o agente para e reporta.
 
+## Execução autônoma
+
+Vários planos aprovados numa única mensagem e entregues em sequência sem o dono: regras, ordem, teto de custo de avaliação (US$ 0,50 por sessão) e relatório em [autonomous-run.md](autonomous-run.md) (decisão do dono, 07/10/2026).
+
 ## Gate Figma
 
 Mudança de layout que precisa de gold novo ou alterado é desenhada pelo agente no arquivo Figma `Design`, num plano de design (`docs/design/plans/D<n>`, um fluxo por plano, dentro de um dia de orçamento do MCP do Figma). Regra: [ADR-031](../design/adrs/ADR-031-figma-source-of-truth.md); passos: [design/plans/README.md § Figma review gate](../design/plans/README.md#figma-review-gate).

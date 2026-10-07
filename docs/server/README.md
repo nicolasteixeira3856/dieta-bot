@@ -33,7 +33,8 @@ How much to run (owner decision, 2026-10-05, after one day of evaluation exhaust
 | Change | Validation | Model calls |
 | --- | --- | --- |
 | Server code only (route, shaping, log, infra) | unit tests + the three-turn HTTP smoke after the dev deploy | 0 |
-| Prompt or schema change | the cases the change touches at `--repeat 3`, then the whole suite at `--repeat 1`, compared with the last recorded full run | about 250 |
+| Prompt or schema change, attended | the cases the change touches at `--repeat 3`, then the whole suite at `--repeat 1`, compared with the last recorded full run | about 250 |
+| Prompt or schema change, unattended ([autonomous run](../sdd/autonomous-run.md), owner decision 07/10/2026) | the plan's own tag at `--repeat 3`, then the sentinel set `--tag s22 --tag s23 --tag s24 --tag recipe --repeat 1`; whole suite never; US$ 0.50 per session for every plan together | about 60 |
 | New or changed evaluator check | unit tests for the check; the cases that use it at `--repeat 3` | tens |
 
 - The previous full run is the baseline; do not rerun the old prompt on the same day. Rerun a baseline only when the model or effort changes.
@@ -80,7 +81,7 @@ cd server
 
 ### Plans and validation
 
-- Active plans: files directly under [plans/](plans/): [S25 — Tone per user and the closure route](plans/s25-tone-and-closures.md), [S26 — Reply formatting subset](plans/s26-reply-formatting-subset.md), [S27 — Planned slot in DAY](plans/s27-planned-slot.md). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
+- Active plans: files directly under [plans/](plans/): [S30 — Tone, closures, reply formatting and planned slot](plans/s30-tone-formatting-planned-slot.md). Cancelled by owner decision (07/10/2026, one plan per context): S25, S26, S27 in [`plans/cancelled/`](plans/cancelled/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
 - Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
 - Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.
 - Validation covering more than one plan: [validation/](validation/).

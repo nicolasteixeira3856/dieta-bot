@@ -1,17 +1,17 @@
 # Plan — A50 Plan over budget: the choice in the Chat
 
-- Status: Aguardando aprovação
+- Status: Cancelado (07/10/2026, dono: "ao invés de ter vários planos, concentre tudo num plano só, 1 para server e 1 para app"); scope carried unchanged into [A60](../a60-tone-formatting-planned-skips.md)
 - Date: 05/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (Chat UI/ViewModel, network DTOs, Room entity/migration, telemetry, tests) plus the Chat QA tooling `tools/fake-chat-server.mjs` and `tools/capture-chat.sh`.
-- Related documentation: [product Chat](../../produto/specifications/chat.md) rule 16, [Room](../specifications/room-v2.md), Android validation and the plan indexes. Fresh captures go to the existing QA folders.
+- Related documentation: [product Chat](../../../produto/specifications/chat.md) rule 16, [Room](../../specifications/room-v2.md), Android validation and the plan indexes. Fresh captures go to the existing QA folders.
 - Prerequisites:
-  - acceptance of [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md); [S21](../../server/plans/completed/s21-plan-cooking-and-budget-choice.md) delivered and deployed to the dev server;
-  - [D12](../../design/plans/completed/d12-plan-budget-choice.md) `Concluído` with `chatRB` exported;
-  - [A47](completed/a47-chat-meal-updates.md) delivered (same Chat files and Room column family);
-  - [A48](completed/a48-fibrai-app-id-firebase.md) and [A49](completed/a49-fibrai-tali-visible-rename.md) delivered or cancelled (package rename and visible copy; no parallel Android plan).
+  - acceptance of [ADR-039](../../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md); [S21](../../../server/plans/completed/s21-plan-cooking-and-budget-choice.md) delivered and deployed to the dev server;
+  - [D12](../../../design/plans/completed/d12-plan-budget-choice.md) `Concluído` with `chatRB` exported;
+  - [A47](../completed/a47-chat-meal-updates.md) delivered (same Chat files and Room column family);
+  - [A48](../completed/a48-fibrai-app-id-firebase.md) and [A49](../completed/a49-fibrai-tali-visible-rename.md) delivered or cancelled (package rename and visible copy; no parallel Android plan).
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a50-plan-budget-choice.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a50-plan-budget-choice.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -19,7 +19,7 @@ When a plan's dish is over what is left of the day, the Chat asks once whether g
 
 ## Sources
 
-ADR-039 owns the behavior and copy. S21 owns the capability, then the [HTTP contract](../../api-contract.md). `chatRB` (D12) and `chatR` own the layout. Read the delivered A47 code at start and rebase on the then-current master.
+ADR-039 owns the behavior and copy. S21 owns the capability, then the [HTTP contract](../../../api-contract.md). `chatRB` (D12) and `chatR` own the layout. Read the delivered A47 code at start and rebase on the then-current master.
 
 ## Scope
 
@@ -54,7 +54,7 @@ One event with enums and numbers only: the choice (`over_ok` | `fit`) and `over_
 
 ### Intended specification changes
 
-At Completion: product Chat rule 16 gains the choice (when it shows, copy, actions, expiry) and `chatRB` in the state list; Room gains the column and version; Provenance links. The gold inventory stays owned by [qa](../../qa/README.md).
+At Completion: product Chat rule 16 gains the choice (when it shows, copy, actions, expiry) and `chatRB` in the state list; Room gains the column and version; Provenance links. The gold inventory stays owned by [qa](../../../qa/README.md).
 
 ## Out of scope
 
