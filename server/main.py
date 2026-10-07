@@ -19,7 +19,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -48,6 +48,7 @@ from conversation_log import ConversationLog, now_iso
 from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
 from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
+import closure
 import estimate_total
 import meal_window
 import protein_boost
@@ -129,6 +130,9 @@ class SlotIn(BaseModel):
     time: str
 
 
+Tone = Literal["seco", "duro"]
+
+
 class ProfileIn(BaseModel):
     ceiling_kcal: float
     p_target: float
@@ -136,6 +140,13 @@ class ProfileIn(BaseModel):
     g_target: float
     eat_back: str
     slots: list[SlotIn] = Field(default_factory=list)
+    # ADR-044 (S30): the user's tone. Absent or null (a legacy client) is seco; any other value is 422.
+    tone: Tone = "seco"
+
+    @field_validator("tone", mode="before")
+    @classmethod
+    def _legacy_tone(cls, value: Any) -> Any:
+        return "seco" if value is None else value
 
 
 class DaySlotIn(BaseModel):
@@ -301,6 +312,84 @@ class ChatIn(BaseModel):
         return self.temp_facts and self.facts is not None
 
 
+# /v1/close (ADR-044, S30): every value is an integer, a date or an enum; meal names are the only text.
+CLOSE_MAX_BODY_BYTES = 16 * 1024
+CLOSE_NAME_MAX = 40
+_KCAL_MAX = 20000
+_GRAMS_MAX = 5000
+
+
+def _int(low: int, high: int) -> Any:
+    return Field(..., strict=True, ge=low, le=high)
+
+
+class _Closed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class CloseProfileSlotIn(_Closed):
+    id: str = Field(..., min_length=1, max_length=16)
+    name: str = Field(..., min_length=1, max_length=CLOSE_NAME_MAX)
+    time: str = Field(..., pattern=r"^\d{2}:\d{2}$")
+
+
+class CloseProfileIn(_Closed):
+    ceiling_kcal: int = _int(1, _KCAL_MAX)
+    p_target: int = _int(0, _GRAMS_MAX)
+    c_target: int = _int(0, _GRAMS_MAX)
+    g_target: int = _int(0, _GRAMS_MAX)
+    slots: list[CloseProfileSlotIn] = Field(default_factory=list, max_length=12)
+
+
+class CloseSlotIn(_Closed):
+    name: str = Field(..., min_length=1, max_length=CLOSE_NAME_MAX)
+    status: Literal["empty", "eaten", "skipped", "planned"]
+    kcal: int | None = Field(default=None, strict=True, ge=0, le=_KCAL_MAX)
+
+
+class _CloseTotals(_Closed):
+    date: date
+    kcal: int = _int(0, _KCAL_MAX)
+    p: int = _int(0, _GRAMS_MAX)
+    c: int = _int(0, _GRAMS_MAX)
+    g: int = _int(0, _GRAMS_MAX)
+    ceiling_kcal: int = _int(1, _KCAL_MAX)  # effective ceiling of that day
+    workout_kcal: int | None = Field(default=None, strict=True, ge=0, le=_KCAL_MAX)
+
+
+class CloseDayIn(_CloseTotals):
+    slots: list[CloseSlotIn] = Field(default_factory=list, max_length=12)
+
+
+class CloseWeekDayIn(_CloseTotals):
+    recorded: bool = Field(..., strict=True)
+
+
+class CloseOverSlotIn(_Closed):
+    name: str = Field(..., min_length=1, max_length=CLOSE_NAME_MAX)
+    days: int = _int(0, 7)
+
+
+class CloseWeekIn(_Closed):
+    days: list[CloseWeekDayIn] = Field(..., min_length=1, max_length=7)
+    over_slot: CloseOverSlotIn | None = None
+
+
+class CloseIn(_Closed):
+    period: Literal["day", "week"]
+    tone: Tone = "seco"
+    local_time: str | None = Field(default=None, max_length=40)
+    profile: CloseProfileIn
+    numbers: CloseDayIn | CloseWeekIn
+
+    @model_validator(mode="after")
+    def _numbers_match_period(self) -> "CloseIn":
+        expected = CloseDayIn if self.period == "day" else CloseWeekIn
+        if not isinstance(self.numbers, expected):
+            raise ValueError("numbers do not match period")
+        return self
+
+
 def reject_photo(image_b64: str | None) -> str | None:
     if image_b64 is None:
         return None
@@ -367,9 +456,10 @@ def create_app(
     @app.middleware("http")
     async def limit_upload_size(request: Request, call_next):
         content_length = request.headers.get("content-length")
+        limit = CLOSE_MAX_BODY_BYTES if request.url.path == "/v1/close" else MAX_BODY_BYTES
         if content_length:
             try:
-                if int(content_length) > MAX_BODY_BYTES:
+                if int(content_length) > limit:
                     return Response(
                         status_code=413,
                         content=b'{"detail":"payload_too_large"}',
@@ -560,10 +650,32 @@ def create_app(
                     "plan_budget": None,
                     "adjust_retry": False,
                     "meal_window": None,
+                    "tone": body.profile.tone,
                 },
             )
         finally:
             image = None
+
+    @app.post("/v1/close")
+    @limiter.limit(RATE_LIMIT_CHAT)
+    def close(
+        request: Request,
+        body: CloseIn,
+        x_invite: str | None = Header(default=None, alias="X-Invite"),
+        x_client_instance_id: str | None = Header(default=None, alias=INSTANCE_ID_HEADER),
+    ) -> dict[str, Any]:
+        _require_invite(x_invite, app.state.invite_code)
+        safety_id = _safety_id(request, x_client_instance_id)
+        x_client_instance_id = None
+        return _logged(
+            request,
+            "close",
+            None,
+            lambda record, deadline: close_reply(
+                llm, moderator, body, record, deadline, safety_identifier=safety_id
+            ),
+            {"tone": body.tone, "period": body.period, "close_dropped": None},
+        )
 
     def _compact(request: Request, body: ChatIn, safety_id: str | None) -> dict[str, Any]:
         # Photo is ignored in compact: it never reaches the summary call.
@@ -743,6 +855,7 @@ def chat_reply(
                 slot_ids=[s.id for s in body.profile.slots],
                 fact_ids=body.fact_ids or [],
                 meal_changes=body.meal_changes,
+                tone=body.profile.tone,
                 trace=record,
                 timeout=timeout,
                 safety_identifier=safety_identifier,
@@ -828,6 +941,63 @@ def compact_reply(
         fail=fail_digest,
         refuse=lambda reply: fail_digest(),
     )
+
+
+def close_reply(
+    llm: LlmClient,
+    moderator: Moderator,
+    body: CloseIn,
+    record: dict[str, Any],
+    deadline: Deadline,
+    *,
+    safety_identifier: str | None = None,
+) -> dict[str, Any]:
+    """The /v1/close turn (ADR-044), shared by HTTP and evals. A refusal, a failure or moderation down
+    returns the fixed neutral line built from the numbers, never an HTTP error for the closure itself."""
+    for name in ("has_photo", "photo_b64_chars"):
+        record.pop(name, None)
+    numbers = closure.numbers_text(body)
+    allowed = closure.allowed_numbers(numbers)
+
+    def neutral(reason: str) -> dict[str, Any]:
+        record["fallback"] = reason
+        return {"text": closure.fallback(body), "model": MODEL}
+
+    def shape(payload: dict[str, Any]) -> dict[str, Any]:
+        text, dropped = closure.shape_text(payload.get("text"), allowed)
+        record["close_dropped"] = dropped or None
+        if text is None:
+            raise ValueError("close text empty")
+        return {"text": text, "model": MODEL}
+
+    try:
+        return run_guarded(
+            record,
+            lambda: guarded_turn(
+                moderator,
+                deadline,
+                record,
+                # The numbers are app data, not user text: nothing to moderate on input (content policy).
+                input_texts=[],
+                image=None,
+                generate=lambda timeout: llm.close_json(
+                    numbers_text=numbers, tone=body.tone, trace=record, timeout=timeout,
+                    safety_identifier=safety_identifier,
+                ),
+                shape=shape,
+                output_texts=lambda result: [result["text"]],
+                scoped=False,
+            ),
+            fail=lambda: neutral("error"),
+            refuse=lambda reply: neutral("policy"),
+        )
+    except ModerationUnavailable as exc:
+        _LOG.warning("close moderation unavailable: %s", exc.reason)
+        record["policy"] = {"code": "unavailable", "table": POLICY_TABLE_VERSION}
+        record["raw_output"] = None
+        result = neutral("moderation")
+        record["response"] = result
+        return result
 
 
 def _block(reply: str) -> dict[str, Any]:

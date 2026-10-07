@@ -1,0 +1,101 @@
+{
+  "id": "s25-close-dia-duro",
+  "since": "close",
+  "tags": [
+    "s25",
+    "close"
+  ],
+  "route": "close",
+  "request": {
+    "period": "day",
+    "tone": "duro",
+    "local_time": "2026-10-14T22:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ]
+    },
+    "numbers": {
+      "date": "2026-10-14",
+      "kcal": 2230,
+      "p": 98,
+      "c": 250,
+      "g": 80,
+      "ceiling_kcal": 2000,
+      "workout_kcal": null,
+      "slots": [
+        {
+          "name": "Café",
+          "status": "eaten",
+          "kcal": 410
+        },
+        {
+          "name": "Almoço",
+          "status": "eaten",
+          "kcal": 980
+        },
+        {
+          "name": "Lanche",
+          "status": "skipped"
+        },
+        {
+          "name": "Jantar",
+          "status": "eaten",
+          "kcal": 840
+        },
+        {
+          "name": "Ceia",
+          "status": "empty"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "reply_has": [
+      "ceia"
+    ],
+    "reply_any": [
+      "almoco",
+      "230"
+    ],
+    "reply_not": [
+      "gorda",
+      "gordo",
+      "corpo",
+      "barriga",
+      "aparencia",
+      "emagre",
+      " kg",
+      "quilos"
+    ]
+  },
+  "note": "Day over the ceiling with an empty supper: duro names what broke the day and asks for the supper."
+}

@@ -14,7 +14,7 @@ import httpx2
 
 from evals import run
 from evals.checks import CASE_LEVEL, FAIL, KNOWN, NA, PASS, case_status, evaluate, repetition_status
-from main import ChatIn
+from main import ChatIn, CloseIn
 from tests.test_api import FAKE_KEY, _envelope, _is_moderation, _moderation
 
 V1_LOG = {
@@ -284,8 +284,13 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "meal_changes", "skip_slots", "cp2"))
+                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "meal_changes", "skip_slots", "cp2", "close"))
                 self.assertTrue(set(case.get("required", [])) <= set(case["expect"]))
+                if case.get("route") == run.CLOSE_ROUTE:
+                    self.assertEqual(case["since"], "close")
+                    CloseIn.model_validate(case["request"])
+                    self.assertTrue(set(case["expect"]) <= {"reply_has", "reply_not", "reply_any"})
+                    continue
                 if case["since"] == "v5":
                     self.assertTrue(case["request"]["temp_facts"])
                     self.assertTrue(case["request"]["auto_record"])

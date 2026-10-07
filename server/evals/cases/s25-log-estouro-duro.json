@@ -1,0 +1,121 @@
+{
+  "id": "s25-log-estouro-duro",
+  "since": "skip_slots",
+  "tags": [
+    "s25",
+    "tone",
+    "log"
+  ],
+  "request": {
+    "local_time": "2026-10-14T20:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "duro"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-14",
+      "eaten_kcal": 2150,
+      "eaten_p": 75,
+      "eaten_c": 252,
+      "eaten_g": 88,
+      "workout_kcal": null,
+      "remaining_kcal": -150,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "pão francês com manteiga e café com leite",
+          "kcal": 390,
+          "p": 14,
+          "c": 52,
+          "g": 13
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "feijoada com arroz, couve, farofa e laranja",
+          "kcal": 1350,
+          "p": 52,
+          "c": 140,
+          "g": 60
+        },
+        {
+          "id": "t",
+          "status": "eaten",
+          "text": "pastel de carne e caldo de cana",
+          "kcal": 410,
+          "p": 9,
+          "c": 60,
+          "g": 15
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "jantei 2 fatias de pizza de calabresa",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "j",
+    "reply_any": [
+      "estour",
+      "passou",
+      "acima",
+      "excedeu",
+      "ultrapass"
+    ],
+    "reply_not": [
+      "gorda",
+      "gordo",
+      "corpo",
+      "barriga",
+      "aparencia",
+      "emagre",
+      " kg",
+      "quilos"
+    ]
+  },
+  "note": "Duro: a dinner logged on a day already 150 kcal over the ceiling; the reply names the overshoot."
+}
