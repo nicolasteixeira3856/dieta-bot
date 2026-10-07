@@ -65,4 +65,15 @@ interface ChatMessageDao {
 
     @Query("UPDATE chat_message SET receiptState = :state WHERE id = :id")
     suspend fun setReceiptState(id: Long, state: String)
+
+    /** A59: the skips of an answer. */
+    @Query("SELECT skipOutcomes FROM chat_message WHERE id = :id")
+    suspend fun skipOutcomesOf(id: Long): String?
+
+    @Query("UPDATE chat_message SET skipOutcomes = :skipOutcomes WHERE id = :id")
+    suspend fun setSkipOutcomes(id: Long, skipOutcomes: String)
+
+    /** A59: answers with a delete proposal still waiting for Excluir e pular or Manter registro, any day. */
+    @Query("SELECT * FROM chat_message WHERE role = 'assistant' AND skipOutcomes LIKE '%\"pending_delete\"%'")
+    suspend fun getOpenSkips(): List<ChatMessageEntity>
 }

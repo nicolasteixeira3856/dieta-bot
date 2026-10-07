@@ -100,6 +100,7 @@ object PromptBuilder {
                 autoRecord = true,
                 tempFacts = true,
                 mealChanges = true,
+                skipSlots = true,
                 pendingAddition = pendingAddition,
             ),
             blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames, eaten) }, block.last().id) },
@@ -230,7 +231,7 @@ object PromptBuilder {
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, pendingAddition = null)
+        turn.body.copy(compact = true, text = "", messages = block.messages, pendingAddition = null, skipSlots = false)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {

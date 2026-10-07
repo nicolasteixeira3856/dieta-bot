@@ -67,6 +67,37 @@ object ChatFixtures {
         slots = slots,
     )
 
+    /** chatSK (D19, A59): breakfast recorded by itself and the pre-workout skipped in the same message, two receipts. */
+    val chatSK = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(50, "Pulei o pré-treino. No café comi 2 ovos mexidos e 1 pão francês.", "07:41"),
+            ChatItem.Assistant(
+                id = 51,
+                text = "Pré-treino de hoje fora. Identifiquei 2 ovos mexidos e 1 pão francês. A estimativa total é de:",
+                time = "07:42",
+                highlights = listOf("2 ovos mexidos", "1 pão francês"),
+                estimate = EstimateView(320, 17, 29, 16, null, null),
+            ),
+            ChatItem.Receipt(52, ReceiptKind.LOGGED, "Café da manhã", "07:30", 320, actions = recordActions),
+            ChatItem.Receipt(53, ReceiptKind.SKIPPED, "Pré-treino", "06:00", null, actions = listOf(ReceiptAction.UNDO)),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
+    /** chatSD (D19, A59): the lunch is skipped over its 640 kcal record; Excluir e pular asks inside the conversation. */
+    val chatSD = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(60, "Acabei não almoçando hoje.", "14:04"),
+            ChatItem.Assistant(61, "Almoço de hoje fora.", "14:05"),
+            ChatItem.SkipDeletePrompt(61, SkipDeleteConfirm(slots[1], kcal = 640)),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
     private val pudding = ChatItem.User(20, "Também comi um pudim de leite no jantar", "21:02")
     private val puddingEstimate = EstimateView(620, 30, 82, 19, null, null)
 

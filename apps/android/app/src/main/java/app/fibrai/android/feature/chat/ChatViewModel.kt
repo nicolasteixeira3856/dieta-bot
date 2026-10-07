@@ -22,6 +22,7 @@ import app.fibrai.android.core.telemetry.RequestIds
 import app.fibrai.android.core.telemetry.Telemetry
 import app.fibrai.android.core.telemetry.TelemetryEvents
 import app.fibrai.android.core.database.RecordGuard
+import app.fibrai.android.core.database.SkipMove
 import app.fibrai.android.domain.ChatText
 import app.fibrai.android.domain.EstimateNumbers
 import app.fibrai.android.domain.MealChanges
@@ -37,6 +38,8 @@ import app.fibrai.android.domain.ReceiptAction
 import app.fibrai.android.domain.ReceiptRules
 import app.fibrai.android.domain.RoutineUpdate
 import app.fibrai.android.domain.SaoPaulo
+import app.fibrai.android.domain.SkipEntry
+import app.fibrai.android.domain.SkipOutcomes
 import app.fibrai.android.domain.SlotChange
 import app.fibrai.android.domain.SlotClock
 import app.fibrai.android.domain.SlotRecord
@@ -161,6 +164,9 @@ class ChatViewModel @Inject constructor(
     private val shownAsks = mutableSetOf<Long>()
     private val expiring = mutableSetOf<Long>()
 
+    /** A59: delete proposals (answer, slot) already being expired. */
+    private val expiringSkips = mutableSetOf<Pair<Long, Long>>()
+
     /** A47: answers with a record tap in flight ([once]). */
     private val inFlight = mutableSetOf<Long>()
 
@@ -213,6 +219,8 @@ class ChatViewModel @Inject constructor(
             }
         }
         viewModelScope.launch { reloadFacts() }
+        // A59: skips an answer listed but never applied (the screen or the process died in between).
+        viewModelScope.launch { resumeSkips() }
         viewModelScope.launch {
             while (true) {
                 delay(MINUTE_MS - clock.now().toEpochMilli() % MINUTE_MS)
@@ -428,6 +436,13 @@ class ChatViewModel @Inject constructor(
         val held = out.questionSlot?.toLongOrNull()?.takeIf { question != null && it in slots }
         val intent = if (question != null) "log" else out.intent?.takeIf { it in INTENTS }
         val recordMode = recordModeOf(out, intent, question, suggested)
+        // A59: the listed skips of today, stored with the answer before any write; the log's own slot is never one.
+        val skips = out.skipSlots?.let { ids ->
+            val listed = ids.mapNotNull { raw -> raw.toLongOrNull()?.takeIf { it in slots } ?: null.also { recordGuard(GUARD_SLOT_NOT_TODAY) } }
+                .distinct()
+                .filter { intent != "log" || it != suggested }
+            listed.takeIf { it.isNotEmpty() }?.let { SkipOutcomes(date = date, wipeId = wipeId, with = intent ?: "log", slots = it.map(::SkipEntry)) }
+        }
         // A47: the structured proposal, checked against the states the request carried; never read from the prose.
         val proposal = MealChanges.proposal(
             MealChanges.parse(out.mealChange),
@@ -475,6 +490,7 @@ class ChatViewModel @Inject constructor(
             recordMode = recordMode,
             recordState = recordState,
             mealChange = proposal?.encode(),
+            skipOutcomes = skips?.encode(),
         )
         local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null) }
         proposal?.let { proposalShown(it, fresh) }
@@ -482,6 +498,8 @@ class ChatViewModel @Inject constructor(
             recordGuard(proposal?.takeIf { !it.actionable }?.reason ?: GUARD_STALE)
         }
         if (recordMode == RECORD_AUTO && recordState == null) autoRecord(answerId, out, snapshot, turn.body.clarifyRounds)
+        // A59 (ADR-047): the log first, then each listed skip.
+        if (skips != null) applySkips(answerId, turn.body.clarifyRounds)
     }
 
     /**
@@ -538,10 +556,14 @@ class ChatViewModel @Inject constructor(
         return RECORD_ASK
     }
 
-    /** One automatic action per answer: a record of today's log, or a skip by text. */
+    /**
+     * The automatic record of an answer: a record of today's log, or (a server without `skip_slots`) a skip by text. With
+     * `skip_slots` a skip goes through [applySkips], next to any intent (A59).
+     */
     private suspend fun autoRecord(answerId: Long, out: ChatOut, snapshot: DaySnapshot, rounds: Int) {
         val answer = repository.message(answerId) ?: return
         val slots = snapshot.slotsOfDay.refs()
+        if (out.intent == "skip" && out.skipSlots != null) return
         if (out.intent == "skip") {
             val slot = out.skipSlot?.toLongOrNull()?.let { id -> slots.firstOrNull { it.id == id } }
             if (slot == null) {
@@ -555,7 +577,7 @@ class ChatViewModel @Inject constructor(
                 notRecorded(answerId, if (skipped.isFailure) GUARD_WRITE_FAILED else GUARD_STALE)
                 return
             }
-            telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat"))
+            mealSkipped("skip")
             autoEvent("skip", "empty", "user", rounds)
             return
         }
@@ -592,6 +614,104 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun recordGuard(reason: String) = telemetry.event(TelemetryEvents.RECORD_GUARD, mapOf("reason" to reason))
+
+    // ------------------------------------------------------------------ skips next to other actions (A59, ADR-047)
+
+    /**
+     * Each still pending skip of [answerId], in list order, by the slot's state now: empty -> skipped with its own receipt
+     * (chatSK); skipped -> nothing; with a record -> `Pular {slot}?` (chatSD). The request day and wipe must still hold.
+     * Every move is conditional on the stored outcome, so a retry, a recreated screen or a second caller never applies
+     * a skip twice. A write failure marks only that skip `Não registrado`.
+     */
+    private suspend fun applySkips(answerId: Long, rounds: Int) {
+        val skips = SkipOutcomes.decode(repository.message(answerId)?.skipOutcomes) ?: return
+        val today = SaoPaulo.date(clock.now()).toString()
+        val slots = repository.observeToday().first().slotsOfDay.refs()
+        for (entry in skips.slots.filter { it.pending }) {
+            val slot = slots.firstOrNull { it.id == entry.slotId }
+            if (slot == null || !skips.holds(today, repository.latestWipeToday())) {
+                repository.moveSkip(SkipMove(answerId, entry.slotId, null, SkipOutcomes.EXPIRED))
+                continue
+            }
+            val applied = runCatching { applySkip(answerId, slot, skips.with, rounds) }.onFailure { if (it is CancellationException) throw it }
+            if (applied.isFailure && runCatching { repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.FAILED)) }.getOrDefault(false)) {
+                recordGuard(GUARD_WRITE_FAILED)
+            }
+        }
+    }
+
+    /** One skip, read at the moment it is applied; a slot that moves under the write is read again. */
+    private suspend fun applySkip(answerId: Long, slot: SlotRef, with: String, rounds: Int) {
+        val date = SaoPaulo.date(clock.now()).toString()
+        repeat(SKIP_ATTEMPTS) {
+            val state = repository.slotState(date, slot.id)
+            val done = when {
+                state.records.isNotEmpty() -> repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.PENDING_DELETE, state))
+                    .also { if (it) skipDeleteEvent("shown") }
+                state.skipped -> repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.ALREADY, state))
+                else -> recorder.skipListed(answerId, slot).also {
+                    if (it) {
+                        mealSkipped(with)
+                        autoEvent("skip", "empty", "user", rounds)
+                    }
+                }
+            }
+            // Done, or another caller already moved it: nothing left to do.
+            if (done || SkipOutcomes.decode(repository.message(answerId)?.skipOutcomes)?.entry(slot.id)?.pending != true) return
+        }
+        repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.EXPIRED))
+    }
+
+    private suspend fun resumeSkips() {
+        val today = SaoPaulo.date(clock.now()).toString()
+        repository.messagesOf(today)
+            .filter { m -> m.role == "assistant" && SkipOutcomes.decode(m.skipOutcomes)?.slots?.any { it.pending } == true }
+            .forEach { applySkips(it.id, rounds = 0) }
+    }
+
+    /**
+     * Excluir e pular (chatSD): the slot's records leave and it is skipped, while the request day, the wipe and the slot
+     * still hold what the proposal showed. The memory change of the record's active receipt is reverted; Desfazer on the
+     * skip receipt brings both back. Anything else expires the proposal.
+     */
+    fun confirmSkipDelete(answerId: Long, slotId: Long) = once(answerId) {
+        val skips = SkipOutcomes.decode(repository.message(answerId)?.skipOutcomes) ?: return@once
+        val entry = skips.entry(slotId)?.takeIf { it.outcome == SkipOutcomes.PENDING_DELETE } ?: return@once
+        val state = entry.state ?: return@once
+        val today = SaoPaulo.date(clock.now()).toString()
+        val slot = todaySlot(slotId)
+        val receipt = if (slot != null && skips.holds(today, repository.latestWipeToday())) {
+            recorder.deleteAndSkip(answerId, slot, state, activeReceipt(today, slotId, state), RecordGuard(skips.date, skips.wipeId))
+        } else {
+            null
+        }
+        if (receipt == null) {
+            expireSkip(answerId, slotId)
+            return@once
+        }
+        skipDeleteEvent("confirmed")
+        mealSkipped(skips.with)
+    }
+
+    /** Manter registro (chatSD): nothing is written; the card becomes `Registro mantido`. */
+    fun keepRecord(answerId: Long, slotId: Long) = once(answerId) {
+        if (repository.moveSkip(SkipMove(answerId, slotId, SkipOutcomes.PENDING_DELETE, SkipOutcomes.KEPT))) skipDeleteEvent("kept")
+    }
+
+    /** An open delete proposal becomes `Não registrado`; one already decided stays. */
+    private suspend fun expireSkip(answerId: Long, slotId: Long) {
+        if (repository.moveSkip(SkipMove(answerId, slotId, SkipOutcomes.PENDING_DELETE, SkipOutcomes.EXPIRED))) skipDeleteEvent("expired")
+    }
+
+    /** The active receipt whose record left [slotId] holding [state] on [date], if the Chat made it. */
+    private suspend fun activeReceipt(date: String, slotId: Long, state: SlotState): ChatMessageEntity? = repository.receipts()
+        .filter { r -> r.receiptState == null && UndoData.decode(r.undoData)?.recordSlot?.let { it.date == date && it.slotId == slotId && it.after == state } == true }
+        .maxWithOrNull(compareBy({ it.createdAtEpochMs }, { it.id }))
+
+    private fun mealSkipped(with: String) =
+        telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat", "with" to (with.takeIf { it in INTENTS } ?: "log")))
+
+    private fun skipDeleteEvent(action: String) = telemetry.event(TelemetryEvents.SKIP_DELETE, mapOf("action" to action))
 
     private fun autoEvent(kind: String, slotState: String, source: String, rounds: Int) = telemetry.event(
         TelemetryEvents.MEAL_AUTO_RECORDED,
@@ -882,6 +1002,10 @@ class ChatViewModel @Inject constructor(
                 else -> telemetry.event(TelemetryEvents.RECORD_ASK, mapOf("action" to "expired"))
             }
         }
+        // A59: a delete proposal dies on the next send too.
+        repository.openSkips().forEach { row ->
+            SkipOutcomes.decode(row.skipOutcomes)?.slots?.filter { it.outcome == SkipOutcomes.PENDING_DELETE }?.forEach { expireSkip(row.id, it.slotId) }
+        }
     }
 
     private fun replaceEvent(action: String, from: String) =
@@ -905,7 +1029,13 @@ class ChatViewModel @Inject constructor(
             val receipt = repository.message(receiptId)?.takeIf { it.receiptState == null } ?: return@launch
             when (action) {
                 ReceiptAction.DELETE -> recorder.delete(receipt, ChatRecorder.DELETED) ?: return@launch
-                ReceiptAction.UNDO -> if (!recorder.undo(receipt, ::slotName)) return@launch
+                ReceiptAction.UNDO -> {
+                    if (!recorder.undo(receipt, ::slotName)) return@launch
+                    // A59: Desfazer of an Excluir e pular brings the record back.
+                    if (receipt.role == ReceiptRules.SKIPPED && UndoData.decode(receipt.undoData)?.slots?.any { it.before.records.isNotEmpty() } == true) {
+                        skipDeleteEvent("undone")
+                    }
+                }
                 ReceiptAction.EDIT -> {
                     val records = recorder.delete(receipt, ChatRecorder.EDITED) ?: return@launch
                     val text = records.joinToString(", ") { it.text }
@@ -1067,9 +1197,16 @@ class ChatViewModel @Inject constructor(
 
         val items = mutableListOf<ChatItem>()
         var lastDate: String? = null
+        // A59: an answer's skip proposal and marks wait below its receipts (the log's and the skips' own).
+        val trailing = mutableListOf<ChatItem>()
+        val staleSkips = mutableListOf<Pair<Long, Long>>()
         // The wipe marker only cuts the prompt; it is never drawn.
         val visible = window.filter { it.role != DayRepository.ROLE_WIPED }
         for (m in visible) {
+            if (m.role !in ReceiptRules.ROLES || m.date != lastDate) {
+                items += trailing
+                trailing.clear()
+            }
             if (m.date != lastDate) {
                 items += ChatItem.DateSeparator(dateLabel(LocalDate.parse(m.date), today))
                 lastDate = m.date
@@ -1129,8 +1266,12 @@ class ChatViewModel @Inject constructor(
             if (asking) {
                 items += ChatItem.ReplacePrompt(m.id, ReplaceConfirm(pendingSlot!!, oldKcal = pending!!.before.kcal, newKcal = m.estimateKcal ?: 0))
             }
+            val ownCard = asking || proposalOpen && holds && m.recordState in setOf(ChatRecorder.PENDING_ADD, ChatRecorder.PENDING_REVISE)
+            trailing += skipItems(m, ownCard, todayIso, wipeToday, slotById, stateOf, staleSkips)
         }
+        items += trailing
         expireStale(stalePending)
+        expireStaleSkips(staleSkips)
 
         val emptyDay = todayRows.none { it.role != DayRepository.ROLE_WIPED } && l.pending == null
         if (emptyDay) {
@@ -1254,6 +1395,64 @@ class ChatViewModel @Inject constructor(
                     }
                 }
                 expiring.remove(row.id)
+            }
+        }
+    }
+
+    /**
+     * A59: what an answer's skips show below it. One card at a time: the answer's own confirmation (chatU, chatI, chatIC)
+     * first, then the first delete proposal that still holds (chatSD); kept ones show `Registro mantido`, expired or failed
+     * ones `Não registrado`. A proposal whose day, wipe or slot moved is reported in [stale] and shown as expired.
+     */
+    private fun skipItems(
+        m: ChatMessageEntity,
+        ownCard: Boolean,
+        todayIso: String,
+        wipeToday: Long?,
+        slotById: Map<Long, SlotRef>,
+        stateOf: (String, Long) -> SlotState,
+        stale: MutableList<Pair<Long, Long>>,
+    ): List<ChatItem> {
+        val skips = SkipOutcomes.decode(m.skipOutcomes) ?: return emptyList()
+        var carded = ownCard
+        return skips.slots.mapNotNull { e ->
+            when (e.outcome) {
+                SkipOutcomes.PENDING_DELETE -> {
+                    val slot = slotById[e.slotId]
+                    val state = e.state
+                    val live = slot != null && state != null && skips.holds(todayIso, wipeToday) && stateOf(todayIso, e.slotId) == state
+                    when {
+                        !live -> {
+                            stale += m.id to e.slotId
+                            ChatItem.SkipMark(m.id, e.slotId, kept = false)
+                        }
+                        carded -> null
+                        else -> {
+                            carded = true
+                            ChatItem.SkipDeletePrompt(m.id, SkipDeleteConfirm(slot!!, state!!.kcal))
+                        }
+                    }
+                }
+                SkipOutcomes.KEPT -> ChatItem.SkipMark(m.id, e.slotId, kept = true)
+                SkipOutcomes.EXPIRED, SkipOutcomes.FAILED -> ChatItem.SkipMark(m.id, e.slotId, kept = false)
+                else -> null
+            }
+        }
+    }
+
+    /** A delete proposal that looked stale: expired after checking Room again (two observations, one frame apart). */
+    private fun expireStaleSkips(stale: List<Pair<Long, Long>>) {
+        stale.filter { expiringSkips.add(it) }.forEach { (answerId, slotId) ->
+            viewModelScope.launch {
+                val skips = SkipOutcomes.decode(repository.message(answerId)?.skipOutcomes)
+                val entry = skips?.entry(slotId)
+                if (skips != null && entry?.outcome == SkipOutcomes.PENDING_DELETE) {
+                    val today = SaoPaulo.date(clock.now()).toString()
+                    val holds = skips.holds(today, repository.latestWipeToday()) && todaySlot(slotId) != null &&
+                        repository.slotState(today, slotId) == entry.state
+                    if (!holds) expireSkip(answerId, slotId)
+                }
+                expiringSkips.remove(answerId to slotId)
             }
         }
     }
@@ -1453,6 +1652,12 @@ class ChatViewModel @Inject constructor(
         private const val GUARD_STALE = "stale"
         private const val GUARD_OVERFLOW = MealProposal.OVERFLOW
         private const val GUARD_WRITE_FAILED = "write_failed"
+
+        /** A59: a listed skip whose id is not a slot of today. */
+        private const val GUARD_SLOT_NOT_TODAY = "slot_not_today"
+
+        /** A59: reads of a slot that moves under its skip before the skip gives up (expired). */
+        private const val SKIP_ATTEMPTS = 3
 
         /** recordState of an answer that can still be recorded: nothing decided, or a pending confirmation. */
         private val OPEN_STATES = setOf(null, ChatRecorder.PENDING_REPLACE, ChatRecorder.PENDING_ADD, ChatRecorder.PENDING_REVISE)

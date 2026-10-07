@@ -164,6 +164,18 @@ class RoborazziSmokeTest {
     @Test
     fun chatU_light() = chat(dark = false, ChatFixtures.chatU, "chatU")
 
+    @Test @Config(qualifiers = "w390dp-h1050dp-xhdpi")
+    fun chatSK_dark() = chat(dark = true, ChatFixtures.chatSK, "chatSK")
+
+    @Test @Config(qualifiers = "w390dp-h1050dp-xhdpi")
+    fun chatSK_light() = chat(dark = false, ChatFixtures.chatSK, "chatSK")
+
+    @Test
+    fun chatSD_dark() = chat(dark = true, ChatFixtures.chatSD, "chatSD")
+
+    @Test
+    fun chatSD_light() = chat(dark = false, ChatFixtures.chatSD, "chatSD")
+
     @Test
     fun chatD_dark() = chat(dark = true, ChatFixtures.chatD, "chatD")
 

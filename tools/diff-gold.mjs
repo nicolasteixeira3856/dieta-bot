@@ -53,7 +53,7 @@ const MIN_INK = 400; // px: below this a zone has no content to compare for pres
 // header moves with the status bar: the screen is reported, header and thread are gated each with its own offset.
 // chatS (A43): the scene seeds another day (meta 2.000, 100 %), so the screen is reported and the header and the
 // routine card are gated.
-// Long threads (A43: chatF, chatG, chatD, chatR, chatM, chatU): the frame shows the whole thread, the phone shows its
+// Long threads (A43: chatF, chatG, chatD, chatR, chatM, chatU; A59: chatSK): the frame shows the whole thread, the phone shows its
 // newest part above the composer. The screen is reported; the header is gated from the top and the thread tail
 // (everything the phone shows under the header, down to the composer) from the bottom. `tail` is the first gold row
 // the tail box may take (chatF: under the photo, whose sample crop is the frame's own).
@@ -61,7 +61,7 @@ const HEADER_BOX = [0, 48, 780, 136];
 const FIGMA = {
   // push (A44): the frame draws a lock screen with Notification/Push; the app only posts the notification and
   // SystemUI draws the screen and the card. Reported, never gated.
-  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS", "push"]),
+  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS", "chatSK", "push"]),
   // chatP (A42): Dialog/Confirm centred over the blurred Home (the capture's Home is scrolled to the Lanche card).
   // wipe (A44): Dialog/Confirm Tone=Danger centred over the blurred Config. cfgR (A53): the reset dialog, same pattern.
   center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] }, wipe: { dark: [48, 424, 732, 1264], light: [48, 424, 732, 1264] }, cfgR: { dark: [48, 448, 732, 1240], light: [48, 448, 732, 1240] } },
@@ -69,9 +69,9 @@ const FIGMA = {
     homeW: [0, 80, 780, 900],
     chatL: [0, 500, 780, 740],
     chatQ: [HEADER_BOX, [0, 168, 780, 1296]],
-    chatF: HEADER_BOX, chatG: HEADER_BOX, chatD: HEADER_BOX, chatR: HEADER_BOX, chatM: HEADER_BOX, chatU: HEADER_BOX, chatS: [HEADER_BOX, [32, 728, 748, 1256]],
+    chatF: HEADER_BOX, chatG: HEADER_BOX, chatD: HEADER_BOX, chatR: HEADER_BOX, chatM: HEADER_BOX, chatU: HEADER_BOX, chatSK: HEADER_BOX, chatS: [HEADER_BOX, [32, 728, 748, 1256]],
   },
-  tail: { chatF: 660, chatG: 0, chatD: 0, chatR: 0, chatM: 0, chatU: 0 },
+  tail: { chatF: 660, chatG: 0, chatD: 0, chatR: 0, chatM: 0, chatU: 0, chatSK: 0 },
   // Bottom-anchored zone of each Chat frame, px: its bottom stack read from the frame (actions + composer for chatQ /
   // chatE, chips + composer for chat0, chips + the too-long box for chatX, the attached composer for chatA, the
   // meal sheet for chatT) plus 48 dp, the status and navigation bars that the phone takes from the gap between the

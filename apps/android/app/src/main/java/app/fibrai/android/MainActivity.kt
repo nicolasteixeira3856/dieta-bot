@@ -285,6 +285,8 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onAdditionElsewhere = vm::additionElsewhere,
                         onRevisionConfirm = vm::confirmRevision,
                         onRevisionCancel = vm::cancelRevision,
+                        onSkipDelete = vm::confirmSkipDelete,
+                        onSkipKeep = vm::keepRecord,
                     )
                 }
             }

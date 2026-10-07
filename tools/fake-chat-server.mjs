@@ -27,6 +27,9 @@
 // A54: POST /__mode {"a54": true} answers an S18 addition into the slot whose name starts with "Jan": intent "log",
 // record "auto", meal_change add with base_slot null, the reply rewritten as the server does. /__calls reports
 // `day`, the DAY slots of the last turn.
+// A59: POST /__mode {"skips": ["Alm"]} lists the slots whose names start with those prefixes as `skip_slots` on the
+// answer of a client that sent skip_slots (S29), next to the estimate, the skip or any other answer. /__calls
+// reports the last skip_slots flag.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -44,6 +47,8 @@ let record = null;
 let skipPrefix = null;
 let replyOverride = null;
 let a54 = false;
+let skipPrefixes = [];
+let lastSkipSlots = null;
 let lastDay = [];
 let lastAutoRecord = null;
 let lastClarify = { rounds: null, force: false };
@@ -92,11 +97,12 @@ http.createServer(async (req, res) => {
     skipPrefix = mode.skip ?? null;
     replyOverride = mode.reply ?? null;
     a54 = Boolean(mode.a54);
+    skipPrefixes = Array.isArray(mode.skips) ? mode.skips : [];
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -111,6 +117,7 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastClarify = { rounds: input.clarify_rounds ?? null, force: Boolean(input.force_estimate) };
     if (!input.compact) lastAutoRecord = input.auto_record ?? null;
     if (!input.compact) lastDay = input.day?.slots ?? [];
+    if (!input.compact) lastSkipSlots = input.skip_slots ?? null;
     // S14: only a client that sent auto_record gets the mark.
     const marks = (fields) => (input.auto_record === true ? fields : {});
     if (textLen > 2000) {
@@ -141,11 +148,16 @@ http.createServer(async (req, res) => {
     }
     const slots = input.profile?.slots ?? [];
     const rounds = input.clarify_rounds;
+    // S29: only a client that sent skip_slots gets the list.
+    const listed = () => (input.skip_slots === true
+      ? { skip_slots: skipPrefixes.map((p) => slots.find((s) => s.name.startsWith(p))?.id).filter(Boolean) }
+      : {});
     if (skipPrefix) {
       const skipped = slots.find((s) => s.name.startsWith(skipPrefix)) ?? slots[0];
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
         reply: "Tudo bem, essa refeição não aconteceu hoje.", intent: "skip", estimate: null, digest: null, model: "gpt-6-luna",
         ...marks({ record: "auto", skip_slot: skipped ? skipped.id : null }),
+        ...listed(),
       }));
       return;
     }
@@ -234,6 +246,7 @@ http.createServer(async (req, res) => {
       digest: null,
       model: "gpt-6-luna",
       ...marks(record ? { record, skip_slot: null } : {}),
+      ...listed(),
     }));
     return;
   }

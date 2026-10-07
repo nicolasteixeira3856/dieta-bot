@@ -18,10 +18,10 @@ Everything the Chat and the Home need for the tone, the closures, the formatted 
 
 ## Delivery
 
-- One branch from master; parts in the order A → B → C → D → E; one commit or more per part; one PR at the end. Part E does not depend on B–D: when one of them is left out, E still runs.
+- One branch from master; parts in the order A → B → C → D → E; one commit or more per part; one PR at the end. Part E is delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md) (owner decision, 07/10/2026: A59 merged as implemented, Room v11 `skipOutcomes`); A60 runs parts A–D.
 - A part whose validation fails twice is left out: the PR merges with the delivered parts, the plan stays `Em implementação`, Results list the missing part and what it needs.
 - One dev build at the end with `tools/distribute-dev.ps1 -Notes` (pt-BR notes per part delivered). Visual QA per part against its golds, partial validation (only the flows the part touches), fresh captures in `docs/qa/android/current/{dark,light}/`.
-- Room: one version, one migration, one migration test, written in part A with every field the five parts declare below; a part left out leaves its unused columns in place (nullable, documented in the Room specification at Completion).
+- Room: one version (the next free one, 12 after A59's v11), one migration, one migration test, written in part A with every field parts A–D declare below; a part left out leaves its unused columns in place (nullable, documented in the Room specification at Completion).
 
 ## Scope
 
@@ -148,6 +148,8 @@ At Completion: [product Chat](../../produto/specifications/chat.md) rules 16 (th
 
 ### Part E — Skips next to other actions in the Chat (from A59)
 
+Delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md); nothing of this part is left for A60. The scope below stays as the record of what A59 carried.
+
 #### 1. Wire
 
 - `ChatIn.skip_slots: true` on every normal turn (always encoded, like `meal_changes`); a compact request drops it.
@@ -165,7 +167,7 @@ At Completion: [product Chat](../../produto/specifications/chat.md) rules 16 (th
 
 #### 3. Room
 
-- Next schema version (10 → 11 today; the next free number at start if another plan migrated first): nullable `chat_message.skipOutcomes`, a versioned JSON of the answer's listed slots with their state at capture and their outcome (`skipped` | `already` | `pending_delete` | `deleted` | `kept` | `expired` | `failed`); `recordState` unchanged for the log part. Non-destructive migration, exported schema, migration test with messages, logs and an active receipt.
+- Room v11 (done in A59): nullable `chat_message.skipOutcomes`, a versioned JSON of the answer's listed slots with their state at capture and their outcome (`skipped` | `already` | `pending_delete` | `deleted` | `kept` | `expired` | `failed`); `recordState` unchanged for the log part. Non-destructive migration, exported schema, migration test with messages, logs and an active receipt.
 
 #### 4. Telemetry
 
@@ -206,7 +208,7 @@ Per part, in order; the prefixes A–E name the part. Every Room item below refe
 - D: Roborazzi and emulator captures of `chatR`, `chatRL`, `homeP` against the D18 golds under the QA rules of AGENTS; partial validation.
 - D: One emulator session on the dev server (S27 deployed): reserve a dinner, ask for a snack plan (the panel and the server reservation agree), record the dinner (difference line), undo. Request ids recorded.
 - D: `testDevDebugUnitTest`, `verifyRoborazziDevDebug`, `assembleDevRelease` and `node tools/check-docs.mjs` pass.
-- E: Unit tests (fake service + real Room): the incident shape (log + one skip) records once and skips once with two receipts; two skips; skip + plan and skip + question; already skipped slot; skip over a record → proposal, confirm (records gone, skipped, memory reverted), keep, expiry by send, day change, wipe and a change by another path; Desfazer restores the record; a log `chatU` pending plus a delete proposal queue in order; retry and recreation apply nothing twice; older server without `skip_slots` keeps today's flow; migration.
+- E (done in A59): Unit tests (fake service + real Room): the incident shape (log + one skip) records once and skips once with two receipts; two skips; skip + plan and skip + question; already skipped slot; skip over a record → proposal, confirm (records gone, skipped, memory reverted), keep, expiry by send, day change, wipe and a change by another path; Desfazer restores the record; a log `chatU` pending plus a delete proposal queue in order; retry and recreation apply nothing twice; older server without `skip_slots` keeps today's flow; migration.
 - E: Roborazzi and emulator captures of `chatSK` and `chatSD` against the D19 golds under the QA rules of AGENTS, with a written diff list; regress `chatG` and `chatU` (partial validation: Chat records flows only).
 - E: Dev server (S29 deployed): one synthetic message with a skip and a breakfast; request id recorded.
 - E: `testDevDebugUnitTest`, `verifyRoborazziDevDebug`, `assembleDevRelease` and `node tools/check-docs.mjs` pass.

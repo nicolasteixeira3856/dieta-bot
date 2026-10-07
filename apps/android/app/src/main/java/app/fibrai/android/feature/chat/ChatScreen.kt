@@ -148,6 +148,9 @@ fun ChatScreen(
     /** chatIC (A47): Atualizar | Cancelar below a revision. */
     onRevisionConfirm: (estimateId: Long) -> Unit = {},
     onRevisionCancel: (estimateId: Long) -> Unit = {},
+    /** chatSD (A59): Excluir e pular | Manter registro below an answer that skipped a meal with a record. */
+    onSkipDelete: (answerId: Long, slotId: Long) -> Unit = { _, _ -> },
+    onSkipKeep: (answerId: Long, slotId: Long) -> Unit = { _, _ -> },
 ) {
     // A32: camera button and photo chip close the keyboard first, so the photo sheet shows whole.
     val keyboard = LocalSoftwareKeyboardController.current
@@ -183,7 +186,7 @@ fun ChatScreen(
             Header(onBack)
             val record = RecordCallbacks(
                 onReplaceConfirm, onReplaceElsewhere, onReceiptAction, onMoveConfirm, onMoveElsewhere,
-                onAdditionConfirm, onAdditionElsewhere, onRevisionConfirm, onRevisionCancel,
+                onAdditionConfirm, onAdditionElsewhere, onRevisionConfirm, onRevisionCancel, onSkipDelete, onSkipKeep,
             )
             if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
             ui.notice?.let { Notice(it, onNoticeShown) }
@@ -215,6 +218,8 @@ private class RecordCallbacks(
     val onAdditionElsewhere: (Long) -> Unit,
     val onRevisionConfirm: (Long) -> Unit,
     val onRevisionCancel: (Long) -> Unit,
+    val onSkipDelete: (Long, Long) -> Unit,
+    val onSkipKeep: (Long, Long) -> Unit,
 )
 
 // ----------------------------------------------------------------------------- header
@@ -349,6 +354,12 @@ private fun ThreadItem(
             onUpdate = { record.onRevisionConfirm(item.estimateId) },
             onCancel = { record.onRevisionCancel(item.estimateId) },
         )
+        is ChatItem.SkipDeletePrompt -> SkipDeleteCard(
+            item.confirm,
+            onDelete = { record.onSkipDelete(item.answerId, item.confirm.slot.id) },
+            onKeep = { record.onSkipKeep(item.answerId, item.confirm.slot.id) },
+        )
+        is ChatItem.SkipMark -> SkipMarkLabel(item.kept, Modifier.padding(start = 8.dp))
         is ChatItem.Greeting -> Greeting(item, ui)
         ChatItem.Loading -> LoadingBubble()
         ChatItem.Failed -> FailedBubble(onRetry)

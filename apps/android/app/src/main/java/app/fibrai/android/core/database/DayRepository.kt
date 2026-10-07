@@ -10,6 +10,7 @@ import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.domain.SlotCheck
 import app.fibrai.android.domain.SlotChange
 import app.fibrai.android.domain.SlotRecord
+import app.fibrai.android.domain.SkipOutcomes
 import app.fibrai.android.domain.SlotState
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,6 +36,12 @@ import kotlinx.serialization.json.Json
  * source of a rerouted addition) and [open] the answer, still undecided.
  */
 data class RecordGuard(val date: String, val wipeId: Long?, val checks: List<SlotCheck> = emptyList(), val open: Long? = null)
+
+/**
+ * A59: the skip of [slotId] in the answer [answerId] becomes [to] (with [state] when given) while it is [from], inside the
+ * same transaction as the slot write: a skip is never applied twice.
+ */
+data class SkipMove(val answerId: Long, val slotId: Long, val from: String?, val to: String, val state: SlotState? = null)
 
 @Singleton
 class DayRepository @Inject constructor(
@@ -230,6 +237,7 @@ class DayRepository @Inject constructor(
         receiptMarks: Map<Long, String> = emptyMap(),
         recordStates: Map<Long, String> = emptyMap(),
         guard: RecordGuard? = null,
+        skip: SkipMove? = null,
     ): List<Long>? {
         importOnce()
         val now = clock.now()
@@ -237,6 +245,7 @@ class DayRepository @Inject constructor(
             db.withTransaction {
                 if (changes.any { readSlot(it.date, it.slotId) != it.before }) return@withTransaction null
                 if (guard != null && !holds(guard, SaoPaulo.date(now).toString())) return@withTransaction null
+                if (skip != null && !moveSkipRow(skip)) return@withTransaction null
                 changes.forEach { writeSlot(it.date, it.slotId, it.after) }
                 receiptMarks.forEach { (id, state) -> db.chatMessageDao().setReceiptState(id, state) }
                 recordStates.forEach { (id, state) -> db.chatMessageDao().setRecordState(id, state, null) }
@@ -257,6 +266,19 @@ class DayRepository @Inject constructor(
         val open = guard.open ?: return true
         return db.chatMessageDao().recordStateOf(open) in OPEN_RECORD_STATES
     }
+
+    /** A59: the skip moves alone (already, pending_delete, kept, expired, failed); false when it was not [SkipMove.from]. */
+    suspend fun moveSkip(move: SkipMove): Boolean = withContext(Dispatchers.IO) { db.withTransaction { moveSkipRow(move) } }
+
+    private suspend fun moveSkipRow(move: SkipMove): Boolean {
+        val dao = db.chatMessageDao()
+        val moved = SkipOutcomes.decode(dao.skipOutcomesOf(move.answerId))?.move(move.slotId, move.from, move.to, move.state) ?: return false
+        dao.setSkipOutcomes(move.answerId, moved.encode())
+        return true
+    }
+
+    /** A59: answers whose delete proposal is still open, any day. */
+    suspend fun openSkips(): List<ChatMessageEntity> = withContext(Dispatchers.IO) { db.chatMessageDao().getOpenSkips() }
 
     /** A47: [id] becomes [state] only while nothing was decided on it (a tap that lost a race changes nothing). */
     suspend fun closeOpenRecord(id: Long, state: String): Boolean =
@@ -452,6 +474,7 @@ class DayRepository @Inject constructor(
         undoData: String? = null,
         recordState: String? = null,
         mealChange: String? = null,
+        skipOutcomes: String? = null,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -481,6 +504,7 @@ class DayRepository @Inject constructor(
                     undoData = undoData,
                     recordState = recordState,
                     mealChange = mealChange,
+                    skipOutcomes = skipOutcomes,
                 ),
             )
         }
