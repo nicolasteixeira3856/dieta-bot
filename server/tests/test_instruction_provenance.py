@@ -165,7 +165,7 @@ class RequestIsolationTests(unittest.IsolatedAsyncioTestCase):
                         meal_text=sentinel+"_PENDING",kcal=5,p=0,c=1,g=0,
                         items=[dict(name=sentinel+"_ITEM",g=5,kcal=5)]))
                 model=dict(reply="Qual alimento?",intent="question",estimate=None,record_intent="unsure",
-                           meal_day="today",skip_slot=None,memory_updates=[],memory_used=[],digest=None,
+                           meal_day="today",skip_slots=[],memory_updates=[],memory_used=[],digest=None,
                            scope="in_scope",**({"meal_change":None} if modern else {}))
                 captured=[]
                 app=main.create_app(transport=_mock(_responds(model,captured)))

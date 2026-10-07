@@ -268,6 +268,26 @@ Effective responses always include `meal_change`, either null or:
 - Held, refused, failed, other-day, plan and skip turns carry null meal_change. Invalid or missing metadata for a log candidate fails safely, without record or memory effects; it never falls back to the legacy update path. Unknown operation remains non-actionable even on force or the round cap. A known add with unknown target can be held for a target question, or released as the delta alone with suggested_slot null and record ask when forcing, at the cap, after a repeated question or when no target question is asked.
 - Clients still validate the captured source against actual local state before any write. Server fields are not concurrency tokens. Confirmation remains required for occupied targets. Without the capable client, the existing whole-record destination controls remain; clearer legacy prose does not make rerouting a delta safe. The server never repairs historical local records.
 
+### Skip-slots capability
+
+Behavior: [ADR-047](produto/adrs/ADR-047-skips-alongside-other-actions.md). A normal request with `meal_changes: true` may also send `skip_slots: true` (JSON boolean only; without `meal_changes` it is a 422). Compact ignores it. Absent/false keeps every older response shape, including `skip_slot`.
+
+With it, every response carries `skip_slots`: the profile slot ids the message says did not happen today or firmly will not, in profile order, without repeats, next to any `intent`. It never holds the suggested slot of the turn's log estimate (the log wins) and is `[]` on refusals, fallbacks, other-day turns and when nothing is skipped. Held, plan and question turns keep their skips. `record` and `skip_slot` follow the v4 rules unchanged; on `intent: skip`, `skip_slot` is the first listed slot.
+
+```json
+{
+  "reply": "Pré-treino de hoje fora. Estimativa do café: 2 ovos mexidos e 1 pão francês, 300 kcal.",
+  "intent": "log",
+  "record": "auto",
+  "skip_slot": null,
+  "skip_slots": ["1"],
+  "estimate": {"kcal": 300, "suggested_slot": "2", "...": "..."}
+}
+```
+
+- The reply names each listed meal in one short neutral clause and never says it was saved. A skip of a meal with no profile slot is not listed; the reply says no meal with that name exists today and that its Home card can be held to skip it.
+- The server writes nothing. The client applies the log first, then each listed skip, reading the slot state when it applies it (ADR-047).
+
 ### Plan-budget capability
 
 Normal requests may opt into `plan_budget: true` with `clarify_rounds` present and `auto_record: true`. The capability accepts only JSON booleans; other combinations return 422. `fit_kcal`: optional integer 1–5000, sent with **Ajustar para caber**; it requires the capability, otherwise 422. Absent or false keeps every older response shape. Compact ignores both fields. No model or effort change.
@@ -314,3 +334,4 @@ OUT
 - [S21](server/plans/completed/s21-plan-cooking-and-budget-choice.md) — cooking help and the plan budget check
 - [S18](server/plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions
 - [S28](server/plans/completed/s28-copied-record-items.md) — new/revise items without usable grams dropped, copied records keep their numbers
+- [S29](server/plans/completed/s29-skip-slots.md) — skip slots next to any intent

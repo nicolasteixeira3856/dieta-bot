@@ -47,6 +47,7 @@ KNOWN = (
     "refusal",
     "record",
     "skip_slot",
+    "skip_slots",
     "digest",
     "digest_has",
     "digest_not",
@@ -356,6 +357,14 @@ def _check(
         got = output.get(key)
         accepted = want if key == "record" and isinstance(want, list) else [want]
         return _result(got in accepted, f"got {got}")
+
+    # ADR-047: the skips of an opted-in client, as a set of slot ids. NA on an output without the field.
+    if key == "skip_slots":
+        if key not in output:
+            return _na("no skip_slots in output")
+        got = output.get(key)
+        ok = isinstance(got, list) and sorted(map(str, got)) == sorted(map(str, want))
+        return _result(ok, f"got {got}")
 
     if key == "suggested_slot":
         if estimate is None:

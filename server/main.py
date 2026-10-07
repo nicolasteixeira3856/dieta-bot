@@ -71,6 +71,7 @@ from shaping import (
     clarify_gate,
     record_fields,
     record_gate,
+    skip_list,
     digest_output_texts,
     estimate_output_texts,
     fail_chat,
@@ -223,6 +224,8 @@ class ChatIn(BaseModel):
     pending_addition: PendingAdditionIn | None = None
     # ADR-039: plan budget check. fit_kcal is the target of "Ajustar para caber".
     plan_budget: bool = Field(default=False, strict=True)
+    # ADR-047 (S29): skip_slots, the list of skipped slots next to any intent.
+    skip_slots: bool = Field(default=False, strict=True)
     fit_kcal: int | None = Field(default=None, strict=True, ge=1, le=budgets.FIT_KCAL_MAX)
 
     @model_validator(mode="before")
@@ -230,7 +233,7 @@ class ChatIn(BaseModel):
     def _meal_change_input(cls, data: Any) -> Any:
         if isinstance(data, dict) and data.get("compact") is True:
             return {**data, "meal_changes": False, "pending_addition": None,
-                    "plan_budget": False, "fit_kcal": None}
+                    "plan_budget": False, "fit_kcal": None, "skip_slots": False}
         if isinstance(data, dict) and data.get("meal_changes") is True:
             day = data.get("day")
             states = day.get("slots", []) if isinstance(day, dict) else []
@@ -248,6 +251,8 @@ class ChatIn(BaseModel):
             raise ValueError("meal_changes requires clarify_rounds and auto_record")
         if self.pending_addition is not None and not self.meal_changes:
             raise ValueError("pending_addition requires meal_changes")
+        if self.skip_slots and not self.meal_changes:
+            raise ValueError("skip_slots requires meal_changes")
         if self.meal_changes:
             slots = [s.id for s in self.profile.slots]
             day_ids = [s.id for s in self.day.slots]
@@ -707,6 +712,9 @@ def chat_reply(
             record["record"] = record_log
         if body.meal_changes:
             result.setdefault("meal_change", None)
+        if body.skip_slots:
+            result.setdefault("skip_slots", [])
+            record["skips"] = len(result["skip_slots"])
         if body.plan_budget:
             result.setdefault("plan_budget", None)
             record["plan_budget"] = result["plan_budget"]
@@ -852,6 +860,8 @@ def shape_chat_turn(
                 question=question if can_ask else None,
                 record=RECORD_NONE, skip_slot=None, meal_change=None,
             )
+            if body.skip_slots:
+                result["skip_slots"] = skip_list(payload, slot_ids)
             return result, CLARIFY_ASKED if can_ask else CLARIFY_NONE, RECORD_NONE_INTENT
         if change and change["operation"] == "add" and change["base_slot"] is not None:
             text_limit = COMPOSED_MEAL_TEXT_MAX
@@ -885,6 +895,8 @@ def shape_chat_turn(
     )
     if body.meal_changes:
         explain_change(result, payload, profile, day)
+    if body.skip_slots:
+        result["skip_slots"] = skip_list(payload, slot_ids)
     return result, clarify, record_log
 
 

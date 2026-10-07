@@ -100,7 +100,7 @@ def _turn(**overrides):
         estimate=dict(kcal=589, p=27.5, c=38.6, g=26.5, confidence="medium", question=None,
                       items=_items(146, 150, 120, 44), suggested_slot="cafe",
                       meal_text="2 ovos, 1 pão francês, 200 ml de leite"),
-        record_intent="clear", meal_day="today", skip_slot=None, memory_updates=[], memory_used=[],
+        record_intent="clear", meal_day="today", skip_slots=[], memory_updates=[], memory_used=[],
         digest=None, plan_budget=None, scope="in_scope",
     )
     out.update(overrides)
