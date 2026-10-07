@@ -1,6 +1,6 @@
 # ADR-044 — Assistant tone chosen by the user; day and week closure
 
-- Status: Proposto (owner decision of 2026-10-06; the status changes with the first approval among S25, A55 and D16)
+- Status: Accepted (2026-10-06, with the owner's approval of D16 and S25)
 - Date: 2026-10-06
 - Context: `produto`
 - Supersedes: partially `AGENTS.md` ("Dry tone. No coach." becomes a tone the user chooses); partially [ADR-012](ADR-012-chat-home-perfil.md) (onboarding gains O5; the Home gains the closure cards); partially [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list extended with `o5`, `cfgT`, `homeC`, `homeK`). The reminders of [ADR-012](ADR-012-chat-home-perfil.md) rule 8 stay as they are.
@@ -61,6 +61,6 @@ Deferred. 22:00 fixed in this cut; a setting may come with its own plan.
 
 - Specifications affected: [perfil-onboarding](../specifications/perfil-onboarding.md) (O5, prompt prefix), [memoria-push](../specifications/memoria-push.md) (Config tone row, closure notifications), [home-timeline](../specifications/home-timeline.md) (`homeC`, `homeK`), [chat](../specifications/chat.md) (tone in the prompt), [v1-chat](../../server/specifications/v1-chat.md), [HTTP contract](../../api-contract.md) (`profile.tone`, `/v1/close`), [Room](../../android/specifications/room-v2.md).
 - Related ADRs: ADR-012, ADR-020, [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md), [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md).
-- Consuming contexts: [design](../../design/README.md) ([D16](../../design/plans/d16-tone-and-closures.md)), [server](../../server/README.md) ([S25](../../server/plans/s25-tone-and-closures.md)), [android](../../android/README.md) ([A55](../../android/plans/a55-tone-choice-and-closures.md)).
+- Consuming contexts: [design](../../design/README.md) ([D16](../../design/plans/pending_manual_validation/d16-tone-and-closures.md)), [server](../../server/README.md) ([S25](../../server/plans/s25-tone-and-closures.md)), [android](../../android/README.md) ([A55](../../android/plans/a55-tone-choice-and-closures.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.
