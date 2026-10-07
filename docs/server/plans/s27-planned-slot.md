@@ -4,7 +4,7 @@
 - Date: 06/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: `ChatDaySlot.status` accepts `planned` with its numbers, DAY serialization, the meal window reservation, the `log` and `plan` rules (comparison clause), the meal-change target rules (a planned slot is not occupied), tests and evaluation cases. No new route.
-- Related documentation: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md) (proposed by this plan with D18 and A58), [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md), [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md).
+- Related documentation: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md) (accepted on 2026-10-06 with the approval of D18 and this plan), [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md), [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md).
 - Prerequisites: [S24](s24-protein-first-plan.md) delivered (the window module this plan extends). Independent of S25 and S26.
 
 Approving this plan accepts ADR-046. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s27-planned-slot.md. Implemente o plano aprovado.`

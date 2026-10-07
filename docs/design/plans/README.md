@@ -94,7 +94,7 @@ Behavior: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Ord
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D18](d18-planned-meal.md) — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) | D3, D6, D12, D17 |
+| Design | [D18](pending_manual_validation/d18-planned-meal.md) — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) | D3, D6, D12, D17 |
 | Server | [S27](../../server/plans/s27-planned-slot.md) — planned slot in DAY | S24 |
 | Client | [A58](../../android/plans/a58-planned-meal-reservation.md) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
 

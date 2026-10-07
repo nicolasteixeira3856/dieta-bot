@@ -1,6 +1,6 @@
 # ADR-046 — A plan can be reserved for its meal before it is eaten
 
-- Status: Proposto (owner decision of 2026-10-06; the status changes with the first approval among S27, A58 and D18)
+- Status: Accepted (2026-10-06, with the owner's approval of D18 and S27)
 - Date: 2026-10-06
 - Context: `produto`
 - Supersedes: partially [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (a plan has a third outcome besides Registrar assim and expiring: reserved); partially [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) decision 3 (a reserved plan is the slot's reservation, replacing the computed one); partially [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list: `chatRL`, `homeP` new; `chatR` changed).
@@ -48,6 +48,6 @@ Rejected: a temp fact feeds the model, not the budget arithmetic or the timeline
 
 - Specifications affected: [chat](../specifications/chat.md) rules 16 and 19, [home-timeline](../specifications/home-timeline.md), [Room](../../android/specifications/room-v2.md), [v1-chat](../../server/specifications/v1-chat.md), [HTTP contract](../../api-contract.md) (`day.slots[].status: planned` and its numbers).
 - Related ADRs: ADR-039, ADR-043, ADR-044, ADR-028.
-- Consuming contexts: [design](../../design/README.md) ([D18](../../design/plans/d18-planned-meal.md)), [server](../../server/README.md) ([S27](../../server/plans/s27-planned-slot.md)), [android](../../android/README.md) ([A58](../../android/plans/a58-planned-meal-reservation.md)).
+- Consuming contexts: [design](../../design/README.md) ([D18](../../design/plans/pending_manual_validation/d18-planned-meal.md)), [server](../../server/README.md) ([S27](../../server/plans/s27-planned-slot.md)), [android](../../android/README.md) ([A58](../../android/plans/a58-planned-meal-reservation.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.
