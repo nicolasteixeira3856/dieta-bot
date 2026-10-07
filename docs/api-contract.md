@@ -1,4 +1,4 @@
-# HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat
+# HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat, /v1/close
 
 Content controls (CP2, 2026-09-30, [ADR-024](content-policy/adrs/ADR-024-content-safety-boundaries.md)): see [content handling](content-policy/specifications/content-policy.md). Every model route moderates the current user text and photo before generation and the generated text after it (OpenAI moderation, fail closed), and the model must classify `scope`. Errors added: HTTP 400 `{"detail": "content_policy_blocked"}` on `/v1/estimate` and `/v1/fit`; HTTP 503 `{"detail": "content_policy_unavailable"}` on every model route when moderation fails or times out. One 60-second deadline covers moderation and generation.
 
@@ -145,6 +145,17 @@ Optional fields (S21, ADR-039), see [Plan-budget capability](#plan-budget-capabi
 {"plan_budget": true, "fit_kcal": 450}
 ```
 
+Optional fields (S30, [ADR-044](produto/adrs/ADR-044-assistant-tone-and-closures.md), [ADR-046](produto/adrs/ADR-046-planned-meal-reservation.md)), any client:
+```json
+{
+  "profile": {"tone": "duro"},
+  "day": {"slots": [{"id": "jantar", "status": "planned", "text": "omelete de 2 ovos com salada",
+                     "kcal": 550, "p": 30, "c": 6, "g": 40}]}
+}
+```
+- `profile.tone`: `seco` | `duro`. Absent or `null` = `seco` (every client before S30). Any other value → HTTP 422. It picks the fixed instructions of the turn (one prefix per capability branch and tone); it never changes scope, refusals or the response shape. Compact ignores it.
+- `day.slots[].status: planned`: the user reserved a plan for that meal (ADR-046). It requires `text` (1–2000 code points) and `kcal`, `p`, `c`, `g` (finite, ≥ 0); otherwise HTTP 422. Nothing of it was eaten: the client keeps it out of `eaten_*` and `remaining_kcal`. The server reserves the slot by its own kcal in the meal window (see [Plan-budget capability](#plan-budget-capability)), lists it in `WINDOWS` as `{slot}: planejado {kcal} kcal` and never closes it with a suggestion line. A planned slot is not occupied for the [meal-change capability](#meal-change-capability): a log into it is `operation: new`, `base_slot: null`.
+
 OUT
 ```json
 {
@@ -171,6 +182,8 @@ OUT
 }
 ```
 - `intent` (S11): `log` (ate or is eating), `plan` (will eat, asks quantities or if it fits) or `question` (nothing to estimate).
+- `reply` (S30, [ADR-045](produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md)), every client: plain pt-BR text inside a fixed subset the client may render: `**bold**` spans; lines starting with `- ` (bullets, one level); lines starting with `1. ` (recipe steps); at most one table of two columns, a header row, a `| --- | --- |` separator and one to six rows. The server removes any other markup (headings, links, images, code, emphasis with `_` or single `*`, quotes, rules, HTML, emoji), keeping its text; nested or `*`/`+` bullets become `- `; a second table, a table of another width or beyond six rows becomes `- {item}: {grams}` lines; a sentence that is bold end to end and an unbalanced `**` lose the bold. Refusal copy, the fallback reply, the held-question reply's own prefix and the compact `digest` carry no markers. The client keeps `reply` raw for display and strips the markers wherever it stores or sends text.
+- A released `log` whose `estimate.suggested_slot` is a `planned` DAY slot ends its prose (before the closing lines) with one line the server writes from the server total and the plan: `+{n} kcal sobre o plano.`, `−{n} kcal abaixo do plano.` or `Igual ao plano.`
 - A `plan` reply never states whether the dish fits the day or by how much it goes over, for any client; the app shows the projected day. A recipe plan lists ingredients with grams and up to five numbered steps, and may include up to three foods marked `(opcional)` that are part of `estimate.items` and the totals (ADR-039).
 - `estimate`: present for `log` and `plan`, `null` for `question`. A `plan` never carries a `question`.
 - `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, within the [meal-description bounds](#meal-change-capability). The app records this complete text; overflow returns a safe failure rather than truncated food.
@@ -305,7 +318,7 @@ Effective responses always include `plan_budget`, either null or:
 
 - Present for an in-scope `plan` of today with an estimate when the request carries `day.remaining_kcal`. Null for every other intent, a held or refused turn, a fallback, another meal day or a missing `remaining_kcal`.
 - `reserved`: at most three other meals still to be eaten today that the user stated, each a label of 1–40 characters and an integer 1–3000 kcal (stated, or estimated by the model). They are not part of the plan's items, `meal_text` or any record.
-- `limit_kcal`: `fit_kcal` when sent, otherwise the meal window: `day.remaining_kcal` minus the reservations of the other upcoming empty meals computed by the server ([ADR-043](produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md); `reserved` lists them with the meal name) and the stated ones. May be zero or negative.
+- `limit_kcal`: `fit_kcal` when sent, otherwise the meal window: `day.remaining_kcal` minus the reservations of the other upcoming empty meals computed by the server ([ADR-043](produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md); `reserved` lists them with the meal name), the kcal of every other `planned` slot (ADR-046, whatever the clock; the empty meals share what the plans leave) and the stated ones. A stated reservation never replaces a planned slot. May be zero or negative.
 - `over_kcal`: `estimate.kcal` minus `limit_kcal`, rounded up, never below zero. The server computes it; the model never does.
 - `choice`: `over_ok`, `fit` or null, what the user already said about the budget of this dish.
 - Adjusting (`fit_kcal` sent, or `choice` `fit`) with `limit_kcal` ≥ 1 and the plan over it: the server asks the model once for the same dish within the target and returns that plan when it is valid. A plan still above the target returns with `over_kcal` > 0; there is no further attempt. With `limit_kcal` < 1 no adjustment is tried.
@@ -329,6 +342,35 @@ OUT
 - The digest is moderated before it returns; a flag returns `"digest": null`. History is not re-moderated. Moderation error: HTTP 503 `content_policy_unavailable`.
 - Stateless: the server returns the text; the client stores it (`day_digest`).
 
+## POST /v1/close
+
+Day and week closure text (S30, [ADR-044](produto/adrs/ADR-044-assistant-tone-and-closures.md)). Headers as `/v1/chat` (`X-Invite`, optional `X-Request-Id` and installation header). Same rate limit as `/v1/chat`. Body limit 16 KB (`Content-Length` above it → HTTP 413 `payload_too_large`).
+
+IN (day)
+```json
+{
+  "period": "day",
+  "tone": "duro",
+  "local_time": "2026-10-07T22:00:00-03:00",
+  "profile": {"ceiling_kcal": 2000, "p_target": 150, "c_target": 220, "g_target": 65,
+              "slots": [{"id": "jantar", "name": "Jantar", "time": "20:00"}]},
+  "numbers": {"date": "2026-10-07", "kcal": 2230, "p": 98, "c": 250, "g": 80, "ceiling_kcal": 2000,
+              "workout_kcal": null,
+              "slots": [{"name": "Jantar", "status": "eaten", "kcal": 840}]}
+}
+```
+IN (week): `"period": "week"` and `"numbers": {"days": [{"date", "kcal", "p", "c", "g", "ceiling_kcal", "workout_kcal", "recorded"}], "over_slot": {"name": "Jantar", "days": 4}}`.
+
+- Every number is a JSON integer (`strict`: no floats, no strings): kcal 0–20000, grams 0–5000, `profile.ceiling_kcal` and each `ceiling_kcal` (the effective ceiling of that day) 1–20000, `workout_kcal` integer or `null`, `over_slot.days` 0–7. `tone`: `seco` | `duro`, default `seco`. `numbers.slots[].status`: `empty` | `eaten` | `skipped` | `planned`, with `kcal` integer or null; at most 12 slots. `week.days`: 1–7 items, each with `recorded` (JSON boolean). `over_slot`: optional. Meal names (`profile.slots[].name`, `numbers.slots[].name`, `over_slot.name`) are the only text, 1–40 characters. Unknown keys, a `numbers` shape that does not match `period` or any value outside these bounds → HTTP 422.
+
+OUT
+```json
+{"text": "Passou 230 kcal do teto; o Almoço teve 980 kcal.\nAmanhã: ovos no café e salada no jantar.", "model": "gpt-6-luna"}
+```
+- `text`: pt-BR plain text (no markers), at most 3 lines and 400 characters. The model writes prose over the numbers; the server derives only the differences it serializes next to them (kcal over or left, macros missing or over; week total, means over the recorded days, days over the ceiling) and drops any sentence that carries a number not present in the serialized request (counts up to 10 excepted).
+- A refusal of the output moderation, a generation failure, empty text after shaping or moderation unavailable return HTTP 200 with the fixed neutral line built from the numbers: `Dia fechado. {kcal} de {ceiling_kcal} kcal.` for a day; `Semana fechada. {total} kcal em {n} dias com registro.` (or `Semana fechada. Nenhum dia com registro.`) for a week. The closure itself never returns an HTTP error; 401, 413, 422 and 429 keep their meaning.
+- Stateless: the server stores nothing. Dev log route `close` with `tone`, `period`, `fallback` (`false`, `error`, `policy` or `moderation`) and `close_dropped` (sentences dropped, or null); no photo fields.
+
 ## Provenance
 
 - [S21](server/plans/completed/s21-plan-cooking-and-budget-choice.md) — cooking help and the plan budget check
@@ -336,3 +378,4 @@ OUT
 - [S28](server/plans/completed/s28-copied-record-items.md) — new/revise items without usable grams dropped, copied records keep their numbers
 - [S29](server/plans/completed/s29-skip-slots.md) — skip slots next to any intent
 - [S24](server/plans/completed/s24-protein-first-plan.md) — the limit is the meal window; computed reservations in `reserved`; `(opcional)` protein items
+- [S30](server/plans/completed/s30-tone-formatting-planned-slot.md) — `profile.tone`, `POST /v1/close`, the `reply` formatting subset and `status: planned`

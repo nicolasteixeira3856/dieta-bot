@@ -24,7 +24,7 @@ PROTEIN_FLOOR_PCT = 30
 class Slot:
     id: str
     name: str
-    status: str  # empty | eaten | skipped
+    status: str  # empty | eaten | skipped | planned (ADR-046: kcal and p are the plan's)
     kcal: float = 0
     p: float = 0
     time: str | None = None  # HH:MM of the profile slot; None reserves regardless of the clock
@@ -98,6 +98,15 @@ def upcoming(slots: Sequence[Slot], now: str | None = None) -> list[Slot]:
     return out
 
 
+def planned(slots: Sequence[Slot], target: str | None = None) -> list[Slot]:
+    """The slots the user reserved a plan for (ADR-046), except [target]: each is reserved by its own kcal."""
+    return [s for s in slots if s.status == "planned" and s.id != target]
+
+
+def _planned_kcal(plans: Sequence[Slot]) -> int:
+    return sum(rounded(s.kcal) for s in plans)
+
+
 def _capped(remaining_kcal: int, target_expected: int, others: Sequence[Slot], expected: dict[str, int]) -> dict[str, int]:
     """The reservation of each other upcoming slot: its expected kcal, capped at its share of the remainder.
 
@@ -132,8 +141,11 @@ def window(
     typed is the model's own guess, not a statement. Without it (None) the number is not checked.
     """
     others = [s for s in upcoming(slots, now) if s.id != target] if target is not None else []
+    # A planned slot is reserved by its plan, whatever the clock; the empty ones share what is left (ADR-046).
+    plans = planned(slots, target)
     target_expected = expected.get(target, 0) if target is not None else 0
-    values = _capped(remaining_kcal, target_expected, others, expected)
+    values = _capped(remaining_kcal - _planned_kcal(plans), target_expected, others, expected)
+    values.update({s.id: rounded(s.kcal) for s in plans})
     by_name = {_key(s.name): s.id for s in others}
     any_slot = {_key(s.name) for s in slots}
     echo = served_numbers(slots, expected, remaining_kcal, now)
@@ -152,7 +164,8 @@ def window(
                 values[slot_id] = entry["kcal"]
         else:
             extra.append({"label": entry["label"], "kcal": entry["kcal"]})
-    reserved = [{"label": s.name, "kcal": values[s.id]} for s in others] + extra
+    held = {s.id for s in others} | {s.id for s in plans}
+    reserved = [{"label": s.name, "kcal": values[s.id]} for s in slots if s.id in held] + extra
     total_reserved = sum(r["kcal"] for r in reserved)
     limit = remaining_kcal - total_reserved
     return Window(max(0, limit), total_reserved, reserved, limit)
@@ -161,11 +174,13 @@ def window(
 def served_numbers(slots: Sequence[Slot], expected: dict[str, int], remaining_kcal: int, now: str | None) -> set[int]:
     """Every kcal figure the server writes about the upcoming slots (expected, capped shares, windows)."""
     free = upcoming(slots, now)
-    out = {expected[s.id] for s in free}
-    out.update(k for _, k, _ in windows(free, expected, remaining_kcal, 0))
+    plans = planned(slots)
+    left = remaining_kcal - _planned_kcal(plans)
+    out = {expected[s.id] for s in free} | {rounded(s.kcal) for s in plans}
+    out.update(k for _, k, _ in windows(free, expected, left, 0))
     for s in free:
-        out.update(_capped(remaining_kcal, expected[s.id], [o for o in free if o.id != s.id], expected).values())
-    out.update(_capped(remaining_kcal, 0, free, expected).values())
+        out.update(_capped(left, expected[s.id], [o for o in free if o.id != s.id], expected).values())
+    out.update(_capped(left, 0, free, expected).values())
     return {n for n in out if n > 0}
 
 
@@ -221,17 +236,20 @@ def budget_line(
     """`BUDGET` for the model: the protein floor of a named dish (30% of remaining_p, rounded up) and the window
     of a plan for each empty meal of today and for any other meal."""
     free = empty(slots, now)
-    if not free:
+    plans = planned(slots)
+    if not free and not plans:
         return None
     parts = []
-    for slot in free:
+    for slot in (s for s in slots if s in free or s in plans):
         w = window(slots, expected, remaining_kcal, slot.id, now=now)
         names = ", ".join(r["label"] for r in w.reserved) or "-"
         parts.append(f"{slot.name}={w.window_kcal} (reserved_upcoming={w.reserved_upcoming}: {names})")
-    reserved_all = sum(_capped(remaining_kcal, 0, free, expected).values())
+    planned_kcal = _planned_kcal(plans)
+    reserved_all = sum(_capped(remaining_kcal - planned_kcal, 0, free, expected).values()) + planned_kcal
+    held = [s.name for s in slots if s in free or s in plans]
     parts.append(
         f"any other meal={max(0, remaining_kcal - reserved_all)} "
-        f"(reserved_upcoming={reserved_all}: {', '.join(s.name for s in free)})"
+        f"(reserved_upcoming={reserved_all}: {', '.join(held)})"
     )
     floor = math.ceil(max(0, remaining_p) * PROTEIN_FLOOR_PCT / 100)
     return f"BUDGET: protein_floor={floor}; window_kcal by meal: " + "; ".join(parts)
@@ -240,11 +258,19 @@ def budget_line(
 def windows_line(
     slots: Sequence[Slot], expected: dict[str, int], remaining_kcal: int, remaining_p: int, now: str | None = None,
 ) -> str | None:
-    """`WINDOWS` for the model: at least two upcoming empty slots, so a log or plan of one leaves another to close."""
+    """`WINDOWS` for the model: at least two upcoming empty slots, so a log or plan of one leaves another to close.
+
+    A planned slot is listed as `{slot}: planejado {kcal} kcal`; the empty ones share what its plan leaves.
+    """
     free = empty(slots, now)
     if len(free) < 2:
         return None
-    body = " · ".join(f"{name} ~{k} kcal P {p}" for name, k, p in windows(free, expected, remaining_kcal, remaining_p))
+    plans = planned(slots)
+    left_kcal = remaining_kcal - _planned_kcal(plans)
+    left_p = remaining_p - rounded(sum(s.p for s in plans))
+    shares = {s.id: f"{name} ~{k} kcal P {p}" for s, (name, k, p) in zip(free, windows(free, expected, left_kcal, left_p))}
+    shares.update({s.id: f"{s.name}: planejado {rounded(s.kcal)} kcal" for s in plans})
+    body = " · ".join(shares[s.id] for s in slots if s.id in shares)
     return f"WINDOWS: {body} | faltam {max(0, remaining_p)} g P"
 
 
@@ -252,6 +278,13 @@ _CLOSING = re.compile(
     r"(?:(?<=^)|(?<=\n)|(?<=\. )|(?<=; ))(?P<name>[^.:\n;]{1,40}?): (?P<food>(?:(?!kcal)[^\n])*?) ?~\d+ kcal · P \d+(?: g)?[.;]?(?=[ \t]*(?:\n|$))",
     re.MULTILINE,
 )
+
+
+def is_closing(line: str) -> bool:
+    """A whole line in the closing form `{slot}: {food} ~{kcal} kcal · P {p}`."""
+    line = line.strip()
+    m = _CLOSING.match(line)
+    return bool(m) and m.end() == len(line)
 
 
 def close_reply(
@@ -278,8 +311,9 @@ def close_reply(
     before_kcal = answered.kcal if answered is not None and answered.status == "eaten" else 0
     before_p = answered.p if answered is not None and answered.status == "eaten" else 0
     others = [s for s in empty(slots, now) if s.id != target]
-    left_kcal = rounded(remaining_kcal - (kcal - before_kcal))
-    left_p = rounded(remaining_p - (p - before_p))
+    plans = planned(slots, target)
+    left_kcal = rounded(remaining_kcal - (kcal - before_kcal)) - _planned_kcal(plans)
+    left_p = rounded(remaining_p - (p - before_p) - sum(s.p for s in plans))
     numbers = {s.id: (k, q) for s, (_, k, q) in zip(others, windows(others, expected, left_kcal, left_p))}
     closings: dict[str, str] = {}
     named: set[str] = set()

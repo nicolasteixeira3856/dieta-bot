@@ -32,7 +32,7 @@ import httpx2
 from config import MODEL, load_settings
 from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status, spread_check
 from llm import LlmClient
-from main import ChatIn, chat_reply, compact_reply
+from main import ChatIn, CloseIn, chat_reply, close_reply, compact_reply
 from moderation import CLEAN, Deadline, ModerationUnavailable, Moderator
 from shaping import fail_chat, fail_digest
 
@@ -151,6 +151,8 @@ def run_once(
     moderator: "Moderator | CleanModerator | None" = None,
 ) -> dict[str, Any]:
     """One repetition, handled like the /v1/chat route. Moderation down = an error repetition."""
+    if case.get("route") == CLOSE_ROUTE:
+        return _close_once(llm, usage, case, moderator)
     body = ChatIn.model_validate(case_request(case))
     image = None if body.compact else _case_image(case)
     trace: dict[str, Any] = {}
@@ -190,6 +192,34 @@ def run_once(
         "policy": trace.get("policy"),
         "error": error,
         "latency_ms": latency_ms,
+        "usage": usage.take_usage(),
+    }
+
+
+CLOSE_ROUTE = "close"
+
+
+def _close_once(
+    llm: LlmClient, usage: UsageTransport, case: dict[str, Any], moderator: "Moderator | CleanModerator | None",
+) -> dict[str, Any]:
+    """S30: a /v1/close case. Its text is judged as the reply; a fallback line counts as an error."""
+    body = CloseIn.model_validate(case["request"])
+    trace: dict[str, Any] = {"route": CLOSE_ROUTE}
+    started = time.monotonic()
+    usage.take_usage()
+    output = close_reply(llm, moderator, body, trace, Deadline())
+    fallback = trace.get("fallback")
+    error = f"close fallback: {fallback}" if fallback else None
+    view = {"reply": output["text"]}
+    checks = evaluate(case["expect"], view, required=case.get("required"))
+    return {
+        "status": FAIL if error else repetition_status(checks),
+        "checks": checks,
+        "output": output,
+        "raw_output": trace.get("raw_output"),
+        "policy": trace.get("policy"),
+        "error": error,
+        "latency_ms": round((time.monotonic() - started) * 1000),
         "usage": usage.take_usage(),
     }
 

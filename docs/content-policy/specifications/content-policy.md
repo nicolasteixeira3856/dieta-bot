@@ -40,6 +40,8 @@ These codes are internal. They are not new public Chat `intent` values. Eating-d
 
 Same controls on `/v1/estimate`, `/v1/fit`, `/v1/chat` and `compact=true`. Estimate/fit add the same `scope` field to their schema.
 
+`/v1/close` (the day and week closure text of [ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md), [server Chat](../../server/specifications/v1-chat.md) rule 17) sits under the same scope and logging rules. Its input is app-computed integers, enums and meal names, delimited as data: profile names, like Chat's, are not moderated (step 2 does not apply). The generated text is output-moderated (step 5); a flag, a failure or moderation unavailable returns a fixed neutral line built from the numbers, never generated text and never an unmoderated fallthrough. The `duro` tone of ADR-044 never comments on body, weight or appearance and never pushes eating below the ceiling, skipping meals or fasting; Chat scope, refusals and `safety_support` are decided before the tone and do not change with it.
+
 ### Context that is not re-moderated
 
 History, legacy memory, facts, recent meals, digests and profile names are not moderated on every turn. Memory facts and digests are moderated when the server generates them (step 5). The rest is client-held state of the same installation: a user who forges it only poisons their own session. Residual risk accepted for the closed test; the production profile below revisits it.
@@ -88,6 +90,7 @@ Use the [matrix](../validation/README.md). Passing schema tests is not semantic 
 ## Provenance
 
 - [S19](../../server/plans/completed/s19-generalizable-chat-instructions.md) — Generalizable Chat instructions and example provenance
+- [S30](../../server/plans/completed/s30-tone-formatting-planned-slot.md) — Tone limits and the closure route under the same controls
 - [CP1](../plans/completed/cp1-closed-test-notice.md) — Closed-test notice and incident note
 - [CP2](../plans/completed/cp2-server-content-controls.md) — Server scope and content controls
 - [CP5](../plans/completed/cp5-gcp-dev-ingress.md) — GCP dev ingress, log hygiene and activation

@@ -64,7 +64,7 @@ def test_undeclared_example_and_raw_snippets_cannot_enter_any_branch():
             branches = {**BRANCHES, branch: BRANCHES[branch] + (fragment,)}
             with pytest.raises(ValueError):
                 assemble(branch, branches=branches)
-        prompt = "digest" if branch == "compact" else "chat"
+        prompt = "digest" if branch == "compact" else "close" if branch.startswith("close") else "chat"
         validate_assembled(prompt, assemble(branch))
         with pytest.raises(ValueError):
             validate_assembled(prompt, assemble(branch) + "\nUSER-SPECIFIC-CONTEXT")

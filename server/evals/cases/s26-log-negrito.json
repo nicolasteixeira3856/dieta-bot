@@ -1,0 +1,103 @@
+{
+  "id": "s26-log-negrito",
+  "since": "skip_slots",
+  "tags": [
+    "s26",
+    "format",
+    "log"
+  ],
+  "request": {
+    "local_time": "2026-10-14T13:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-14",
+      "eaten_kcal": 430,
+      "eaten_p": 24,
+      "eaten_c": 38,
+      "eaten_g": 20,
+      "workout_kcal": null,
+      "remaining_kcal": 1570,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "2 ovos mexidos, 1 pão francês e café com leite",
+          "kcal": 430,
+          "p": 24,
+          "c": 38,
+          "g": 20
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "t",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "almocei 150 g de arroz branco, 100 g de feijão carioca e 120 g de peito de frango grelhado",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "reply_format": true,
+    "reply_markers": {
+      "has": [
+        "bold"
+      ],
+      "not": [
+        "table",
+        "step"
+      ],
+      "bold_max": 3
+    }
+  },
+  "note": "A quantified log: bold on the total, no table and no steps."
+}
