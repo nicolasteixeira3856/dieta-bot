@@ -78,7 +78,7 @@ After validation: `tools/deploy-gcp.ps1`, code only, then the three-turn smoke o
 
 - Client changes: the projected-day panel and the A50 choice already display the server numbers.
 - Tone, closures, reminders: [S25](s25-tone-and-closures.md), [A55](../../android/plans/a55-tone-choice-and-closures.md).
-- The auto-record defect of the same log: [A54](../../android/plans/a54-auto-record-addition-empty-slot.md).
+- The auto-record defect of the same log: [A54](../../android/plans/completed/a54-auto-record-addition-empty-slot.md).
 - Per-meal caps typed by the user; a food database; production (blocked by the [production gate](../../content-policy/production-gate.md)).
 
 ## Validation

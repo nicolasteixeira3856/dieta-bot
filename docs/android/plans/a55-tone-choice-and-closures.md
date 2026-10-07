@@ -8,7 +8,7 @@
 - Prerequisites:
   - [D16](../../design/plans/d16-tone-and-closures.md) `Concluído` with `o5`, `cfgT`, `homeC`, `homeK` and the changed `cfg` exported;
   - [S25](../../server/plans/s25-tone-and-closures.md) delivered and deployed to the dev server;
-  - [A50](a50-plan-budget-choice.md) and [A54](a54-auto-record-addition-empty-slot.md) delivered or cancelled (same Chat and Room files; no parallel Android plan).
+  - [A50](a50-plan-budget-choice.md) and [A54](completed/a54-auto-record-addition-empty-slot.md) delivered or cancelled (same Chat and Room files; no parallel Android plan).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a55-tone-choice-and-closures.md. Implemente o plano aprovado.`
 

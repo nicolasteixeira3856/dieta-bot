@@ -8,7 +8,7 @@
 - Prerequisites:
   - [D17](../../design/plans/d17-rich-replies.md) `Concluído` with `chatR`, `chatE` and `chatRK` exported;
   - [S26](../../server/plans/s26-reply-formatting-subset.md) delivered and deployed to the dev server;
-  - [A50](a50-plan-budget-choice.md), [A54](a54-auto-record-addition-empty-slot.md) and [A55](a55-tone-choice-and-closures.md) delivered or cancelled (same Chat files; no parallel Android plan).
+  - [A50](a50-plan-budget-choice.md), [A54](completed/a54-auto-record-addition-empty-slot.md) and [A55](a55-tone-choice-and-closures.md) delivered or cancelled (same Chat files; no parallel Android plan).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a57-rich-reply-rendering.md. Implemente o plano aprovado.`
 

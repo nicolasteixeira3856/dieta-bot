@@ -14,7 +14,8 @@
 #   devDebug APK built with -PAPI_PUBLIC_URL=http://10.0.2.2:8765 and installed;
 #   AVD at gold geometry (wm size 780x1688, wm density 320); python3; curl.
 # SCENES=a34 only onboarding + the A34 scenes.
-# Usage: [SCENES=v2|a30|a32|a34] tools/capture-chat.sh dark|light
+# SCENES=a54 only onboarding + the A54 scene: an `auto` addition into the empty dinner is recorded, the next DAY says eaten.
+# Usage: [SCENES=v2|a30|a32|a34|a54] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -750,6 +751,32 @@ expect "gold chatD: Desfeito" 'text="Desfeito"'
 expect "gold chatD: Restaurado with actions" 'chat-receipt-delete'
 expect "gold chatD: Restaurado em Jantar" 'Restaurado em Jantar'
 shot chatD
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a54 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+dinner_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin)['day']; print(' '.join(f\"{s['status']}:{s.get('kcal')}\" for s in d if s['id'] == sys.argv[1]))" "$1"; }
+set_clock 0 16:53
+echo "  A54: an auto addition into the empty dinner is recorded"
+sql "$CLEAN"
+fake_mode '{"a54": true}'
+open_chat
+say "vamos%scom%s2%someletes"; kb_off
+expect "a54: receipt in the Chat" 'resource-id="chat-receipt-delete"'
+if has chat-not-recorded; then echo "  ✗ Não registrado on a recordable addition"; FAIL=1; else echo "  ✓ no Não registrado"; fi
+rows=$(db "select m.name, l.kcal, l.p, l.carbs, l.fat from meal_log l join meal_slot m on m.id = l.slotId")
+case "$rows" in "[('Jantar', 263, 20, 1, 24)]") echo "  ✓ recorded in the dinner: $rows";; *) echo "  ✗ meal_log: $rows"; FAIL=1;; esac
+state=$(db "select recordMode, recordState from chat_message where role = 'assistant'")
+[ "$state" = "[('auto', 'recorded')]" ] && echo "  ✓ answer stored auto / recorded" || { echo "  ✗ answer state: $state"; FAIL=1; }
+jantar=$(db "select id from meal_slot where name like 'Jan%'" | tr -dc '0-9')
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+expect "a54: Home counts the dinner (263 kcal consumidas)" 'text="263"'
+fake_mode '{"record": "none", "reply": "Ok."}'
+open_chat
+say "e%sagora"; kb_off
+sent=$(dinner_sent "$jantar")
+[ "$sent" = "eaten:263" ] && echo "  ✓ next request carries the dinner as eaten" || { echo "  ✗ next DAY dinner: $sent"; FAIL=1; }
+fake_mode '{}'
 fi
 "$ADB" shell settings put global auto_time 1
 
