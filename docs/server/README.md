@@ -81,7 +81,7 @@ cd server
 
 ### Plans and validation
 
-- Active plans: files directly under [plans/](plans/): [S30 — Tone, closures, reply formatting and planned slot](plans/s30-tone-formatting-planned-slot.md). Cancelled by owner decision (07/10/2026, one plan per context): S25, S26, S27 in [`plans/cancelled/`](plans/cancelled/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
+- Active plans: files directly under [plans/](plans/) (none). S30 (tone, closures, reply formatting and planned slot) is in [history](plans/completed/). Cancelled by owner decision (07/10/2026, one plan per context): S25, S26, S27 in [`plans/cancelled/`](plans/cancelled/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
 - Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
 - Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.
 - Validation covering more than one plan: [validation/](validation/).

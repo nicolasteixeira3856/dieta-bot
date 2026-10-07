@@ -75,7 +75,7 @@ Behavior: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-w
 | Client fix | A54 — auto-record of an addition into an empty meal ([`completed/`](../../android/plans/completed/)) | A47 |
 | Server | S24 — protein-first plan inside the meal window ([`completed/`](../../server/plans/completed/)) | S23 |
 | Design | D16 — tone choice and closures (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`) ([`completed/`](completed/)) | D3, D4, D7 |
-| Server | S25 (cancelled, now [S30](../../server/plans/s30-tone-formatting-planned-slot.md)) — tone per user and `/v1/close` | S24 |
+| Server | S25 (cancelled, now S30 ([`completed/`](../../server/plans/completed/))) — tone per user and `/v1/close` | S24 |
 | Client | A55 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — tone choice, day and week closure | D16, S25 on dev, A50, A54 |
 
 ## Rich replies follow-up
@@ -85,7 +85,7 @@ Behavior: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md).
 | Step | Plan | Depends on |
 |---|---|---|
 | Design | D17 — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) ([`completed/`](completed/)) | D5, D6, D12 |
-| Server | S26 (cancelled, now [S30](../../server/plans/s30-tone-formatting-planned-slot.md)) — reply formatting subset | S24 |
+| Server | S26 (cancelled, now S30 ([`completed/`](../../server/plans/completed/))) — reply formatting subset | S24 |
 | Client | A57 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
 
 ## Planned meal follow-up
@@ -95,7 +95,7 @@ Behavior: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Ord
 | Step | Plan | Depends on |
 |---|---|---|
 | Design | D18 — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) ([`completed/`](completed/)) | D3, D6, D12, D17 |
-| Server | S27 (cancelled, now [S30](../../server/plans/s30-tone-formatting-planned-slot.md)) — planned slot in DAY | S24 |
+| Server | S27 (cancelled, now S30 ([`completed/`](../../server/plans/completed/))) — planned slot in DAY | S24 |
 | Client | A58 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
 
 ## Skips next to other actions follow-up
