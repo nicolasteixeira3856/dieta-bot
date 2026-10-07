@@ -78,6 +78,18 @@ Behavior: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-w
 | Server | [S25](../../server/plans/s25-tone-and-closures.md) — tone per user and `/v1/close` | S24 |
 | Client | [A55](../../android/plans/a55-tone-choice-and-closures.md) — tone choice, day and week closure | D16, S25 on dev, A50, A54 |
 
+## Rich replies follow-up
+
+Behavior: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | [D17](d17-rich-replies.md) — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) | D5, D6, D12 |
+| Server | [S26](../../server/plans/s26-reply-formatting-subset.md) — reply formatting subset | S24 |
+| Client | [A57](../../android/plans/a57-rich-reply-rendering.md) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
+
+Deferred by owner decision (2026-10-06): goal weight and date, [A56](../../android/plans/out_of_scope/a56-goal-weight.md).
+
 ## Fibrai brand follow-up
 
 Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):
