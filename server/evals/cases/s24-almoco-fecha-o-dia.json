@@ -1,0 +1,111 @@
+{
+  "id": "s24-almoco-fecha-o-dia",
+  "since": "meal_changes",
+  "tags": [
+    "s24",
+    "log"
+  ],
+  "request": {
+    "local_time": "2026-10-15T13:05:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 260,
+      "eaten_p": 17,
+      "eaten_c": 14,
+      "eaten_g": 12,
+      "workout_kcal": null,
+      "remaining_kcal": 1740,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "2 ovos cozidos, 1 fatia de pão integral e café",
+          "kcal": 260,
+          "p": 17,
+          "c": 14,
+          "g": 12
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "t",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "almocei 120 g de arroz, 100 g de feijão, 150 g de frango grelhado e 1 pires de salada de alface",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "closing_lines": [
+      "Lanche",
+      "Jantar",
+      "Ceia"
+    ],
+    "reply_not": [
+      "total do dia",
+      "consumiu hoje"
+    ]
+  },
+  "required": [
+    "closing_lines"
+  ],
+  "note": "A lunch log with three slots left ends with one closing line per slot and no day total."
+}

@@ -54,7 +54,7 @@ At Completion: [product Chat](../../../produto/specifications/chat.md) rule 8 (h
 ## Out of scope
 
 - Server rules or the `invalid meal base` rejection (a server plan may later turn an `add` with a stale `base_slot` into `base_slot null` instead of failing the turn; not this plan).
-- Tone, closures, protein objective: [S24](../../../server/plans/s24-protein-first-plan.md), [A55](../a55-tone-choice-and-closures.md).
+- Tone, closures, protein objective: [S24](../../../server/plans/completed/s24-protein-first-plan.md), [A55](../a55-tone-choice-and-closures.md).
 - Golds, layout, production distribution.
 
 ## Validation

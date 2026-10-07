@@ -1,13 +1,13 @@
 # Plan — S24 Protein-first plan inside the meal window
 
-- Status: Em implementação
+- Status: Concluído
 - Date: 06/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: DAY serialization, a pure arithmetic module for the meal window, the `plan` and `memory_changes` rules of `chat_instructions.py`, the plan budget check, the dev conversation log record, tests and evaluation cases. No route signature or schema change for the client; no client change.
 - Related documentation: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md) (accepted on 2026-10-06 with the approval of this plan), [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md), [ADR-042](../adrs/ADR-042-estimate-total-is-server-arithmetic.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [product Chat](../../produto/specifications/chat.md) rule 16.
 - Prerequisites: S23 delivered ([history](completed/)).
 
-Approving this plan accepts ADR-043. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s24-protein-first-plan.md. Implemente o plano aprovado.`
+Approving this plan accepts ADR-043. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/completed/s24-protein-first-plan.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -90,43 +90,35 @@ After validation: `tools/deploy-gcp.ps1`, code only, then the three-turn smoke o
 
 ## Results
 
-Approved by the owner on 06/10/2026 (overnight run, message naming this file). **Stopped in implementation** under the owner's overnight rule (a validation that does not pass after two attempts stays `Em implementação`; S25, S26 and S27 depend on S24 and were not started). Code on branch `feat/s24-protein-first-plan` (draft PR, not merged, not deployed). The dev server still runs S23.
+Approved by the owner on 06/10/2026 by name (overnight run). The overnight agent stopped the plan on 07/10 at 05:00 with the code on `feat/s24-protein-first-plan` (two open decisions, below). The owner decided both in the chat of 07/10 and the plan was finished the same morning in a worktree on that branch, rebased on master after S28.
 
-### Delivered on the branch
+### Owner decisions of 07/10/2026 (recorded here; ADR-043 decisions 3 and 4 as delivered)
 
-- `server/meal_window.py`: expected kcal per slot (mean per distinct RECENT day with at least two days, else `ceiling / slots`, rounded once), `window()` with computed reservations of the other empty slots, stated reservations replacing a slot by name (case- and accent-insensitive) or added, `window_kcal = max(0, remaining − reserved_upcoming)` (AGENTS `windowBudget`); `windows()` scaled to the remainder with protein in the same shares (largest remainder, exact sums); `budget_line()` and `windows_line()`; `close_reply()`.
-- `main.py`: DAY gains `remaining_p/c/g` after `remaining_kcal` (omitted without it); per-request `WINDOWS:` (two or more empty slots) and `BUDGET: protein_floor=…; window_kcal by meal: …` lines before `CURRENT_USER_MESSAGE`; `plan_budget.limit_kcal` = `fit_kcal`, else the window of the plan's slot, `reserved` = computed + stated; dev log `meal_window`; closing lines of a log or plan of today rewritten with the server's numbers after the model's answer.
-- `chat_instructions.py`: `plan` (two options for an open request; WINDOW and PROTEIN; NAMED DISH and PROTEIN BOOST with `(opcional)`; NO SCALE; `reserved` never copies BUDGET/WINDOWS numbers), new rule `closing`, log rules point to CLOSING, `memory_changes` brand/type sentence. ADR-033 record: general rules from ADR-043 decisions 2–7, owner spec ADR-043; no example added (a symbolic `protein-boost-table-v1` example was tried in run 5 and removed: it did not change the outcome).
-- Evaluator: checks `estimate_min`, `reply_options`, `closing_lines`, `reply_any` with unit tests; seven `s24` cases (synthetic situations independent of the tester log).
-- Tests: `server/tests/test_meal_window.py` and `test_evals_s24.py` (27 tests); `pytest server/tests`: 425 passed.
+1. **Default reservation.** An empty meal is reserved at its expected kcal (RECENT mean with at least two days, else ceiling ÷ meals of the day) **capped at its proportional share of the remainder** (remaining × expected ÷ Σ expected of the plan's meal and the other upcoming empty meals), so the window never reaches zero while something remains. An empty meal whose time passed more than 90 minutes ago is over and reserves nothing (the lanche of 15:00 at 20:00 was skipped in practice); a meal in that grace is still the meal in progress. The plan's meal is the model's `suggested_slot`, or the nearest upcoming empty meal when it is missing or over.
+2. **Protein boost on the server.** The model did not follow the `(opcional)` rule in five rounds; the owner asked for the common diet proteins of the TACO table to be suggested by the server. `server/protein_boost.py`: when a plan of today is below 30% of `remaining_p` and the window leaves at least 60 kcal, up to two of frango desfiado (159/32 per 100 g), ovo cozido (146/13, 50 g steps) and patinho moído cozido (219/36) are appended, a food the dish already has skipped, sized in steps to the room and the gap; items, totals, `meal_text` and the reply (`Para a proteína (opcional): …`) carry them; the budget check sees the boosted dish. The prompt sentence asking the model to add them was removed.
 
-### Decisions not covered by the plan (agent, most conservative reading)
+### Delivered (beyond the overnight branch)
 
-- The plan's single `BUDGET: window_kcal=…` line needs the plan's slot, which the server only knows after the answer: the line lists the window of each empty meal and of "any other meal"; the post-answer check uses the real `suggested_slot`.
-- Closing-line numbers: the model writes the lines from `WINDOWS`; the server rewrites the numbers after the answer (the other empty slots share what is left after this meal, by expected kcal), so the lines always sum to the day's remainder (ADR-043 decision 6). `WINDOWS` adds a per-slot `P`, needed by the line format.
-- No target slot (a plan without `suggested_slot`): no computed reservation, ADR-039 behavior.
-- `protein_floor` (30% of `remaining_p`, rounded up) is served in the `BUDGET` line so the model does not compute it.
+- `meal_window.py`: `Slot.time`, `upcoming()` with the 90-minute grace, `_capped()` shares, `limit_kcal` kept negative for the ADR-039 check while `window_kcal` is floored for the model, `served_numbers()` (a stated reservation that echoes a figure the server wrote is ignored), `typed_numbers()` (a stated reservation that names a meal counts only when its number appears in the user's texts and it is larger than the computed one; a meal name that is not an upcoming other meal is dropped), `nearest_upcoming()`, `_slot_key()` (`Para a ceia` names `Ceia`), and `close_reply()` that also finds closing lines written inline, drops the answered meal's, and with `complete` (a `WINDOWS` line was served) adds the line of a meal the model left out with that meal's latest RECENT food or `a definir`.
+- `main.py`: `_now`, `_typed`, `_usual_foods`, `_target` fallback, `_protein_boost` after the ADR-042 arithmetic and before the budget check, dev log `protein_boost`.
+- `plan_budget.check`: the limit is `window.limit_kcal`.
+- `chat_instructions.py` (`plan` rule): PROTEIN BOOST sentence removed (server-owned); `reserved` lists foods the user named, never a meal of the BUDGET/WINDOWS lines; a window of 0 or a dish larger than its window is never a reason to refuse or ask (only `BUDGET_TARGET` rebuilds). ADR-033 record: general rules from ADR-043, owner spec ADR-043; no example added.
+- Tests: `test_protein_boost.py` (9), `test_meal_window.py` (cap, grace, typed numbers, echo, meal-name extras, nearest slot, closing fallback), `test_plan_budget.py` negative-limit expectation restored. `pytest`: 450 passed, 422 subtests.
+- Fixtures: ADR-039 `receita-*` expectations refreshed to the window (notes in each case: `limit_kcal` 225/108/133/400/500/600, `reserved` with the computed supper); `receita-acima-ja-caber` and `receita-acima-ajusta` get a remainder a recipe can be rebuilt into (900 and 700); `receita-almoco-despensa` kcal floor 300 (five meals pending at lunch make an equal-share window of about 350); `receita-reserva-sem-kcal` names the slot instead of the yogurt label; `s24-prato-nomeado-sem-espaco` remainder 170.
 
-### Evaluation (effort none; OpenAI cost of this plan US$ 0.117)
+### Evaluation (effort none; OpenAI cost of the morning US$ 0.17; no full-suite run by owner decision of 07/10, 10:55)
 
-| Run | Scope | Result | Cost |
-|---|---|---|---|
-| 1 | `--tag s24 --repeat 3` | 5/7; closing lines 1/3, named dish with room 0/3 | US$ 0.0067 |
-| 2 | same, after the open-request and `(opcional)` wording | 4/7; reservations echoed from BUDGET (code bug in the rule, fixed in 3), closing lines lost to the one-line assumption rule | US$ 0.0067 |
-| 3 | same, `reserved` rule, trailing punctuation, case fix | 5/7; named dish 0/3, lunch closing 1/3 | US$ 0.0065 |
-| 4 | same, CLOSING in the assumption lines, `protein_floor` | 5/7; closing 3/3, reservations 3/3; named dish 0/3; the no-room fixture was wrong (it had room) | US$ 0.0067 |
-| 5 | same, symbolic example (then removed) | 5/7; named dish 0/3; lunch closing back to 1/3 | US$ 0.0066 |
-| 6 | full suite `--repeat 1` (prompt of run 4) | 201/230 (S23 run of 06/10: 215/223) | US$ 0.0841 |
+| Run | Result |
+|---|---|
+| `--tag s24 --repeat 3`, final code | **7/7** (open dinner with two options and P ≥ 40; named dish with `(opcional)` chicken; no room → no boost; reservations; closing lines; no scale; brand → dynamic memory) |
+| `--tag recipe --repeat 3`, final code | **15/16**: `receita-acima-ajusta` 1/3 (the rebuilt dish lands 445 against 400, model arithmetic on the adjustment; flaky since S21) |
+| Earlier rounds of the morning (`s24` 4/7 → 5/7 → 7/7; `recipe` 6/16 → 12/16 → 15/16) | each step is one of the server rules above; recorded in the session, not repeated here |
 
-Full-run failures by cause:
+Known gap: without history every meal expects an equal share of the ceiling, so a lunch planned with four meals still to come gets a small window (about 350 of 1750). A weighting by meal name or time is a follow-up, not in ADR-043.
 
-- ADR-043 window against the ADR-039 fixtures (11): `receita-acima-ajusta`, `receita-acima-com-reserva`, `receita-acima-ja-caber`, `receita-acima-ja-liberado`, `receita-acima-pergunta`, `receita-acima-pode-passar`, `receita-despensa-extras`, `receita-reserva-lanche`, `receita-reserva-sem-kcal`, `receita-sem-margem` (`limit_kcal` now the window, often 0 in evening fixtures where the equal-share reservation of the empty slots exceeds the remainder) and `receita-almoco-despensa` (kcal). They need either rewritten fixtures or a different default reservation: an owner decision.
-- `s24` (2): `s24-prato-nomeado-com-espaco` (the model keeps a named low-protein dish and never adds the `(opcional)` foods: 0/3 in every run), `s24-almoco-fecha-o-dia` (closing lines unstable).
-- Provider JSON errors (2): `s18-interleaved-correction`, `unavailable-weight-and-size`.
-- Known unstable or recurring (14): `cafe-resposta-leite`, `criativo-cafe-diferente-do-de-sempre`, `de-sempre-quantidade-diferente`, `de-sempre-um-dia`, `dia-pedi-estimar-ontem`, `duvida-whey`, `memoria-cheia`, `pergunta-todas-de-uma-vez`, `registro-lanche-dois-pontos`, `registro-noturno-ontem`, `s19-04-recent-brands-0`, `s19-11-add-continuation-1`, `slot-cafe-20h`, `slot-cafe-repete-almoco`. Recorded by name, no tiebreak runs.
+### Validation
 
-### What is missing to close
-
-1. Owner decision on the default reservation (equal share of the ceiling per empty slot zeroes many evening windows) and on the eleven ADR-039 fixtures.
-2. ADR-043 decision 4 (named dish + `(opcional)` protein foods) is not followed by the model with prompt rules alone; options: accept the limitation, a server-side suggestion, or a different approach decided by the owner.
-3. Then: `s24` 3/3, one full run, deploy and smoke, Completion of the specs (v1-chat rules 3 and 5, HTTP contract, product Chat rule 16), ADR-043 status Accepted and ADR-039 partial supersession.
+1. `pytest -q` in `server/`: 450 passed, 422 subtests passed.
+2. Evaluation as above; the full suite was not run (owner decision, cost).
+3. Dev deploy with `tools/deploy-gcp.ps1` from the merged master; smoke recorded below.
+4. `node tools/check-docs.mjs`: passed.

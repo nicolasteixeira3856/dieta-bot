@@ -58,6 +58,10 @@ KNOWN = (
     "memory_update_text",
     "items_beyond",
     "plan_budget",
+    "estimate_min",
+    "reply_options",
+    "closing_lines",
+    "reply_any",
 )
 
 # Case-level expectations (S22): judged across the repetitions of a case in evals.run, never per repetition.
@@ -258,6 +262,30 @@ def _check(
     if key == "plan_budget":
         return _budget_check(want, output, estimate)
 
+    if key == "estimate_min":
+        # S24: {field: minimum} on the estimate (protein of a plan built to the gap).
+        if not estimate:
+            return _result(False, "no estimate")
+        low = [f for f, m in want.items() if not isinstance(estimate.get(f), (int, float)) or estimate[f] < m]
+        return _result(not low, f"below minimum: {[(f, estimate.get(f)) for f in low]}" if low else "ok")
+
+    if key == "reply_options":
+        # S24 (ADR-043 decision 5): lines with a dish total `N kcal ·`, closing lines excluded.
+        lines = [line for line in str(output.get("reply") or "").split("\n") if not _CLOSING_LINE.match(line)]
+        totals = sum(len(_TOTAL.findall(line)) for line in lines)
+        return _result(totals >= int(want), f"{totals} totals; need {want}")
+
+    if key == "closing_lines":
+        # S24 (ADR-043 decision 6): exactly one closing line per named slot, none for any other.
+        got = [normalize(m.group(1)) for m in map(_CLOSING_LINE.match, str(output.get("reply") or "").split("\n")) if m]
+        wanted = sorted(normalize(w) for w in want)
+        return _result(sorted(got) == wanted, f"closing lines for {got}; want {wanted}")
+
+    if key == "reply_any":
+        haystack = normalize(str(output.get("reply") or ""))
+        hits = [t for t in want if normalize(t) in haystack]
+        return _result(bool(hits), f"none of {want} in reply" if not hits else f"found {hits}")
+
     if key == "memory_used_only":
         used = output.get("memory_used")
         if not isinstance(used, list) or any(not isinstance(i, str) for i in used):
@@ -425,6 +453,10 @@ def _check(
         return _result(not missing, f"missing {missing}; got {used}" if missing else "ok")
 
     raise ValueError(f"unknown expectation: {key}")
+
+
+_TOTAL = re.compile(r"\d\s*kcal\s*[·|]")
+_CLOSING_LINE = re.compile(r"^([^:\n]{1,40}): .+? ~\d+ kcal · P \d+(?: g)?[.;]?\s*$")
 
 
 def _terms(must_have: bool, terms: list[str], text: str) -> dict[str, Any]:

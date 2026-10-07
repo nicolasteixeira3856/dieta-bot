@@ -67,13 +67,21 @@ def plan_kcal(payload: Any) -> float | None:
     return kcal
 
 
-def check(kcal: float, remaining_kcal: int, model_budget: dict[str, Any], fit_kcal: int | None) -> dict[str, Any]:
-    """limit = fit_kcal, else remaining minus reservations. Any excess counts as at least 1 kcal over."""
-    limit = fit_kcal if fit_kcal is not None else remaining_kcal - sum(r["kcal"] for r in model_budget["reserved"])
+def check(
+    kcal: float, remaining_kcal: int, model_budget: dict[str, Any], fit_kcal: int | None, *, window: Any = None,
+) -> dict[str, Any]:
+    """limit = fit_kcal, else the meal window (ADR-043), else remaining minus the stated reservations.
+
+    window: a meal_window.Window; its reservations (computed and stated) replace the model's list. Any excess counts
+    as at least 1 kcal over.
+    """
+    reserved = window.reserved if window is not None else model_budget["reserved"]
+    default = window.limit_kcal if window is not None else remaining_kcal - sum(r["kcal"] for r in reserved)
+    limit = fit_kcal if fit_kcal is not None else default
     return {
         "limit_kcal": limit,
         "over_kcal": max(0, math.ceil(kcal - limit)),
-        "reserved": model_budget["reserved"],
+        "reserved": reserved,
         "choice": model_budget["choice"],
     }
 

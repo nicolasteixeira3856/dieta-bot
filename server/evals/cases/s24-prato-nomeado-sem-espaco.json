@@ -1,0 +1,140 @@
+{
+  "id": "s24-prato-nomeado-sem-espaco",
+  "since": "meal_changes",
+  "tags": [
+    "s24",
+    "plan"
+  ],
+  "request": {
+    "local_time": "2026-10-14T19:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-10-12",
+        "slot_id": "c",
+        "slot_name": "Ceia",
+        "text": "1 pote de coalhada com mel",
+        "kcal": 150,
+        "p": 8,
+        "c": 20,
+        "g": 4
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "c",
+        "slot_name": "Ceia",
+        "text": "1 pera e 1 xícara de chá",
+        "kcal": 150,
+        "p": 1,
+        "c": 36,
+        "g": 0
+      }
+    ],
+    "day": {
+      "date": "2026-10-14",
+      "eaten_kcal": 1700,
+      "eaten_p": 59,
+      "eaten_c": 215,
+      "eaten_g": 65,
+      "workout_kcal": null,
+      "remaining_kcal": 170,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "1 tapioca de 60 g com queijo coalho e café preto",
+          "kcal": 320,
+          "p": 14,
+          "c": 45,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "200 g de lasanha à bolonhesa e 1 lata de refrigerante",
+          "kcal": 780,
+          "p": 36,
+          "c": 90,
+          "g": 30
+        },
+        {
+          "id": "t",
+          "status": "eaten",
+          "text": "2 fatias de bolo de cenoura e 1 café com leite",
+          "kcal": 600,
+          "p": 9,
+          "c": 80,
+          "g": 26
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "pensei em jantar 2 torradas com geleia e um chá, pode ser?",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "meal_text_has": [
+      "torrada"
+    ],
+    "reply_not": [
+      "(opcional)"
+    ]
+  },
+  "required": [
+    "reply_not"
+  ],
+  "note": "Same named dish with 300 kcal left and 150 reserved for supper: a 150 kcal window, no room, nothing added. remaining_kcal 170 so that the capped supper reservation leaves no room for a protein boost (S24)."
+}

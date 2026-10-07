@@ -124,15 +124,16 @@
       "over": true,
       "choice": null,
       "reserved_has": [
-        "iogurte"
+        "Ceia"
       ],
       "reserved_kcal_range": [
         80,
-        320
+        700
       ]
     }
   },
   "required": [
     "plan_budget"
-  ]
+  ],
+  "note": "ADR-043 (S24): the supper is reserved by the server (Ceia); the yogurt the user names may come as its own label or raise the Ceia figure, so the expectation names the slot and widens the range."
 }

@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: the `new`/`revise` validation in `meal_changes.py`, one unit test module, one evaluation case, the dev conversation log untouched. No prompt, schema or client change.
 - Related documentation: [server Chat specification](../specifications/v1-chat.md) rule 5e, [HTTP contract](../../api-contract.md#meal-change-capability), [ADR-042](../adrs/ADR-042-estimate-total-is-server-arithmetic.md), [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md).
-- Prerequisites: none. Independent of [S24](s24-protein-first-plan.md).
+- Prerequisites: none. Independent of [S24](completed/s24-protein-first-plan.md).
 
 Owner approval on 07/10/2026 in the chat: "Execute um plano de servidor pequeno, pode escrever o plano, já aprovar, executar e entregar." Authorization and delivery follow [SDD](../../sdd/README.md).
 

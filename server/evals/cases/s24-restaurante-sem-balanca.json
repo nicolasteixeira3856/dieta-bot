@@ -1,0 +1,111 @@
+{
+  "id": "s24-restaurante-sem-balanca",
+  "since": "meal_changes",
+  "tags": [
+    "s24",
+    "plan"
+  ],
+  "request": {
+    "local_time": "2026-10-16T12:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-16",
+      "eaten_kcal": 320,
+      "eaten_p": 14,
+      "eaten_c": 45,
+      "eaten_g": 9,
+      "workout_kcal": null,
+      "remaining_kcal": 1680,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "1 tapioca de 60 g com queijo coalho e café preto",
+          "kcal": 320,
+          "p": 14,
+          "c": 45,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "t",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "vou almoçar num restaurante por quilo e não tenho como pesar, como monto meu prato?",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "reply_any": [
+      "colher",
+      "concha",
+      "palma",
+      "fatia",
+      "unidade",
+      "escumadeira"
+    ]
+  },
+  "required": [
+    "reply_any"
+  ],
+  "note": "No scale: household measures with the approximate grams beside them."
+}
