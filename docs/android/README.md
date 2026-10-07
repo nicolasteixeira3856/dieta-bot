@@ -120,6 +120,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 - [A55 — Tone choice, day closure and week closure](plans/a55-tone-choice-and-closures.md).
 - [A57 — Rendering the reply subset in the bubbles](plans/a57-rich-reply-rendering.md).
 - [A58 — Reserve a plan for its meal](plans/a58-planned-meal-reservation.md).
+- [A59 — Skips next to other actions in the Chat](plans/a59-skips-with-other-actions.md).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md), [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md).
 - Histórico: [`plans/completed/`](plans/completed/).
 - Validação: [`validation/`](validation/).

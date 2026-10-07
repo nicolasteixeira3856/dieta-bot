@@ -80,7 +80,7 @@ cd server
 
 ### Plans and validation
 
-- Active plans: files directly under [plans/](plans/): [S24 — Protein-first plan inside the meal window](plans/s24-protein-first-plan.md), [S25 — Tone per user and the closure route](plans/s25-tone-and-closures.md), [S26 — Reply formatting subset](plans/s26-reply-formatting-subset.md), [S27 — Planned slot in DAY](plans/s27-planned-slot.md). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
+- Active plans: files directly under [plans/](plans/): [S24 — Protein-first plan inside the meal window](plans/s24-protein-first-plan.md), [S25 — Tone per user and the closure route](plans/s25-tone-and-closures.md), [S26 — Reply formatting subset](plans/s26-reply-formatting-subset.md), [S27 — Planned slot in DAY](plans/s27-planned-slot.md), [S29 — Skip slots next to any intent](plans/s29-skip-slots.md). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
 - Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
 - Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.
 - Validation covering more than one plan: [validation/](validation/).
