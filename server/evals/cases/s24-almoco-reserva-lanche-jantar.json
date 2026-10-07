@@ -1,0 +1,116 @@
+{
+  "id": "s24-almoco-reserva-lanche-jantar",
+  "since": "meal_changes",
+  "tags": [
+    "s24",
+    "plan",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-15T11:50:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 260,
+      "eaten_p": 17,
+      "eaten_c": 14,
+      "eaten_g": 12,
+      "workout_kcal": null,
+      "remaining_kcal": 1740,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "2 ovos cozidos, 1 fatia de pão integral e café",
+          "kcal": 260,
+          "p": 17,
+          "c": 14,
+          "g": 12
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "t",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "o que eu almoço hoje?",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "plan_budget": {
+      "limit_kcal": 540,
+      "reserved_has": [
+        "Lanche",
+        "Jantar",
+        "Ceia"
+      ],
+      "reserved_kcal_range": [
+        1200,
+        1200
+      ]
+    }
+  },
+  "required": [
+    "plan_budget"
+  ],
+  "note": "Lunch plan with three later slots empty and no RECENT: each is reserved at 2000 / 5 = 400, so the limit is 1740 - 1200 = 540, below remaining_kcal."
+}

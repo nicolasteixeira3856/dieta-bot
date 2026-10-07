@@ -1,0 +1,113 @@
+{
+  "id": "s24-log-marca-memoria",
+  "since": "meal_changes",
+  "tags": [
+    "s24",
+    "memory"
+  ],
+  "request": {
+    "local_time": "2026-10-15T16:10:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 900,
+      "eaten_p": 65,
+      "eaten_c": 84,
+      "eaten_g": 26,
+      "workout_kcal": null,
+      "remaining_kcal": 1100,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "2 ovos cozidos, 1 fatia de pão integral e café",
+          "kcal": 260,
+          "p": 17,
+          "c": 14,
+          "g": 12
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "150 g de arroz, 100 g de feijão e 120 g de patinho",
+          "kcal": 640,
+          "p": 48,
+          "c": 70,
+          "g": 14
+        },
+        {
+          "id": "t",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "comi agora no lanche 1 pote de 170 g de iogurte grego Lumora sabor morango",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "log",
+    "estimate": "present",
+    "memory_updates_has": [
+      {
+        "op": "add",
+        "kind": "dynamic"
+      }
+    ]
+  },
+  "required": [
+    "memory_updates_has"
+  ],
+  "note": "A log naming a (fictional) brand with an empty MEMORY proposes one dynamic fact."
+}

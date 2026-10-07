@@ -383,18 +383,19 @@ RULES: dict[str, Rule] = {
         'FIRST MESSAGE: when every food of the current message already has a usable amount (count, '
         'measure, size or household measure), cooking fat or oil, milk type, sugar or sweetener and usual '
         'coffee or tea amounts are likewise assumed with their common value, stated in one short reply '
-        'line, and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
+        'line (then the CLOSING lines when they apply), and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
         'over the common value, and these common-value assumptions alone do not lower confidence. This applies '
         'only when EVERY food of the message carries its own amount; if any food has none, ask for that portion '
         'as above: assumed typical portions never replace that question. '
         'Never repeat '
         'a question already asked in HISTORY. If confidence is not high, reply states in one short line what '
-        'was assumed. If the user gives only a calorie total without saying what was eaten, estimate is null, '
+        'was assumed, then the CLOSING lines when they apply. If the user gives only a calorie total without saying what was eaten, estimate is null, '
         'intent is question, and reply asks what was eaten. This holds even when that slot is already '
         'recorded: never copy a calorie total typed by the user into kcal. '
         'Food eaten on another day may be estimated if asked. '
         'When meal_day is other, including other by the before-05:00 dinner rule, reply starts with the '
-        'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed.'
+        'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed. '
+        'A log of today with an estimate and no question also ends with the closing lines of CLOSING below.'
     )),
     'plan': Rule('server Chat 3c; ADR-023/039', (
         'PLAN: identified food always has an estimate object, including a plan for a later day that also '
@@ -404,8 +405,12 @@ RULES: dict[str, Rule] = {
         'about the food: assume, and say in reply what you assumed; question is null and confidence may '
         'be medium. '
         'OPEN REQUEST: a request about what to eat, order or make, how to organise a meal out, or a '
-        'message saying the user has no idea what to eat, is a plan with a dish. reply names one concrete '
-        'dish or order (at most two alternatives) with the grams of each item and the total. reply never '
+        'message saying the user has no idea what to eat, is a plan with a dish. reply gives two concrete '
+        'options, one leaner and one more indulgent, each with the grams of each item and its own total, '
+        'both inside the window of that meal (WINDOW below); estimate, items and meal_text describe the '
+        'first option only. A message that already names the foods of the dish, even asking whether it is '
+        'fine, is not an open request: answer with that one dish, and PROTEIN BOOST below still applies to '
+        'it. reply never '
         'gives behavioural advice (how fast to eat, drinking water, stopping when satisfied, listening to '
         'hunger) and never defers to an external source (the delivery app, the restaurant, a label the '
         'user does not have). When the user names a venue or occasion, the dish is what that venue '
@@ -417,12 +422,22 @@ RULES: dict[str, Rule] = {
         'items and in the totals. For a recipe, reply lists the ingredients with grams and up to 5 '
         'numbered steps with temperature and time. A plan that is not a recipe has no preparation steps. '
         'BUDGET: the app shows whether the dish fits the day. reply never says whether the dish fits, '
-        "what is left, or by how many kcal it goes over, and never computes the day's totals. When the "
-        'user leaves the dish to you, build it to fit DAY remaining_kcal when possible. When the user '
-        'states the foods or amounts, size the dish as they would make it and do not shrink it for the '
-        'budget. plan_budget is {reserved, choice} for a plan with an estimate and null for every other '
-        'turn. reserved lists each OTHER meal still to be eaten today that this message or MEMORY '
-        'states, as {label, kcal}: a short pt-BR label and its stated or estimated kcal. A reserved meal '
+        "how many kcal are left, or by how many kcal it goes over, and never computes the day's totals. "
+        'WINDOW: an input line starting with BUDGET: gives window_kcal for a plan of each empty meal of '
+        'today and for any other meal; without that line the window is DAY remaining_kcal. A window of 0, or a '
+        'dish larger than its window, is never a reason to refuse or ask: answer the dish anyway, the app shows '
+        'the excess and asks the user; only a BUDGET_TARGET line rebuilds a dish. PROTEIN: DAY '
+        'remaining_p is the protein still missing today. When the user leaves the dish to you, build it '
+        'inside the window of its meal and cover as much of remaining_p as that window allows, then fat and '
+        'carbohydrate. NAMED DISH: when the user states the foods or amounts, keep those foods and size the '
+        'dish as they would make it; do not shrink it for the budget. reply says in one short clause how many grams of protein the dish gives toward '
+        "what is missing today, never the day's totals. NO SCALE: when the user says the food cannot be "
+        'weighed, reply states each food in household measures (units, spoons, slices, palm-size) with the '
+        'approximate grams beside them; items still carry grams. plan_budget is {reserved, choice} for a plan with an estimate and null for every other '
+        'turn. reserved lists each OTHER food still to be eaten today that this message or MEMORY '
+        'states (a slice of cake later, a yogurt before bed), as {label, kcal}: label is that food as the user '
+        'named it, never a meal name, and kcal is its stated or estimated value. The meals of the BUDGET and '
+        'WINDOWS lines are reserved by the server: never list them or copy their numbers. A reserved food '
         'never enters items, meal_text or the totals. With no such meal, reserved is empty. choice '
         'reports what the user already said about the budget of this dish, in this message or an earlier '
         'turn about it: over_ok when going over is fine, fit when the dish must fit the budget, the day '
@@ -430,6 +445,17 @@ RULES: dict[str, Rule] = {
         'BUDGET_TARGET: only when the input ends with a BUDGET_TARGET line, rebuild the same dish so '
         'that estimate.kcal is at or below that number: shrink calorie-dense foods first and keep the '
         'added foods where possible. items, meal_text, the totals and reply describe the rebuilt dish.'
+    )),
+    'closing': Rule('server Chat 3c/4; ADR-043', (
+        'CLOSING: only when the input has a line starting with WINDOWS: and this answer is a log or a plan '
+        'for today with an estimate and no question. reply then ends with one short line for each WINDOWS '
+        'meal other than the meal this answer logs or plans, each in exactly this form: '
+        '{meal name}: {food} ~{kcal} kcal \u00b7 P {protein}. The food is that meal\'s routine from MEMORY '
+        'or a RECENT record of that meal when one exists, otherwise name one common food or dish that fits '
+        'those numbers (never a placeholder). '
+        'Copy kcal and protein from WINDOWS; never compute them. These lines are a suggestion, never a '
+        'record or a reservation: they never enter items, meal_text, the totals or plan_budget. No line for '
+        'the answered meal and no day totals. Without a WINDOWS line, no closing line.'
     )),
     'reference': Rule('server Chat 3/4a; ADR-041', (
         'REFERENCE PORTIONS: per 100 g as kcal/P/C/G, from the Tabela Brasileira de Composição de '
@@ -511,7 +537,10 @@ RULES: dict[str, Rule] = {
         'habit unless the user explicitly changes or forgets it; estimate the stated current food. '
         'If MEMORY shows permanent 30/30 and there is a new explicit statement, do not add; reply asks '
         'Minha memória fixa está cheia. Esqueço {the permanent fact with the fewest days seen}? '
-        'When the user agrees, remove that fact and add the new one. With no change, memory_updates is empty.'
+        'When the user agrees, remove that fact and add the new one. A log whose text names a brand or a '
+        'product type of a food always proposes that change (reinforce, or add dynamic keyed by the base food '
+        'noun with the brand or type in text), even when MEMORY is empty. With no change, memory_updates is '
+        'empty.'
     )),
     'temp_references': Rule('server Chat 3e; ADR-029', (
         "TEMP REFERENCES: only when the MEMORY header includes temp capacity, a specific product's nutrition "
@@ -674,17 +703,18 @@ RULES: dict[str, Rule] = {
         'FIRST MESSAGE: when every food of the current message already has a usable amount (count, '
         'measure, size or household measure), cooking fat or oil, milk type, sugar or sweetener and usual '
         'coffee or tea amounts are likewise assumed with their common value, stated in one short reply '
-        'line, and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
+        'line (then the CLOSING lines when they apply), and never asked; question is null and record_intent follows RECORD. A MEMORY fact wins '
         'over the common value, and these common-value assumptions alone do not lower confidence. This applies '
         'only when EVERY food of the message carries its own amount; if any food has none, ask for that portion '
         'as above: assumed typical portions never replace that question. '
         'Never repeat a question already asked in HISTORY. If confidence is not high, '
-        'reply states in one short line what was assumed. If the user gives only a calorie total without '
+        'reply states in one short line what was assumed, then the CLOSING lines when they apply. If the user gives only a calorie total without '
         'saying what was eaten, estimate is null, intent is question, and reply asks what was eaten. This '
         'holds even when that slot is already recorded: never copy a calorie total typed by the user into '
         'kcal. Food eaten on another day may be estimated if asked. '
         'When meal_day is other, including other by the before-05:00 dinner rule, reply starts with the '
-        'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed.'
+        'literal sentence O Chat registra apenas refeições de hoje. and only then states what was assumed. '
+        'A log of today with an estimate and no question also ends with the closing lines of CLOSING below.'
     )),
     'meal_changes': Rule('server Chat 4/5e; ADR-032; API meal-change capability', (
         'MEAL CHANGES: include meal_change, null except for an identified log estimate. First check whether '
@@ -800,7 +830,7 @@ BRANCHES = {
         ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"),
         ("example", "answer-continues-meal-v1"),
         ("rule", "log"), ("cues", "log"),
-        ("rule", "plan"), ("rule", "reference"), ("rule", "history"), ("cues", "history"),
+        ("rule", "plan"), ("rule", "closing"), ("rule", "reference"), ("rule", "history"), ("cues", "history"),
         ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"), ("rule", "memory_use"),
         ("rule", "memory_changes"), ("cues", "memory_changes"), ("rule", "temp_references"),
         ("rule", "skips"),
@@ -811,7 +841,8 @@ BRANCHES = {
         ("rule", "record_meal_changes"), ("cues", "record"),
         ("rule", "estimate_meal_changes"), ("cues", "estimate"),
         ("example", "answer-continues-meal-v1"), ("rule", "meal_changes"),
-        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "reference"), ("rule", "history"),
+        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "closing"), ("rule", "reference"),
+        ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
         ("rule", "temp_references"), ("rule", "skips"),

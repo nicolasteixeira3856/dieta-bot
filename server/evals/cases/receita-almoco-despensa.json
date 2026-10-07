@@ -111,7 +111,7 @@
       "min": 1
     },
     "kcal_range": [
-      350,
+      300,
       1000
     ],
     "plan_budget": "absent"
@@ -119,5 +119,6 @@
   "required": [
     "plan_budget",
     "items_beyond"
-  ]
+  ],
+  "note": "ADR-043 (S24): at 11:20 with five meals still to come the lunch window is about 350 kcal (equal share of the ceiling without history), so the dish may land just under 350."
 }

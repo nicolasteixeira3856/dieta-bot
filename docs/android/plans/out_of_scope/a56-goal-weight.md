@@ -15,7 +15,7 @@ The profile gains an optional goal: target weight (kg) and date, next to the cur
 
 ## Residual risk and dependencies
 
-Until then the tones and the closures speak in kcal, protein and days over, never in weight or deficit. Depends on [S24](../../../server/plans/s24-protein-first-plan.md), [S25](../../../server/plans/s25-tone-and-closures.md) and [A55](../a55-tone-choice-and-closures.md) delivered, and on a content-policy decision for the weight-related copy.
+Until then the tones and the closures speak in kcal, protein and days over, never in weight or deficit. Depends on [S24](../../../server/plans/completed/s24-protein-first-plan.md), [S25](../../../server/plans/s25-tone-and-closures.md) and [A55](../a55-tone-choice-and-closures.md) delivered, and on a content-policy decision for the weight-related copy.
 
 ## Reconsideration conditions
 

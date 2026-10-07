@@ -57,7 +57,7 @@
       "eaten_c": 168,
       "eaten_g": 40,
       "workout_kcal": null,
-      "remaining_kcal": 450,
+      "remaining_kcal": 700,
       "slots": [
         {
           "id": "1",
@@ -128,10 +128,11 @@
     "plan_budget": {
       "over": false,
       "choice": "fit",
-      "limit_kcal": 450
+      "limit_kcal": 400
     }
   },
   "required": [
     "plan_budget"
-  ]
+  ],
+  "note": "ADR-043 (S24): limit is the meal window; reserved includes the computed reservation of the upcoming empty meals: [{\"label\": \"Ceia\", \"kcal\": 225}]. remaining 700 (was 450): with the supper reserved the dinner window is 400 kcal (1800 / 6 = 300 reserved for the supper), a size the recipe can be rebuilt into."
 }

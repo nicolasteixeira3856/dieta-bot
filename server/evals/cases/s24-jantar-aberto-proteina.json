@@ -1,0 +1,152 @@
+{
+  "id": "s24-jantar-aberto-proteina",
+  "since": "meal_changes",
+  "tags": [
+    "s24",
+    "plan",
+    "over-budget"
+  ],
+  "request": {
+    "local_time": "2026-10-14T18:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "m",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "t",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "c",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ]
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-10-12",
+        "slot_id": "c",
+        "slot_name": "Ceia",
+        "text": "1 pote de coalhada com mel",
+        "kcal": 150,
+        "p": 8,
+        "c": 20,
+        "g": 4
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "c",
+        "slot_name": "Ceia",
+        "text": "1 pera e 1 xícara de chá",
+        "kcal": 150,
+        "p": 1,
+        "c": 36,
+        "g": 0
+      }
+    ],
+    "day": {
+      "date": "2026-10-14",
+      "eaten_kcal": 1020,
+      "eaten_p": 40,
+      "eaten_c": 163,
+      "eaten_g": 24,
+      "workout_kcal": null,
+      "remaining_kcal": 980,
+      "slots": [
+        {
+          "id": "m",
+          "status": "eaten",
+          "text": "1 tapioca de 60 g com queijo coalho e café preto",
+          "kcal": 320,
+          "p": 14,
+          "c": 45,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "120 g de macarrão ao sugo e 1 almôndega",
+          "kcal": 520,
+          "p": 22,
+          "c": 80,
+          "g": 12
+        },
+        {
+          "id": "t",
+          "status": "eaten",
+          "text": "1 maçã e 1 barra de cereal",
+          "kcal": 180,
+          "p": 4,
+          "c": 38,
+          "g": 3
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "c",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "não faço ideia do que jantar hoje",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "intent": "plan",
+    "estimate": "present",
+    "record": "none",
+    "estimate_min": {
+      "p": 40
+    },
+    "reply_options": 2,
+    "plan_budget": {
+      "over": false,
+      "limit_kcal": 830,
+      "reserved_has": [
+        "Ceia"
+      ],
+      "reserved_kcal_range": [
+        150,
+        150
+      ]
+    }
+  },
+  "required": [
+    "plan_budget",
+    "estimate_min",
+    "reply_options"
+  ],
+  "note": "Open dinner request with a 110 g protein gap: two options, the first with at least 40 g of protein, inside the window (980 left minus the supper's 150 from two days of RECENT)."
+}
