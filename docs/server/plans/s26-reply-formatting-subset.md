@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: one formatting rule in `chat_instructions.py` (both capability branches), a pure shaping module for the subset, the reply limits, the dev log, tests and evaluation checks. No route signature change; `reply` stays a string.
 - Related documentation: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md) (accepted on 2026-10-06 with the approval of D17 and this plan), [ADR-042](../adrs/ADR-042-estimate-total-is-server-arithmetic.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [content policy](../../content-policy/specifications/content-policy.md).
-- Prerequisites: [S24](s24-protein-first-plan.md) delivered (its two-option and closing-line replies are what the subset formats). Independent of S25.
+- Prerequisites: [S24](completed/s24-protein-first-plan.md) delivered (its two-option and closing-line replies are what the subset formats). Independent of S25.
 
 Approving this plan accepts ADR-045. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s26-reply-formatting-subset.md. Implemente o plano aprovado.`
 

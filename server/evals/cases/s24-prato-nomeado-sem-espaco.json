@@ -72,7 +72,7 @@
       "eaten_c": 215,
       "eaten_g": 65,
       "workout_kcal": null,
-      "remaining_kcal": 300,
+      "remaining_kcal": 170,
       "slots": [
         {
           "id": "m",
@@ -136,5 +136,5 @@
   "required": [
     "reply_not"
   ],
-  "note": "Same named dish with 300 kcal left and 150 reserved for supper: a 150 kcal window, no room, nothing added."
+  "note": "Same named dish with 300 kcal left and 150 reserved for supper: a 150 kcal window, no room, nothing added. remaining_kcal 170 so that the capped supper reservation leaves no room for a protein boost (S24)."
 }

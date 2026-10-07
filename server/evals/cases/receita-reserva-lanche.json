@@ -124,18 +124,19 @@
       "bolo"
     ],
     "plan_budget": {
-      "limit_kcal": 450,
+      "limit_kcal": 133,
       "reserved_has": [
         "bolo"
       ],
       "reserved_kcal_range": [
-        250,
-        250
+        567,
+        567
       ]
     }
   },
   "required": [
     "plan_budget",
     "items_beyond"
-  ]
+  ],
+  "note": "ADR-043 (S24): limit is the meal window; reserved includes the computed reservation of the upcoming empty meals: [{\"label\": \"Ceia\", \"kcal\": 317}, {\"label\": \"bolo\", \"kcal\": 250}]."
 }

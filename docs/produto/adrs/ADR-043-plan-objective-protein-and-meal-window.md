@@ -62,6 +62,6 @@ Deferred. Possible later as an override; the computed default covers the common 
 
 - Specifications affected: [chat](../specifications/chat.md) rule 16, [v1-chat](../../server/specifications/v1-chat.md) rules 3 and 5, [HTTP contract](../../api-contract.md) `/v1/chat`.
 - Related ADRs: ADR-039, ADR-041, ADR-042.
-- Consuming contexts: [server](../../server/README.md) ([S24](../../server/plans/s24-protein-first-plan.md)); [android](../../android/README.md) (none for this ADR).
+- Consuming contexts: [server](../../server/README.md) ([S24](../../server/plans/completed/s24-protein-first-plan.md)); [android](../../android/README.md) (none for this ADR).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

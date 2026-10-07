@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: `ChatIn.profile.tone`, one tone instruction block per branch in `chat_instructions.py`, the new route `POST /v1/close`, its schema, shaping, moderation and dev log, tests and evaluation cases. No client change.
 - Related documentation: [ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md) (accepted on 2026-10-06 with the approval of D16 and this plan), [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md), [content policy](../../content-policy/specifications/content-policy.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [fastapi-security skill](../../../.claude/skills/fastapi-security/SKILL.md).
-- Prerequisites: [S24](s24-protein-first-plan.md) delivered (the `plan` rule and the `BUDGET` line it adds are the base the tone block modifies).
+- Prerequisites: [S24](completed/s24-protein-first-plan.md) delivered (the `plan` rule and the `BUDGET` line it adds are the base the tone block modifies).
 
 Approving this plan accepts ADR-044. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s25-tone-and-closures.md. Implemente o plano aprovado.`
 

@@ -305,7 +305,7 @@ Effective responses always include `plan_budget`, either null or:
 
 - Present for an in-scope `plan` of today with an estimate when the request carries `day.remaining_kcal`. Null for every other intent, a held or refused turn, a fallback, another meal day or a missing `remaining_kcal`.
 - `reserved`: at most three other meals still to be eaten today that the user stated, each a label of 1–40 characters and an integer 1–3000 kcal (stated, or estimated by the model). They are not part of the plan's items, `meal_text` or any record.
-- `limit_kcal`: `fit_kcal` when sent, otherwise `day.remaining_kcal` minus the reserved kcal. May be zero or negative.
+- `limit_kcal`: `fit_kcal` when sent, otherwise the meal window: `day.remaining_kcal` minus the reservations of the other upcoming empty meals computed by the server ([ADR-043](produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md); `reserved` lists them with the meal name) and the stated ones. May be zero or negative.
 - `over_kcal`: `estimate.kcal` minus `limit_kcal`, rounded up, never below zero. The server computes it; the model never does.
 - `choice`: `over_ok`, `fit` or null, what the user already said about the budget of this dish.
 - Adjusting (`fit_kcal` sent, or `choice` `fit`) with `limit_kcal` ≥ 1 and the plan over it: the server asks the model once for the same dish within the target and returns that plan when it is valid. A plan still above the target returns with `over_kcal` > 0; there is no further attempt. With `limit_kcal` < 1 no adjustment is tried.
@@ -335,3 +335,4 @@ OUT
 - [S18](server/plans/completed/s18-meal-additions-and-revisions.md) — meal additions and revisions
 - [S28](server/plans/completed/s28-copied-record-items.md) — new/revise items without usable grams dropped, copied records keep their numbers
 - [S29](server/plans/completed/s29-skip-slots.md) — skip slots next to any intent
+- [S24](server/plans/completed/s24-protein-first-plan.md) — the limit is the meal window; computed reservations in `reserved`; `(opcional)` protein items

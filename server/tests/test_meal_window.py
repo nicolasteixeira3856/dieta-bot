@@ -47,22 +47,87 @@ class WindowTests(unittest.TestCase):
         w = mw.window(SLOTS, self.expected, 824, "4")
         self.assertEqual((w.window_kcal, w.reserved_upcoming, w.reserved), (524, 300, [{"label": "Ceia", "kcal": 300}]))
 
-    def test_stated_reservation_replaces_its_slot_and_an_unknown_label_is_added(self):
+    def test_stated_reservation_replaces_its_slot_only_when_larger_and_an_unknown_label_is_added(self):
         stated = [{"label": "ceia", "kcal": 120}, {"label": "fatia de bolo", "kcal": 250}]
         w = mw.window(SLOTS, self.expected, 824, "4", stated)
-        self.assertEqual(w.reserved, [{"label": "Ceia", "kcal": 120}, {"label": "fatia de bolo", "kcal": 250}])
-        self.assertEqual((w.window_kcal, w.reserved_upcoming), (454, 370))
+        # 120 is below the computed 300 (the model's own closing suggestion, not a statement): the computed stays.
+        self.assertEqual(w.reserved, [{"label": "Ceia", "kcal": 300}, {"label": "fatia de bolo", "kcal": 250}])
+        self.assertEqual((w.window_kcal, w.reserved_upcoming), (274, 550))
+        larger = mw.window(SLOTS, self.expected, 824, "4", [{"label": "ceia", "kcal": 450}])
+        self.assertEqual(larger.reserved, [{"label": "Ceia", "kcal": 450}])
+
+    def test_a_slot_reservation_counts_only_when_the_user_typed_its_number(self):
+        guess = mw.window(SLOTS, self.expected, 824, "4", [{"label": "ceia", "kcal": 450}], typed={200})
+        self.assertEqual(guess.reserved, [{"label": "Ceia", "kcal": 300}])
+        said = mw.window(SLOTS, self.expected, 824, "4", [{"label": "ceia", "kcal": 450}], typed={450})
+        self.assertEqual(said.reserved, [{"label": "Ceia", "kcal": 450}])
+        extra = mw.window(SLOTS, self.expected, 824, "4", [{"label": "bolo", "kcal": 250}], typed=set())
+        self.assertEqual(extra.reserved[-1], {"label": "bolo", "kcal": 250})  # an extra needs no typed number
+        self.assertEqual(mw.typed_numbers(["guarda 1.200 pra ceia e 250kcal de bolo", None]), {1200, 250})
+
+    def test_nearest_upcoming_slot(self):
+        timed = [Slot("1", "Café", "eaten", time="07:30"), Slot("2", "Jantar", "empty", time="18:00"), Slot("3", "Ceia", "empty", time="20:30")]
+        self.assertEqual(mw.nearest_upcoming(timed, "18:20"), "2")  # dinner of 18:00 is in progress
+        self.assertEqual(mw.nearest_upcoming(timed, "19:45"), "3")  # 105 minutes past dinner: the supper
+        self.assertEqual(mw.nearest_upcoming(timed, "17:00"), "2")
+        self.assertEqual(mw.nearest_upcoming(timed, "23:00"), None)
+        self.assertEqual(mw.nearest_upcoming(timed, None), "2")
+
+    def test_a_meal_name_is_never_an_extra_reservation(self):
+        stated = [{"label": "Jantar", "kcal": 400}, {"label": "Almoço", "kcal": 600}, {"label": "bolo", "kcal": 250}]
+        w = mw.window(SLOTS, self.expected, 824, "4", stated, typed={400, 600, 250})
+        self.assertEqual(w.reserved, [{"label": "Ceia", "kcal": 300}, {"label": "bolo", "kcal": 250}])
+        self.assertEqual(mw._slot_key("Para a ceia"), mw._key("Ceia"))
+        self.assertEqual(mw._slot_key("na Ceia"), mw._key("Ceia"))
+
+    def test_a_stated_reservation_that_echoes_a_served_number_is_ignored(self):
+        # 412 is the capped share the server itself wrote for the supper when 824 are left and both expect 300... no:
+        # with 824 left the cap does not bind (share 412 > 300), so the served figures are 300 (expected) and 412.
+        self.assertIn(412, mw.served_numbers(SLOTS, self.expected, 824, None))
+        w = mw.window(SLOTS, self.expected, 824, "4", [{"label": "ceia", "kcal": 412}])
+        self.assertEqual(w.reserved, [{"label": "Ceia", "kcal": 300}])
 
     def test_accents_and_case_name_the_same_slot(self):
         w = mw.window(SLOTS, self.expected, 824, "5", [{"label": "JANTAR", "kcal": 500}])
         self.assertEqual(w.reserved, [{"label": "Jantar", "kcal": 500}])
 
-    def test_never_below_zero(self):
-        self.assertEqual(mw.window(SLOTS, self.expected, 200, "4").window_kcal, 0)
+    def test_a_tight_remainder_is_shared_so_the_window_never_reaches_zero(self):
+        # 200 left, target and supper both expect 300: the supper reservation is capped at its share (100).
+        w = mw.window(SLOTS, self.expected, 200, "4")
+        self.assertEqual((w.window_kcal, w.reserved), (100, [{"label": "Ceia", "kcal": 100}]))
+        self.assertEqual(mw.window(SLOTS, self.expected, 0, "4").window_kcal, 0)
+
+    def test_a_stated_reservation_is_not_capped(self):
+        w = mw.window(SLOTS, self.expected, 200, "4", [{"label": "ceia", "kcal": 250}])
+        self.assertEqual((w.window_kcal, w.reserved_upcoming), (0, 250))
+
+    def test_an_empty_slot_whose_time_has_passed_reserves_nothing(self):
+        timed = [
+            Slot("1", "Café", "eaten", 400, 20, "07:30"), Slot("2", "Lanche", "empty", time="10:00"),
+            Slot("3", "Jantar", "empty", time="18:00"), Slot("4", "Ceia", "empty", time="20:30"),
+        ]
+        expected = {s.id: 300 for s in timed}
+        at_night = mw.window(timed, expected, 824, "3", now="18:20")
+        self.assertEqual(at_night.reserved, [{"label": "Ceia", "kcal": 300}])
+        in_the_morning = mw.window(timed, expected, 824, "3", now="09:00")
+        self.assertEqual([r["label"] for r in in_the_morning.reserved], ["Lanche", "Ceia"])
+        self.assertEqual([s.id for s in mw.upcoming(timed, "20:30")], ["4"])
+        self.assertEqual([s.id for s in mw.upcoming(timed, None)], ["2", "3", "4"])
+        self.assertEqual([s.id for s in mw.upcoming([Slot("x", "Sem hora", "empty")], "23:00")], ["x"])
 
     def test_without_a_target_only_stated_reservations_count(self):
         w = mw.window(SLOTS, self.expected, 824, None, [{"label": "bolo", "kcal": 100}])
         self.assertEqual((w.window_kcal, w.reserved), (724, [{"label": "bolo", "kcal": 100}]))
+
+
+class ClosingFallbackTests(unittest.TestCase):
+    def test_missing_closing_lines_are_added_with_the_usual_food_or_a_definir(self):
+        slots = [Slot("1", "Café", "eaten", 400, 20, "07:30"), Slot("2", "Almoço", "empty", time="12:30"),
+                 Slot("3", "Jantar", "empty", time="19:30"), Slot("4", "Ceia", "empty", time="22:00")]
+        expected = {s.id: 400 for s in slots}
+        out = mw.close_reply("Assumi 30 g de alface.", slots, expected, 1200, 90, "2", 400, 30, now="12:40",
+                             usual={"3": "frango com arroz"}, complete=True)
+        self.assertEqual(out.split(chr(10)), ["Assumi 30 g de alface.", "Jantar: frango com arroz ~400 kcal · P 30", "Ceia: a definir ~400 kcal · P 30"])
 
 
 class LinesTests(unittest.TestCase):

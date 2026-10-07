@@ -50,6 +50,7 @@ from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
 from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
 import estimate_total
 import meal_window
+import protein_boost
 import plan_budget as budgets
 from moderation import (
     IN_SCOPE,
@@ -750,6 +751,7 @@ def chat_reply(
         payload = call(_chat_text(body), timeout)
         # ADR-042: the total is the sum of the items before any check or shaping reads it.
         record["kcal_resum"] = estimate_total.apply_turn(payload, _record_totals(body))
+        _protein_boost(body, payload, record)
         budget = _plan_budget(body, payload) if body.plan_budget else None
         if budget is None or payload_scope(payload) != IN_SCOPE:
             return payload
@@ -938,9 +940,15 @@ def _day_slots(body: ChatIn) -> list[meal_window.Slot]:
         state = states.get(slot.id)
         out.append(meal_window.Slot(
             slot.id, slot.name, state.status if state else "empty",
-            float(state.kcal or 0) if state else 0.0, float(state.p or 0) if state else 0.0,
+            float(state.kcal or 0) if state else 0.0, float(state.p or 0) if state else 0.0, slot.time,
         ))
     return out
+
+
+def _now(body: ChatIn) -> str | None:
+    """HH:MM of the request's local_time, or None when it is missing or unparseable."""
+    m = re.search(r"T(\d{2}):(\d{2})", body.local_time or "")
+    return f"{m.group(1)}:{m.group(2)}" if m else None
 
 
 def _remaining_macros(body: ChatIn) -> dict[str, int]:
@@ -957,9 +965,21 @@ def _expected(body: ChatIn, slots: list[meal_window.Slot]) -> dict[str, int]:
 
 
 def _target(body: ChatIn, payload: dict[str, Any]) -> str | None:
+    """The plan's slot: the model's suggested_slot, else the nearest upcoming empty meal (ADR-043 decision 3)."""
     estimate = payload.get("estimate")
     slot = estimate.get("suggested_slot") if isinstance(estimate, dict) else None
-    return slot if slot in {s.id for s in body.profile.slots} else None
+    slots = _day_slots(body)
+    now = _now(body)
+    if slot in {s.id for s in slots}:
+        state = next(s for s in slots if s.id == slot)
+        # An empty meal whose time passed beyond the grace is over; a plan is for the next meal instead.
+        if state.status != "empty" or slot in {s.id for s in meal_window.upcoming(slots, now)}:
+            return slot
+    return meal_window.nearest_upcoming(slots, now)
+
+
+def _typed(body: ChatIn) -> set[int]:
+    return meal_window.typed_numbers([body.text, *(m.text for m in body.messages if m.role == "user")])
 
 
 def _meal_window(body: ChatIn, payload: dict[str, Any]) -> meal_window.Window | None:
@@ -968,7 +988,32 @@ def _meal_window(body: ChatIn, payload: dict[str, Any]) -> meal_window.Window | 
         return None
     slots = _day_slots(body)
     stated = budgets.shape_model_budget(payload.get("plan_budget"))["reserved"]
-    return meal_window.window(slots, _expected(body, slots), body.day.remaining_kcal, _target(body, payload), stated)
+    return meal_window.window(
+        slots, _expected(body, slots), body.day.remaining_kcal, _target(body, payload), stated, now=_now(body),
+        typed=_typed(body),
+    )
+
+
+def _protein_boost(body: ChatIn, payload: dict[str, Any], record: dict[str, Any]) -> None:
+    """ADR-043 decision 4: the server appends (opcional) protein foods to a named dish that needs them."""
+    record["protein_boost"] = None
+    if payload_scope(payload) != IN_SCOPE or payload.get("meal_day") == "other":
+        return
+    window = _meal_window(body, payload)
+    if window is None:
+        return
+    record["protein_boost"] = protein_boost.apply(payload, window.window_kcal, _remaining_macros(body)["p"])
+
+
+def _usual_foods(body: ChatIn) -> dict[str, str]:
+    """The latest RECENT text per slot, shortened: the food of a closing line the model left out."""
+    out: dict[str, str] = {}
+    for meal in sorted(body.recent, key=lambda r: r.date):
+        if meal.slot_id is None:
+            continue
+        text = " ".join(meal.text.split())
+        out[meal.slot_id] = text if len(text) <= 60 else text[:57].rstrip() + "..."
+    return out
 
 
 def _close_day(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) -> None:
@@ -980,7 +1025,9 @@ def _close_day(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) ->
     slots = _day_slots(body)
     result["reply"] = meal_window.close_reply(
         result["reply"], slots, _expected(body, slots), body.day.remaining_kcal, _remaining_macros(body)["p"],
-        estimate.get("suggested_slot"), float(estimate.get("kcal") or 0), float(estimate.get("p") or 0),
+        _target(body, payload), float(estimate.get("kcal") or 0), float(estimate.get("p") or 0),
+        now=_now(body), usual=_usual_foods(body),
+        complete=meal_window.windows_line(slots, _expected(body, slots), body.day.remaining_kcal, 0, _now(body)) is not None,
     )
 
 
@@ -1106,8 +1153,8 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
         slots = _day_slots(body)
         expected = _expected(body, slots)
         for line in (
-            meal_window.windows_line(slots, expected, body.day.remaining_kcal, _remaining_macros(body)["p"]),
-            meal_window.budget_line(slots, expected, body.day.remaining_kcal, _remaining_macros(body)["p"]),
+            meal_window.windows_line(slots, expected, body.day.remaining_kcal, _remaining_macros(body)["p"], _now(body)),
+            meal_window.budget_line(slots, expected, body.day.remaining_kcal, _remaining_macros(body)["p"], _now(body)),
         ):
             if line:
                 lines.append(line)

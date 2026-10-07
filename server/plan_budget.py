@@ -76,7 +76,7 @@ def check(
     as at least 1 kcal over.
     """
     reserved = window.reserved if window is not None else model_budget["reserved"]
-    default = window.window_kcal if window is not None else remaining_kcal - sum(r["kcal"] for r in reserved)
+    default = window.limit_kcal if window is not None else remaining_kcal - sum(r["kcal"] for r in reserved)
     limit = fit_kcal if fit_kcal is not None else default
     return {
         "limit_kcal": limit,
