@@ -99,7 +99,7 @@ private fun bubbles(rightY: Int, leftY: Int) = listOf(
 /** Top of an onboarding frame: stepper alone (O1), intake bar (O2/O3) or brand bar with help (O4). */
 sealed interface AeroOnboardingBar {
     data class Stepper(val step: Int) : AeroOnboardingBar
-    data class Intake(val step: Int, val count: Int = 4) : AeroOnboardingBar
+    data class Intake(val step: Int, val count: Int = 5) : AeroOnboardingBar
     data class Brand(val step: Int, val onHelp: () -> Unit) : AeroOnboardingBar
 
     /** Another screen's own header (the Config meal editor: Header/Page), no stepper. */
@@ -249,7 +249,7 @@ fun CeilingScreen(
         // o1e (ST8 / D4) keeps its own, tighter spacing.
         gap = if (enabled) 24.dp else 20.dp,
     ) {
-        Intro("Onboarding 1/4", "Metabolismo", "Teto do dia", "Defina sua meta diária de calorias. Você pode usar o valor sugerido ou personalizar.")
+        Intro("Onboarding 1/5", "Metabolismo", "Teto do dia", "Defina sua meta diária de calorias. Você pode usar o valor sugerido ou personalizar.")
         val sexes = listOf("male" to "Homem", "female" to "Mulher")
         AeroSegmented(
             sexes.map { (value, label) -> AeroChoice(label, "o1-sex-$value") },
@@ -395,7 +395,7 @@ fun EatScreen(
         ctaTag = "o2-continue",
         bubbles = bubbles(430, 690),
     ) {
-        Intro("Onboarding 2/4", "Exercícios", "Compensação de treinos", "Escolha se o gasto calórico de exercícios registrados deve aumentar sua meta do dia.")
+        Intro("Onboarding 2/5", "Exercícios", "Compensação de treinos", "Escolha se o gasto calórico de exercícios registrados deve aumentar sua meta do dia.")
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             AeroOptionCard(
                 "0% (Não compensar)",
@@ -473,7 +473,7 @@ fun OnboardingSlotsScreen(
             // o3t: the page behind a dialog is blurred (Figma layer blur 8) under overlay/scrim.
             modifier = if (picking in ui.slots.indices || schedule.pendingMode != null) Modifier.blur(8.dp) else Modifier,
         ) {
-            Intro(if (bar is AeroOnboardingBar.Header) null else "Onboarding 3/4", "Rotina", "Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.")
+            Intro(if (bar is AeroOnboardingBar.Header) null else "Onboarding 3/5", "Rotina", "Distribuição das refeições", "Organize sua rotina para planejar o dia e receber lembretes no horário certo.")
             Group("Dias da semana") {
                 val modes = SlotModes.labels
                 AeroTabs(
@@ -609,7 +609,7 @@ fun MacrosScreen(
             bubbles = bubbles(470, 760),
         ) {
             Intro(
-                "Onboarding 4/4",
+                "Onboarding 4/5",
                 "Macronutrientes",
                 "Alvos de macronutrientes",
                 "Distribuição calculada para a sua meta diária. Você pode ajustar as quantidades.",
@@ -716,7 +716,7 @@ fun ToneScreen(
     onFinish: () -> Unit,
 ) {
     AeroOnboardingFrame(
-        bar = AeroOnboardingBar.Intake(5, count = 5),
+        bar = AeroOnboardingBar.Intake(5),
         cta = "Concluir e começar",
         ctaEnabled = ui.o4Valid,
         onCta = onFinish,

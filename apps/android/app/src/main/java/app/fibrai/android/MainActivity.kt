@@ -49,6 +49,7 @@ import app.fibrai.android.feature.splash.SplashScreen
 import app.fibrai.android.feature.splash.SplashViewModel
 import app.fibrai.android.feature.chat.ChatScreen
 import app.fibrai.android.feature.chat.ChatViewModel
+import app.fibrai.android.feature.chat.rememberCopy
 import app.fibrai.android.feature.chat.rememberPhotoLaunchers
 import app.fibrai.android.feature.config.ConfigActions
 import app.fibrai.android.feature.config.ConfigScreen
@@ -275,6 +276,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 val vm: ChatViewModel = hiltViewModel()
                 val ui by vm.uiState.collectAsStateWithLifecycle()
                 val photo = rememberPhotoLaunchers(vm)
+                val copy = rememberCopy(vm)
                 // A42: the Chat is on Aero.
                 AeroTheme {
                     ChatScreen(
@@ -312,6 +314,11 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onRevisionCancel = vm::cancelRevision,
                         onSkipDelete = vm::confirmSkipDelete,
                         onSkipKeep = vm::keepRecord,
+                        onLongPress = vm::longPress,
+                        onSelectTap = vm::tapWhileSelecting,
+                        onSelectionClose = vm::clearSelection,
+                        onCopy = copy,
+                        onCopiedShown = vm::dismissCopied,
                     )
                 }
             }

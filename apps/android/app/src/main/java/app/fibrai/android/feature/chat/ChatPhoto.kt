@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import app.fibrai.android.core.designsystem.aero.aeroSelectedBubble
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.produceState
@@ -88,18 +89,20 @@ object PhotoPreviews {
 
 /** chatF, Chat/Photo: tinted glass user bubble (265 dp), the photo with the "Visão Computacional" tag, caption, time and ticks. */
 @Composable
-internal fun PhotoBubble(item: ChatItem.User, photoPath: String) {
+internal fun PhotoBubble(item: ChatItem.User, photoPath: String, selected: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     val image by produceState(PhotoPreviews.cached(photoPath), photoPath) {
         if (value == null) value = withContext(Dispatchers.IO) { PhotoPreviews.load(photoPath) }
     }
     val r = AeroDimens.radiusCard
+    val shape = RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = 6.dp, bottomStart = r)
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
         Column(
             Modifier
                 .width(265.dp)
-                .aeroGlass(RoundedCornerShape(topStart = r, topEnd = r, bottomEnd = 6.dp, bottomStart = r), fill = c.surfaceTint)
+                .aeroSelectedBubble(selected, shape)
+                .aeroGlass(shape, fill = c.surfaceTint)
                 .padding(11.dp)
                 .testTag("chat-user-${item.id}"),
             verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -80,11 +80,12 @@ object ReplyMarkup {
     /**
      * The reply without the markers, for every place that keeps or sends text (history, receipts, the composer): bold
      * markers dropped, a bullet's `- ` dropped, steps keep their numbers, a table becomes `{item}: {grams}` lines.
+     * [bullet] prefixes each bullet: Copiar (A61) keeps `- ` so a copied list still reads as one.
      */
-    fun plain(reply: String): String = parse(reply).joinToString("\n") { block ->
+    fun plain(reply: String, bullet: String = ""): String = parse(reply).joinToString("\n") { block ->
         when (block) {
             is ReplyBlock.Paragraph -> block.spans.joinToString("") { it.text }
-            is ReplyBlock.Bullet -> block.spans.joinToString("") { it.text }
+            is ReplyBlock.Bullet -> bullet + block.spans.joinToString("") { it.text }
             is ReplyBlock.Step -> "${block.number}. " + block.spans.joinToString("") { it.text }
             is ReplyBlock.Table -> block.rows.joinToString("\n") { (item, grams) -> "$item: $grams" }
         }

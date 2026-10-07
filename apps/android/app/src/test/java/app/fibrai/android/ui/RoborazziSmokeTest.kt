@@ -182,6 +182,41 @@ class RoborazziSmokeTest {
     @Test
     fun chatD_light() = chat(dark = false, ChatFixtures.chatD, "chatD")
 
+    /** A60 part A, A61: the choice pills under the budget lines, in the thread (chatRB). */
+    @Test
+    fun chatRB_dark() = chat(dark = true, ChatFixtures.chatRB, "chatRB")
+
+    @Test
+    fun chatRB_light() = chat(dark = false, ChatFixtures.chatRB, "chatRB")
+
+    /** A60 part C, A61: the recipe and Registrar assim under it (chatRK). */
+    @Test
+    fun chatRK_dark() = chat(dark = true, ChatFixtures.chatRK, "chatRK")
+
+    @Test
+    fun chatRK_light() = chat(dark = false, ChatFixtures.chatRK, "chatRK")
+
+    /** A60 part D, A61: Registrar assim under Reservado para o Jantar (chatRL). */
+    @Test
+    fun chatRL_dark() = chat(dark = true, ChatFixtures.chatRL, "chatRL")
+
+    @Test
+    fun chatRL_light() = chat(dark = false, ChatFixtures.chatRL, "chatRL")
+
+    /** A61 part B: two messages selected, the selection bar (chatCP). */
+    @Test
+    fun chatCP_dark() = chat(dark = true, ChatFixtures.chatCP, "chatCP")
+
+    @Test
+    fun chatCP_light() = chat(dark = false, ChatFixtures.chatCP, "chatCP")
+
+    /** A61 part B: the copy confirmation of Android 12 and earlier (chatCC). */
+    @Test
+    fun chatCC_dark() = chat(dark = true, ChatFixtures.chatCC, "chatCC")
+
+    @Test
+    fun chatCC_light() = chat(dark = false, ChatFixtures.chatCC, "chatCC")
+
     private fun chat(dark: Boolean, ui: app.fibrai.android.feature.chat.ChatUiState, name: String) {
         app.fibrai.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_A_PHOTO)
         app.fibrai.android.feature.chat.PhotoPreviews.load(ChatFixtures.CHAT_F_PHOTO)

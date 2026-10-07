@@ -75,6 +75,12 @@ object ChatFixtures {
         slots = slots,
     )
 
+    /** chatCP (D20, A61 part B): the chatG thread with the user message and the Tali reply selected; the receipt is not. */
+    val chatCP = chatG.copy(selected = setOf(user.key, "a-${bot.id}"))
+
+    /** chatCC (D20, A61 part B): the selection ended by Copiar, the app's own confirmation above the composer. */
+    val chatCC = chatG.copy(copied = 1)
+
     /** chatSK (D19, A59): breakfast recorded by itself and the pre-workout skipped in the same message, two receipts. */
     val chatSK = ChatUiState(
         items = listOf(
@@ -275,24 +281,27 @@ object ChatFixtures {
         currentSlotId = 4,
     )
 
-    /** chatRB (D12, A60 part A): a recipe over its window with a reserved slice of cake; Pode passar | Ajustar para caber. */
+    private val budgetText = "Macarrão com atum ao sugo:\n" +
+        "- 80 g de macarrão cru\n" +
+        "- 1 lata de atum em água (120 g)\n" +
+        "- 150 g de molho de tomate\n" +
+        "- 20 g de queijo ralado (opcional)\n" +
+        "1. Cozinhe o macarrão por 9 min.\n" +
+        "2. Aqueça o molho com o atum por 5 min.\n" +
+        "3. Misture e finalize com o queijo.\n" +
+        "Total: ~**620 kcal** · 42P · 70C · 18G"
+
+    /** chatRB (D12, D20, A60 part A): the plan in D17 blocks over its window with a reserved slice of cake; the pills under it. */
     val chatRB = ChatUiState(
         items = listOf(
             date,
             ChatItem.User(7, "Me passa uma receita de macarrão com atum pro jantar? Mais tarde ainda como uma fatia de bolo.", "20:15"),
             ChatItem.Assistant(
                 id = 8,
-                text = "Macarrão com atum ao sugo:\n" +
-                    "• 80 g de macarrão cru\n" +
-                    "• 1 lata de atum em água (120 g)\n" +
-                    "• 150 g de molho de tomate\n" +
-                    "• 20 g de queijo ralado (opcional)\n" +
-                    "1. Cozinhe o macarrão por 9 min.\n" +
-                    "2. Aqueça o molho com o atum por 5 min.\n" +
-                    "3. Misture e finalize com o queijo.\n" +
-                    "Total: ~620 kcal · 42P · 70C · 18G",
+                text = budgetText,
                 time = "20:15",
                 plan = ProjectedDay(1640, Macros(2260, 128, 222, 64), 2200, Macros(0, 167, 223, 74)),
+                blocks = app.fibrai.android.domain.ReplyMarkup.parse(budgetText),
                 budget = BudgetNote(310, listOf(250 to "fatia de bolo")),
             ),
         ),

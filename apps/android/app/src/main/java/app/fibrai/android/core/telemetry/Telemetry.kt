@@ -96,6 +96,9 @@ object TelemetryEvents {
     /** A60 part D: `action` reserved | replaced | cleared_by_record | cleared_by_skip. */
     const val PLAN_RESERVED = "plan_reserved"
 
+    /** A61 part B: Copiar in the Chat, `count` of messages, `has_user` / `has_tali` booleans. Never the text. */
+    const val MESSAGE_COPIED = "message_copied"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 
