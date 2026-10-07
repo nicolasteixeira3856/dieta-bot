@@ -74,6 +74,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [042](server/adrs/ADR-042-estimate-total-is-server-arithmetic.md) | server | estimate total computed by the server as the sum of the item kcal; macros scaled |
 | [043](produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md) | produto | a plan targets the protein gap inside the meal window; closing lines per remaining slot |
 | [044](produto/adrs/ADR-044-assistant-tone-and-closures.md) | produto | assistant tone chosen by the user (`seco` \| `duro`); day and week closure |
+| [045](produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md) | produto | emphasis, lists and a small table inside the Chat bubbles; golds `chatR`, `chatE` changed, `chatRK` new |
 
 ## Outros docs
 
