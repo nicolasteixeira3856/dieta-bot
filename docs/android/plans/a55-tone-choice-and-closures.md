@@ -6,7 +6,7 @@
 - Executable boundary: `apps/android/` (onboarding O5, Config row and sheet, profile entity and Room migration, network DTOs, closure scheduler and notifications, Home cards, telemetry, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`.
 - Related documentation: [ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md), [perfil-onboarding](../../produto/specifications/perfil-onboarding.md), [memoria-push](../../produto/specifications/memoria-push.md), [home-timeline](../../produto/specifications/home-timeline.md), [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
 - Prerequisites:
-  - [D16](../../design/plans/d16-tone-and-closures.md) `Concluído` with `o5`, `cfgT`, `homeC`, `homeK` and the changed `cfg` exported;
+  - [D16](../../design/plans/pending_manual_validation/d16-tone-and-closures.md) `Concluído` with `o5`, `cfgT`, `homeC`, `homeK` and the changed `cfg` exported;
   - [S25](../../server/plans/s25-tone-and-closures.md) delivered and deployed to the dev server;
   - [A50](a50-plan-budget-choice.md) and [A54](completed/a54-auto-record-addition-empty-slot.md) delivered or cancelled (same Chat and Room files; no parallel Android plan).
 
