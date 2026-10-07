@@ -32,6 +32,12 @@ class AdditionIn(BaseModel):
     items: list[AdditionItemIn] = Field(min_length=1, max_length=100)
 
 
+class TotalsIn(AdditionIn):
+    """A whole-meal estimate whose items carried no usable grams (S28): totals alone, items empty."""
+
+    items: list[AdditionItemIn] = Field(default_factory=list, max_length=0)
+
+
 class PendingAdditionIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     base_slot: str | None
@@ -88,8 +94,46 @@ def nutrition(raw: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def prepare_change(payload: dict[str, Any], profile: list[dict], day: list[dict]) -> dict[str, Any]:
-    """Validate before clarification can release a draft; never infer metadata from prose."""
+def usable_items(items: Any) -> list[dict[str, Any]]:
+    """The items that count toward a whole-meal total (ADR-042): finite positive grams, finite nonnegative kcal.
+
+    S28: a copied record often comes back as one item without grams; such items never counted toward the
+    total and are dropped before validation instead of failing the turn.
+    """
+    kept: list[dict[str, Any]] = []
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        grams, kcal = item.get("g"), item.get("kcal")
+        if isinstance(grams, bool) or isinstance(kcal, bool):
+            continue
+        if not isinstance(grams, (int, float)) or not isinstance(kcal, (int, float)):
+            continue
+        if not math.isfinite(grams) or grams <= 0 or not math.isfinite(kcal) or kcal < 0:
+            continue
+        kept.append(item)
+    return kept
+
+
+def totals_only(raw: dict[str, Any]) -> dict[str, Any]:
+    """Round the supplied totals once with no items (S28): the whole-meal nutrition of a copied record."""
+    parsed = TotalsIn.model_validate({**raw, "items": []}).model_dump()
+    description(parsed["meal_text"], MEAL_TEXT_MAX)
+    out = {"meal_text": parsed["meal_text"], **{k: rounded(parsed[k]) for k in NUTRIENTS}}
+    if out["kcal"] == 0 and any(number(parsed[k]) > 0 for k in NUTRIENTS):
+        raise ValueError("caloric addition rounded to zero")
+    out["items"] = []
+    return out
+
+
+def prepare_change(
+    payload: dict[str, Any], profile: list[dict], day: list[dict], keep: frozenset[float] | set[float] = frozenset(),
+) -> dict[str, Any]:
+    """Validate before clarification can release a draft; never infer metadata from prose.
+
+    keep: kcal of the supplied RECENT rows and eaten DAY slots (ADR-042). A `new`/`revise` total equal to
+    one of them is a copied record: its numbers stand and its items, an unknown breakdown, are dropped.
+    """
     out = deepcopy(payload)
     change = out.get("meal_change")
     estimate = out.get("estimate")
@@ -140,9 +184,23 @@ def prepare_change(payload: dict[str, Any], profile: list[dict], day: list[dict]
             raise ValueError("new meal cannot overwrite occupied target")
         if op == "revise" and base is None:
             raise ValueError("revision needs an occupied base")
-        # ADR-042: the whole-meal total is the sum of the items; a mismatch is recomputed, not refused.
-        estimate_total.apply(estimate)
-        values = nutrition({k: estimate.get(k) for k in ("meal_text", *NUTRIENTS, "items")})
+        raw = {k: estimate.get(k) for k in ("meal_text", *NUTRIENTS)}
+        model_kcal = estimate.get("kcal")
+        copied = (
+            not isinstance(model_kcal, bool) and isinstance(model_kcal, (int, float))
+            and any(float(model_kcal) == float(k) for k in keep)
+        )
+        if copied:
+            # S28: a copied record keeps the record's numbers (ADR-042 keep rule); its breakdown is unknown.
+            values = totals_only(raw)
+        else:
+            # ADR-042: the whole-meal total is the sum of the items; a mismatch is recomputed, not refused.
+            estimate_total.apply(estimate)
+            # S28: items that never counted (no usable grams or energy) are dropped, not refused; with none
+            # left, the totals stand alone.
+            kept = usable_items(estimate.get("items"))
+            raw = {k: estimate.get(k) for k in ("meal_text", *NUTRIENTS)}
+            values = nutrition({**raw, "items": kept}) if kept else totals_only(raw)
         estimate.update(values)
         if base is not None:
             for k in NUTRIENTS:

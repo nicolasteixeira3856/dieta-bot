@@ -1,0 +1,147 @@
+{
+  "id": "s28-cafe-de-ontem-um-dia",
+  "since": "meal_changes",
+  "tags": [
+    "s28",
+    "log",
+    "history"
+  ],
+  "strict": false,
+  "note": "One RECENT day only, meal_changes branch. Documents the gap seen in the dev log of 2026-10-07: with the current instructions the model usually answers that it has no record of yesterday (0/6 in S28), and when it does copy, the server now returns the totals instead of a fallback. A prompt change that fixed it in S28 regressed cafe-resposta-leite and ceia-completa-suco and was not kept; the lookup belongs to the next instruction plan.",
+  "request": {
+    "local_time": "2026-09-30T05:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 150,
+      "c_target": 200,
+      "g_target": 67,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "15:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "18:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "20:30"
+        }
+      ]
+    },
+    "memory": "",
+    "day": {
+      "date": "2026-09-30",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2000,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "Café o mesmo de ontem",
+    "image_b64": null,
+    "compact": false,
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-09-29",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "pão francês com manteiga, 2 ovos mexidos, 200 ml de leite, 100 ml de café sem açúcar",
+        "kcal": 430,
+        "p": 24,
+        "c": 38,
+        "g": 20
+      },
+      {
+        "date": "2026-09-29",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "1 pedaço pequeno de lasanha à bolonhesa, 100 g de arroz, salada de beterraba",
+        "kcal": 690,
+        "p": 30,
+        "c": 80,
+        "g": 26
+      },
+      {
+        "date": "2026-09-29",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 banana, 30 g de aveia",
+        "kcal": 215,
+        "p": 6,
+        "c": 45,
+        "g": 3
+      }
+    ],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "1",
+    "kcal_range": [
+      425,
+      435
+    ],
+    "meal_text_has": [
+      "ovo",
+      "pão"
+    ],
+    "question": "absent",
+    "refusal": "none",
+    "record": "auto"
+  }
+}

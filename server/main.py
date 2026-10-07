@@ -840,7 +840,7 @@ def shape_chat_turn(
     day = [s.model_dump() for s in body.day.slots]
     text_limit = MEAL_TEXT_MAX
     if body.meal_changes:
-        payload = prepare_change(payload, profile, day)
+        payload = prepare_change(payload, profile, day, _record_totals(body))
         change = payload.get("meal_change")
         if payload.get("intent") == "log" and payload.get("estimate") is None:
             # No known operation: portion force/cap cannot authorize a mutation.
