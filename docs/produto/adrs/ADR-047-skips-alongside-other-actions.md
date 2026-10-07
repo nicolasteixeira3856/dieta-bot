@@ -57,6 +57,6 @@ Rejected by the owner: two receipts keep the actions of each slot independent.
 
 - Specifications affected: [chat](../specifications/chat.md) rules 4, 5 and 7, states and acceptance criteria; [v1-chat](../../server/specifications/v1-chat.md) rules 3a, 3f, 5 and 5d; [HTTP contract](../../api-contract.md) (`skip_slots`); [Room](../../android/specifications/room-v2.md).
 - Related ADRs: ADR-028, ADR-032, ADR-046, ADR-020.
-- Consuming contexts: [server](../../server/README.md) ([S29](../../server/plans/completed/s29-skip-slots.md)), [design](../../design/README.md) ([D19](../../design/plans/d19-skips-with-other-actions.md)), [android](../../android/README.md) ([A59](../../android/plans/a59-skips-with-other-actions.md)).
+- Consuming contexts: [server](../../server/README.md) ([S29](../../server/plans/completed/s29-skip-slots.md)), [design](../../design/README.md) ([D19](../../design/plans/pending_manual_validation/d19-skips-with-other-actions.md)), [android](../../android/README.md) ([A59](../../android/plans/a59-skips-with-other-actions.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

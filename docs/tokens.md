@@ -6,7 +6,7 @@ Single repository owner of the visual token values, as a mirror of the Figma fil
 
 ## Aero
 
-Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-10-05. Never edit this section by hand: change Figma, refresh [`design/tokens.json`](design/tokens.json) and run `node tools/gen-tokens.mjs`.
+Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-10-07. Never edit this section by hand: change Figma, refresh [`design/tokens.json`](design/tokens.json) and run `node tools/gen-tokens.mjs`.
 
 ### Color (modes: Light, Dark)
 
@@ -37,6 +37,7 @@ Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-
 | `sheen/end` | `#ffffff00` | `#ffffff00` | `DietaBotColors.sheenEnd` | Bottom stop of the glass sheen (paint Surface/Glass, 40%), transparent. |
 | `overlay/scrim` | `#03122566` | `#00000099` | `DietaBotColors.overlayScrim` | Scrim behind a modal sheet: dims the screen underneath. Light: bg/page Dark at 40 %; Dark: black at 60 %. |
 | `status/bad-tint` | `#b93b2c1f` | `#ff7a6b29` | `DietaBotColors.statusBadTint` | Background tint of an over-the-meta element (Meta excedida pill, over node): status/bad at 12 % (Light) / 16 % (Dark). |
+| `status/on-bad` | `#ffffff` | `#ffffff` | `DietaBotColors.statusOnBad` | Text and icons on a status/bad fill (Excluir e pular in chatSD): white in both themes. |
 
 ### Shape (modes: Value)
 
