@@ -127,7 +127,7 @@ Finding: the D20 owner review ([history](completed/)). Order (prerequisites live
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D21](d21-light-text-dim-contrast.md) — Light `text/dim` contrast (Light golds that show `text/dim`, site tokens and phone screens) | D20, A61 merged |
+| Design | [D21](pending_manual_validation/d21-light-text-dim-contrast.md) — Light `text/dim` contrast (Light golds that show `text/dim`, site tokens and phone screens) | D20, A61 merged |
 | Client | `textDim` contrast test, Roborazzi re-record, Light capture evidence (written after D21) | D21 |
 
 ## Fibrai brand follow-up

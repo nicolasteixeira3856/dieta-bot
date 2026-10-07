@@ -1,17 +1,17 @@
 # Plan — D21 Light `text/dim` contrast
 
-- Status: Aguardando aprovação
+- Status: Pendente aprovação manual (owner review in Figma, 07/10/2026)
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → the `Color` collection (variable `text/dim`, mode Light: value and description) and the Contraste section of `Cores e tipografia`; no frame, component or layout change. Repository: `docs/design/tokens.json` (MCP read), `docs/tokens.md` (`node tools/gen-tokens.mjs`), `web/public/css/tokens.css` (`npm --prefix web run tokens`), the site phone screens `web/public/img/screens/light/*.webp` (`npm --prefix web run screens`), the Light golds listed below in `docs/qa/figma/light/`, a `--keep` flag in `tools/export-figma.mjs` and a new read-only `tools/contrast-gold.mjs`.
-- Prerequisites: D20 `Concluído` ([history](completed/)). [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged: A61 recaptures the same Light Chat golds, and the app takes the new value on its next build because `AeroTokens.kt` is generated from `docs/design/tokens.json`.
+- Prerequisites: D20 `Concluído` ([history](../completed/)). [A61](../../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged: A61 recaptures the same Light Chat golds, and the app takes the new value on its next build because `AeroTokens.kt` is generated from `docs/design/tokens.json`.
 - Figma MCP budget: ≤ 15 calls (at most 120 a day, ADR-031 § 6).
 
-Not a flow plan: one variable value in one mode, found in the D20 owner review ([D20 § Owner review](completed/d20-figma-review-inline-actions.md#owner-review)). It goes through the Figma review gate because every Light gold that shows `text/dim` changes. Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d21-light-text-dim-contrast.md. Implemente o plano aprovado.`
+Not a flow plan: one variable value in one mode, found in the D20 owner review ([D20 § Owner review](../completed/d20-figma-review-inline-actions.md#owner-review)). It goes through the Figma review gate because every Light gold that shows `text/dim` changes. Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d21-light-text-dim-contrast.md. Implemente o plano aprovado.`
 
 ## Objective
 
-Every text run painted in `text/dim` in the golds of the [inventory](../../qa/README.md#golds) reaches WCAG AA 4.5:1 against the pixels really behind it, in both themes, with the smallest token change. The `text/dim` description stops claiming more than it measures.
+Every text run painted in `text/dim` in the golds of the [inventory](../../../qa/README.md#golds) reaches WCAG AA 4.5:1 against the pixels really behind it, in both themes, with the smallest token change. The `text/dim` description stops claiming more than it measures.
 
 ## Finding
 
@@ -54,7 +54,7 @@ Alternatives measured and rejected:
 - **Bubble time (or every failing run) in `text/muted`:** `text/muted` (`#486781`) fails on the same backgrounds: 3.89–3.93 in the user bubble, 3.51–3.62 on the Home gradient, 3.77 on `cfgS`. Not enough on its own.
 - **Darken `text/muted` and `text/dim` together to keep dim lighter than muted:** two variables, and `text/muted` has its own, larger problem (below) that a value change does not fix. Kept for a separate plan.
 
-Side effect for the owner to accept: Light `text/dim` (luminance 0.084) becomes darker than `text/muted` (0.127), 1.31:1 apart. The two were already only 1.06:1 apart since D1 ([D1 § Delivered](completed/d1-figma-file-foundation.md)), whose rule stands: flow plans keep the hierarchy through size and weight, not through that colour gap. Where both sit side by side (the Home section label in `text/muted` next to `{n} Refeições` in `text/dim`) the count reads slightly darker than its label.
+Side effect for the owner to accept: Light `text/dim` (luminance 0.084) becomes darker than `text/muted` (0.127), 1.31:1 apart. The two were already only 1.06:1 apart since D1 ([D1 § Delivered](../completed/d1-figma-file-foundation.md)), whose rule stands: flow plans keep the hierarchy through size and weight, not through that colour gap. Where both sit side by side (the Home section label in `text/muted` next to `{n} Refeições` in `text/dim`) the count reads slightly darker than its label.
 
 ## Measurement method
 
@@ -107,7 +107,7 @@ It reads the token's hex from `docs/design/tokens.json`, prints every run (id, b
 
 ## Client follow-up
 
-A client plan in [android](../../android/README.md), written after this plan's OK and run after it. The app needs no Kotlin token edit: `generateAeroTokens` writes `AeroColors.textDim` from `docs/design/tokens.json` on the next build. Its scope:
+A client plan in [android](../../../android/README.md), written after this plan's OK and run after it. The app needs no Kotlin token edit: `generateAeroTokens` writes `AeroColors.textDim` from `docs/design/tokens.json` on the next build. Its scope:
 
 - `TokensTest`: besides `bg/page`, `textDim` ≥ 4.5 in both themes on `surface/2`, on `bg/mid`, and on `surface/tint` and `surface/glass` composited over `bg/top` (the worst bubble backgrounds).
 - Roborazzi: `recordRoborazziDevDebug` for the Light baselines that render `textDim` (they fail `verifyRoborazziDevDebug` from the first build after this plan's merge until re-recorded), then `verifyRoborazziDevDebug`.
@@ -132,4 +132,42 @@ The same sweep with `text/muted` (`#486781`) finds about 250 Light runs under 4.
 
 ## Results
 
-<Filled at Completion: refreshed contrast table, MCP calls used, owner OK date, exported files.>
+**Prerequisites (07/10/2026):** D20 `Concluído`; A61 merged ([nicolasteixeira3856/dieta-bot#183](https://github.com/nicolasteixeira3856/dieta-bot/pull/183)). [D22](d22-chatm-action-in-thread.md) is drawn in Figma and waits for the owner's review of `chatM`: D21 leaves `chatM` out of its export so it does not ship D22's unreviewed frame; D22's own export carries the new `text/dim` (the frame binds the variable).
+
+**Discovery** (before any write): `tools/contrast-gold.mjs` added; the sweep refreshed on `master` after A61.
+
+| Run | Light now | Light scored as `#435463` (`--as`) | Dark |
+|---|---|---|---|
+| Golds (app + site): `text` runs | 249 in 43 PNGs; worst 3.42 (`homeP`); 47 under 4.5 | worst 4.75 (`homeP`); 0 under 4.5 | 254; worst 4.65 (`chatX`); 0 under 4.5 |
+| App captures `docs/qa/android/current/light` | 148; worst 3.32 (`homeX`); 21 under 4.5 | worst 4.62 (`homeX`); 0 under 4.5 | — |
+
+Light failures by gold (text runs under 4.5): `cfgS` 4, `chatL` 4, `home0`, `home1`, `homeX`, `homeC`, `homeK`, `homeP` 2 each (`{n} Refeições`), `chatM`, `chatQ`, `chatSD` 2, one bubble time in each of `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSK`, `chatU`, `chatX`, and the phone screens of `land` (2) and `landM` (1). Same elements and values as the Finding table.
+
+Light PNGs with `text/dim` ink (the export list): `cfg`, `cfgS`, `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatL`, `chatM`, `chatP`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatT`, `chatTI`, `chatU`, `chatX`, `home0`, `home1`, `homeC`, `homeK`, `homeP`, `homeW`, `homeX`, `o1`, `o1e`, `o3`, `o3s`, `o4`, `push`, `land`, `landM`, `priv` (43; `chatM` is held for D22, so 42 are exported).
+
+**Figma** (07/10/2026, one write, then a read of every variable):
+
+- `text/dim` (`VariableID:2:14`) mode Light `#546a7d` → `#435463`, the new description; mode Dark `#819eb8`, scopes and code syntax unchanged.
+- `Cores e tipografia`: the Contraste row `text/dim · Light` reads 7,11 / 7,57 / 6,41 and minimum 6,41:1 (`21:400`, `21:404`, `21:408`, `21:410`); the section text notes the D21 adjustment (`21:342`). The `text/dim` row of the Cores table (`21:136` hex label, `21:141` usage) also showed the old hex and description and was updated with them, so the page does not contradict the variable.
+- Read-back of all 45 local variables against `docs/design/tokens.json`: only `text/dim` differs. The logo variables `brand/outline`, `brand/grain`, `brand/highlight` exist in Figma and were already absent from the JSON before D21; left as they were.
+
+**Token mirror:** `docs/design/tokens.json` (`text/dim` only; `readAt` already 2026-10-07), `docs/tokens.md` (`node tools/gen-tokens.mjs`, `--check` passes), `web/public/css/tokens.css` (`npm --prefix web run tokens`, `tokens:check` passes). The app takes `#435463` on its next build (`generateAeroTokens`).
+
+**Review** (no MCP calls): `node tools/export-figma.mjs --only <the 42 ids> --dry-run`, in chunks of 6 ids (one request for all 42 failed with `fetch failed`).
+
+| Dry-run export | Result |
+|---|---|
+| `contrast-gold.mjs --theme light` | 242 text runs in 34 PNGs; worst 4.75 (`homeP`, `{n} Refeições`); 0 under 4.5 |
+| `--hex #546a7d` (old value) | 0 text runs left (59 antialias fragments on glyph edges) |
+| `--theme dark` | 247 text runs; worst 4.65 (`chatX`); 0 under 4.5 (unchanged) |
+| Pixel diff against the current golds | every changed pixel moves by ≤ 40 (`land`: 0.008 % above, the phone-screen glyphs); Dark has only blur noise (`chatP` 1.9 % and `homeW` 0.24 % of pixels by ≤ 40 behind the scrim) |
+
+34 Light PNGs carry `#435463` ink: `cfgS`, `chat0`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatI`, `chatIC`, `chatL`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatU`, `chatX`, `home0`, `home1`, `homeC`, `homeK`, `homeP`, `homeX`, `o1e`, `o3`, `o3s`, `land`, `landM`, `priv`. The other 8 of the list (`cfg`, `chatP`, `chatT`, `chatTI`, `homeW`, `o1`, `o4`, `push`) only had pixels that happened to match `#546a7d` (blended or behind a scrim), not the variable: their dry-run export is unchanged (or blur noise only) and they are not exported. That is the export list after the OK.
+
+Review sheet sent to the owner: `{n} Refeições` 3.46 → 4.81, `Seg–Sex · Sáb–Dom` 3.56 → 4.95, user-bubble time 3.69 → 5.13, Tali-bubble time 4.36 → 6.05, `MICRO & MACRONUTRIENTES` 4.45 → 6.19.
+
+Figma MCP budget: 7 of 15 calls (whoami, 2 skill reads, 4 `use_figma`: 2 reads, 1 write, 1 read-back).
+
+`npm --prefix web run check` fails today on two items outside this step: the phone screens, stale against the golds since D20 (refreshed at the export below), and `public/fonts/OFL.txt`, which differs only by CRLF line endings in a Windows checkout (`core.autocrlf`). `check-docs` and `check-figma` pass.
+
+Pending: visual OK in Figma (the Light frames above and `Cores e tipografia`), then the export with `--keep` and `npm --prefix web run screens`.
