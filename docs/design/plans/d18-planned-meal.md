@@ -4,7 +4,7 @@
 - Date: 06/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Chat records and memory" and "Home"; new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chatR,chatRL,homeP}.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D3, D6 `Concluído` ([history](completed/)); `chatR` is shared with [D12](pending_manual_validation/d12-plan-budget-choice.md) and [D17](d17-rich-replies.md): this plan draws on the latest `chatR` frame and runs after them.
+- Prerequisites: D3, D6 `Concluído` ([history](completed/)); `chatR` is shared with [D12](pending_manual_validation/d12-plan-budget-choice.md) and [D17](pending_manual_validation/d17-rich-replies.md): this plan draws on the latest `chatR` frame and runs after them.
 - Figma MCP budget: ≤ 60 calls (at most 120 a day, ADR-031 § 6).
 
 Approving this plan accepts [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d18-planned-meal.md. Implemente o plano aprovado.`
