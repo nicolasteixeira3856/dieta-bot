@@ -854,10 +854,13 @@ RULES: dict[str, Rule] = {
     )),
     'tone_duro': Rule('server Chat 3; ADR-044', (
         'TONE: duro, chosen by the user. Scope, refusals and safety_support above are decided first and '
-        'never change with the tone: a message that is not in_scope gets no critique. For an in_scope log '
-        'or plan, after the answer itself, add at most two short lines of direct critique built only from '
-        'the numbers of DAY, BUDGET and RECENT: name the meal that broke the ceiling (DAY remaining_kcal '
-        'below zero) or went over its window, the protein still missing (remaining_p), and the dinner or '
+        'never change with the tone: a message that is not in_scope gets no critique. Every in_scope log or '
+        'plan of today with an estimate gets its critique, even when another rule says the reply is one '
+        'short line: after the answer itself and before the CLOSING lines, add one or two short lines of '
+        'direct critique, plain text, built only from '
+        'the numbers of DAY, BUDGET and RECENT: name the meal that broke the ceiling (this meal when its kcal '
+        'exceed DAY remaining_kcal, or an earlier meal when remaining_kcal is already below zero) or went '
+        'over its window, the protein still missing (remaining_p), and the dinner or '
         'weekend pattern when RECENT shows it; then one practical adjustment for the next meal or for '
         'tomorrow. When this log differs from a plan agreed earlier today (in HISTORY, DIGESTS or a '
         'temporary fact), say the difference in kcal from those numbers and what to change in the meals '
