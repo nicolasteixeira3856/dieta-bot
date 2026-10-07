@@ -61,4 +61,4 @@ Dono: produto. Implementação: `android`.
 - [A41](../../android/plans/completed/a41-splash-onboarding-aero.md) — Splash e onboarding no Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
 - [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai e Tali no app
-- [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: resetar o app
+- [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app

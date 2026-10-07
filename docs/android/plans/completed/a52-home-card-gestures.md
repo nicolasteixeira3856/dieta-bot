@@ -1,6 +1,6 @@
 # Plan — A52 Home: tap to record, long press to skip
 
-- Status: Pendente aprovação manual (approved by the owner on 06/10/2026; automated validation passed, owner device check pending)
+- Status: Concluído (07/10/2026, owner device check declared done)
 - Date: 06/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (Home screen, Aero meal card, navigation from Home to Chat, tests) plus `tools/capture-home.sh`.
@@ -51,3 +51,7 @@ Delivered 06/10/2026.
 - Local environment note: the worktree lacked the ignored `app/src/dev/google-services.json`; copied from the main checkout for the emulator run (not committed).
 
 Pending: owner check on a device (dev build): tap on an empty card opens the Chat; long press vibrates and asks `Pular {nome}?`.
+
+### Owner validation
+
+On 07/10/2026 the owner declared this plan's manual validation done and asked to conclude it (chat message: "Pode concluir todos os planos que estão pendentes de validação manual"). The agent did not run the device check itself; this records the owner's statement. Plan moved to `completed/`.

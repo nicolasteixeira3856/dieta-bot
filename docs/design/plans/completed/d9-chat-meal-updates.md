@@ -11,7 +11,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-Make the added food, previous amount and resulting meal total distinguishable in Chat. Draw the approved addition, revision and addition-destination states for [A47](../../../android/plans/pending_manual_validation/a47-chat-meal-updates.md), reusing Aero and the existing Chat flow.
+Make the added food, previous amount and resulting meal total distinguishable in Chat. Draw the approved addition, revision and addition-destination states for [A47](../../../android/plans/completed/a47-chat-meal-updates.md), reusing Aero and the existing Chat flow.
 
 ## Sources and proposed golds
 
@@ -140,7 +140,7 @@ The owner reviewed the section in Figma and closed the plan: "Revisei no Figma, 
 - `node tools/export-figma.mjs --only chatI,chatIC,chatTI`: six new files in `docs/qa/figma/{dark,light}/`, 780 px wide (`chatI` 1860, `chatIC` and `chatTI` 1688 px tall). Five are byte-identical to the images reviewed by the owner; Dark `chatI` differs only in PNG encoding (0 pixels with Δ > 40).
 - No other gold has a diff.
 - `node tools/check-figma.mjs`: 74 Figma gold PNGs verified (37 dark + 37 light). `node tools/check-docs.mjs`: passed.
-- Next: [A47](../../../android/plans/pending_manual_validation/a47-chat-meal-updates.md) implements these states against the golds; the product specification changes at its Completion.
+- Next: [A47](../../../android/plans/completed/a47-chat-meal-updates.md) implements these states against the golds; the product specification changes at its Completion.
 
 ### Figma MCP budget, total
 

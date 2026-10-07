@@ -14,7 +14,7 @@
   - `docs/content-policy/specifications/identity-and-audit.md` if it names the app id.
 - Prerequisites:
   - approval of this plan accepts ADR-036;
-  - no other Android plan in implementation while this one runs, because the package move rewrites every file. [A47](../pending_manual_validation/a47-chat-meal-updates.md) is either delivered first or rebased after this plan.
+  - no other Android plan in implementation while this one runs, because the package move rewrites every file. [A47](../completed/a47-chat-meal-updates.md) is either delivered first or rebased after this plan.
 
   No dependency on D10, A49 or S20.
 

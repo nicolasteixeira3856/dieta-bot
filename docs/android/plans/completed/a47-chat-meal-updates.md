@@ -1,6 +1,6 @@
 # Plan — A47 Chat meal updates
 
-- Status: Pendente aprovação manual
+- Status: Concluído (07/10/2026, owner device check declared done)
 - Date: 04/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` only: Chat UI/ViewModel/recorder, domain update rules, network DTOs/prompt building, Room entities/migration and relevant tests.
@@ -138,3 +138,7 @@ Owner device check (Validation 7), not performed: distinguish the added item fro
 ### Documentation
 
 [Product Chat](../../../produto/specifications/chat.md) rule 22, states and acceptance criteria; [Room](../../specifications/room-v2.md) v10 rule 7 and migration; Provenance in both. Plan moved to `pending_manual_validation/` and incoming links updated. No ADR, gold, token or server change.
+
+### Owner validation
+
+On 07/10/2026 the owner declared this plan's manual validation done and asked to conclude it (chat message: "Pode concluir todos os planos que estão pendentes de validação manual"). The agent did not run the device check itself; this records the owner's statement. Plan moved to `completed/`.

@@ -21,11 +21,11 @@ Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.
 
 | Flow | Golds |
 |---|---|
-| Home | `home0`, `home1`, `homeX`, `homeW` |
-| Splash and onboarding | `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4` |
+| Home | `home0`, `home1`, `homeX`, `homeW`, `homeC`, `homeK`, `homeP` |
+| Splash and onboarding | `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `o5` |
 | Chat core | `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP`, `chatX` |
-| Chat records and memory | `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS` |
-| Config and push | `cfg`, `cfgS`, `wipe`, `cfgR`, `push` |
+| Chat records and memory | `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `chatRK`, `chatRB`, `chatRL` |
+| Config and push | `cfg`, `cfgS`, `wipe`, `cfgR`, `cfgT`, `push` |
 
 ## Figma review gate
 
@@ -41,7 +41,7 @@ The gate for every new or changed layout ([ADR-031](../adrs/ADR-031-figma-source
 - Behavior: [ADR-032](../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md).
 - Server: [meal-change contract](../../api-contract.md#meal-change-capability).
 - Design: D9 — Chat meal updates ([`completed/`](completed/)).
-- Client: [A47 — Chat meal updates](../../android/plans/pending_manual_validation/a47-chat-meal-updates.md).
+- Client: A47 — Chat meal updates ([`completed/`](../../android/plans/completed/)).
 
 Prerequisites and execution boundaries live in each plan. This follow-up does not change the migration plans above.
 
@@ -52,7 +52,7 @@ Behavior: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md
 | Step | Plan | Depends on |
 |---|---|---|
 | Server | S21 — cooking help and the over-budget choice in a plan, delivered ([history](../../server/plans/completed/)) | S19, S20 |
-| Design | [D12](pending_manual_validation/d12-plan-budget-choice.md) — plan over budget: the choice (`chatRB`) | S21 approved |
+| Design | D12 — plan over budget: the choice (`chatRB`) ([`completed/`](completed/)) | S21 approved |
 | Client | [A50](../../android/plans/a50-plan-budget-choice.md) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
 
 ## Home gestures and app reset follow-up
@@ -63,8 +63,8 @@ Behavior: [ADR-040](../../produto/adrs/ADR-040-home-card-gestures-app-reset.md).
 |---|---|---|
 | Design | D14 — Home: empty card copy ([`completed/`](completed/)) | — |
 | Design | D15 — Config: app reset (`cfg`, `cfgR`) ([`completed/`](completed/)) | — |
-| Client | [A52](../../android/plans/pending_manual_validation/a52-home-card-gestures.md) — Home: tap to record, long press to skip | D14 |
-| Client | [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: app reset | D15 |
+| Client | A52 — Home: tap to record, long press to skip ([`completed/`](../../android/plans/completed/)) | D14 |
+| Client | A53 — Config: app reset ([`completed/`](../../android/plans/completed/)) | D15 |
 
 ## Tone and closures follow-up
 
@@ -74,7 +74,7 @@ Behavior: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-w
 |---|---|---|
 | Client fix | A54 — auto-record of an addition into an empty meal ([`completed/`](../../android/plans/completed/)) | A47 |
 | Server | [S24](../../server/plans/s24-protein-first-plan.md) — protein-first plan inside the meal window | S23 |
-| Design | [D16](pending_manual_validation/d16-tone-and-closures.md) — tone choice and closures (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`) | D3, D4, D7 |
+| Design | D16 — tone choice and closures (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`) ([`completed/`](completed/)) | D3, D4, D7 |
 | Server | [S25](../../server/plans/s25-tone-and-closures.md) — tone per user and `/v1/close` | S24 |
 | Client | [A55](../../android/plans/a55-tone-choice-and-closures.md) — tone choice, day and week closure | D16, S25 on dev, A50, A54 |
 
@@ -84,7 +84,7 @@ Behavior: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md).
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D17](pending_manual_validation/d17-rich-replies.md) — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) | D5, D6, D12 |
+| Design | D17 — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) ([`completed/`](completed/)) | D5, D6, D12 |
 | Server | [S26](../../server/plans/s26-reply-formatting-subset.md) — reply formatting subset | S24 |
 | Client | [A57](../../android/plans/a57-rich-reply-rendering.md) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
 
@@ -94,7 +94,7 @@ Behavior: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Ord
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D18](pending_manual_validation/d18-planned-meal.md) — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) | D3, D6, D12, D17 |
+| Design | D18 — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) ([`completed/`](completed/)) | D3, D6, D12, D17 |
 | Server | [S27](../../server/plans/s27-planned-slot.md) — planned slot in DAY | S24 |
 | Client | [A58](../../android/plans/a58-planned-meal-reservation.md) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
 

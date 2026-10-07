@@ -11,7 +11,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-Replace the empty meal card copy with `Nenhum registro · Toque para registrar, segura para pular` (ADR-040 decision 1) in every Home gold that shows an empty card, for [A52](../../../android/plans/pending_manual_validation/a52-home-card-gestures.md).
+Replace the empty meal card copy with `Nenhum registro · Toque para registrar, segura para pular` (ADR-040 decision 1) in every Home gold that shows an empty card, for [A52](../../../android/plans/completed/a52-home-card-gestures.md).
 
 ## Sources
 
@@ -73,4 +73,4 @@ Every other card element (meal, time, node, guide) is `app` and stays. Copy sour
 
 ### Export (06/10/2026)
 
-`node tools/export-figma.mjs --only home0,home1,homeW,chatP`: `home0` and `home1` (both themes) and light `chatP` changed; dark `chatP` and `homeW` (both themes) were below the exporter's noise threshold and kept their bytes. `homeX` untouched. `node tools/check-figma.mjs`: 74 golds verified. `node tools/check-docs.mjs` passes. Next: [A52](../../../android/plans/pending_manual_validation/a52-home-card-gestures.md).
+`node tools/export-figma.mjs --only home0,home1,homeW,chatP`: `home0` and `home1` (both themes) and light `chatP` changed; dark `chatP` and `homeW` (both themes) were below the exporter's noise threshold and kept their bytes. `homeX` untouched. `node tools/check-figma.mjs`: 74 golds verified. `node tools/check-docs.mjs` passes. Next: [A52](../../../android/plans/completed/a52-home-card-gestures.md).

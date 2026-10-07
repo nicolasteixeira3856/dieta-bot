@@ -19,12 +19,13 @@ Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
 Inventário oficial: dono único da lista de golds, igual nos dois temas. O gold de um id está em `docs/qa/figma/{dark,light}/<id>.png`. Quem cria ou remove um gold atualiza esta lista e o mapa de `tools/export-figma.mjs` na mesma entrega; `node tools/check-docs.mjs` (C7) confere que a lista e o mapa dos dois temas são iguais.
 
 ```text
-splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png
-home0.png · home1.png · homeX.png · homeW.png
+splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png · o5.png
+home0.png · home1.png · homeX.png · homeW.png · homeC.png · homeK.png · homeP.png
 chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png
 chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
+chatRK.png · chatRB.png · chatRL.png
 chatI.png · chatIC.png · chatTI.png
-cfg.png · cfgS.png · wipe.png · cfgR.png · push.png
+cfg.png · cfgS.png · wipe.png · cfgR.png · cfgT.png · push.png
 land.png · landM.png · priv.png
 ```
 

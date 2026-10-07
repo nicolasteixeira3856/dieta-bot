@@ -59,4 +59,4 @@ Comportamento: `produto`. UI: `android`.
 - [ST2](../../stitch/plans/completed/st2-home-treino.md) — Home: atalho de treino
 - [A24](../../android/plans/completed/a24-refeicoes-por-dia.md) — Refeições por dia da semana
 - [A40](../../android/plans/completed/a40-home-aero.md) — Home no Aero
-- [A52](../../android/plans/pending_manual_validation/a52-home-card-gestures.md) — Home: toque registra, toque longo pula
+- [A52](../../android/plans/completed/a52-home-card-gestures.md) — Home: toque registra, toque longo pula

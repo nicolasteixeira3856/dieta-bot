@@ -29,6 +29,10 @@ export const DARK_FRAMES = {
   home1: "40:472",
   homeX: "40:514",
   homeW: "40:557",
+  // Tone and closures (D16), planned meal (D18)
+  homeC: "141:4902",
+  homeK: "141:4945",
+  homeP: "151:5539",
   // Splash and onboarding (D4)
   splash: "54:1233",
   o1: "54:1244",
@@ -38,6 +42,8 @@ export const DARK_FRAMES = {
   o3t: "54:1362",
   o3s: "54:1395",
   o4: "54:1434",
+  // Tone (D16)
+  o5: "140:4556",
   // Chat core (D5)
   chat0: "63:2079",
   chatL: "63:2097",
@@ -55,6 +61,10 @@ export const DARK_FRAMES = {
   chatR: "72:3312",
   chatM: "72:3333",
   chatS: "72:3359",
+  // Rich replies (D17), plan over budget (D12), planned meal (D18)
+  chatRK: "147:5274",
+  chatRB: "144:5179",
+  chatRL: "151:5399",
   // Chat meal updates (D9)
   chatI: "123:4230",
   chatIC: "123:4308",
@@ -63,6 +73,7 @@ export const DARK_FRAMES = {
   cfgS: "78:3695",
   wipe: "78:3723",
   cfgR: "135:4375",
+  cfgT: "140:4720",
   push: "78:3757",
   // Landing site (D11)
   land: "107:853",
@@ -76,6 +87,10 @@ export const LIGHT_FRAMES = {
   home1: "38:229",
   homeX: "39:451",
   homeW: "39:606",
+  // Tone and closures (D16), planned meal (D18)
+  homeC: "141:4742",
+  homeK: "141:4802",
+  homeP: "151:5424",
   // Splash and onboarding (D4)
   splash: "51:732",
   o1: "51:743",
@@ -85,6 +100,8 @@ export const LIGHT_FRAMES = {
   o3t: "53:1049",
   o3s: "53:1220",
   o4: "53:1345",
+  // Tone (D16)
+  o5: "140:4452",
   // Chat core (D5)
   chat0: "62:1745",
   chatL: "62:1796",
@@ -102,6 +119,10 @@ export const LIGHT_FRAMES = {
   chatR: "72:2959",
   chatM: "72:3034",
   chatS: "72:3104",
+  // Rich replies (D17), plan over budget (D12), planned meal (D18)
+  chatRK: "147:5180",
+  chatRB: "144:5081",
+  chatRL: "151:5326",
   // Chat meal updates (D9)
   chatI: "123:3802",
   chatIC: "123:3909",
@@ -110,6 +131,7 @@ export const LIGHT_FRAMES = {
   cfgS: "78:3520",
   wipe: "78:3596",
   cfgR: "135:4306",
+  cfgT: "140:4593",
   push: "78:3646",
   // Landing site (D11)
   land: "106:530",

@@ -1,6 +1,6 @@
 # Plan — D12 Plan over budget: the choice
 
-- Status: Pendente aprovação manual (drawn 07/10/2026; waiting for the owner's review in Figma)
+- Status: Concluído (07/10/2026, owner OK, golds exported)
 - Date: 05/10/2026
 - Owning context: `design`
 - Executable boundary: the plan-over-budget state in Figma `Design`; no app/server code. Repository outputs: the gold `chatRB`, its entry in `tools/export-figma.mjs`, the gold inventory and design documentation.
@@ -81,3 +81,7 @@ Numbers: eaten 1.640, ceiling 2.200, left 560, stated reservation 250, limit 310
 ### Owner review (the only manual step)
 
 Open `Design` → `Release 1` → `Chat — Plano acima do orçamento`. After the OK: map 144:5081 / 144:5179 as `chatRB` in `tools/export-figma.mjs`, add `chatRB` to the inventory in `docs/qa/README.md`, `node tools/export-figma.mjs --only chatRB`, `node tools/check-figma.mjs`, `node tools/check-docs.mjs`.
+
+### Owner OK and export (07/10/2026)
+
+The owner gave the Figma review OK on 07/10/2026 (chat message asking to conclude every plan pending manual validation). Mapped in `tools/export-figma.mjs`: `chatRB` (Light 144:5081, Dark 144:5179), added to the inventory. `node tools/export-figma.mjs --only chatRB`: `chatRB` new in both themes (780x1808). `node tools/check-figma.mjs`: 92 golds verified (46 dark + 46 light). `node tools/check-docs.mjs` passes. Plan moved to `completed/`. Next: [A50](../../../android/plans/a50-plan-budget-choice.md).

@@ -48,6 +48,6 @@ Rejected: a temp fact feeds the model, not the budget arithmetic or the timeline
 
 - Specifications affected: [chat](../specifications/chat.md) rules 16 and 19, [home-timeline](../specifications/home-timeline.md), [Room](../../android/specifications/room-v2.md), [v1-chat](../../server/specifications/v1-chat.md), [HTTP contract](../../api-contract.md) (`day.slots[].status: planned` and its numbers).
 - Related ADRs: ADR-039, ADR-043, ADR-044, ADR-028.
-- Consuming contexts: [design](../../design/README.md) ([D18](../../design/plans/pending_manual_validation/d18-planned-meal.md)), [server](../../server/README.md) ([S27](../../server/plans/s27-planned-slot.md)), [android](../../android/README.md) ([A58](../../android/plans/a58-planned-meal-reservation.md)).
+- Consuming contexts: [design](../../design/README.md) ([D18](../../design/plans/completed/d18-planned-meal.md)), [server](../../server/README.md) ([S27](../../server/plans/s27-planned-slot.md)), [android](../../android/README.md) ([A58](../../android/plans/a58-planned-meal-reservation.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

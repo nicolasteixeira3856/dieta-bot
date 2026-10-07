@@ -1,6 +1,6 @@
 # Plan — D18 Planned meal: reserve action and timeline state
 
-- Status: Pendente aprovação manual (drawn 07/10/2026; waiting for the owner's review in Figma)
+- Status: Concluído (07/10/2026, owner OK, golds exported)
 - Date: 06/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Chat records and memory" and "Home"; new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chatR,chatRL,homeP}.png` and the node ids in `tools/export-figma.mjs`.
@@ -78,3 +78,7 @@ Components: `Chat/ActionBar` reused for the pill pair (the plan named `Chat/Rece
 ### Owner review (the only manual step)
 
 Open `Design` → `Release 1` → "Chat · D6" (`chatR`, `chatRL`) and "Home · D3" (`homeP`), plus the new components and variants. After the OK: map `chatRL` and `homeP` in `tools/export-figma.mjs`, `node tools/export-figma.mjs --only chatR chatRL homeP`, add `chatRL` and `homeP` to the inventory of `docs/qa/README.md`, `node tools/check-figma.mjs`.
+
+### Owner OK and export (07/10/2026)
+
+The owner gave the Figma review OK on 07/10/2026 (chat message asking to conclude every plan pending manual validation). Mapped in `tools/export-figma.mjs`: `chatRL` (Light 151:5326, Dark 151:5399) and `homeP` (Light 151:5424, Dark 151:5539), added to the inventory. `node tools/export-figma.mjs --only chatR,chatRL,homeP`: `chatRL` and `homeP` new in both themes; `chatR` changed in both themes (780x1764 → 780x1856, D17 and D18 together). `node tools/check-figma.mjs`: 92 golds verified (46 dark + 46 light). `node tools/check-docs.mjs` passes. Plan moved to `completed/`. Next: [A58](../../../android/plans/a58-planned-meal-reservation.md).

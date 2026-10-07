@@ -61,6 +61,6 @@ Deferred. 22:00 fixed in this cut; a setting may come with its own plan.
 
 - Specifications affected: [perfil-onboarding](../specifications/perfil-onboarding.md) (O5, prompt prefix), [memoria-push](../specifications/memoria-push.md) (Config tone row, closure notifications), [home-timeline](../specifications/home-timeline.md) (`homeC`, `homeK`), [chat](../specifications/chat.md) (tone in the prompt), [v1-chat](../../server/specifications/v1-chat.md), [HTTP contract](../../api-contract.md) (`profile.tone`, `/v1/close`), [Room](../../android/specifications/room-v2.md).
 - Related ADRs: ADR-012, ADR-020, [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md), [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md).
-- Consuming contexts: [design](../../design/README.md) ([D16](../../design/plans/pending_manual_validation/d16-tone-and-closures.md)), [server](../../server/README.md) ([S25](../../server/plans/s25-tone-and-closures.md)), [android](../../android/README.md) ([A55](../../android/plans/a55-tone-choice-and-closures.md)).
+- Consuming contexts: [design](../../design/README.md) ([D16](../../design/plans/completed/d16-tone-and-closures.md)), [server](../../server/README.md) ([S25](../../server/plans/s25-tone-and-closures.md)), [android](../../android/README.md) ([A55](../../android/plans/a55-tone-choice-and-closures.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

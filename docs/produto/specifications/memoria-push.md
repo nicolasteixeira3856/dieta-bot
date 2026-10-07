@@ -95,4 +95,4 @@ Comportamento: `produto`. Client: `android`.
 - [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
 - [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
-- [A53](../../android/plans/pending_manual_validation/a53-config-app-reset.md) — Config: resetar o app
+- [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app
