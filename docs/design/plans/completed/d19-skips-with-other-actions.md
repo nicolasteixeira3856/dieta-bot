@@ -1,10 +1,10 @@
 # Plan — D19 Skips next to other actions: two receipts and the delete proposal
 
-- Status: Pendente aprovação manual
+- Status: Concluído (07/10/2026, owner OK, golds exported)
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat · D6" (records and memory); components in `Componentes` only if a variant is missing. Repository: `docs/qa/figma/{dark,light}/{chatSK,chatSD}.png` and their node ids in `tools/export-figma.mjs`.
-- Prerequisites: D6 and D9 `Concluído` ([history](../completed/)); independent of S29 (the copy is fixed by ADR-047).
+- Prerequisites: D6 and D9 `Concluído` ([history](./)); independent of S29 (the copy is fixed by ADR-047).
 - Figma MCP budget: ≤ 30 calls (at most 120 a day, ADR-031 § 6).
 
 Approving this plan accepts [ADR-047](../../../produto/adrs/ADR-047-skips-alongside-other-actions.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d19-skips-with-other-actions.md. Implemente o plano aprovado.`
@@ -97,4 +97,7 @@ Component gap: `Chat/Receipt` has no danger card, so a variant `State=SkipDelete
 
 Figma MCP budget: 15 of 30 calls (whoami, 2 skill reads, 12 `use_figma`).
 
-Pending: the owner's visual review in Figma, then the export of `chatSK` and `chatSD` (ids into `tools/export-figma.mjs`, inventory in `docs/qa/README.md`, `node tools/check-figma.mjs`).
+### Owner OK and export (07/10/2026)
+
+- The owner approved every frame in Figma ("Está tudo aprovado"), including the white label and icon of the danger pill in Dark and its contrast.
+- `chatSK` (Dark `155:6914`, Light `155:6711`) and `chatSD` (Dark `155:6936`, Light `155:6839`) mapped in `tools/export-figma.mjs`; `node tools/export-figma.mjs --only chatSK,chatSD` wrote 780 × 2100 (`chatSK`) and 780 × 1688 (`chatSD`) PNGs per theme; both ids added to the inventory of `docs/qa/README.md`; `node tools/check-figma.mjs`: 96 golds verified (48 dark + 48 light). Existing golds keep their bytes.
