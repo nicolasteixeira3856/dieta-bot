@@ -4,7 +4,7 @@
 - Date: 06/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Chat core" and "Chat records and memory"; new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chatR,chatE,chatRK}.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D5 and D6 `Concluído` ([history](completed/)); [D12](d12-plan-budget-choice.md) and [D16](pending_manual_validation/d16-tone-and-closures.md) may run in parallel (other frames); `chatR` is shared with D12, so this plan starts after D12 is `Concluído` or draws on its frame.
+- Prerequisites: D5 and D6 `Concluído` ([history](completed/)); [D12](pending_manual_validation/d12-plan-budget-choice.md) and [D16](pending_manual_validation/d16-tone-and-closures.md) may run in parallel (other frames); `chatR` is shared with D12, so this plan starts after D12 is `Concluído` or draws on its frame.
 - Figma MCP budget: ≤ 70 calls (at most 120 a day, ADR-031 § 6).
 
 Approving this plan accepts [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d17-rich-replies.md. Implemente o plano aprovado.`

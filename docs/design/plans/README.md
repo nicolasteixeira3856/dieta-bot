@@ -52,7 +52,7 @@ Behavior: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md
 | Step | Plan | Depends on |
 |---|---|---|
 | Server | S21 — cooking help and the over-budget choice in a plan, delivered ([history](../../server/plans/completed/)) | S19, S20 |
-| Design | [D12](d12-plan-budget-choice.md) — plan over budget: the choice (`chatRB`) | S21 approved |
+| Design | [D12](pending_manual_validation/d12-plan-budget-choice.md) — plan over budget: the choice (`chatRB`) | S21 approved |
 | Client | [A50](../../android/plans/a50-plan-budget-choice.md) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
 
 ## Home gestures and app reset follow-up
