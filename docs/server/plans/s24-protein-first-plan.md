@@ -4,7 +4,7 @@
 - Date: 06/10/2026
 - Owning context: `server`
 - Executable boundary: `server/` only: DAY serialization, a pure arithmetic module for the meal window, the `plan` and `memory_changes` rules of `chat_instructions.py`, the plan budget check, the dev conversation log record, tests and evaluation cases. No route signature or schema change for the client; no client change.
-- Related documentation: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md) (proposed by this plan), [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md), [ADR-042](../adrs/ADR-042-estimate-total-is-server-arithmetic.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [product Chat](../../produto/specifications/chat.md) rule 16.
+- Related documentation: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md) (accepted on 2026-10-06 with the approval of this plan), [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md), [ADR-042](../adrs/ADR-042-estimate-total-is-server-arithmetic.md), [server Chat specification](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [product Chat](../../produto/specifications/chat.md) rule 16.
 - Prerequisites: S23 delivered ([history](completed/)).
 
 Approving this plan accepts ADR-043. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s24-protein-first-plan.md. Implemente o plano aprovado.`

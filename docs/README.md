@@ -10,7 +10,7 @@ Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este 
 |---|---|---|---|---|---|---|
 | [produto](produto/README.md) | produto | — | [specifications/](produto/specifications/) | [adrs/](produto/adrs/) | — | [qa/](qa/) |
 | [android](android/README.md) | client | `apps/android/` | [Room](android/specifications/room-v2.md) | [adrs/](android/adrs/) | [plans/](android/plans/) | [qa/android/](qa/android/), [validation/](android/validation/) |
-| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [adrs/](server/adrs/) | [plans/](server/plans/) | `server/tests/` |
+| [server](server/README.md) | contrato HTTP | `server/` | [v1-chat](server/specifications/v1-chat.md) + [api-contract.md](api-contract.md) | [adrs/](server/adrs/) | [plans/](server/plans/) | `server/tests/`, [validation/](server/validation/) |
 | [design](design/README.md) | fonte de design (Figma `Design`) | — (Figma + golds em `docs/qa/figma/` + `tools/export-figma.mjs`, `tools/gen-tokens.mjs`) | — | [adrs/](design/adrs/) | [índice](design/plans/README.md) | `tools/check-figma.mjs` |
 | [content-policy](content-policy/README.md) | cross-cutting policy | um diretório por plano: server, Android ou infra GCP | [content handling](content-policy/specifications/content-policy.md), [identity/audit](content-policy/specifications/identity-and-audit.md) | [adrs/](content-policy/adrs/) | [índice](content-policy/plans/README.md) | [matriz](content-policy/validation/README.md) |
 | [site](site/README.md) | client web (landing estática) | `web/` | — | [adrs/](site/adrs/) | [plans/](site/plans/) | `docs/qa/site/current/` |
