@@ -6,7 +6,7 @@
 - Executable boundary: `apps/android/` (Room entity and migration for the planned state, `BudgetCalculator`, Chat plan bubble and ViewModel, receipts, Home timeline, network DTOs, telemetry, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`.
 - Related documentation: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md), [product Chat](../../produto/specifications/chat.md) rules 16 and 19, [home-timeline](../../produto/specifications/home-timeline.md), [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
 - Prerequisites:
-  - [D18](../../design/plans/pending_manual_validation/d18-planned-meal.md) `Concluído` with `chatR`, `chatRL`, `homeP` exported;
+  - [D18](../../design/plans/completed/d18-planned-meal.md) `Concluído` with `chatR`, `chatRL`, `homeP` exported;
   - [S27](../../server/plans/s27-planned-slot.md) delivered and deployed to the dev server;
   - [A50](a50-plan-budget-choice.md), [A54](completed/a54-auto-record-addition-empty-slot.md), [A55](a55-tone-choice-and-closures.md) and [A57](a57-rich-reply-rendering.md) delivered or cancelled (same Chat, Home and Room files; no parallel Android plan).
 

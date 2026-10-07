@@ -116,7 +116,6 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 ### Planos e validação
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
-- Pendente aprovação manual: [A47 — Chat meal updates](plans/pending_manual_validation/a47-chat-meal-updates.md), [A52 — Home: tap to record, long press to skip](plans/pending_manual_validation/a52-home-card-gestures.md), [A53 — Config: app reset](plans/pending_manual_validation/a53-config-app-reset.md).
 - [A50 — Plan over budget: the choice in the Chat](plans/a50-plan-budget-choice.md).
 - [A55 — Tone choice, day closure and week closure](plans/a55-tone-choice-and-closures.md).
 - [A57 — Rendering the reply subset in the bubbles](plans/a57-rich-reply-rendering.md).

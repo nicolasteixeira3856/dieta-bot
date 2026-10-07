@@ -1,6 +1,6 @@
 # Plan — D16 Tone choice and closures
 
-- Status: Pendente aprovação manual (drawn 07/10/2026; waiting for the owner's review in Figma)
+- Status: Concluído (07/10/2026, owner OK, golds exported)
 - Date: 06/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Splash and onboarding", "Config and push", "Home"; new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{o5,cfgT,homeC,homeK,cfg}.png` and the node ids in `tools/export-figma.mjs`.
@@ -96,3 +96,7 @@ Open points for the owner (not drawn, outside the plan's gold list): `o1`–`o4`
 ### Owner review (the only manual step)
 
 Open `Design` → `Release 1` and check `o5`, `cfg`, `cfgT`, `homeC`, `homeK` in both rows, plus `Card/Closure` and `Option/Tone` in `Componentes`. Points to decide: the eyebrow word `TOM`; no subtitle on `o5`; the closure texts are sample copy; `o1`–`o4` counters (`n/4`, four segments) are not part of this plan. After the OK: map the ids above in `tools/export-figma.mjs`, `node tools/export-figma.mjs --only o5 cfg cfgT homeC homeK`, add `o5`, `cfgT`, `homeC`, `homeK` to the inventory in `docs/qa/README.md`, `node tools/check-figma.mjs`.
+
+### Owner OK and export (07/10/2026)
+
+The owner gave the Figma review OK on 07/10/2026 (chat message asking to conclude every plan pending manual validation). Mapped in `tools/export-figma.mjs`: `o5`, `cfgT`, `homeC`, `homeK` (node ids in the Build table), added to the inventory; `cfg` keeps its ids. `node tools/export-figma.mjs --only o5,cfg,cfgT,homeC,homeK`: `o5`, `cfgT`, `homeC`, `homeK` new in both themes; `cfg` changed in both themes (780x2094 → 780x2208, the `Tom da Tali` row). `node tools/check-figma.mjs`: 92 golds verified (46 dark + 46 light). `node tools/check-docs.mjs` passes. Plan moved to `completed/`. The open points (eyebrow `TOM`, no subtitle on `o5`, sample closure copy) are accepted as drawn; the `o1`–`o4` counters stay for [A55](../../../android/plans/a55-tone-choice-and-closures.md). Until A55 lands, the app `GoldTest` for `cfg` diverges from the new gold (expected: the client follows the design plan).

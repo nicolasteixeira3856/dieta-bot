@@ -127,6 +127,6 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md) — Retroactive record (a meal of another day)
 - [A42](../../android/plans/completed/a42-chat-core-aero.md) — Chat core on Aero
 - [A43](../../android/plans/completed/a43-chat-records-memory-aero.md) — Chat records and memory on Aero
-- [A47](../../android/plans/pending_manual_validation/a47-chat-meal-updates.md) — Chat meal updates
+- [A47](../../android/plans/completed/a47-chat-meal-updates.md) — Chat meal updates
 - [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai and Tali in the app
 - [A54](../../android/plans/completed/a54-auto-record-addition-empty-slot.md) — Auto-record of an addition into an empty meal

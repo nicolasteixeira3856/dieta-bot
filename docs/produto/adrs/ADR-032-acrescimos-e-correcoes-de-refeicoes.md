@@ -94,7 +94,7 @@ Do not silently truncate existing foods when composing an addition's description
 
 ## Relations and adoption
 
-- Delivery: [S18](../../server/plans/completed/s18-meal-additions-and-revisions.md), [D9](../../design/plans/completed/d9-chat-meal-updates.md), [A47](../../android/plans/pending_manual_validation/a47-chat-meal-updates.md).
+- Delivery: [S18](../../server/plans/completed/s18-meal-additions-and-revisions.md), [D9](../../design/plans/completed/d9-chat-meal-updates.md), [A47](../../android/plans/completed/a47-chat-meal-updates.md).
 - Specifications: [Chat](../specifications/chat.md), [server Chat](../../server/specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [Room](../../android/specifications/room-v2.md).
 - Related decisions: [ADR-026](ADR-026-perguntas-antes-da-estimativa.md), [ADR-029](ADR-029-fatos-temporarios-compactacao.md), [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md).
 - Implementation approval of S18 includes this linked product decision; no separate confirmation is required. Record that acceptance and update only the predecessor status lines with the partial supersession during S18. Rewrite each live specification at its owning delivery's Completion, documenting the capability boundary during rollout.

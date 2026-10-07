@@ -5,7 +5,7 @@
 - Owning context: `android`
 - Executable boundary: `apps/android/` (Chat ViewModel and recorder, `domain/MealChanges`, telemetry, unit tests) plus the Chat QA tooling `tools/fake-chat-server.mjs` for the reproduction scene.
 - Related documentation: [product Chat](../../../produto/specifications/chat.md) rules 4, 5 and 22, [ADR-032](../../../produto/adrs/ADR-032-acrescimos-e-correcoes-de-refeicoes.md), [ADR-028](../../../produto/adrs/ADR-028-registro-autonomo.md), [HTTP contract](../../../api-contract.md#meal-change-capability).
-- Prerequisites: [A47](../pending_manual_validation/a47-chat-meal-updates.md) delivered (it is, in 0.0.13); no parallel plan on the same Chat files.
+- Prerequisites: [A47](../completed/a47-chat-meal-updates.md) delivered (it is, in 0.0.13); no parallel plan on the same Chat files.
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a54-auto-record-addition-empty-slot.md. Implemente o plano aprovado.`
 

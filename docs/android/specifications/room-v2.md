@@ -51,4 +51,4 @@ Android owns the database. Schema version 10. The file is `fibrai.db` ([ADR-036]
 - [A32](../plans/completed/a32-chat-rolagem-paginacao.md) — Chat: opens at the bottom, reverse paging, keyboard off for the photo
 - [A34](../plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
 - [A38](../plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
-- [A47](../plans/pending_manual_validation/a47-chat-meal-updates.md) — Chat meal updates
+- [A47](../plans/completed/a47-chat-meal-updates.md) — Chat meal updates

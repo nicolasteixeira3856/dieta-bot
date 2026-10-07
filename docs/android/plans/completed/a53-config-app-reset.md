@@ -1,6 +1,6 @@
 # Plan — A53 Config: app reset
 
-- Status: Pendente aprovação manual (approved by the owner on 06/10/2026; automated validation passed, owner device check pending)
+- Status: Concluído (07/10/2026, owner device check declared done)
 - Date: 06/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (Config screen and ViewModel, a reset use case over Room, memory file, photo store and push, navigation, telemetry, tests) plus `tools/capture-config.sh`.
@@ -58,3 +58,7 @@ Delivered 06/10/2026.
 - Specs: [memoria-push](../../../produto/specifications/memoria-push.md) Config rule 11, acceptance and Provenance; [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) states and Provenance; QA README Config capture line.
 
 Pending: owner check on a device (dev build): Config → Resetar app → Apagar tudo lands on an empty O1; no reminder fires afterwards; a new onboarding works.
+
+### Owner validation
+
+On 07/10/2026 the owner declared this plan's manual validation done and asked to conclude it (chat message: "Pode concluir todos os planos que estão pendentes de validação manual"). The agent did not run the device check itself; this records the owner's statement. Plan moved to `completed/`.

@@ -53,6 +53,6 @@ Rejected: a larger surface for injection through the reply; the subset is text w
 
 - Specifications affected: [chat](../specifications/chat.md) rules 2 and 16, [v1-chat](../../server/specifications/v1-chat.md) rules 3 and 5, [HTTP contract](../../api-contract.md) (`reply` format).
 - Related ADRs: ADR-012, ADR-020, ADR-039, ADR-042, ADR-043, ADR-044, [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md).
-- Consuming contexts: [design](../../design/README.md) ([D17](../../design/plans/pending_manual_validation/d17-rich-replies.md)), [server](../../server/README.md) ([S26](../../server/plans/s26-reply-formatting-subset.md)), [android](../../android/README.md) ([A57](../../android/plans/a57-rich-reply-rendering.md)).
+- Consuming contexts: [design](../../design/README.md) ([D17](../../design/plans/completed/d17-rich-replies.md)), [server](../../server/README.md) ([S26](../../server/plans/s26-reply-formatting-subset.md)), [android](../../android/README.md) ([A57](../../android/plans/a57-rich-reply-rendering.md)).
 
 After acceptance the body of this ADR is not edited. Only the `- Status:` line changes.

@@ -1,13 +1,13 @@
 # Plan — D17 Emphasis, lists and a table in the Chat bubbles
 
-- Status: Pendente aprovação manual (drawn 07/10/2026; waiting for the owner's review in Figma)
+- Status: Concluído (07/10/2026, owner OK, golds exported)
 - Date: 06/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Chat core" and "Chat records and memory"; new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{chatR,chatE,chatRK}.png` and the node ids in `tools/export-figma.mjs`.
 - Prerequisites: D5 and D6 `Concluído` ([history](../completed/)); [D12](d12-plan-budget-choice.md) and [D16](d16-tone-and-closures.md) may run in parallel (other frames); `chatR` is shared with D12, so this plan starts after D12 is `Concluído` or draws on its frame.
 - Figma MCP budget: ≤ 70 calls (at most 120 a day, ADR-031 § 6).
 
-Approving this plan accepts [ADR-045](../../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/pending_manual_validation/d17-rich-replies.md. Implemente o plano aprovado.`
+Approving this plan accepts [ADR-045](../../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/completed/d17-rich-replies.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -80,3 +80,7 @@ Components: the strong body style is the existing text style `Body/Strong` (a `T
 ### Owner review (the only manual step)
 
 Open `Design` → `Release 1` → "Chat · D5" (`chatE`) and "Chat · D6" (`chatR`, `chatRK`), plus the three components. After the OK: map `chatRK` (147:5180 / 147:5274) in `tools/export-figma.mjs`, `node tools/export-figma.mjs --only chatR chatE chatRK`, add `chatRK` to the inventory of `docs/qa/README.md`, `node tools/check-figma.mjs`.
+
+### Owner OK and export (07/10/2026)
+
+The owner gave the Figma review OK on 07/10/2026 (chat message asking to conclude every plan pending manual validation). Mapped in `tools/export-figma.mjs`: `chatRK` (Light 147:5180, Dark 147:5274), added to the inventory; `chatR` and `chatE` keep their ids. `node tools/export-figma.mjs --only chatR,chatE,chatRK`: `chatRK` new in both themes; `chatE` changed (2.9% dark, 5.0% light); `chatR` exported together with D18 (one frame carries both changes). `node tools/check-figma.mjs`: 92 golds verified (46 dark + 46 light). `node tools/check-docs.mjs` passes. Plan moved to `completed/`. Until [A57](../../../android/plans/a57-rich-reply-rendering.md) lands, the app `GoldTest` for `chatR` and `chatE` diverges from the new golds (expected).
