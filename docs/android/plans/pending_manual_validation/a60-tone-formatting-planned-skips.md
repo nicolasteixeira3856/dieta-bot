@@ -257,11 +257,11 @@ Approved by the owner on 07/10/2026 in the batch message of the [autonomous run]
    - B: tone `duro`, a dinner over the window (`3aa681df-45f0-4f07-aae9-a997c968463f`): the reply named the overshoot and the protein missing; day and week closures through the dev broadcast returned text in `duro` (`877666d6-6588-48ed-b165-f8498ad369da`, `720f4b38-adc5-46d7-8e2e-4fc09c64c781`) and both cards showed.
    - D: a dinner plan reserved (`ad4fb7c1-3092-487c-b5d4-18c087dc6e63`), a snack plan with the dinner reserved at 350 kcal (`1cbed76c-a297-4789-9821-a110883d0b67`, `reserved` Jantar 350), the dinner recorded (`fe5f5733-3e72-4866-89eb-7918065e7c3e`, `plan_difference` +30: `+30 kcal sobre o plano.` and the receipt line `Plano: 350 · Registrado: 380 (+30 kcal)`), Desfazer brought the reservation back.
 8. `node tools/check-docs.mjs` passes.
-9. Dev build: distributed after the merge with `tools/distribute-dev.ps1`; the version is recorded in the [run report](../../../server/validation/overnight-2026-10-08.md).
+9. Dev build `0.0.18-dev` (versionCode 18, tag `dev-v0.0.18`) distributed after the merge with `tools/distribute-dev.ps1` to the `testers` group; its notes also carry A59, which had not been distributed.
 
 ### Pending manual validation
 
-On a device with the dev build, by the owner or a tester:
+On a device with `0.0.18-dev`, by the owner or a tester:
 
 1. A59 (part E): send a skip next to a meal and skip a recorded meal ([A59](a59-skips-with-other-actions.md)).
 2. Tone: finish onboarding on O5 (or change it in Config → Tom da Tali) and see a `duro` reply name an overshoot; `seco` stays numbers only.
