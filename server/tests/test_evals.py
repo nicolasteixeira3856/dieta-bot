@@ -80,7 +80,7 @@ class CheckTests(unittest.TestCase):
             meal_text="Sempre uso leite semidesnatado",
             memory_updates=[{"op": "remove", "id": "P2"}],
             memory_used=[],
-            reply="Registrei o café.",
+            reply="Registrei o café.\n## Nota",
         )
         output["estimate"]["question"] = "Qual leite?"
         output["question"] = "Qual leite?"
@@ -126,6 +126,8 @@ class CheckTests(unittest.TestCase):
             "reply_options": 2,
             "closing_lines": ["Ceia"],
             "reply_any": ["colher"],
+            "reply_format": True,
+            "reply_markers": {"has": ["table"]},
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)

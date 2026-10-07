@@ -11,6 +11,7 @@ import re
 import unicodedata
 from typing import Any
 
+import reply_format
 from shaping import (
     REFUSAL_BLOCKED,
     REFUSAL_EATING,
@@ -62,6 +63,8 @@ KNOWN = (
     "reply_options",
     "closing_lines",
     "reply_any",
+    "reply_format",
+    "reply_markers",
 )
 
 # Case-level expectations (S22): judged across the repetitions of a case in evals.run, never per repetition.
@@ -286,6 +289,19 @@ def _check(
         hits = [t for t in want if normalize(t) in haystack]
         return _result(bool(hits), f"none of {want} in reply" if not hits else f"found {hits}")
 
+    if key == "reply_format":
+        # S30 part B (ADR-045): the reply is inside the subset, bold stays on the deciding numbers, one table.
+        return _format_check(str(output.get("reply") or ""))
+
+    if key == "reply_markers":
+        found = markers(str(output.get("reply") or ""))
+        missing = [m for m in want.get("has", []) if not found[m]]
+        unwanted = [m for m in want.get("not", []) if found[m]]
+        bold_max = want.get("bold_max")
+        too_bold = bold_max is not None and found["bold"] > bold_max
+        ok = not missing and not unwanted and not too_bold
+        return _result(ok, f"markers {found}; missing {missing}, unwanted {unwanted}")
+
     if key == "memory_used_only":
         used = output.get("memory_used")
         if not isinstance(used, list) or any(not isinstance(i, str) for i in used):
@@ -456,6 +472,35 @@ def _check(
 
 
 _TOTAL = re.compile(r"\d\s*kcal\s*[·|]")
+_BOLD = re.compile(r"\*\*(.+?)\*\*")
+_NUMBER = re.compile(r"\d+")
+MARKERS = ("bold", "bullet", "step", "table")
+
+
+def markers(reply: str) -> dict[str, int]:
+    """Count of each subset marker in a reply (ADR-045): bold spans, bullet lines, step lines, tables."""
+    lines = reply.split("\n")
+    tables = sum(1 for i, line in enumerate(lines)
+                 if line.startswith("|") and (i == 0 or not lines[i - 1].startswith("|")))
+    return {
+        "bold": len(_BOLD.findall(reply)),
+        "bullet": sum(1 for line in lines if line.startswith("- ")),
+        "step": sum(1 for line in lines if re.match(r"\d{1,2}\. ", line)),
+        "table": tables,
+    }
+
+
+def _format_check(reply: str) -> dict[str, Any]:
+    shaped, removed = reply_format.shape(reply)
+    if removed or shaped != reply.strip("\n"):
+        return _result(False, f"markup outside the subset ({removed} removed): {reply[:160]!r}")
+    found = markers(reply)
+    numbers = len(_NUMBER.findall(reply))
+    if found["bold"] > numbers + 2:
+        return _result(False, f"{found['bold']} bold spans for {numbers} numbers")
+    if found["table"] > 1:
+        return _result(False, f"{found['table']} tables")
+    return _result(True, f"{found}")
 _CLOSING_LINE = re.compile(r"^([^:\n]{1,40}): .+? ~\d+ kcal · P \d+(?: g)?[.;]?\s*$")
 
 

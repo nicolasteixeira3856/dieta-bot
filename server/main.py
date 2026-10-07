@@ -53,6 +53,7 @@ import estimate_total
 import meal_window
 import protein_boost
 import plan_budget as budgets
+import reply_format
 from moderation import (
     IN_SCOPE,
     OUT_OF_SCOPE,
@@ -651,6 +652,7 @@ def create_app(
                     "adjust_retry": False,
                     "meal_window": None,
                     "tone": body.profile.tone,
+                    "format_stripped": None,
                 },
             )
         finally:
@@ -845,6 +847,7 @@ def chat_reply(
             if body.plan_budget:
                 result["plan_budget"] = _plan_budget(body, payload)
         _close_day(body, payload, result)
+        _format(result, record)
         return versioned(result, record_log)
 
     def generate(timeout: float) -> dict[str, Any]:
@@ -1193,12 +1196,27 @@ def _close_day(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) ->
             or payload.get("meal_day") == "other" or not isinstance(result.get("reply"), str)):
         return
     slots = _day_slots(body)
+    # A closing line carries no markers (ADR-045): unmark it so the server finds and rewrites it.
+    reply = "\n".join(
+        reply_format.plain(line).strip() if meal_window.is_closing(reply_format.plain(line)) else line
+        for line in result["reply"].split("\n")
+    )
     result["reply"] = meal_window.close_reply(
-        result["reply"], slots, _expected(body, slots), body.day.remaining_kcal, _remaining_macros(body)["p"],
+        reply, slots, _expected(body, slots), body.day.remaining_kcal, _remaining_macros(body)["p"],
         _target(body, payload), float(estimate.get("kcal") or 0), float(estimate.get("p") or 0),
         now=_now(body), usual=_usual_foods(body),
         complete=meal_window.windows_line(slots, _expected(body, slots), body.day.remaining_kcal, 0, _now(body)) is not None,
     )
+
+
+def _format(result: dict[str, Any], record: dict[str, Any]) -> None:
+    """ADR-045: the reply leaves inside the subset, after the server totals and closing lines (S30 part B)."""
+    reply = result.get("reply")
+    if not isinstance(reply, str):
+        record["format_stripped"] = None
+        return
+    result["reply"], removed = reply_format.shape(reply)
+    record["format_stripped"] = removed or None
 
 
 def _new_record(request: Request, route: str, image: str | None) -> dict[str, Any]:

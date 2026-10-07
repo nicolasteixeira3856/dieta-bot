@@ -823,6 +823,18 @@ RULES: dict[str, Rule] = {
         'history, digests and pending proposals explain the conversation without proving that an action was '
         'saved.'
     )),
+    'format': Rule('server Chat 3/5; ADR-045', (
+        'FORMAT: reply may use only this subset, and nothing else. **bold** only on the numbers that decide '
+        '(the dish or meal kcal, grams, protein), the dish name and a one-word verdict; never a whole '
+        'sentence. In a log, only the meal total is bold (its kcal, and its protein when stated): the grams '
+        'of each food stay plain. Lines starting with - for options, ingredients and foods to avoid, one '
+        'level only. Lines starting with 1. 2. 3. only for the preparation steps of a recipe. At most one '
+        'table: header | Item | Gramas |, a separator line | --- | --- |, then at most six rows of one food '
+        'and its grams. A recipe always lists its ingredients in that table (more than six foods: - lines '
+        'instead) and then its steps as 1. 2. 3. No headings, links, images, code, emoji, italics, quotes, '
+        'nested lists or HTML. A reply that only asks a question, a skip reply, the other-day notice and '
+        'the CLOSING lines carry no markers. Markers never enter meal_text, items, question or memory.'
+    )),
     'tone_seco': Rule('server Chat 3; ADR-044', (
         'TONE: seco, chosen by the user. Scope, refusals and safety_support above are decided first and '
         'never change with the tone. Numbers first, no judgment of the day or of a meal, no advice beyond '
@@ -886,7 +898,7 @@ _CAPABILITY = {
         ("rule", "plan"), ("rule", "closing"), ("rule", "reference"), ("rule", "history"), ("cues", "history"),
         ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"), ("rule", "memory_use"),
         ("rule", "memory_changes"), ("cues", "memory_changes"), ("rule", "temp_references"),
-        ("rule", "skips"),
+        ("rule", "skips"), ("rule", "format"),
     ),
     "meal_changes": (
         ("rule", "product_meal_changes"), ("rule", "context"),
@@ -898,7 +910,7 @@ _CAPABILITY = {
         ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
-        ("rule", "temp_references"), ("rule", "skips"),
+        ("rule", "temp_references"), ("rule", "skips"), ("rule", "format"),
     ),
 }
 

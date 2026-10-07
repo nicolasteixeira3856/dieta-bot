@@ -254,6 +254,13 @@ _CLOSING = re.compile(
 )
 
 
+def is_closing(line: str) -> bool:
+    """A whole line in the closing form `{slot}: {food} ~{kcal} kcal · P {p}`."""
+    line = line.strip()
+    m = _CLOSING.match(line)
+    return bool(m) and m.end() == len(line)
+
+
 def close_reply(
     reply: str,
     slots: Sequence[Slot],
