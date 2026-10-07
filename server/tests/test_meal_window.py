@@ -135,7 +135,7 @@ class ClosingWithoutFoodTests(unittest.TestCase):
         slots = [Slot("1", "Café", "eaten", 400, 20, "07:30"), Slot("2", "Almoço", "empty", time="12:30"),
                  Slot("3", "Jantar", "empty", time="19:30"), Slot("4", "Ceia", "empty", time="22:00")]
         expected = {s.id: 400 for s in slots}
-        reply = "Almoço ~477 kcal. Jantar: ~435 kcal · P 33 Ceia: ~435 kcal · P 33"
+        reply = chr(10).join(["Almoço ~477 kcal.", "Jantar: ~435 kcal · P 33", "Ceia: ~435 kcal · P 33"])
         out = mw.close_reply(reply, slots, expected, 1200, 90, "2", 400, 30, now="12:40", usual={"3": "frango"}, complete=True)
         self.assertEqual(out.split(chr(10)), ["Almoço ~477 kcal.", "Jantar: frango ~400 kcal · P 30", "Ceia: a definir ~400 kcal · P 30"])
 
