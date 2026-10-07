@@ -88,6 +88,16 @@ Behavior: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md).
 | Server | [S26](../../server/plans/s26-reply-formatting-subset.md) — reply formatting subset | S24 |
 | Client | [A57](../../android/plans/a57-rich-reply-rendering.md) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
 
+## Planned meal follow-up
+
+Behavior: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | [D18](d18-planned-meal.md) — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) | D3, D6, D12, D17 |
+| Server | [S27](../../server/plans/s27-planned-slot.md) — planned slot in DAY | S24 |
+| Client | [A58](../../android/plans/a58-planned-meal-reservation.md) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
+
 Deferred by owner decision (2026-10-06): goal weight and date, [A56](../../android/plans/out_of_scope/a56-goal-weight.md).
 
 ## Fibrai brand follow-up

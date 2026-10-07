@@ -72,6 +72,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-043](adrs/ADR-043-plan-objective-protein-and-meal-window.md) — a plan targets the protein gap inside the meal window; closing lines per remaining slot.
 - [ADR-044](adrs/ADR-044-assistant-tone-and-closures.md) — assistant tone chosen by the user (`seco` | `duro`); day and week closure.
 - [ADR-045](adrs/ADR-045-rich-replies-in-chat-bubbles.md) — emphasis, lists and a small table inside the Chat bubbles.
+- [ADR-046](adrs/ADR-046-planned-meal-reservation.md) — a plan can be reserved for its meal before it is eaten.
 
 ### Planos
 
@@ -79,4 +80,4 @@ This context has no `plans/`. Deliveries belong to [Android](../android/README.m
 
 Meal updates: D9 ([`completed/`](../design/plans/completed/)) and [A47](../android/plans/pending_manual_validation/a47-chat-meal-updates.md).
 
-Protein-first plan and tone: [S24](../server/plans/s24-protein-first-plan.md) (ADR-043); [D16](../design/plans/d16-tone-and-closures.md), [S25](../server/plans/s25-tone-and-closures.md) and [A55](../android/plans/a55-tone-choice-and-closures.md) (ADR-044); the auto-record defect in [A54](../android/plans/a54-auto-record-addition-empty-slot.md). Reply formatting: [D17](../design/plans/d17-rich-replies.md), [S26](../server/plans/s26-reply-formatting-subset.md) and [A57](../android/plans/a57-rich-reply-rendering.md) (ADR-045). Deferred by owner decision: goal weight, [A56](../android/plans/out_of_scope/a56-goal-weight.md).
+Protein-first plan and tone: [S24](../server/plans/s24-protein-first-plan.md) (ADR-043); [D16](../design/plans/d16-tone-and-closures.md), [S25](../server/plans/s25-tone-and-closures.md) and [A55](../android/plans/a55-tone-choice-and-closures.md) (ADR-044); the auto-record defect in [A54](../android/plans/a54-auto-record-addition-empty-slot.md). Reply formatting: [D17](../design/plans/d17-rich-replies.md), [S26](../server/plans/s26-reply-formatting-subset.md) and [A57](../android/plans/a57-rich-reply-rendering.md) (ADR-045). Planned meal reservation: [D18](../design/plans/d18-planned-meal.md), [S27](../server/plans/s27-planned-slot.md) and [A58](../android/plans/a58-planned-meal-reservation.md) (ADR-046). Deferred by owner decision: goal weight, [A56](../android/plans/out_of_scope/a56-goal-weight.md).
