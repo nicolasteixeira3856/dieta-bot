@@ -108,7 +108,7 @@ Implemented 07/10/2026 on `feat/a61-chat-copy-scroll-inline`, parts C → A → 
   - `chatRK` is gated by two regions (0.23–0.30 %): the app fits "finalize" on one line where the Figma text wraps it (font raster), so the rest of the bubble shifts down one line;
   - `cfgS` 0.00 %, so the report-only exception is gone;
   - O1–O4 0.00–0.10 %.
-- **`chatM` gold out of date:** it was not in D20 and still draws Registrar above the composer. It is gated on the header and the thread, and the action zone is reported. A design plan for this frame follows, by owner decision.
+- **`chatM` gold out of date:** it was not in D20 and still draws Registrar above the composer. It is gated on the header and the thread, and the action zone is reported. To be redrawn by the design plan [D22](../../../design/plans/d22-chatm-action-in-thread.md), by owner decision.
 - **Roborazzi:** baselines refreshed (the old Chat baselines still showed "Chat Dieta Bot", passing only under the 1 % threshold). New baselines: `chatRB`, `chatRK`, `chatRL`, `chatCP`, `chatCC`.
 - **`ChatInThreadUiTest`:**
   - the stack sits 12 dp under the answer, Reservar 10 dp under Registrar assim;
@@ -166,7 +166,7 @@ Implemented 07/10/2026 on `feat/a61-chat-copy-scroll-inline`, parts C → A → 
 - `testDevDebugUnitTest`, `verifyRoborazziDevDebug` and `assembleDevRelease` pass.
 - `node tools/check-docs.mjs` passes.
 - Specifications updated: [Chat](../../../produto/specifications/chat.md) (rules 2, 6, 11, 14 and 16, the states, the acceptance), [home-timeline](../../../produto/specifications/home-timeline.md), [memoria-push](../../../produto/specifications/memoria-push.md) and [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) (rule 4b, the acceptance).
-- Dev build: see the line below, added at distribution.
+- Dev build **0.0.19-dev** (versionCode 19, tag `dev-v0.0.19`) distributed to the `testers` group on 07/10/2026.
 - Manual acceptance pending, on a device:
   - copy a reply and paste it in another app;
   - take a scrolling screenshot of Home and of a long Chat; if it fails, report the phone model and Android version;
