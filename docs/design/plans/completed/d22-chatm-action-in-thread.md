@@ -44,7 +44,7 @@ Bring `chatM` in line with ADR-048 in both themes. **Registrar** moves from the 
 ## Out of scope
 
 - Compose. The app already draws Registrar in the thread (A61). The client follow-up is written after this plan's OK. It removes the `GoldTest` region exception `CHAT_M_BOXES` / `CHAT_M_ACTION`, so `chatM` is gated whole, and adds an emulator capture of `chatM`.
-- Behavior or copy changes. Other frames, unless the sweep finds the same stale pinned action. The Light `text/dim` contrast ([D21](../d21-light-text-dim-contrast.md)).
+- Behavior or copy changes. Other frames, unless the sweep finds the same stale pinned action. The Light `text/dim` contrast ([D21](../pending_manual_validation/d21-light-text-dim-contrast.md)).
 
 ## Validation
 

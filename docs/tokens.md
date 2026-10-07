@@ -20,7 +20,7 @@ Generated from the Figma file `Design` (`qNiqNN3vk9GpmPL3bcV9W1`), read on 2026-
 | `border/line` | `#b8d8ec` | `#1e4670` | `DietaBotColors.borderLine` | Dividers, the timeline guide and other 1 px lines. |
 | `text/primary` | `#0b2a47` | `#eaf6ff` | `DietaBotColors.textPrimary` | Primary text: titles, body and every number. |
 | `text/muted` | `#486781` | `#93b6d3` | `DietaBotColors.textMuted` | Secondary text: labels, descriptions, captions. |
-| `text/dim` | `#546a7d` | `#819eb8` | `DietaBotColors.textDim` | Tertiary text: timestamps, placeholders, units. Still clears 4.5:1 on every surface. |
+| `text/dim` | `#435463` | `#819eb8` | `DietaBotColors.textDim` | Tertiary text: timestamps, placeholders, units. 4.5:1 on every surface and on the page gradient from bg/mid down; never straight on bg/top. Light is darker than text/muted: hierarchy comes from size and weight. |
 | `icon/primary` | `#0b2a47` | `#eaf6ff` | `DietaBotColors.iconPrimary` | Default icon color. |
 | `icon/muted` | `#486781` | `#93b6d3` | `DietaBotColors.iconMuted` | Secondary icon color (inactive actions, composer icons). |
 | `accent/default` | `#0c66bc` | `#4fc3f7` | `DietaBotColors.accentDefault` | Aero accent (blue Light, cyan Dark): CTA base, active timeline node, selected border, links. Accent only, never a large fill behind text other than accent/on. |

@@ -9,6 +9,9 @@
 //        node tools/export-figma.mjs --only <id or node id> --dry-run [--out <dir>]
 //   --dry-run writes to --out (default: the system temp dir), never to docs/qa/, and also accepts raw node ids
 //   ("9:2") to check that the token authenticates and the frame resolves before any gold is mapped.
+//        node tools/export-figma.mjs --only <ids> --keep
+//   --keep skips the git restore of the noise filter (it still logs the changed share): for a real change that
+//   moves every pixel by less than NOISE_DELTA, such as a token value (D21). Requires --only.
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -227,13 +230,14 @@ export function pngDiff(a, b) {
   return { sameSize: true, pct: (100 * changed) / (pa.width * pa.height), bbox: changed ? { x0, y0, x1, y1 } : null };
 }
 
-// A PNG with < NOISE_MAX_PCT % changed pixels goes back to its git version.
-function filterNoise(theme, id, dest) {
+// A PNG with < NOISE_MAX_PCT % changed pixels goes back to its git version, unless keep is set.
+function filterNoise(theme, id, dest, keep = false) {
   const old = gitGold(theme, id);
   if (!old) return "new file";
   const d = pngDiff(old, fs.readFileSync(dest));
   if (!d.sameSize) return `size changed ${d.sizes}, kept`;
   const pct = `${d.pct.toFixed(3)}% px changed`;
+  if (keep) return `${pct}, kept (--keep)`;
   if (d.pct < NOISE_MAX_PCT) {
     fs.writeFileSync(dest, old);
     return `${pct}, noise → restored from git`;
@@ -256,7 +260,8 @@ export function jobs(only, dryRun) {
   return list;
 }
 
-export async function exportFigma({ only = null, dryRun = false, out = null } = {}) {
+export async function exportFigma({ only = null, dryRun = false, out = null, keep = false } = {}) {
+  if (keep && !only) throw new Error("--keep requires --only.");
   const list = jobs(only, dryRun);
   if (!list.length) {
     console.log("No Figma gold mapped yet (DARK_FRAMES / LIGHT_FRAMES are empty). Nothing to export.");
@@ -271,7 +276,7 @@ export async function exportFigma({ only = null, dryRun = false, out = null } = 
     const dest = path.join(dir, `${job.id}.png`);
     await download(url, dest);
     const { width, height } = pngSize(dest);
-    const noise = dryRun ? "dry run" : filterNoise(job.theme, job.id, dest);
+    const noise = dryRun ? "dry run" : filterNoise(job.theme, job.id, dest, keep);
     console.log(`  ✓ ${job.theme}/${job.id}.png (${job.node}) ${width}x${height}; ${noise}${dryRun ? " → " + dest : ""}`);
   }
   return list.length;
@@ -281,7 +286,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   const dryRun = process.argv.includes("--dry-run");
   const out = listArg("--out")?.[0] ?? null;
-  exportFigma({ only: listArg("--only"), dryRun, out })
+  exportFigma({ only: listArg("--only"), dryRun, out, keep: process.argv.includes("--keep") })
     .then((count) => {
       if (count) console.log(`\nDone! ${count} Figma frame(s) exported${dryRun ? " (dry run, nothing written to docs/qa/)" : " to docs/qa/figma/{dark,light}/"}.`);
     })
