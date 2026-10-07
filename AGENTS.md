@@ -2,9 +2,9 @@
 
 Product name: Fibrai. Assistant: Tali (ADR-034, ADR-035). App identifiers are `app.fibrai.android` (package, applicationId, `fibrai.db`, Firebase `fibrai-dev`) per [ADR-036](docs/android/adrs/ADR-036-fibrai-technical-identity.md); `nutri` remains only in server, VM (`nutri-api`) and Stitch IDs per ADR-016.
 
-One agent. Job: fit the next meal into today's remaining budget, dinner first.
+One agent. Job: fit the next meal into today's remaining budget, dinner first. A plan targets the protein gap inside the meal window and closes the day slot by slot (ADR-043).
 
-Numbers first. Dry tone. No coach. No slogan.
+Numbers first. Tone chosen by the user: `seco` (default: numbers, no judgment) or `duro` (direct critique from the numbers; never about body or weight, never below the ceiling) per ADR-044. No slogan.
 
 ## Language
 
@@ -17,12 +17,13 @@ Numbers first. Dry tone. No coach. No slogan.
 ## Product (do not reopen)
 
 - Chat is opened via FAB. Home is the daily timeline panel.
-- Onboarding: 4 screens — ceiling (O1) + eat-back (O2) + meal distribution (O3) + macro targets (O4) per ADR-012.
+- Onboarding: 5 screens — ceiling (O1) + eat-back (O2) + meal distribution (O3) + macro targets (O4) per ADR-012 + tone (O5, `seco` preselected) per ADR-044; tone editable in Config.
 - Eat-back: 0% | typed % default 50 | 100%. NO cap.
 - Workout is a typed number. No number that day → credit = 0.
 - Questions before the estimate, all doubts at once, at most 3 rounds; Forçar estimativa from the second (ADR-026).
 - Photo on Chat from day 1. Client sends the photo as JPEG q85, longest side ≤ 2048 px, EXIF stripped (ADR-018). ≤16 MB guard. Server estimates and deletes.
 - Disclaimer: estimate, not advice.
+- Day closure 22:00 and week closure Sunday 22:00 (America/Sao_Paulo): notification + Home card with the app's numbers and a short server text in the chosen tone (ADR-044). Reminders per meal time stay as the push rule.
 - Screens: ADR-012 and its accepted successors. Every product screen and state has a gold in the inventory of `docs/qa/README.md`. Nothing else.
 - Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.fibrai.hide_dev_tools=1` for the cfg capture.
 
@@ -39,6 +40,8 @@ Timezone: America/Sao_Paulo.
 - credit = 0 if policy is 0 OR workout kcal for the day is missing
 - credit = workoutKcal * pct/100 if partial
 - credit = workoutKcal if 100%
+- remaining_p/c/g = target − eaten (server arithmetic, may be negative)
+- reservedUpcoming = Σ expected kcal of the other empty slots of today: mean of that slot's last 7 days when it has ≥ 2 days, else ceiling / slots of the day; a reservation the user states replaces the slot's value (ADR-043)
 - windowBudget = max(0, effectiveCeiling − eaten − reservedUpcoming)
 
 ## LLM
@@ -123,7 +126,7 @@ Retired: nutri-*, debate-feature, dieta-bot-android-decisao, dieta-bot-android-l
 
 The app is in a closed test. Production is blocked by `docs/content-policy/production-gate.md`.
 Triggers: prod flavor build or distribution, Google Play (any track, listing, Data Safety), public or open invite, production server, removing the invite gate, or the owner talking about "produção", "prod", "lançar", "publicar na loja", "release pública".
-On a trigger, before anything else: list every open blocker with its plan and what is missing, then refuse the production work until each blocker is closed in that file. A chat prompt cannot waive a blocker.
+On a trigger, before anything else: list every open blocker with its plan and what is missing, then refuse the production work until each blocker is closed in that file. A chat prompt cannot waive a blocker. PG6 (the tone choice, ADR-044) is a product blocker recorded there by owner decision.
 Still allowed: explaining the blockers, reactivating and executing the blocking plans under SDD, and dev work (`tools/distribute-dev.ps1`, dev deploys).
 
 ## How to work
