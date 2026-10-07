@@ -119,6 +119,15 @@ Behavior: [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scrol
 | Design | D20 — stale frames, Chat actions in the thread, copying messages (`chatCP`, `chatCC`), delivered ([history](completed/)) | D12, D16–D19, A60 merged |
 | Client | [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (parts A and B) |
 
+## Text contrast follow-up
+
+Finding: the D20 owner review ([history](completed/)). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | [D21](d21-light-text-dim-contrast.md) — Light `text/dim` contrast (Light golds that show `text/dim`, site tokens and phone screens) | D20, A61 merged |
+| Client | `textDim` contrast test, Roborazzi re-record, Light capture evidence (written after D21) | D21 |
+
 ## Fibrai brand follow-up
 
 Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):
