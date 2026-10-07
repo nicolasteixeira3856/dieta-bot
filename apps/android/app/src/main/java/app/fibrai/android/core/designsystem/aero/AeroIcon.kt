@@ -54,6 +54,7 @@ enum class AeroIconName(@param:DrawableRes val res: Int) {
     Trash(R.drawable.ph_trash_regular),
     X(R.drawable.ph_x_regular),
     SlidersHorizontal(R.drawable.ph_sliders_horizontal_regular),
+    CalendarCheck(R.drawable.ph_calendar_check_regular),
 }
 
 /** A Phosphor icon in a token color. The gloss comes from the container, never from the icon (ADR-030 § 4). */

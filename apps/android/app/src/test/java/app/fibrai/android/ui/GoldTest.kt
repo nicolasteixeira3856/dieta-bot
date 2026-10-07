@@ -108,10 +108,10 @@ class GoldTest {
     fun o3s_light() = check("o3s", dark = false) { O3S() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h845dp-xhdpi")
-    fun cfgS_dark() = check("cfgS", dark = true) { CfgS() }
+    fun cfgS_dark() = check("cfgS", dark = true, reportOnly = true, region = CFG_S_TOP) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h845dp-xhdpi")
-    fun cfgS_light() = check("cfgS", dark = false) { CfgS() }
+    fun cfgS_light() = check("cfgS", dark = false, reportOnly = true, region = CFG_S_TOP) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
     fun o4_dark() = check("o4", dark = true) { O4() }
@@ -157,10 +157,10 @@ class GoldTest {
     fun chatL_light() = check("chatL", dark = false) { Chat(ChatFixtures.chatL) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatE_dark() = check("chatE", dark = true) { Chat(ChatFixtures.chatE) }
+    fun chatE_dark() = check("chatE", dark = true, reportOnly = true, regions = darkSkip(1688, 570, 735)) { Chat(ChatFixtures.chatE) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatE_light() = check("chatE", dark = false) { Chat(ChatFixtures.chatE) }
+    fun chatE_light() = check("chatE", dark = false, reportOnly = true, regions = threadBoxes(1688)) { Chat(ChatFixtures.chatE) }
 
     /** A30: second question before the estimate, Forçar estimativa (A42: Figma frame, gated whole). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -249,11 +249,11 @@ class GoldTest {
     fun chatP_light() = check("chatP", dark = false) { HomePanelScreen(HomePanelMapper.map(HomeFixtures.home0, LocalDate.parse("2026-09-25")), {}, {}, {}, initialSkip = 3) }
 
     /** A29: plan with the projected day and Registrar assim. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h882dp-xhdpi")
-    fun chatR_dark() = check("chatR", dark = true) { Chat(ChatFixtures.chatR) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h928dp-xhdpi")
+    fun chatR_dark() = check("chatR", dark = true, reportOnly = true, regions = darkSkip(1856, 570, 640)) { Chat(ChatFixtures.chatR) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h882dp-xhdpi")
-    fun chatR_light() = check("chatR", dark = false) { Chat(ChatFixtures.chatR) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h928dp-xhdpi")
+    fun chatR_light() = check("chatR", dark = false, reportOnly = true, regions = threadBoxes(1856)) { Chat(ChatFixtures.chatR) }
 
     /** A29: Memória atualizada and the origin chips. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h925dp-xhdpi")
@@ -276,10 +276,10 @@ class GoldTest {
     fun chatG_light() = check("chatG", dark = false) { Chat(ChatFixtures.chatG) }
 
     /** cfg gold is a full-page capture (1047 dp) ending on the Dados block (D15). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1047dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1104dp-xhdpi")
     fun cfg_dark() = check("cfg", dark = true) { Cfg() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1047dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1104dp-xhdpi")
     fun cfg_light() = check("cfg", dark = false) { Cfg() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -293,6 +293,75 @@ class GoldTest {
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun wipe_light() = check("wipe", dark = false) { Cfg(wipe = true) }
+
+    /** chatRL (D18, A60 part D): the reserved plan. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h896dp-xhdpi")
+    fun chatRL_dark() = check("chatRL", dark = true, reportOnly = true, regions = threadBoxes(1792)) { Chat(ChatFixtures.chatRL) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h896dp-xhdpi")
+    fun chatRL_light() = check("chatRL", dark = false, reportOnly = true, regions = threadBoxes(1792)) { Chat(ChatFixtures.chatRL) }
+
+    /** chatRK (D17, A60 part C): the recipe with its table and steps. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1065dp-xhdpi")
+    fun chatRK_dark() = check("chatRK", dark = true, reportOnly = true, regions = threadBoxes(2130)) { Chat(ChatFixtures.chatRK) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1065dp-xhdpi")
+    fun chatRK_light() = check("chatRK", dark = false, reportOnly = true, regions = threadBoxes(2130)) { Chat(ChatFixtures.chatRK) }
+
+    /** homeP (D18, A60 part D): the dinner reserved on the timeline. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1496dp-xhdpi")
+    fun homeP_dark() = check("homeP", dark = true) { Home(HOME_P_DAY) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1496dp-xhdpi")
+    fun homeP_light() = check("homeP", dark = false) { Home(HOME_P_DAY) }
+
+    /** chatRB (D12, A60 part A). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h904dp-xhdpi")
+    fun chatRB_dark() = check("chatRB", dark = true, reportOnly = true, regions = threadBoxes(1808)) { Chat(ChatFixtures.chatRB) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h904dp-xhdpi")
+    fun chatRB_light() = check("chatRB", dark = false, reportOnly = true, regions = threadBoxes(1808)) { Chat(ChatFixtures.chatRB) }
+
+    /** o5 (D16, A60 part B): the tone, Seco preselected. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun o5_dark() = check("o5", dark = true) { O5() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun o5_light() = check("o5", dark = false) { O5() }
+
+    /** cfgT (D16): the Tom da Tali sheet over the blurred Config. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun cfgT_dark() = check("cfgT", dark = true) { CfgT() }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun cfgT_light() = check("cfgT", dark = false) { CfgT() }
+
+    /** homeC (D16): the day closure between the workout row and the timeline. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1632dp-xhdpi")
+    fun homeC_dark() = check("homeC", dark = true) { HomeClosure(LocalDate.parse("2026-09-25"), listOf(DAY_CLOSURE)) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1632dp-xhdpi")
+    fun homeC_light() = check("homeC", dark = false) { HomeClosure(LocalDate.parse("2026-09-25"), listOf(DAY_CLOSURE)) }
+
+    /** homeK (D16): the week closure above the day closure, Sunday 4 de outubro. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1834dp-xhdpi")
+    fun homeK_dark() = check("homeK", dark = true, reportOnly = true, regions = HOME_K_BOXES) { HomeClosure(LocalDate.parse("2026-10-04"), WEEK_CLOSURES) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1834dp-xhdpi")
+    fun homeK_light() = check("homeK", dark = false, reportOnly = true, regions = HOME_K_BOXES) { HomeClosure(LocalDate.parse("2026-10-04"), WEEK_CLOSURES) }
+
+    @Composable private fun O5() = app.fibrai.android.feature.onboarding.ToneScreen(GOLD_STATE, {}, {}, {})
+
+    @Composable private fun CfgT() = ConfigScreen(
+        ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(
+            editor = app.fibrai.android.feature.config.ConfigEditor.TONE,
+            draft = ConfigMapper.draftOf(CFG_DAY),
+        ),
+        ConfigActions(),
+    )
+
+    @Composable private fun HomeClosure(today: LocalDate, closures: List<app.fibrai.android.core.database.ClosureEntity>) =
+        HomePanelScreen(HomePanelMapper.map(HOME_C_DAY, today, closures = closures), {}, {}, {})
 
     @Composable private fun Cfg(wipe: Boolean = false, reset: Boolean = false) =
         ConfigScreen(ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(wipeConfirm = wipe, resetConfirm = reset), ConfigActions())
@@ -534,6 +603,36 @@ class GoldTest {
          * chatF (Figma frame): the frame crops its sample photo differently from the app's centre crop of the fixture, so
          * the photo box is left out: header to the bubble top, the tag and caption row, and the bot answer to the end.
          */
+        /**
+         * cfgS (A44) was drawn before the Tom da Tali row (D16): the rows below the macros moved one row down, beyond the
+         * region search. Gated: the header and the first three rows; the rest is reported until the gold is redrawn.
+         */
+        private val CFG_S_TOP = intArrayOf(0, 0, 780, 700)
+
+        /** homeK: the page down to the week card, then the day card and the timeline, each at its best offset (2 dp apart). */
+        private val HOME_K_BOXES = listOf(intArrayOf(0, 0, 780, 1690), intArrayOf(0, 1690, 780, 3588))
+
+        /**
+         * D12, D17 and D18 drew the Chat thread 6 dp lower than the earlier Chat golds (and the app): the header, the
+         * thread and the actions slot are gated each at its own best offset.
+         */
+        /**
+         * The dark chatR and chatE golds (D17) draw their first paragraph in the page colour (unreadable): that band
+         * [skipFrom, skipTo) is left out; the header, the rest of the thread and the actions slot are gated.
+         */
+        fun darkSkip(heightPx: Int, skipFrom: Int, skipTo: Int): List<IntArray> = listOf(
+            intArrayOf(0, 0, 780, 150),
+            intArrayOf(0, 150, 780, skipFrom),
+            intArrayOf(0, skipTo, 780, heightPx - 330),
+            intArrayOf(0, heightPx - 330, 780, heightPx - 80),
+        )
+
+        fun threadBoxes(heightPx: Int): List<IntArray> = listOf(
+            intArrayOf(0, 0, 780, 150),
+            intArrayOf(0, 150, 780, heightPx - 330),
+            intArrayOf(0, heightPx - 330, 780, heightPx - 80),
+        )
+
         private val CHAT_F_BOXES = listOf(intArrayOf(0, 0, 780, 228), intArrayOf(0, 470, 780, 1922))
 
         private val ROOT = File("../../..")
@@ -548,6 +647,37 @@ class GoldTest {
                 MealSlot(3, "Lanche da tarde", 16 * 60),
                 MealSlot(4, "Jantar", 20 * 60),
             ),
+        )
+
+        /** homeC / homeK: home1 with a 2000 kcal ceiling, 50% eat-back and 350 kcal of workout (Meta 2175). */
+        val HOME_C_DAY = HomeFixtures.home1.copy(kcalSame = 2000, eat = "partial", pct = 50, workoutKcal = 350)
+
+        /** homeP: the homeC day with the dinner reserved (D18). */
+        val HOME_P_DAY = HOME_C_DAY.copy(
+            planned = mapOf(4L to app.fibrai.android.domain.PlannedSlot("Omelete de forno: 3 ovos, 50 g de ricota e 1 fatia de pão integral", 360, 30, 20, 18)),
+        )
+
+        val DAY_CLOSURE = app.fibrai.android.core.database.ClosureEntity(
+            key = "day:2026-09-25", period = "day", date = "2026-09-25", numbers = "{}",
+            text = "1300 de 2175 kcal. Proteína: 76 de 150 g.", status = "text", createdAtEpochMs = 0,
+        )
+
+        private val WEEK_NUMBERS = app.fibrai.android.domain.ClosureWeek(
+            days = listOf(2210, 1980, 2300, 0, 2240, 2390, 2300).mapIndexed { i, kcal ->
+                app.fibrai.android.domain.ClosureWeekDay(
+                    LocalDate.parse("2026-09-28").plusDays(i.toLong()).toString(), kcal, if (kcal > 0) 118 else 0, 200, 60, 2175, null, kcal > 0,
+                )
+            },
+            overSlot = app.fibrai.android.domain.ClosureOverSlot("Jantar", 4),
+        )
+
+        val WEEK_CLOSURES = listOf(
+            app.fibrai.android.core.database.ClosureEntity(
+                key = "week:2026-09-28", period = "week", date = "2026-09-28",
+                numbers = app.fibrai.android.domain.Closures.json.encodeToString(app.fibrai.android.domain.ClosureWeek.serializer(), WEEK_NUMBERS),
+                text = "Semana: média de 2.237 kcal e 118 g de proteína por dia.", status = "text", createdAtEpochMs = 0,
+            ),
+            DAY_CLOSURE.copy(key = "day:2026-10-04", date = "2026-10-04"),
         )
 
         val GOLD_STATE = OnboardingUiState(

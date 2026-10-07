@@ -13,6 +13,7 @@ class ProfileTextTest {
         gTarget = 74,
         eatBack = "partial 50%",
         slots = listOf(ChatSlot("11", "Café da manhã", "07:30"), ChatSlot("12", "Lanche", "11:00")),
+        tone = "duro",
     )
 
     private fun ok(text: String) = (ProfileText.parse(text, profile) as ProfileText.Result.Ok).profile

@@ -17,6 +17,9 @@ import app.fibrai.android.feature.onboarding.SlotDraft
 import app.fibrai.android.feature.workout.WorkoutEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
+import app.fibrai.android.core.telemetry.NoopTelemetry
+import app.fibrai.android.core.telemetry.Telemetry
+import app.fibrai.android.core.telemetry.TelemetryEvents
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +33,7 @@ class ConfigViewModel @Inject constructor(
     private val repository: DayRepository,
     private val clock: InstantClock,
     private val appReset: AppReset,
+    private val telemetry: Telemetry = NoopTelemetry,
 ) : ViewModel() {
     private val local = MutableStateFlow(Local())
     private val _uiState = MutableStateFlow(ConfigUiState())
@@ -117,6 +121,9 @@ class ConfigViewModel @Inject constructor(
     // Workout
     fun setWorkout(v: String) = edit { it.copy(workoutField = WorkoutEditorState.clean(v)) }
 
+    /** A60 part B (cfgT): the tone picked in the sheet; nothing is stored before Salvar. */
+    fun setTone(tone: String) = edit { if (tone == "seco" || tone == "duro") it.copy(tone = tone) else it }
+
     /**
      * Salvar. A changed ceiling only raises the wipe dialog; everything else is stored at once
      * and never wipes (slot name/time relabels).
@@ -151,6 +158,11 @@ class ConfigViewModel @Inject constructor(
                     draft.slotSchedule.mode,
                 )
                 ConfigEditor.WORKOUT -> repository.setWorkout(draft.workoutField.toIntOrNull())
+                // No wipe, no confirmation: the next turn uses the new tone.
+                ConfigEditor.TONE -> if (draft.tone != day.tone) {
+                    repository.saveTone(draft.tone)
+                    telemetry.event(TelemetryEvents.TONE_SET, mapOf("tone" to draft.tone, "from" to "config"))
+                }
                 ConfigEditor.CEILING -> Unit
             }
         }
@@ -231,6 +243,7 @@ object ConfigMapper {
                 CreditPolicy.FULL -> "100%"
             },
             macrosValue = "${day.proteinTargetG}g · ${day.carbTargetG}g · ${day.fatTargetG}g",
+            toneValue = if (day.tone == "duro") "Duro" else "Seco",
             slotMode = day.slotMode,
             slotGroups = SlotModes.groups(day.slotMode).map { group ->
                 val rows = day.slots.filter { it.days == group.days }.sortedBy { it.minutesFromMidnight }
@@ -258,6 +271,7 @@ object ConfigMapper {
         slotSchedule = SlotScheduleDraft.stored(day.slotMode, day.slots),
         slots = SlotScheduleDraft.stored(day.slotMode, day.slots).slots,
         workoutField = day.workoutKcal?.toString().orEmpty(),
+        tone = day.tone,
     )
 
     fun policyOf(eat: String) = WorkoutEditorState.policyOf(eat)

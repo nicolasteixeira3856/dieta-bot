@@ -58,6 +58,7 @@ import app.fibrai.android.core.designsystem.aero.AeroPage
 import app.fibrai.android.core.designsystem.aero.AeroPageBubbles
 import app.fibrai.android.core.designsystem.aero.AeroScrim
 import app.fibrai.android.core.designsystem.aero.AeroSheet
+import app.fibrai.android.feature.onboarding.ToneOptions
 import app.fibrai.android.core.designsystem.aero.AeroText
 import app.fibrai.android.core.designsystem.aero.AeroTextTokens
 import app.fibrai.android.core.designsystem.aero.aeroGlass
@@ -108,6 +109,8 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
                         SettingRow("Compensação de treinos", ui.eatBackValue, "cfg-eat") { actions.onOpen(ConfigEditor.EAT_BACK) }
                         Divider()
                         SettingRow("Macronutrientes (P · C · G)", ui.macrosValue, "cfg-macros") { actions.onOpen(ConfigEditor.MACROS) }
+                        Divider()
+                        SettingRow("Tom da Tali", ui.toneValue, "cfg-tone") { actions.onOpen(ConfigEditor.TONE) }
                     }
                 }
                 Block("Horários das refeições", trailing = SlotModes.labels.first { it.first == ui.slotMode }.second.takeIf { ui.slotMode != "same" }) {
@@ -258,6 +261,7 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
         ConfigEditor.MACROS -> "Macronutrientes" to "Alvos diários em gramas."
         ConfigEditor.SLOTS -> "Horários das refeições" to "Mudar nome ou horário não apaga o que você já registrou hoje."
         ConfigEditor.WORKOUT -> "Treino de hoje" to null
+        ConfigEditor.TONE -> "Tom da Tali" to null
     }
     AeroSheet(
         title = title,
@@ -285,6 +289,8 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
                 ConfigEditor.SLOTS -> Unit // Full-screen editor is rendered by ConfigScreen.
                 // A22: the field of the Home sheet (homeW).
                 ConfigEditor.WORKOUT -> WorkoutEditor(ui.draft.workoutEditor, a.onWorkout)
+                // A60 part B (cfgT): the two options of O5; Salvar stores, the next turn uses it.
+                ConfigEditor.TONE -> ToneOptions(ui.draft.tone, a.onTone, "cfg-tone", onGlass = true)
             }
         }
     }

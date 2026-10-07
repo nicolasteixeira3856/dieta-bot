@@ -64,6 +64,8 @@ import app.fibrai.android.core.designsystem.dietaClick
 import app.fibrai.android.core.designsystem.formatRemaining
 import app.fibrai.android.core.designsystem.aero.Aero
 import app.fibrai.android.core.designsystem.aero.AeroActionBar
+import app.fibrai.android.core.designsystem.aero.AeroChoiceBar
+import app.fibrai.android.core.designsystem.aero.AeroReplyBlocks
 import app.fibrai.android.core.designsystem.aero.AeroBotLabel
 import app.fibrai.android.core.designsystem.aero.AeroBubbleSpec
 import app.fibrai.android.core.designsystem.aero.AeroChatBubble
@@ -151,6 +153,11 @@ fun ChatScreen(
     /** chatSD (A59): Excluir e pular | Manter registro below an answer that skipped a meal with a record. */
     onSkipDelete: (answerId: Long, slotId: Long) -> Unit = { _, _ -> },
     onSkipKeep: (answerId: Long, slotId: Long) -> Unit = { _, _ -> },
+    /** chatRB (A60 part A): Pode passar | Ajustar para caber on an over-budget plan. */
+    onBudgetOverOk: (estimateId: Long) -> Unit = {},
+    onBudgetFit: (estimateId: Long) -> Unit = {},
+    /** chatR (A60 part D): Reservar para o {slot}. */
+    onReserve: (estimateId: Long) -> Unit = {},
 ) {
     // A32: camera button and photo chip close the keyboard first, so the photo sheet shows whole.
     val keyboard = LocalSoftwareKeyboardController.current
@@ -192,7 +199,7 @@ fun ChatScreen(
             ui.notice?.let { Notice(it, onNoticeShown) }
             // chatA: with a photo attached the chips go away (they would compete with it).
             if (ui.emptyDay && ui.attachment == null) SuggestionRow(onComposer, camera)
-            Footer(ui, onComposer, send, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate)
+            Footer(ui, onComposer, send, onRegister, photo, onRemoveAttachment, onRecordPlan, onForceEstimate, onBudgetOverOk, onBudgetFit, onReserve)
         }
         AeroPageBubbles(ChatBubbles, null, Modifier.statusBarsPadding())
         if (ui.sheetFor != null) SlotSheet(ui, onSheetSelect, onSheetConfirm, onSheetClose)
@@ -411,11 +418,17 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
     Column(Modifier.fillMaxWidth(BOT_FRACTION), horizontalAlignment = Alignment.Start) {
         AiLabel()
         BotBubble(Modifier.testTag("chat-bot-${item.id}")) {
+            val blocks = item.blocks
             if (item.plan != null) {
-                PlanText(item.text)
+                if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else PlanText(item.text)
                 PlanPanel(item.plan)
             } else if (item.prose) {
-                AeroText(highlighted(item.text, item.highlights, c.accentDefault), style = type.body.copy(color = c.textPrimary))
+                // A formatted reply carries its own emphasis (D17): no accent highlight of the item names.
+                if (blocks != null) {
+                    AeroReplyBlocks(blocks)
+                } else {
+                    AeroText(highlighted(item.text, item.highlights, c.accentDefault), style = type.body.copy(color = c.textPrimary))
+                }
             }
             item.estimate?.let { e ->
                 EstimateCard(e)
@@ -427,6 +440,8 @@ private fun AssistantBubble(item: ChatItem.Assistant) {
         MemoryChips(item.memory)
         if (item.memory.any && item.estimate?.question.isNullOrBlank()) BubbleTime(item.time, Modifier.padding(top = 8.dp, start = 4.dp))
         if (item.notRecorded) NotRecordedLabel(Modifier.padding(top = 6.dp, start = 8.dp))
+        item.budget?.let { BudgetLines(it, Modifier.padding(top = 8.dp)) }
+        item.reservedFor?.let { ReservedLabel(it, Modifier.padding(top = 8.dp, start = 2.dp)) }
     }
 }
 
@@ -662,6 +677,9 @@ private fun Footer(
     onRemoveAttachment: () -> Unit,
     onRecordPlan: (Long) -> Unit,
     onForceEstimate: () -> Unit,
+    onBudgetOverOk: (Long) -> Unit,
+    onBudgetFit: (Long) -> Unit,
+    onReserve: (Long) -> Unit,
 ) {
     Column(
         Modifier
@@ -673,9 +691,43 @@ private fun Footer(
         if (ui.forceEstimate) {
             ForceBar(onForceEstimate)
         } else {
-            ui.actions?.let { if (it.plan) PlanBar(it) { onRecordPlan(it.estimateId) } else RegisterBar { onRegister(it.estimateId) } }
+            ui.actions?.let {
+                when {
+                    it.choice != null -> AeroChoiceBar(
+                        "Pode passar", "Ajustar para caber", { onBudgetOverOk(it.estimateId) }, { onBudgetFit(it.estimateId) },
+                        leftTag = "chat-budget-over-ok", rightTag = "chat-budget-fit",
+                    )
+                    it.plan -> {
+                        PlanBar(it) { onRecordPlan(it.estimateId) }
+                        it.reserve?.let { slot ->
+                            AeroActionBar("Reservar para o ${slot.name}", AeroIconName.CalendarCheck, { onReserve(it.estimateId) }, Modifier.testTag("chat-reserve"))
+                        }
+                    }
+                    else -> RegisterBar { onRegister(it.estimateId) }
+                }
+            }
         }
         Composer(ui, onComposer, onSend, onPhoto, onRemoveAttachment)
+    }
+}
+
+/** chatRB (A60 part A): what the plan goes over and what was reserved, muted, below the bubble. */
+@Composable
+private fun BudgetLines(note: BudgetNote, modifier: Modifier = Modifier) {
+    val style = Aero.type.caption.copy(color = Aero.colors.textMuted)
+    Column(modifier.testTag("chat-budget-note"), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        AeroText("Passa ${note.overKcal} kcal do que sobra.", style = style)
+        note.reserved.forEach { (kcal, label) -> AeroText("Reservei $kcal kcal para $label.", style = style) }
+    }
+}
+
+/** chatRL (A60 part D): the plan holds the reservation of its meal. */
+@Composable
+private fun ReservedLabel(slot: String, modifier: Modifier = Modifier) {
+    val c = Aero.colors
+    Row(modifier.testTag("chat-reserved"), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        AeroIcon(AeroIconName.CalendarCheck, c.iconMuted, size = 16.dp)
+        AeroText("Reservado para o $slot", style = Aero.type.caption.copy(color = c.textMuted), maxLines = 1)
     }
 }
 

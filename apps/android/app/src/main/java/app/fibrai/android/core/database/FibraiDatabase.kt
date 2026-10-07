@@ -13,8 +13,10 @@ import androidx.room.TypeConverters
         SlotSkipEntity::class,
         ChatMessageEntity::class,
         DayDigestEntity::class,
+        ClosureEntity::class,
+        PlannedMealEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = true,
 )
 @TypeConverters(FibraiConverters::class)
@@ -26,4 +28,6 @@ abstract class FibraiDatabase : RoomDatabase() {
     abstract fun slotSkipDao(): SlotSkipDao
     abstract fun chatMessageDao(): ChatMessageDao
     abstract fun dayDigestDao(): DayDigestDao
+    abstract fun closureDao(): ClosureDao
+    abstract fun plannedMealDao(): PlannedMealDao
 }

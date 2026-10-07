@@ -17,7 +17,10 @@
 # SCENES=a54 only onboarding + the A54 scene: an `auto` addition into the empty dinner is recorded, the next DAY says eaten.
 # SCENES=a59 only onboarding + the A59 scenes: a meal and a skip in one message (two receipts), a skip over a record
 #   (Excluir e pular, Desfazer, Manter registro, expiry on the next send) and the chatSK, chatSD golds.
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59] tools/capture-chat.sh dark|light
+# SCENES=a50|a55|a57|a58 (or a60 for the four): A60 parts A-D: chatRB (Pode passar, Ajustar, recreation), the tone in
+#   Config (cfg, cfgT) and on the wire, the day and week closures through the dev-only broadcast (homeC, homeK, offline,
+#   collapse), formatted replies (chatR, chatRK, chatE, plain history and records), the reservation (chatRL, homeP).
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -897,6 +900,285 @@ sent=$(dinner_sent "$jantar")
 [ "$sent" = "eaten:263" ] && echo "  ✓ next request carries the dinner as eaten" || { echo "  ✗ next DAY dinner: $sent"; FAIL=1; }
 fake_mode '{}'
 fi
+# ------------------------------------------------------------------ A60: budget choice, tone and closures, formatting, planned
+# SCENES=a50 (chatRB), a55 (Config tone, cfgT, closures homeC/homeK), a57 (chatR, chatRK, chatE), a58 (chatRL, homeP); a60 = all four.
+a60_on() { [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a60 ] || [ "${SCENES:-all}" = "$1" ]; }
+if a60_on a50 || a60_on a55 || a60_on a57 || a60_on a58; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+called() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin); print(d.get(sys.argv[1]))" "$1"; }
+# The gold day: 1.640 kcal eaten (86P 152C 46G), ceiling 2.200, targets 167/223/74; slots by name.
+A60_DAY='
+import json
+slots = {n: i for i, n in c.execute("select id, name from meal_slot")}
+order = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+jantar = next(i for n, i in slots.items() if n.startswith("Jan"))
+c.execute("update profile set ceilingMode=?, kcalSame=2200, eat=?, proteinTargetG=167, carbTargetG=223, fatTargetG=74, tone=?", ("same", "zero", "seco"))
+c.execute("update day set workoutKcal=null")
+for slot, kcal, p, carbs, fat in [(order[0], 440, 25, 38, 22), (order[1], 820, 45, 76, 14), (order[2], 380, 16, 38, 10)]:
+    c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "x", kcal, p, slot, carbs, fat, "user"))
+now = int(time.time() * 1000)
+def msg(role, text, at, **kw):
+    cols = ["date", "role", "text", "createdAtEpochMs"] + list(kw)
+    c.execute(f"insert into chat_message({chr(44).join(cols)}) values({chr(44).join(chr(63) * len(cols))})", [today, role, text, now - at] + list(kw.values()))
+    return c.execute("select max(id) from chat_message").fetchone()[0]
+NL = chr(10)
+OPTIONS = NL.join(["Duas opções para o jantar:",
+    "- **Pizza de pão sírio**: 1 pão sírio (60 g), 30 g de molho de tomate, 100 g de frango desfiado, 30 g de milho e 30 g de muçarela · **420 kcal**",
+    "- **Omelete de forno**: 3 ovos, 50 g de ricota e 1 fatia de pão integral (25 g) · **360 kcal**",
+    "Primeira opção: ~**420 kcal** · 40P · 38C · 12G"])
+'
+set_clock 0 20:15
+
+if a60_on a50; then
+echo "  A50: a plan over its window asks Pode passar | Ajustar para caber (chatRB)"
+sql "$CLEAN$A60_DAY"
+fake_mode '{"plan_budget": "over"}'
+open_chat
+say "receita%sde%smacarrao%scom%satum"; kb_off
+[ "$(called planBudget)" = "True" ] && echo "  ✓ plan_budget true on the wire" || { echo "  ✗ plan_budget sent: $(called planBudget)"; FAIL=1; }
+expect "lines below the plan" 'Passa 310 kcal do que sobra.*|Reservei 250 kcal para fatia de bolo'
+expect "Pode passar and Ajustar para caber" 'chat-budget-over-ok'
+if has chat-record-plan; then echo "  ✗ Registrar assim while choosing"; FAIL=1; else echo "  ✓ no Registrar assim while choosing"; fi
+tap 'resource-id="chat-budget-over-ok"' 1.5
+expect "Pode passar: Registrar assim returns" 'resource-id="chat-record-plan"'
+if has chat-budget-fit; then echo "  ✗ pills after Pode passar"; FAIL=1; else echo "  ✓ pills gone"; fi
+local_choice=$(db "select planBudget from chat_message where role = 'assistant' order by id desc limit 1")
+case "$local_choice" in *'"local":"over_ok"'*) echo "  ✓ over_ok stored on the plan";; *) echo "  ✗ stored budget: $local_choice"; FAIL=1;; esac
+open_chat
+expect "recreation keeps Registrar assim" 'resource-id="chat-record-plan"'
+echo "  A50: Ajustar para caber sends fit_kcal; still over shows the choice again; a fitting plan is chatR"
+fake_mode '{"plan_budget": "still"}'
+say "outra%sreceita"; kb_off
+tap 'resource-id="chat-budget-fit"' 3; kb_off
+[ "$(called fit)" = "310" ] && echo "  ✓ fit_kcal 310 on the wire" || { echo "  ✗ fit_kcal: $(called fit)"; FAIL=1; }
+expect "still over: the choice again" 'chat-budget-fit'
+fake_mode '{"plan_budget": "over"}'
+tap 'resource-id="chat-budget-fit"' 3; kb_off
+expect "adjusted plan fits: Registrar assim" 'resource-id="chat-record-plan"'
+fake_mode '{"plan_budget": "zero"}'
+say "mais%suma"; kb_off
+if has chat-budget-fit; then echo "  ✗ pills with nothing to adjust to"; FAIL=1; else echo "  ✓ limit 0: no pills (chatR)"; fi
+# Gold thread (D12).
+sql "$CLEAN$A60_DAY"'
+RECIPE = NL.join(["Macarrão com atum ao sugo:", "• 80 g de macarrão cru", "• 1 lata de atum em água (120 g)", "• 150 g de molho de tomate",
+    "• 20 g de queijo ralado (opcional)", "1. Cozinhe o macarrão por 9 min.", "2. Aqueça o molho com o atum por 5 min.",
+    "3. Misture e finalize com o queijo.", "Total: ~620 kcal · 42P · 70C · 18G"])
+msg("user", "Me passa uma receita de macarrão com atum pro jantar? Mais tarde ainda como uma fatia de bolo.", 2000)
+msg("assistant", RECIPE, 1000, estimateKcal=620, estimateP=42, estimateC=70, estimateG=18, estimateConfidence="medium", estimateSlotId=jantar,
+    intent="plan", recordMode="none",
+    planBudget=json.dumps({"limitKcal": 310, "overKcal": 310, "reserved": [{"label": "fatia de bolo", "kcal": 250}]}))
+'
+open_chat
+expect "gold: Dia 1.640 -> 2.260 de 2.200" '1\.640.*2\.260.*2\.200'
+shot chatRB
+fake_mode '{}'
+fi
+
+if a60_on a57; then
+echo "  A57: formatted replies render as blocks; records and history stay plain"
+sql "$CLEAN$A60_DAY"
+fake_mode '{"format": "plan"}'
+open_chat
+say "o%sque%sjanto"; kb_off
+expect "plan: bullets" 'resource-id="chat-reply-bullet"'
+dump; if grep -q '\*\*' "$TMP/ui.xml"; then echo "  ✗ markers on screen"; FAIL=1; else echo "  ✓ no ** on screen"; fi
+fake_mode '{"format": "recipe"}'
+say "receita%sde%sfrango"; kb_off
+expect "recipe: table and steps" 'resource-id="chat-reply-table"'
+expect "recipe: steps" 'resource-id="chat-reply-step"'
+history=$(curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(sum('**' in m['text'] for m in json.load(sys.stdin)['messages']))")
+[ "$history" = 0 ] && echo "  ✓ the history of the next turn carries no markers" || { echo "  ✗ markers in the history: $history"; FAIL=1; }
+sql "$CLEAN"
+fake_mode '{"format": "log", "record": "auto"}'
+open_chat
+say "comi%s2%spaes%se%s2%sovos"; kb_off
+expect "log: receipt" 'resource-id="chat-receipt-delete"'
+rows=$(db "select text from meal_log where text like '%**%'")
+[ "$rows" = "[]" ] && echo "  ✓ no markers in meal_log" || { echo "  ✗ markers recorded: $rows"; FAIL=1; }
+fake_mode '{"format": "malformed"}'
+open_chat
+say "arroz%se%sfeijao"; kb_off
+expect "malformed markup stays literal" '\*\*Arroz com feij'
+# Gold threads (D17).
+sql "$CLEAN$A60_DAY"'
+msg("user", "Não sei o que jantar. Me dá umas ideias?", 2000)
+msg("assistant", OPTIONS, 1000, estimateKcal=420, estimateP=40, estimateC=38, estimateG=12, estimateConfidence="high", estimateSlotId=jantar,
+    estimateMealText="Pizza de pão sírio", intent="plan", recordMode="none")
+'
+open_chat
+expect "gold chatR: Reservar para o Jantar" 'resource-id="chat-reserve"'
+shot chatR
+sql "$CLEAN$A60_DAY"'
+RK = NL.join(["Frango com brócolis e arroz", "| Item | Gramas |", "| --- | --- |", "| Peito de frango | 120 g |", "| Arroz cozido | 120 g |",
+    "| Brócolis | 100 g |", "| Azeite | 5 g |", "| Alho | 5 g |", "| Queijo ralado (opcional) | 15 g |",
+    "1. Corte o frango em cubos e grelhe por 8 min.", "2. Refogue o alho no azeite e junte o brócolis por 3 min.",
+    "3. Misture o arroz e o frango e finalize com o queijo.", "Total: ~**520 kcal** · 46P · 41C · 17G"])
+msg("user", "Me passa uma receita de frango com brócolis pro jantar?", 2000)
+msg("assistant", RK, 1000, estimateKcal=520, estimateP=46, estimateC=41, estimateG=17, estimateConfidence="high", intent="plan", recordMode="none")
+'
+open_chat
+expect "gold chatRK: the table" 'resource-id="chat-reply-table"'
+shot chatRK
+sql "$CLEAN"'
+first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
+now = int(time.time() * 1000)
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,estimateItems,intent,recordMode) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", "Identifiquei 2 pães franceses (**100 g**) e 2 ovos mexidos (**100 g**). A estimativa total é de:", now - 1000,
+           380, 22, 36, 16, "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", "log", "ask"))
+'
+open_chat
+expect "gold chatE: Registrar" 'resource-id="chat-register"'
+shot chatE
+fake_mode '{}'
+fi
+
+if a60_on a58; then
+echo "  A58: reserve the plan, the planned day, a record against it, Desfazer"
+sql "$CLEAN$A60_DAY"'
+msg("user", "Não sei o que jantar. Me dá umas ideias?", 2000)
+msg("assistant", OPTIONS, 1000, estimateKcal=420, estimateP=40, estimateC=38, estimateG=12, estimateConfidence="high", estimateSlotId=jantar,
+    estimateMealText="Pizza de pão sírio", intent="plan", recordMode="none")
+'
+open_chat
+tap 'resource-id="chat-reserve"' 1.5
+expect "Reservado para o Jantar (chatRL)" 'resource-id="chat-reserved"'
+if has chat-reserve; then echo "  ✗ Reservar still drawn"; FAIL=1; else echo "  ✓ Reservar gone, Registrar assim kept"; fi
+shot chatRL
+rows=$(db "select text, kcal from planned_meal")
+case "$rows" in "[('Pizza de pão sírio', 420)]") echo "  ✓ planned_meal: $rows";; *) echo "  ✗ planned_meal: $rows"; FAIL=1;; esac
+open_chat
+fake_mode '{"record": "none", "reply": "Ok."}'
+say "ok"; kb_off
+jantar=$(db "select id from meal_slot where name like 'Jan%'" | tr -dc '0-9')
+sent=$(dinner_sent "$jantar" 2>/dev/null || curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin)['day']; print(' '.join(f\"{s['status']}:{s.get('kcal')}\" for s in d if s['id'] == sys.argv[1]))" "$jantar")
+[ "$sent" = "planned:420" ] && echo "  ✓ DAY carries the dinner as planned" || { echo "  ✗ DAY dinner: $sent"; FAIL=1; }
+fake_mode '{"planned": true}'
+open_chat
+say "jantei%sfrango%se%sarroz"; kb_off
+expect "receipt: Plano 420 · Registrado 610 (+190 kcal)" 'Plano: 420 · Registrado: 610 \(\+190 kcal\)'
+rows=$(db "select count(*) from planned_meal")
+[ "$rows" = "[(0,)]" ] && echo "  ✓ the record replaced the reservation" || { echo "  ✗ planned_meal after record: $rows"; FAIL=1; }
+open_chat
+tap 'resource-id="chat-receipt-undo"' 2
+rows=$(db "select text, kcal from planned_meal")
+case "$rows" in "[('Pizza de pão sírio', 420)]") echo "  ✓ Desfazer restored the reservation";; *) echo "  ✗ after Desfazer: $rows"; FAIL=1;; esac
+# homeP gold: home1 with the dinner reserved.
+sql "$CLEAN"'
+slots = {n: i for i, n in c.execute("select id, name from meal_slot")}
+order = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+c.execute("update profile set kcalSame=2000, eat=?, pct=50, proteinTargetG=150, carbTargetG=200, fatTargetG=67", ("partial",))
+c.execute("insert or replace into day(date, workoutKcal, removedWindows, askedWindows) values(?,?,?,?)", (today, 350, "[]", "[]"))
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "2 pães franceses, 2 ovos mexidos e café com leite", 520, 28, order[0], 52, 22, "user"))
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "Prato feito: frango grelhado, arroz, feijão e salada", 780, 48, order[1], 82, 18, "photo"))
+c.execute("insert into slot_skip(date, slotId) values(?,?)", (today, order[2]))
+c.execute("delete from planned_meal")
+c.execute("insert into planned_meal(date,slotId,text,kcal,p,c,g) values(?,?,?,?,?,?,?)", (today, order[3], "Omelete de forno: 3 ovos, 50 g de ricota e 1 fatia de pão integral", 360, 30, 20, 18))
+'
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+"$ADB" shell input swipe 390 1400 390 300 300; sleep 1
+expect "homeP: planejado · 360 kcal" 'planejado · 360 kcal'
+"$ADB" shell input swipe 390 300 390 1400 300; sleep 1
+shot homeP
+fake_mode '{}'
+fi
+
+if a60_on a55; then
+echo "  A55: the tone in Config (cfg, cfgT), on the wire, and the closures (homeC, homeK)"
+sql "$CLEAN"'
+c.execute("update profile set kcalSame=2000, eat=?, pct=0, proteinTargetG=150, carbTargetG=200, fatTargetG=67, tone=?", ("zero", "seco"))
+c.execute("delete from closure")
+'
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+tap 'resource-id="home-config"' 1.5
+expect "cfg: Tom da Tali · Seco" 'Tom da Tali'
+shot cfg
+tap 'resource-id="cfg-tone"' 1.2
+expect "cfgT: the two options" 'resource-id="cfg-tone-duro"'
+shot cfgT
+tap 'resource-id="cfg-tone-duro"' 0.6
+tap 'resource-id="cfg-save"' 1.2
+expect "row reads Duro" 'text="Duro"'
+rows=$(db "select tone from profile")
+[ "$rows" = "[('duro',)]" ] && echo "  ✓ tone stored" || { echo "  ✗ tone: $rows"; FAIL=1; }
+fake_mode '{"record": "none", "reply": "Ok."}'
+open_chat
+say "oi"; kb_off
+[ "$(called tone)" = "duro" ] && echo "  ✓ profile.tone duro on the wire" || { echo "  ✗ tone sent: $(called tone)"; FAIL=1; }
+# Closures on Sunday 22:05: the clock jump makes the 22:00 alarm due, so the app closes the day and the week at its
+# next start (the alarm path); the dev-only broadcast runs one more time and changes nothing (produced once).
+days=$("$PY" -c "import datetime, zoneinfo; d = datetime.datetime.now(zoneinfo.ZoneInfo('America/Sao_Paulo')).date(); print((6 - d.weekday()) % 7)")
+set_clock "$days" 22:05
+closure() { "$ADB" shell am broadcast -a app.fibrai.android.dev.RUN_CLOSURE --es period "$1" -n $PKG/app.fibrai.android.core.closure.RunClosureReceiver >/dev/null; sleep 3; }
+start_app() { "$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep "${1:-5}"; }
+notified() { "$ADB" shell dumpsys notification --noredact | grep -q "$1"; }
+# The seeded day is the emulator's (Sunday), not the host's.
+HOME_C="
+import datetime
+today = (datetime.date.fromisoformat(today) + datetime.timedelta(days=$days)).isoformat()
+"'
+order = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+c.execute("update profile set kcalSame=2000, eat=?, pct=50, proteinTargetG=150, carbTargetG=200, fatTargetG=67, tone=?", ("partial", "seco"))
+for t in ("closure", "meal_log", "slot_skip", "planned_meal"): c.execute(f"delete from {t}")
+c.execute("insert or replace into day(date, workoutKcal, removedWindows, askedWindows) values(?,?,?,?)", (today, 350, "[]", "[]"))
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "2 pães franceses, 2 ovos mexidos e café com leite", 520, 28, order[0], 52, 22, "user"))
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "Prato feito: frango grelhado, arroz, feijão e salada", 780, 48, order[1], 82, 18, "photo"))
+c.execute("insert into slot_skip(date, slotId) values(?,?)", (today, order[2]))
+'
+sql "$CLEAN$HOME_C"
+fake_mode '{}'
+start_app 8
+notified "Fechamento do dia" && echo "  ✓ notification Fechamento do dia" || { echo "  ✗ no day notification"; FAIL=1; }
+notified "Fechamento da semana" && echo "  ✓ notification Fechamento da semana" || { echo "  ✗ no week notification"; FAIL=1; }
+rows=$(db "select period, status from closure order by period")
+[ "$rows" = "[('day', 'text'), ('week', 'text')]" ] && echo "  ✓ the alarm closed the day and the week, with their texts" || { echo "  ✗ closure rows: $rows"; FAIL=1; }
+sent=$(called close | "$PY" -c "import ast,sys; d=ast.literal_eval(sys.stdin.read()); print(d['period'], d['tone'], sorted(d['numbers']))")
+echo "  last /v1/close: $sent"
+start_app
+closure day
+rows=$(db "select count(*) from closure")
+[ "$rows" = "[(2,)]" ] && echo "  ✓ the broadcast produced nothing new (once per day and week)" || { echo "  ✗ closures: $rows"; FAIL=1; }
+# homeC: the day card alone (the week row out of the way), then homeK.
+sql 'c.execute("delete from closure where period = ?", ("week",))'
+start_app
+"$ADB" shell input swipe 390 1300 390 700 300; sleep 1
+expect "homeC: the day card" 'resource-id="home-closure-day"'
+"$ADB" shell input swipe 390 700 390 1300 300; sleep 1
+shot homeC
+closure week
+start_app
+"$ADB" shell input swipe 390 1300 390 700 300; sleep 1
+expect "homeK: the week card above the day card" 'home-closure-week.*home-closure-day'
+"$ADB" shell input swipe 390 700 390 1300 300; sleep 1
+shot homeK
+echo "  A55: without network, the numbers alone; one retry at the next start"
+sql "$HOME_C"
+fake_mode '{"close_fail": true}'
+start_app 8
+"$ADB" shell input swipe 390 1300 390 700 300; sleep 1
+expect "offline card: Sem o texto: sem rede." 'Sem o texto: sem rede.'
+rows=$(db "select status, retried from closure where period = 'day'")
+[ "$rows" = "[('offline', 0)]" ] && echo "  ✓ offline stored" || { echo "  ✗ offline: $rows"; FAIL=1; }
+fake_mode '{}'
+start_app 8
+rows=$(db "select status, retried from closure where period = 'day'")
+[ "$rows" = "[('text', 1)]" ] && echo "  ✓ the retry at start fetched the text" || { echo "  ✗ after retry: $rows"; FAIL=1; }
+echo "  A55: the next day the card collapses after the first record"
+set_clock "$((days + 1))" 08:30
+sql "
+import datetime
+today = (datetime.date.fromisoformat(today) + datetime.timedelta(days=$((days + 1)))).isoformat()
+"'
+first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "café", 300, 15, first, 30, 10, "user"))
+'
+start_app
+"$ADB" shell input swipe 390 1300 390 700 300; sleep 1
+expect "collapsed: Ontem: 1300 de 2175 kcal" 'Ontem: 1300 de 2175 kcal'
+"$ADB" shell am force-stop $PKG
+fi
+fi
+
 "$ADB" shell settings put global auto_time 1
 
 rm -rf "$TMP"

@@ -81,6 +81,21 @@ object TelemetryEvents {
     /** A53: app reset in Config, `outcome` = done | failed, `step` = mark | push | files | database on failure. Enums only. */
     const val APP_RESET = "app_reset"
 
+    /** A60 part A: the over-budget choice of a plan (`choice` over_ok | fit, `over_kcal`). */
+    const val PLAN_BUDGET_CHOICE = "plan_budget_choice"
+
+    /** A60 part B: `tone` seco | duro, `from` onboarding | config. */
+    const val TONE_SET = "tone_set"
+
+    /** A60 part B: `period` day | week, `outcome` text | fallback | offline | empty. */
+    const val CLOSURE = "closure"
+
+    /** A60 part B: a closure card or notification opened (`period`, `from` card | notification). */
+    const val CLOSURE_OPENED = "closure_opened"
+
+    /** A60 part D: `action` reserved | replaced | cleared_by_record | cleared_by_skip. */
+    const val PLAN_RESERVED = "plan_reserved"
+
     const val KEY_ENV = "env"
     const val KEY_LAST_REQUEST_ID = "last_request_id"
 

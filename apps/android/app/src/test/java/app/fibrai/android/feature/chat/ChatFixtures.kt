@@ -21,6 +21,8 @@ object ChatFixtures {
         highlights = listOf("2 pães franceses", "2 ovos mexidos"),
         estimate = EstimateView(380, 22, 36, 16, "Deseja registrar essa refeição no Café da manhã?", null),
     )
+
+    private const val CHAT_E_TEXT = "Identifiquei 2 pães franceses (**100 g**) e 2 ovos mexidos (**100 g**). A estimativa total é de:"
     /** chatE (A34): an `ask` estimate, one Registrar pill. */
     private val actions = EstimateActions(2, record = slots[0])
     private val recordActions = listOf(ReceiptAction.DELETE, ReceiptAction.MOVE, ReceiptAction.EDIT)
@@ -36,8 +38,14 @@ object ChatFixtures {
     /** Estimate without a follow-up question: the chatT background (unchanged by ST1). */
     private val estimated = ChatUiState(items = listOf(date, user, bot), emptyDay = false, actions = actions, slots = slots, currentSlotId = 4)
 
-    /** chatE after ST7 (A30): the estimate comes after the questions, with no question bubble. */
-    val chatE = estimated
+    /** chatE (D17, A60 part C): the estimate after the questions, the grams in bold, no accent on the names. */
+    val chatE = estimated.copy(
+        items = listOf(
+            date,
+            user,
+            bot.copy(text = CHAT_E_TEXT, highlights = emptyList(), blocks = app.fibrai.android.domain.ReplyMarkup.parse(CHAT_E_TEXT)),
+        ),
+    )
 
     /** chatQ (ST7, A30): the second question before the estimate; Forçar estimativa in the actions slot. */
     val chatQ = ChatUiState(
@@ -208,27 +216,88 @@ object ChatFixtures {
         currentSlotId = 2,
     )
 
-    /** chatR (ST6): a plan with the day projected by the app and one Registrar assim. */
+    private val optionsText = "Duas opções para o jantar:\n" +
+        "- **Pizza de pão sírio**: 1 pão sírio (60 g), 30 g de molho de tomate, 100 g de frango desfiado, 30 g de milho e 30 g de muçarela · **420 kcal**\n" +
+        "- **Omelete de forno**: 3 ovos, 50 g de ricota e 1 fatia de pão integral (25 g) · **360 kcal**\n" +
+        "Primeira opção: ~**420 kcal** · 40P · 38C · 12G"
+
+    private fun optionsBubble(reservedFor: String? = null) = ChatItem.Assistant(
+        id = 8,
+        text = optionsText,
+        time = "20:15",
+        plan = ProjectedDay(1640, Macros(2060, 126, 190, 58), 2200, Macros(0, 167, 223, 74)),
+        blocks = app.fibrai.android.domain.ReplyMarkup.parse(optionsText),
+        reservedFor = reservedFor,
+    )
+
+    private val ideas = ChatItem.User(7, "Não sei o que jantar. Me dá umas ideias?", "20:15")
+
+    /** chatR (D17, D18, A60 parts C and D): two options as bullets with bold totals; Registrar assim and Reservar. */
     val chatR = ChatUiState(
+        items = listOf(date, ideas, optionsBubble()),
+        emptyDay = false,
+        actions = EstimateActions(8, record = slots[3], plan = true, reserve = slots[3]),
+        slots = slots,
+        currentSlotId = 4,
+    )
+
+    /** chatRL (D18, A60 part D): the plan reserved for the dinner, Registrar assim kept. */
+    val chatRL = chatR.copy(
+        items = listOf(date, ideas, optionsBubble(reservedFor = "Jantar")),
+        actions = EstimateActions(8, record = slots[3], plan = true),
+    )
+
+    private val recipeText = "Frango com brócolis e arroz\n" +
+        "| Item | Gramas |\n| --- | --- |\n" +
+        "| Peito de frango | 120 g |\n| Arroz cozido | 120 g |\n| Brócolis | 100 g |\n| Azeite | 5 g |\n| Alho | 5 g |\n" +
+        "| Queijo ralado (opcional) | 15 g |\n" +
+        "1. Corte o frango em cubos e grelhe por 8 min.\n" +
+        "2. Refogue o alho no azeite e junte o brócolis por 3 min.\n" +
+        "3. Misture o arroz e o frango e finalize com o queijo.\n" +
+        "Total: ~**520 kcal** · 46P · 41C · 17G"
+
+    /** chatRK (D17, A60 part C): a recipe with the portions table and numbered steps. */
+    val chatRK = ChatUiState(
         items = listOf(
             date,
-            ChatItem.User(7, "Vou fazer uma pizza de pão sírio na janta. Quantas gramas de cada item?", "20:15"),
+            ChatItem.User(7, "Me passa uma receita de frango com brócolis pro jantar?", "20:15"),
             ChatItem.Assistant(
                 id = 8,
-                text = "Para caber nas 560 kcal que sobram hoje:\n" +
-                    "• 1 pão sírio (60 g)\n" +
-                    "• 2 colheres de sopa de molho de tomate (30 g)\n" +
-                    "• 100 g de frango desfiado\n" +
-                    "• 30 g de milho\n" +
-                    "• 30 g de muçarela\n" +
-                    "Monte e leve ao forno a 200 °C por 8 a 10 min.\n" +
-                    "Total: ~420 kcal · 40P · 38C · 12G",
+                text = recipeText,
                 time = "20:15",
-                plan = ProjectedDay(1640, Macros(2060, 126, 190, 58), 2200, Macros(0, 167, 223, 74)),
+                plan = ProjectedDay(1640, Macros(2160, 132, 193, 63), 2200, Macros(0, 167, 223, 74)),
+                blocks = app.fibrai.android.domain.ReplyMarkup.parse(recipeText),
             ),
         ),
         emptyDay = false,
         actions = EstimateActions(8, record = slots[3], plan = true),
+        slots = slots,
+        currentSlotId = 4,
+    )
+
+    /** chatRB (D12, A60 part A): a recipe over its window with a reserved slice of cake; Pode passar | Ajustar para caber. */
+    val chatRB = ChatUiState(
+        items = listOf(
+            date,
+            ChatItem.User(7, "Me passa uma receita de macarrão com atum pro jantar? Mais tarde ainda como uma fatia de bolo.", "20:15"),
+            ChatItem.Assistant(
+                id = 8,
+                text = "Macarrão com atum ao sugo:\n" +
+                    "• 80 g de macarrão cru\n" +
+                    "• 1 lata de atum em água (120 g)\n" +
+                    "• 150 g de molho de tomate\n" +
+                    "• 20 g de queijo ralado (opcional)\n" +
+                    "1. Cozinhe o macarrão por 9 min.\n" +
+                    "2. Aqueça o molho com o atum por 5 min.\n" +
+                    "3. Misture e finalize com o queijo.\n" +
+                    "Total: ~620 kcal · 42P · 70C · 18G",
+                time = "20:15",
+                plan = ProjectedDay(1640, Macros(2260, 128, 222, 64), 2200, Macros(0, 167, 223, 74)),
+                budget = BudgetNote(310, listOf(250 to "fatia de bolo")),
+            ),
+        ),
+        emptyDay = false,
+        actions = EstimateActions(8, record = slots[3], plan = true, choice = BudgetChoice(310, 310)),
         slots = slots,
         currentSlotId = 4,
     )

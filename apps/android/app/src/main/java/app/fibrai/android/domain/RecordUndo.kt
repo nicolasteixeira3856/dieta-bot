@@ -16,10 +16,28 @@ data class SlotRecord(
     val stable: Boolean = true,
 )
 
-/** What a slot of a day holds: its logs in id order and whether it is skipped. Empty = neither. */
+/** A plan reserved for a meal (A60 part D, ADR-046): its dish and numbers, nothing eaten. */
 @Serializable
-data class SlotState(val records: List<SlotRecord> = emptyList(), val skipped: Boolean = false) {
-    val empty: Boolean get() = records.isEmpty() && !skipped
+data class PlannedSlot(
+    val text: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    /** The plan bubble it came from (Reservado para o {slot}); null when unknown. */
+    val sourceMessageId: Long? = null,
+)
+
+/**
+ * What a slot of a day holds: its logs in id order, whether it is skipped and the plan reserved for it (A60 part D).
+ * Empty = none of them. A record or a skip replaces the reservation; Desfazer brings it back with the slot's before.
+ */
+@Serializable
+data class SlotState(val records: List<SlotRecord> = emptyList(), val skipped: Boolean = false, val planned: PlannedSlot? = null) {
+    val empty: Boolean get() = records.isEmpty() && !skipped && planned == null
+
+    /** Nothing eaten and not skipped: a record or a skip goes in without asking (a reservation is not a record). */
+    val open: Boolean get() = records.isEmpty() && !skipped
     val kcal: Int get() = records.sumOf { it.kcal }
 
     companion object {

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.withTransaction
+import app.fibrai.android.domain.PlannedSlot
 import app.fibrai.android.domain.ReceiptRules
 import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.domain.SlotCheck
@@ -43,6 +44,23 @@ data class RecordGuard(val date: String, val wipeId: Long?, val checks: List<Slo
  */
 data class SkipMove(val answerId: Long, val slotId: Long, val from: String?, val to: String, val state: SlotState? = null)
 
+/** A60 part D: the outcome of [DayRepository.reserve]. */
+sealed interface ReserveResult {
+    data class Reserved(val replaced: PlannedSlot?) : ReserveResult
+
+    /** The day, the wipe or the slot moved: nothing written. */
+    data object Stale : ReserveResult
+}
+
+/** A60 part B: a day as a closure reads it. [logs]: each record with its slot (null = Outros). */
+data class DayRecord(
+    val date: String,
+    val logs: List<Pair<SlotRecord, Long?>>,
+    val skipped: Set<Long>,
+    val planned: Map<Long, PlannedSlot>,
+    val workoutKcal: Int?,
+)
+
 @Singleton
 class DayRepository @Inject constructor(
     private val db: FibraiDatabase,
@@ -64,14 +82,17 @@ class DayRepository @Inject constructor(
             importOnce()
             emitAll(
                 combine(
-                    db.profileDao().observe(),
-                    db.dayDao().observe(today),
-                    db.mealLogDao().observeByDate(today),
-                    db.mealSlotDao().observeAll(),
-                    db.slotSkipDao().observeByDate(today),
-                ) { profile, day, logs, slots, skips ->
-                    snapshotOf(today, profile, day, logs, slots, skips)
-                },
+                    combine(
+                        db.profileDao().observe(),
+                        db.dayDao().observe(today),
+                        db.mealLogDao().observeByDate(today),
+                        db.mealSlotDao().observeAll(),
+                        db.slotSkipDao().observeByDate(today),
+                    ) { profile, day, logs, slots, skips ->
+                        snapshotOf(today, profile, day, logs, slots, skips)
+                    },
+                    db.plannedMealDao().observeByDate(today),
+                ) { snapshot, planned -> snapshot.copy(planned = planned.associate { it.slotId to it.toPlanned() }) },
             )
         }
     }
@@ -94,6 +115,7 @@ class DayRepository @Inject constructor(
         proteinTargetG: Int? = null,
         carbTargetG: Int? = null,
         fatTargetG: Int? = null,
+        tone: String? = null,
     ) {
         importOnce()
         val days = (kcalDays + List(7) { 2000 }).take(7)
@@ -119,6 +141,7 @@ class DayRepository @Inject constructor(
                         proteinTargetG = proteinTargetG ?: current.proteinTargetG,
                         carbTargetG = carbTargetG ?: current.carbTargetG,
                         fatTargetG = fatTargetG ?: current.fatTargetG,
+                        tone = tone?.takeIf { it == "seco" || it == "duro" } ?: current.tone,
                     ),
                 )
             }
@@ -158,7 +181,10 @@ class DayRepository @Inject constructor(
                         source = source,
                     ),
                 )
-                if (slotId != null) db.slotSkipDao().delete(date, slotId)
+                if (slotId != null) {
+                    db.slotSkipDao().delete(date, slotId)
+                    db.plannedMealDao().delete(date, slotId)
+                }
             }
         }
     }
@@ -196,11 +222,12 @@ class DayRepository @Inject constructor(
                     ),
                 )
                 db.slotSkipDao().delete(date, slotId)
+                db.plannedMealDao().delete(date, slotId)
             }
         }
     }
 
-    /** Explicit user action only. Removes today's logs of that slot. */
+    /** Explicit user action only. Removes today's logs and the reservation of that slot. */
     suspend fun addSkip(slotId: Long) {
         importOnce()
         val date = todayIso()
@@ -208,6 +235,7 @@ class DayRepository @Inject constructor(
             db.withTransaction {
                 db.slotSkipDao().insert(SlotSkipEntity(date = date, slotId = slotId))
                 db.mealLogDao().deleteBySlot(date, slotId)
+                db.plannedMealDao().delete(date, slotId)
             }
         }
     }
@@ -218,11 +246,64 @@ class DayRepository @Inject constructor(
         return withContext(Dispatchers.IO) { readSlot(date, slotId) }
     }
 
-    /** Every slot of [date] that has a log or a skip; a missing slot is empty. */
+    /** Every slot of [date] that has a log, a skip or a reservation; a missing slot is empty. */
     suspend fun slotStates(date: String): Map<Long, SlotState> = withContext(Dispatchers.IO) {
         val logs = db.mealLogDao().getByDate(date).filter { it.slotId != null }.groupBy { it.slotId!! }
         val skips = db.slotSkipDao().getByDate(date).map { it.slotId }.toSet()
-        (logs.keys + skips).associateWith { id -> SlotState(logs[id].orEmpty().map { it.toRecord() }, id in skips) }
+        val planned = db.plannedMealDao().getByDate(date).associate { it.slotId to it.toPlanned() }
+        (logs.keys + skips + planned.keys).associateWith { id -> SlotState(logs[id].orEmpty().map { it.toRecord() }, id in skips, planned[id]) }
+    }
+
+    /**
+     * Reservar para o {slot} (A60 part D, ADR-046): [plan] becomes the reservation of [slotId] today, in one transaction that
+     * rechecks the request day [date], the latest wipe [wipeId] and that the slot has nothing eaten and is not skipped. A
+     * reservation already there is replaced. Returns the reservation it replaced (null = none), or [ReserveResult.Stale].
+     */
+    suspend fun reserve(date: String, wipeId: Long?, slotId: Long, plan: PlannedSlot): ReserveResult {
+        importOnce()
+        return withContext(Dispatchers.IO) {
+            db.withTransaction {
+                val today = todayIso()
+                if (date != today || db.chatMessageDao().latestIdOf(today, ROLE_WIPED) != wipeId) return@withTransaction ReserveResult.Stale
+                val state = readSlot(today, slotId)
+                if (!state.open) return@withTransaction ReserveResult.Stale
+                writeSlot(today, slotId, state.copy(planned = plan))
+                ReserveResult.Reserved(replaced = state.planned)
+            }
+        }
+    }
+
+    /** A60 part B: the tone of the Tali, `seco` or `duro`. The next turn uses it; nothing else changes. */
+    suspend fun saveTone(tone: String) {
+        require(tone in setOf("seco", "duro"))
+        importOnce()
+        withContext(Dispatchers.IO) { db.withTransaction { updateProfile { it.copy(tone = tone) } } }
+    }
+
+    // ------------------------------------------------------------------ closures (A60 part B, ADR-044)
+
+    suspend fun closure(key: String): ClosureEntity? = withContext(Dispatchers.IO) { db.closureDao().get(key) }
+
+    /** False when a closure with that key already exists: a closure is produced once. */
+    suspend fun insertClosure(row: ClosureEntity): Boolean = withContext(Dispatchers.IO) { db.closureDao().insert(row) != -1L }
+
+    suspend fun setClosureText(key: String, text: String?, status: String, retried: Boolean) =
+        withContext(Dispatchers.IO) { db.closureDao().setText(key, text, status, retried) }
+
+    /** Closures left without the text for lack of network, whose one retry was not spent. */
+    suspend fun offlineClosures(): List<ClosureEntity> = withContext(Dispatchers.IO) { db.closureDao().getOffline() }
+
+    fun observeClosures(from: String): Flow<List<ClosureEntity>> = db.closureDao().observeSince(from)
+
+    /** What a past (or the current) day holds for a closure: its logs, skips, reservations and workout. */
+    suspend fun dayRecord(date: String): DayRecord = withContext(Dispatchers.IO) {
+        DayRecord(
+            date = date,
+            logs = db.mealLogDao().getByDate(date).map { it.toRecord() to it.slotId },
+            skipped = db.slotSkipDao().getByDate(date).map { it.slotId }.toSet(),
+            planned = db.plannedMealDao().getByDate(date).associate { it.slotId to it.toPlanned() },
+            workoutKcal = db.dayDao().get(date)?.workoutKcal,
+        )
     }
 
     /**
@@ -280,6 +361,9 @@ class DayRepository @Inject constructor(
     /** A59: answers whose delete proposal is still open, any day. */
     suspend fun openSkips(): List<ChatMessageEntity> = withContext(Dispatchers.IO) { db.chatMessageDao().getOpenSkips() }
 
+    /** A60 part A: Pode passar is stored on the plan's row, so it survives recreation. */
+    suspend fun setPlanBudget(id: Long, planBudget: String) = withContext(Dispatchers.IO) { db.chatMessageDao().setPlanBudget(id, planBudget) }
+
     /** A47: [id] becomes [state] only while nothing was decided on it (a tap that lost a race changes nothing). */
     suspend fun closeOpenRecord(id: Long, state: String): Boolean =
         withContext(Dispatchers.IO) { db.chatMessageDao().closeOpenRecord(id, state) > 0 }
@@ -308,11 +392,14 @@ class DayRepository @Inject constructor(
     private suspend fun readSlot(date: String, slotId: Long) = SlotState(
         db.mealLogDao().getBySlot(date, slotId).map { it.toRecord() },
         db.slotSkipDao().getByDate(date).any { it.slotId == slotId },
+        db.plannedMealDao().get(date, slotId)?.toPlanned(),
     )
 
     private suspend fun writeSlot(date: String, slotId: Long, state: SlotState) {
         db.mealLogDao().deleteBySlot(date, slotId)
         db.slotSkipDao().delete(date, slotId)
+        db.plannedMealDao().delete(date, slotId)
+        state.planned?.let { db.plannedMealDao().upsert(PlannedMealEntity(date, slotId, it.text, it.kcal, it.p, it.c, it.g, it.sourceMessageId)) }
         state.records.forEach { r ->
             db.mealLogDao().insert(
                 MealLogEntity(
@@ -333,6 +420,8 @@ class DayRepository @Inject constructor(
     }
 
     private fun MealLogEntity.toRecord() = SlotRecord(text, kcal, p, carbs, fat, source, window, stable != 0)
+
+    private fun PlannedMealEntity.toPlanned() = PlannedSlot(text, kcal, p, c, g, sourceMessageId)
 
     /**
      * Keeps chat_message, profile, slots and workoutKcal. Adds a [ROLE_WIPED] marker: the thread
@@ -361,7 +450,7 @@ class DayRepository @Inject constructor(
 
     /** True when any table still has a row: an interrupted reset left something behind. */
     suspend fun hasRows(): Boolean = withContext(Dispatchers.IO) {
-        db.query("SELECT 1 FROM profile UNION ALL SELECT 1 FROM day UNION ALL SELECT 1 FROM meal_log UNION ALL SELECT 1 FROM meal_slot UNION ALL SELECT 1 FROM slot_skip UNION ALL SELECT 1 FROM chat_message UNION ALL SELECT 1 FROM day_digest LIMIT 1", null)
+        db.query("SELECT 1 FROM profile UNION ALL SELECT 1 FROM day UNION ALL SELECT 1 FROM meal_log UNION ALL SELECT 1 FROM meal_slot UNION ALL SELECT 1 FROM slot_skip UNION ALL SELECT 1 FROM chat_message UNION ALL SELECT 1 FROM day_digest UNION ALL SELECT 1 FROM closure UNION ALL SELECT 1 FROM planned_meal LIMIT 1", null)
             .use { it.moveToFirst() }
     }
 
@@ -417,6 +506,7 @@ class DayRepository @Inject constructor(
         val date = SaoPaulo.date(now).toString()
         db.mealLogDao().deleteByDate(date)
         db.slotSkipDao().deleteByDate(date)
+        db.plannedMealDao().deleteByDate(date)
         db.dayDigestDao().deleteByDate(date)
         db.chatMessageDao().insert(
             ChatMessageEntity(date = date, role = ROLE_WIPED, createdAtEpochMs = now.toEpochMilli()),
@@ -475,6 +565,7 @@ class DayRepository @Inject constructor(
         recordState: String? = null,
         mealChange: String? = null,
         skipOutcomes: String? = null,
+        planBudget: String? = null,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -505,6 +596,7 @@ class DayRepository @Inject constructor(
                     recordState = recordState,
                     mealChange = mealChange,
                     skipOutcomes = skipOutcomes,
+                    planBudget = planBudget,
                 ),
             )
         }
@@ -692,6 +784,7 @@ class DayRepository @Inject constructor(
             proteinTargetG = profile?.proteinTargetG ?: 150,
             carbTargetG = profile?.carbTargetG ?: 200,
             fatTargetG = profile?.fatTargetG ?: 67,
+            tone = profile?.tone ?: "seco",
             workoutKcal = day?.workoutKcal,
             removedWindows = day?.removedWindows ?: emptyList(),
             askedWindows = day?.askedWindows ?: emptyList(),

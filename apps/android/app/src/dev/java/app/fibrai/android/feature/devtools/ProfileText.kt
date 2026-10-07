@@ -62,6 +62,8 @@ object ProfileText {
                     val (h, min) = m.groupValues[2].toInt() to m.groupValues[3].toInt()
                     ChatSlot(slot.id, m.groupValues[1].trim(), "%02d:%02d".format(h, min))
                 },
+                // A60: the tone is not part of the dev text; it stays as the app sent it.
+                tone = current.tone,
             ),
         )
     }

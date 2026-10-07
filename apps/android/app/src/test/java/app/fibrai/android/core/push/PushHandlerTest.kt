@@ -26,7 +26,10 @@ class PushHandlerTest : PushTestBase() {
     @Before
     fun setUpHandler() {
         shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
-        handler = PushHandler(context, repo, SlotAlarmScheduler(context, repo, clock))
+        val closures = app.fibrai.android.core.closure.ClosureRunner(
+            repo, { error("offline") }, clock, { _, _ -> },
+        )
+        handler = PushHandler(context, repo, SlotAlarmScheduler(context, repo, clock), closures)
     }
 
     @Test

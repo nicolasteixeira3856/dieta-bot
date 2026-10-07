@@ -36,6 +36,8 @@ data class OnboardingUiState(
     val carbField: String = "200",
     val fatField: String = "67",
     val macrosEdited: Boolean = false,
+    // O5 (A60 part B)
+    val tone: String = "seco",
     /** Ceiling of day 1, drives the O4 prefill and "KCAL TOTAL ESTIMADA". */
     val day1Ceiling: Int = 2000,
     val isComplete: Boolean = false,

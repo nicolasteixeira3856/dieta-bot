@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Drive splash + O1..O4 on a running emulator and capture docs/qa/android/current/<theme>/.
+# Drive splash + O1..O5 on a running emulator and capture docs/qa/android/current/<theme>/.
 # Reaches the state shown in the gold through the real UI (testTag = resource-id), then
 # finishes onboarding, kills the app and checks that a relaunch skips onboarding.
 #
@@ -138,6 +138,17 @@ ends_at_end o4-carb-field "$before" 5 "O4 Carboidrato: adjust puts the cursor at
 hide_kb
 to_top
 tap o4-finish
+sleep 1.5
+# A60 part B (O5): the tone, Seco preselected; back returns to O4; Concluir e começar finishes the onboarding.
+shot o5
+tap onboarding-back
+sleep 1
+"$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+"$ADB" exec-out cat /sdcard/ui.xml > "$TMP/o5back.xml"
+if grep -q 'resource-id="o4-finish"' "$TMP/o5back.xml"; then echo "  ✓ O5 back returns to O4"; else echo "  ✗ O5 back did not return to O4"; FAIL=1; fi
+tap o4-finish
+sleep 1.5
+tap o5-finish
 sleep 1.5
 
 # Kill + relaunch: must land on Home, not onboarding.

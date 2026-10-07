@@ -231,6 +231,29 @@ class OnboardingViewModelTest {
         assertThat(again.uiState.value.weightField).isEqualTo("116")
         assertThat(again.uiState.value.slots.map { it.name }).containsExactly("Almoço", "Janta", "Café").inOrder()
         assertThat(again.uiState.value.proteinField).isEqualTo("162")
+        assertThat(again.uiState.value.tone).isEqualTo("seco")
+    }
+
+    /** A60 part B (O5): seco is preselected; the tone picked on O5 is stored with the onboarding, onboardingDone last. */
+    @Test
+    fun o5_toneDefaultsToSeco_andDuroIsStoredOnComplete() = runBlocking<Unit> {
+        val repo = DayRepository(db, clock, store)
+        val vm = loadedVm(repo)
+        assertThat(vm.uiState.value.tone).isEqualTo("seco")
+        vm.setTone("bravo")
+        assertThat(vm.uiState.value.tone).isEqualTo("seco")
+        vm.setTone("duro")
+        vm.setSex("female")
+        vm.setAge("30")
+        vm.setHeight("165")
+        vm.setWeight("60")
+        vm.setSlotCount(3)
+        listOf("Café", "Almoço", "Jantar").forEachIndexed { i, n -> vm.setSlotName(i, n) }
+        vm.enterMacros()
+        assertThat(repo.observeToday().first().onboardingDone).isFalse()
+        vm.completeOnboarding {}
+        val snap = repo.observeToday().first { it.onboardingDone }
+        assertThat(snap.tone).isEqualTo("duro")
     }
 
     @Test

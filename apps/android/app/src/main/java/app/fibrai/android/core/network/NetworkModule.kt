@@ -53,4 +53,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun chat(api: FibraiApi): ChatService = ChatService { api.chat(it) }
+
+    @Provides
+    @Singleton
+    fun close(api: FibraiApi): app.fibrai.android.core.closure.CloseService = app.fibrai.android.core.closure.CloseService { api.close(it) }
 }

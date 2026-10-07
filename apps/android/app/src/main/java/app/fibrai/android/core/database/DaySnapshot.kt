@@ -38,12 +38,16 @@ data class DaySnapshot(
     val proteinTargetG: Int = 150,
     val carbTargetG: Int = 200,
     val fatTargetG: Int = 67,
+    /** A60 part B: "seco" | "duro". */
+    val tone: String = "seco",
     val workoutKcal: Int? = null,
     val removedWindows: List<String> = emptyList(),
     val askedWindows: List<String> = emptyList(),
     val logs: List<MealLog> = emptyList(),
     val slots: List<MealSlot> = emptyList(),
     val skippedSlotIds: Set<Long> = emptySet(),
+    /** A60 part D: the plans reserved for today's slots, by slot id. */
+    val planned: Map<Long, app.fibrai.android.domain.PlannedSlot> = emptyMap(),
 )
 
 /** Configuration retains the complete week; daily consumers select their date. */

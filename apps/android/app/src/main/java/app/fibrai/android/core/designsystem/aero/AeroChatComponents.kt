@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -306,5 +308,52 @@ fun AeroSecondaryPill(label: String, onClick: () -> Unit, modifier: Modifier = M
         contentAlignment = Alignment.Center,
     ) {
         AeroText(label, style = Aero.type.button.copy(color = c.textPrimary))
+    }
+}
+
+/**
+ * Chat/ChoiceBar (D12, chatRB): two 48 dp pills side by side in the actions slot, the glass [left] and the accent [right]
+ * (the action that sends). A label that does not fit (large text) wraps to two lines instead of being cut.
+ */
+@Composable
+fun AeroChoiceBar(
+    left: String,
+    right: String,
+    onLeft: () -> Unit,
+    onRight: () -> Unit,
+    modifier: Modifier = Modifier,
+    leftTag: String? = null,
+    rightTag: String? = null,
+) {
+    val c = Aero.colors
+    val type = Aero.type
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(
+            Modifier
+                .weight(1f)
+                .heightIn(min = 48.dp)
+                .aeroGlass(pill)
+                .dietaClick(Haptic.Confirm, onClick = onLeft)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .then(if (leftTag != null) Modifier.testTag(leftTag) else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            AeroText(left, style = type.button.copy(color = c.textPrimary, textAlign = TextAlign.Center), maxLines = 2)
+        }
+        Box(
+            Modifier
+                .weight(1f)
+                .heightIn(min = 48.dp)
+                .clip(pill)
+                .background(c.accentDefault)
+                .aeroGloss(pill)
+                .border(1.dp, c.borderGlass, pill)
+                .dietaClick(Haptic.Confirm, onClick = onRight)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .then(if (rightTag != null) Modifier.testTag(rightTag) else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            AeroText(right, style = type.button.copy(color = c.accentOn, textAlign = TextAlign.Center), maxLines = 2)
+        }
     }
 }

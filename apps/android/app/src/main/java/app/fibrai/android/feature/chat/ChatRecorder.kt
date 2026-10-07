@@ -82,10 +82,13 @@ internal class ChatRecorder(
         return RecordOutcome.Recorded(before, id)
     }
 
-    /** "Pulei o café" (ADR-028 decision 4): only an empty slot of today is skipped. */
-    suspend fun skip(estimateId: Long, slot: SlotRef): Boolean {
+    /**
+     * "Pulei o café" (ADR-028 decision 4): only a slot of today with nothing eaten is skipped; [before] is what it holds
+     * (empty, or a reservation the skip clears and Desfazer brings back, A60 part D).
+     */
+    suspend fun skip(estimateId: Long, slot: SlotRef, before: SlotState = SlotState.EMPTY): Boolean {
         val date = today().toString()
-        val change = SlotChange(date, slot.id, SlotState.EMPTY, SlotState.SKIPPED)
+        val change = SlotChange(date, slot.id, before, SlotState.SKIPPED)
         val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change)))
         return repository.commitRecord(listOf(change), receipts = listOf(receipt), recordStates = mapOf(estimateId to RECORDED)) != null
     }
@@ -94,14 +97,14 @@ internal class ChatRecorder(
      * A59 (ADR-047): a slot listed in `skip_slots` that is empty now is skipped with its own receipt, and the answer's
      * skip moves from pending to skipped in the same transaction. False when the slot or the skip moved meanwhile.
      */
-    suspend fun skipListed(answerId: Long, slot: SlotRef): Boolean {
+    suspend fun skipListed(answerId: Long, slot: SlotRef, before: SlotState = SlotState.EMPTY): Boolean {
         val date = today().toString()
-        val change = SlotChange(date, slot.id, SlotState.EMPTY, SlotState.SKIPPED)
+        val change = SlotChange(date, slot.id, before, SlotState.SKIPPED)
         val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change)))
         return repository.commitRecord(
             listOf(change),
             receipts = listOf(receipt),
-            skip = SkipMove(answerId, slot.id, from = null, to = SkipOutcomes.SKIPPED, state = SlotState.EMPTY),
+            skip = SkipMove(answerId, slot.id, from = null, to = SkipOutcomes.SKIPPED, state = before),
         ) != null
     }
 

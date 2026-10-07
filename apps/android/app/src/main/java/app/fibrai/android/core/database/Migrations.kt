@@ -3,6 +3,27 @@ package app.fibrai.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/**
+ * v11 -> v12, the one version of A60 (ADR-039, ADR-044, ADR-046): the plan budget of an answer, the profile tone, the
+ * closure table and the planned meal table. Old rows keep null budgets and read back the tone `seco`.
+ */
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `planBudget` TEXT")
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `tone` TEXT NOT NULL DEFAULT 'seco'")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `closure` (`key` TEXT NOT NULL, `period` TEXT NOT NULL, `date` TEXT NOT NULL, " +
+                "`numbers` TEXT NOT NULL, `text` TEXT, `status` TEXT NOT NULL, `createdAtEpochMs` INTEGER NOT NULL, " +
+                "`retried` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`key`))",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `planned_meal` (`date` TEXT NOT NULL, `slotId` INTEGER NOT NULL, `text` TEXT NOT NULL, " +
+                "`kcal` INTEGER NOT NULL, `p` INTEGER NOT NULL, `c` INTEGER NOT NULL, `g` INTEGER NOT NULL, " +
+                "`sourceMessageId` INTEGER, PRIMARY KEY(`date`, `slotId`))",
+        )
+    }
+}
+
 /** v10 -> v11: the skips listed with an answer (A59). Old rows stay null: nothing to apply. */
 val MIGRATION_10_11 = object : Migration(10, 11) {
     override fun migrate(db: SupportSQLiteDatabase) {

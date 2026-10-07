@@ -229,7 +229,8 @@ fun AeroMacroRow(
     }
 }
 
-enum class AeroNodeState { Done, Photo, Skipped, Active, Over, Empty }
+/** Planned (D18, homeP): a reserved plan, dashed like a skip, with the calendar mark. */
+enum class AeroNodeState { Done, Photo, Skipped, Active, Over, Empty, Planned }
 
 /** Timeline/Node: 24 dp marker on the continuous timeline guide. */
 @Composable
@@ -238,7 +239,7 @@ fun AeroTimelineNode(state: AeroNodeState, modifier: Modifier = Modifier) {
     val ring = when (state) {
         AeroNodeState.Done -> c.statusGood
         AeroNodeState.Photo, AeroNodeState.Active -> c.accentDefault
-        AeroNodeState.Skipped, AeroNodeState.Empty -> c.textDim
+        AeroNodeState.Skipped, AeroNodeState.Empty, AeroNodeState.Planned -> c.textDim
         AeroNodeState.Over -> c.statusBad
     }
     val fill = if (state == AeroNodeState.Over) c.statusBadTint else c.bgPage
@@ -257,7 +258,7 @@ fun AeroTimelineNode(state: AeroNodeState, modifier: Modifier = Modifier) {
                 radius = size.minDimension / 2 - stroke / 2,
                 style = Stroke(
                     width = stroke,
-                    pathEffect = if (state == AeroNodeState.Skipped) PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())) else null,
+                    pathEffect = if (state == AeroNodeState.Skipped || state == AeroNodeState.Planned) PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())) else null,
                 ),
             )
         }
@@ -266,12 +267,14 @@ fun AeroTimelineNode(state: AeroNodeState, modifier: Modifier = Modifier) {
             AeroNodeState.Photo -> AeroIcon(AeroIconName.Camera, ring, size = 14.dp)
             AeroNodeState.Skipped -> AeroIcon(AeroIconName.Minus, ring, size = 14.dp)
             AeroNodeState.Over -> AeroIcon(AeroIconName.ExclamationMark, ring, size = 14.dp)
+            AeroNodeState.Planned -> AeroIcon(AeroIconName.CalendarCheck, ring, size = 14.dp)
             AeroNodeState.Active, AeroNodeState.Empty -> Box(Modifier.size(10.dp).background(ring, CircleShape))
         }
     }
 }
 
-enum class AeroMealState { Logged, Over, Skipped, Pending, Empty }
+/** Planned (D18, homeP): the reserved dish and `planejado · {kcal} kcal`, muted, never counted. */
+enum class AeroMealState { Logged, Over, Skipped, Pending, Empty, Planned }
 
 /** One log line of a meal card: description and its kcal ("520 kcal"). */
 @androidx.compose.runtime.Immutable
@@ -325,13 +328,13 @@ fun AeroMealCard(
                 },
             )
             .padding(horizontal = 21.dp, vertical = 17.dp),
-        verticalArrangement = Arrangement.spacedBy(if (logged) 12.dp else 8.dp),
+        verticalArrangement = Arrangement.spacedBy(if (logged || state == AeroMealState.Planned) 12.dp else 8.dp),
     ) {
         Row(Modifier.fillMaxWidth().height(28.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 meal,
                 Modifier.weight(1f),
-                style = type.title.copy(color = if (state == AeroMealState.Skipped) c.textMuted else c.textPrimary),
+                style = type.title.copy(color = if (state == AeroMealState.Skipped || state == AeroMealState.Planned) c.textMuted else c.textPrimary),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -369,6 +372,12 @@ fun AeroMealCard(
                 description,
                 style = type.caption.copy(color = if (state == AeroMealState.Pending) c.accentDefault else c.textMuted),
             )
+            AeroMealState.Planned -> lines.forEach { line ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(line.text, Modifier.weight(1f), style = type.body.copy(color = c.textMuted))
+                    Text(line.kcal, style = type.captionStrong.copy(color = c.textMuted))
+                }
+            }
         }
     }
 }
