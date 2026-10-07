@@ -108,7 +108,7 @@ Implemented 07/10/2026 on `feat/a61-chat-copy-scroll-inline`, parts C → A → 
   - `chatRK` is gated by two regions (0.23–0.30 %): the app fits "finalize" on one line where the Figma text wraps it (font raster), so the rest of the bubble shifts down one line;
   - `cfgS` 0.00 %, so the report-only exception is gone;
   - O1–O4 0.00–0.10 %.
-- **`chatM` gold out of date:** it was not in D20 and still draws Registrar above the composer. It is gated on the header and the thread, and the action zone is reported. To be redrawn by the design plan [D22](../../../design/plans/pending_manual_validation/d22-chatm-action-in-thread.md), by owner decision.
+- **`chatM` gold out of date:** it was not in D20 and still draws Registrar above the composer. It is gated on the header and the thread, and the action zone is reported. Redrawn by the design plan [D22](../../../design/plans/completed/d22-chatm-action-in-thread.md) (owner decision); the gate moves in [A62](../a62-chatm-gold-gate.md).
 - **Roborazzi:** baselines refreshed (the old Chat baselines still showed "Chat Dieta Bot", passing only under the 1 % threshold). New baselines: `chatRB`, `chatRK`, `chatRL`, `chatCP`, `chatCC`.
 - **`ChatInThreadUiTest`:**
   - the stack sits 12 dp under the answer, Reservar 10 dp under Registrar assim;
