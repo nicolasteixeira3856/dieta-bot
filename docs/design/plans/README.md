@@ -110,6 +110,15 @@ Behavior: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md)
 
 Deferred by owner decision (2026-10-06): goal weight and date, [A56](../../android/plans/out_of_scope/a56-goal-weight.md).
 
+## Figma review and Chat actions follow-up
+
+Behavior: [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | [D20](d20-figma-review-inline-actions.md) — stale frames and Chat actions in the thread | D12, D16–D19, A60 merged |
+| Client | [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (part A only) |
+
 ## Fibrai brand follow-up
 
 Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Recommended order (prerequisites live in each plan):
