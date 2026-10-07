@@ -14,7 +14,7 @@ Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo 
 
 ## Objective
 
-Everything the Chat and the Home need for the tone, the closures, the formatted replies, the planned meal and the skips, in one plan and one dev build: the owner wakes up with the app that shows bold numbers, lists, the day summary and the hard tone when chosen. Supersedes the cancelled plans A50, A55, A57, A58 and A59 ([`cancelled/`](cancelled/)), whose scope it carries unchanged.
+Everything the Chat and the Home need for the tone, the closures, the formatted replies, the planned meal and the skips, in one plan and one dev build: the owner wakes up with the app that shows bold numbers, lists, the day summary and the hard tone when chosen. Supersedes the cancelled plans A50, A55, A57 and A58 ([`cancelled/`](cancelled/)), whose scope it carries unchanged; the skips scope was delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md) and stays here only as part E's record.
 
 ## Delivery
 
