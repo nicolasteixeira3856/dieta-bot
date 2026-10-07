@@ -2,6 +2,18 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.19 — 07/10/2026
+
+### Novidades
+
+- Copiar mensagens, como no WhatsApp: segure uma mensagem (sua ou da Tali) para selecionar, toque em outras para juntar e use o botão Copiar no topo. O texto sai limpo, sem asteriscos, na ordem da conversa.
+
+### Ajustes
+
+- Os botões de uma resposta (Registrar, Registrar assim, Reservar, Pode passar · Ajustar para caber, Forçar estimativa) agora ficam logo abaixo da mensagem e rolam junto com a conversa, em vez de ficarem presos acima da caixa de texto.
+- O onboarding mostra o passo certo em todas as telas: de 1/5 a 5/5, com cinco segmentos.
+- Captura de tela com rolagem (Android 12 ou mais novo) conferida na Home, no Chat e nas Configurações. Se a opção de capturar mais não aparecer no seu celular, conte o modelo e a versão do Android.
+
 ## 0.0.18 — 07/10/2026
 
 ### Novidades
