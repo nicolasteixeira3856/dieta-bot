@@ -35,7 +35,7 @@ The reply carries the ADR-045 subset and nothing outside it: bold on the decisiv
 
 - Checks: `reply_format` (markers inside the subset only; bold count at most the number of numbers plus two; at most one table) added to `server/evals/checks.py` with unit tests.
 - Cases, tag `s26`: a plan with two options (expect bullets and bold totals); a recipe (expect the table and numbered steps); a log (expect bold on the total only); a question-only turn (expect no marker); a model reply with a heading and a link (unit test with a fake transport: both removed).
-- Regression: `--tag s24 --repeat 3`, `--tag s22 --repeat 3`, then the full suite at `--repeat 1` against the latest full run.
+- Regression (unattended budget, [autonomous run](../../sdd/autonomous-run.md)): `--tag s26 --repeat 3`, then the sentinel set `--tag s22 --tag s23 --tag s24 --tag recipe --repeat 1`. No full-suite run. Ceiling for this plan: **US$ 0.10**.
 
 ### 5. Dev deploy
 
@@ -54,7 +54,7 @@ After validation: `tools/deploy-gcp.ps1`, code only; smoke: one plan, one recipe
 ## Validation
 
 1. `server/.venv/Scripts/python -m pytest server/tests -q` passes, including `test_reply_format.py` (every removal rule, the six-row table, bold on rewritten totals, refusal and compact untouched).
-2. Evaluation as in scope 4; the `s26` cases 3/3 each.
+2. Evaluation as in scope 4 within its US$ 0.10 ceiling; the `s26` cases 3/3 each.
 3. Dev deploy and smoke; request ids recorded.
 4. `node tools/check-docs.mjs` passes.
 

@@ -54,7 +54,7 @@ At Completion: [product Chat](../../produto/specifications/chat.md) rules 16 (th
 
 1. Unit tests: migration; reserve, replace, clear by record, skip, rollover, wipe and reset; `BudgetCalculator` with a planned slot; the request DTO with `planned`; the receipt difference and its undo; idempotent double tap.
 2. Roborazzi and emulator captures of `chatR`, `chatRL`, `homeP` against the D18 golds under the QA rules of AGENTS; partial validation.
-3. One real day on the dev server (S27 deployed): reserve a dinner, ask for a snack plan (the panel and the server reservation agree), record the dinner (difference line), undo. Request ids recorded.
+3. One emulator session on the dev server (S27 deployed): reserve a dinner, ask for a snack plan (the panel and the server reservation agree), record the dinner (difference line), undo. Request ids recorded.
 4. `testDevDebugUnitTest`, `verifyRoborazziDevDebug`, `assembleDevRelease` and `node tools/check-docs.mjs` pass.
 
 ## Results

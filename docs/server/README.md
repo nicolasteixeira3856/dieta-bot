@@ -33,7 +33,8 @@ How much to run (owner decision, 2026-10-05, after one day of evaluation exhaust
 | Change | Validation | Model calls |
 | --- | --- | --- |
 | Server code only (route, shaping, log, infra) | unit tests + the three-turn HTTP smoke after the dev deploy | 0 |
-| Prompt or schema change | the cases the change touches at `--repeat 3`, then the whole suite at `--repeat 1`, compared with the last recorded full run | about 250 |
+| Prompt or schema change, attended | the cases the change touches at `--repeat 3`, then the whole suite at `--repeat 1`, compared with the last recorded full run | about 250 |
+| Prompt or schema change, unattended ([autonomous run](../sdd/autonomous-run.md), owner decision 07/10/2026) | the plan's own tag at `--repeat 3`, then the sentinel set `--tag s22 --tag s23 --tag s24 --tag recipe --repeat 1`; whole suite never; US$ 0.50 per session for every plan together | about 60 |
 | New or changed evaluator check | unit tests for the check; the cases that use it at `--repeat 3` | tens |
 
 - The previous full run is the baseline; do not rerun the old prompt on the same day. Rerun a baseline only when the model or effort changes.

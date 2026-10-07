@@ -33,7 +33,7 @@ A slot the user reserved with a plan reaches the model as `planned` with its num
 ### 4. Evaluation
 
 - Cases, tag `s27`: a dinner log into a planned dinner (expect `new`, `base_slot` null, the difference clause with the right sign, `record auto`); a plan for a planned slot (expect `plan`, no claim of reserving); a plan for another slot with a planned dinner (expect `plan_budget.reserved` carrying the planned kcal and `limit_kcal` reduced by it); a legacy-shape request unchanged.
-- Regression: `--tag s24 --repeat 3`, then the full suite at `--repeat 1` against the latest full run.
+- Regression (unattended budget, [autonomous run](../../sdd/autonomous-run.md)): `--tag s27 --repeat 3`, `--tag s24 --repeat 1`, then the sentinel set `--tag s22 --tag s23 --tag s24 --tag recipe --repeat 1`. No full-suite run. Ceiling for this plan: **US$ 0.10**.
 
 ### 5. Dev deploy
 
@@ -52,7 +52,7 @@ After validation: `tools/deploy-gcp.ps1`, code only; smoke with one planned slot
 ## Validation
 
 1. `server/.venv/Scripts/python -m pytest server/tests -q` passes, including the `planned` validation, serialization, window and meal-change tests.
-2. Evaluation as in scope 4; the `s27` cases 3/3 each.
+2. Evaluation as in scope 4 within its US$ 0.10 ceiling; the `s27` cases 3/3 each.
 3. Dev deploy and smoke; request ids recorded.
 4. `node tools/check-docs.mjs` passes.
 

@@ -59,7 +59,7 @@ At Completion: [product Chat](../../produto/specifications/chat.md) rule 4 (one 
 2. Roborazzi and emulator captures of `chatSK` and `chatSD` against the D19 golds under the QA rules of AGENTS, with a written diff list; regress `chatG` and `chatU` (partial validation: Chat records flows only).
 3. Dev server (S29 deployed): one synthetic message with a skip and a breakfast; request id recorded.
 4. `testDevDebugUnitTest`, `verifyRoborazziDevDebug`, `assembleDevRelease` and `node tools/check-docs.mjs` pass.
-5. Manual: owner or tester sends a skip next to a meal on a device (dev build) and skips a recorded meal.
+5. Manual acceptance (after delivery, [autonomous run](../../sdd/autonomous-run.md)): owner or tester sends a skip next to a meal on a device (dev build) and skips a recorded meal. Not a condition for the automated Completion; the plan waits in `pending_manual_validation/`.
 
 ## Results
 
