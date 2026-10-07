@@ -8,7 +8,7 @@
 - Prerequisites:
   - [D18](../../design/plans/d18-planned-meal.md) `Concluído` with `chatR`, `chatRL`, `homeP` exported;
   - [S27](../../server/plans/s27-planned-slot.md) delivered and deployed to the dev server;
-  - [A50](a50-plan-budget-choice.md), [A54](a54-auto-record-addition-empty-slot.md), [A55](a55-tone-choice-and-closures.md) and [A57](a57-rich-reply-rendering.md) delivered or cancelled (same Chat, Home and Room files; no parallel Android plan).
+  - [A50](a50-plan-budget-choice.md), [A54](completed/a54-auto-record-addition-empty-slot.md), [A55](a55-tone-choice-and-closures.md) and [A57](a57-rich-reply-rendering.md) delivered or cancelled (same Chat, Home and Room files; no parallel Android plan).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a58-planned-meal-reservation.md. Implemente o plano aprovado.`
 

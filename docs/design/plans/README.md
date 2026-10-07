@@ -72,7 +72,7 @@ Behavior: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-w
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Client fix | [A54](../../android/plans/a54-auto-record-addition-empty-slot.md) — auto-record of an addition into an empty meal | A47 |
+| Client fix | A54 — auto-record of an addition into an empty meal ([`completed/`](../../android/plans/completed/)) | A47 |
 | Server | [S24](../../server/plans/s24-protein-first-plan.md) — protein-first plan inside the meal window | S23 |
 | Design | [D16](d16-tone-and-closures.md) — tone choice and closures (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`) | D3, D4, D7 |
 | Server | [S25](../../server/plans/s25-tone-and-closures.md) — tone per user and `/v1/close` | S24 |

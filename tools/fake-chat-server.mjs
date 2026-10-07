@@ -24,6 +24,9 @@
 // that sent auto_record (S14); {"skip": "Jan"} answers "pulei" as intent "skip" for the slot whose name
 // starts with "Jan" (record auto, no estimate); {"reply": "..."} replaces the default reply text.
 // /__calls reports the last auto_record.
+// A54: POST /__mode {"a54": true} answers an S18 addition into the slot whose name starts with "Jan": intent "log",
+// record "auto", meal_change add with base_slot null, the reply rewritten as the server does. /__calls reports
+// `day`, the DAY slots of the last turn.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -40,6 +43,8 @@ let clarify = false;
 let record = null;
 let skipPrefix = null;
 let replyOverride = null;
+let a54 = false;
+let lastDay = [];
 let lastAutoRecord = null;
 let lastClarify = { rounds: null, force: false };
 let lastFacts = [];
@@ -86,11 +91,12 @@ http.createServer(async (req, res) => {
     record = mode.record ?? null;
     skipPrefix = mode.skip ?? null;
     replyOverride = mode.reply ?? null;
+    a54 = Boolean(mode.a54);
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -104,6 +110,7 @@ http.createServer(async (req, res) => {
     if (!input.compact) textLen = [...(input.text ?? "")].length;
     if (!input.compact) lastClarify = { rounds: input.clarify_rounds ?? null, force: Boolean(input.force_estimate) };
     if (!input.compact) lastAutoRecord = input.auto_record ?? null;
+    if (!input.compact) lastDay = input.day?.slots ?? [];
     // S14: only a client that sent auto_record gets the mark.
     const marks = (fields) => (input.auto_record === true ? fields : {});
     if (textLen > 2000) {
@@ -139,6 +146,21 @@ http.createServer(async (req, res) => {
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
         reply: "Tudo bem, essa refeição não aconteceu hoje.", intent: "skip", estimate: null, digest: null, model: "gpt-6-luna",
         ...marks({ record: "auto", skip_slot: skipped ? skipped.id : null }),
+      }));
+      return;
+    }
+    if (a54) {
+      const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
+      const text = "2 omeletes de queijo (160 g), feitas com 5 g de manteiga";
+      const items = [{ name: "Omelete de queijo", g: 160.0, kcal: 219 }, { name: "Manteiga", g: 5.0, kcal: 44 }];
+      const addition = { meal_text: text, kcal: 263, p: 20, c: 1, g: 24, items };
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: `${text}: +263 kcal` + String.fromCharCode(10) + `Total do ${jantar.name}: 263 kcal`,
+        intent: "log",
+        estimate: { ...addition, confidence: "medium", question: null, suggested_slot: jantar.id },
+        digest: null, model: "gpt-6-luna",
+        ...marks({ record: "auto", skip_slot: null }),
+        meal_change: { operation: "add", base_slot: null, addition },
       }));
       return;
     }

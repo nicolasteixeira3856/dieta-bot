@@ -80,6 +80,7 @@ object PromptBuilder {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
         val slotNames = day.slotsOn(today).associate { it.id to it.name }
+        val eaten = day.logs.mapNotNull { it.slotId }.toSet()
         val blocks = if (compactEnabled) compactBlocks(raw, todayMessages) else emptyList()
         return Turn(
             body = ChatIn(
@@ -89,7 +90,7 @@ object PromptBuilder {
                 day = snapshot(day, today),
                 digests = digests.sortedWith(compareBy({ it.createdAtEpochMs }, { it.coversUntilId ?: Long.MIN_VALUE }))
                     .takeLast(MAX_DIGESTS).map { it.text },
-                messages = raw.takeLast(MAX_RAW).map { chatTurn(it, slotNames) },
+                messages = raw.takeLast(MAX_RAW).map { chatTurn(it, slotNames, eaten) },
                 text = ChatText.clip(text),
                 compact = false,
                 recent = recent(recentLogs, day.slots, today),
@@ -101,7 +102,7 @@ object PromptBuilder {
                 mealChanges = true,
                 pendingAddition = pendingAddition,
             ),
-            blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames) }, block.last().id) },
+            blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames, eaten) }, block.last().id) },
             kept = raw.size - blocks.sumOf { it.size },
         )
     }
@@ -154,13 +155,21 @@ object PromptBuilder {
     /**
      * One HISTORY turn. An assistant row with a suggested slot of today ends with [slotMarker] (A38): the text
      * is clipped first, leaving room for the line, so the marker always survives and the turn stays in the limit.
+     * A54: an addition answer whose destination is not eaten now (not recorded, or its record removed) keeps only
+     * its first line, the added food and its `+kcal`: the server's meal total would contradict DAY.
      */
-    private fun chatTurn(m: ChatMessageEntity, slotNames: Map<Long, String>): ChatTurn {
-        val text = turnText(m)
+    private fun chatTurn(m: ChatMessageEntity, slotNames: Map<Long, String>, eaten: Set<Long>): ChatTurn {
+        val text = turnText(m).let { if (totalContradictsDay(m, eaten)) it.lineSequence().first() else it }
         val name = m.estimateSlotId?.takeIf { m.role == "assistant" }?.let(slotNames::get)
             ?: return ChatTurn(m.role, ChatText.clip(text))
         val marker = "\n" + slotMarker(name)
         return ChatTurn(m.role, ChatText.clip(text, ChatText.MAX_CHARS - marker.codePointCount(0, marker.length)) + marker)
+    }
+
+    private fun totalContradictsDay(m: ChatMessageEntity, eaten: Set<Long>): Boolean {
+        if (m.role != "assistant") return false
+        val destination = MealProposal.decode(m.mealChange)?.takeIf { it.isAddition }?.destinationSlotId ?: return false
+        return destination !in eaten
     }
 
     /**

@@ -50,6 +50,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.roundToInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -477,6 +478,9 @@ class ChatViewModel @Inject constructor(
         )
         local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null) }
         proposal?.let { proposalShown(it, fresh) }
+        if (recordMode == RECORD_AUTO && recordState == ChatRecorder.NOT_RECORDED) {
+            recordGuard(proposal?.takeIf { !it.actionable }?.reason ?: GUARD_STALE)
+        }
         if (recordMode == RECORD_AUTO && recordState == null) autoRecord(answerId, out, snapshot, turn.body.clarifyRounds)
     }
 
@@ -545,25 +549,49 @@ class ChatViewModel @Inject constructor(
                 repository.setRecordState(answerId, ChatRecorder.NOT_RECORDED)
                 return
             }
-            val empty = repository.slotState(answer.date, slot.id).empty
-            if (!empty || !recorder.skip(answerId, slot)) {
-                repository.setRecordState(answerId, ChatRecorder.NOT_RECORDED)
+            val skipped = runCatching { repository.slotState(answer.date, slot.id).empty && recorder.skip(answerId, slot) }
+                .onFailure { if (it is CancellationException) throw it }
+            if (!skipped.getOrDefault(false)) {
+                notRecorded(answerId, if (skipped.isFailure) GUARD_WRITE_FAILED else GUARD_STALE)
                 return
             }
             telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "chat"))
             autoEvent("skip", "empty", "user", rounds)
             return
         }
-        val slot = answer.estimateSlotId?.let { id -> slots.firstOrNull { it.id == id } } ?: return
-        val day = repository.messagesOf(answer.date)
+        val slot = answer.estimateSlotId?.let { id -> slots.firstOrNull { it.id == id } }
         // A47: an addition into an empty or skipped meal records only the added food.
         val proposal = MealProposal.decode(answer.mealChange)?.takeIf { it.isAddition }
-        val outcome = if (proposal != null) addInto(answer, proposal, slot, proposal.target ?: return) else recordInto(answer, day, slot)
+        val target = proposal?.target
+        if (slot == null || proposal != null && target == null) {
+            notRecorded(answerId, GUARD_NO_TARGET)
+            return
+        }
+        val day = repository.messagesOf(answer.date)
+        val outcome = runCatching { if (proposal != null && target != null) addInto(answer, proposal, slot, target) else recordInto(answer, day, slot) }
+            .onFailure { if (it is CancellationException) throw it }
+            .getOrElse {
+                notRecorded(answerId, GUARD_WRITE_FAILED)
+                return
+            }
         when (outcome) {
             is RecordOutcome.Recorded -> autoEvent("log", if (outcome.before.skipped) "skipped" else "empty", sourceOf(answer, day), rounds)
-            else -> Unit
+            // An occupied slot asks Substituir below the answer (chatU): not silent.
+            is RecordOutcome.Taken -> Unit
+            RecordOutcome.Stale -> notRecorded(
+                answerId,
+                if (proposal?.addition != null && target != null && MealChanges.compose(target, proposal.addition, "user") == null) GUARD_OVERFLOW else GUARD_STALE,
+            )
         }
     }
+
+    /** A54: an `auto` answer that ends without a record says so (Não registrado, rule 22) and reports why. */
+    private suspend fun notRecorded(answerId: Long, reason: String) {
+        repository.closeOpenRecord(answerId, ChatRecorder.NOT_RECORDED)
+        recordGuard(reason)
+    }
+
+    private fun recordGuard(reason: String) = telemetry.event(TelemetryEvents.RECORD_GUARD, mapOf("reason" to reason))
 
     private fun autoEvent(kind: String, slotState: String, source: String, rounds: Int) = telemetry.event(
         TelemetryEvents.MEAL_AUTO_RECORDED,
@@ -1419,6 +1447,12 @@ class ChatViewModel @Inject constructor(
 
         /** A47: an addition whose complete description would pass the contract bound is never cut. */
         const val OVERFLOW_NOTICE = "Não registrado: a descrição ficaria longa demais."
+
+        /** A54 `record_guard` reasons of an `auto` answer left without a record; with [MealProposal.MALFORMED], [MealProposal.CONTRADICTS] and [MealProposal.OVERFLOW]. */
+        private const val GUARD_NO_TARGET = "no_target"
+        private const val GUARD_STALE = "stale"
+        private const val GUARD_OVERFLOW = MealProposal.OVERFLOW
+        private const val GUARD_WRITE_FAILED = "write_failed"
 
         /** recordState of an answer that can still be recorded: nothing decided, or a pending confirmation. */
         private val OPEN_STATES = setOf(null, ChatRecorder.PENDING_REPLACE, ChatRecorder.PENDING_ADD, ChatRecorder.PENDING_REVISE)
