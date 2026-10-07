@@ -34,6 +34,7 @@ ADR-044 owns the behavior and the copy below. D16 golds own the layout. S25 owns
 - Scheduler: an exact alarm (inexact without the permission, like the meal push) at 22:00 America/Sao_Paulo every day; rescheduled at 00:05, on boot, at start and on edit, in the same flow as the meal push. A closure already produced for a date is not produced again (Room row keyed by date).
 - At the alarm: the app computes the numbers from Room (eaten kcal and P/C/G, targets, effective ceiling, workout, per-slot status and kcal), calls `POST /v1/close` with `period: day` and the tone, stores `{date, period, numbers, text}` in a new `closure` table, posts the notification `Fechamento do dia` with the first line of the text as content (app-controlled: small icon, title, text, accent color; the rest is the system template), and the Home shows the card `homeC` at the top of the timeline for that date: `Fechamento de {d} de {mês}`, `{kcal} de {teto} kcal`, `P {x}/{alvo} · C {y}/{alvo} · G {z}/{alvo}`, the missing or skipped meals as one line, workout if any, and the text. A later record of the day updates the numbers of the card from Room, not the text. Without network: the card shows the numbers and `Sem o texto: sem rede.`; the next app start retries the text once.
 - Rollover: the card of yesterday stays visible until the first record of the new day, then collapses to one line `Ontem: {kcal} de {teto} kcal`; tap expands.
+- Dev-only trigger ([ADR-019](../../produto/adrs/ADR-019-ferramentas-dev.md)): the broadcast `app.fibrai.android.dev.RUN_CLOSURE` with the extra `period` (`day` | `week`) runs the closure now, as the alarm would, in the dev flavor only; it is how the validation and the testers exercise the 22:00 path without waiting for it.
 
 ### 3. Week closure
 
@@ -60,7 +61,7 @@ At Completion: [perfil-onboarding](../../produto/specifications/perfil-onboardin
 
 1. Unit tests: migration from the then-current Room version with profiles and chat rows intact; `tone` default and round trip; O5 and Config state; the closure numbers from fixture days and weeks; scheduler dates across the SP rollover and a boot; `closure` idempotence per date and week; offline and fallback states; telemetry params.
 2. Emulator, dev flavor, against the fake server: fresh captures of `o5`, `cfgT`, `cfg`, `homeC`, `homeK` in `docs/qa/android/current/{dark,light}/` compared with the D16 golds under the QA rules of AGENTS; the two notifications checked by `android` CLI screen capture against `push` for the app-controlled parts. Partial validation: only the flows this plan touches.
-3. One real day on the dev server: tone `duro` set in Config, one Chat turn whose reply names an overshoot; the 22:00 closure arrives with a text; the next morning the card collapsed. Request ids recorded, no user content committed.
+3. Emulator against the dev server (S25 deployed), no real clock: tone `duro` set in Config, one Chat turn whose reply names an overshoot; the day closure run through the dev-only broadcast arrives with a text and its card; the week closure likewise; the collapse rule covered by a unit test with a fixed clock. Request ids recorded, no user content committed.
 4. `testDevDebugUnitTest`, `verifyRoborazziDevDebug` and `assembleDevRelease` pass; `node tools/check-docs.mjs` passes.
 
 ## Results
