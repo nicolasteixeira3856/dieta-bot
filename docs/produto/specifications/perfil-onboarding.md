@@ -19,6 +19,7 @@ TDEE de manutencao como meta oculta. Nutricionista. Health/Xiaomi. 2 g/kg.
 3. O3: modo independente do teto: Todos os dias (same, padrão), Seg–Sex · Sáb–Dom (split) ou Cada dia (each). Uma etapa por grupo na mesma tela; cabeçalho de grupo, índice e barra de segmentos. Continuar avança e, na última etapa, abre O4; Voltar recua e, no primeiro grupo, abre O2. "Copiar de {grupo anterior}" copia nomes/horas, preservando IDs de destino. Mudar modo preserva os grupos com a mesma máscara; pede "Descartar os horários de {grupo}?" antes de perder grupos preenchidos. Cada grupo: 2-6 refeicoes, padrao 4 (07:30, 12:30, 16:00, 20:00). Cada uma: nome + horario. Horário escolhido em diálogo com rodas (hora e minuto, 24 h), tanto na O3 quanto na Config. Rodas em loop, passo de um minuto; Cancelar preserva o horário, OK confirma. Nome comeca vazio. Chips de sugestao pela hora do slot: 05-10 Cafe / Desjejum; 10-11 Lanche da manha / Lanche; 11-15 Almoco / Prato feito; 15-18 Lanche / Cafe da tarde; 18-22 Jantar / Ceia; 22-05 Ceia / Lanche da noite. Tap no chip preenche o campo. Nunca grava nome sem o user confirmar. Mudar a quantidade preserva linhas editadas; linhas intocadas assumem os horarios padrao da nova quantidade. Timezone America/Sao_Paulo.
 4. O4: P/C/G derivados 30/40/30 sobre o teto do dia 1 (4/4/9 kcal/g). Campos editaveis; editado nao e recalculado. Barra de proporcao reflete os gramas. Rodape: "{teto do dia 1} KCAL TOTAL ESTIMADA". CTA **Continuar** abre a O5.
 4a. O5 (`o5`, [ADR-044](../adrs/ADR-044-assistant-tone-and-closures.md)): eyebrow `ONBOARDING 5/5 • TOM`, título `Como a Tali fala com você`, duas opções de largura total: **Seco** — `Só os números. Sem opinião.` (pré-selecionada, selo `PADRÃO`) e **Duro** — `Cobra o que estourou e o que faltou. Sem rodeio.`; nota `Dá para mudar nas configurações.`; CTA **Concluir e começar** com a seta. Voltar volta para a O4. O tom é gravado com o perfil.
+4b. O1–O4 mostram `ONBOARDING {n}/5` e a barra de progresso de cinco segmentos com os n primeiros preenchidos, como a O5 (golds `o1`–`o4`).
 5. Perfil salvo em Room. onboardingDone=1 so no fim de O5.
 6. Prefix do chat: teto vigente, eat-back, alvos P/C/G, lista nome+hora só dos slots do dia em America/Sao_Paulo (ADR-021) e o tom (`profile.tone`, `seco` | `duro`), em todo turno normal e de compactação.
 7. Disclaimer na Home com a copy ("Estimativa nutricional, nao substitui consulta medica ou nutricional."). A splash e as telas O1-O4 do gold nao tem disclaimer (splash desde A51).
@@ -50,6 +51,7 @@ Dono: produto. Implementação: `android`.
 - Continuar só com sexo, idade, altura, peso e teto preenchidos.
 - Slot sem nome nao persiste.
 - Perfil lido de volta apos kill do processo.
+- Cada passo oferece a captura de tela com rolagem do sistema (Android 12+) quando o conteúdo passa da tela ([ADR-048](../adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md)).
 
 ## Proveniência
 
@@ -65,3 +67,5 @@ Dono: produto. Implementação: `android`.
 - [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai e Tali no app
 - [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app
 - [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — O5: o tom da Tali
+- [D20](../../design/plans/completed/d20-figma-review-inline-actions.md) — contador `n/5` nos golds da O1–O4
+- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — contador `n/5`, captura de tela com rolagem

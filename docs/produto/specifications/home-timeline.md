@@ -53,6 +53,7 @@ Comportamento: `produto`. UI: `android`.
 - Da Home ao treino salvo em 3 toques (linha, digitar, Salvar); o kcal e o crédito aparecem na linha.
 - FAB e Config visíveis.
 - Toque num slot vazio abre o Chat sem gravar nada; toque longo + Pular grava skip e redesenha.
+- A Home oferece a captura de tela com rolagem do sistema (Android 12+), com a linha do tempo e os cartões de fechamento ([ADR-048](../adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md)).
 
 ## Proveniência
 
@@ -65,3 +66,4 @@ Comportamento: `produto`. UI: `android`.
 - [A40](../../android/plans/completed/a40-home-aero.md) — Home no Aero
 - [A52](../../android/plans/completed/a52-home-card-gestures.md) — Home: toque registra, toque longo pula
 - [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — fechamentos do dia e da semana, refeição reservada
+- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem

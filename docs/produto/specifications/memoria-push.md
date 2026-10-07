@@ -78,6 +78,7 @@ Comportamento: `produto`. Client: `android`.
 - Push não dispara se o slot já foi gravado ou pulado.
 - Wipe do teto não apaga dias anteriores nem o arquivo de memória.
 - Resetar app deixa o Room vazio, sem memória, fotos nem lembretes, e abre a O1; o installation id continua.
+- A Config oferece a captura de tela com rolagem do sistema (Android 12+) ([ADR-048](../adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md)).
 
 ## Proveniência
 
@@ -99,3 +100,4 @@ Comportamento: `produto`. Client: `android`.
 - [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
 - [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app
+- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem
