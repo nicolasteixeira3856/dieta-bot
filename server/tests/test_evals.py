@@ -122,6 +122,10 @@ class CheckTests(unittest.TestCase):
             "memory_update_text": [{"match": {"kind": "temp"}, "has": ["fictional"]}],
             "items_beyond": {"given": ["ovo"], "min": 1},
             "plan_budget": {"over": True},
+            "estimate_min": {"p": 1000},
+            "reply_options": 2,
+            "closing_lines": ["Ceia"],
+            "reply_any": ["colher"],
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)

@@ -956,7 +956,8 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("P1 preference leite: Leite semidesnatado (seen 5 days, last 2026-09-29)", prompt)
         self.assertIn("D2 routine slot=1 cafe: 2 ovos mexidos, 1 pao frances (seen 3 days)", prompt)
         self.assertNotIn("texto antigo", prompt)
-        self.assertIn("local_time=2026-09-25T08:30:00-03:00, remaining_kcal=640, eaten_kcal=", prompt)
+        self.assertIn("local_time=2026-09-25T08:30:00-03:00, remaining_kcal=640, remaining_p=160, remaining_c=200, "
+                      "remaining_g=67, eaten_kcal=", prompt)
         self.assertIn('RECENT:\n2026-09-29 terca 1 Cafe: "2 ovos mexidos, 1 pao frances" 440kcal 25P 38C 22G', prompt)
         self.assertIn('2026-09-28 segunda Outros: "barra de cereal" 90.5kcal', prompt)
         order = [prompt.index(k) for k in ("PROFILE:", "MEMORY:", "DAY:", "RECENT:", "DIGESTS:", "HISTORY:", "CURRENT_USER_MESSAGE:")]

@@ -221,7 +221,7 @@ class RouteTests(unittest.IsolatedAsyncioTestCase):
         response, captured = await self.post(request(), [first])
         self.assertEqual(len(captured), 1)
         self.assertEqual((response.json()["plan_budget"]["limit_kcal"],
-                          response.json()["plan_budget"]["over_kcal"]), (-100, 400))
+                          response.json()["plan_budget"]["over_kcal"]), (0, 300))
 
     async def test_null_budget_cases(self):
         no_remaining = request()
