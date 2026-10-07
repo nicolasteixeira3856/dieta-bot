@@ -2,6 +2,13 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.17 — 06/10/2026
+
+### Correções
+
+- Chat: depois de excluir uma refeição que o Chat registrou, a conversa não trata mais essa refeição como registrada. Antes, isso podia fazer as próximas mensagens responderem "não deu pra estimar".
+- Chat: quando uma refeição não pode ser registrada sozinha, a resposta agora mostra "Não registrado", em vez de ficar sem aviso.
+
 ## 0.0.16 — 06/10/2026
 
 ### Novidades
