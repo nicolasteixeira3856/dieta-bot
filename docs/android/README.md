@@ -117,7 +117,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 - Ativos: arquivos na raiz de [`plans/`](plans/).
 - [A59 — Skips next to other actions in the Chat](plans/pending_manual_validation/a59-skips-with-other-actions.md): part E of A60, restored from `cancelled/` by owner decision (07/10/2026).
-- [A60 — Budget choice, tone and closures, rich replies, planned meal and skips](plans/a60-tone-formatting-planned-skips.md).
+- [A60 — Budget choice, tone and closures, rich replies, planned meal and skips](plans/pending_manual_validation/a60-tone-formatting-planned-skips.md): parts A–D delivered, awaiting the owner's device acceptance.
 - Cancelados (decisão do dono, 07/10/2026, um plano por contexto): A50, A55, A57, A58 em [`plans/cancelled/`](plans/cancelled/).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md), [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md).
 - Histórico: [`plans/completed/`](plans/completed/).

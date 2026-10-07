@@ -1,24 +1,24 @@
 # Plan — A60 Budget choice, tone and closures, rich replies, planned meal and skips (app)
 
-- Status: Aguardando aprovação
+- Status: Pendente aprovação manual
 - Date: 07/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` only, in five parts delivered in order on one branch: (A) the over-budget choice in the Chat; (B) tone choice at onboarding and in Config, day and week closures; (C) the reply formatting subset rendered in the bubbles; (D) reserving a plan for its meal; (E) skips next to other actions. Plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`. One Room version for the whole plan: every column and table of the five parts goes into one migration decided at the start of part A (non-destructive, exported schema, migration test), so later parts add no version.
-- Related documentation: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md), [ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md), [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md), [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md), [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md), [product Chat](../../produto/specifications/chat.md), [perfil-onboarding](../../produto/specifications/perfil-onboarding.md), [memoria-push](../../produto/specifications/memoria-push.md), [home-timeline](../../produto/specifications/home-timeline.md), [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md), [autonomous run](../../sdd/autonomous-run.md).
+- Related documentation: [ADR-039](../../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md), [ADR-044](../../../produto/adrs/ADR-044-assistant-tone-and-closures.md), [ADR-045](../../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md), [ADR-046](../../../produto/adrs/ADR-046-planned-meal-reservation.md), [ADR-047](../../../produto/adrs/ADR-047-skips-alongside-other-actions.md), [product Chat](../../../produto/specifications/chat.md), [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md), [memoria-push](../../../produto/specifications/memoria-push.md), [home-timeline](../../../produto/specifications/home-timeline.md), [Room](../../specifications/room-v2.md), [HTTP contract](../../../api-contract.md), [autonomous run](../../../sdd/autonomous-run.md).
 - Prerequisites:
-  - golds exported: D12 (`chatRB`), D16 (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`), D17 (`chatR`, `chatE`, `chatRK`), D18 (`chatR`, `chatRL`, `homeP`), D19 (`chatSK`, `chatSD`), all `Concluído` in [design history](../../design/plans/completed/);
-  - server: S21 and S29 delivered and deployed (they are); [S30](../../server/plans/completed/s30-tone-formatting-planned-slot.md) delivered and deployed to the dev server with the parts the client parts need (B needs S30 part A, C needs part B, D needs part C); a server part left out skips the matching client part;
-  - [A54](completed/a54-auto-record-addition-empty-slot.md) delivered (it is); no parallel Android plan.
+  - golds exported: D12 (`chatRB`), D16 (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`), D17 (`chatR`, `chatE`, `chatRK`), D18 (`chatR`, `chatRL`, `homeP`), D19 (`chatSK`, `chatSD`), all `Concluído` in [design history](../../../design/plans/completed/);
+  - server: S21 and S29 delivered and deployed (they are); [S30](../../../server/plans/completed/s30-tone-formatting-planned-slot.md) delivered and deployed to the dev server with the parts the client parts need (B needs S30 part A, C needs part B, D needs part C); a server part left out skips the matching client part;
+  - [A54](../completed/a54-auto-record-addition-empty-slot.md) delivered (it is); no parallel Android plan.
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a60-tone-formatting-planned-skips.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a60-tone-formatting-planned-skips.md. Implemente o plano aprovado.`
 
 ## Objective
 
-Everything the Chat and the Home need for the tone, the closures, the formatted replies, the planned meal and the skips, in one plan and one dev build: the owner wakes up with the app that shows bold numbers, lists, the day summary and the hard tone when chosen. Supersedes the cancelled plans A50, A55, A57 and A58 ([`cancelled/`](cancelled/)), whose scope it carries unchanged; the skips scope was delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md) and stays here only as part E's record.
+Everything the Chat and the Home need for the tone, the closures, the formatted replies, the planned meal and the skips, in one plan and one dev build: the owner wakes up with the app that shows bold numbers, lists, the day summary and the hard tone when chosen. Supersedes the cancelled plans A50, A55, A57 and A58 ([`cancelled/`](../cancelled/)), whose scope it carries unchanged; the skips scope was delivered by [A59](a59-skips-with-other-actions.md) and stays here only as part E's record.
 
 ## Delivery
 
-- One branch from master; parts in the order A → B → C → D → E; one commit or more per part; one PR at the end. Part E is delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md) (owner decision, 07/10/2026: A59 merged as implemented, Room v11 `skipOutcomes`); A60 runs parts A–D.
+- One branch from master; parts in the order A → B → C → D → E; one commit or more per part; one PR at the end. Part E is delivered by [A59](a59-skips-with-other-actions.md) (owner decision, 07/10/2026: A59 merged as implemented, Room v11 `skipOutcomes`); A60 runs parts A–D.
 - A part whose validation fails twice is left out: the PR merges with the delivered parts, the plan stays `Em implementação`, Results list the missing part and what it needs.
 - One dev build at the end with `tools/distribute-dev.ps1 -Notes` (pt-BR notes per part delivered). Visual QA per part against its golds, partial validation (only the flows the part touches), fresh captures in `docs/qa/android/current/{dark,light}/`.
 - Room: one version (the next free one, 12 after A59's v11), one migration, one migration test, written in part A with every field parts A–D declare below; a part left out leaves its unused columns in place (nullable, documented in the Room specification at Completion).
@@ -58,7 +58,7 @@ One event with enums and numbers only: the choice (`over_ok` | `fit`) and `over_
 
 #### Intended specification changes
 
-At Completion: product Chat rule 16 gains the choice (when it shows, copy, actions, expiry) and `chatRB` in the state list; Room gains the column and version; Provenance links. The gold inventory stays owned by [qa](../../qa/README.md).
+At Completion: product Chat rule 16 gains the choice (when it shows, copy, actions, expiry) and `chatRB` in the state list; Room gains the column and version; Provenance links. The gold inventory stays owned by [qa](../../../qa/README.md).
 
 ### Part B — Tone choice, day closure and week closure (from A55)
 
@@ -74,7 +74,7 @@ At Completion: product Chat rule 16 gains the choice (when it shows, copy, actio
 - Scheduler: an exact alarm (inexact without the permission, like the meal push) at 22:00 America/Sao_Paulo every day; rescheduled at 00:05, on boot, at start and on edit, in the same flow as the meal push. A closure already produced for a date is not produced again (Room row keyed by date).
 - At the alarm: the app computes the numbers from Room (eaten kcal and P/C/G, targets, effective ceiling, workout, per-slot status and kcal), calls `POST /v1/close` with `period: day` and the tone, stores `{date, period, numbers, text}` in a new `closure` table, posts the notification `Fechamento do dia` with the first line of the text as content (app-controlled: small icon, title, text, accent color; the rest is the system template), and the Home shows the card `homeC` at the top of the timeline for that date: `Fechamento de {d} de {mês}`, `{kcal} de {teto} kcal`, `P {x}/{alvo} · C {y}/{alvo} · G {z}/{alvo}`, the missing or skipped meals as one line, workout if any, and the text. A later record of the day updates the numbers of the card from Room, not the text. Without network: the card shows the numbers and `Sem o texto: sem rede.`; the next app start retries the text once.
 - Rollover: the card of yesterday stays visible until the first record of the new day, then collapses to one line `Ontem: {kcal} de {teto} kcal`; tap expands.
-- Dev-only trigger ([ADR-019](../../produto/adrs/ADR-019-ferramentas-dev.md)): the broadcast `app.fibrai.android.dev.RUN_CLOSURE` with the extra `period` (`day` | `week`) runs the closure now, as the alarm would, in the dev flavor only; it is how the validation and the testers exercise the 22:00 path without waiting for it.
+- Dev-only trigger ([ADR-019](../../../produto/adrs/ADR-019-ferramentas-dev.md)): the broadcast `app.fibrai.android.dev.RUN_CLOSURE` with the extra `period` (`day` | `week`) runs the closure now, as the alarm would, in the dev flavor only; it is how the validation and the testers exercise the 22:00 path without waiting for it.
 
 #### 3. Week closure
 
@@ -90,7 +90,7 @@ At Completion: product Chat rule 16 gains the choice (when it shows, copy, actio
 
 #### Intended specification changes
 
-At Completion: [perfil-onboarding](../../produto/specifications/perfil-onboarding.md) (5 screens, O5 rules, `tone` in the prompt prefix, CTA move), [memoria-push](../../produto/specifications/memoria-push.md) (Config tone row and sheet; closure alarms and notifications under the push rules), [home-timeline](../../produto/specifications/home-timeline.md) (`homeC`, `homeK`, collapse rules), [Room](../specifications/room-v2.md) (`profile.tone`, `closure` table, version); gold inventory stays owned by [qa](../../qa/README.md); Provenance lines; ADR-044 status to Accepted (if not already).
+At Completion: [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) (5 screens, O5 rules, `tone` in the prompt prefix, CTA move), [memoria-push](../../../produto/specifications/memoria-push.md) (Config tone row and sheet; closure alarms and notifications under the push rules), [home-timeline](../../../produto/specifications/home-timeline.md) (`homeC`, `homeK`, collapse rules), [Room](../../specifications/room-v2.md) (`profile.tone`, `closure` table, version); gold inventory stays owned by [qa](../../../qa/README.md); Provenance lines; ADR-044 status to Accepted (if not already).
 
 ### Part C — Rendering the reply subset in the bubbles (from A57)
 
@@ -114,7 +114,7 @@ At Completion: [perfil-onboarding](../../produto/specifications/perfil-onboardin
 
 #### Intended specification changes
 
-At Completion: [product Chat](../../produto/specifications/chat.md) rule 2 (what a bubble renders), rule 8 (history line without markers), rule 12 (record text without markers), rule 16 (`chatRK`, bold over the macro colours); state list gains `chatRK`; Provenance line; ADR-045 status to Accepted (if not already).
+At Completion: [product Chat](../../../produto/specifications/chat.md) rule 2 (what a bubble renders), rule 8 (history line without markers), rule 12 (record text without markers), rule 16 (`chatRK`, bold over the macro colours); state list gains `chatRK`; Provenance line; ADR-045 status to Accepted (if not already).
 
 ### Part D — Reserve a plan for its meal (from A58)
 
@@ -144,11 +144,11 @@ At Completion: [product Chat](../../produto/specifications/chat.md) rule 2 (what
 
 #### Intended specification changes
 
-At Completion: [product Chat](../../produto/specifications/chat.md) rules 16 (the pill, `chatRL`), 19 (receipt line, undo), 22 (a planned slot is not occupied); [home-timeline](../../produto/specifications/home-timeline.md) (`homeP`, gestures); [Room](../specifications/room-v2.md); Provenance lines; ADR-046 status to Accepted (if not already).
+At Completion: [product Chat](../../../produto/specifications/chat.md) rules 16 (the pill, `chatRL`), 19 (receipt line, undo), 22 (a planned slot is not occupied); [home-timeline](../../../produto/specifications/home-timeline.md) (`homeP`, gestures); [Room](../../specifications/room-v2.md); Provenance lines; ADR-046 status to Accepted (if not already).
 
 ### Part E — Skips next to other actions in the Chat (from A59)
 
-Delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md); nothing of this part is left for A60. The scope below stays as the record of what A59 carried.
+Delivered by [A59](a59-skips-with-other-actions.md); nothing of this part is left for A60. The scope below stays as the record of what A59 carried.
 
 #### 1. Wire
 
@@ -179,11 +179,11 @@ Delivered by [A59](pending_manual_validation/a59-skips-with-other-actions.md); n
 
 #### Intended specification changes
 
-At Completion: [product Chat](../../produto/specifications/chat.md) rule 4 (one record plus the skips of other slots), rule 7 (skips as a list next to any intent; a skip over a record asks), rule 19 (the skip receipt over a deleted record: Desfazer restores it), states (`chatSK`, `chatSD`) and acceptance criteria; [Room](../specifications/room-v2.md) (new version, `skipOutcomes`); Provenance lines; ADR-047 status to Accepted (if not already).
+At Completion: [product Chat](../../../produto/specifications/chat.md) rule 4 (one record plus the skips of other slots), rule 7 (skips as a list next to any intent; a skip over a record asks), rule 19 (the skip receipt over a deleted record: Desfazer restores it), states (`chatSK`, `chatSD`) and acceptance criteria; [Room](../../specifications/room-v2.md) (new version, `skipOutcomes`); Provenance lines; ADR-047 status to Accepted (if not already).
 
 ## Out of scope
 
-- Server (S30), design (all golds delivered), production (blocked by the [production gate](../../content-policy/production-gate.md); the tone choice is its PG6).
+- Server (S30), design (all golds delivered), production (blocked by the [production gate](../../../content-policy/production-gate.md); the tone choice is its PG6).
 - A configurable closure time; a closure for a day without any record (the card shows `Nenhum registro.` and no text is requested); editing records from the cards; user-typed markup (the user's bubble stays plain); reservations for another day; a reservation without a plan bubble.
 
 ## Validation
@@ -212,9 +212,62 @@ Per part, in order; the prefixes A–E name the part. Every Room item below refe
 - E: Roborazzi and emulator captures of `chatSK` and `chatSD` against the D19 golds under the QA rules of AGENTS, with a written diff list; regress `chatG` and `chatU` (partial validation: Chat records flows only).
 - E: Dev server (S29 deployed): one synthetic message with a skip and a breakfast; request id recorded.
 - E: `testDevDebugUnitTest`, `verifyRoborazziDevDebug`, `assembleDevRelease` and `node tools/check-docs.mjs` pass.
-- E: Manual acceptance (after delivery, [autonomous run](../../sdd/autonomous-run.md)): owner or tester sends a skip next to a meal on a device (dev build) and skips a recorded meal. Not a condition for the automated Completion; the plan waits in `pending_manual_validation/`.
+- E: Manual acceptance (after delivery, [autonomous run](../../../sdd/autonomous-run.md)): owner or tester sends a skip next to a meal on a device (dev build) and skips a recorded meal. Not a condition for the automated Completion; the plan waits in `pending_manual_validation/`.
 - Whole plan: `testDevDebugUnitTest`, `verifyRoborazziDevDebug` and `assembleDevRelease` pass after the last part; `node tools/check-docs.mjs` passes; the dev build distributed with its version in Results.
 
 ## Results
 
-Planning only.
+Approved by the owner on 07/10/2026 in the batch message of the [autonomous run](../../../sdd/autonomous-run.md) ("Aprovo o plano docs/android/plans/a60-tone-formatting-planned-skips.md. Implemente o plano aprovado, partes A a D."). Branch `feat/a60-tone-formatting-planned` from master `24211e5` (S30 merged and deployed to the dev server). Run report: [overnight-2026-10-08](../../../server/validation/overnight-2026-10-08.md).
+
+| Part | State |
+|---|---|
+| A — over-budget choice | Delivered |
+| B — tone, day and week closures | Delivered |
+| C — reply formatting subset | Delivered |
+| D — reserve a plan | Delivered |
+| E — skips next to other actions | Entregue pelo A59, aceite manual pendente ([A59](a59-skips-with-other-actions.md)); not reimplemented here |
+
+### Delivered (`apps/android/` and the QA tooling)
+
+- **Room v12 (one migration for A–D):** `MIGRATION_11_12`: `chat_message.planBudget` (nullable JSON: the server `plan_budget` plus the local `over_ok`), `profile.tone` (`TEXT NOT NULL DEFAULT 'seco'`), tables `closure` (key per day or week, numbers JSON, text, status `text` | `fallback` | `offline` | `empty`, one retry flag) and `planned_meal` (one reservation per date and slot). Schema `12.json` exported; `MigrationV11V12Test`; the version asserts of `MigrationV1V2Test` and `RoomV2Test` and every older migration test follow v12.
+- **Part A:** `domain/PlanBudget.kt` (lenient decode; a missing or malformed object means no choice); `plan_budget: true` on every normal turn and `fit_kcal` on the Ajustar turn and its retry; `ChatViewModel.acceptOver` (stores `over_ok`, no POST) and `adjustToFit` (sends `Ajusta para caber em {limit} kcal.` through the normal send path); `AeroChoiceBar` (Pode passar · Ajustar para caber) in the action slot and the budget lines below the bubble; the choice ends on a new send, the day change or a wipe. Telemetry `plan_budget_choice`.
+- **Part B:** O5 `ToneScreen` (`ONBOARDING 5/5 • TOM`, Seco preselected with `PADRÃO`, Duro, the note, **Concluir e começar**; O4's CTA is now **Continuar**); Config row `Tom da Tali` and its sheet (`ToneOptions` on glass, Salvar / Cancelar, no wipe); `profile.tone` on every normal and compact turn. Closures: `domain/Closures.kt` (day and week numbers, keys, due periods, card states, copy), `core/closure/ClosureRunner.kt` (one closure per key, `/v1/close`, the numbers alone when offline, one retry at the next app start), `ClosureNotifications.kt` (channel `closures`, `Fechamento do dia` / `Fechamento da semana`), the 22:00 alarm in `SlotAlarmScheduler` (America/Sao_Paulo, rescheduled at start and boot), the dev-only broadcast `RUN_CLOSURE` (dev manifest only), Home `ClosureCard` (day; week above it on Sunday; collapsed to `Ontem: {kcal} de {teto} kcal` after the first record of the next day). Telemetry `tone_set`, `closure`, `closure_opened` (enums and numbers only).
+- **Part C:** `domain/ReplyMarkup.kt` (own parser: bold, `- ` bullets, `1. ` steps, one two-column table up to six rows; anything else literal; `plain()` for history, timeline and receipts); `core/designsystem/aero/AeroReply.kt` (blocks with the 12 dp gap, marker columns, the portions table, the macro colours laid over bold). The user's bubble, questions, refusals, receipts and cards are unchanged.
+- **Part D:** **Reservar para o {slot}** under Registrar assim on today's plan for an open meal; `DayRepository.reserve` (one transaction checking day, wipe and slot; a new reservation replaces the old one and the old bubble loses `Reservado para o {slot}`); the reservation goes to the server as `status: planned`; Home node `planejado · {kcal} kcal` (new icon `CalendarCheck`); a record into a reserved meal replaces the reservation, the receipt adds `Plano: {kcal} · Registrado: {kcal} ({±n} kcal)` and Desfazer brings it back; a skip clears it and its Desfazer brings it back. Telemetry `plan_reserved`, `meal_saved.had_plan`.
+- **QA tooling:** `tools/fake-chat-server.mjs` (`plan_budget` over / still over / zero, `/v1/close` and `close_fail`, the `format` replies, `planned`; `/__calls` reports the new request fields); `tools/capture-chat.sh` `SCENES=a60`; `tools/capture-onboarding.sh` (O5, back to O4, finish); `tools/diff-gold.mjs` (A60 long threads `chatRB` from the day panel down, `chatRK`, `chatRL`; the two gold conflicts below).
+- **Specifications:** product [Chat](../../../produto/specifications/chat.md) (rules 2, 12, 16, 19, states, acceptance, related ADRs, provenance), [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) (O5), [memoria-push](../../../produto/specifications/memoria-push.md) (rule 12, the tone in Config), [home-timeline](../../../produto/specifications/home-timeline.md) (closure cards, planned node), [Room](../../specifications/room-v2.md) (v12); [QA](../../../qa/README.md) (`SCENES=a60`).
+
+### Validation
+
+1. **Unit tests (new):** `ChatBudgetChoiceTest` (6: with and without `plan_budget`, malformed, every show and hide rule, Pode passar persisted across recreation, Ajustar sends text and `fit_kcal` once and the retry keeps it, still over shows the choice again, expiry on send, day change and wipe), `ClosuresTest` (7: the 22:00 São Paulo alarm, now when missed and tomorrow when done; due periods; day and ISO-week keys; day and week numbers from fixture days; card states and the collapse rule with a fixed clock; copy), `ClosureRunnerTest` (6: numbers and tone sent, text stored, one notification; offline then one retry at start; server fallback and a day without records asking nothing; the week from Monday; live and collapsed cards; a planned meal counts as missing), `ReplyMarkupTest` (4: every marker, the fallbacks — unbalanced bold, seven-row table, second table, nested list, heading, link —, `plain()` round trips, a 2000-character reply parsed in under a millisecond), `ChatPlannedTest` (5: reserve marks the bubble and goes in DAY and the projected day; reserving again replaces and the earlier bubble loses its marker; a record replaces the reservation with the receipt line and Desfazer restores it; a skip, a wipe and the next day clear it; no pill for a recorded meal or while the choice is open), `MigrationV11V12Test`; plus O5 and the Config tone in `OnboardingViewModelTest` and `ConfigViewModelTest`, `PushHandlerTest` (closure action) and the dev `ProfileTextTest`.
+2. **`testDevDebugUnitTest`**, **`verifyRoborazziDevDebug`** and **`assembleDevRelease`**: 638 tests, 0 failures (the six GoldTest failures A59 recorded on `chatE`, `chatR` and `cfg` are gone: their golds now match); Roborazzi verifies clean; the release APK builds. Roborazzi baselines re-recorded for the screens this plan changes: `chatE`, `chatR` (dark, light) and `cfgWorkout` (the tone row moves the sheet's page).
+3. **JVM gold (`GoldTest`)**: new `chatRB`, `o5`, `cfgT`, `homeC`, `homeK`, `chatRL`, `chatRK`, `homeP` (dark, light) and the changed `chatR`, `chatE`, `cfg` pass. The emulator pass found one defect the JVM gate tolerated: the P/C/G colours were missing on formatted replies (the decor read the builder's `toString()`, not the text); fixed in `AeroReply.kt` and checked on the render and on the emulator.
+4. **Emulator** (Medium_Phone at 780 × 1688 @ 320, devDebug against `tools/fake-chat-server.mjs`, `SCENES=a60`, both themes): 48 of 48 checks passed in each theme — `plan_budget` on the wire, the lines and pills, Pode passar stored and kept after recreation, `fit_kcal` 310, still over, adjusted plan fits, limit 0 (no pills); bullets, table and steps, no `**` on screen, the next turn's history and `meal_log` without markers, malformed markup literal; Reservar, the marker, `planned_meal`, DAY `planned`, receipt `Plano 420 · Registrado 610 (+190 kcal)`, Desfazer restores the reservation, `homeP`; Config `Seco` → `Duro` stored and on the wire; Sunday 22:05 through the real alarm: both notifications, both closures with text, the broadcast adds nothing, `homeC`, `homeK`, offline card `Sem o texto: sem rede.`, the retry at start, the collapsed card the next day. O5 by `tools/capture-onboarding.sh`.
+5. **`node tools/diff-gold.mjs`** (max 2 %): `chatRB` header 0.00 % / 0.00 % (dark / light), tail 0.01 % / 0.06 %; `chatR` header 0.00 / 0.00, tail 0.63 / 0.25; `chatRK` header 0.00 / 0.11, tail 0.44 / 0.79; `chatRL` header 0.00 / 0.00, tail 0.08 / 0.19; `chatE` light 0.25; `homeP` 0.83 / 0.63; `cfg` 0.19 / 0.19; `cfgT` 0.32 (dark), sheet 0.00 (light); `homeC` 0.73 / 0.53; `homeK` 1.23 / 0.91; `o5` 1.00 / 0.69.
+6. **Diff list** (captures in `docs/qa/android/current/{dark,light}/` against the D12, D16, D17 and D18 golds): layout, tokens, type sizes, radii, the action stack (choice pills in the action slot, Registrar assim over Reservar), CTA colours, sheet radius, the closure cards, the planned node and the semantic macro colours match. Ignored: clock, status bar, date chip and message times. Differences, all reported and none changed in the app:
+   - `chatRB`: the D12 frame (drawn before D17) writes the plan as plain lines with no gap and no hanging indent; the app renders the D17 blocks (12 dp gaps, marker columns) required by ADR-045. Gated from the day panel down (panel, budget lines, pills, composer).
+   - `chatR`, `chatRK`, `chatRL`, `chatRB`: the frames show the whole thread; the phone shows its newest part (long-thread rule). The bullet glyph and the reserved-marker icon sit about 3 dp right of the frame.
+   - `chatE` and `chatR` dark: the frames paint the reply's first paragraph in the bubble colour (invisible); light is gated and passes.
+   - `cfgT` light: the frame keeps Config sharp under the scrim; the app's shared Sheet/Bottom blurs the screen behind it, as every Config sheet and the `chatT` frame do. The sheet itself is gated and passes.
+   - `o1`–`o4`: the D16 change to five screens left those frames reading `n/4`; the app reads `n/5`, and O4's CTA is **Continuar** per this plan (the O4 frame still reads Concluir e começar).
+   - `cfgS`: the frame predates the `Tom da Tali` row (report only in `GoldTest`).
+7. **Dev server** (S30 deployed; devDebug pointed at the dev server; synthetic messages, no user content committed):
+   - A: an over-budget lasagna recipe at 20:30 showed the choice (`5904a9ff-8d7c-410a-b299-f2311434bf88`, `limit_kcal` 380, `over_kcal` 740); Ajustar returned a plan that fits with Registrar assim and Reservar (`1d24afd6-2321-4667-95aa-1d90b802f3b9`, `choice` `fit`).
+   - C: the recipe rendered the portions table and steps; the next turn (`6f902da6-8260-4270-a60e-b5ef9f5a0f3f`) went through. The dev log does not keep the prompt, so the history without markers rests on the fake-server request body (check 4) and the unit tests.
+   - B: tone `duro`, a dinner over the window (`3aa681df-45f0-4f07-aae9-a997c968463f`): the reply named the overshoot and the protein missing; day and week closures through the dev broadcast returned text in `duro` (`877666d6-6588-48ed-b165-f8498ad369da`, `720f4b38-adc5-46d7-8e2e-4fc09c64c781`) and both cards showed.
+   - D: a dinner plan reserved (`ad4fb7c1-3092-487c-b5d4-18c087dc6e63`), a snack plan with the dinner reserved at 350 kcal (`1cbed76c-a297-4789-9821-a110883d0b67`, `reserved` Jantar 350), the dinner recorded (`fe5f5733-3e72-4866-89eb-7918065e7c3e`, `plan_difference` +30: `+30 kcal sobre o plano.` and the receipt line `Plano: 350 · Registrado: 380 (+30 kcal)`), Desfazer brought the reservation back.
+8. `node tools/check-docs.mjs` passes.
+9. Dev build: distributed after the merge with `tools/distribute-dev.ps1`; the version is recorded in the [run report](../../../server/validation/overnight-2026-10-08.md).
+
+### Pending manual validation
+
+On a device with the dev build, by the owner or a tester:
+
+1. A59 (part E): send a skip next to a meal and skip a recorded meal ([A59](a59-skips-with-other-actions.md)).
+2. Tone: finish onboarding on O5 (or change it in Config → Tom da Tali) and see a `duro` reply name an overshoot; `seco` stays numbers only.
+3. Closures: at 22:00 the day notification and card arrive (Sunday also the week); the next day the card collapses after the first record. Allow notifications when Android asks.
+4. Over budget: a plan that passes the day shows Pode passar · Ajustar para caber.
+5. Reservation: Reservar para o Jantar on a plan, the Home shows `planejado`, recording the dinner shows the difference in the receipt.
+6. Visual review of the gold differences in item 6 (whether the D12 `chatRB`, the `o1`–`o4`, O4 CTA and `cfgS` frames and the light `cfgT` scrim should be redrawn).
+
+PG6 of the [production gate](../../../content-policy/production-gate.md) stays open until items 2 and 3 are done on the dev build.

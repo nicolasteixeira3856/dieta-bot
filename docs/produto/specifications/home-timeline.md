@@ -27,6 +27,9 @@ Relógio do dia. Registro mora no Chat. Layout: gold `home1` (canônico) da font
 10. Disclaimer visível no rodapé com a copy do Stitch ("Estimativa nutricional, não substitui consulta médica ou nutricional."). No fim da rolagem ele fica inteiro acima do FAB: 20 dp de respiro (gold `home1`) + inset de navegação.
 11. Linha "Treino de hoje" abaixo dos macros, antes da timeline (gold `homeW`). Sem treino hoje: valor `Informar` na cor `accent/default`. Com treino: `{kcal} kcal · +{crédito} na meta`, crédito pela fórmula do `AGENTS.md` (0% → `+0 na meta`, a linha continua). Toque abre o sheet "Treino de hoje": campo numérico (estilo `Field/Number`) com sufixo `kcal`, uma linha de crédito ao vivo (`+{n} kcal na meta de hoje (compensação {pct}%)`; 0%: `Compensação desativada na Config`) e o par Salvar / Cancelar. Salvar grava o mesmo `day.workoutKcal` da Config; campo vazio + Salvar = sem treino (crédito 0). Cancelar ou back não grava. Mesmo editor da Config.
 
+12. Fechamentos (`homeC`, `homeK`, [ADR-044](../adrs/ADR-044-assistant-tone-and-closures.md)): entre a linha de treino e a timeline, o card da semana acima do card do dia. Dia: `Fechamento de {d} de {mês}`, `{kcal} de {teto} kcal`, `P {x}/{alvo} · C {y}/{alvo} · G {z}/{alvo}` nas cores dos macros, as refeições puladas e sem registro numa linha (`Pulado: … · Sem registro: …`; reservada conta como sem registro), `Treino: {kcal} kcal` quando houver e o texto do servidor (`Sem o texto: sem rede.`, `Nenhum registro.` sem ele). Um registro do dia depois das 22:00 atualiza os números do card a partir do Room, não o texto. No dia seguinte o card de ontem fica aberto até o primeiro registro e então vira uma linha `Ontem: {kcal} de {teto} kcal`; o toque abre. Semana: `Semana de {d} a {d}`, `{total} kcal · média {média} kcal/dia` (média sobre os dias com registro), `Proteína: média {p} g/dia · Dias sem registro: {n}`, a linha da refeição que mais passou e o texto; aberto até terça 00:00, depois uma linha até o domingo seguinte.
+13. Refeição reservada (`homeP`, [ADR-046](../adrs/ADR-046-planned-meal-reservation.md)): nó tracejado com o calendário, card esmaecido com o prato e `planejado · {kcal} kcal`; não conta no anel nem nos macros. Toque abre o Chat como uma refeição vazia; toque longo pula depois da confirmação de sempre e limpa a reserva. A virada do dia, o wipe e o reset limpam as reservas do dia.
+
 ## Estados e falhas
 
 - Sem perfil / onboardingDone=0: splash → O1.
@@ -42,6 +45,7 @@ Comportamento: `produto`. UI: `android`.
 - [ADR-017](../adrs/ADR-017-registro-consolidado.md)
 - [ADR-021](../adrs/ADR-021-refeicoes-por-dia.md)
 - [ADR-040](../adrs/ADR-040-home-card-gestures-app-reset.md)
+- [ADR-044](../adrs/ADR-044-assistant-tone-and-closures.md), [ADR-046](../adrs/ADR-046-planned-meal-reservation.md)
 
 ## Critérios de aceite funcionais
 
@@ -60,3 +64,4 @@ Comportamento: `produto`. UI: `android`.
 - [A24](../../android/plans/completed/a24-refeicoes-por-dia.md) — Refeições por dia da semana
 - [A40](../../android/plans/completed/a40-home-aero.md) — Home no Aero
 - [A52](../../android/plans/completed/a52-home-card-gestures.md) — Home: toque registra, toque longo pula
+- [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — fechamentos do dia e da semana, refeição reservada

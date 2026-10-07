@@ -1,6 +1,6 @@
 # Execução autônoma — 07 para 08/10/2026
 
-Relatório da execução autônoma pedida pelo dono em 07/10/2026, pelo [runbook](../../sdd/autonomous-run.md). Ordem aprovada: [S30](../plans/completed/s30-tone-formatting-planned-slot.md) (partes A → B → C), depois [A60](../../android/plans/a60-tone-formatting-planned-skips.md) (partes A → D; a parte E foi entregue pelo A59).
+Relatório da execução autônoma pedida pelo dono em 07/10/2026, pelo [runbook](../../sdd/autonomous-run.md). Ordem aprovada: [S30](../plans/completed/s30-tone-formatting-planned-slot.md) (partes A → B → C), depois [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) (partes A → D; a parte E foi entregue pelo A59).
 
 Em andamento.
 

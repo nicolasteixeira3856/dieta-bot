@@ -53,7 +53,7 @@ Behavior: [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md
 |---|---|---|
 | Server | S21 — cooking help and the over-budget choice in a plan, delivered ([history](../../server/plans/completed/)) | S19, S20 |
 | Design | D12 — plan over budget: the choice (`chatRB`) ([`completed/`](completed/)) | S21 approved |
-| Client | A50 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
+| Client | A50 (cancelled, now [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md)) — the choice in the Chat | S21 on dev, D12, A47, A48, A49 |
 
 ## Home gestures and app reset follow-up
 
@@ -76,7 +76,7 @@ Behavior: [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-w
 | Server | S24 — protein-first plan inside the meal window ([`completed/`](../../server/plans/completed/)) | S23 |
 | Design | D16 — tone choice and closures (`o5`, `cfgT`, `homeC`, `homeK`, `cfg`) ([`completed/`](completed/)) | D3, D4, D7 |
 | Server | S25 (cancelled, now S30 ([`completed/`](../../server/plans/completed/))) — tone per user and `/v1/close` | S24 |
-| Client | A55 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — tone choice, day and week closure | D16, S25 on dev, A50, A54 |
+| Client | A55 (cancelled, now [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md)) — tone choice, day and week closure | D16, S25 on dev, A50, A54 |
 
 ## Rich replies follow-up
 
@@ -86,7 +86,7 @@ Behavior: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md).
 |---|---|---|
 | Design | D17 — emphasis, lists and a table in the bubbles (`chatR`, `chatE`, `chatRK`) ([`completed/`](completed/)) | D5, D6, D12 |
 | Server | S26 (cancelled, now S30 ([`completed/`](../../server/plans/completed/))) — reply formatting subset | S24 |
-| Client | A57 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
+| Client | A57 (cancelled, now [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md)) — rendering the subset | D17, S26 on dev, A50, A54, A55 |
 
 ## Planned meal follow-up
 
@@ -96,7 +96,7 @@ Behavior: [ADR-046](../../produto/adrs/ADR-046-planned-meal-reservation.md). Ord
 |---|---|---|
 | Design | D18 — reserve action and planned timeline state (`chatR`, `chatRL`, `homeP`) ([`completed/`](completed/)) | D3, D6, D12, D17 |
 | Server | S27 (cancelled, now S30 ([`completed/`](../../server/plans/completed/))) — planned slot in DAY | S24 |
-| Client | A58 (cancelled, now [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
+| Client | A58 (cancelled, now [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md)) — reserve a plan for its meal | D18, S27 on dev, A50, A54, A55, A57 |
 
 ## Skips next to other actions follow-up
 
@@ -106,7 +106,7 @@ Behavior: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md)
 |---|---|---|
 | Server | S29 — skip slots next to any intent, delivered ([history](../../server/plans/completed/)) | — |
 | Design | D19 — two receipts and the delete proposal (`chatSK`, `chatSD`), delivered ([history](completed/)) | D6, D9 |
-| Client | [A59](../../android/plans/pending_manual_validation/a59-skips-with-other-actions.md) (part E of [A60](../../android/plans/a60-tone-formatting-planned-skips.md)) — skips next to other actions in the Chat | D19, S29 on dev |
+| Client | [A59](../../android/plans/pending_manual_validation/a59-skips-with-other-actions.md) (part E of [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md)) — skips next to other actions in the Chat | D19, S29 on dev |
 
 Deferred by owner decision (2026-10-06): goal weight and date, [A56](../../android/plans/out_of_scope/a56-goal-weight.md).
 
