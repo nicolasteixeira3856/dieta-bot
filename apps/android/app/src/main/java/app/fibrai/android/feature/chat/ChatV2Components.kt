@@ -45,6 +45,22 @@ internal fun PlanText(text: String) {
 }
 
 /** "40P" (gold) or "P 17 g" (how the model often writes it). */
+/** A60 part C: the macro colours of a plan's P/C/G (rule 16) laid over a formatted reply, bold or not. */
+@Composable
+internal fun macroDecor(): app.fibrai.android.core.designsystem.aero.AeroReplyDecor {
+    val c = Aero.colors
+    return app.fibrai.android.core.designsystem.aero.AeroReplyDecor { text ->
+        MACRO.findAll(text).map { m ->
+            val color = when (m.groupValues[2].ifEmpty { m.groupValues[3] }) {
+                "P" -> c.macroProtein
+                "C" -> c.macroCarbs
+                else -> c.macroFat
+            }
+            m.range to SpanStyle(color = color, fontWeight = FontWeight.W600)
+        }.toList()
+    }
+}
+
 private val MACRO = Regex("""\b(\d+)\s?([PCG])\b|\b([PCG])\s(\d+)\s?g\b""")
 
 private fun macroColored(line: String, c: AeroColors): AnnotatedString = buildAnnotatedString {

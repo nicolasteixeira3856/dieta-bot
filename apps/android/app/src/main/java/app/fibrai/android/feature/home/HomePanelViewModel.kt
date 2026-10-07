@@ -27,15 +27,29 @@ class HomePanelViewModel @Inject constructor(
     /** Field of the open "Treino de hoje" sheet. Null = closed. Nothing reaches Room before Salvar. */
     private val workoutDraft = MutableStateFlow<String?>(null)
 
-    val uiState: StateFlow<HomePanelUiState> = combine(repository.observeToday(), workoutDraft) { day, draft ->
-        HomePanelMapper.map(day, SaoPaulo.date(clock.now()), draft)
+    /** A60 part B: collapsed closure cards the user tapped open (until the screen goes). */
+    private val expanded = MutableStateFlow<Set<String>>(emptySet())
+
+    private val closures = repository.observeClosures(SaoPaulo.date(clock.now()).minusDays(CLOSURE_DAYS).toString())
+
+    val uiState: StateFlow<HomePanelUiState> = combine(repository.observeToday(), workoutDraft, closures, expanded) { day, draft, rows, open ->
+        HomePanelMapper.map(day, SaoPaulo.date(clock.now()), draft, rows, open)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomePanelUiState())
+
+    /** A collapsed closure card tapped open. */
+    fun expandClosure(key: String) {
+        val card = uiState.value.closures.firstOrNull { it.key == key && !it.expanded } ?: return
+        expanded.value = expanded.value + key
+        telemetry.event(TelemetryEvents.CLOSURE_OPENED, mapOf("period" to card.period, "from" to "card"))
+    }
 
     /** Explicit user action from the timeline. Never automatic. */
     fun skip(slotId: Long) {
+        val planned = uiState.value.timeline.any { it.slotId == slotId && it.state == SlotState.PLANNED }
         viewModelScope.launch {
             repository.addSkip(slotId)
             telemetry.event(TelemetryEvents.MEAL_SKIPPED, mapOf("from" to "home"))
+            if (planned) telemetry.event(TelemetryEvents.PLAN_RESERVED, mapOf("action" to "cleared_by_skip"))
         }
     }
 
@@ -50,6 +64,11 @@ class HomePanelViewModel @Inject constructor(
 
     fun closeWorkout() {
         workoutDraft.value = null
+    }
+
+    private companion object {
+        /** Closures read for the cards: a week back and the day before it. */
+        const val CLOSURE_DAYS = 8L
     }
 
     /** Same field as the Config workout editor. Empty = no workout = credit 0. */

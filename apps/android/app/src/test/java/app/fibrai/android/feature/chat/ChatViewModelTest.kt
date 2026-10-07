@@ -1264,7 +1264,7 @@ class ChatViewModelTest {
         vm.await { it.actions == null && it.items.any { i -> i is ChatItem.Receipt } }
 
         assertThat(telemetry.params(TelemetryEvents.MEAL_SAVED))
-            .containsExactly(mapOf("from" to "chat", "has_photo" to false, "kcal" to 380))
+            .containsExactly(mapOf("from" to "chat", "has_photo" to false, "kcal" to 380, "had_plan" to false))
     }
 
     // ------------------------------------------------------------------ A27: meal text and intent

@@ -44,6 +44,7 @@ import app.fibrai.android.feature.onboarding.EatScreen
 import app.fibrai.android.feature.onboarding.MacrosScreen
 import app.fibrai.android.feature.onboarding.OnboardingViewModel
 import app.fibrai.android.feature.onboarding.OnboardingSlotsScreen
+import app.fibrai.android.feature.onboarding.ToneScreen
 import app.fibrai.android.feature.splash.SplashScreen
 import app.fibrai.android.feature.splash.SplashViewModel
 import app.fibrai.android.feature.chat.ChatScreen
@@ -67,6 +68,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteEat
 @Serializable data object RouteSlots
 @Serializable data object RouteMacros
+@Serializable data object RouteTone
 @Serializable data object RouteHome
 @Serializable data object RouteChat
 @Serializable data object RouteConfig
@@ -85,6 +87,10 @@ class MainActivity : ComponentActivity() {
             intent?.getLongExtra(EXTRA_SLOT, -1)?.takeIf { it >= 0 }?.let { PushHandler.clear(this, it) }
             telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "open"))
         }
+        // A60 part B: a closure notification opens the Home, where its card is.
+        intent?.getStringExtra(EXTRA_CLOSURE)?.takeIf { savedInstanceState == null }?.let {
+            telemetry.event(TelemetryEvents.CLOSURE_OPENED, mapOf("period" to it, "from" to "notification"))
+        }
         setContent {
             // ADR-030: Aero is the only theme. Each route also opens its own AeroTheme, so every screen keeps its own
             // backdrop-blur state through navigation transitions.
@@ -98,6 +104,7 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_OPEN = "fibrai_open"
         const val OPEN_CHAT = "chat"
         const val EXTRA_SLOT = "fibrai_slot"
+        const val EXTRA_CLOSURE = "fibrai_closure"
     }
 }
 
@@ -118,10 +125,11 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
         "o2" -> RouteEat
         "o3" -> RouteSlots
         "o4" -> RouteMacros
+        "o5" -> RouteTone
         else -> RouteCeiling
     }
     val startDestination: Any = when (captureScreen) {
-        "o1", "o2", "o3", "o4" -> RouteOnboarding
+        "o1", "o2", "o3", "o4", "o5" -> RouteOnboarding
         "home0", "home1", "homeX" -> RouteHome
         else -> RouteSplash
     }
@@ -215,6 +223,19 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                             onCarb = vm::setCarb,
                             onFat = vm::setFat,
                             onBack = { nav.popBackStack() },
+                            onFinish = { nav.navigate(RouteTone) },
+                        )
+                    }
+                }
+                composable<RouteTone> { entry ->
+                    val vm = onboardingViewModel(nav, entry)
+                    val ui by vm.uiState.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { vm.enterMacros() }
+                    AeroTheme {
+                        ToneScreen(
+                            ui = ui,
+                            onTone = vm::setTone,
+                            onBack = { nav.popBackStack() },
                             onFinish = {
                                 vm.completeOnboarding {
                                     nav.navigate(RouteHome) {
@@ -238,6 +259,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 }
                 AeroTheme {
                     HomePanelScreen(
+                        onClosureExpand = vm::expandClosure,
                         ui = ui,
                         onSkip = vm::skip,
                         onConfig = { nav.navigate(RouteConfig) },
@@ -277,6 +299,9 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onNoticeShown = vm::dismissNotice,
                         onRemoveAttachment = vm::removeAttachment,
                         onRecordPlan = vm::recordPlan,
+                        onBudgetOverOk = vm::acceptOver,
+                        onBudgetFit = vm::adjustToFit,
+                        onReserve = vm::reserve,
                         onRoutineRecord = vm::recordRoutine,
                         onRoutineEdit = vm::editRoutine,
                         onForceEstimate = vm::forceEstimate,
@@ -321,6 +346,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onPreviousSlots = vm::previousSlotGroup,
                         onOpenSlotGroup = vm::openSlotGroup,
                         onWorkout = vm::setWorkout,
+                        onTone = vm::setTone,
                         onOpenReset = vm::openReset,
                         onConfirmReset = vm::confirmReset,
                         onCancelReset = vm::cancelReset,
@@ -351,6 +377,7 @@ internal fun screenName(route: String?): String? = when (route?.substringAfterLa
     "RouteEat" -> "o2"
     "RouteSlots" -> "o3"
     "RouteMacros" -> "o4"
+    "RouteTone" -> "o5"
     "RouteHome" -> "home"
     "RouteChat" -> "chat"
     "RouteConfig" -> "cfg"

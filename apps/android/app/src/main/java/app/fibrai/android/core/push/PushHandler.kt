@@ -34,8 +34,15 @@ class PushHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: DayRepository,
     private val scheduler: SlotAlarmScheduler,
+    private val closures: app.fibrai.android.core.closure.ClosureRunner,
     private val telemetry: Telemetry = NoopTelemetry,
 ) {
+    /** A60 part B: the closure alarm fired: what is due now is closed, then the next alarm is set. */
+    suspend fun onClosure() {
+        runCatching { closures.runDue() }
+        scheduler.resync()
+    }
+
     /** Slot alarm fired: notify only when the slot is still empty (spec rule 2). */
     suspend fun onSlot(slotId: Long): Boolean {
         val day = repository.observeToday().first()

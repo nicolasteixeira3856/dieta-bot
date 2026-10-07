@@ -57,6 +57,7 @@ class OnboardingViewModel @Inject constructor(
                     proteinField = day.proteinTargetG.toString(),
                     carbField = day.carbTargetG.toString(),
                     fatField = day.fatTargetG.toString(),
+                    tone = day.tone,
                     loaded = true,
                 )
                 val withCeiling = if (!storedProfile) {
@@ -161,6 +162,9 @@ class OnboardingViewModel @Inject constructor(
     fun setCarb(v: String) = _uiState.update { it.copy(carbField = v.digits(4), macrosEdited = true) }
     fun setFat(v: String) = _uiState.update { it.copy(fatField = v.digits(4), macrosEdited = true) }
 
+    // O5
+    fun setTone(tone: String) = _uiState.update { if (tone == "seco" || tone == "duro") it.copy(tone = tone) else it }
+
     /** Slots first, profile last: onboardingDone=1 only once everything is stored. */
     fun completeOnboarding(onSuccess: () -> Unit) {
         val state = _uiState.value
@@ -188,7 +192,9 @@ class OnboardingViewModel @Inject constructor(
                 proteinTargetG = state.proteinField.toIntOrNull() ?: 0,
                 carbTargetG = state.carbField.toIntOrNull() ?: 0,
                 fatTargetG = state.fatField.toIntOrNull() ?: 0,
+                tone = state.tone,
             )
+            telemetry.event(TelemetryEvents.TONE_SET, mapOf("tone" to state.tone, "from" to "onboarding"))
             telemetry.event(
                 TelemetryEvents.ONBOARDING_COMPLETE,
                 mapOf("slots" to state.slots.size, "ceiling_mode" to state.ceilingMode, "eat" to state.eat),

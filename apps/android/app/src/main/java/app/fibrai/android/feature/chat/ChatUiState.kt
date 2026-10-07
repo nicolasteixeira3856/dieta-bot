@@ -86,6 +86,12 @@ sealed interface ChatItem {
          * numbers from the structured fields, so the prose is not repeated (chatI, chatIC).
          */
         val prose: Boolean = true,
+        /** A60 part A (chatRB): the lines below an over-budget plan while its choice is open. */
+        val budget: BudgetNote? = null,
+        /** A60 part D (chatRL): `Reservado para o {slot}` below the plan whose reservation it holds. */
+        val reservedFor: String? = null,
+        /** A60 part C (chatR, chatE, chatRK): the reply's subset blocks; null = plain prose. */
+        val blocks: List<app.fibrai.android.domain.ReplyBlock>? = null,
     ) : ChatItem {
         override val key = "a-$id"
     }
@@ -145,6 +151,8 @@ sealed interface ChatItem {
         val actions: List<ReceiptAction> = emptyList(),
         /** A34: Trocar refeição into a slot with a record asks right below the receipt (chatU). */
         val moveConfirm: ReplaceConfirm? = null,
+        /** A60 part D: a record into a reserved meal, `Plano: {kcal} · Registrado: {kcal} ({+n} kcal)`. */
+        val planLine: String? = null,
     ) : ChatItem {
         override val key = "r-$id"
         val skipped: Boolean get() = kind == ReceiptKind.SKIPPED
@@ -263,7 +271,19 @@ data class EstimateActions(
     val record: SlotRef?,
     /** A plan (chatR): Registrar assim. Else Registrar (chatE). */
     val plan: Boolean = false,
+    /** A60 part A (chatRB): Pode passar · Ajustar para caber in place of Registrar assim. */
+    val choice: BudgetChoice? = null,
+    /** A60 part D (chatR): Reservar para o {slot} below Registrar assim; null = no pill. */
+    val reserve: SlotRef? = null,
 )
+
+/** chatRB (A60 part A): the window the plan goes over ([limitKcal]) and by how much. */
+@Immutable
+data class BudgetChoice(val limitKcal: Int, val overKcal: Int)
+
+/** chatRB: `Passa {overKcal} kcal do que sobra.` and one `Reservei {kcal} kcal para {label}.` per reservation. */
+@Immutable
+data class BudgetNote(val overKcal: Int, val reserved: List<Pair<Int, String>>)
 
 internal fun List<MealSlot>.refs() = sortedBy { it.minutesFromMidnight }
     .map { SlotRef(it.id, it.name, SlotSuggestions.format(it.minutesFromMidnight), it.minutesFromMidnight) }

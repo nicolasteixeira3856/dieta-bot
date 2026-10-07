@@ -81,6 +81,8 @@ fun HomePanelScreen(
     onWorkoutChange: (String) -> Unit = {},
     onWorkoutSave: () -> Unit = {},
     onWorkoutCancel: () -> Unit = {},
+    /** A60 part B: a collapsed closure card tapped. */
+    onClosureExpand: (String) -> Unit = {},
     /** Opens the skip confirmation of this slot (QA renders of chatP). */
     initialSkip: Long? = null,
 ) {
@@ -106,6 +108,7 @@ fun HomePanelScreen(
                 Hero(ui)
                 MacroCard(ui)
                 WorkoutRow(ui, onWorkoutOpen)
+                ui.closures.forEach { ClosureCardView(it) { onClosureExpand(it.key) } }
                 Timeline(ui, onRecord = onChat, onSkipAsk = { confirmSkip = it })
                 AeroText(
                     SplashBoot.COPY,
@@ -301,10 +304,12 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit,
                 SlotState.SKIPPED -> AeroNodeState.Skipped
                 SlotState.NEXT -> AeroNodeState.Active
                 SlotState.EMPTY -> AeroNodeState.Empty
+                SlotState.PLANNED -> AeroNodeState.Planned
             },
             Modifier.padding(top = NodeTop),
         )
-        val tappable = (slot.state == SlotState.NEXT || slot.state == SlotState.EMPTY) && slot.slotId != null
+        // A planned meal opens the Chat like an empty one; a long press skips it (and clears the reservation).
+        val tappable = (slot.state == SlotState.NEXT || slot.state == SlotState.EMPTY || slot.state == SlotState.PLANNED) && slot.slotId != null
         AeroMealCard(
             state = when (slot.state) {
                 SlotState.LOGGED -> AeroMealState.Logged
@@ -312,6 +317,7 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit,
                 SlotState.SKIPPED -> AeroMealState.Skipped
                 SlotState.NEXT -> AeroMealState.Pending
                 SlotState.EMPTY -> AeroMealState.Empty
+                SlotState.PLANNED -> AeroMealState.Planned
             },
             meal = slot.name,
             time = slot.time.orEmpty(),
@@ -320,7 +326,7 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit,
                 SlotState.NEXT, SlotState.EMPTY -> "Nenhum registro · Toque para registrar, segura para pular"
                 else -> ""
             },
-            lines = slot.lines.map { AeroMealLine(it.text, "${it.kcal} kcal") },
+            lines = slot.lines.map { AeroMealLine(it.text, if (slot.state == SlotState.PLANNED) "planejado · ${it.kcal} kcal" else "${it.kcal} kcal") },
             log = slot.summary,
             logTag = "home-summary-${slot.slotId ?: "outros"}",
             onClick = if (tappable) onRecord else null,
@@ -329,5 +335,58 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit,
             onLongClickLabel = "Pular",
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+/**
+ * Card/Closure (D16, homeC / homeK): title, the kcal line, the macros in their colours (day), the detail lines and the
+ * server text; collapsed, one line that expands on tap.
+ */
+@Composable
+private fun ClosureCardView(card: ClosureCard, onExpand: () -> Unit) {
+    val c = Aero.colors
+    val type = Aero.type
+    val tag = "home-closure-${card.period}"
+    if (!card.expanded) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .aeroGlass(Aero.shapes.card)
+                .dietaClick(Haptic.Light, onClick = onExpand)
+                .padding(horizontal = 17.dp, vertical = 16.dp)
+                .testTag("$tag-collapsed"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AeroText(card.line, Modifier.weight(1f), style = type.body.copy(color = c.textPrimary), maxLines = 1)
+            AeroIcon(AeroIconName.CaretRight, c.iconMuted, size = 20.dp)
+        }
+        return
+    }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .aeroGlass(Aero.shapes.card)
+            .padding(horizontal = 17.dp, vertical = 16.dp)
+            .testTag(tag),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        AeroText(card.title, style = type.bodyStrong.copy(color = c.textPrimary))
+        AeroText(card.kcalLine, style = type.body.copy(color = c.textPrimary), modifier = Modifier.testTag("$tag-kcal"))
+        card.macros?.let { m ->
+            AeroText(
+                buildAnnotatedString {
+                    val colors = listOf(c.macroProtein, c.macroCarbs, c.macroFat)
+                    listOf("P", "C", "G").forEachIndexed { i, label ->
+                        if (i > 0) withStyle(SpanStyle(color = c.textMuted)) { append(" · ") }
+                        withStyle(SpanStyle(color = colors[i])) { append("$label ${m[i].consumed}/${m[i].target}") }
+                    }
+                },
+                style = type.caption,
+            )
+        }
+        card.detail?.let { AeroText(it, style = type.caption.copy(color = c.textMuted)) }
+        card.extra?.let { AeroText(it, style = type.caption.copy(color = c.textMuted)) }
+        AeroText(card.text, style = type.body.copy(color = c.textPrimary), modifier = Modifier.testTag("$tag-text"))
     }
 }

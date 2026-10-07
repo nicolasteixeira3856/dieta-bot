@@ -17,4 +17,8 @@ interface FibraiApi {
 
     @POST("v1/chat")
     suspend fun chat(@Body body: ChatIn): ChatOut
+
+    /** A60 part B (ADR-044): the day or week closure text. */
+    @POST("v1/close")
+    suspend fun close(@Body body: CloseIn): CloseOut
 }

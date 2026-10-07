@@ -7,7 +7,7 @@ import app.fibrai.android.feature.onboarding.SlotDraft
 import app.fibrai.android.feature.workout.WorkoutEditorState
 
 /** Edit sheet opened from a cfg row. Layers of the Config screen, not screens (ADR-012). */
-enum class ConfigEditor { CEILING, EAT_BACK, MACROS, SLOTS, WORKOUT }
+enum class ConfigEditor { CEILING, EAT_BACK, MACROS, SLOTS, WORKOUT, TONE }
 
 @Immutable
 data class ConfigSlotRow(val id: Long, val name: String, val time: String)
@@ -28,6 +28,8 @@ data class ConfigDraft(
     val slotSchedule: SlotScheduleDraft = SlotScheduleDraft(),
     /** Empty = no workout today = credit 0. */
     val workoutField: String = "",
+    /** A60 part B (cfgT): "seco" | "duro". */
+    val tone: String = "seco",
 ) {
     /** Credit uses the stored eat-back (the draft copies it on open). */
     val workoutEditor: WorkoutEditorState
@@ -45,6 +47,7 @@ data class ConfigDraft(
         ConfigEditor.MACROS -> listOf(proteinField, carbField, fatField).all { it.toIntOrNull() != null }
         ConfigEditor.SLOTS -> slotSchedule.pendingMode == null && slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
         ConfigEditor.WORKOUT -> true
+        ConfigEditor.TONE -> tone == "seco" || tone == "duro"
     }
 }
 
@@ -55,6 +58,8 @@ data class ConfigUiState(
     val ceilingDetail: String = "",
     val eatBackValue: String = "",
     val macrosValue: String = "",
+    /** A60 part B: "Seco" or "Duro", the Tom da Tali row. */
+    val toneValue: String = "",
     val slots: List<ConfigSlotRow> = emptyList(),
     val slotMode: String = "same",
     val slotGroups: List<ConfigSlotRow> = emptyList(),
@@ -105,6 +110,7 @@ class ConfigActions(
     val onPreviousSlots: () -> Unit = {},
     val onOpenSlotGroup: (Int) -> Unit = {},
     val onWorkout: (String) -> Unit = {},
+    val onTone: (String) -> Unit = {},
     val onOpenReset: () -> Unit = {},
     val onConfirmReset: () -> Unit = {},
     val onCancelReset: () -> Unit = {},

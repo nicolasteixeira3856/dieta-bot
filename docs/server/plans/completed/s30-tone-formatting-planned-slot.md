@@ -11,7 +11,7 @@ Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Apro
 
 ## Objective
 
-The server speaks in the tone the user chose and writes the day and week closure texts (part A), carries the fixed formatting subset in every reply (part B), and reserves a slot the user planned with its own numbers, comparing the real record with the plan (part C). One plan, one branch, one deploy: the client plan [A60](../../../android/plans/a60-tone-formatting-planned-skips.md) depends on all three parts.
+The server speaks in the tone the user chose and writes the day and week closure texts (part A), carries the fixed formatting subset in every reply (part B), and reserves a slot the user planned with its own numbers, comparing the real record with the plan (part C). One plan, one branch, one deploy: the client plan [A60](../../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) depends on all three parts.
 
 ## Delivery
 
@@ -131,7 +131,7 @@ Under the [autonomous run](../../../sdd/autonomous-run.md) rules: **US$ 0.30 for
 
 ## Out of scope
 
-- The client ([A60](../../../android/plans/a60-tone-formatting-planned-skips.md)), the golds (D16, D17, D18 delivered), the production gate row (PG6 names this plan).
+- The client ([A60](../../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md)), the golds (D16, D17, D18 delivered), the production gate row (PG6 names this plan).
 - A configurable closure time; a third tone; any marker beyond the ADR-045 subset; reservations for another day.
 - Production: blocked by the [production gate](../../../content-policy/production-gate.md).
 

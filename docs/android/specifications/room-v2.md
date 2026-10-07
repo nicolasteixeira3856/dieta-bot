@@ -1,10 +1,10 @@
-# Specification — Room persistence (v11)
+# Specification — Room persistence (v12)
 
 ## Ownership
 
-Android owns the database. Schema version 11. The file is `fibrai.db` ([ADR-036](../adrs/ADR-036-fibrai-technical-identity.md)). Exported schemas 1–11 live in `apps/android/app/schemas/app.fibrai.android.core.database.FibraiDatabase/`, byte-identical to their history. The filename keeps its historical name for incoming links.
+Android owns the database. Schema version 12. The file is `fibrai.db` ([ADR-036](../adrs/ADR-036-fibrai-technical-identity.md)). Exported schemas 1–12 live in `apps/android/app/schemas/app.fibrai.android.core.database.FibraiDatabase/`, byte-identical to their history. The filename keeps its historical name for incoming links.
 
-`FibraiDatabase` contains `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message` and `day_digest`. Structured daily state stays in Room; DataStore is only a legacy import path. No destructive migration fallback.
+`FibraiDatabase` contains `profile`, `day`, `meal_log`, `meal_slot`, `slot_skip`, `chat_message`, `day_digest`, `closure` and `planned_meal`. Structured daily state stays in Room; DataStore is only a legacy import path. No destructive migration fallback.
 
 ## Functional rules
 
@@ -24,6 +24,8 @@ Android owns the database. Schema version 11. The file is `fibrai.db` ([ADR-036]
 14. `MealLogDao.getBetween(from, to)` (inclusive ISO dates) feeds the Chat `recent`: the 7 days before today in America/Sao_Paulo (`DayRepository.recentLogs`).
 15. v11 adds nullable `chat_message.skipOutcomes`: on an assistant row, the versioned `SkipOutcomes` JSON of the skips the answer listed ([ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md)): request day, latest `wiped` id of that day, the answer's intent, and per listed slot (in order) its id, the state it held when the skip was applied and the outcome (`skipped` | `already` | `pending_delete` | `deleted` | `kept` | `expired` | `failed`; absent = not applied yet). It is stored with the answer, before any write; null = no skips (older row or a server without the capability). Every outcome change is conditional on the stored outcome (`DayRepository.moveSkip`, or `commitRecord(skip = SkipMove(...))` in the same transaction as the slot write), so a skip is never applied twice. Excluir e pular commits the slot from the shown state to skipped with a `RecordGuard` (request day and wipe), marks the record's active receipt `deleted` and inserts a `skipped` receipt whose `UndoData` keeps the memory revert; `recordState` is unchanged for the log part.
 
+16. v12 (one version for A60, ADR-039/044/046): nullable `chat_message.planBudget`, the `PlanBudget` JSON of a plan (`limitKcal`, `overKcal`, `reserved`, `choice`, and `local` = `over_ok` once Pode passar is tapped; null = no budget check). `profile.tone TEXT NOT NULL DEFAULT 'seco'` (`seco` | `duro`). Table `closure` (primary key `key`: `day:{date}` or `week:{monday}`; `period`, `date`, `numbers` JSON of the request numbers, nullable `text`, `status` `text` | `fallback` | `offline` | `empty`, `createdAtEpochMs`, `retried INTEGER NOT NULL DEFAULT 0`): inserted once per key, so a closure is never produced twice. Table `planned_meal` (primary key `(date, slotId)`; `text`, `kcal`, `p`, `c`, `g`, nullable `sourceMessageId`): the reservation is part of the slot state (`SlotState.planned`), read and written by `commitRecord` like logs and skips, so a record or a skip replaces it in the same transaction and Desfazer restores it; `reserve` rechecks the day, the latest `wiped` id and that the slot has no record and no skip; `wipeToday` and the reset clear it, and a new day has none. `addLog`, `replaceSlotLog` and `addSkip` clear the slot's reservation.
+
 ## Migrations and validation
 
 - `MIGRATION_1_2` adds body/macros and meal-slot/skip/Chat/digest tables, rebuilding `meal_log` for its foreign key.
@@ -35,6 +37,7 @@ Android owns the database. Schema version 11. The file is `fibrai.db` ([ADR-036]
 - `MIGRATION_8_9` executes only `ALTER TABLE `day_digest` ADD COLUMN `coversUntilId` INTEGER`. Old digests stay null and keep the time cut.
 - `MIGRATION_9_10` executes only `ALTER TABLE `chat_message` ADD COLUMN `mealChange` TEXT`. Old rows stay null: no proposal is guessed, records, receipts, undo data, photos and memory are untouched (`MigrationV9V10Test` undoes a migrated receipt).
 - `MIGRATION_10_11` executes only `ALTER TABLE `chat_message` ADD COLUMN `skipOutcomes` TEXT`. Old rows stay null: nothing to apply; records, receipts, proposals and memory are untouched (`MigrationV10V11Test` undoes a migrated receipt).
+- `MIGRATION_11_12` adds `chat_message.planBudget`, `profile.tone` (default `seco`) and creates `closure` and `planned_meal`. Every row survives; profiles read back `seco` (`MigrationV11V12Test`: messages, a proposal, skips and an active receipt intact, the receipt still undoes, a reservation then replaced by a record and restored by Desfazer).
 - `MIGRATION_7_8` executes only five `ALTER TABLE `chat_message` ADD COLUMN` statements (`recordMode`, `recordState`, `receiptState`, `undoData`, `recordSource`). Old rows stay null: old estimates and receipts show no actions.
 - Schemas are exported by KSP. Debug assets include these schemas for `MigrationTestHelper`; release does not package them.
 - Tests validate old migrations, the real v3 and v4 fixtures with `MigrationTestHelper`, weekly filtering/rollover, slot-save history preservation and Chat replacement/wipe behavior. Device evidence: [A24 validation](../validation/a24-refeicoes-por-dia.md).
@@ -55,3 +58,4 @@ Android owns the database. Schema version 11. The file is `fibrai.db` ([ADR-036]
 - [A38](../plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A47](../plans/completed/a47-chat-meal-updates.md) — Chat meal updates
 - [A59](../plans/pending_manual_validation/a59-skips-with-other-actions.md) — Skips next to other actions in the Chat
+- [A60](../plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — v12: plan budget, tone, closures, planned meal

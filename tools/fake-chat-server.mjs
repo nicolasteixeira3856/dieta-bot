@@ -30,6 +30,16 @@
 // A59: POST /__mode {"skips": ["Alm"]} lists the slots whose names start with those prefixes as `skip_slots` on the
 // answer of a client that sent skip_slots (S29), next to the estimate, the skip or any other answer. /__calls
 // reports the last skip_slots flag.
+// A60 part A: POST /__mode {"plan_budget": "over"|"still"|"zero"} answers the chatRB recipe (macarrão com atum, 620 kcal)
+// to a client that sent plan_budget: over its 310 kcal window with a 250 kcal reservation; a turn with fit_kcal answers the
+// adjusted plan, at the target ("over") or still 40 kcal over ("still"); "zero" has no window left (limit_kcal 0).
+// /__calls reports the last plan_budget flag and fit_kcal.
+// A60 part B: POST /v1/close answers canned seco and duro texts for a day or a week; POST /__mode {"close_fail": true}
+// drops the connection (the app's offline state). /__calls reports the last profile tone and the last close request.
+// A60 part C: POST /__mode {"format": "plan"|"recipe"|"log"|"malformed"} answers the formatted chatR plan, the chatRK
+// recipe, the chatE log with a bold total, or a reply with broken markup.
+// A60 part D: POST /__mode {"planned": true} answers a dinner log into the slot whose name starts with "Jan", with the
+// server's difference line against the plan the request carried in DAY (`status: planned`).
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -48,6 +58,15 @@ let skipPrefix = null;
 let replyOverride = null;
 let a54 = false;
 let skipPrefixes = [];
+let planBudget = null;
+let closeFail = false;
+let format = null;
+let planned = false;
+let lastPlanBudget = null;
+let lastFit = null;
+let lastTone = null;
+let lastClose = null;
+let lastMessages = [];
 let lastSkipSlots = null;
 let lastDay = [];
 let lastAutoRecord = null;
@@ -60,6 +79,7 @@ let lastMemory = "";
 let textLen = 0;
 let image = { bytes: 0, jpeg: false, width: 0, height: 0, photos: 0 };
 const DIGEST = "Resumo QA: cafe da manha 380 kcal registrado.";
+const NL = String.fromCharCode(10);
 
 // Width/height from the first SOF marker of a baseline or progressive JPEG.
 const jpegSize = (b) => {
@@ -98,11 +118,42 @@ http.createServer(async (req, res) => {
     replyOverride = mode.reply ?? null;
     a54 = Boolean(mode.a54);
     skipPrefixes = Array.isArray(mode.skips) ? mode.skips : [];
+    planBudget = mode.plan_budget ?? null;
+    closeFail = Boolean(mode.close_fail);
+    format = mode.format ?? null;
+    planned = Boolean(mode.planned);
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages }));
+    return;
+  }
+  if (req.method === "POST" && req.url === "/v1/close") {
+    calls++;
+    lastRequestId = req.headers["x-request-id"] ?? "";
+    const input = JSON.parse(body || "{}");
+    lastClose = input;
+    if (closeFail) {
+      req.socket.destroy();
+      return;
+    }
+    const n = input.numbers ?? {};
+    const duro = input.tone === "duro";
+    let text;
+    if (input.period === "week") {
+      text = duro
+        ? "Média de 2.350 kcal com teto de 2.200; o Jantar passou da conta em 4 dias e 2 dias ficaram sem registro." + NL +
+          "Semana que vem: jantares de omelete com salada, frango com legumes e peixe com arroz; lanches de iogurte e fruta; teto de 2.200 no fim de semana."
+        : "Semana: 16.450 kcal, média de 2.350 de 2.200; proteína média de 128; 2 dias sem registro." + NL +
+          "Jantares: omelete com salada, frango com legumes, peixe com arroz.";
+    } else {
+      text = duro
+        ? "Passou 340 kcal do teto: o Jantar levou 980 kcal. Faltaram 42 g de proteína." + NL +
+          "Amanhã: ovos no café, frango no almoço e fruta no lanche."
+        : `${n.kcal ?? 0} de ${n.ceiling_kcal ?? 0} kcal. Proteína: ${n.p ?? 0} de ${input.profile?.p_target ?? 0} g.`;
+    }
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ text, model: "gpt-6-luna" }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/chat") {
@@ -118,6 +169,10 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastAutoRecord = input.auto_record ?? null;
     if (!input.compact) lastDay = input.day?.slots ?? [];
     if (!input.compact) lastSkipSlots = input.skip_slots ?? null;
+    if (!input.compact) lastPlanBudget = input.plan_budget ?? null;
+    if (!input.compact) lastFit = input.fit_kcal ?? null;
+    if (!input.compact) lastMessages = input.messages ?? [];
+    lastTone = input.profile?.tone ?? null;
     // S14: only a client that sent auto_record gets the mark.
     const marks = (fields) => (input.auto_record === true ? fields : {});
     if (textLen > 2000) {
@@ -185,6 +240,94 @@ http.createServer(async (req, res) => {
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
         reply: "Entendi: macarrão com frango ao molho branco." + String.fromCharCode(10) + question,
         intent: "log", estimate: null, question, digest: null, model: "gpt-6-luna",
+      }));
+      return;
+    }
+    if (planBudget) {
+      const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
+      const fit = input.fit_kcal ?? null;
+      const kcal = fit == null ? 620 : planBudget === "still" ? fit + 40 : fit;
+      const limit = planBudget === "zero" ? 0 : fit ?? 310;
+      const reply = fit == null
+        ? ["Macarrão com atum ao sugo:", "• 80 g de macarrão cru", "• 1 lata de atum em água (120 g)", "• 150 g de molho de tomate",
+          "• 20 g de queijo ralado (opcional)", "1. Cozinhe o macarrão por 9 min.", "2. Aqueça o molho com o atum por 5 min.",
+          "3. Misture e finalize com o queijo.", "Total: ~620 kcal · 42P · 70C · 18G"].join(NL)
+        : ["Macarrão com atum ajustado:", "• 50 g de macarrão cru", "• 1 lata de atum em água (120 g)", "• 120 g de molho de tomate",
+          `Total: ~${kcal} kcal · 36P · 40C · 6G`].join(NL);
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply, intent: "plan",
+        estimate: {
+          kcal, p: fit == null ? 42 : 36, c: fit == null ? 70 : 40, g: fit == null ? 18 : 6, confidence: "medium", question: null,
+          items: [{ name: "macarrão cru", g: 80, kcal: 290 }], suggested_slot: jantar ? jantar.id : null, meal_text: "Macarrão com atum ao sugo",
+        },
+        digest: null, model: "gpt-6-luna",
+        ...marks({ record: "none", skip_slot: null }),
+        ...(input.plan_budget === true ? {
+          plan_budget: {
+            limit_kcal: limit, over_kcal: Math.max(0, Math.ceil(kcal - limit)),
+            reserved: fit == null ? [{ label: "fatia de bolo", kcal: 250 }] : [], choice: fit == null ? null : "fit",
+          },
+        } : {}),
+      }));
+      return;
+    }
+    if (format) {
+      const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
+      const cafe = slots.find((s) => s.name.startsWith("Caf")) ?? slots[0];
+      const answers = {
+        plan: {
+          reply: ["Duas opções para o jantar:",
+            "- **Pizza de pão sírio**: 1 pão sírio (60 g), 30 g de molho de tomate, 100 g de frango desfiado, 30 g de milho e 30 g de muçarela · **420 kcal**",
+            "- **Omelete de forno**: 3 ovos, 50 g de ricota e 1 fatia de pão integral (25 g) · **360 kcal**",
+            "Primeira opção: ~**420 kcal** · 40P · 38C · 12G"].join(NL),
+          intent: "plan", kcal: 420, p: 40, c: 38, g: 12, slot: jantar, text: "Pizza de pão sírio",
+        },
+        recipe: {
+          reply: ["Frango com brócolis e arroz", "| Item | Gramas |", "| --- | --- |", "| Peito de frango | 120 g |", "| Arroz cozido | 120 g |",
+            "| Brócolis | 100 g |", "| Azeite | 5 g |", "| Alho | 5 g |", "| Queijo ralado (opcional) | 15 g |",
+            "1. Corte o frango em cubos e grelhe por 8 min.", "2. Refogue o alho no azeite e junte o brócolis por 3 min.",
+            "3. Misture o arroz e o frango e finalize com o queijo.", "Total: ~**520 kcal** · 46P · 41C · 17G"].join(NL),
+          intent: "plan", kcal: 520, p: 46, c: 41, g: 17, slot: jantar, text: "Frango com brócolis e arroz",
+        },
+        log: {
+          reply: "Identifiquei 2 pães franceses (100 g) e 2 ovos mexidos (100 g). A estimativa total é de **380 kcal**:",
+          intent: "log", kcal: 380, p: 22, c: 36, g: 16, slot: cafe, text: "2 pães franceses e 2 ovos mexidos",
+        },
+        malformed: {
+          reply: ["**Arroz com feijão", "| Item | Gramas |", "| --- | --- |", "| arroz |", "Total: 400 kcal"].join(NL),
+          intent: "plan", kcal: 400, p: 14, c: 70, g: 4, slot: jantar, text: "Arroz com feijão",
+        },
+      };
+      const a = answers[format] ?? answers.plan;
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: a.reply, intent: a.intent,
+        estimate: {
+          kcal: a.kcal, p: a.p, c: a.c, g: a.g, confidence: "high", question: null,
+          items: [{ name: a.text, g: 200, kcal: a.kcal }], suggested_slot: a.slot ? a.slot.id : null, meal_text: a.text,
+        },
+        digest: null, model: "gpt-6-luna",
+        ...marks({ record: a.intent === "log" ? (record ?? "ask") : "none", skip_slot: null }),
+        ...(a.intent === "log" && input.meal_changes === true ? { meal_change: { operation: "new", base_slot: null, addition: null } } : {}),
+      }));
+      return;
+    }
+    if (planned) {
+      const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
+      const plannedDay = (input.day?.slots ?? []).find((s) => s.id === jantar?.id && s.status === "planned");
+      const kcal = 610;
+      const diff = plannedDay ? kcal - plannedDay.kcal : null;
+      const clause = diff == null ? null : diff > 0 ? `+${diff} kcal sobre o plano.` : diff < 0 ? `−${-diff} kcal abaixo do plano.` : "Igual ao plano.";
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: ["Jantar: 150 g de frango grelhado, 150 g de arroz e salada: **610 kcal** · P 52 g.", clause].filter(Boolean).join(NL),
+        intent: "log",
+        estimate: {
+          kcal, p: 52, c: 60, g: 14, confidence: "high", question: null,
+          items: [{ name: "frango grelhado", g: 150, kcal: 240 }, { name: "arroz", g: 150, kcal: 370 }],
+          suggested_slot: jantar ? jantar.id : null, meal_text: "150 g de frango grelhado, 150 g de arroz e salada",
+        },
+        digest: null, model: "gpt-6-luna",
+        ...marks({ record: "auto", skip_slot: null }),
+        ...(input.meal_changes === true ? { meal_change: { operation: "new", base_slot: null, addition: null } } : {}),
       }));
       return;
     }

@@ -23,6 +23,7 @@ class PushReceiver : BroadcastReceiver() {
                 when (intent.action) {
                     ACTION_SLOT -> handler.onSlot(intent.getLongExtra(EXTRA_SLOT, -1))
                     ACTION_SKIP -> handler.onSkip(intent.getLongExtra(EXTRA_SLOT, -1))
+                    ACTION_CLOSURE -> handler.onClosure()
                     ACTION_RESYNC,
                     Intent.ACTION_BOOT_COMPLETED,
                     Intent.ACTION_MY_PACKAGE_REPLACED,
@@ -41,6 +42,9 @@ class PushReceiver : BroadcastReceiver() {
         const val ACTION_SLOT = "app.fibrai.android.push.SLOT"
         const val ACTION_SKIP = "app.fibrai.android.push.SKIP"
         const val ACTION_RESYNC = "app.fibrai.android.push.RESYNC"
+
+        /** A60 part B: 22:00 SP, the day closure (and the week on Sunday). */
+        const val ACTION_CLOSURE = "app.fibrai.android.push.CLOSURE"
         const val EXTRA_SLOT = "slot_id"
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }

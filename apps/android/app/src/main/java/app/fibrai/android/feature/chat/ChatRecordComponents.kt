@@ -91,6 +91,7 @@ internal fun ReceiptCard(
                     if (item.kind == ReceiptKind.RESTORED) item.kcal?.let { KcalChip("$it kcal") }
                 }
                 if (item.kind != ReceiptKind.RESTORED) receiptChip(item)?.let { KcalChip(it) }
+                item.planLine?.let { AeroText(it, Modifier.testTag("chat-receipt-plan"), style = type.caption.copy(color = c.textMuted)) }
             }
             item.mark?.let { ReceiptMarkLabel(it) }
         }

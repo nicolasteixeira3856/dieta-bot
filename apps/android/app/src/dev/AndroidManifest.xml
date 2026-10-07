@@ -24,5 +24,16 @@
                 <action android:name="app.fibrai.android.dev.TEST_CRASH" />
             </intent-filter>
         </receiver>
+        <!-- A60 part B (ADR-019): run the day or week closure now, as the 22:00 alarm would:
+             adb shell am broadcast -a app.fibrai.android.dev.RUN_CLOSURE with the string extra period (day or week)
+             -n app.fibrai.android.dev/app.fibrai.android.core.closure.RunClosureReceiver. Not a screen. -->
+        <receiver
+            android:name="app.fibrai.android.core.closure.RunClosureReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="app.fibrai.android.dev.RUN_CLOSURE" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

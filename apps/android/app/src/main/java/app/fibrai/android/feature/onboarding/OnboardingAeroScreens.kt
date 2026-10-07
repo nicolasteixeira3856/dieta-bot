@@ -99,7 +99,7 @@ private fun bubbles(rightY: Int, leftY: Int) = listOf(
 /** Top of an onboarding frame: stepper alone (O1), intake bar (O2/O3) or brand bar with help (O4). */
 sealed interface AeroOnboardingBar {
     data class Stepper(val step: Int) : AeroOnboardingBar
-    data class Intake(val step: Int) : AeroOnboardingBar
+    data class Intake(val step: Int, val count: Int = 4) : AeroOnboardingBar
     data class Brand(val step: Int, val onHelp: () -> Unit) : AeroOnboardingBar
 
     /** Another screen's own header (the Config meal editor: Header/Page), no stepper. */
@@ -183,14 +183,14 @@ private fun TopBar(bar: AeroOnboardingBar, onBack: (() -> Unit)?) {
                     AeroBarBalance()
                 }
             }
-            AeroStepper(if (bar is AeroOnboardingBar.Intake) bar.step else (bar as AeroOnboardingBar.Brand).step)
+            if (bar is AeroOnboardingBar.Intake) AeroStepper(bar.step, count = bar.count) else AeroStepper((bar as AeroOnboardingBar.Brand).step)
         }
     }
 }
 
 /** Eyebrow "ONBOARDING n/4 • SECTION" (none when [step] is null), title and subtitle (Intro frame, 8 dp apart). */
 @Composable
-private fun Intro(step: String?, section: String, title: String, subtitle: String, leadingDot: Boolean = false) {
+private fun Intro(step: String?, section: String, title: String, subtitle: String?, leadingDot: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -201,7 +201,7 @@ private fun Intro(step: String?, section: String, title: String, subtitle: Strin
             AeroText(AeroTextTokens.labelSection.cased(section), style = type.labelSection.copy(color = c.accentDefault))
         }
         AeroText(title, style = type.title.copy(color = c.textPrimary))
-        AeroText(subtitle, style = type.body.copy(color = c.textMuted))
+        if (subtitle != null) AeroText(subtitle, style = type.body.copy(color = c.textMuted))
     }
 }
 
@@ -600,7 +600,8 @@ fun MacrosScreen(
         AeroOnboardingFrame(
             bar = AeroOnboardingBar.Brand(4, onHelp = { help = true }),
             modifier = if (help) Modifier.blur(8.dp) else Modifier,
-            cta = "Concluir e começar",
+            // A60 part B: Concluir e começar moves to O5 (tone); O4 continues.
+            cta = "Continuar",
             ctaEnabled = ui.o4Valid,
             onCta = onFinish,
             onBack = onBack,
@@ -677,5 +678,54 @@ private fun SplitCard(pct: List<Int>) {
                 if (v > 0) Box(Modifier.weight(v.toFloat()).fillMaxHeight().clip(CircleShape).background(colors[i]))
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------- O5 (A60 part B, ADR-044)
+
+/** The two tones of the Tali (O5 and the Config sheet cfgT): Seco preselected and marked PADRÃO. */
+@Composable
+fun ToneOptions(tone: String, onTone: (String) -> Unit, tagPrefix: String, onGlass: Boolean = false) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        AeroOptionCard(
+            "Seco",
+            "Só os números. Sem opinião.",
+            selected = tone != "duro",
+            onClick = { onTone("seco") },
+            badge = "Padrão",
+            onGlass = onGlass,
+            modifier = Modifier.testTag("$tagPrefix-seco"),
+        )
+        AeroOptionCard(
+            "Duro",
+            "Cobra o que estourou e o que faltou. Sem rodeio.",
+            selected = tone == "duro",
+            onClick = { onTone("duro") },
+            onGlass = onGlass,
+            modifier = Modifier.testTag("$tagPrefix-duro"),
+        )
+    }
+}
+
+/** O5: how the Tali talks to the user; Concluir e começar stores the onboarding. Back returns to O4. */
+@Composable
+fun ToneScreen(
+    ui: OnboardingUiState,
+    onTone: (String) -> Unit,
+    onBack: () -> Unit,
+    onFinish: () -> Unit,
+) {
+    AeroOnboardingFrame(
+        bar = AeroOnboardingBar.Intake(5, count = 5),
+        cta = "Concluir e começar",
+        ctaEnabled = ui.o4Valid,
+        onCta = onFinish,
+        onBack = onBack,
+        ctaTag = "o5-finish",
+        bubbles = bubbles(470, 760),
+    ) {
+        Intro("Onboarding 5/5", "Tom", "Como a Tali fala com você", null)
+        ToneOptions(ui.tone, onTone, "o5")
+        AeroNoteCard(AeroIconName.Info, "Dá para mudar nas configurações.")
     }
 }

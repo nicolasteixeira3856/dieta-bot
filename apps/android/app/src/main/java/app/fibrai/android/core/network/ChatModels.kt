@@ -51,6 +51,13 @@ data class ChatIn(
      * default, like [mealChanges]: the field must always go; a compact request sends false.
      */
     @SerialName("skip_slots") val skipSlots: Boolean,
+    /**
+     * The client shows the over-budget choice (A60 part A, ADR-039): the server answers [ChatOut.planBudget]. No default,
+     * like [skipSlots]: the field must always go; a compact request sends false.
+     */
+    @SerialName("plan_budget") val planBudget: Boolean,
+    /** Ajustar para caber: the target of the adjusted plan, the `limit_kcal` the choice showed. Null = none. */
+    @SerialName("fit_kcal") val fitKcal: Int? = null,
     /** The unrecorded addition the user is continuing (A47); null = none. Never on a compact request. */
     @SerialName("pending_addition") val pendingAddition: ChatPendingAddition? = null,
 )
@@ -122,6 +129,8 @@ data class ChatProfile(
     @SerialName("g_target") val gTarget: Int,
     @SerialName("eat_back") val eatBack: String,
     val slots: List<ChatSlot> = emptyList(),
+    /** A60 part B (ADR-044): "seco" | "duro", on every normal and compact request. No default: always encoded. */
+    val tone: String,
 )
 
 @Serializable
@@ -140,7 +149,7 @@ data class ChatDay(
     val slots: List<ChatDaySlot> = emptyList(),
 )
 
-/** status: "empty" | "eaten" | "skipped". */
+/** status: "empty" | "eaten" | "skipped" | "planned" (A60 part D: the reserved plan's text and numbers). */
 @Serializable
 data class ChatDaySlot(
     val id: String,
@@ -201,4 +210,34 @@ data class ChatOut(
      * without the capability: the single [skipSlot] path.
      */
     @SerialName("skip_slots") val skipSlots: List<String>? = null,
+    /**
+     * A60 part A: kept raw and parsed by [app.fibrai.android.domain.PlanBudget.parse], so a malformed object never fails the
+     * answer. Null or absent = no choice UI.
+     */
+    @SerialName("plan_budget") val planBudget: JsonElement? = null,
 )
+
+/** Mirrors server/main.py CloseIn (POST /v1/close, A60 part B): the app's numbers of a day or a week. */
+@Serializable
+data class CloseIn(
+    /** "day" | "week". */
+    val period: String,
+    val tone: String,
+    @SerialName("local_time") val localTime: String,
+    val profile: CloseProfile,
+    /** [app.fibrai.android.domain.ClosureDay] or [app.fibrai.android.domain.ClosureWeek], as the period says. */
+    val numbers: JsonElement,
+)
+
+@Serializable
+data class CloseProfile(
+    @SerialName("ceiling_kcal") val ceilingKcal: Int,
+    @SerialName("p_target") val pTarget: Int,
+    @SerialName("c_target") val cTarget: Int,
+    @SerialName("g_target") val gTarget: Int,
+    val slots: List<ChatSlot>,
+)
+
+/** The closure text (pt-BR, at most 3 lines); the server's neutral line on its own failures. */
+@Serializable
+data class CloseOut(val text: String = "", val model: String = "")

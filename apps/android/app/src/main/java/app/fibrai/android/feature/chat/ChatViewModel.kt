@@ -33,6 +33,10 @@ import app.fibrai.android.domain.Macros
 import app.fibrai.android.domain.MemoryResult
 import app.fibrai.android.domain.MemoryRules
 import app.fibrai.android.domain.MemoryUpdate
+import app.fibrai.android.domain.PlanBudget
+import app.fibrai.android.domain.PlannedSlot
+import app.fibrai.android.core.database.ReserveResult
+import app.fibrai.android.domain.ReplyMarkup
 import app.fibrai.android.domain.ProjectedDay
 import app.fibrai.android.domain.ReceiptAction
 import app.fibrai.android.domain.ReceiptRules
@@ -142,6 +146,8 @@ class ChatViewModel @Inject constructor(
         val focusComposer: Int = 0,
         /** A47: the unrecorded addition the pending send continues, taken on its first attempt; a retry keeps it. */
         val pendingAddition: MealProposal? = null,
+        /** A60 part A: the pending send is Ajustar para caber with this target; a retry keeps it. */
+        val pendingFit: Int? = null,
     )
 
     private sealed interface Sheet {
@@ -267,7 +273,7 @@ class ChatViewModel @Inject constructor(
         local.update {
             it.copy(
                 composer = "", composerTooLong = false, attachment = null, pending = text, pendingPhoto = photo, pendingForce = false,
-                failed = false, sentOnce = true, pendingAddition = null,
+                failed = false, sentOnce = true, pendingAddition = null, pendingFit = null,
             )
         }
         viewModelScope.launch { post(text, photo) }
@@ -281,7 +287,7 @@ class ChatViewModel @Inject constructor(
         if (!_uiState.value.forceEstimate || local.value.pending != null) return
         val round = PromptBuilder.clarifyRounds(todayMessages.filter { it.date == SaoPaulo.date(clock.now()).toString() })
         telemetry.event(TelemetryEvents.CHAT_FORCE_ESTIMATE, mapOf("round" to round))
-        local.update { it.copy(pending = FORCE_TEXT, pendingPhoto = null, pendingForce = true, failed = false, sentOnce = true, pendingAddition = null) }
+        local.update { it.copy(pending = FORCE_TEXT, pendingPhoto = null, pendingForce = true, failed = false, sentOnce = true, pendingAddition = null, pendingFit = null) }
         viewModelScope.launch { post(FORCE_TEXT, force = true) }
     }
 
@@ -289,8 +295,65 @@ class ChatViewModel @Inject constructor(
         val text = local.value.pending ?: return
         if (!local.value.failed) return
         local.update { it.copy(failed = false) }
-        viewModelScope.launch { post(text, local.value.pendingPhoto, local.value.pendingForce) }
+        viewModelScope.launch { post(text, local.value.pendingPhoto, local.value.pendingForce, local.value.pendingFit) }
     }
+
+    // ------------------------------------------------------------------ over-budget choice (A60 part A, ADR-039)
+
+    /** Pode passar (chatRB): no request; the choice is stored on the plan, the pills leave and Registrar assim returns. */
+    fun acceptOver(estimateId: Long) {
+        val choice = _uiState.value.actions?.takeIf { it.estimateId == estimateId }?.choice ?: return
+        viewModelScope.launch {
+            val row = repository.message(estimateId) ?: return@launch
+            val budget = PlanBudget.decode(row.planBudget)?.takeIf { it.choosing } ?: return@launch
+            repository.setPlanBudget(estimateId, budget.copy(local = PlanBudget.OVER_OK).encode())
+            budgetChoice(PlanBudget.OVER_OK, choice.overKcal)
+        }
+    }
+
+    /**
+     * Ajustar para caber (chatRB): sends `Ajusta para caber em {limit} kcal.` with fit_kcal through the normal send flow;
+     * a retry keeps the target. The answer is a normal plan, with the choice again when it is still over.
+     */
+    fun adjustToFit(estimateId: Long) {
+        val choice = _uiState.value.actions?.takeIf { it.estimateId == estimateId }?.choice ?: return
+        if (local.value.pending != null) return
+        val text = "Ajusta para caber em ${choice.limitKcal} kcal."
+        budgetChoice(PlanBudget.FIT, choice.overKcal)
+        local.update {
+            it.copy(pending = text, pendingPhoto = null, pendingForce = false, failed = false, sentOnce = true, pendingAddition = null, pendingFit = choice.limitKcal)
+        }
+        viewModelScope.launch { post(text, fit = choice.limitKcal) }
+    }
+
+    // ------------------------------------------------------------------ reserve a plan (A60 part D, ADR-046)
+
+    /**
+     * Reservar para o {slot} (chatR → chatRL): the plan becomes the reservation of its meal of today, in one transaction
+     * that rechecks the day, the wipe and that the meal has nothing eaten. Reserving again from another plan replaces it.
+     */
+    fun reserve(estimateId: Long) {
+        val slot = _uiState.value.actions?.takeIf { it.estimateId == estimateId }?.reserve ?: return
+        once(estimateId) {
+            val plan = openEstimate(estimateId)?.takeIf { it.isPlanEstimate } ?: return@once
+            val date = SaoPaulo.date(clock.now()).toString()
+            val reservation = PlannedSlot(
+                text = plan.estimateMealText?.takeIf { it.isNotBlank() } ?: ReplyMarkup.plain(plan.text),
+                kcal = plan.estimateKcal ?: return@once,
+                p = plan.estimateP ?: 0,
+                c = plan.estimateC ?: 0,
+                g = plan.estimateG ?: 0,
+                sourceMessageId = plan.id,
+            )
+            val result = repository.reserve(date, repository.latestWipeToday(), slot.id, reservation)
+            if (result is ReserveResult.Reserved) planReserved(if (result.replaced != null) "replaced" else "reserved")
+        }
+    }
+
+    private fun planReserved(action: String) = telemetry.event(TelemetryEvents.PLAN_RESERVED, mapOf("action" to action))
+
+    private fun budgetChoice(choice: String, overKcal: Int) =
+        telemetry.event(TelemetryEvents.PLAN_BUDGET_CHOICE, mapOf("choice" to choice, "over_kcal" to overKcal))
 
     // ------------------------------------------------------------------ photo (A6)
 
@@ -357,7 +420,7 @@ class ChatViewModel @Inject constructor(
         captureFile?.let { photos.delete(it.path) }
     }
 
-    private suspend fun post(text: String, photo: String? = null, force: Boolean = false) {
+    private suspend fun post(text: String, photo: String? = null, force: Boolean = false, fit: Int? = null) {
         val sentAt = clock.now()
         val date = SaoPaulo.date(sentAt).toString()
         val today = repository.messagesOf(date)
@@ -389,6 +452,7 @@ class ChatViewModel @Inject constructor(
         }
         var turn = PromptBuilder.build(
             snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force, pendingAddition = pendingAddition,
+            fitKcal = fit,
         )
         if (turn.needsCompact) {
             // A38: the oldest block(s), the open tail stays raw. A failed compact never fails the turn: nothing
@@ -405,7 +469,7 @@ class ChatViewModel @Inject constructor(
                 digests = repository.digestsToday()
                 turn = PromptBuilder.build(
                     snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force,
-                    pendingAddition = pendingAddition,
+                    pendingAddition = pendingAddition, fitKcal = fit,
                 )
             }
             if (stored > 0) {
@@ -491,8 +555,10 @@ class ChatViewModel @Inject constructor(
             recordState = recordState,
             mealChange = proposal?.encode(),
             skipOutcomes = skips?.encode(),
+            // A60 part A: only a plan with its estimate carries the budget check; malformed or absent = no choice UI.
+            planBudget = PlanBudget.parse(out.planBudget)?.takeIf { intent == "plan" && out.estimate != null }?.encode(),
         )
-        local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null) }
+        local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null, pendingFit = null) }
         proposal?.let { proposalShown(it, fresh) }
         if (recordMode == RECORD_AUTO && recordState == ChatRecorder.NOT_RECORDED) {
             recordGuard(proposal?.takeIf { !it.actionable }?.reason ?: GUARD_STALE)
@@ -571,7 +637,7 @@ class ChatViewModel @Inject constructor(
                 repository.setRecordState(answerId, ChatRecorder.NOT_RECORDED)
                 return
             }
-            val skipped = runCatching { repository.slotState(answer.date, slot.id).empty && recorder.skip(answerId, slot) }
+            val skipped = runCatching { repository.slotState(answer.date, slot.id).let { it.open && recorder.skip(answerId, slot, it) } }
                 .onFailure { if (it is CancellationException) throw it }
             if (!skipped.getOrDefault(false)) {
                 notRecorded(answerId, if (skipped.isFailure) GUARD_WRITE_FAILED else GUARD_STALE)
@@ -649,8 +715,9 @@ class ChatViewModel @Inject constructor(
                 state.records.isNotEmpty() -> repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.PENDING_DELETE, state))
                     .also { if (it) skipDeleteEvent("shown") }
                 state.skipped -> repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.ALREADY, state))
-                else -> recorder.skipListed(answerId, slot).also {
+                else -> recorder.skipListed(answerId, slot, state).also {
                     if (it) {
+                        if (state.planned != null) planReserved("cleared_by_skip")
                         mealSkipped(with)
                         autoEvent("skip", "empty", "user", rounds)
                     }
@@ -799,7 +866,10 @@ class ChatViewModel @Inject constructor(
     private suspend fun recordInto(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, slot: SlotRef): RecordOutcome {
         val outcome = recorder.record(newRecord(estimate, day), slot)
         when (outcome) {
-            is RecordOutcome.Recorded -> mealSaved(estimate, day)
+            is RecordOutcome.Recorded -> {
+                if (outcome.before.planned != null) planReserved("cleared_by_record")
+                mealSaved(estimate, day, hadPlan = outcome.before.planned != null)
+            }
             is RecordOutcome.Taken -> {
                 val pending = SlotChange(estimate.date, slot.id, outcome.state, outcome.state)
                 repository.setRecordState(estimate.id, ChatRecorder.PENDING_REPLACE, UndoData.encodeChange(pending))
@@ -865,7 +935,8 @@ class ChatViewModel @Inject constructor(
         )
         if (outcome is RecordOutcome.Recorded) {
             mealUpdateEvent(proposal.operation, "confirmed")
-            mealSaved(estimate, day, record.kcal)
+            if (outcome.before.planned != null) planReserved("cleared_by_record")
+            mealSaved(estimate, day, record.kcal, hadPlan = outcome.before.planned != null)
         } else {
             expireProposal(estimate, proposal)
         }
@@ -1014,10 +1085,11 @@ class ChatViewModel @Inject constructor(
     private fun sourceOf(estimate: ChatMessageEntity, day: List<ChatMessageEntity>) =
         if (userBefore(estimate, day)?.photoPath != null) "photo" else "user"
 
-    private fun mealSaved(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, kcal: Int = estimate.estimateKcal ?: 0) = telemetry.event(
-        TelemetryEvents.MEAL_SAVED,
-        mapOf("from" to "chat", "has_photo" to (userBefore(estimate, day)?.photoPath != null), "kcal" to kcal),
-    )
+    private fun mealSaved(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, kcal: Int = estimate.estimateKcal ?: 0, hadPlan: Boolean = false) =
+        telemetry.event(
+            TelemetryEvents.MEAL_SAVED,
+            mapOf("from" to "chat", "has_photo" to (userBefore(estimate, day)?.photoPath != null), "kcal" to kcal, "had_plan" to hadPlan),
+        )
 
     // ------------------------------------------------------------------ receipt actions (A34)
 
@@ -1099,7 +1171,8 @@ class ChatViewModel @Inject constructor(
                 routine = listOf(RoutineUpdate(MemoryRules.REINFORCE, suggestion.factId, MemoryRules.DYNAMIC, MemoryRules.ROUTINE, slot = slot.id.toString())),
                 estimateId = null,
             )
-            if (recorder.record(new, slot, expected = SlotState.EMPTY) !is RecordOutcome.Recorded) return@launch
+            val state = repository.slotState(today.date, slot.id).takeIf { it.open } ?: return@launch
+            if (recorder.record(new, slot, expected = state) !is RecordOutcome.Recorded) return@launch
             routineEvent("record")
             telemetry.event(TelemetryEvents.MEAL_SAVED, mapOf("from" to SOURCE_ROUTINE, "has_photo" to false, "kcal" to suggestion.kcal))
         }
@@ -1182,7 +1255,10 @@ class ChatViewModel @Inject constructor(
             val plan = Macros(m.estimateKcal ?: 0, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
             // A recorded plan is already inside the day: it is counted once, not projected on top.
             val base = if (recordedPlan(m, todayRows)) eaten.minus(plan) else eaten
-            ProjectedDay.of(budget, base, plan, targets)
+            // A60 part D: the plans reserved for the other meals count in the day; this plan's own meal is the plan itself.
+            val others = d.planned.filterKeys { it != m.estimateSlotId }.values
+            val reserved = Macros(others.sumOf { it.kcal }, others.sumOf { it.p }, others.sumOf { it.c }, others.sumOf { it.g })
+            ProjectedDay.of(budget, base, plan, targets, reserved)
         }
         val todayStates = todayStates(d)
         val stateOf = { date: String, slotId: Long ->
@@ -1192,6 +1268,9 @@ class ChatViewModel @Inject constructor(
         // Registrar (chatE) or Registrar assim (chatR): the last estimate of today that is still open.
         val lastEstimate = todayRows.lastOrNull { it.role == "assistant" && it.isRecordable }
         val open = lastEstimate?.takeIf { l.pending == null && isOpen(it, todayRows) }
+        // A60 part A (chatRB): the most recent plan of today, before any new send, over its window and not accepted.
+        val choice = open?.takeIf { p -> p.isPlanEstimate && todayRows.none { it.role == "user" && it.id > p.id } }
+            ?.let { PlanBudget.decode(it.planBudget) }?.takeIf { it.choosing }
         val stalePending = mutableListOf<ChatMessageEntity>()
         val wipeToday = todayRows.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
 
@@ -1253,6 +1332,8 @@ class ChatViewModel @Inject constructor(
                 plan = if (m.isPlanEstimate && m.date == todayIso) project(m) else null,
                 offer = open?.id == m.id && !m.isPlanEstimate,
                 notRecorded = notRecorded,
+                budget = choice?.takeIf { open?.id == m.id }?.let { BudgetNote(it.overKcal, it.reserved.map { r -> r.kcal to r.label }) },
+                reservedFor = m.estimateSlotId?.takeIf { m.date == todayIso && d.planned[it]?.sourceMessageId == m.id }?.let { slotById[it]?.name },
             )
             if (proposalOpen && holds && proposal != null) {
                 when (m.recordState) {
@@ -1286,7 +1367,18 @@ class ChatViewModel @Inject constructor(
 
         val nowMinutes = SlotClock.minutesFromMidnight(now)
         val current = SlotClock.current(slots, nowMinutes) { it.minutes }
-        val actions = open?.let { EstimateActions(it.id, record = it.estimateSlotId?.let { id -> slotById[id] }, plan = it.isPlanEstimate) }
+        val actions = open?.let {
+            EstimateActions(
+                it.id,
+                record = it.estimateSlotId?.let { id -> slotById[id] },
+                plan = it.isPlanEstimate,
+                choice = choice?.let { b -> BudgetChoice(b.limitKcal, b.overKcal) },
+                // A60 part D: a plan of today for a meal of today with nothing eaten, not already its reservation.
+                reserve = it.estimateSlotId?.takeIf { id ->
+                    it.isPlanEstimate && (todayStates[id]?.open != false) && d.planned[id]?.sourceMessageId != it.id
+                }?.let { id -> slotById[id] },
+            )
+        }
         // A30: from the second question in a row, Forçar estimativa takes the actions slot (chatQ).
         val forceEstimate = l.pending == null && l.attachment == null &&
             todayRows.lastOrNull()?.let(PromptBuilder::isQuestionOnly) == true &&
@@ -1344,13 +1436,14 @@ class ChatViewModel @Inject constructor(
         else -> m.recordMode == RECORD_ASK && m.recordState == null
     }
 
-    /** Today's slots as the receipts compare them: logs in id order and the skip. */
+    /** Today's slots as the receipts compare them: logs in id order, the skip and the reservation (A60 part D). */
     private fun todayStates(d: DaySnapshot): Map<Long, SlotState> {
         val logs = d.logs.filter { it.slotId != null }.groupBy { it.slotId!! }
-        return (logs.keys + d.skippedSlotIds).associateWith { id ->
+        return (logs.keys + d.skippedSlotIds + d.planned.keys).associateWith { id ->
             SlotState(
                 logs[id].orEmpty().map { SlotRecord(it.text, it.kcal, it.p, it.carbs, it.fat, it.source, it.window, it.stable) },
                 id in d.skippedSlotIds,
+                d.planned[id],
             )
         }
     }
@@ -1497,6 +1590,13 @@ class ChatViewModel @Inject constructor(
             },
             actions = actions,
             moveConfirm = moveConfirm?.takeIf { ReceiptAction.MOVE in actions },
+            planLine = undo?.recordSlot?.takeIf { m.role in setOf(ReceiptRules.LOGGED, ReceiptRules.REPLACED) }?.let { change ->
+                change.before.planned?.let { plan ->
+                    val diff = change.after.kcal - plan.kcal
+                    val signed = if (diff < 0) "\u2212${-diff}" else "+$diff"
+                    "Plano: ${plan.kcal} · Registrado: ${change.after.kcal} ($signed kcal)"
+                }
+            },
         )
     }
 
@@ -1541,6 +1641,8 @@ class ChatViewModel @Inject constructor(
         plan: ProjectedDay?,
         offer: Boolean,
         notRecorded: Boolean,
+        budget: BudgetNote? = null,
+        reservedFor: String? = null,
     ): ChatItem.Assistant {
         val slotQuestion = m.estimateSlotId?.takeIf { offer }?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" }
         // A47: an addition shows only the added food (+ numbers), a revision its NOVO TOTAL; a rejected proposal no card.
@@ -1573,6 +1675,10 @@ class ChatViewModel @Inject constructor(
             memory = memoryOf(m),
             notRecorded = notRecorded,
             prose = estimate == null || estimate.kind == EstimateKind.MEAL,
+            budget = budget,
+            reservedFor = reservedFor,
+            // A60 part C: a reply with the subset's markers is drawn as blocks (ADR-045); plain prose stays as it was.
+            blocks = m.text.takeIf { ReplyMarkup.formatted(it) }?.let(ReplyMarkup::parse),
         )
     }
 
@@ -1593,10 +1699,11 @@ class ChatViewModel @Inject constructor(
         estimate.estimateMealText?.takeIf { it.isNotBlank() }?.let { return it }
         val user = chainStart(estimate, day)
         if (user != null) {
-            if (user.photoPath != null) return estimate.text
+            // A60 part C: a record never keeps the markers of the reply (ADR-045).
+            if (user.photoPath != null) return ReplyMarkup.plain(estimate.text)
             if (user.text.isNotBlank()) return user.text
         }
-        return estimate.itemNames.joinToString(", ").ifBlank { estimate.text }
+        return estimate.itemNames.joinToString(", ").ifBlank { ReplyMarkup.plain(estimate.text) }
     }
 
     /**

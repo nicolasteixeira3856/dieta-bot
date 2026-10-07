@@ -34,4 +34,7 @@ data class ProfileEntity(
     val carbTargetG: Int = 200,
     @ColumnInfo(defaultValue = "67")
     val fatTargetG: Int = 67,
+    /** A60 part B (ADR-044, v12): "seco" | "duro", the tone of the Tali. */
+    @ColumnInfo(defaultValue = "'seco'")
+    val tone: String = "seco",
 )

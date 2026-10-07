@@ -69,6 +69,11 @@ data class ChatMessageEntity(
      * state each slot had when applied and its outcome. Null = no skips (older row or a server without the capability).
      */
     val skipOutcomes: String? = null,
+    /**
+     * Assistant rows (A60 part A, v12): [app.fibrai.android.domain.PlanBudget] JSON, the server `plan_budget` of a plan and
+     * the local choice (Pode passar). Null = no budget check (older row, older server or not a plan).
+     */
+    val planBudget: String? = null,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

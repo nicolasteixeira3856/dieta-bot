@@ -240,6 +240,26 @@ class ConfigViewModelTest {
         assertThat(repo.observeToday().first().workoutKcal).isNull()
     }
 
+    /** A60 part B (cfgT): the row shows the tone; Salvar stores it with no wipe and no confirmation. */
+    @Test
+    fun tone_rowSheetAndSave_withoutWipe() = runBlocking<Unit> {
+        assertThat(vm.uiState.value.toneValue).isEqualTo("Seco")
+        vm.open(ConfigEditor.TONE)
+        assertThat(vm.uiState.value.draft.tone).isEqualTo("seco")
+        vm.setTone("duro")
+        assertThat(repo.observeToday().first().tone).isEqualTo("seco")
+        vm.save()
+        awaitUi { it.toneValue == "Duro" && it.editor == null }
+        assertThat(vm.uiState.value.wipeConfirm).isFalse()
+        assertThat(repo.observeToday().first().tone).isEqualTo("duro")
+        assertThat(repo.observeToday().first().logs).hasSize(1)
+        // Cancelar keeps the stored tone.
+        vm.open(ConfigEditor.TONE)
+        vm.setTone("seco")
+        vm.close()
+        assertThat(repo.observeToday().first().tone).isEqualTo("duro")
+    }
+
     @Test
     fun workout_rolloverSaoPauloStartsEmpty() = runBlocking<Unit> {
         repo.setWorkout(500)

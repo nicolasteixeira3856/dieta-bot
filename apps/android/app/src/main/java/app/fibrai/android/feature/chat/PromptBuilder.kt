@@ -22,6 +22,7 @@ import app.fibrai.android.core.network.ChatTurn
 import app.fibrai.android.domain.ChatText
 import app.fibrai.android.domain.Fact
 import app.fibrai.android.domain.MealProposal
+import app.fibrai.android.domain.ReplyMarkup
 import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.domain.SlotSuggestions
 import java.time.Instant
@@ -42,6 +43,11 @@ object PromptBuilder {
     const val MAX_RECENT = 42
     const val MAX_RECENT_TEXT = 240
     const val OTHERS = "Outros"
+
+    /** A60 part B (ADR-044): the tones of the Tali; anything else goes as seco. */
+    const val TONE_SECO = "seco"
+    const val TONE_DURO = "duro"
+    val TONES = setOf(TONE_SECO, TONE_DURO)
     private val ROLES = setOf("user", "assistant")
 
     /**
@@ -76,6 +82,8 @@ object PromptBuilder {
         forceEstimate: Boolean = false,
         /** A47: the unrecorded addition this message continues, already checked against today's DAY; else null. */
         pendingAddition: ChatPendingAddition? = null,
+        /** A60 part A: Ajustar para caber, the target of the adjusted plan; null otherwise. */
+        fitKcal: Int? = null,
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -101,6 +109,8 @@ object PromptBuilder {
                 tempFacts = true,
                 mealChanges = true,
                 skipSlots = true,
+                planBudget = true,
+                fitKcal = fitKcal,
                 pendingAddition = pendingAddition,
             ),
             blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames, eaten) }, block.last().id) },
@@ -160,7 +170,9 @@ object PromptBuilder {
      * its first line, the added food and its `+kcal`: the server's meal total would contradict DAY.
      */
     private fun chatTurn(m: ChatMessageEntity, slotNames: Map<Long, String>, eaten: Set<Long>): ChatTurn {
-        val text = turnText(m).let { if (totalContradictsDay(m, eaten)) it.lineSequence().first() else it }
+        // A60 part C: the history line of an answer carries no markers (ADR-045).
+        val text = turnText(m).let { if (m.role == "assistant") ReplyMarkup.plain(it) else it }
+            .let { if (totalContradictsDay(m, eaten)) it.lineSequence().first() else it }
         val name = m.estimateSlotId?.takeIf { m.role == "assistant" }?.let(slotNames::get)
             ?: return ChatTurn(m.role, ChatText.clip(text))
         val marker = "\n" + slotMarker(name)
@@ -231,7 +243,7 @@ object PromptBuilder {
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, pendingAddition = null, skipSlots = false)
+        turn.body.copy(compact = true, text = "", messages = block.messages, pendingAddition = null, skipSlots = false, planBudget = false, fitKcal = null)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {
@@ -312,6 +324,7 @@ object PromptBuilder {
         },
         slots = day.slotsOn(today).sortedBy { it.minutesFromMidnight }
             .map { ChatSlot(it.id.toString(), it.name, SlotSuggestions.format(it.minutesFromMidnight)) },
+        tone = day.tone.takeIf { it in TONES } ?: TONE_SECO,
     )
 
     private fun snapshot(day: DaySnapshot, today: LocalDate) = ChatDay(
@@ -335,6 +348,10 @@ object PromptBuilder {
                     g = logs.sumOf { it.fat },
                 )
                 slot.id in day.skippedSlotIds -> ChatDaySlot(slot.id.toString(), "skipped")
+                // A60 part D: a reserved plan goes with its numbers; nothing of it is eaten.
+                day.planned[slot.id] != null -> day.planned.getValue(slot.id).let { plan ->
+                    ChatDaySlot(slot.id.toString(), "planned", text = plan.text, kcal = plan.kcal, p = plan.p, c = plan.c, g = plan.g)
+                }
                 else -> ChatDaySlot(slot.id.toString(), "empty")
             }
         },

@@ -1,10 +1,16 @@
 package app.fibrai.android.feature.home
 
 import androidx.compose.runtime.Immutable
+import app.fibrai.android.core.database.ClosureEntity
 import app.fibrai.android.core.database.slotsOn
 import app.fibrai.android.core.database.DaySnapshot
 import app.fibrai.android.core.database.MealLog
 import app.fibrai.android.core.database.metaOn
+import app.fibrai.android.domain.ClosureDay
+import app.fibrai.android.domain.ClosureMeal
+import app.fibrai.android.domain.ClosureWeek
+import app.fibrai.android.domain.Closures
+import app.fibrai.android.domain.Macros
 import app.fibrai.android.domain.SlotSuggestions
 import app.fibrai.android.feature.workout.WorkoutEditorState
 import java.time.LocalDate
@@ -32,6 +38,9 @@ enum class SlotState {
     /** No logs, no skip: the next one to fill (after the last filled slot). */
     NEXT,
     EMPTY,
+
+    /** A60 part D (homeP): a plan reserved for the meal; nothing eaten, not in the ring. */
+    PLANNED,
 }
 
 @Immutable
@@ -52,6 +61,30 @@ data class TimelineSlot(
     val summary: String get() = "$kcal kcal · ${p}P · ${c}C · ${g}G"
 }
 
+/**
+ * A closure card (A60 part B, homeC / homeK): [expanded] shows the title, the numbers, the detail lines and the server
+ * text; collapsed, only [line]. Tap on a collapsed card expands it.
+ */
+@Immutable
+data class ClosureCard(
+    val key: String,
+    val period: String,
+    val expanded: Boolean,
+    val title: String,
+    /** "1300 de 2175 kcal" (day) or "13.420 kcal · média 1.917 kcal/dia" (week). */
+    val kcalLine: String,
+    /** Day only: P/C/G eaten over their targets, in the macro colours. */
+    val macros: List<MacroLine>? = null,
+    /** "Pulado: Lanche · Sem registro: Jantar" (day) or "Proteína: média 118 g/dia · Dias sem registro: 1" (week). */
+    val detail: String? = null,
+    /** "Treino: 350 kcal" (day) or "Jantar passou da janela em 4 dias" (week). */
+    val extra: String? = null,
+    /** The server text, or what stands in for it (no network, no record). */
+    val text: String,
+    /** Collapsed: "Ontem: 1300 de 2175 kcal". */
+    val line: String,
+)
+
 @Immutable
 data class HomePanelUiState(
     val dayLabel: String = "DIA 1",
@@ -68,6 +101,8 @@ data class HomePanelUiState(
     val workoutCredit: Int = 0,
     /** A22: "Treino de hoje" sheet (homeW). Null = closed. */
     val workoutEditor: WorkoutEditorState? = null,
+    /** A60 part B: the week card above the day card, between the workout row and the timeline. */
+    val closures: List<ClosureCard> = emptyList(),
 ) {
     val over: Int get() = (consumed - meta).coerceAtLeast(0)
     val ringFraction: Float get() = if (meta <= 0) 1f else (consumed.toFloat() / meta).coerceIn(0f, 1f)
@@ -76,8 +111,17 @@ data class HomePanelUiState(
 object HomePanelMapper {
     private val dateFormat = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
 
-    /** [workoutDraft] = field of the open workout sheet, null when closed. */
-    fun map(day: DaySnapshot, today: LocalDate, workoutDraft: String? = null): HomePanelUiState {
+    /**
+     * [workoutDraft] = field of the open workout sheet, null when closed. [closures]: the stored closures of the last
+     * days; [expanded]: the keys of collapsed cards the user tapped open.
+     */
+    fun map(
+        day: DaySnapshot,
+        today: LocalDate,
+        workoutDraft: String? = null,
+        closures: List<ClosureEntity> = emptyList(),
+        expanded: Set<String> = emptySet(),
+    ): HomePanelUiState {
         val first = day.firstDay.takeIf { it.isNotBlank() }?.let(LocalDate::parse) ?: today
         val appDay = (ChronoUnit.DAYS.between(first, today) + 1).coerceAtLeast(1)
         val meta = day.metaOn(today)
@@ -98,7 +142,90 @@ object HomePanelMapper {
             workoutKcal = day.workoutKcal,
             workoutCredit = stored.credit,
             workoutEditor = workoutDraft?.let { stored.copy(input = it) },
+            closures = closureCards(day, today, closures, expanded),
         )
+    }
+
+    // ------------------------------------------------------------------ closures (A60 part B, ADR-044)
+
+    private fun closureCards(day: DaySnapshot, today: LocalDate, rows: List<ClosureEntity>, expanded: Set<String>): List<ClosureCard> {
+        val week = rows.filter { it.period == Closures.WEEK }.maxByOrNull { it.date }?.let { row ->
+            val state = Closures.weekCard(LocalDate.parse(row.date), today)
+            weekCard(row, state, expanded)
+        }
+        // Today's closure replaces yesterday's; yesterday's stays until the first record of today, then one line.
+        val days = rows.filter { it.period == Closures.DAY }
+        val dayRow = days.firstOrNull { it.date == today.toString() } ?: days.firstOrNull { it.date == today.minusDays(1).toString() }
+        val dayCard = dayRow?.let { row ->
+            val closed = LocalDate.parse(row.date)
+            val state = Closures.dayCard(closed, today, todayHasRecord = day.logs.isNotEmpty())
+            // A later record of today updates the numbers of today's card from Room, not the text.
+            val numbers = if (closed == today) liveDay(day, today) else decodeDay(row.numbers)
+            numbers?.let { dayCard(row, it, closed, today, state, expanded, Triple(day.proteinTargetG, day.carbTargetG, day.fatTargetG)) }
+        }
+        return listOfNotNull(week, dayCard)
+    }
+
+    private fun dayCard(
+        row: ClosureEntity,
+        n: ClosureDay,
+        closed: LocalDate,
+        today: LocalDate,
+        state: Closures.CardState,
+        expanded: Set<String>,
+        targets: Triple<Int, Int, Int>,
+    ): ClosureCard? {
+        if (state == Closures.CardState.HIDDEN) return null
+        val kcalLine = "${n.kcal} de ${n.ceilingKcal} kcal"
+        return ClosureCard(
+            key = row.key,
+            period = row.period,
+            expanded = state == Closures.CardState.EXPANDED || row.key in expanded,
+            title = Closures.dayTitle(closed),
+            kcalLine = kcalLine,
+            macros = listOf(MacroLine(n.p, targets.first), MacroLine(n.c, targets.second), MacroLine(n.g, targets.third)),
+            detail = Closures.missingLine(n),
+            extra = n.workoutKcal?.let { "Treino: $it kcal" },
+            text = cardText(row),
+            line = (if (closed == today) "Hoje: " else "Ontem: ") + kcalLine,
+        )
+    }
+
+    private fun weekCard(row: ClosureEntity, state: Closures.CardState, expanded: Set<String>): ClosureCard? {
+        if (state == Closures.CardState.HIDDEN) return null
+        val n = runCatching { Closures.json.decodeFromString(ClosureWeek.serializer(), row.numbers) }.getOrNull() ?: return null
+        val monday = LocalDate.parse(row.date)
+        val kcalLine = "${Closures.thousands(n.total)} kcal · média ${Closures.thousands(n.meanKcal)} kcal/dia"
+        return ClosureCard(
+            key = row.key,
+            period = row.period,
+            expanded = state == Closures.CardState.EXPANDED || row.key in expanded,
+            title = Closures.weekTitle(monday, monday.plusDays(6)),
+            kcalLine = kcalLine,
+            detail = "Proteína: média ${n.meanP} g/dia · Dias sem registro: ${n.unrecorded}",
+            extra = n.overSlot?.let { "${it.name} passou da janela em ${it.days} ${if (it.days == 1) "dia" else "dias"}" },
+            text = cardText(row),
+            line = "Semana: $kcalLine",
+        )
+    }
+
+    private fun cardText(row: ClosureEntity): String = when (row.status) {
+        Closures.EMPTY -> "Nenhum registro."
+        Closures.OFFLINE -> "Sem o texto: sem rede."
+        else -> row.text ?: "Sem o texto: sem rede."
+    }
+
+    private fun decodeDay(numbers: String): ClosureDay? =
+        runCatching { Closures.json.decodeFromString(ClosureDay.serializer(), numbers) }.getOrNull()
+
+    /** Today's numbers as the closure computes them, from the snapshot. */
+    fun liveDay(day: DaySnapshot, today: LocalDate): ClosureDay {
+        val meals = day.slotsOn(today).sortedBy { it.minutesFromMidnight }.map { slot ->
+            val logs = day.logs.filter { it.slotId == slot.id }
+            ClosureMeal(slot.id, slot.name, logs.sumOf { it.kcal }, slot.id in day.skippedSlotIds, day.planned[slot.id]?.kcal, logs.isNotEmpty())
+        }
+        val totals = Macros(day.logs.sumOf { it.kcal }, day.logs.sumOf { it.p }, day.logs.sumOf { it.carbs }, day.logs.sumOf { it.fat })
+        return Closures.day(today, meals, totals, day.metaOn(today), day.workoutKcal)
     }
 
     private fun timeline(day: DaySnapshot, meta: Int, today: LocalDate): List<TimelineSlot> {
@@ -115,6 +242,9 @@ object HomePanelMapper {
                     filled(slot.id, slot.name, time, logs.map { LogLine(it.text, it.kcal) }, logs, running > meta)
                 }
                 slot.id in day.skippedSlotIds -> TimelineSlot(slot.id, slot.name, time, SlotState.SKIPPED)
+                day.planned[slot.id] != null -> day.planned.getValue(slot.id).let { plan ->
+                    TimelineSlot(slot.id, slot.name, time, SlotState.PLANNED, lines = listOf(LogLine(plan.text, plan.kcal)), kcal = plan.kcal)
+                }
                 else -> TimelineSlot(slot.id, slot.name, time, if (lastFilled >= 0 && i == lastFilled + 1) SlotState.NEXT else SlotState.EMPTY)
             }
         }

@@ -83,7 +83,7 @@ class MigrationV9V10Test {
 
         val context = ApplicationProvider.getApplicationContext<Context>()
         val db = Room.databaseBuilder(context, FibraiDatabase::class.java, name)
-            .addMigrations(MIGRATION_9_10, MIGRATION_10_11)
+            .addMigrations(MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
             .allowMainThreadQueries()
             .build()
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())

@@ -66,6 +66,10 @@ interface ChatMessageDao {
     @Query("UPDATE chat_message SET receiptState = :state WHERE id = :id")
     suspend fun setReceiptState(id: Long, state: String)
 
+    /** A60 part A: the plan budget of an answer and its local choice. */
+    @Query("UPDATE chat_message SET planBudget = :planBudget WHERE id = :id")
+    suspend fun setPlanBudget(id: Long, planBudget: String)
+
     /** A59: the skips of an answer. */
     @Query("SELECT skipOutcomes FROM chat_message WHERE id = :id")
     suspend fun skipOutcomesOf(id: Long): String?
