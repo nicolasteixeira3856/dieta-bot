@@ -54,6 +54,6 @@ Long press, handles and the system bar with Copiar and Selecionar tudo: no new s
 
 - Specifications affected: [Chat](../specifications/chat.md) (actions placement, message selection and Copiar), [home-timeline](../specifications/home-timeline.md), [memoria-push](../specifications/memoria-push.md) (Config), [perfil-onboarding](../specifications/perfil-onboarding.md) (scrolling screenshot).
 - Related ADRs: [ADR-026](ADR-026-perguntas-antes-da-estimativa.md), [ADR-028](ADR-028-registro-autonomo.md), [ADR-039](ADR-039-plan-cooking-and-budget-choice.md), [ADR-045](ADR-045-rich-replies-in-chat-bubbles.md), [ADR-046](ADR-046-planned-meal-reservation.md), [ADR-031](../../design/adrs/ADR-031-figma-source-of-truth.md) (golds first).
-- Plans: [D20](../../design/plans/d20-figma-review-inline-actions.md) (golds), [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) (client).
+- Plans: [D20](../../design/plans/pending_manual_validation/d20-figma-review-inline-actions.md) (golds), [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) (client).
 
 Once accepted, the body of this ADR does not change. Only the `- Status:` line changes, to record a total or partial supersession by a new ADR.

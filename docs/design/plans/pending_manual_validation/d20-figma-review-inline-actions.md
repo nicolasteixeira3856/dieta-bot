@@ -1,13 +1,13 @@
 # Plan — D20 Figma review: stale frames, Chat actions in the thread, copying messages
 
-- Status: Em implementação (approved 07/10/2026)
+- Status: Pendente aprovação manual (owner review in Figma, 07/10/2026)
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Splash e onboarding", "Chat", "Chat · D6" and "Config e push" (only the frames listed below); components in `Componentes` only if a variant is missing. Repository: `docs/qa/figma/{dark,light}/<ids>.png` of the changed frames, `tools/export-figma.mjs` only if a node id changes, and `tools/diff-gold.mjs` rules that exist only because of a stale frame.
-- Prerequisites: D12, D16, D17, D18 and D19 `Concluído` ([history](completed/)); A60 merged (the app the frames are compared with, 0.0.18-dev).
+- Prerequisites: D12, D16, D17, D18 and D19 `Concluído` ([history](../completed/)); A60 merged (the app the frames are compared with, 0.0.18-dev).
 - Figma MCP budget: ≤ 110 calls (at most 120 a day, ADR-031 § 6).
 
-One review plan for several flows by owner decision (07/10/2026): the frames are small corrections of existing golds plus one layout change (the Chat actions) and the two copy states, and the client plan [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) waits for all of them. Approving this plan accepts [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d20-figma-review-inline-actions.md. Implemente o plano aprovado.`
+One review plan for several flows by owner decision (07/10/2026): the frames are small corrections of existing golds plus one layout change (the Chat actions) and the two copy states, and the client plan [A61](../../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) waits for all of them. Approving this plan accepts [ADR-048](../../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d20-figma-review-inline-actions.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -18,10 +18,10 @@ Bring every gold that no longer matches the app or the live specifications back 
 | Gold | What is stale or changes | Behavior source |
 |---|---|---|
 | `chatQ`, `chatE`, `chatR`, `chatRB`, `chatRK`, `chatRL` | Actions (Forçar estimativa; Registrar; Registrar assim + Reservar; Pode passar · Ajustar para caber) drawn in the slot pinned above the composer | ADR-048 decision 1; ADR-026, ADR-028, ADR-039, ADR-046 for what each action is |
-| `chatRB` | D12 drew the plan as plain lines; the app renders the D17 blocks (bullets with the 17 dp marker column, numbered steps with the 21 dp column, 12 dp between blocks, P/C/G colours) | ADR-045, [Chat](../../produto/specifications/chat.md) rule 2 |
+| `chatRB` | D12 drew the plan as plain lines; the app renders the D17 blocks (bullets with the 17 dp marker column, numbered steps with the 21 dp column, 12 dp between blocks, P/C/G colours) | ADR-045, [Chat](../../../produto/specifications/chat.md) rule 2 |
 | `chatR`, `chatE` (Dark) | The Dark clones paint the reply's first paragraph in the bubble colour, so it is invisible | Light frames of the same ids |
-| `o1`, `o1e`, `o2`, `o3`, `o3s`, `o3t`, `o4` | Progress reads `n/4`; onboarding has 5 steps since D16 (`n/5`); `o4` CTA reads Concluir e começar, the app reads **Continuar** (Concluir e começar moved to `o5`) | [perfil-onboarding](../../produto/specifications/perfil-onboarding.md) rules 4 and 4a, ADR-044 |
-| `cfgS` | Predates the `Tom da Tali` row of the targets card | [memoria-push](../../produto/specifications/memoria-push.md) rule 12 |
+| `o1`, `o1e`, `o2`, `o3`, `o3s`, `o3t`, `o4` | Progress reads `n/4`; onboarding has 5 steps since D16 (`n/5`); `o4` CTA reads Concluir e começar, the app reads **Continuar** (Concluir e começar moved to `o5`) | [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) rules 4 and 4a, ADR-044 |
+| `cfgS` | Predates the `Tom da Tali` row of the targets card | [memoria-push](../../../produto/specifications/memoria-push.md) rule 12 |
 | `chatCP` (new) | none: long press on a bubble selects it; the header becomes the selection bar (✕, count, **Copiar**) | ADR-048 decision 2 |
 | `chatCC` (new) | none: after **Copiar**, `Mensagem copiada` / `{n} mensagens copiadas` for about 2 s (Android 12 and earlier; 13+ uses the system overlay) | ADR-048 decision 2 |
 | `cfgT` (Light) | Config behind the sheet is sharp under the scrim; the app's shared Sheet/Bottom blurs the screen behind it, as the `chatT` frame draws | `chatT` frame; the shared `AeroSheet` |
@@ -31,7 +31,7 @@ Code: `apps/android/app/src/main/java/app/fibrai/android/feature/{chat,onboardin
 ## Scope
 
 1. **Discovery (read only):**
-   - **Sweep:** every gold of the inventory in [docs/qa/README.md](../../qa/README.md) against its latest app capture and the live specifications; each difference classified `stale gold` (the app follows the spec; the frame changes here), `app gap` (the frame follows the spec; the app changes in A61), `ignored` (clock, status bar, sample text, long-thread crop) or `known` (the table above). A stale gold outside the table is added to this plan's frames only if it is a correction of the same kind (copy, counter, colour, a row the spec added); anything that changes a layout or a behavior is listed for the owner and stays out.
+   - **Sweep:** every gold of the inventory in [docs/qa/README.md](../../../qa/README.md) against its latest app capture and the live specifications; each difference classified `stale gold` (the app follows the spec; the frame changes here), `app gap` (the frame follows the spec; the app changes in A61), `ignored` (clock, status bar, sample text, long-thread crop) or `known` (the table above). A stale gold outside the table is added to this plan's frames only if it is a correction of the same kind (copy, counter, colour, a row the spec added); anything that changes a layout or a behavior is listed for the owner and stays out.
    - **Per changed frame:** every visible element classified `app`, `gold-only` or `copy`, as in the template.
    - Both tables go into Results before any write.
 2. **Chat actions in the thread** (`chatQ`, `chatE`, `chatR`, `chatRB`, `chatRK`, `chatRL`):
@@ -48,7 +48,7 @@ Code: `apps/android/app/src/main/java/app/fibrai/android/feature/{chat,onboardin
 4. **Corrections** (no layout change): `chatRB` plan text in D17 blocks with the macro colours; `chatR`, `chatE` Dark first paragraph in `text/primary`; `o1`–`o4` counter `n/5` and the `o4` CTA **Continuar** (same component and arrow as the other steps); `cfgS` with the `Tom da Tali` · `Seco` row after the macros, as `cfg`; `cfgT` Light with the page behind the sheet blurred as `chatT` (Dark only if the sweep finds the same).
 5. **Owner review** (Figma review gate): one screenshot per changed frame; the plan goes to `pending_manual_validation/` until the owner's OK in Figma; fixes follow with one screenshot per changed frame.
 6. **Export** after the OK:
-   - `chatCP` and `chatCC` node ids added to `tools/export-figma.mjs` and to the inventory of [docs/qa/README.md](../../qa/README.md) (and the Chat row of the golds table in this folder's README);
+   - `chatCP` and `chatCC` node ids added to `tools/export-figma.mjs` and to the inventory of [docs/qa/README.md](../../../qa/README.md) (and the Chat row of the golds table in this folder's README);
    - `node tools/export-figma.mjs --only <changed and new ids>`; untouched golds keep their bytes; other node ids change only if a frame was replaced;
    - `node tools/check-figma.mjs`;
    - `tools/diff-gold.mjs`: the gold-conflict entries that existed only because of a stale frame (`chatRB` tail start, `themeConflicts` of `chatE` Dark and `cfgT` Light, and the `cfgT` sheet region) are removed; long-thread rules stay;
@@ -110,3 +110,39 @@ No stale gold outside the table of Sources. `app gap` items handed to A61: **(1)
 | `o4` | CTA **Continuar** with the arrow | app | perfil-onboarding rule 4 |
 | `cfgS` | row `Tom da Tali` · `Seco` after the macros | app | memoria-push rule 12; `cfg` |
 | `cfgT` (Light) | page behind the sheet blurred under the scrim | app | shared `AeroSheet`; `chatT` |
+
+### Build (2026-10-07)
+
+**Chat actions in the thread** (`chatQ`, `chatE`, `chatR`, `chatRB`, `chatRK`, `chatRL`, Light and Dark, same node ids): in each frame the last thread element (the question or the `Bot` group) moved into a new `Answer` frame (vertical, 12 dp), followed by an `Actions` frame (vertical, 10 dp, thread width) holding the action instances that were in the `Footer`: `Chat/ActionBar` Forçar estimativa, Registrar, Registrar assim, Reservar para o Jantar, and the `Choice` row (Pode passar · Ajustar para caber). The `Footer` keeps only `Chat/Composer`. Fixed 844 px frames keep their height (the `Spacer` absorbs the difference); long frames grow with the content: `chatR` 928 → 930, `chatRB` 904 → 1002 (with the blocks below), `chatRK` 1065 → 1067, `chatRL` 896 → 898.
+
+**Corrections:**
+
+- `chatRB` (both themes): the plan text is now D17 blocks: `Macarrão com atum ao sugo:`, four `List/Bullet`, three `List/Step` and `Total: ~620 kcal · 42P · 70C · 18G` with `620 kcal` in `Body/Strong` and P/C/G in `macro/*`, as in `chatR`.
+- `chatR`, `chatE` (Dark): the cause was not an explicit mode. The reply's first paragraph is a plain text node whose bound `text/primary` paint kept the Light value as its placeholder colour, and the renderer drew the placeholder. Every text range bound to a colour variable outside instances in the 12 Chat frames now carries its frame mode's resolved value (2 ranges changed).
+- `o1`, `o1e`, `o2`, `o3`, `o3s`, `o3t`, `o4` (both themes): eyebrow `ONBOARDING n/5` and frame names `Onboarding n/5`. `Stepper/Progress` `Step=1`–`Step=4` now have 5 segments (65 px, filled up to n), so every onboarding stepper shows five. `o4` CTA **Continuar** (`Button/Primary` `Label`).
+- `cfgS` (both themes): divider and `Row · Tom da Tali` (`Seco`) after the macros, cloned from `cfg` of the same theme; frame 845 → 902 px (hug).
+- `cfgT`: the `Config` page under the scrim gets the `chatT` layer blur (8). Applied to Dark as well: the Dark frame had the same sharp page and only passed the pixel gate because of its low contrast; Dark stays a clone of Light.
+
+**Copying messages:**
+
+- Components (`Componentes` → section "Chat", under the existing entries; the section grew 910 px and the sections below moved down by the same amount, which also clears an overlap that existed before): `Chat/SelectionBar` (`171:7016`): 350 × 44, `IconButton/Glass` `Close` (Icon/x), `Count` (TEXT property, `Body/Strong`, `text/primary`, fills the row), `IconButton/Glass` `Copiar` (Icon/copy). `Chat/CopyToast` (`171:7038`): the `Chip/Date` glass pill (Surface/Glass, border, Glass effect), `Icon/check (bold)` 16 in `accent/default`, `Label` (TEXT property, `Caption/Strong`, `text/primary`), 165 × 36. Both with descriptions.
+- Frames (section "Chat", after `chatX`; the section widened to 4310 px):
+
+| Gold | Light | Dark | Size |
+|---|---|---|---|
+| `chatCP` · Chat com mensagens selecionadas | `173:5878` (x 3370) | `173:6008` | 390 × 902 |
+| `chatCC` · Chat com mensagem copiada | `173:5960` (x 3840) | `173:6031` | 390 × 948 |
+
+  Both start from `chatG` (user message, Tali reply with the estimate card, receipt `Registrado em Café da manhã` with Excluir · Trocar refeição · Editar). `chatCP`: `Chat/SelectionBar` with `2` in place of `Chat/Header`; behind the user row and the Tali row a `Selected` rectangle 390 px wide (the screen width, 6 px over and under the row) in `accent/default` at 15 % layer opacity (no new token); the receipt and its actions are not highlighted. `chatCC`: header back, `Chat/CopyToast` `Mensagem copiada` centred above the composer, 10 px over it. Long label: `2 mensagens copiadas` measures 185 px, on one line. Dark frames are clones with the Color mode Dark.
+
+### Validation (before the owner review)
+
+1. Discovery tables above, written before the first write.
+2. Read-back (`use_figma`) of the 34 changed frames: instances everywhere a DS component exists (16–36 per frame), zero visible solid paints without a variable or style, Dark frames in mode Dark and Light frames in Light (the onboarding and `cfgS` Light frames use the collection default, Light, as before); in the six action frames and in `chatCP`/`chatCC` the `Actions` stacks are inside `Thread` and the `Footer` holds only the composer (plus the toast in `chatCC`); `Chat/SelectionBar` and `Chat/CopyToast` are components with instances in both themes.
+3. Review images via `node tools/export-figma.mjs --only <node ids> --dry-run` (no MCP calls). Fixed during the build: `620 kcal` was regular in the first pass of `chatRB`.
+
+Figma MCP budget: 18 of 110 calls (whoami, 2 skill reads, 15 `use_figma`).
+
+### Owner review
+
+Pending: the owner reviews the sections "Chat · D5", "Chat · D6" (only the frames above), "Chat — Plano acima do orçamento", "Splash e onboarding · D4", "Config e push · D7" and the two new components in Figma. After the OK: export (Scope 6).
