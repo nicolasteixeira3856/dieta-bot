@@ -68,6 +68,9 @@ export const DARK_FRAMES = {
   // Skips next to other actions (D19)
   chatSK: "155:6914",
   chatSD: "155:6936",
+  // Copying messages (D20)
+  chatCP: "173:6008",
+  chatCC: "173:6031",
   // Chat meal updates (D9)
   chatI: "123:4230",
   chatIC: "123:4308",
@@ -129,6 +132,9 @@ export const LIGHT_FRAMES = {
   // Skips next to other actions (D19)
   chatSK: "155:6711",
   chatSD: "155:6839",
+  // Copying messages (D20)
+  chatCP: "173:5878",
+  chatCC: "173:5960",
   // Chat meal updates (D9)
   chatI: "123:3802",
   chatIC: "123:3909",
