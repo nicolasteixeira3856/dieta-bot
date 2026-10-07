@@ -74,7 +74,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-045](adrs/ADR-045-rich-replies-in-chat-bubbles.md) — emphasis, lists and a small table inside the Chat bubbles.
 - [ADR-046](adrs/ADR-046-planned-meal-reservation.md) — a plan can be reserved for its meal before it is eaten.
 - [ADR-047](adrs/ADR-047-skips-alongside-other-actions.md) — skips stated next to other actions; a skip over a record asks to delete it.
-- [ADR-048](adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) — Chat actions in the thread under their message; messages can be copied; long screens allow a scrolling screenshot.
+- [ADR-048](adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) — Chat actions in the thread under their message; messages selected and copied as in WhatsApp; long screens allow a scrolling screenshot.
 
 ### Planos
 
