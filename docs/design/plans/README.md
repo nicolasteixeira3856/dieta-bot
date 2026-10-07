@@ -116,8 +116,8 @@ Behavior: [ADR-048](../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scrol
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D20](d20-figma-review-inline-actions.md) — stale frames and Chat actions in the thread | D12, D16–D19, A60 merged |
-| Client | [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (part A only) |
+| Design | [D20](d20-figma-review-inline-actions.md) — stale frames, Chat actions in the thread, copying messages (`chatCP`, `chatCC`) | D12, D16–D19, A60 merged |
+| Client | [A61](../../android/plans/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot | D20 (parts A and B) |
 
 ## Fibrai brand follow-up
 
