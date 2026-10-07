@@ -27,6 +27,8 @@
   --color-overlay-scrim: #03122566;
   --color-status-bad-tint: #b93b2c1f;
   --color-status-on-bad: #ffffff;
+  --color-surface-selected: #0c66bc4d;
+  --color-border-selected: #0a4f91;
   --radius-card: 20px;
   --radius-sheet: 28px;
   --radius-pill: 9999px;
@@ -132,6 +134,8 @@
   --color-overlay-scrim: #00000099;
   --color-status-bad-tint: #ff7a6b29;
   --color-status-on-bad: #ffffff;
+  --color-surface-selected: #4fc3f74d;
+  --color-border-selected: #4fc3f7;
 }
 
 .t-hero-number { font-weight: 600; font-size: 34px; line-height: 40px; letter-spacing: 0; }
