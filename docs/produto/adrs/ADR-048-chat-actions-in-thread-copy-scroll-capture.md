@@ -1,6 +1,6 @@
 # ADR-048 — Chat actions sit in the thread; messages can be copied; long screens allow a scrolling screenshot
 
-- Status: Proposed
+- Status: Accepted (2026-10-07, with the owner's approval of D20)
 - Date: 2026-10-07
 - Context: `produto`
 - Supersedes: partially [ADR-026](ADR-026-perguntas-antes-da-estimativa.md) (the place of **Forçar estimativa**: "in the actions position … above the composer"), [ADR-028](ADR-028-registro-autonomo.md) (the place of **Registrar**: "in the actions slot"), [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (the place of **Pode passar** · **Ajustar para caber**: "in the action position"). What each button does, when it shows and when it expires stays as those ADRs and [ADR-046](ADR-046-planned-meal-reservation.md) say. Partially [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list: `chatCP`, `chatCC` new).

@@ -1,6 +1,6 @@
 # Plan — D20 Figma review: stale frames, Chat actions in the thread, copying messages
 
-- Status: Aguardando aprovação
+- Status: Em implementação (approved 07/10/2026)
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → sections "Splash e onboarding", "Chat", "Chat · D6" and "Config e push" (only the frames listed below); components in `Componentes` only if a variant is missing. Repository: `docs/qa/figma/{dark,light}/<ids>.png` of the changed frames, `tools/export-figma.mjs` only if a node id changes, and `tools/diff-gold.mjs` rules that exist only because of a stale frame.
@@ -67,4 +67,46 @@ Code: `apps/android/app/src/main/java/app/fibrai/android/feature/{chat,onboardin
 
 ## Results
 
-Planning only.
+### Discovery (before the first write)
+
+Figma budget: whoami, 2 skill reads and 4 read-only `use_figma` inspections before these tables (7 of 110).
+
+**Sweep** (2026-10-07): every inventory gold against its latest capture in `docs/qa/android/current/{dark,light}/` with `node tools/diff-gold.mjs`, plus a side-by-side read of each capture that failed or is report-only. 48 golds per theme.
+
+| Golds | Finding | Class |
+|---|---|---|
+| `home0`, `home1`, `homeX`, `homeC`, `homeK`, `homeP`, `splash`, `chat0`, `chatL`, `chatT`, `chatP`, `chatX`, `chatA`, `chatS`, `chatSK`, `chatSD`, `cfg`, `cfgR`, `wipe` | pass (≤ 1.7 %, or their region and tail gates pass) | no change |
+| `chatG`, `chatD`, `chatM`, `chatU` | report-only full screen, header and thread tail pass | ignored (long thread) |
+| `homeW`, `push` | report-only (A40 page geometry; system notification) | ignored |
+| `chatF` (Light) | region 7.5 %: the capture is from 2026-10-04 and still shows `Chat Dieta Bot` and `Dieta Bot AI` (before A49) | ignored (stale capture, the gold follows the spec) |
+| `chatI`, `chatIC`, `chatTI` | fail: captures from 2026-10-05, before A49 (same old header and label) | ignored (stale captures) |
+| `chatQ`, `chatE`, `chatR`, `chatRB`, `chatRK`, `chatRL` | the action stack sits pinned above the composer in gold and app | known (ADR-048 decision 1) |
+| `chatRB` | plan as plain lines; the app renders the D17 blocks | known |
+| `chatR`, `chatE` (Dark) | first paragraph of the reply resolves to the Light `text/primary` (`#0b2a47`) on the dark bubble: an explicit Light mode left on the text nodes | known |
+| `o1`, `o1e`, `o2`, `o3`, `o3s`, `o3t`, `o4` | pass the pixel gate; gold **and app** read `ONBOARDING n/4` with a 4-segment stepper while `o5` reads `5/5` with 5 segments; `o4` gold CTA `Concluir e começar`, app **Continuar** | known; the counter is also an `app gap` (below) |
+| `cfgS` | Light ink 1.27 fails: no `Tom da Tali` row (`cfg` has it) | known |
+| `cfgT` | Light report-only: page sharp behind the sheet; Dark passes (0.32 %) | known; Dark unchanged |
+| `land`, `landM`, `priv` | site | out of scope |
+
+No stale gold outside the table of Sources. `app gap` items handed to A61: **(1)** O1–O4 eyebrow `ONBOARDING n/5` and the 5-segment stepper (`OnboardingAeroScreens.kt` passes `Onboarding n/4` and `count = 4`); the app already shows **Continuar** on O4. Nothing else.
+
+**Per changed frame** (`app` = in code or in the live specs; `gold-only` = dropped; `copy` = exact pt-BR):
+
+| Frame | Element | Class | Source |
+|---|---|---|---|
+| `chatQ` | **Forçar estimativa** (`Chat/ActionBar`, fast-forward icon) under the latest question, in the thread | app (A61 moves it) | ADR-026, ADR-048 d1; `ChatScreen.kt` `ForceBar` |
+| `chatE` | **Registrar** under the estimate | app (A61) | ADR-028; `RegisterBar` |
+| `chatR` | **Registrar assim**, then **Reservar para o Jantar** (calendar-check), stacked, 10 dp apart | app (A61) | ADR-039, ADR-046; `PlanBar` |
+| `chatRB` | **Pode passar** · **Ajustar para caber** side by side under the budget lines | app (A61) | ADR-039 rule 16; `AeroChoiceBar` |
+| `chatRB` | plan text in D17 blocks: bullets (17 dp marker), steps (21 dp), 12 dp between blocks, P/C/G colours | app | ADR-045; `AeroReply.kt` |
+| `chatRK` | **Registrar assim** under the recipe | app (A61) | `PlanBar` |
+| `chatRL` | **Registrar assim** under `Reservado para o Jantar` | app (A61) | ADR-046; `PlanBar` without Reservar |
+| all six | header, date chip, bubbles, cards, composer unchanged; composer alone in the footer | app | `ChatScreen.kt` |
+| `chatCP` | `Chat/SelectionBar` in place of `Chat/Header`: `X` icon button, count `2` (header title style), `Copy` icon button labelled **Copiar** | app (A61) | ADR-048 d2 |
+| `chatCP` | highlighted rows (thread width) of the selected user bubble and Tali reply with its estimate card | app (A61) | ADR-048 d2 |
+| `chatCP` | a receipt (`Registrado em Almoço`) and its actions, not highlighted | app | ADR-048 d2 (receipts never selected); thread of `chatG` |
+| `chatCC` | header back; pill `Mensagem copiada` with a check icon centred above the composer; long label `2 mensagens copiadas` | app (A61) + copy | ADR-048 d2 |
+| `o1`–`o4`, `o1e`, `o3s`, `o3t` | eyebrow `ONBOARDING n/5`, 5-segment stepper with n filled | app gap (A61) | AGENTS (5 screens), perfil-onboarding rule 4a |
+| `o4` | CTA **Continuar** with the arrow | app | perfil-onboarding rule 4 |
+| `cfgS` | row `Tom da Tali` · `Seco` after the macros | app | memoria-push rule 12; `cfg` |
+| `cfgT` (Light) | page behind the sheet blurred under the scrim | app | shared `AeroSheet`; `chatT` |
