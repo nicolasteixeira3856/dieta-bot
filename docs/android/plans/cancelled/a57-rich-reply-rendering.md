@@ -1,16 +1,16 @@
 # Plan — A57 Rendering the reply subset in the bubbles
 
-- Status: Aguardando aprovação
+- Status: Cancelado (07/10/2026, dono: "ao invés de ter vários planos, concentre tudo num plano só, 1 para server e 1 para app"); scope carried unchanged into [A60](../a60-tone-formatting-planned-skips.md)
 - Date: 06/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (a parser in `domain`, the assistant bubble composables in `feature/chat`, Aero text and list components in `core/designsystem/aero`, Roborazzi baselines, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-chat.sh`.
-- Related documentation: [ADR-045](../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md), [product Chat](../../produto/specifications/chat.md) rules 2, 8, 12 and 16, [HTTP contract](../../api-contract.md), [aero-compose skill](../../../.claude/skills/aero-compose/SKILL.md).
+- Related documentation: [ADR-045](../../../produto/adrs/ADR-045-rich-replies-in-chat-bubbles.md), [product Chat](../../../produto/specifications/chat.md) rules 2, 8, 12 and 16, [HTTP contract](../../../api-contract.md), [aero-compose skill](../../../../.claude/skills/aero-compose/SKILL.md).
 - Prerequisites:
-  - [D17](../../design/plans/completed/d17-rich-replies.md) `Concluído` with `chatR`, `chatE` and `chatRK` exported;
-  - [S26](../../server/plans/s26-reply-formatting-subset.md) delivered and deployed to the dev server;
-  - [A50](a50-plan-budget-choice.md), [A54](completed/a54-auto-record-addition-empty-slot.md) and [A55](a55-tone-choice-and-closures.md) delivered or cancelled (same Chat files; no parallel Android plan).
+  - [D17](../../../design/plans/completed/d17-rich-replies.md) `Concluído` with `chatR`, `chatE` and `chatRK` exported;
+  - [S26](../../../server/plans/s26-reply-formatting-subset.md) delivered and deployed to the dev server;
+  - [A50](../a50-plan-budget-choice.md), [A54](../completed/a54-auto-record-addition-empty-slot.md) and [A55](../a55-tone-choice-and-closures.md) delivered or cancelled (same Chat files; no parallel Android plan).
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a57-rich-reply-rendering.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a57-rich-reply-rendering.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -38,11 +38,11 @@ An assistant bubble shows bold numbers, bullets, numbered steps and the portions
 
 ### Intended specification changes
 
-At Completion: [product Chat](../../produto/specifications/chat.md) rule 2 (what a bubble renders), rule 8 (history line without markers), rule 12 (record text without markers), rule 16 (`chatRK`, bold over the macro colours); state list gains `chatRK`; Provenance line; ADR-045 status to Accepted (if not already).
+At Completion: [product Chat](../../../produto/specifications/chat.md) rule 2 (what a bubble renders), rule 8 (history line without markers), rule 12 (record text without markers), rule 16 (`chatRK`, bold over the macro colours); state list gains `chatRK`; Provenance line; ADR-045 status to Accepted (if not already).
 
 ## Out of scope
 
-- Server (S26), golds (D17), user-typed markup (the composer sends text as typed; the user's bubble stays plain), production (blocked by the [production gate](../../content-policy/production-gate.md)).
+- Server (S26), golds (D17), user-typed markup (the composer sends text as typed; the user's bubble stays plain), production (blocked by the [production gate](../../../content-policy/production-gate.md)).
 
 ## Validation
 

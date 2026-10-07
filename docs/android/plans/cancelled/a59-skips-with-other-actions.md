@@ -1,16 +1,16 @@
 # Plan — A59 Skips next to other actions in the Chat
 
-- Status: Aguardando aprovação
+- Status: Cancelado (07/10/2026, dono: "ao invés de ter vários planos, concentre tudo num plano só, 1 para server e 1 para app"); scope carried unchanged into [A60](../a60-tone-formatting-planned-skips.md)
 - Date: 07/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (network DTOs and request flag, Chat ViewModel and recorder, the skip receipts, the delete-and-skip proposal card, Room column and migration, telemetry, tests) plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`.
-- Related documentation: [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md), [product Chat](../../produto/specifications/chat.md) rules 4, 5, 7 and 19, [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
+- Related documentation: [ADR-047](../../../produto/adrs/ADR-047-skips-alongside-other-actions.md), [product Chat](../../../produto/specifications/chat.md) rules 4, 5, 7 and 19, [Room](../../specifications/room-v2.md), [HTTP contract](../../../api-contract.md).
 - Prerequisites:
-  - [D19](../../design/plans/completed/d19-skips-with-other-actions.md) `Concluído` with `chatSK` and `chatSD` exported;
-  - [S29](../../server/plans/completed/s29-skip-slots.md) delivered and deployed to the dev server;
+  - [D19](../../../design/plans/completed/d19-skips-with-other-actions.md) `Concluído` with `chatSK` and `chatSD` exported;
+  - [S29](../../../server/plans/completed/s29-skip-slots.md) delivered and deployed to the dev server;
   - no parallel Android plan. A59 does not depend on A50, A55, A57 or A58: whichever runs later rebases and takes the next Room version. With A58 delivered, a planned slot is skipped at once (ADR-046); without it, that clause has nothing to do.
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a59-skips-with-other-actions.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a59-skips-with-other-actions.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -47,11 +47,11 @@ Apply every skip the server lists next to a log, plan, question or skip turn, ea
 
 ### Intended specification changes
 
-At Completion: [product Chat](../../produto/specifications/chat.md) rule 4 (one record plus the skips of other slots), rule 7 (skips as a list next to any intent; a skip over a record asks), rule 19 (the skip receipt over a deleted record: Desfazer restores it), states (`chatSK`, `chatSD`) and acceptance criteria; [Room](../specifications/room-v2.md) (new version, `skipOutcomes`); Provenance lines; ADR-047 status to Accepted (if not already).
+At Completion: [product Chat](../../../produto/specifications/chat.md) rule 4 (one record plus the skips of other slots), rule 7 (skips as a list next to any intent; a skip over a record asks), rule 19 (the skip receipt over a deleted record: Desfazer restores it), states (`chatSK`, `chatSD`) and acceptance criteria; [Room](../../specifications/room-v2.md) (new version, `skipOutcomes`); Provenance lines; ADR-047 status to Accepted (if not already).
 
 ## Out of scope
 
-- Server (S29), design (D19), Home gestures, skips of another day, inferring skips, production (blocked by the [production gate](../../content-policy/production-gate.md)).
+- Server (S29), design (D19), Home gestures, skips of another day, inferring skips, production (blocked by the [production gate](../../../content-policy/production-gate.md)).
 
 ## Validation
 
@@ -59,7 +59,7 @@ At Completion: [product Chat](../../produto/specifications/chat.md) rule 4 (one 
 2. Roborazzi and emulator captures of `chatSK` and `chatSD` against the D19 golds under the QA rules of AGENTS, with a written diff list; regress `chatG` and `chatU` (partial validation: Chat records flows only).
 3. Dev server (S29 deployed): one synthetic message with a skip and a breakfast; request id recorded.
 4. `testDevDebugUnitTest`, `verifyRoborazziDevDebug`, `assembleDevRelease` and `node tools/check-docs.mjs` pass.
-5. Manual acceptance (after delivery, [autonomous run](../../sdd/autonomous-run.md)): owner or tester sends a skip next to a meal on a device (dev build) and skips a recorded meal. Not a condition for the automated Completion; the plan waits in `pending_manual_validation/`.
+5. Manual acceptance (after delivery, [autonomous run](../../../sdd/autonomous-run.md)): owner or tester sends a skip next to a meal on a device (dev build) and skips a recorded meal. Not a condition for the automated Completion; the plan waits in `pending_manual_validation/`.
 
 ## Results
 

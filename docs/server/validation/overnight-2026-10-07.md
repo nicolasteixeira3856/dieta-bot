@@ -12,9 +12,9 @@ O A54 foi entregue e a versão **0.0.17** está no App Tester. Os quatro planos 
 |---|---|---|
 | [A54](../../android/plans/completed/a54-auto-record-addition-empty-slot.md) — registro automático de acréscimo | Concluído | PR #152 |
 | [S24](../plans/completed/s24-protein-first-plan.md) — plano com proteína dentro da janela | **Em implementação (parado)** | PR #153 em rascunho, sem merge; status na master pelo PR #154 |
-| [S25](../plans/s25-tone-and-closures.md) — tom e fechamentos (servidor) | Não iniciado | depende do S24 |
-| [S26](../plans/s26-reply-formatting-subset.md) — formatação das respostas | Não iniciado | depende do S24 |
-| [S27](../plans/s27-planned-slot.md) — refeição planejada no DAY | Não iniciado | depende do S24 |
+| [S25](../plans/cancelled/s25-tone-and-closures.md) — tom e fechamentos (servidor) | Não iniciado | depende do S24 |
+| [S26](../plans/cancelled/s26-reply-formatting-subset.md) — formatação das respostas | Não iniciado | depende do S24 |
+| [S27](../plans/cancelled/s27-planned-slot.md) — refeição planejada no DAY | Não iniciado | depende do S24 |
 | [D16](../../design/plans/completed/d16-tone-and-closures.md) — tom e fechamentos | Pendente aprovação manual | PR #155 |
 | [D12](../../design/plans/completed/d12-plan-budget-choice.md) — plano acima do orçamento (`chatRB`) | Pendente aprovação manual | PR #156 |
 | [D17](../../design/plans/completed/d17-rich-replies.md) — negrito, listas e tabela | Pendente aprovação manual | PR #157 |
