@@ -61,7 +61,7 @@ longshot() {
   local name="$1" xy before after file h
   before=$("$ADB" shell ls -1 /sdcard/Pictures/Screenshots 2>/dev/null | tr -d '\r' | sort | tail -1)
   "$ADB" shell input keyevent KEYCODE_SYSRQ; sleep 2
-  dump; xy=$(at 'content-desc="(Capture more|Capturar mais)"')
+  dump; xy=$(at 'content-desc="(?:Capture more|Capturar mais)"')
   if [ -z "$xy" ]; then echo "  ✗ $name: no Capture more in the screenshot UI"; FAIL=1; "$ADB" shell input keyevent 4; sleep 1; return 1; fi
   echo "  ✓ $name: Capture more offered"
   "$ADB" shell input tap $xy
@@ -69,14 +69,14 @@ longshot() {
   if ! resumed | grep -q LongScreenshotActivity; then echo "  ✗ $name: the long screenshot editor did not open"; FAIL=1; return 1; fi
   echo "  ✓ $name: the long screenshot editor opened"
   sleep 2
-  tap 'text="(Save|Salvar)"' 3 || return 1
+  tap 'text="(?:Save|Salvar)"' 3 || return 1
   after=$("$ADB" shell ls -1 /sdcard/Pictures/Screenshots 2>/dev/null | tr -d '\r' | sort | tail -1)
   if [ -z "$after" ] || [ "$after" = "$before" ]; then echo "  ✗ $name: nothing saved"; FAIL=1; return 1; fi
   file="$OUT/$THEME-$name.png"
   "$ADB" exec-out cat "/sdcard/Pictures/Screenshots/$after" > "$file"
   h=$("$PY" -c "import struct,sys; d=open(sys.argv[1],'rb').read(24); print(struct.unpack('>I', d[20:24])[0])" "$file" 2>/dev/null || echo 0)
   screen=$("$ADB" shell wm size | tail -1 | sed 's/.*x//' | tr -d '\r')
-  if [ "${h:-0}" -gt "${screen:-0}" ]; then echo "  ✓ $name: saved ${h}px tall (screen ${screen}px)"; else echo "  ✓ $name: saved ${h}px (the editor kept one screen; the capture covers the scrollable part)"; fi
+  if [ "${h:-0}" -gt "${screen:-0}" ]; then echo "  ✓ $name: saved ${h}px tall (screen ${screen}px)"; else echo "  · $name: saved, height not read from the pulled file (${h:-0}px)"; fi
   resumed | grep -q LongScreenshotActivity && { "$ADB" shell input keyevent 4; sleep 1; }
 }
 
@@ -102,12 +102,12 @@ for i in range(10):
     c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", f"Pergunta {i + 1}: o que eu como agora?", now - 20000 + i * 2000))
     c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "assistant", "Uma resposta longa o bastante para ocupar algumas linhas da conversa. " * 2, now - 19000 + i * 2000))
 '
-"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
 tap 'resource-id="home-fab"' 2
 longshot chat
 
 echo "  Config"
-"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 2
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
 tap 'resource-id="home-config"' 2
 longshot cfg
 
