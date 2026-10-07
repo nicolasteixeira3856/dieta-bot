@@ -2,7 +2,40 @@
 
 Relatório da execução autônoma pedida pelo dono em 07/10/2026, pelo [runbook](../../sdd/autonomous-run.md). Ordem aprovada: [S30](../plans/completed/s30-tone-formatting-planned-slot.md) (partes A → B → C), depois [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) (partes A → D; a parte E foi entregue pelo A59).
 
-Em andamento.
+Concluída em 07/10/2026. Nenhuma parte ficou de fora; nenhuma validação falhou duas vezes.
+
+## Resultado
+
+| Plano | Partes | Estado final | PR |
+|---|---|---|---|
+| [S30](../plans/completed/s30-tone-formatting-planned-slot.md) — tom, formatação e refeição planejada (servidor) | A → B → C, todas entregues | `Concluído` | [#174](https://github.com/nicolasteixeira3856/dieta-bot/pull/174) |
+| [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — escolha acima da janela, tom e fechamentos, respostas formatadas, reserva (app) | A → B → C → D, todas entregues; E entregue pelo A59, aceite manual pendente | `Pendente aprovação manual` | [#175](https://github.com/nicolasteixeira3856/dieta-bot/pull/175) |
+
+- **Deploy:** S30 no servidor dev com `tools/deploy-gcp.ps1` (código do head do branch, igual ao mergeado), `GET /health` 200; smoke de cada parte com request ids no Results do S30. Nada em produção.
+- **Versão distribuída:** `0.0.18-dev` (versionCode 18, tag `dev-v0.0.18`) pelo Firebase App Distribution ao grupo `testers`, com as notas em pt-BR do A60 e dos pulos do A59 (o A59 ainda não tinha sido distribuído).
+- **Room:** v12, uma migração para as quatro partes.
+- **Sessão no servidor dev com o app (A60):** uma por parte, mensagens sintéticas; request ids no Results do A60, item 7. Uma chamada de outro aparelho (versão 0.0.17-dev de um testador) apareceu no log no mesmo minuto e foi descartada pelo `safety_identifier`.
+- **Defeito achado e corrigido no caminho:** as cores de P/C/G sumiam nas respostas formatadas (o gate JVM tolerava); a captura no emulador mostrou, o `AeroReply.kt` foi corrigido antes do PR.
+- **Avaliação:** só o S30 avaliou (o A60 não lista avaliação). Total US$ 0,0664 de US$ 0,50, nunca perto do limite de US$ 0,40. Sem suíte completa, sem pilot runner, sem repetição para desempate.
+
+## Aceites manuais que ficam com você
+
+Num aparelho com a 0.0.18-dev:
+
+1. **A59 (pulos):** mandar um pulo junto com uma refeição ("pulei o almoço, no café comi …") e pular uma refeição que já tem registro (Excluir e pular / Manter registro).
+2. **Tom:** escolher Duro (na O5 de um cadastro novo ou em Configurações → Tom da Tali) e ver uma resposta que nomeia o estouro; Seco fica só nos números.
+3. **Fechamentos:** às 22h chega a notificação e o cartão do dia (no domingo também o da semana); no dia seguinte o cartão recolhe depois do primeiro registro. Permitir notificações quando o Android pedir.
+4. **Acima da janela:** um plano que passa do dia mostra Pode passar · Ajustar para caber.
+5. **Reserva:** Reservar para o Jantar num plano, a Home mostra `planejado`, registrar o jantar mostra a diferença no recibo.
+6. **Revisão visual no Figma** das divergências de gold (Results do A60, item 6): `chatRB` do D12 desenhado antes dos blocos do D17; `o1`–`o4` ainda com `n/4` e o CTA da O4; `cfgS` sem a linha do tom; `cfgT` claro sem o desfoque do sheet; `chatR`/`chatE` escuros com o primeiro parágrafo invisível.
+
+O PG6 do [production gate](../../content-policy/production-gate.md) continua aberto até os itens 2 e 3 no build dev.
+
+## Observações
+
+- Sentinela do S30 (uma passada): 31/38, falhas registradas no Results do S30; vigiar o par de receitas, que pode perder os itens `(opcional)` com a tabela.
+- `s25-log-estouro-duro` terminou em 2/3 no S30.
+- Numa sessão do dev, a linha de fechamento do servidor para um lanche em aberto num dia já cheio saiu como `Lanche: a definir ~13 kcal · P 34` (ADR-043); comportamento do servidor, não do app — vale um olhar.
 
 ## Custo na OpenAI (teto da sessão: US$ 0,50; S30: US$ 0,30; parar de avaliar em US$ 0,40)
 
