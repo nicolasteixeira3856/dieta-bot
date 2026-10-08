@@ -147,6 +147,19 @@ Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Rec
 | Logo design | D13 — Oat seed logo in `Branding`; logo-only `splash` golds ([`completed/`](completed/)) | D10 |
 | Logo client | A51 — Logo-only splash in Compose ([`completed/`](../../android/plans/completed/)) | D13 |
 
+## Chat brainstorm follow-up (Release 2)
+
+Behavior: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md), [ADR-053](../../produto/adrs/ADR-053-visible-memory-screen.md), [ADR-051](../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | [D23](d23-release-2-recipes.md) — Recipes (`rcpL`, `rcpD`, `chatRK`) | D22, ADR-052 accepted (S38) |
+| Client | [A68](../../android/plans/a68-saved-recipes.md) — saved recipes | D23, S38 on dev, A67 |
+| Design | [D24](d24-release-2-visible-memory.md) — "O que a Tali sabe" (`memL`, `cfg`) | D23, ADR-053 accepted (A69) |
+| Client | [A69](../../android/plans/a69-visible-memory.md) — memory screen | D24, A68 |
+| Design | D25 — plan option control (`chatO`), opened when A67 is scheduled | D24 |
+| Client | [A67](../../android/plans/a67-plan-options-and-discovery.md) — options and discovery | D25, S37 on dev, A66 |
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.

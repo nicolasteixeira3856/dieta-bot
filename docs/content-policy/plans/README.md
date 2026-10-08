@@ -6,6 +6,8 @@ Rescoped by the owner on 2026-09-30: the app is in a closed test. Active plans c
 
 Files at the root of this folder. Plan state: each plan's own State line and its folder.
 
+- [CP10 — Workout reports in scope; the boundary of "skipping a meal"](cp10-workout-in-scope-and-skip-boundary.md) (prerequisite of S35).
+
 ## Out of scope
 
 - [CP6 — Production readiness](out_of_scope/cp6-production-readiness.md)

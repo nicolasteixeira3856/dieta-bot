@@ -28,5 +28,10 @@ google-services.json
 apps/rn/.expo/
 .claude/worktrees/
 
-# benchmark results (never versioned)
-/benchmark/out/
+# benchmark outputs: the run's evidence is versioned (owner decision 08/10/2026); bulk and scratch are not
+/benchmark/out/*
+!/benchmark/out/results-*-rescored.jsonl
+!/benchmark/out/judge-*-codex.jsonl
+!/benchmark/out/judge-*-rubric1.jsonl
+!/benchmark/out/report-*-rescored.md
+!/benchmark/out/manifest-*.json

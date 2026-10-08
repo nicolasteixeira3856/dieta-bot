@@ -1421,3 +1421,20 @@ Numeração provisória, seguindo os últimos ids de cada contexto (S30, A63, D2
 | 7 memória / O6 / A56 | ADR-053 (+ ADR O6, ADR A56) | Não | D24 | Não |
 
 Bloqueadores do production gate continuam os listados por gpt-6-astra na seção 4 (PG2–PG6); nenhum plano acima os fecha nem os reabre.
+
+### 5.6 Numeração final e arquivos abertos (08/10/2026)
+
+Depois do benchmark (`RESULTADOS_08_10_2026.md`, nesta pasta) o owner decidiu `reasoning.effort=low` sempre e o reforço de proteína híbrido. Os ids provisórios de 5.4 mudaram porque S31 e S32 já existiam. ADRs e planos abertos, em ordem de execução:
+
+| Plano de 5.4 | ADR | Arquivos |
+|---|---|---|
+| 1 | ADR-054 (effort low) | `docs/server/plans/s33-chat-context-effort-low.md` |
+| novo | ADR-055 (reforço híbrido) | `docs/server/plans/s34-protein-boost-hybrid.md` |
+| 2 | — | `docs/android/plans/a64-chat-context-fields-day-balance.md` |
+| 3 | ADR-049 | `docs/content-policy/plans/cp10-workout-in-scope-and-skip-boundary.md`, `docs/server/plans/s35-workout-via-chat.md`, `docs/android/plans/a65-workout-via-chat.md` |
+| 4 | ADR-050 | `docs/server/plans/s36-typed-actions.md`, `docs/android/plans/a66-typed-actions-batch.md` |
+| 5 | ADR-051 | `docs/server/plans/s37-plan-options-and-discovery.md`, `docs/android/plans/a67-plan-options-and-discovery.md` (gold `chatO` por D25, a abrir) |
+| 6 | ADR-052 | `docs/design/plans/d23-release-2-recipes.md`, `docs/server/plans/s38-saved-recipes.md`, `docs/android/plans/a68-saved-recipes.md` |
+| 7 | ADR-053 | `docs/design/plans/d24-release-2-visible-memory.md`, `docs/android/plans/a69-visible-memory.md`; O6 e A56 continuam condicionais |
+
+Os ADRs ficam em `docs/produto/adrs/` (049–053, 055) e `docs/server/adrs/` (054). Cada plano espera a aprovação explícita do seu arquivo antes de código.

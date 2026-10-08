@@ -2,7 +2,7 @@
 
 Medição única, fora do fluxo SDD: nada aqui muda `server/`, `apps/` ou `docs/`. O runner importa funções do server em modo leitura (contrato `ChatIn`, texto de entrada atual, janelas do ADR-043, schema atual) para que a baseline seja exatamente o que o server envia hoje. Primeira execução em 08/10/2026 com autorização do owner: resultados e veredito em [`RESULTADOS_08_10_2026.md`](RESULTADOS_08_10_2026.md).
 
-Origem: brainstorm e conclusão em [`../MELHORIAS_CHAT_07_10_2026.md`](../MELHORIAS_CHAT_07_10_2026.md) § 5.
+Origem: brainstorm e conclusão em [`MELHORIAS_CHAT_07_10_2026.md`](MELHORIAS_CHAT_07_10_2026.md) § 5 (numeração final dos planos em § 5.6); resultados da primeira execução em [`RESULTADOS_08_10_2026.md`](RESULTADOS_08_10_2026.md).
 
 ## O que se mede
 

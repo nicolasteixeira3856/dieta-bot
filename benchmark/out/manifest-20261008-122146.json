@@ -1,0 +1,34 @@
+{
+ "stamp": "20261008-122146",
+ "model": "gpt-6-luna",
+ "args": {
+  "arm": [
+   "baseline-none",
+   "new-none",
+   "new-low"
+  ],
+  "repeat": 3,
+  "only": "plan-digest-opcao-carla,recipe-log-panqueca-carla",
+  "family": null,
+  "workers": 3,
+  "max_calls": 1400,
+  "max_usd": 5.0,
+  "force": false,
+  "dry_run": false,
+  "resume": "benchmark/out/results-20261008-113718.jsonl"
+ },
+ "cases": {
+  "plan-digest-opcao-carla": "9879a5f3feb94062",
+  "recipe-log-panqueca-carla": "98b2b60a3a3813c2"
+ },
+ "prompts": {
+  "baseline-none:seco": "8e30dc639d72735f",
+  "baseline-none:duro": "16f5dd92a27051ad",
+  "new-none:seco": "4568ac6625efbbf8",
+  "new-none:duro": "1e8f52bb27945e0a",
+  "new-low:seco": "4568ac6625efbbf8",
+  "new-low:duro": "1e8f52bb27945e0a"
+ },
+ "schema": "65dd90a05bf3d7d5",
+ "jobs": 6
+}

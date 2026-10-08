@@ -78,6 +78,13 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [046](produto/adrs/ADR-046-planned-meal-reservation.md) | produto | a plan can be reserved for its meal before it is eaten; `planned` slot state, golds `chatRL`, `homeP` |
 | [047](produto/adrs/ADR-047-skips-alongside-other-actions.md) | produto | skips as a list next to any intent, one receipt each; a skip over a record asks to delete it; golds `chatSK`, `chatSD` |
 | [048](produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) | produto | Chat actions in the thread under their message; WhatsApp-style message selection with Copiar; scrolling screenshot on long screens; golds `chatQ`, `chatE`, `chatR`, `chatRB`, `chatRK`, `chatRL` change, `chatCP`, `chatCC` new |
+| [049](produto/adrs/ADR-049-workout-energy-via-chat.md) | produto | workout energy reported through the Chat as a typed number; the app records it and the credit |
+| [050](produto/adrs/ADR-050-typed-actions-per-message.md) | produto | typed `actions[]` per Chat message (log, plan, skip, workout, recipe_recall, question), one receipt each, batch Desfazer |
+| [051](produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) | produto | plan options with ids that survive compaction; routine discovery on the first Chat opening; `equipment` and `liked` facts |
+| [052](produto/adrs/ADR-052-saved-recipes.md) | produto | saved recipes with versions; index sent every turn, full recipe when named; golds `rcpL`, `rcpD` |
+| [053](produto/adrs/ADR-053-visible-memory-screen.md) | produto | "O que a Tali sabe" memory screen in Config; deleted facts never return; dev tool A23 retired; O6 conditional |
+| [054](server/adrs/ADR-054-chat-reasoning-effort-low.md) | server | Chat generation at `reasoning.effort=low` (benchmark of 08/10/2026) |
+| [055](produto/adrs/ADR-055-protein-boost-hybrid.md) | produto | protein boost of a named dish: the model proposes the `(opcional)` foods, the server validates |
 
 ## Outros docs
 

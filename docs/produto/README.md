@@ -75,11 +75,19 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-046](adrs/ADR-046-planned-meal-reservation.md) — a plan can be reserved for its meal before it is eaten.
 - [ADR-047](adrs/ADR-047-skips-alongside-other-actions.md) — skips stated next to other actions; a skip over a record asks to delete it.
 - [ADR-048](adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) — Chat actions in the thread under their message; messages selected and copied as in WhatsApp; long screens allow a scrolling screenshot.
+- [ADR-049](adrs/ADR-049-workout-energy-via-chat.md) — workout energy reported through the Chat; the app records it.
+- [ADR-050](adrs/ADR-050-typed-actions-per-message.md) — typed actions per Chat message, one receipt each.
+- [ADR-051](adrs/ADR-051-plan-option-identity-and-chat-discovery.md) — plan options with ids; routine discovery on the first opening.
+- [ADR-052](adrs/ADR-052-saved-recipes.md) — saved recipes.
+- [ADR-053](adrs/ADR-053-visible-memory-screen.md) — "O que a Tali sabe": the memory as a product screen.
+- [ADR-055](adrs/ADR-055-protein-boost-hybrid.md) — protein boost: the model proposes, the server validates.
 
 ### Planos
 
 This context has no `plans/`. Deliveries belong to [Android](../android/README.md), [server](../server/README.md) and [design](../design/README.md); the Stitch history is routed by its [README](../stitch/README.md).
 
 Meal updates: D9 and A47 (history: [`completed/`](../design/plans/completed/), [`completed/`](../android/plans/completed/)).
+
+Chat after the brainstorm of 07/10/2026 (`benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5, benchmark `benchmark/RESULTADOS_08_10_2026.md`), in execution order: [S33](../server/plans/s33-chat-context-effort-low.md) → [S34](../server/plans/s34-protein-boost-hybrid.md) → [A64](../android/plans/a64-chat-context-fields-day-balance.md) → [CP10](../content-policy/plans/cp10-workout-in-scope-and-skip-boundary.md) → [S35](../server/plans/s35-workout-via-chat.md) → [A65](../android/plans/a65-workout-via-chat.md) → [S36](../server/plans/s36-typed-actions.md) → [A66](../android/plans/a66-typed-actions-batch.md) → [S37](../server/plans/s37-plan-options-and-discovery.md) → [A67](../android/plans/a67-plan-options-and-discovery.md) → [D23](../design/plans/d23-release-2-recipes.md) → [S38](../server/plans/s38-saved-recipes.md) → [A68](../android/plans/a68-saved-recipes.md) → [D24](../design/plans/d24-release-2-visible-memory.md) → [A69](../android/plans/a69-visible-memory.md) (ADR-049 to ADR-055).
 
 Protein-first plan, tone, formatting, planned meal and skips: S24 ([`completed/`](../server/plans/completed/), ADR-043); S30 ([`completed/`](../server/plans/completed/), server, ADR-044/045/046) and [A60](../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) (app, ADR-039/044/045/046/047); its part E, the skips, by [A59](../android/plans/pending_manual_validation/a59-skips-with-other-actions.md); the auto-record defect A54 ([`completed/`](../android/plans/completed/)). Deferred by owner decision: goal weight, [A56](../android/plans/out_of_scope/a56-goal-weight.md).

@@ -115,7 +115,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 ### Planos e validação
 
-- Ativos: arquivos na raiz de [`plans/`](plans/).
+- Ativos, em ordem de execução: [A64](plans/a64-chat-context-fields-day-balance.md) (campos de contexto, saldo no recibo, Anotado, espera), [A65](plans/a65-workout-via-chat.md) (treino pelo Chat), [A66](plans/a66-typed-actions-batch.md) (ações em lote), [A67](plans/a67-plan-options-and-discovery.md) (opções com id e descoberta), [A68](plans/a68-saved-recipes.md) (receitas), [A69](plans/a69-visible-memory.md) (O que a Tali sabe). Cada um depende do plano de server ou de design que cita.
 - [A59 — Skips next to other actions in the Chat](plans/pending_manual_validation/a59-skips-with-other-actions.md): part E of A60, restored from `cancelled/` by owner decision (07/10/2026).
 - [A60 — Budget choice, tone and closures, rich replies, planned meal and skips](plans/pending_manual_validation/a60-tone-formatting-planned-skips.md): parts A–D delivered, awaiting the owner's device acceptance.
 - [A61 — Chat actions in the thread, copying messages, scrolling screenshot](plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md): parts A–C delivered, awaiting the owner's device acceptance.

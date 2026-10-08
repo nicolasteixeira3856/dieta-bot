@@ -76,12 +76,13 @@ cd server
 - [ADR-013](adrs/ADR-013-gcp-host.md) — host.
 - [ADR-015](adrs/ADR-015-log-conversa-dev.md) — dev conversation log.
 - [ADR-042](adrs/ADR-042-estimate-total-is-server-arithmetic.md) — estimate total computed by the server from the items.
+- [ADR-054](adrs/ADR-054-chat-reasoning-effort-low.md) — Chat generation at `reasoning.effort=low`.
 - [ADR-033](../content-policy/adrs/ADR-033-global-chat-example-provenance.md) — global Chat example provenance.
 - Each ADR's own status line is authoritative.
 
 ### Plans and validation
 
-- Active plans: files directly under [plans/](plans/) (none). S30 (tone, closures, reply formatting and planned slot) is in [history](plans/completed/). Cancelled by owner decision (07/10/2026, one plan per context): S25, S26, S27 in [`plans/cancelled/`](plans/cancelled/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
+- Active plans, in execution order: [S33](plans/s33-chat-context-effort-low.md) (context in code, effort low), [S34](plans/s34-protein-boost-hybrid.md) (protein boost hybrid), [S35](plans/s35-workout-via-chat.md) (workout), [S36](plans/s36-typed-actions.md) (typed actions), [S37](plans/s37-plan-options-and-discovery.md) (options and discovery), [S38](plans/s38-saved-recipes.md) (saved recipes). Benchmark that motivated them: `benchmark/RESULTADOS_08_10_2026.md`. S30 (tone, closures, reply formatting and planned slot) is in [history](plans/completed/). Cancelled by owner decision (07/10/2026, one plan per context): S25, S26, S27 in [`plans/cancelled/`](plans/cancelled/). Completed evaluation evidence belongs to each originating plan in [history](plans/completed/).
 - Tests: `server/tests/test_api.py`, `test_photo_cap.py`, `test_security.py`, `test_chat.py`, `test_conversation_log.py`, `test_evals.py`, `test_clarify.py`, `test_record.py`, with remaining server tests under the same directory. Coverage includes temp validation/filtering and compatibility, held slots and logging, evaluator required/digest checks, shared compact moderation and prompt rules.
 - Run `server/.venv/Scripts/python -m pytest server/tests` from the repository root; documentation changes also require `node tools/check-docs.mjs`.
 - Validation covering more than one plan: [validation/](validation/).
