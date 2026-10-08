@@ -142,7 +142,9 @@ CHAT_INTENTS = ("log", "plan", "question")
 INTENT_SKIP = "skip"
 MEMORY_OPS = ("add", "reinforce", "replace", "remove")
 FACT_KINDS = ("permanent", "dynamic", "temp")
-FACT_CATEGORIES = ("preference", "portion", "routine")
+FACT_CATEGORIES = ("preference", "portion", "routine", "equipment", "liked")
+OPTION_IDS = ("o1", "o2")
+OPTION_NAME_MAX = 60
 
 
 def shape_estimate(payload: dict[str, Any]) -> dict[str, Any]:
@@ -269,6 +271,30 @@ def shape_chat(
     }
 
 
+def shape_options(raw: Any, valid_slot_ids: Iterable[str]) -> list[dict[str, Any]] | None:
+    """S37 (ADR-051): the options of an open request, {id, name, estimate}; ids o1/o2, unique, with energy."""
+    if not isinstance(raw, list):
+        return None
+    valid = set(valid_slot_ids)
+    out: list[dict[str, Any]] = []
+    for option in raw:
+        if not isinstance(option, dict) or option.get("id") not in OPTION_IDS:
+            continue
+        if any(o["id"] == option["id"] for o in out) or not isinstance(option.get("estimate"), dict):
+            continue
+        name = " ".join(str(option.get("name") or "").split())[:OPTION_NAME_MAX]
+        if not name:
+            continue
+        try:
+            estimate = _chat_estimate(option["estimate"], valid, plan=True)
+        except (TypeError, ValueError):
+            continue
+        if estimate["kcal"] <= 0:
+            continue
+        out.append({"id": option["id"], "name": name, "estimate": estimate})
+    return sorted(out, key=lambda o: o["id"]) or None
+
+
 def _chat_estimate(raw: dict[str, Any], valid_ids: set[str], *, plan: bool, meal_text_max: int = MEAL_TEXT_MAX) -> dict[str, Any]:
     try:
         confidence = _confidence(raw.get("confidence"))
@@ -340,7 +366,7 @@ def _memory_updates(
         elif fact_id not in known_facts:
             continue
         if kind == "temp":
-            if not temp_facts or category == "routine" or update.get("slot") is not None:
+            if not temp_facts or category not in ("portion", "preference") or update.get("slot") is not None:
                 continue
             if op != "add" and (op not in ("replace", "remove") or not fact_id.startswith("T")):
                 continue
@@ -350,6 +376,8 @@ def _memory_updates(
         slot = _slot_id(update.get("slot"), valid_slots)
         if category == "routine" and slot is None:
             continue
+        # S37: a liked dish may name its meal; only routines and liked dishes carry a slot.
+        slot = slot if category in ("routine", "liked") else None
         key = update.get("key").strip() if isinstance(update.get("key"), str) else ""
         text = update.get("text").strip() if isinstance(update.get("text"), str) else ""
         if not key or not text:
@@ -361,10 +389,12 @@ def _memory_updates(
             "category": category,
             "key": key[:FACT_KEY_MAX],
             "text": text[:FACT_TEXT_MAX],
-            "slot": slot if category == "routine" else None,
+            "slot": slot,
         }
-        if category == "routine":
+        if category in ("routine", "liked"):
             shaped.update(_routine_macros(update))
+        if category == "routine" and update.get("declared") is True:
+            shaped["declared"] = True
         out.append(shaped)
     return out
 

@@ -92,6 +92,7 @@ class CheckTests(unittest.TestCase):
         output["meal_change"] = {"operation": "add", "base_slot": "1", "addition": None}
         output["workout"] = {"kcal": 300, "mode": "add"}
         output["actions"] = [{"id": "a1", "type": "question"}]
+        output["options"] = None
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -123,6 +124,7 @@ class CheckTests(unittest.TestCase):
             "workout": {"kcal": 450, "mode": "replace"},
             "actions": [{"type": "log"}],
             "actions_order": ["log"],
+            "options": 2,
             "estimate_values": {"kcal": 90},
             "item_portions": {"absent": 70},
             "memory_used_only": ["P1"],

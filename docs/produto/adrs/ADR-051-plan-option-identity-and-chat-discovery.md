@@ -1,6 +1,6 @@
 # ADR-051 — Plan options with identity; routine discovery on the first Chat opening
 
-- Status: Proposed (owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5; accepted with the approval of S37)
+- Status: Accepted (2026-10-08, owner approval of S37 in the batch message; owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5)
 - Date: 2026-10-08
 - Context: `produto`
 - Supersedes: none. Complements [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) decision 5 (two options for an open request), [ADR-023](ADR-023-chat-v2-memoria-v2.md) and [ADR-029](ADR-029-fatos-temporarios-compactacao.md) (memory and digests).

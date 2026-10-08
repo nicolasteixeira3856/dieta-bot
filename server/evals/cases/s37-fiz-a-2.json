@@ -1,0 +1,114 @@
+{
+  "id": "s37-fiz-a-2",
+  "since": "meal_changes",
+  "tags": [
+    "s37"
+  ],
+  "request": {
+    "local_time": "2026-10-15T21:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1020,
+      "eaten_p": 50,
+      "eaten_c": 130,
+      "eaten_g": 31,
+      "workout_kcal": null,
+      "remaining_kcal": 880,
+      "slots": [
+        {
+          "id": "c",
+          "status": "eaten",
+          "text": "café com leite e 1 pão",
+          "kcal": 320,
+          "p": 12,
+          "c": 45,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "arroz, feijão e carne",
+          "kcal": 700,
+          "p": 38,
+          "c": 85,
+          "g": 22
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "o que eu janto hoje?"
+      },
+      {
+        "role": "assistant",
+        "text": "**Opção 1: Omelete de legumes** — 3 ovos (150 g), 120 g de abobrinha, 60 g de queijo minas: 420 kcal · P 28 g.\n**Opção 2: Frango grelhado com batata** — 150 g de peito de frango, 200 g de batata cozida, 5 g de azeite: 610 kcal · P 52 g."
+      }
+    ],
+    "text": "fiz a 2",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "log",
+        "slot": "j",
+        "kcal_range": [
+          570,
+          650
+        ]
+      }
+    ],
+    "refusal": "none"
+  }
+}

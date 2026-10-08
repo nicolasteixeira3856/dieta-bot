@@ -15,6 +15,8 @@ from config import CHAT_EFFORT, MEAL_DAYS, MODEL, REASONING_EFFORT, RECORD_INTEN
 SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
 # ADR-050 (S36): the types of a Chat action.
 ACTION_TYPES = ("log", "plan", "skip", "workout", "recipe_recall", "question")
+# ADR-051 (S37): the ids of the two options of an open request.
+OPTION_IDS = ("o1", "o2")
 
 # CP2 / ADR-024: estimate/fit scope. Chat renders the same policy in its reviewed registry.
 # The server replaces non-in_scope output with fixed copy, without model-authored refusals.
@@ -220,14 +222,16 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
             "op": {"type": "string", "enum": ["add", "reinforce", "replace", "remove"]},
             "id": {"type": ["string", "null"], "enum": [*facts, None]},
             "kind": {"type": "string", "enum": ["permanent", "dynamic", "temp"]},
-            "category": {"type": "string", "enum": ["preference", "portion", "routine"]},
+            "category": {"type": "string", "enum": ["preference", "portion", "routine", "equipment", "liked"]},
             "key": {"type": "string"},
             "text": {"type": "string"},
             "slot": {"type": ["string", "null"], "enum": slots},
             # S33: a routine proposal carries the meal's numbers; every other proposal null.
             **{k: {"type": ["number", "null"]} for k in ("kcal", "p", "c", "g")},
+            # S37 (ADR-051): a routine the user declared (discovery), not seen on a recorded day.
+            "declared": {"type": "boolean"},
         },
-        "required": ["op", "id", "kind", "category", "key", "text", "slot", "kcal", "p", "c", "g"],
+        "required": ["op", "id", "kind", "category", "key", "text", "slot", "kcal", "p", "c", "g", "declared"],
         "additionalProperties": False,
     }
     used: dict[str, Any] = {"type": "string", "enum": facts} if facts else {"type": "string"}
@@ -285,6 +289,16 @@ def _actions_format(legacy: dict[str, Any], estimate: dict[str, Any], slots: lis
         "required": ["operation", "base_slot", "addition"],
         "additionalProperties": False,
     }
+    option = {
+        "type": "object",
+        "properties": {
+            "id": {"type": "string", "enum": list(OPTION_IDS)},
+            "name": {"type": "string"},
+            "estimate": legacy["estimate"]["anyOf"][0],
+        },
+        "required": ["id", "name", "estimate"],
+        "additionalProperties": False,
+    }
     action = {
         "type": "object",
         "properties": {
@@ -296,9 +310,10 @@ def _actions_format(legacy: dict[str, Any], estimate: dict[str, Any], slots: lis
             "meal_day": legacy["meal_day"],
             "meal_change": {"anyOf": [change, {"type": "null"}]},
             "workout": legacy["workout"],
-            # S37 options and S38 recipe ids: always null until those plans.
+            # S38 recipe ids: always null until that plan.
             "recipe_id": {"type": "null"},
-            "options": {"type": "null"},
+            # S37 (ADR-051): the two options of an open request, each with its own estimate.
+            "options": {"anyOf": [{"type": "array", "items": option}, {"type": "null"}]},
             "plan_budget": legacy["plan_budget"],
         },
         "required": ["id", "type", "slot", "estimate", "record_intent", "meal_day", "meal_change", "workout",

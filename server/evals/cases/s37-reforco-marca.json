@@ -1,0 +1,106 @@
+{
+  "id": "s37-reforco-marca",
+  "since": "meal_changes",
+  "tags": [
+    "s37"
+  ],
+  "request": {
+    "local_time": "2026-10-15T08:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [
+      {
+        "id": "D1",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "cafe",
+        "slot": "c",
+        "text": "café com leite Italac e 1 pão na chapa",
+        "days_seen": 5,
+        "last_seen": "2026-10-14",
+        "kcal": 330,
+        "p": 12,
+        "c": 45,
+        "g": 11
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 1900,
+      "slots": [
+        {
+          "id": "c",
+          "status": "empty"
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "tomei café com leite Italac e 1 pão na chapa",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true
+  },
+  "expect": {
+    "memory_updates_has": [
+      {
+        "op": "reinforce",
+        "id": "D1"
+      }
+    ],
+    "refusal": "none"
+  }
+}
