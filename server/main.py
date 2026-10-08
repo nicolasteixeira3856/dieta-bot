@@ -51,6 +51,7 @@ from conversation_log import ConversationLog, now_iso
 from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
 from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
+import actions
 import closure
 import copy_source
 import estimate_total
@@ -291,6 +292,8 @@ class ChatIn(BaseModel):
     skip_slots: bool = Field(default=False, strict=True)
     # ADR-049 (S35): the response carries workout {kcal, mode} or null. Requires clarify_rounds and auto_record.
     workout: bool = Field(default=False, strict=True)
+    # ADR-050 (S36): the response carries actions[]. Requires meal_changes (whose branch answers in actions).
+    actions: bool = Field(default=False, strict=True)
     fit_kcal: int | None = Field(default=None, strict=True, ge=1, le=budgets.FIT_KCAL_MAX)
 
     @model_validator(mode="before")
@@ -298,7 +301,7 @@ class ChatIn(BaseModel):
     def _meal_change_input(cls, data: Any) -> Any:
         if isinstance(data, dict) and data.get("compact") is True:
             return {**data, "meal_changes": False, "pending_addition": None,
-                    "plan_budget": False, "fit_kcal": None, "skip_slots": False, "workout": False}
+                    "plan_budget": False, "fit_kcal": None, "skip_slots": False, "workout": False, "actions": False}
         if isinstance(data, dict) and data.get("meal_changes") is True:
             day = data.get("day")
             states = day.get("slots", []) if isinstance(day, dict) else []
@@ -318,6 +321,8 @@ class ChatIn(BaseModel):
             raise ValueError("pending_addition requires meal_changes")
         if self.skip_slots and not self.meal_changes:
             raise ValueError("skip_slots requires meal_changes")
+        if self.actions and not self.meal_changes:
+            raise ValueError("actions requires meal_changes")
         if self.meal_changes:
             slots = [s.id for s in self.profile.slots]
             day_ids = [s.id for s in self.day.slots]
@@ -895,10 +900,15 @@ def chat_reply(
         if body.workout:
             result.setdefault("workout", None)
             record["workout"] = result["workout"]
+        if body.actions and "actions" not in result:
+            # A refusal or a fallback is one question action.
+            result["actions"] = [_action_out({"id": "a1", "type": "question"}, result, {})]
         record["question_slot"] = result.get("question_slot")
         return result
 
     def shape(payload: dict[str, Any]) -> dict[str, Any]:
+        if body.meal_changes:
+            return shape_actions(payload)
         record.update(record_fields(payload))
         result, record["clarify"], record_log = shape_chat_turn(body, payload, photo_only=photo_only)
         if body.workout:
@@ -932,6 +942,8 @@ def chat_reply(
                 safety_identifier=safety_identifier,
             )
 
+        if body.meal_changes:
+            return generate_actions(call, timeout)
         payload = call(_chat_text(body), timeout)
         # ADR-042: the total is the sum of the items before any check or shaping reads it.
         record["kcal_resum"] = estimate_total.apply_turn(payload, _record_totals(body))
@@ -959,6 +971,166 @@ def chat_reply(
         adjusted["plan_budget"] = payload.get("plan_budget")
         return adjusted
 
+    slot_ids = [s.id for s in body.profile.slots]
+
+    def prepare_actions(payload: dict[str, Any]) -> None:
+        """ADR-050: normalize the list, then per action the server total (ADR-042) and the boost (ADR-055),
+        each plan seeing the DAY after the logs stated before it in the same message."""
+        listed = actions.normalize(payload, slot_ids)
+        record["actions_dropped"] = actions.dropped(payload) or None
+        payload["actions"] = listed
+        reply = payload.get("reply")
+        day_body = body
+        resums, boosts = [], []
+        for action in listed:
+            view = actions.view(payload, action, reply=reply, first=False)
+            resums.append(estimate_total.apply_turn(view, _record_totals(body)))
+            if action["type"] == "plan":
+                boost: dict[str, Any] = {}
+                _protein_boost(day_body, view, boost)
+                boosts.append(boost.get("protein_boost"))
+            reply = view["reply"]
+            day_body = _after_log(day_body, view, view.get("estimate"))
+        payload["reply"] = reply
+        record["kcal_resum"] = next((r for r in resums if r), None)
+        record["protein_boost"] = next((b for b in boosts if b), None)
+
+    def first_plan(payload: dict[str, Any]) -> tuple[ChatIn, dict[str, Any]] | None:
+        """The first plan action as a single-estimate view, with the DAY after the logs before it."""
+        day_body = body
+        for action in payload["actions"]:
+            view = actions.view(payload, action, reply=payload.get("reply"), first=False)
+            if action["type"] == "plan":
+                return day_body, view
+            day_body = _after_log(day_body, view, view.get("estimate"))
+        return None
+
+    def generate_actions(call: Callable[[str, float], dict[str, Any]], timeout: float) -> dict[str, Any]:
+        payload = call(_chat_text(body), timeout)
+        if payload_scope(payload) == IN_SCOPE and actions.question_with_others(actions.normalize(payload, slot_ids)):
+            # ADR-050 decision 3: a question never sits next to another action. One regeneration, then the
+            # question actions are dropped and the others kept.
+            record["actions_retry"] = True
+            first_raw = record.get("raw_output")
+            try:
+                again = call(_chat_text(body), deadline.remaining())
+            except Exception as exc:
+                _LOG.warning("chat actions retry failed: %s", type(exc).__name__)
+                again = None
+                record["raw_output"] = first_raw
+            if (again is not None and payload_scope(again) == IN_SCOPE
+                    and not actions.question_with_others(actions.normalize(again, slot_ids))):
+                payload = again
+            else:
+                payload["actions"] = [a for a in actions.normalize(payload, slot_ids) if a["type"] != "question"]
+        prepare_actions(payload)
+        if not body.plan_budget or payload_scope(payload) != IN_SCOPE:
+            return payload
+        planned = first_plan(payload)
+        budget = _plan_budget(*planned) if planned else None
+        if budget is None or not budgets.needs_adjustment(budget, body.fit_kcal):
+            return payload
+        # ADR-039: one adjustment call against the server's target. The first answer stays on any failure.
+        record["adjust_retry"] = True
+        first_raw = record.get("raw_output")
+        try:
+            adjusted = call(_chat_text(body, budget_target=budget["limit_kcal"]), deadline.remaining())
+        except Exception as exc:
+            _LOG.warning("chat adjust retry failed: %s", type(exc).__name__)
+            record["raw_output"] = first_raw
+            return payload
+        if payload_scope(adjusted) != IN_SCOPE:
+            record["raw_output"] = first_raw
+            return payload
+        kept = record.get("kcal_resum")
+        prepare_actions(adjusted)
+        record["kcal_resum"] = record.get("kcal_resum") or kept
+        again = first_plan(adjusted)
+        if again is None or budgets.plan_kcal(again[1]) is None:
+            record["raw_output"] = first_raw
+            prepare_actions(payload)
+            return payload
+        # Same target for the second check: the reservations and choice that produced it.
+        next(a for a in adjusted["actions"] if a["type"] == "plan")["plan_budget"] = planned[1].get("plan_budget")
+        return adjusted
+
+    def close_actions(shaped: list[Any], befores: list[ChatIn], reply: Any) -> Any:
+        """ADR-043 decision 6 once per answer: the closing lines after the last released log or plan of today.
+
+        The meals this message skips or holds with a question get no closing line and no share of what is left.
+        """
+        released = [k for k, (a, v, r, *_ ) in enumerate(shaped) if r.get("intent") in ("log", "plan")
+                    and isinstance(r.get("estimate"), dict) and v.get("meal_day") != "other"]
+        quiet = [a.get("slot") if a["type"] == "skip" else (v.get("estimate") or {}).get("suggested_slot")
+                 for a, v, r, *_ in shaped
+                 if a["type"] == "skip" or (a["type"] == "log" and not isinstance(r.get("estimate"), dict))]
+        quiet = [slot for slot in quiet if slot is not None]
+        if released and isinstance(reply, str):
+            k = released[-1]
+            holder = {**shaped[k][2], "reply": reply}
+            _close_day(_without_meals(befores[k], quiet), shaped[k][1], holder)
+            reply = holder["reply"]
+        names = {s.name for s in body.profile.slots if s.id in quiet}
+        if names and isinstance(reply, str) and len(shaped) > 1:
+            reply = "\n".join(line for line in reply.split("\n")
+                              if not (meal_window.is_closing(reply_format.plain(line).strip())
+                                      and reply_format.plain(line).strip().split(":", 1)[0] in names))
+        return reply
+
+    def shape_actions(payload: dict[str, Any]) -> dict[str, Any]:
+        """Shape each action with the single-estimate rules, in order, threading the reply and the DAY."""
+        listed = payload["actions"]
+        reply = payload.get("reply")
+        day_body = body
+        shaped: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any], str, str | None]] = []
+        befores: list[ChatIn] = []
+        differences = []
+        for k, action in enumerate(listed):
+            befores.append(day_body)
+            view = actions.view(payload, action, reply=reply, first=k == 0)
+            result, clarify, record_log = shape_chat_turn(day_body, view, photo_only=photo_only)
+            if len(listed) > 1 and clarify == CLARIFY_ASKED:
+                # The held action keeps its question; the shared reply already asks it next to the others.
+                result["reply"] = reply
+            if action["type"] == "workout":
+                result["workout"] = shape_workout(view)
+            differences.append(_plan_difference(day_body, view, result))
+            if result.get("intent") == "plan" and result.get("estimate"):
+                window = _meal_window(day_body, view)
+                record["meal_window"] = record.get("meal_window") or (window.log() if window else None)
+                if body.plan_budget:
+                    result["plan_budget"] = _plan_budget(day_body, view)
+            reply = result.get("reply", reply)
+            shaped.append((action, view, result, clarify, record_log))
+            if result.get("intent") == "log" and isinstance(result.get("estimate"), dict):
+                day_body = _after_log(day_body, view, result["estimate"], draft=False)
+        reply = close_actions(shaped, befores, reply)
+        main = next((i for i, (a, *_ ) in enumerate(shaped) if a["type"] in ("log", "plan")),
+                    next((i for i, (a, *_ ) in enumerate(shaped) if a["type"] != "skip"), 0))
+        action, view, result, clarify, record_log = shaped[main]
+        legacy = dict(result)
+        legacy["reply"] = reply
+        legacy["memory_updates"] = shaped[0][2].get("memory_updates", [])
+        legacy["memory_used"] = shaped[0][2].get("memory_used", [])
+        record.update(record_fields(view))
+        record["clarify"] = clarify
+        record["plan_difference"] = next((d for d in differences if d is not None), None)
+        if body.skip_slots:
+            own = (legacy.get("estimate") or {}).get("suggested_slot") if legacy.get("intent") == "log" else None
+            legacy["skip_slots"] = [a["slot"] for a, *_ in shaped if a["type"] == "skip" and a["slot"] != own]
+        legacy.pop("workout", None)
+        if body.workout:
+            legacy["workout"] = next((r["workout"] for a, _, r, *_ in shaped if a["type"] == "workout"), None)
+            if (legacy["workout"] and legacy.get("estimate") is None and not legacy.get("question")
+                    and legacy.get("intent") != "skip"):
+                legacy["record"] = RECORD_AUTO
+                record_log = RECORD_AUTO_WORKOUT
+        if body.actions:
+            legacy["actions"] = [_action_out(a, r, record_fields(v)) for a, v, r, *_ in shaped]
+        record["actions"] = [{"type": a["type"], "record": r.get("record"), "clarify": c} for a, _, r, c, _ in shaped]
+        _format(legacy, record)
+        return versioned(legacy, record_log)
+
     return run_guarded(
         record,
         lambda: guarded_turn(
@@ -978,6 +1150,81 @@ def chat_reply(
         refuse=lambda reply: versioned(refuse_chat(reply), RECORD_NONE_POLICY),
         is_fallback=lambda result: result.get("reply") == CHAT_FALLBACK_REPLY,
     )
+
+
+def _after_log(body: ChatIn, view: dict[str, Any], estimate: Any, *, draft: bool = True) -> ChatIn:
+    """ADR-050 decision 3: the DAY after a log of today stated earlier in the same message.
+
+    draft: the model's estimate, whose add operation describes only the new food (ADR-032); otherwise the
+    shaped estimate, already the whole meal. Returns a copy; the request body is never changed.
+    """
+    if view.get("intent") != "log" or view.get("meal_day") == "other" or not isinstance(estimate, dict):
+        return body
+    slot = estimate.get("suggested_slot")
+    if slot not in {s.id for s in body.profile.slots}:
+        return body
+    values = {k: float(estimate[k]) if isinstance(estimate.get(k), (int, float)) and not isinstance(
+        estimate.get(k), bool) else 0.0 for k in NUTRIENTS}
+    state = next((s for s in body.day.slots if s.id == slot), None)
+    eaten = state is not None and state.status == "eaten"
+    old = {k: float(getattr(state, k) or 0) if eaten else 0.0 for k in NUTRIENTS}
+    text = str(estimate.get("meal_text") or "")
+    change = view.get("meal_change")
+    if draft and isinstance(change, dict) and change.get("operation") == "add" and eaten:
+        values = {k: old[k] + values[k] for k in NUTRIENTS}
+        text = f"{state.text}; {text}" if state.text else text
+    copy = body.model_copy(deep=True)
+    day = copy.day
+    day.eaten_kcal += values["kcal"] - old["kcal"]
+    day.eaten_p += values["p"] - old["p"]
+    day.eaten_c += values["c"] - old["c"]
+    day.eaten_g += values["g"] - old["g"]
+    if day.remaining_kcal is not None:
+        day.remaining_kcal -= meal_window.rounded(values["kcal"] - old["kcal"])
+    target = next((s for s in day.slots if s.id == slot), None)
+    if target is None:
+        target = DaySlotIn(id=slot, status="empty")
+        day.slots.append(target)
+    target.status = "eaten"
+    target.text = text[:COMPOSED_MEAL_TEXT_MAX] or None
+    target.kcal, target.p, target.c, target.g = (values[k] for k in NUTRIENTS)
+    return copy
+
+
+def _without_meals(body: ChatIn, slot_ids: list[str]) -> ChatIn:
+    """A copy where these empty slots count as skipped: no closing line and no reservation for them."""
+    if not slot_ids:
+        return body
+    copy = body.model_copy(deep=True)
+    for state in copy.day.slots:
+        if state.id in slot_ids and state.status == "empty":
+            state.status = "skipped"
+    return copy
+
+
+def _action_out(action: dict[str, Any], result: dict[str, Any], fields: dict[str, Any]) -> dict[str, Any]:
+    """One action of the response (ADR-050): the shaped estimate, question and record mark of that action."""
+    kind = action.get("type", "question")
+    estimate = result.get("estimate") if kind in ("log", "plan") else None
+    if kind == "skip":
+        slot = action.get("slot")
+    else:
+        slot = estimate.get("suggested_slot") if isinstance(estimate, dict) else result.get("question_slot")
+    return {
+        "id": action.get("id", "a1"),
+        "type": kind,
+        "slot": slot,
+        "estimate": estimate,
+        "question": result.get("question"),
+        "record": result.get("record"),
+        "record_intent": fields.get("record_intent"),
+        "meal_day": fields.get("meal_day"),
+        "meal_change": result.get("meal_change") if kind == "log" else None,
+        "workout": result.get("workout") if kind == "workout" else None,
+        "recipe_id": None,
+        "options": None,
+        "plan_budget": result.get("plan_budget") if kind == "plan" else None,
+    }
 
 
 def compact_reply(

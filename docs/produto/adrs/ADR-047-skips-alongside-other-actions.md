@@ -1,6 +1,6 @@
 # ADR-047 — Skips stated alongside other actions; a skip over a record asks to delete it
 
-- Status: Accepted (2026-10-07, with the owner's approval of S29)
+- Status: Accepted (2026-10-07, with the owner's approval of S29); partially superseded by [ADR-050](ADR-050-typed-actions-per-message.md) (skips become `skip` actions of the same ordered list)
 - Date: 2026-10-07
 - Context: `produto`
 - Supersedes: partially [ADR-028](ADR-028-registro-autonomo.md) decision 4 (a skip is no longer only a turn of its own; a skip of a slot with a record asks to delete it instead of changing nothing) and the "one automatic action per answer" rule of decision 2 (one record plus the skips of other slots); partially [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list: `chatSK`, `chatSD` new).

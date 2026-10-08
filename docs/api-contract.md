@@ -331,6 +331,33 @@ Effective responses always include `plan_budget`, either null or:
 - Adjusting (`fit_kcal` sent, or `choice` `fit`) with `limit_kcal` ≥ 1 and the plan over it: the server asks the model once for the same dish within the target and returns that plan when it is valid. A plan still above the target returns with `over_kcal` > 0; there is no further attempt. With `limit_kcal` < 1 no adjustment is tried.
 - A plan stays `record: none`. The server stores nothing. Dev chat log metadata adds `plan_budget` (this object or null) and `adjust_retry` (boolean).
 
+### Actions capability
+
+Behavior: [ADR-050](produto/adrs/ADR-050-typed-actions-per-message.md) (S36). With `meal_changes: true` the model answers every normal turn with an ordered list of typed actions, and the server shapes each action with the rules of a single estimate (server total, add/revise, meal window and plan budget, protein boost, clarify and record gates), in order: a plan after a log of the same message sees that log eaten in DAY, and the closing lines are written once, after the last released log or plan of today. A normal request with `meal_changes: true` may also send `actions: true` (JSON boolean only; without `meal_changes` it is a 422; compact ignores it).
+
+With it, the response adds `actions` (1–6), next to the top-level fields below:
+
+```json
+{
+  "actions": [
+    {"id": "a1", "type": "log", "slot": "3", "estimate": {"kcal": 520, "p": 30, "c": 60, "g": 15, "confidence": "high", "question": null, "items": [], "suggested_slot": "3", "meal_text": "…"},
+     "question": null, "record": "auto", "record_intent": "clear", "meal_day": "today",
+     "meal_change": {"operation": "new", "base_slot": null, "addition": null}, "workout": null,
+     "recipe_id": null, "options": null, "plan_budget": null},
+    {"id": "a2", "type": "skip", "slot": "1", "estimate": null, "question": null, "record": "auto",
+     "record_intent": "unsure", "meal_day": "today", "meal_change": null, "workout": null,
+     "recipe_id": null, "options": null, "plan_budget": null}
+  ]
+}
+```
+
+- `type`: `log`, `plan`, `skip`, `workout`, `recipe_recall` or `question`. One action per thing the message does; order: logs, plans, workouts and recalls as stated, then skips in profile order; a slot both eaten and skipped is a log; at most six (the reply names what was left out).
+- Per action: `estimate` (log and plan; null when held), `question` (the held question of that action, v3 rules), `record` (v4 rules per action: a released clear log `auto`, a skip `auto`, a plan or a held log `none`), `meal_change` (log only), `workout` (workout only, `{kcal, mode}`), `plan_budget` (plan only, with the plan-budget capability), `slot` (the estimate's slot, the skipped slot, or null). `recipe_id` and `options` are null until saved recipes and plan options.
+- A `question` action never sits next to another action: the server regenerates once and otherwise drops the question actions. A refusal or a fallback is one `question` action.
+- Top-level `reply`, `memory_updates` and `memory_used` belong to the whole answer.
+
+Without `actions: true` (the legacy view), the top-level fields are those of the first `log` or `plan` action (else the first non-skip action, else the first skip), `skip_slots` lists every skip action except the slot of that log, `workout` is the first workout action, and the reply covers every action. An installed app without the capability therefore records one action per turn.
+
 ### Workout capability
 
 Normal requests may opt into `workout: true` (S35, [ADR-049](produto/adrs/ADR-049-workout-energy-via-chat.md)) with `clarify_rounds` present and `auto_record: true`; a JSON boolean only, other combinations return 422. Absent or false keeps every older response shape. Compact ignores it.

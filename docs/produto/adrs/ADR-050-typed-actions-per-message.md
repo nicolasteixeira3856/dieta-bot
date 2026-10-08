@@ -1,6 +1,6 @@
 # ADR-050 — Typed actions per Chat message
 
-- Status: Proposed (owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5; accepted with the approval of S36)
+- Status: Accepted (2026-10-08, owner approval of S36 in the batch message; owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5)
 - Date: 2026-10-08
 - Context: `produto`
 - Supersedes: partially [ADR-028](ADR-028-registro-autonomo.md) (one record per turn becomes one record per `log` action), [ADR-032](ADR-032-acrescimos-e-correcoes-de-refeicoes.md) (a meal change is a field of a `log` action) and [ADR-047](ADR-047-skips-alongside-other-actions.md) (skips become `skip` actions in the same ordered list). The receipts, Desfazer, the delete proposal over a record and the order "logs and plans first, skips last" of those ADRs survive.

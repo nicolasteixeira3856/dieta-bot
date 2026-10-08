@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Chat response model (`actions[]`), batch application (one transaction, `RecordGuard`, one receipt per action, Desfazer of the batch), `chat_message.actions` persistence (Room migration), tests, captures.
-- Prerequisites: [S36](../../server/plans/s36-typed-actions.md) on the dev server; [A65](a65-workout-via-chat.md) delivered. Figma gate: N receipts under one message are already drawn by `chatSK` (two) — a design plan only if three or more receipts need a new layout.
+- Prerequisites: [S36](../../server/plans/pending_manual_validation/s36-typed-actions.md) on the dev server; [A65](a65-workout-via-chat.md) delivered. Figma gate: N receipts under one message are already drawn by `chatSK` (two) — a design plan only if three or more receipts need a new layout.
 - Related documentation: [ADR-050](../../produto/adrs/ADR-050-typed-actions-per-message.md), ADR-028/032/047/048, [product Chat](../../produto/specifications/chat.md), [Room](../specifications/room-v2.md), [HTTP contract](../../api-contract.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a66-typed-actions-batch.md. Implemente o plano aprovado.`
