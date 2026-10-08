@@ -89,6 +89,8 @@ export const DARK_FRAMES = {
   rcpD: "193:356",
   // Visible memory (D24, Release 2)
   memL: "198:867",
+  // Plan options (D25, Release 2)
+  chatO: "202:916",
   // Landing site (D11)
   land: "107:853",
   landM: "107:1003",
@@ -158,6 +160,8 @@ export const LIGHT_FRAMES = {
   rcpD: "192:226",
   // Visible memory (D24, Release 2)
   memL: "198:385",
+  // Plan options (D25, Release 2)
+  chatO: "202:753",
   // Landing site (D11)
   land: "106:530",
   landM: "106:716",

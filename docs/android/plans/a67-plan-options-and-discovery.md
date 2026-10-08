@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: plan bubble with one action group per option (Registrar, Reservar), persistence of option ids in `chat_message`, the `discovery` flag on the first opening, application of declared facts (`declared`, `equipment`, `liked`), tests, captures.
-- Prerequisites: [S37](../../server/plans/s37-plan-options-and-discovery.md) on the dev server; [A66](a66-typed-actions-batch.md) delivered; [D25](../../design/plans/pending_manual_validation/d25-release-2-plan-options.md) `Concluído` (option control, gold `chatO`).
+- Prerequisites: [S37](../../server/plans/s37-plan-options-and-discovery.md) on the dev server; [A66](a66-typed-actions-batch.md) delivered; [D25](../../design/plans/completed/d25-release-2-plan-options.md) `Concluído` (option control, gold `chatO`).
 - Related documentation: [ADR-051](../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md), ADR-046/048, [product Chat](../../produto/specifications/chat.md), [memoria-push](../../produto/specifications/memoria-push.md), [Room](../specifications/room-v2.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a67-plan-options-and-discovery.md. Implemente o plano aprovado.`

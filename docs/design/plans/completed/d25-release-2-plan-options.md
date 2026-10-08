@@ -1,10 +1,10 @@
 # Plan — D25 Release 2: Plan options in the bubble
 
-- Status: Pendente aprovação manual (Figma review gate, 08/10/2026)
+- Status: Concluído (08/10/2026)
 - Date: 08/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Opções", new component in `Componentes`. Repository: `docs/qa/figma/{dark,light}/chatO.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D24 `Concluído` ([history](../completed/)) (same release section order); [ADR-051](../../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) accepted with S37.
+- Prerequisites: D24 `Concluído` ([history](./)) (same release section order); [ADR-051](../../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) accepted with S37.
 - Figma MCP budget: ≤ 40 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d25-release-2-plan-options.md. Implemente o plano aprovado.`
@@ -74,3 +74,18 @@ Option 2 totals are sample data: `~360 kcal · 28P · 14C · 20G` (the fixture g
 3. Review images from `node tools/export-figma.mjs --only <node ids> --dry-run` (no MCP calls), one per frame, sent to the owner.
 
 Figma MCP budget: 6 of 40 calls (whoami, 2 reads, 1 failed read retried, 2 writes, 1 read-back).
+
+### Owner review
+
+**OK (08/10/2026)** on the first round, with no fixes ("Aprovado, pode exportar e concluir o plano"), with the short labels **Registrar** and **Reservar** and the day projection kept after the options.
+
+### Export (08/10/2026)
+
+- `tools/export-figma.mjs`: `chatO` added (Light `202:753`, Dark `202:916`).
+- `node tools/export-figma.mjs --only chatO`: 780 × 2200 (new, both themes).
+- Inventory: `chatO.png` added to [docs/qa/README.md](../../../qa/README.md); the golds-per-flow table of the [plans README](../README.md) gains the plan-options row.
+- `node tools/check-figma.mjs`: 108 golds verified (54 dark + 54 light). `node tools/check-docs.mjs` passes.
+- No app gate changes: `chatO` has no `GoldTest` yet, and `chatR` and `chatRL` keep their golds.
+- **Hand-over to [A67](../../../android/plans/a67-plan-options-and-discovery.md):** the option block per `options[]` entry, the action row per option, the `GoldTest` and capture of `chatO`.
+
+Figma MCP budget: 6 of 40 calls in total.
