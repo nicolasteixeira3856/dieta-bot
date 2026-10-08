@@ -1309,3 +1309,115 @@ Dias incluem teste e excluem espera do owner.
 Ordem: **B → C → H → E → G (id da opção) → D → A no chat → F → I.** `effort=low` só como medição, com ADR, depois de B mostrar o efeito no 3/10. O6 só se a pergunta no chat não antecipar o hábito.
 
 Este arquivo não pede produção. Abertos, na tabela já escrita acima: PG2 (CP8), PG3 (CP9), PG4 (CP7), PG5 (CP6), PG6 (A60 em validação manual). Incluir treino no `in_scope` é mudança da política de conteúdo dentro do plano de E. Não fecha bloqueador e não libera flavor prod, Play nem invite aberto.
+
+---
+
+## 5. Conclusão
+
+Síntese escrita por `claude-fable-5-1` (effort: high) em 08/10/2026, depois de reler as três avaliações e de verificar no código cada alegação concreta dos outros dois agentes. O que está abaixo substitui a ordem e os itens da seção 2 onde houver conflito.
+
+### 5.1 Verificação das alegações
+
+| Alegação (quem) | Verificado em | Resultado |
+|---|---|---|
+| Prefixo de 42.690 caracteres, não 28 mil (grok-4.7) | `chat_instructions.assemble` para as quatro branches | Correto: legacy 38.929, legacy_duro 40.095, meal_changes 42.690, meal_changes_duro 43.856. O número da seção 2 era o do S19, anterior a S21–S30. |
+| `closing` proíbe total do dia no `reply` (grok-4.7) | regra `closing`, `chat_instructions.py` | Correto: "No line for the answered meal and no day totals". O saldo do dia no `reply` (item H) viola o ADR-043. |
+| Pergunta única contraria o ADR-026 (ambos) | `AGENTS.md` § Product, ADR-026 | Correto: "all doubts at once, at most 3 rounds". |
+| ADR-033 veta exemplos e fixtures derivados das transcrições (ambos) | ADR-033 decisões 1 e 3 | Correto, inclusive paráfrase e anonimização. Regressão só com situações sintéticas independentes. |
+| `plan` já pede duas opções e o `estimate` descreve só a primeira (grok-4.7) | regra `PLAN`, linhas 403–413 | Correto. O item G.2 já existe; o que falta é identidade da segunda opção. |
+| `DAY.local_time` fica antes de `RECENT` e quebra o cache (ambos) | `_chat_text` em `main.py`: PROFILE → MEMORY → DAY → RECENT → DIGESTS → HISTORY | Correto. O cache de prefixo para em DAY. |
+| `chatFacts` não envia kcal/P/C/G da rotina (ambos) | `PromptBuilder.chatFacts`, `Fact` em `MemoryRules.kt`, ADR-023 § fato | Correto: `Fact` guarda os macros do último registro, `ChatFact` envia id, tipo, categoria, chave, texto, slot e dias. A branch A do prompt pede "nutrition" que o turno nunca recebe. |
+| Rotina só nasce com registro; `MemoryUpdate` não carrega macros (ambos) | `waitsForRecord` em `ChatViewModel`, `withMeal` em `MemoryRules`, ADR-023 decisão 4 | Correto. Uma rotina declarada no onboarding não teria números sem mudança de contrato. |
+| Treino fora do `in_scope` (grok-4.7) | regra `scope` e `docs/content-policy/specifications/content-policy.md` | Correto: nenhuma menção a exercício. "Treino 610 kcal" pode ser recusado hoje. |
+| Compactação 7 vezes/dia, não 2 (grok-4.7) | `MAX_RAW` 12, `KEEP_RAW` 4 em `PromptBuilder` | Correto para 30 turnos/dia. Impacto no custo: ~US$ 0,05/mês. |
+| `Closures.week` usa teto ÷ slots, não a janela (ambos) | `Closures.kt` linha 136 | Correto. `over_slot` semanal é heurística, não prova de estouro da janela. |
+| `FactMemory` fica em arquivo criptografado, fora do Room (gpt-6-astra) | `FactMemory.kt` | Correto (`memory.bin`). |
+| Peso-meta conflita com o ADR-044 (ambos) | ADR-044 decisão 1, A56 | Parcial: o ADR-044 proíbe falar de corpo e peso; o A56 prevê a meta citada sem comentário sobre o corpo e exige ADR próprio. Decisão do owner, fora deste brainstorm. |
+| "Modelo não é o gargalo" não demonstrado (gpt-6-astra) | eval `mesmo-cafe-ontem-recent` 3/10 com a regra presente | Parcial: não houve comparação controlada. A conclusão operacional continua: tirar a execução determinística do modelo resolve independentemente do modelo. Uma medição de `effort=low` no mesmo fixture sintético entra como evidência barata, sem mudar produto. |
+
+### 5.2 Onde concordo com as outras avaliações (mudo a seção 2)
+
+- **H.** Saldo do dia e proteína faltante são do app, calculados do Room depois da gravação, nunca prosa do modelo. Enquanto a estimativa está pendente, o app mostra projeção marcada como projeção. Dúvidas materiais vão juntas na `question`, sem "1 correção".
+- **Evals.** Nenhuma transcrição da seção 1 vira exemplo, fixture ou paráfrase. Os casos de regressão são sintéticos, perfis variados, cobrindo os mesmos modos de falha abstratos (cópia de dia nomeado, várias refeições num turno, treino, receita lembrada, dia livre acima do teto).
+- **B.** "Mais frequente = de sempre" está descartado: mudaria o ADR-023, que define rotina como fato reforçado por registro. Fica: cópia determinística de um dia nomeado em código, e macros da rotina enviados no MEMORY.
+- **A.** Sem tela O6 na primeira fase. A descoberta de rotina acontece no próprio Chat, na primeira abertura com memória vazia, opcional e pulável. O6 só se a medição mostrar que a pergunta no Chat não entrega o dia 0. A56 segue separado, com ADR próprio.
+- **E.** Treino antes das ações múltiplas, como operação estreita: número digitado, substituir ou somar, Desfazer, crédito recalculado no app, sem pulso, duração, Health ou Xiaomi. Exige mudança do `in_scope` em `content-policy`.
+- **G.** Sem chamada "crítico" extra. Equipamento só quando declarado. Comida citada não é despensa; registro depois de plano não prova aprovação. A segunda opção do plano precisa de identidade própria para "fiz a 2" e "quanto de iogurte?" sobreviverem à compactação.
+- **D.** Lote com id por ação, ordem, dependências e Desfazer do lote inteiro; a contagem de rodadas do ADR-026 vale por refeição pendente. Vários `commitRecord` soltos não resolvem.
+- **F.** Busca da receita no aparelho; o turno leva só a receita encontrada. Salvar não registra; editar não reescreve registro antigo; receita versionada com rendimento e porção.
+- **I.** A frase "Anotado: {fato}" vem do app, com o fato realmente gravado, antes de qualquer tela. O editor dev (ADR-019) não é a tela de produto.
+- **Custo.** As três contas convergem: uso cheio hoje ≈ US$ 0,5–0,8/usuário/mês; proposto ≈ US$ 0,5–0,7; teto do contrato sem cache ≈ US$ 1,8. O cenário de 12,5 mil tokens cacheados da seção 2 era otimista.
+
+### 5.3 Onde mantenho a posição
+
+- **Tirar lógica do prompt antes de ampliar o schema.** As duas avaliações colocam B cedo; mantenho B como primeiro plano, junto com C, porque os dois são server-only e atacam a dor relatada pelo owner.
+- **Ordem de D e A.** gpt-6-astra põe A/G antes de C e D; grok-4.7 põe D antes de A. Mantenho D antes da descoberta no Chat: "registrar o dia inteiro" e "jantei X, sugere a janta" foram pedidos explícitos do owner e do tester; a descoberta no Chat depende de poder gravar várias rotinas numa mensagem, que é o próprio D.
+- **O6 continua no horizonte.** O owner declarou que o produto precisa funcionar no dia 1 para quem pagou; uma pergunta pulável no Chat pode não bastar. Fica condicional, não descartado.
+- **Medição de `effort`.** Entra como medição dentro do primeiro plano de server (eval sintético, sem mudar o produto). ADR só se o resultado justificar adotar.
+
+### 5.4 Planos necessários, por ordem de execução
+
+Numeração provisória, seguindo os últimos ids de cada contexto (S30, A63, D21, CP9, ADR-048). Cada plano tem uma pasta; um `/goal` por plano; aprovação explícita do arquivo antes do código. Nenhum aciona o production gate.
+
+**Plano 1 — S31 (server): referência de dia nomeado em código, macros da rotina, totais da semana e cache**
+
+1. Detecção determinística no server de referência a dia nomeado ("de ontem", "de anteontem", "de segunda", "mesmo X de {dia}") combinada com slot; o server encontra a linha do `RECENT` e monta um bloco `COPY_SOURCE` com data, dia da semana, texto e números. A regra PARTICULAR DAY do prompt vira "copie COPY_SOURCE". Ambiguidade (duas linhas do slot no dia, slot não identificado) vira pergunta, nunca escolha.
+2. Contrato: `facts[]` ganha `kcal`, `p`, `c`, `g` opcionais; `_memory_lines` imprime os números da rotina. A branch A passa a ter o que pede.
+3. Contrato: `recent_days[]` (até 7 linhas: data, kcal, P, C, G, teto efetivo, registrado sim/não, slots pulados). O prompt do tom `duro` cita padrão da semana só com dias registrados; nenhum dia incompleto vira crítica.
+4. `_chat_text`: PROFILE → MEMORY → RECENT → RECENT_DAYS → DAY → DIGESTS → HISTORY, com `local_time` no bloco DAY depois dos blocos estáveis. Medir a fração cacheada antes e depois no eval.
+5. Evals sintéticos novos (sem origem nas transcrições): cópia de dia nomeado (3 perfis), rotina com macros, crítica com `recent_days`. Medição de `reasoning.effort=low` nos mesmos casos, só como evidência registrada no Results.
+6. Sem mudar ADR-023; se o desenho exigir mudar a semântica de "de sempre", parar e abrir ADR.
+
+**Plano 2 — A64 (app): envio dos novos campos, saldo do dia pelo app, frase de memória**
+
+1. `PromptBuilder` envia `facts[].kcal/p/c/g` e `recent_days` calculados do Room (reaproveitar `Closures`, corrigindo o teto efetivo por dia e marcando dia sem registro).
+2. Recibo de registro mostra uma linha de saldo calculada do Room depois da gravação: kcal comidos de teto efetivo e proteína faltante. Estimativa pendente mostra projeção com rótulo de projeção. Se a bolha ou o recibo desenhados mudarem, plano D22 antes (gate Figma); se couber no gold atual (`chatF`), sem design.
+3. Frase "Anotado: {texto do fato}" gerada pelo app ao aplicar um `memory_updates` permanente explícito, com o fato lido de volta do `FactMemory`.
+4. Testes unitários do `PromptBuilder` e do cálculo de saldo; captura dos fluxos tocados no emulador.
+
+**Plano 3 — ADR-049 + CP10 + S32 + A65: treino pelo Chat**
+
+1. ADR-049: gasto de treino informado pelo Chat é operação própria, número digitado, substituir ou somar ao valor do dia, Desfazer; nada inferido (sem duração, pulso, Health, Xiaomi); crédito recalculado no app pela regra de eat-back vigente.
+2. CP10 (content-policy): `in_scope` passa a incluir a declaração de gasto de treino em kcal; refusals e sinais de segurança inalterados.
+3. S32: intent/ação `workout {kcal, mode: replace|add}` no contrato, shaping, `record: auto` quando o número é explícito, evals sintéticos.
+4. A65: grava `day.workoutKcal` em `commitRecord` com recibo e Desfazer; recibo novo passa por D22 se não couber nos golds de recibo existentes.
+
+**Plano 4 — ADR-050 + S33 + A66: ações múltiplas por mensagem**
+
+1. ADR-050, sucessor de ADR-028/032/047: `actions[]` tipadas (`log`, `skip`, `plan`, `workout`, `question`) com id, ordem, dependência (um `plan` depois de `log` usa o estado já atualizado), rodadas de clarificação por refeição pendente, Desfazer do lote inteiro.
+2. S33: capability `actions: true`; schema estrito com até 6 ações; shaping reaproveita ADR-042 (soma por itens), ADR-032 (add/revise), ADR-047 (ordem); uma pergunta segura só a ação com dúvida material, as demais saem resolvidas; evals sintéticos para dia inteiro numa mensagem, log + plan, workout + log.
+3. A66: aplicação em uma transação por lote com `RecordGuard`, um recibo por ação, Desfazer do lote; `chat_message.actions` (Room v13). D22 se N recibos não couberem em `chatSK`.
+
+**Plano 5 — ADR-051 + S34 + A67: identidade das opções do plano e descoberta de rotina no Chat**
+
+1. ADR-051: cada opção de um plano tem id e `estimate` próprios; "fiz a 2", "quanto de iogurte?" e "travar a 1" apontam para a opção, inclusive depois da compactação (digest preserva id e nome das opções). Primeira abertura do Chat com memória vazia: Tali faz até quatro perguntas puláveis (café, almoço, janta, preferências fixas e equipamento declarado); as respostas viram fatos pela regra atual (preferência permanente explícita; rotina só com macros estimados pelo server e marcada como declarada, sem contar dia de registro). Categorias novas `equipment` (declarado) e `liked` (registro que cita um plano do dia) exigem contrato e `MemoryRules`.
+2. S34: `plan.options[]` no contrato, regra de "sem ideia" mantida (duas opções), digest com ids; fluxo de descoberta como turno de Chat (`intake: true`), devolvendo `memory_updates` com macros; evals sintéticos.
+3. A67: opções na bolha com ação por opção (gate Figma D22 para o controle novo), persistência dos ids, fluxo de descoberta na primeira abertura, aplicação dos fatos declarados.
+
+**Plano 6 — ADR-052 + D23 + S35 + A68: receitas salvas**
+
+1. ADR-052, sucessor de ADR-012 para as telas: entidade receita (nome, ingredientes com gramas, passos, kcal/P/C/G, rendimento, porção, versão, origem), salvar não registra, editar cria versão, registro guarda a versão usada.
+2. D23: golds `rcpL` (lista, mais recente primeiro, nome e kcal · P/C/G) e `rcpD` (detalhe), ação "Salvar receita" na bolha do plano, entrada pela Config; revisão do owner no Figma e exportação.
+3. S35: `plan` devolve `recipe {name, ingredients, steps}` estruturado; ações `recipe_recall {id}` e `log` por receita (cópia determinística dos números da versão); o app envia só o índice (`recipes[]`: id, nome, macros, ingredientes-chave, ≤ 30) e, quando a busca local acha uma receita citada, a receita completa só nesse turno; evals sintéticos.
+4. A68: Room v13 ou v14 (`recipe`, `recipe_version`), busca local por nome e ingrediente, telas, ação na bolha, registro pela receita com recibo; capturas contra os golds.
+
+**Plano 7 — ADR-053 + D24 + A69: memória visível; O6 condicional; A56**
+
+1. ADR-053, sucessor de ADR-019: tela de produto "O que a Tali sabe" na Config: lista de fatos com origem, apagar, corrigir; o esquecimento não volta pelo histórico (digest não reconstrói fato apagado).
+2. D24: gold da tela; A69: tela, ações, testes.
+3. O6 só se a medição do Plano 5 mostrar que a descoberta no Chat não cobre o dia 0: ADR próprio, gold `o6`, plano S e A.
+4. A56 (peso-meta): reentrada pelo seu próprio arquivo, com o ADR que ele exige, depois dos planos acima.
+
+### 5.5 Gates por plano
+
+| Plano | ADR | Content-policy | Figma | Production gate |
+|---|---|---|---|---|
+| 1 S31 | Não (para se precisar mudar ADR-023) | Não | Não | Não |
+| 2 A64 | Não | Não | Só se bolha/recibo mudarem (D22) | Não |
+| 3 treino | ADR-049 | CP10 | Recibo novo, se não couber nos golds | Não |
+| 4 ações | ADR-050 | Não | D22 se N recibos | Não |
+| 5 opções + descoberta | ADR-051 | Não | D22 (controle por opção) | Não |
+| 6 receitas | ADR-052 | Não | D23 (2 golds + ação) | Não |
+| 7 memória / O6 / A56 | ADR-053 (+ ADR O6, ADR A56) | Não | D24 | Não |
+
+Bloqueadores do production gate continuam os listados por gpt-6-astra na seção 4 (PG2–PG6); nenhum plano acima os fecha nem os reabre.
