@@ -10,7 +10,9 @@ from openai import OpenAI
 
 from chat_instructions import assemble, chat_branch, close_branch, validate_assembled
 import plan_budget
-from config import CHAT_EFFORT, MEAL_DAYS, MODEL, REASONING_EFFORT, RECORD_INTENTS, TIMEOUT_SECONDS
+from config import (
+    CHAT_EFFORT, MEAL_DAYS, MODEL, REASONING_EFFORT, RECIPE_INGREDIENTS_MAX, RECORD_INTENTS, TIMEOUT_SECONDS,
+)
 
 SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
 # ADR-050 (S36): the types of a Chat action.
@@ -191,7 +193,10 @@ _CLOSE_FORMAT: dict[str, Any] = {
 }
 
 
-def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_changes: bool = False) -> dict[str, Any]:
+def chat_format(
+    slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_changes: bool = False,
+    recipe_ids: list[str] | None = None,
+) -> dict[str, Any]:
     """Structured output for /v1/chat. Slot and fact ids are limited to the ones in the request."""
     slots = [*dict.fromkeys(slot_ids), None]
     facts = list(dict.fromkeys(fact_ids or []))
@@ -266,11 +271,13 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
         },
     }
     if meal_changes:
-        return _actions_format(result["schema"]["properties"], estimate, slots)
+        return _actions_format(result["schema"]["properties"], estimate, slots, list(dict.fromkeys(recipe_ids or [])))
     return result
 
 
-def _actions_format(legacy: dict[str, Any], estimate: dict[str, Any], slots: list[Any]) -> dict[str, Any]:
+def _actions_format(
+    legacy: dict[str, Any], estimate: dict[str, Any], slots: list[Any], recipe_ids: list[str],
+) -> dict[str, Any]:
     """ADR-050 (S36): the meal-change branch answers with an ordered list of typed actions."""
     addition_keys = ("meal_text", "kcal", "p", "c", "g", "items")
     addition = {
@@ -287,6 +294,17 @@ def _actions_format(legacy: dict[str, Any], estimate: dict[str, Any], slots: lis
             "addition": {"anyOf": [addition, {"type": "null"}]},
         },
         "required": ["operation", "base_slot", "addition"],
+        "additionalProperties": False,
+    }
+    # S38 (ADR-052): the recipe a cooking plan builds, so the app can save it.
+    recipe = {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "ingredients": {"type": "array", "items": legacy["estimate"]["anyOf"][0]["properties"]["items"]["items"]},
+            "steps": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["name", "ingredients", "steps"],
         "additionalProperties": False,
     }
     option = {
@@ -310,14 +328,15 @@ def _actions_format(legacy: dict[str, Any], estimate: dict[str, Any], slots: lis
             "meal_day": legacy["meal_day"],
             "meal_change": {"anyOf": [change, {"type": "null"}]},
             "workout": legacy["workout"],
-            # S38 recipe ids: always null until that plan.
-            "recipe_id": {"type": "null"},
+            # S38: a saved recipe of the request (RECIPES), or null.
+            "recipe_id": {"type": ["string", "null"], "enum": [*recipe_ids, None]} if recipe_ids else {"type": "null"},
+            "recipe": {"anyOf": [recipe, {"type": "null"}]},
             # S37 (ADR-051): the two options of an open request, each with its own estimate.
             "options": {"anyOf": [{"type": "array", "items": option}, {"type": "null"}]},
             "plan_budget": legacy["plan_budget"],
         },
         "required": ["id", "type", "slot", "estimate", "record_intent", "meal_day", "meal_change", "workout",
-                     "recipe_id", "options", "plan_budget"],
+                     "recipe_id", "recipe", "options", "plan_budget"],
         "additionalProperties": False,
     }
     return {
@@ -478,6 +497,7 @@ class LlmClient:
         trace: dict[str, Any] | None = None,
         timeout: float = TIMEOUT_SECONDS,
         safety_identifier: str | None = None,
+        recipe_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         return self._complete(
             "chat",
@@ -485,7 +505,7 @@ class LlmClient:
             user_text,
             image_b64,
             trace,
-            chat_format(slot_ids, fact_ids, meal_changes=meal_changes),
+            chat_format(slot_ids, fact_ids, meal_changes=meal_changes, recipe_ids=recipe_ids),
             timeout,
             safety_identifier,
         )

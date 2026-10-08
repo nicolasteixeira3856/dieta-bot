@@ -1,6 +1,6 @@
 # ADR-052 — Saved recipes
 
-- Status: Proposed (owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5; accepted with the approval of S38)
+- Status: Accepted (2026-10-08, owner approval of S38 in the batch message; owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5)
 - Date: 2026-10-08
 - Context: `produto`
 - Supersedes: partially [ADR-012](ADR-012-chat-home-perfil.md) (the screen inventory gains the recipe list and detail, entered from Config). Complements [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (cooking help in a plan) and [ADR-017](ADR-017-registro-consolidado.md) (one record per meal).

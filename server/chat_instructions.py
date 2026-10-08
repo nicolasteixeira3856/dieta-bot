@@ -663,7 +663,7 @@ RULES: dict[str, Rule] = {
     )),
     'actions': Rule('server Chat 3a/3f; ADR-050 (replaces INTENT and SKIPS in this branch)', (
         'ACTIONS: actions is an ordered list of 1 to 6 objects {id, type, slot, estimate, record_intent, '
-        'meal_day, meal_change, workout, recipe_id, options, plan_budget}; id is a1, a2, a3... Build ONE '
+        'meal_day, meal_change, workout, recipe_id, recipe, options, plan_budget}; id is a1, a2, a3... Build ONE '
         'action per thing the message does. type log: the user reports newly eaten food or a change to '
         'recorded food, not a simple reaffirmation of what is already in DAY, or answers your question about '
         'such a meal; a food named alone, with no verb and no question, is log; a photo of food with a '
@@ -691,8 +691,9 @@ RULES: dict[str, Rule] = {
         'plan, null for every other type; a log whose operation or food cannot be resolved is a question '
         'action instead. record_intent and meal_day follow RECORD for a log and are unsure and today for the '
         'other types. meal_change follows MEAL CHANGES for a log and is null otherwise. workout is an object '
-        'only for type workout. plan_budget follows PLAN for a plan and is null otherwise. recipe_id and '
-        'options are null. A reply for several actions answers them in the same order, each in its own short '
+        'only for type workout. plan_budget follows PLAN for a plan and is null otherwise. options holds the '
+        'two options of an OPEN REQUEST plan and is null otherwise. recipe_id and recipe follow RECIPES and '
+        'are null otherwise. A reply for several actions answers them in the same order, each in its own short '
         'block. Each skip gets one short neutral clause, such as {slot} de hoje fora., without saying it was '
         'saved or skipped; a skip of a meal with no PROFILE slot is no action and gets one clause saying there '
         'is no meal with that name today and that its card on the home screen can be held to skip it. A skip '
@@ -939,6 +940,27 @@ RULES: dict[str, Rule] = {
         'history, digests and pending proposals explain the conversation without proving that an action was '
         'saved.'
     )),
+    'recipes': Rule('server Chat 3o; ADR-052', (
+        'RECIPES: an input block RECIPES lists the recipes the user saved in the app, one per line: id, name, '
+        'kcal · P · C · G and up to three key foods. An input block RECIPE_FULL, present only when the app found '
+        'the saved recipe the message refers to, gives that recipe in full (ingredients with grams and kcal, '
+        'steps, totals). A request to see or remember a saved recipe is an action of type recipe_recall with '
+        'the recipe_id of the matching RECIPES line and estimate null; reply is one short line naming it: the '
+        'app shows the saved recipe. When two or more RECIPES lines match, recipe_id is null and reply asks '
+        'which one, naming them. When none matches, recipe_id is null and reply says that no saved recipe has '
+        'that name and offers to build one, with no plan unless asked; never invent a saved recipe. Eating a '
+        'saved recipe with no stated change is a log copying the RECIPE_FULL totals and ingredients unchanged '
+        '(with only its RECIPES line: its totals, items empty), recipe_id set, confidence high, question null, '
+        'meal_text the recipe name followed by its ingredients or key foods. A saved recipe eaten with a '
+        'stated change (more or less of a food, a food left out or swapped) is a log re-estimated from '
+        'RECIPE_FULL with that change, recipe_id set, confidence medium. A request to adapt a saved recipe for '
+        'today is a plan rebuilt from RECIPE_FULL under PROTEIN and WINDOW, recipe_id set. A cooking plan with '
+        'steps (COOKING) also fills recipe {name, ingredients, steps}: the dish name, the same foods, grams and '
+        'kcal as its items and the same steps as reply, so the app can save it; recipe is null for every '
+        'other action. A request to save a recipe is answered that the app saves it from the button under '
+        'the recipe; never say a recipe was saved. A comment that a saved recipe worked proposes add liked '
+        'naming that recipe (MEMORY CHANGES).'
+    )),
     'discovery': Rule('server Chat 3n; ADR-051', (
         'DISCOVERY: an input line DISCOVERY: first_open means MEMORY is empty and the Chat was just opened for '
         'the first time. If the message is a greeting, asks how to start or says nothing about food, reply '
@@ -1079,8 +1101,8 @@ _CAPABILITY = {
         ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
-        ("rule", "temp_references"), ("rule", "workout"), ("rule", "discovery"), ("rule", "planned"),
-        ("rule", "format"),
+        ("rule", "temp_references"), ("rule", "workout"), ("rule", "recipes"), ("rule", "discovery"),
+        ("rule", "planned"), ("rule", "format"),
     ),
 }
 
