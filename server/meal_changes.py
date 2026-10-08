@@ -126,6 +126,24 @@ def totals_only(raw: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+OCCUPIED_TEXT_MAX = 60
+
+
+def occupied_question(slot: dict[str, Any], state: dict[str, Any]) -> str:
+    """S31: name what the eaten slot already holds and ask add or replace. Never raises."""
+    text = state.get("text")
+    held = ""
+    if isinstance(text, str) and text.strip():
+        text = " ".join(text.split())
+        if len(text) > OCCUPIED_TEXT_MAX:
+            text = text[: OCCUPIED_TEXT_MAX - 1].rstrip(" ,;") + "…"
+        held = f": {text}"
+    kcal = state.get("kcal")
+    if not isinstance(kcal, bool) and isinstance(kcal, (int, float)) and math.isfinite(kcal) and kcal >= 0:
+        held += f" ({rounded(kcal)} kcal)"
+    return f"{slot['name']} de hoje já tem registro{held}. Somo a esse registro ou substituo?"
+
+
 def prepare_change(
     payload: dict[str, Any], profile: list[dict], day: list[dict], keep: frozenset[float] | set[float] = frozenset(),
 ) -> dict[str, Any]:
@@ -164,6 +182,11 @@ def prepare_change(
     occupied = target is not None and states[target]["status"] == "eaten"
     if base is not None and (base != target or not occupied):
         raise ValueError("invalid meal base")
+    if op == "new" and base is None and occupied:
+        # S31: a new meal aimed at an eaten slot is add or revise; the server never picks. The outer gate
+        # asks (or, with no round left, states) instead of failing the turn.
+        out.update(estimate=None, meal_change=None, reply=occupied_question(slots[target], states[target]))
+        return out
     if op == "add":
         if occupied != (base is not None):
             raise ValueError("addition must preserve occupied target")
