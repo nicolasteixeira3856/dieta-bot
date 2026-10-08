@@ -102,7 +102,9 @@ def main(argv: list[str] | None = None) -> int:
     from openai import OpenAI
     from run import load_image
 
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=0)
+    from config import load_settings  # server loader: repo-root .env, never printed
+
+    client = OpenAI(api_key=load_settings().api_key, max_retries=0)
     out = Path(args.results).with_name(Path(args.results).name.replace("results-", "judge-"))
     cost = 0.0
     images: dict[str, str | None] = {}
@@ -123,7 +125,8 @@ def main(argv: list[str] | None = None) -> int:
                                                input=[{"role": "user", "content": content}], text={"format": SCHEMA}, timeout=120, store=False)
                 u = resp.usage
                 c = ((u.input_tokens or 0) * price_in + (u.output_tokens or 0) * price_out) / 1_000_000
-                return {**meta, "verdict": json.loads(resp.output_text), "cost_usd": round(c, 6), "error": None}
+                return {**meta, "verdict": json.loads(resp.output_text), "cost_usd": round(c, 6),
+                        "usage": {"input": u.input_tokens or 0, "output": u.output_tokens or 0}, "error": None}
             except Exception as exc:
                 err = f"{type(exc).__name__}: {str(exc)[:200]}"
                 if ("RateLimit" in type(exc).__name__ or "429" in str(exc)) and attempt < 2:

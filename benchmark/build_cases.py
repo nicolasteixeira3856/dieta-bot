@@ -832,8 +832,8 @@ def build(P: dict[str, dict[str, Any]]) -> None:
                {"state": "required", "p_min": "floor", "kcal_max": "window"}, time="18:50", eaten=[(s, typical(car, s, 0)) for s in ("m", "t")],
                summary="'Tá bom?' com prato nomeado não é pedido aberto: um prato, options null, reforço até o piso com no máximo dois alimentos.")
     case("boost-amanha-nicolas", "boost", nic, request(nic, "Amanhã no almoço vou comer 200 g de macarrão ao sugo com queijo ralado", time="21:30", eaten=[(s, typical(nic, s, 0)) for s in ("1", "2", "3", "4", "5")]), {
-        "actions": [act("plan", meal_day="other")], "actions_count": 1, "boost": {"state": "absent"}, "reply_not": ["registr"],
-    }, tags=["boost", "named-dish", "other-day"], summary="Prato nomeado para outro dia: plano com meal_day other e nenhum reforço.")
+        "actions": [act("plan")], "actions_count": 1, "boost": {"state": "absent"}, "reply_not": ["registr"],
+    }, tags=["boost", "named-dish", "other-day"], summary="Prato nomeado para outro dia: plano (meal_day fica today para planos, regra RECORD) e nenhum reforço.")
 
     # Checks a baseline cannot satisfy by construction (scored apart as det_supported).
     for c in CASES_OUT:

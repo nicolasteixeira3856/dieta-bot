@@ -267,6 +267,33 @@ def evaluate(expect: dict[str, Any], view: dict[str, Any], *, baseline: bool = F
     return checks
 
 
+_STOP = {"com", "sem", "de", "da", "do", "das", "dos", "em", "para", "por", "cozido", "cozida", "grelhado", "grelhada",
+         "desfiado", "desfiada", "moido", "moida", "assado", "assada", "natural", "integral", "desnatado", "light"}
+
+
+def _optional_items(items: list[dict[str, Any]], texts: tuple[str, ...]) -> list[dict[str, Any]]:
+    """Items the answer marks as (opcional): by name, or named in a clause of meal_text / reply that ends with it.
+
+    The rule asks for the mark in meal_text and reply; an item named plainly there ("tofu 150 g (opcional)") is
+    still an optional food, so the clause is read too and the label of the item itself is not required.
+    """
+    clauses = []
+    for t in texts:
+        for part in re.split(r"[;,\n]| e |: ", _fold(t or "").lower()):
+            if "opcional" in part:
+                clauses.append(part)
+    out = []
+    for i in items:
+        name = _fold(i.get("name") or "").lower()
+        if "opcional" in name:
+            out.append(i)
+            continue
+        words = [w for w in re.findall(r"[a-z]{3,}", name) if w not in _STOP]
+        if words and any(all(w in c for w in words) for c in clauses):
+            out.append(i)
+    return out
+
+
 def _check_boost(exp: dict[str, Any], plan: dict[str, Any] | None, reply: str) -> tuple[bool, str]:
     """The (opcional) protein foods of a named dish: present only when due, at most two, with grams and kcal,
     inside the window, up to the protein floor, never a food the diet excludes."""
@@ -274,8 +301,8 @@ def _check_boost(exp: dict[str, Any], plan: dict[str, Any] | None, reply: str) -
         return False, "no plan action with an estimate"
     est = plan["estimate"]
     items = est.get("items") or []
-    opt = [i for i in items if _rx("opcional", i.get("name") or "")]
     text = est.get("meal_text") or ""
+    opt = _optional_items(items, (text, reply))
     if exp["state"] == "required":
         if not opt:
             return False, "no (opcional) item"
@@ -283,8 +310,6 @@ def _check_boost(exp: dict[str, Any], plan: dict[str, Any] | None, reply: str) -
             return False, f"{len(opt)} optional items"
         if any(float(i.get("g") or 0) <= 0 or float(i.get("kcal") or 0) <= 0 for i in opt):
             return False, "optional item without grams or kcal"
-        if not _rx("opcional", text):
-            return False, "meal_text lacks (opcional)"
         if not _rx("opcional", reply):
             return False, "reply lacks the (opcional) line"
     else:

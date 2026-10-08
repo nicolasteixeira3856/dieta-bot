@@ -15,7 +15,8 @@ at --max-usd (default 5). Retries are counted (SDK retries are off) and never ex
 rotated per case and repetition so no arm is systematically first. Photo cases whose file is missing are
 skipped; photos are sent at ≤ 2048 px, JPEG q85, EXIF orientation applied then stripped (ADR-018).
 Results: benchmark/out/results-<stamp>.jsonl + manifest-<stamp>.json (hashes of prompts, schema, cases).
-Needs OPENAI_API_KEY in the environment; nothing of the server is touched or changed.
+Needs OPENAI_API_KEY in the environment or in the repo-root .env (server/config.load_settings, as the server
+evals); nothing of the server is touched or changed.
 """
 from __future__ import annotations
 
@@ -420,7 +421,9 @@ def main(argv: list[str] | None = None) -> int:
     if planned - len(done) > args.max_calls and not args.force:
         print(f"refusing: {planned - len(done)} calls > --max-calls {args.max_calls}")
         return 2
-    api_key = os.environ.get("OPENAI_API_KEY", "")
+    from config import load_settings  # server loader: repo-root .env, never printed
+
+    api_key = load_settings().api_key
     if not api_key:
         print("OPENAI_API_KEY missing")
         return 2

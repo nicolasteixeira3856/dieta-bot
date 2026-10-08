@@ -8,7 +8,7 @@
   "named-dish",
   "other-day"
  ],
- "summary": "Prato nomeado para outro dia: plano com meal_day other e nenhum reforço.",
+ "summary": "Prato nomeado para outro dia: plano (meal_day fica today para planos, regra RECORD) e nenhum reforço.",
  "image": null,
  "request": {
   "persona": "nicolas",
@@ -789,11 +789,10 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Prato nomeado para outro dia: plano com meal_day other e nenhum reforço.",
+  "summary": "Prato nomeado para outro dia: plano (meal_day fica today para planos, regra RECORD) e nenhum reforço.",
   "actions": [
    {
-    "type": "plan",
-    "meal_day": "other"
+    "type": "plan"
    }
   ],
   "actions_count": 1,
