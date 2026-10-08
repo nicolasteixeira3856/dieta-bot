@@ -7,7 +7,7 @@
   "multi",
   "whole-day"
  ],
- "summary": "Dia inteiro numa mensagem: cinco logs, um por refeição, slots pelo nome; 'café da tarde' cai no Jantar (18:30) por ser a refeição seguinte ao lanche da tarde; mínimo de perguntas.",
+ "summary": "Dia inteiro numa mensagem: cinco logs, um por refeição, slots pelo nome; 'café da tarde' não casa com nenhum slot pelo nome, por isso o slot desse log fica livre.",
  "image": null,
  "request": {
   "persona": "nicolas",
@@ -624,10 +624,10 @@
    {
     "id": "R2",
     "name": "Bruschetta de ovo na air fryer",
-    "kcal": 470,
-    "p": 33,
-    "c": 32,
-    "g": 22,
+    "kcal": 537,
+    "p": 37,
+    "c": 33,
+    "g": 26,
     "key_foods": [
      "pão francês",
      "ovo cozido",
@@ -763,7 +763,7 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Dia inteiro numa mensagem: cinco logs, um por refeição, slots pelo nome; 'café da tarde' cai no Jantar (18:30) por ser a refeição seguinte ao lanche da tarde; mínimo de perguntas.",
+  "summary": "Dia inteiro numa mensagem: cinco logs, um por refeição, slots pelo nome; 'café da tarde' não casa com nenhum slot pelo nome, por isso o slot desse log fica livre.",
   "actions": [
    {
     "type": "log",
@@ -799,7 +799,6 @@
    },
    {
     "type": "log",
-    "slot": "5",
     "kcal_range": [
      360,
      520
@@ -809,6 +808,9 @@
   "actions_count": 5,
   "reply_not": [
    "registr(ei|ado)"
+  ],
+  "baseline_unsupported": [
+   "actions_count"
   ]
  }
 }

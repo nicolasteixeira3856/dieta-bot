@@ -1,18 +1,19 @@
 {
- "id": "plan-fiz-a-2-ana",
- "family": "plan",
+ "id": "multi-workout-plan-credito-ana",
+ "family": "multi",
  "persona": "ana",
  "origin": "synthetic",
  "tags": [
+  "multi",
+  "workout",
   "plan",
-  "option",
-  "continuity"
+  "credit"
  ],
- "summary": "'Fiz a 2': log copiando a opção 2 do histórico.",
+ "summary": "Treino com eat-back 50 % seguido de plano: workout e plan; o crédito é do app, o plano usa o DAY como veio.",
  "image": null,
  "request": {
   "persona": "ana",
-  "local_time": "2026-10-07T20:30:00-03:00",
+  "local_time": "2026-10-07T19:10:00-03:00",
   "profile": {
    "ceiling_kcal": 1600,
    "p_target": 120,
@@ -473,24 +474,39 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 0,
-   "eaten_p": 0,
-   "eaten_c": 0,
-   "eaten_g": 0,
+   "eaten_kcal": 940,
+   "eaten_p": 64,
+   "eaten_c": 134,
+   "eaten_g": 19,
    "workout_kcal": null,
-   "remaining_kcal": 1600,
+   "remaining_kcal": 660,
    "slots": [
     {
      "id": "c",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 iogurte desnatado 170 g com 30 g de aveia e 1 banana prata",
+     "kcal": 300,
+     "p": 15,
+     "c": 55,
+     "g": 3
     },
     {
      "id": "a",
-     "status": "empty"
+     "status": "eaten",
+     "text": "100 g de arroz, 100 g de feijão, 120 g de frango grelhado, salada de alface e tomate",
+     "kcal": 460,
+     "p": 45,
+     "c": 55,
+     "g": 7
     },
     {
      "id": "l",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 maçã e 20 g de castanha de caju",
+     "kcal": 180,
+     "p": 4,
+     "c": 24,
+     "g": 9
     },
     {
      "id": "j",
@@ -499,19 +515,10 @@
    ]
   },
   "digests": [],
-  "messages": [
-   {
-    "role": "user",
-    "text": "não sei o que jantar"
-   },
-   {
-    "role": "assistant",
-    "text": "**Opção 1: Omelete de 2 ovos com salada** — 2 ovos, 100 g de salada, 5 g de azeite: **230 kcal** · P 14.\n**Opção 2: Sopa de legumes com 120 g de frango desfiado** — **330 kcal** · P 36. [refeição sugerida: Jantar]"
-   }
-  ],
+  "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "fiz a 2, pode registrar",
+  "text": "treino de hoje 400 kcal. o que eu janto?",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -521,19 +528,26 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "'Fiz a 2': log copiando a opção 2 do histórico.",
+  "summary": "Treino com eat-back 50 % seguido de plano: workout e plan; o crédito é do app, o plano usa o DAY como veio.",
   "actions": [
    {
-    "type": "log",
-    "slot": "j",
-    "kcal_range": [
-     310,
-     350
-    ],
-    "question": "absent",
-    "record_intent": "clear"
+    "type": "workout",
+    "workout_kcal": 400,
+    "workout_mode": "replace"
+   },
+   {
+    "type": "plan",
+    "slot": "j"
    }
   ],
-  "actions_count": 1
+  "actions_count": 2,
+  "reply_not": [
+   "registr(ei|ado)",
+   "cabe|sobram|restam"
+  ],
+  "baseline_unsupported": [
+   "actions_count",
+   "scope"
+  ]
  }
 }

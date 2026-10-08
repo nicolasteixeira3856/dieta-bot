@@ -585,6 +585,11 @@
     "workout_mode": "add"
    }
   ],
-  "actions_count": 1
+  "actions_count": 1,
+  "baseline_unsupported": [
+   "actions_count",
+   "refusal",
+   "scope"
+  ]
  }
 }

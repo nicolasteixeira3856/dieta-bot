@@ -533,12 +533,12 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 1180,
-   "eaten_p": 59,
-   "eaten_c": 126,
-   "eaten_g": 48,
+   "eaten_kcal": 1530,
+   "eaten_p": 69,
+   "eaten_c": 146,
+   "eaten_g": 73,
    "workout_kcal": 320,
-   "remaining_kcal": 480,
+   "remaining_kcal": 130,
    "slots": [
     {
      "id": "b",
@@ -552,11 +552,11 @@
     {
      "id": "l",
      "status": "eaten",
-     "text": "Feijoada com arroz, farofa e laranja",
-     "kcal": 950,
-     "p": 45,
-     "c": 100,
-     "g": 40
+     "text": "Feijoada completa com arroz, farofa, torresmo e laranja",
+     "kcal": 1300,
+     "p": 55,
+     "c": 120,
+     "g": 65
     },
     {
      "id": "s",

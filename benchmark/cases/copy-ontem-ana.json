@@ -7,7 +7,7 @@
   "copy",
   "named-day"
  ],
- "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar números sem recalcular e dizer o dia da semana; é refeição de hoje.",
+ "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar kcal e macros exatos sem recalcular e dizer o dia da semana; é refeição de hoje.",
  "image": null,
  "request": {
   "persona": "ana",
@@ -431,7 +431,7 @@
    {
     "id": "R1",
     "name": "Omelete de forno com legumes",
-    "kcal": 340,
+    "kcal": 333,
     "p": 26,
     "c": 12,
     "g": 21,
@@ -511,14 +511,16 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar números sem recalcular e dizer o dia da semana; é refeição de hoje.",
+  "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar kcal e macros exatos sem recalcular e dizer o dia da semana; é refeição de hoje.",
   "actions": [
    {
     "type": "log",
     "slot": "c",
-    "kcal_range": [
-     218,
-     242
+    "kcal_exact": 230,
+    "macros_exact": [
+     10,
+     36,
+     5
     ],
     "question": "absent",
     "confidence": "high",

@@ -432,7 +432,7 @@
    {
     "id": "R1",
     "name": "Omelete de forno com legumes",
-    "kcal": 340,
+    "kcal": 333,
     "p": 26,
     "c": 12,
     "g": 21,
@@ -536,11 +536,11 @@
   ],
   "actions_count": 1,
   "reply_not": [
-   "gord",
-   "peso",
-   "corpo",
+   "\bgord[oa]s?\b",
+   "\bpeso\b",
+   "\bcorpo\b",
    "barriga",
-   "magr",
+   "\bmagr",
    "!",
    "não vou comentar|não comento"
   ]

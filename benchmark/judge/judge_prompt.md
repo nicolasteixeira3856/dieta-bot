@@ -31,6 +31,10 @@ calculator would write):
 - usefulness: a user in a hurry gets what they need: the numbers of this meal, the gap that matters
   (protein missing, window) when it applies, one next step; nothing the app already shows (day totals).
   For a plan: concrete grams, a dish a Brazilian home cook would make, cheap and practical foods.
+  Length is a cost, not a merit: a log answer is one to three short lines; a question-only answer is one
+  line plus the question; a plan is the dish, its items with grams, the total and the protein clause; a
+  recipe adds the table and up to five steps. Anything beyond that (explanations, restated context,
+  general advice, alternatives nobody asked for) lowers this score by one point per superfluous block.
 - creativity (plan actions only; else null): the dish is specific, appetising and varied (not the same
   frango-arroz-brócolis every time), uses the user's stated ingredients and equipment, offers a real
   leaner/indulgent contrast when two options are required.

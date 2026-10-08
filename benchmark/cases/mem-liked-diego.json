@@ -1006,7 +1006,7 @@
    {
     "id": "R1",
     "name": "Hambúrguer de grão-de-bico",
-    "kcal": 480,
+    "kcal": 478,
     "p": 22,
     "c": 65,
     "g": 14,
@@ -1051,7 +1051,7 @@
    {
     "id": "R2",
     "name": "Curry de grão-de-bico com arroz",
-    "kcal": 620,
+    "kcal": 622,
     "p": 24,
     "c": 95,
     "g": 16,
@@ -1091,7 +1091,7 @@
    {
     "id": "R3",
     "name": "Omelete de forno com tofu",
-    "kcal": 380,
+    "kcal": 386,
     "p": 30,
     "c": 8,
     "g": 25,
@@ -1131,7 +1131,7 @@
    {
     "id": "R4",
     "name": "Mingau de aveia proteico",
-    "kcal": 350,
+    "kcal": 347,
     "p": 30,
     "c": 45,
     "g": 6,
@@ -1169,7 +1169,7 @@
     ]
    }
   ],
-  "recipe_full": "- R2 Curry de grão-de-bico com arroz · 620 kcal · P 24 · C 95 · G 16\n  ingredientes: grão-de-bico cozido 200 g (320 kcal); arroz branco cozido 150 g (192 kcal); leite de coco 50 g (90 kcal); curry, cebola, tomate 80 g (20 kcal)\n  passos: 1. Refogar cebola, tomate e curry. 2. Juntar o grão-de-bico e o leite de coco, 10 min. 3. Servir com o arroz.",
+  "recipe_full": "- R2 Curry de grão-de-bico com arroz · 622 kcal · P 24 · C 95 · G 16\n  ingredientes: grão-de-bico cozido 200 g (320 kcal); arroz branco cozido 150 g (192 kcal); leite de coco 50 g (90 kcal); curry, cebola, tomate 80 g (20 kcal)\n  passos: 1. Refogar cebola, tomate e curry. 2. Juntar o grão-de-bico e o leite de coco, 10 min. 3. Servir com o arroz.",
   "day": {
    "date": "2026-10-07",
    "eaten_kcal": 0,
@@ -1234,9 +1234,11 @@
     "type": "log",
     "slot": "s5",
     "recipe_id": "R2",
-    "kcal_range": [
-     590,
-     650
+    "kcal_exact": 622,
+    "macros_exact": [
+     24,
+     95,
+     16
     ]
    }
   ],

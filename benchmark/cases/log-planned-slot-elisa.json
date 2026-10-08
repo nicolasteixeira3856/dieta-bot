@@ -1,17 +1,17 @@
 {
- "id": "copy-ontem-elisa",
- "family": "copy",
+ "id": "log-planned-slot-elisa",
+ "family": "log",
  "persona": "elisa",
  "origin": "synthetic",
  "tags": [
-  "copy",
-  "named-day"
+  "log",
+  "planned"
  ],
- "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar kcal e macros exatos sem recalcular e dizer o dia da semana; é refeição de hoje.",
+ "summary": "Refeição comida num slot reservado (planned): log novo com o que foi comido, sem comparar com o plano na prosa (o server escreve a linha).",
  "image": null,
  "request": {
   "persona": "elisa",
-  "local_time": "2026-10-07T12:40:00-03:00",
+  "local_time": "2026-10-07T19:40:00-03:00",
   "profile": {
    "ceiling_kcal": 1500,
    "p_target": 110,
@@ -533,24 +533,39 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 0,
-   "eaten_p": 0,
-   "eaten_c": 0,
-   "eaten_g": 0,
+   "eaten_kcal": 800,
+   "eaten_p": 62,
+   "eaten_c": 104,
+   "eaten_g": 14,
    "workout_kcal": 320,
-   "remaining_kcal": 1660,
+   "remaining_kcal": 860,
    "slots": [
     {
      "id": "b",
-     "status": "empty"
+     "status": "eaten",
+     "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+     "kcal": 230,
+     "p": 14,
+     "c": 26,
+     "g": 8
     },
     {
      "id": "l",
-     "status": "empty"
+     "status": "eaten",
+     "text": "100 g de arroz, 80 g de feijão, 100 g de peito de frango, legumes cozidos",
+     "kcal": 420,
+     "p": 40,
+     "c": 50,
+     "g": 6
     },
     {
      "id": "s",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 iogurte natural desnatado e 1 pera",
+     "kcal": 150,
+     "p": 8,
+     "c": 28,
+     "g": 0
     },
     {
      "id": "d",
@@ -567,7 +582,7 @@
   "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "almoço, o mesmo de ontem",
+  "text": "jantei a omelete com salada, mas com 2 fatias de pão integral em vez de 1",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -577,29 +592,25 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar kcal e macros exatos sem recalcular e dizer o dia da semana; é refeição de hoje.",
+  "summary": "Refeição comida num slot reservado (planned): log novo com o que foi comido, sem comparar com o plano na prosa (o server escreve a linha).",
   "actions": [
    {
     "type": "log",
-    "slot": "l",
-    "kcal_exact": 420,
-    "macros_exact": [
-     40,
-     50,
-     6
+    "slot": "d",
+    "meal_change": "new",
+    "base_slot": null,
+    "kcal_range": [
+     360,
+     470
     ],
-    "question": "absent",
-    "confidence": "high",
-    "record_intent": "clear",
-    "meal_day": "today"
+    "question": "absent"
    }
   ],
   "actions_count": 1,
-  "reply_has": [
-   "terça"
-  ],
   "reply_not": [
-   "O Chat registra apenas refeições de hoje."
+   "reserv",
+   "travad",
+   "plano registrado"
   ]
  }
 }

@@ -152,6 +152,10 @@
   "actions_count": 2,
   "reply_not": [
    "registr(ei|ado)"
+  ],
+  "baseline_unsupported": [
+   "actions_count",
+   "scope"
   ]
  }
 }

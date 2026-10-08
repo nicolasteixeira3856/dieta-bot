@@ -318,7 +318,7 @@
    {
     "id": "R1",
     "name": "Panqueca de aveia com banana",
-    "kcal": 310,
+    "kcal": 305,
     "p": 14,
     "c": 50,
     "g": 7,
@@ -357,7 +357,7 @@
    {
     "id": "R2",
     "name": "Sopa de abóbora com frango",
-    "kcal": 290,
+    "kcal": 289,
     "p": 30,
     "c": 25,
     "g": 6,
@@ -445,6 +445,11 @@
   ],
   "reply_not": [
    "[2-9]\\d\\d ?kcal"
+  ],
+  "baseline_unsupported": [
+   "actions_count",
+   "refusal",
+   "scope"
   ]
  }
 }

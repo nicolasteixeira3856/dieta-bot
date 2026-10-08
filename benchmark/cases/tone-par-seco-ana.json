@@ -1,18 +1,18 @@
 {
- "id": "plan-fiz-a-2-ana",
- "family": "plan",
+ "id": "tone-par-seco-ana",
+ "family": "tone",
  "persona": "ana",
  "origin": "synthetic",
  "tags": [
-  "plan",
-  "option",
-  "continuity"
+  "tone",
+  "seco",
+  "pair"
  ],
- "summary": "'Fiz a 2': log copiando a opção 2 do histórico.",
+ "summary": "Mesmo contexto de tone-duro-estouro-ana, tom seco: números, sem crítica.",
  "image": null,
  "request": {
   "persona": "ana",
-  "local_time": "2026-10-07T20:30:00-03:00",
+  "local_time": "2026-10-07T21:00:00-03:00",
   "profile": {
    "ceiling_kcal": 1600,
    "p_target": 120,
@@ -41,7 +41,7 @@
      "time": "20:00"
     }
    ],
-   "tone": "duro"
+   "tone": "seco"
   },
   "facts": [
    {
@@ -473,24 +473,39 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 0,
-   "eaten_p": 0,
-   "eaten_c": 0,
-   "eaten_g": 0,
+   "eaten_kcal": 1000,
+   "eaten_p": 55,
+   "eaten_c": 131,
+   "eaten_g": 29,
    "workout_kcal": null,
-   "remaining_kcal": 1600,
+   "remaining_kcal": 600,
    "slots": [
     {
      "id": "c",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 iogurte desnatado 170 g com 30 g de aveia e 1 banana prata",
+     "kcal": 300,
+     "p": 15,
+     "c": 55,
+     "g": 3
     },
     {
      "id": "a",
-     "status": "empty"
+     "status": "eaten",
+     "text": "100 g de arroz, 1 concha de feijão, 100 g de carne moída refogada, 100 g de abobrinha",
+     "kcal": 520,
+     "p": 36,
+     "c": 52,
+     "g": 17
     },
     {
      "id": "l",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 maçã e 20 g de castanha de caju",
+     "kcal": 180,
+     "p": 4,
+     "c": 24,
+     "g": 9
     },
     {
      "id": "j",
@@ -499,19 +514,10 @@
    ]
   },
   "digests": [],
-  "messages": [
-   {
-    "role": "user",
-    "text": "não sei o que jantar"
-   },
-   {
-    "role": "assistant",
-    "text": "**Opção 1: Omelete de 2 ovos com salada** — 2 ovos, 100 g de salada, 5 g de azeite: **230 kcal** · P 14.\n**Opção 2: Sopa de legumes com 120 g de frango desfiado** — **330 kcal** · P 36. [refeição sugerida: Jantar]"
-   }
-  ],
+  "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "fiz a 2, pode registrar",
+  "text": "jantei pizza, 4 fatias de calabresa e uma coca normal de 350 ml",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -521,19 +527,25 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "'Fiz a 2': log copiando a opção 2 do histórico.",
+  "summary": "Mesmo contexto de tone-duro-estouro-ana, tom seco: números, sem crítica.",
   "actions": [
    {
     "type": "log",
     "slot": "j",
     "kcal_range": [
-     310,
-     350
-    ],
-    "question": "absent",
-    "record_intent": "clear"
+     900,
+     1400
+    ]
    }
   ],
-  "actions_count": 1
+  "actions_count": 1,
+  "reply_not": [
+   "estour",
+   "passou do",
+   "deveria",
+   "precisa",
+   "cuidado",
+   "!"
+  ]
  }
 }

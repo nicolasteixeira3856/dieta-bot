@@ -318,7 +318,7 @@
    {
     "id": "R1",
     "name": "Panqueca de aveia com banana",
-    "kcal": 310,
+    "kcal": 305,
     "p": 14,
     "c": 50,
     "g": 7,
@@ -357,7 +357,7 @@
    {
     "id": "R2",
     "name": "Sopa de abóbora com frango",
-    "kcal": 290,
+    "kcal": 289,
     "p": 30,
     "c": 25,
     "g": 6,
@@ -395,7 +395,7 @@
     ]
    }
   ],
-  "recipe_full": "- R1 Panqueca de aveia com banana · 310 kcal · P 14 · C 50 · G 7\n  ingredientes: aveia em flocos 40 g (158 kcal); banana prata 70 g (69 kcal); ovo 50 g (73 kcal); canela 2 g (5 kcal)\n  passos: 1. Bater tudo. 2. Frigideira antiaderente, 2 min de cada lado.",
+  "recipe_full": "- R1 Panqueca de aveia com banana · 305 kcal · P 14 · C 50 · G 7\n  ingredientes: aveia em flocos 40 g (158 kcal); banana prata 70 g (69 kcal); ovo 50 g (73 kcal); canela 2 g (5 kcal)\n  passos: 1. Bater tudo. 2. Frigideira antiaderente, 2 min de cada lado.",
   "day": {
    "date": "2026-10-07",
    "eaten_kcal": 0,
@@ -439,9 +439,11 @@
     "type": "log",
     "slot": "t",
     "recipe_id": "R1",
-    "kcal_range": [
-     295,
-     325
+    "kcal_exact": 305,
+    "macros_exact": [
+     14,
+     50,
+     7
     ],
     "question": "absent"
    }

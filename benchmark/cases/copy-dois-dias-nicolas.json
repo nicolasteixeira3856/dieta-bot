@@ -1,17 +1,18 @@
 {
- "id": "log-cerveja-espetinhos-nicolas",
- "family": "log",
+ "id": "copy-dois-dias-nicolas",
+ "family": "copy",
  "persona": "nicolas",
- "origin": "grok",
+ "origin": "synthetic",
  "tags": [
-  "log",
-  "alcohol"
+  "copy",
+  "named-day",
+  "multi"
  ],
- "summary": "Cerveja + espetinhos: uma janta (ou cerveja em separado), álcool contado, sem perguntar o que já foi dito.",
+ "summary": "Dois dias nomeados na mesma mensagem: dois COPY_SOURCE, dois logs copiados exatos.",
  "image": null,
  "request": {
   "persona": "nicolas",
-  "local_time": "2026-10-07T22:00:00-03:00",
+  "local_time": "2026-10-07T13:15:00-03:00",
   "profile": {
    "ceiling_kcal": 2030,
    "p_target": 165,
@@ -716,21 +717,16 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 1105,
-   "eaten_p": 76,
-   "eaten_c": 102,
-   "eaten_g": 44,
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
    "workout_kcal": null,
-   "remaining_kcal": 925,
+   "remaining_kcal": 2030,
    "slots": [
     {
      "id": "1",
-     "status": "eaten",
-     "text": "2 ovos mexidos com fio de azeite, 1 pão francês com manteiga, 250 ml de leite semidesnatado, 100 ml de café sem açúcar",
-     "kcal": 485,
-     "p": 25,
-     "c": 41,
-     "g": 24
+     "status": "empty"
     },
     {
      "id": "2",
@@ -738,12 +734,7 @@
     },
     {
      "id": "3",
-     "status": "eaten",
-     "text": "100 g de arroz, 100 g de feijão, 112 g de bife de alcatra, 141 g de vagem com cenoura, 77 g de tomate com cebola, 15 g de farinha de sementes",
-     "kcal": 620,
-     "p": 51,
-     "c": 61,
-     "g": 20
+     "status": "empty"
     },
     {
      "id": "4",
@@ -763,7 +754,7 @@
   "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "Hoje foi complicado. Tomei uma Therezópolis Session IPA 350 ml inteira e comi 6 espetinhos, 5 de alcatra e um de porco, uns 75 g de carne cada",
+  "text": "café igual ao de ontem e almoço igual ao de segunda",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -773,22 +764,28 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Cerveja + espetinhos: uma janta (ou cerveja em separado), álcool contado, sem perguntar o que já foi dito.",
-  "actions_count": [
-   1,
-   2
-  ],
+  "summary": "Dois dias nomeados na mesma mensagem: dois COPY_SOURCE, dois logs copiados exatos.",
   "actions": [
    {
     "type": "log",
-    "kcal_range": [
-     850,
-     1300
-    ]
+    "slot": "1",
+    "kcal_exact": 425,
+    "question": "absent"
+   },
+   {
+    "type": "log",
+    "slot": "3",
+    "kcal_exact": 525,
+    "question": "absent"
    }
   ],
-  "reply_not": [
-   "registr(ei|ado)"
+  "actions_count": 2,
+  "reply_has": [
+   "terça",
+   "segunda"
+  ],
+  "baseline_unsupported": [
+   "actions_count"
   ]
  }
 }

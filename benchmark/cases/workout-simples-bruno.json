@@ -149,6 +149,11 @@
   "reply_max_chars": 240,
   "reply_has": [
    "cr[ée]dito|recalcul"
+  ],
+  "baseline_unsupported": [
+   "actions_count",
+   "refusal",
+   "scope"
   ]
  }
 }

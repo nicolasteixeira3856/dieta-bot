@@ -19,7 +19,23 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles default to cp1252
+
 DIMS = ("correctness", "numbers", "tone", "format", "usefulness", "creativity")
+SEVERE = ("mentions_body_weight", "suggests_skip", "claims_recorded")
+SCORED = ("correctness", "numbers", "tone", "format", "usefulness")
+
+
+def judge_score(vs: list[dict[str, Any]]) -> float:
+    """0–1 per judged answer: the mean of the five graded dimensions scaled, zero when a severe flag is set."""
+    per = []
+    for v in vs:
+        if any(v["flags"].get(k) for k in SEVERE):
+            per.append(0.0)
+        else:
+            per.append((statistics.mean(v[d] for d in SCORED) - 1) / 4)
+    return statistics.mean(per) if per else 0.0
 
 
 def pct(x: float) -> str:
@@ -81,7 +97,7 @@ def main(argv: list[str]) -> int:
         verd = "—"
         if vs:
             verd = " / ".join(pct(sum(v["verdict"] == k for v in vs) / len(vs)) for k in ("pass", "partial", "fail"))
-        comp = 0.5 * det + (0.5 * ((statistics.mean([means[d] for d in ("correctness", "tone", "usefulness") if means.get(d)]) - 1) / 4) if vs else 0.0)
+        comp = 0.5 * det + (0.5 * judge_score(vs) if vs else 0.0)
         lat = [r["latency_ms"] for r in ok]
         us = [r["usage"] for r in ok if r.get("usage")]
         tin = statistics.mean(u["input"] for u in us) if us else 0
@@ -92,7 +108,34 @@ def main(argv: list[str]) -> int:
         fm = lambda d: f"{means[d]:.2f}" if means.get(d) else "—"  # noqa: E731
         lines.append(f"| {arm} | {len(rs)} | {len(rs) - len(ok)} | {pct(det)} | {pct(sup)} | {pct(maj)} | {verd} | {fm('correctness')} | {fm('numbers')} | {fm('tone')} | {fm('format')} | {fm('usefulness')} | {fm('creativity')} | {comp:.3f} | {p(lat, 0.5):.0f} | {p(lat, 0.95):.0f} | {tin:.0f} ({tca:.0f}) / {tou:.0f} (+{tre:.0f}) | {cost:.5f} |")
     lines.append("")
-    lines.append("`composite` só é comparável entre braços quando o juiz cobriu os mesmos casos. `det_supported` mostra o que a baseline consegue sem as capacidades novas.")
+    lines.append("`composite` = 0,5 × det_strict + 0,5 × nota do juiz (média de correctness, numbers, tone, format e usefulness escalada para 0–1; zero quando há flag grave: corpo/peso, pular refeição, diz que gravou). "
+                 "Só é comparável entre braços quando o juiz cobriu os mesmos pares caso × repetição. `det_supported` mostra o que a baseline consegue sem as capacidades novas.")
+    lines.append("")
+    # --- judge coverage and paired comparison
+    if jmap:
+        keys_by_arm = {arm: {(c, r) for (a, c, r) in jmap if a == arm} for arm in arms}
+        common = set.intersection(*keys_by_arm.values()) if keys_by_arm else set()
+        lines += ["## Cobertura do juiz", "", "| Braço | respostas julgadas | pares comuns a todos os braços |", "|---|---:|---:|"]
+        for arm in arms:
+            lines.append(f"| {arm} | {len(keys_by_arm[arm])} | {len(common)} |")
+        lines.append("")
+        if common and len(arms) > 1:
+            lines += ["## Comparação pareada (só os pares comuns)", "", "| Braço | det_strict | nota do juiz (0–1) | correctness | tone | usefulness |", "|---|---:|---:|---:|---:|---:|"]
+            for arm in arms:
+                rs = [r for r in results if r["arm"] == arm and (r["case_id"], r["rep"]) in common]
+                vs = [jmap[(arm, c, r)] for (c, r) in common]
+                m = lambda d: f"{statistics.mean(v[d] for v in vs):.2f}"  # noqa: E731
+                lines.append(f"| {arm} | {pct(sum(r['pass'] for r in rs) / len(rs)) if rs else '—'} | {judge_score(vs):.3f} | {m('correctness')} | {m('tone')} | {m('usefulness')} |")
+            lines.append("")
+    # --- soft check and errors
+    lines += ["## Checagens brandas e erros", "", "| Braço | items_sum ok | invalid_json | erros de chamada | tentativas médias |", "|---|---:|---:|---:|---:|"]
+    for arm in arms:
+        rs = [r for r in results if r["arm"] == arm]
+        soft = [c for r in rs for c in r["checks"] if c.get("soft")]
+        inv = sum(1 for r in rs if r.get("error") == "invalid_json")
+        errs = sum(1 for r in rs if r.get("error") and r.get("error") != "invalid_json")
+        att = statistics.mean(r.get("attempts", 1) for r in rs) if rs else 0
+        lines.append(f"| {arm} | {pct(sum(c['ok'] for c in soft) / len(soft)) if soft else '—'} | {inv} | {errs} | {att:.2f} |")
     lines.append("")
 
     # --- flags

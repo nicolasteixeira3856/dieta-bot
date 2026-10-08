@@ -8,7 +8,7 @@
   "whole-day",
   "clarify"
  ],
- "summary": "Cinco refeições; só o jantar sem porção: a pergunta fica nesse log, os outros saem resolvidos.",
+ "summary": "Cinco refeições; pré-treino (pasta de amendoim) e jantar sem porção: a pergunta fica nesses logs, os outros saem resolvidos.",
  "image": null,
  "request": {
   "persona": "bruno",
@@ -134,7 +134,7 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Cinco refeições; só o jantar sem porção: a pergunta fica nesse log, os outros saem resolvidos.",
+  "summary": "Cinco refeições; pré-treino (pasta de amendoim) e jantar sem porção: a pergunta fica nesses logs, os outros saem resolvidos.",
   "actions": [
    {
     "type": "log",
@@ -166,6 +166,9 @@
     "question": "present"
    }
   ],
-  "actions_count": 5
+  "actions_count": 5,
+  "baseline_unsupported": [
+   "actions_count"
+  ]
  }
 }

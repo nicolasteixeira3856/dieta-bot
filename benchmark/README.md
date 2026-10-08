@@ -21,9 +21,9 @@ Origem: brainstorm e conclusão em [`../MELHORIAS_CHAT_07_10_2026.md`](../MELHOR
 | `new-none` | `prompts/new_prompt_{seco,duro}.md` | `prompts/input_format.md` | `prompts/new_schema.json` | none |
 | `new-low` | idem | idem | idem | low |
 
-143 casos × 3 repetições × 3 braços = **1.287 disparos** (teto 1.400; o runner recusa acima disso sem `--force`). Os 10 casos com foto só rodam se o arquivo existir em `media/` (ver [`media/README.md`](media/README.md)); sem as fotos são 133 casos = 1.197 disparos. O juiz é orçamento à parte (uma chamada por resposta, ~1.300).
+150 casos × 3 repetições × 3 braços = **1.350 disparos** (teto 1.400; o runner recusa acima disso sem `--force` e para em `--max-usd`, padrão US$ 5). Os 10 casos com foto só rodam se o arquivo existir em `media/` (ver [`media/README.md`](media/README.md)); sem as fotos são 140 casos = 1.260 disparos. Tentativas por falha de rede ou limite de taxa (até 3 por disparo) são contadas no resultado, não no teto. O juiz é orçamento à parte (uma chamada por resposta, até 1.350).
 
-Custo esperado das gerações, pela tarifa do `gpt-6-luna` em `server/evals/run.py`: entrada ~12 k tokens (prefixo de ~12 k chars cacheado a partir da segunda chamada do mesmo braço e tom), saída 200–500 (+ raciocínio no `low`): **≈ US$ 1,0–1,6** no total. Juiz: ~3,4 M tokens de entrada; abaixo de US$ 1 se a tarifa for a do luna; a do astra não está registrada no repositório.
+Custo esperado das gerações, pela tarifa do `gpt-6-luna` em `server/evals/run.py` (US$ 0,10 / 0,01 cacheado / 0,50 por milhão): o prefixo tem ~43–50 mil caracteres (~12 mil tokens) e a entrada por caso mais 2–6 mil; saída 200–500 (+ raciocínio no `low`). **Entre US$ 0,5 (prefixo cacheado como nos evals do S19, 96 %) e US$ 1,9 (sem cache algum)**; o relatório imprime o custo medido. Juiz: ~5 M tokens de entrada com o contexto completo e as fotos; a tarifa do `gpt-6-astra` não está no repositório e precisa ser passada por ambiente.
 
 ## Estrutura
 
@@ -71,18 +71,22 @@ Gerados por `build_cases.py` (rodar de novo recria `cases/`). Famílias e contag
 | scope | 6 | matemática, override misturado, injeção na memória, sinal de segurança, poema + memória, identidade |
 | digest | 2 | pergunta aberta só no digest, plano combinado só no digest |
 
-Origem dos textos: 38 `grok` (suas mensagens das transcrições), 5 `real-owner` (suas mensagens no log do server de dev), 10 `synthetic-from-tester` (modo de falha dos testers reconstruído com outros alimentos e números; nenhum texto de tester copiado), 90 `synthetic`. Nenhum caso é exemplo de prompt (ADR-033).
+Origem dos textos (contagem impressa por `build_cases.py`): `grok` (suas mensagens das transcrições), `real-owner` (suas mensagens no log do server de dev, instalações `v1_ec1fea060`, `v1_9615563db` e `v1_d7fd00baf`), `synthetic-from-tester` (modo de falha dos testers reconstruído com outros alimentos, números e frases; nenhum texto de tester copiado), `synthetic`.
+
+Autorização e limite: o uso das suas próprias mensagens neste benchmark foi decidido por você em 08/10/2026 (pergunta e resposta na sessão). O ADR-033 governa exemplos globais do prompt e fixtures dos evals do server: **nenhum caso desta pasta pode ser copiado para `server/evals/` nem para `server/chat_instructions.py`**, e os exemplos dentro das regras novas de `prompts/new_instructions.py` são de autoria independente (sem alimentos, números ou frases das transcrições). Famílias adicionadas depois da revisão: par seco/duro no mesmo contexto, treino seguido de plano com crédito, limite de seis ações, pulo e refeição no mesmo slot, refeição num slot reservado, dois dias nomeados numa mensagem.
 
 Cada caso tem `expect.summary` (uma linha legível, também dada ao juiz) e checagens. Sequências multi-turno usam HISTORY fixo, nunca a resposta anterior do modelo: cada disparo é independente e repetível.
 
 ## Métricas (report.py)
 
-- `det_strict`: todas as checagens determinísticas passam, por caso × repetição.
-- `det_supported`: idem ignorando o que a baseline não consegue expressar (treino, receita, opções com id, macros na memória).
+- `det_strict`: todas as checagens determinísticas passam, por caso × repetição. Inclui invariantes estruturais dos braços novos (1–6 ações, ids únicos, campos coerentes com o tipo). Regex de texto sem distinção de acento (o server escreve `terca`, os casos `terça`).
+- `det_supported`: idem ignorando o que a baseline não consegue expressar (treino, receita, opções com id, macros na memória, contagem de várias ações, escopo de treino), listado por caso em `expect.baseline_unsupported`.
+- `items_sum` (kcal da estimativa = soma dos itens) é checagem branda: o server recalcula (ADR-042); aparece no relatório, não conta na aprovação.
 - `casos ≥ 2/3`: aprovação por maioria das repetições.
 - Juiz: média 1–5 em correctness, numbers, tone, format, usefulness, creativity (só planos); pass/partial/fail; taxa de cada flag.
-- `composite` = 0,5 × det_strict + 0,5 × (média de correctness, tone e usefulness − 1) / 4.
-- Latência p50/p95, tokens de entrada (cacheados), saída (+ raciocínio), US$ por chamada.
+- `composite` = 0,5 × det_strict + 0,5 × nota do juiz (média de correctness, numbers, tone, format e usefulness escalada para 0–1; **zero** na resposta que tiver flag grave: corpo/peso, pular refeição, diz que gravou).
+- Comparação pareada: só os pares caso × repetição julgados em todos os braços; cobertura do juiz por braço.
+- Latência p50/p95, tokens de entrada (cacheados), saída (+ raciocínio), US$ por chamada, tentativas, JSON inválido.
 - Quebra por família, origem e tom; os 12 piores casos de cada braço com a checagem que mais falhou.
 
 Critério de leitura sugerido: `new-low` justifica a mudança de constituição (`effort=none`) só se ganhar ≥ 5 pontos percentuais de `det_strict` ou ≥ 0,3 de correctness sobre `new-none` nas famílias multi, copy e plan, com p95 abaixo de 8 s e custo abaixo do dobro.
@@ -106,7 +110,7 @@ python benchmark/run.py --arm baseline-none new-none new-low --repeat 3
 ```
 
 ```bash
-python benchmark/judge.py benchmark/out/results-<stamp>.jsonl
+JUDGE_PRICE_INPUT=<usd/1M> JUDGE_PRICE_OUTPUT=<usd/1M> python benchmark/judge.py benchmark/out/results-<stamp>.jsonl
 ```
 
 ```bash
@@ -117,8 +121,87 @@ Requisitos: `OPENAI_API_KEY` no ambiente (nunca no repositório), `openai` e `py
 
 ## Limites conhecidos
 
-- O braço baseline recebe exatamente o texto do server, mas sem moderação, shaping (`reply_format`, `estimate_total`, `protein_boost`) e sem o `adjust_retry`; mede o modelo, não a rota.
+- O braço baseline recebe exatamente o texto do server, mas sem moderação, shaping (`reply_format`, `estimate_total`, `protein_boost`) e sem o `adjust_retry` / `BUDGET_TARGET`; mede o modelo, não a rota. Nos dois braços o reforço de proteína dos pratos nomeados (ADR-043 decisão 4, código do server) não é aplicado nem cobrado.
+- Cada disparo é independente: sequências usam HISTORY fixo escrito à mão. O benchmark não mede continuidade entre respostas geradas, aplicação de lotes no app, Desfazer nem rodadas de clarificação acumuladas.
+- A baseline recebe menos contexto (sem macros da rotina, RECENT_DAYS, RECIPES, COPY_SOURCE) e outro schema: a diferença para os braços novos é prompt + contexto + schema juntos; só `new-none` × `new-low` isola o effort.
 - O novo prompt é um alvo de benchmark, não o prompt de produção: as regras novas não passaram pelo registro de proveniência do server nem pelos evals existentes.
 - `COPY_SOURCE` é resolvido por regex simples (ver `input_format.md`); o Plano 1 pode escolher outra implementação.
 - O juiz é um modelo: suas notas servem para comparar braços entre si, não como medida absoluta.
 - Fotos dependem de arquivos que o owner fornece; sem eles os 10 casos são pulados.
+
+## Revisões
+
+### GPT-6 (effort: não exposto)
+
+Revisão estática em 08/10/2026. Identificação disponível nesta sessão: GPT-6; effort não informado. Li os arquivos na ordem solicitada, as seis personas, 20 casos das famílias exigidas e os comparativos do servidor. Nenhum script, teste, dry-run ou modelo foi executado.
+
+**1. Validade**
+
+**Executar com correções.** A estrutura é aproveitável: separa braços, guarda respostas brutas, varia perfis e repete casos. Contudo, hoje mede aderência de uma geração a expectativas parcialmente defeituosas, não a entrega integral da seção 5.
+
+Há cobertura nominal de ações múltiplas, cópia, treino, receitas, descoberta e tom. Faltam dependências executáveis, aplicação/Desfazer de lotes, rodadas por refeição, receita versionada com rendimento/porção e descoberta seguida de uso real da memória. HISTORY roteirizado não mede continuidade entre respostas geradas.
+
+Não sustenta “o modelo não é o gargalo”, confiabilidade do produto, superioridade sobre Grok nem melhora atribuível exclusivamente ao prompt: a baseline recebe menos informação e outro schema. Apenas new-none versus new-low isola effort. O avaliador atual passa por `chat_reply`; este usa saída bruta, sem soma, reforço proteico, retenção de estimativa, fechamento corrigido ou ajuste. Isso limita inclusive a comparação de utilidade com o servidor atual.
+
+**2. Prompt novo**
+
+Em [new_instructions.py](prompts/new_instructions.py):
+
+- L55–72: “in the order the user stated them” conflita com skips “after the other actions”. ADR-047 determina log primeiro, skips em ordem do perfil e log prevalecendo no mesmo slot; a montagem também omite a regra `skips` atual.
+- L33 restringe treino a kcal declaradas, mas L174 pede esclarecer treino sem número. L64–79 exige objeto para log e pergunta em `estimate.question`; L94/102 manda `estimate null` sem fonte. Falta representação coerente da pendência. ADR-026 exige controle por refeição, ausente neste contrato.
+- L66–68 manda subtrair logs; L179 diz que treino “never changes any estimate”. Não há tratamento consistente de revisão versus delta, refeição pendente e atualização de reservas. `WINDOWS/BUDGET` são calculados antes do lote (`run.py`, L196). ADR-043 exige aritmética determinística.
+- L124 cita “PROTEIN BOOST below”, inexistente; no servidor essa complementação é código. ADR-039/043 ficam sem cobertura equivalente, inclusive `BUDGET_TARGET`, que o novo serializador não envia.
+- L192 manda copiar ingredientes do índice mesmo sem receita completa; o índice só possui ingredientes-chave. O schema não traz receita estruturada, versão, rendimento ou porção.
+- L208 pede “source declared”, proibido pelo schema fechado, que não declara `source`. Rotina declarada sem registro precisa da mudança prevista sobre ADR-023. L216 exige macros nulos fora de rotina; L219–220 exige números em `liked`.
+- Descoberta exige perguntas em bullets (L203), mas FORMAT proíbe marcadores em resposta apenas de pergunta (prompt renderizado, L84): conflito com ADR-045.
+- WEEK PATTERN (L223) permite crítica de dias incompletos marcados como registrados; não distingue ausência de registro de alimentação insuficiente. Isso enfraquece ADR-044 e a promessa da seção 5. ADR-046 é importado, mas suas transições e diferenças numéricas não são verificadas.
+
+O prefixo renderizado tem 48.393 caracteres. Ordenar ações, simular estado e resolver essas contradições é carga adicional; sem execução, não afirmo que `none` necessariamente falhe.
+
+**3. Casos e proveniência**
+
+Falhas concretas em [build_cases.py](build_cases.py):
+
+- L257 aceita ±5% numa cópia que deveria preservar kcal/P/C/G e alimentos exatamente.
+- L311 impõe “café da tarde” → Jantar sem regra inequívoca; L321 afirma que só jantar tem dúvida, embora a pasta de amendoim também esteja sem porção.
+- L337 exige ausência de pergunta apesar de legumes sem quantidade; precisa justificar materialidade.
+- L549 não cria janela zero: Elisa tem 480 kcal restantes e 330 reservadas, deixando **150**.
+- L632/640: `gord` rejeita “gordura”; L547: `clara` rejeita “sem separar a clara”. São falsos negativos.
+- [carla.json](personas/carla.json), L43: receita anuncia 310 kcal, itens somam 305; [nicolas.json](personas/nicolas.json), L69: 470 versus 537. Copiar tudo e somar corretamente tornam-se incompatíveis.
+
+Treino simples de Nicolas repete a sequência; várias duplicações por persona não constituem modos de falha independentes. Nicolas concentra 58/143 casos. Faltam pares com os dois tons no mesmo contexto, múltiplas referências de dias, treino seguido de plano com crédito, limite de seis ações, rodadas/forçar, conflito log/skip e consumo/substituição de reserva.
+
+A origem declarada confere numericamente: 38 Grok, cinco real-owner, dez synthetic-from-tester, 90 synthetic. A seção 5.2 proíbe expressamente transformar suas transcrições em fixtures; L303 e L434 reproduzem mensagens dela. O ADR-033 distingue contexto pessoal de exemplo global: o problema não é simplesmente enviar um fixture como entrada.
+
+Há exemplos concretos dentro das regras sem proveniência declarada: treino de 610 kcal (L169), “pipoca ou Doritos?” (L125) e “ficou muito boa”/“entra pra lista” (L218) sobrepõem-se às transcrições. Não basta chamar exemplos de regra; precisam de auditoria e autoria independente. Vocabulário comum isolado não prova infração.
+
+A auditoria dos logs locais encontrou a pergunta “Com faz uma equação do segundo grau?” literalmente, sem autoria identificável; pulo+café coincide com o eval S29; o poema rotulado real-owner coincide com `cp2-smoke`. Essas origens não certificam ausência de texto de tester. Corrigir a rastreabilidade e substituir reproduções por situações sintéticas independentes.
+
+**4. Pontuação**
+
+[scoring.py](scoring.py), L140–159: `det_supported` continua cobrando contagem de múltiplos logs e scope de treino da baseline, embora ela não os suporte. Inversamente, marcar a ação inteira como unsupported por conter `options` ou `recipe_id` dispensa também kcal/slot que seriam verificáveis. Separar capacidade, informação disponível e execução em checks individuais, com denominadores explícitos.
+
+O pareamento ignora ordem; não verifica soma, macros copiados, orçamento pós-lote, delta completo, igualdade slot/suggested_slot ou ids únicos. `question absent` aceita estimativa ausente; `has_macros` só verifica kcal. Regex não normaliza acentos: baseline recebe “terca”, enquanto casos exigem “terça”. Reaproveitar princípios de `server/evals/checks.py`: verificações positivas, números finitos, conservação do delta, formato e variabilidade entre repetições.
+
+[judge.py](judge.py), L28–41: juiz não recebe fotos, RECENT/COPY_SOURCE, receitas, digests, atualizações de memória nem ids dos slots; corta fatos em 12 e histórico em seis. Não consegue verificar o que sua rubrica exige. Omitir o braço ajuda, mas o schema revela capacidades.
+
+“Careful human coach”, lacuna e próximo passo podem premiar elaboração desnecessária. Definir concisão por tarefa, exceções de tom e penalidade por conteúdo supérfluo; calibrar com avaliação humana. O composite (`report.py`, L84) ignora numbers/format e não veta flags graves. Publicar dimensões separadas, falhas críticas, cobertura do juiz e comparação pareada; `--sample` hoje sorteia casos diferentes entre braços.
+
+**5. Orçamento e execução**
+
+143 × 3 × 3 = **1.287**; sem dez imagens, **1.197**. Os dez arquivos existem localmente. Julgar todas as respostas adiciona até 1.287: **2.574 chamadas lógicas**, antes de retries.
+
+As tarifas coincidem com `server/evals/run.py`, L48–50: US$0,10/0,01/0,50 por milhão. Com 12 mil tokens de entrada e 200–500 de saída, gerações custariam US$1,67–1,87 sem cache ou US$0,28–0,48 com entrada totalmente cacheada, antes do raciocínio adicional. US$1,0–1,6 é possível, mas não demonstrado. O README confunde prefixo de 12 mil caracteres com tokens; cache desde a segunda chamada não é garantido, especialmente com schemas variáveis.
+
+`run.py`, L293/387: quatro tentativas externas somam-se aos dois retries padrão do SDK instalado; o teto conta jobs, não tentativas. L316 apaga a espera da latência; JSON inválido retorna `error=None`. Faltam retomada, manifesto/hash de entradas, limite de gasto/tokens e contabilização de erros.
+
+Schema estrito não garante invariantes: sem limite de ações, campos condicionais ou validação local; L230 libera ids quando enums esvaziam. Fotos são reduzidas e têm EXIF removido, mas faltam correção de orientação, guarda de 16 MB e hash/proveniência. Imports do servidor podem criar `__pycache__` fora da pasta. O juiz usa tarifa Luna por padrão para Astra: deve exigir tarifa explícita.
+
+**6. Correções prioritárias e execução proposta**
+
+1. **P0:** proveniência e expectativas: `benchmark/build_cases.py:303`, L549/L632; `benchmark/personas/nicolas.json:69`.
+2. **P0:** contrato e regras coerentes: `benchmark/prompts/new_instructions.py:55`, L192/L200; `benchmark/prompts/new_schema.json:15`.
+3. **P0:** justiça e invariantes: `benchmark/scoring.py:60`, L140; contexto: `benchmark/judge.py:28`; rubrica: `benchmark/judge/judge_prompt.md:13`.
+4. **P1:** execução reproduzível: `benchmark/run.py:293`, L390; amostragem pareada: `benchmark/judge.py:58`; relatório: `benchmark/report.py:84`.
+
+Depois das correções: **baseline-none → new-none → new-low**, rotacionando essa ordem por caso/repetição. Usaria **60 casos sintéticos estratificados × 3 repetições × 3 braços = 540 gerações**, mais **180 julgamentos pareados** (uma repetição predefinida por caso/braço): **720 disparos lógicos**, com tentativas limitadas e contabilizadas separadamente.

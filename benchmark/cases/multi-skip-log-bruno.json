@@ -152,6 +152,9 @@
   "actions_count": 2,
   "reply_has": [
    "Pré-treino de hoje fora"
+  ],
+  "baseline_unsupported": [
+   "actions_count"
   ]
  }
 }

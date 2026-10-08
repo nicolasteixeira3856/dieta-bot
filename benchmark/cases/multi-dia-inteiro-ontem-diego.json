@@ -1005,7 +1005,7 @@
    {
     "id": "R1",
     "name": "Hambúrguer de grão-de-bico",
-    "kcal": 480,
+    "kcal": 478,
     "p": 22,
     "c": 65,
     "g": 14,
@@ -1050,7 +1050,7 @@
    {
     "id": "R2",
     "name": "Curry de grão-de-bico com arroz",
-    "kcal": 620,
+    "kcal": 622,
     "p": 24,
     "c": 95,
     "g": 16,
@@ -1090,7 +1090,7 @@
    {
     "id": "R3",
     "name": "Omelete de forno com tofu",
-    "kcal": 380,
+    "kcal": 386,
     "p": 30,
     "c": 8,
     "g": 25,
@@ -1130,7 +1130,7 @@
    {
     "id": "R4",
     "name": "Mingau de aveia proteico",
-    "kcal": 350,
+    "kcal": 347,
     "p": 30,
     "c": 45,
     "g": 6,
@@ -1234,6 +1234,9 @@
   "actions_count": 2,
   "reply_has": [
    "O\\ Chat\\ registra\\ apenas\\ refeições\\ de\\ hoje\\."
+  ],
+  "baseline_unsupported": [
+   "actions_count"
   ]
  }
 }

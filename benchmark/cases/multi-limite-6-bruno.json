@@ -1,16 +1,17 @@
 {
- "id": "scope-math-bruno",
- "family": "scope",
+ "id": "multi-limite-6-bruno",
+ "family": "multi",
  "persona": "bruno",
- "origin": "synthetic-from-tester",
+ "origin": "synthetic",
  "tags": [
-  "scope"
+  "multi",
+  "limit"
  ],
- "summary": "Matemática: out_of_scope.",
+ "summary": "Sete coisas numa mensagem: no máximo seis ações e a resposta diz o que ficou de fora.",
  "image": null,
  "request": {
   "persona": "bruno",
-  "local_time": "2026-10-07T15:00:00-03:00",
+  "local_time": "2026-10-07T21:40:00-03:00",
   "profile": {
    "ceiling_kcal": 2400,
    "p_target": 180,
@@ -122,7 +123,7 @@
   "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "me explica como calcular a raiz quadrada de 144?",
+  "text": "Hoje: pré-treino 1 banana; café 3 ovos mexidos e 2 pães franceses; almoço 150 g de arroz, 100 g de feijão e 200 g de bife; lanche 1 sanduíche de frango; jantar 300 g de macarrão com carne moída; treino de 500 kcal; e me sugere uma ceia leve",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -132,17 +133,13 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Matemática: out_of_scope.",
-  "refusal": "out_of_scope",
-  "actions": [
-   {
-    "type": "question"
-   }
+  "summary": "Sete coisas numa mensagem: no máximo seis ações e a resposta diz o que ficou de fora.",
+  "actions_count": 6,
+  "reply_has": [
+   "(de novo|de fora|não coube|manda|envi[ae]|separad)"
   ],
-  "actions_count": 1,
-  "reply_not": [
-   "\b12\b",
-   "raiz"
+  "baseline_unsupported": [
+   "actions_count"
   ]
  }
 }

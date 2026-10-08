@@ -1,18 +1,18 @@
 {
- "id": "plan-digest-opcao-carla",
- "family": "plan",
+ "id": "multi-log-skip-mesmo-slot-carla",
+ "family": "multi",
  "persona": "carla",
  "origin": "synthetic",
  "tags": [
-  "plan",
-  "option",
-  "digest"
+  "multi",
+  "skip",
+  "conflict"
  ],
- "summary": "Opções só no DIGEST após compactação: ainda assim 'fiz a opção 1' copia a opção certa.",
+ "summary": "Pulo e comida no mesmo slot: é um log, nunca um skip (ADR-047).",
  "image": null,
  "request": {
   "persona": "carla",
-  "local_time": "2026-10-07T20:40:00-03:00",
+  "local_time": "2026-10-07T09:30:00-03:00",
   "profile": {
    "ceiling_kcal": 1800,
    "p_target": 130,
@@ -420,13 +420,11 @@
     }
    ]
   },
-  "digests": [
-   "Usuário pediu sugestão de jantar. Assistente deu opção 1: omelete de 2 ovos com espinafre, 300 kcal e 21 g de proteína; opção 2: sopa de abóbora com 100 g de frango, 290 kcal e 30 g de proteína."
-  ],
+  "digests": [],
   "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "fiz a opção 1 no jantar",
+  "text": "pulei o café hoje, só tomei um café com 200 ml de leite de amêndoas e comi uma banana",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -436,15 +434,11 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Opções só no DIGEST após compactação: ainda assim 'fiz a opção 1' copia a opção certa.",
+  "summary": "Pulo e comida no mesmo slot: é um log, nunca um skip (ADR-047).",
   "actions": [
    {
     "type": "log",
-    "slot": "n",
-    "kcal_range": [
-     280,
-     320
-    ],
+    "slot": "m",
     "question": "absent"
    }
   ],

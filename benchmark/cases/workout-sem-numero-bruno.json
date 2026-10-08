@@ -145,6 +145,11 @@
   ],
   "reply_not": [
    "[2-9]\\d\\d ?kcal"
+  ],
+  "baseline_unsupported": [
+   "actions_count",
+   "refusal",
+   "scope"
   ]
  }
 }

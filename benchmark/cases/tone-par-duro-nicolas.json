@@ -1,17 +1,18 @@
 {
- "id": "log-cerveja-espetinhos-nicolas",
- "family": "log",
+ "id": "tone-par-duro-nicolas",
+ "family": "tone",
  "persona": "nicolas",
- "origin": "grok",
+ "origin": "synthetic",
  "tags": [
-  "log",
-  "alcohol"
+  "tone",
+  "duro",
+  "pair"
  ],
- "summary": "Cerveja + espetinhos: uma janta (ou cerveja em separado), álcool contado, sem perguntar o que já foi dito.",
+ "summary": "Mesmo contexto de tone-seco-sem-critica-nicolas, tom duro: a crítica nomeia o Jantar; sem exclamação, corpo ou jejum.",
  "image": null,
  "request": {
   "persona": "nicolas",
-  "local_time": "2026-10-07T22:00:00-03:00",
+  "local_time": "2026-10-07T21:00:00-03:00",
   "profile": {
    "ceiling_kcal": 2030,
    "p_target": 165,
@@ -50,7 +51,7 @@
      "time": "21:00"
     }
    ],
-   "tone": "seco"
+   "tone": "duro"
   },
   "facts": [
    {
@@ -716,12 +717,12 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 1105,
-   "eaten_p": 76,
-   "eaten_c": 102,
-   "eaten_g": 44,
+   "eaten_kcal": 1305,
+   "eaten_p": 88,
+   "eaten_c": 141,
+   "eaten_g": 45,
    "workout_kcal": null,
-   "remaining_kcal": 925,
+   "remaining_kcal": 725,
    "slots": [
     {
      "id": "1",
@@ -734,7 +735,12 @@
     },
     {
      "id": "2",
-     "status": "empty"
+     "status": "eaten",
+     "text": "150 g de mamão",
+     "kcal": 60,
+     "p": 1,
+     "c": 15,
+     "g": 0
     },
     {
      "id": "3",
@@ -747,7 +753,12 @@
     },
     {
      "id": "4",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 iogurte Nuv natural e 1 banana prata média",
+     "kcal": 140,
+     "p": 11,
+     "c": 24,
+     "g": 1
     },
     {
      "id": "5",
@@ -763,7 +774,7 @@
   "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "Hoje foi complicado. Tomei uma Therezópolis Session IPA 350 ml inteira e comi 6 espetinhos, 5 de alcatra e um de porco, uns 75 g de carne cada",
+  "text": "jantei 2 hambúrgueres de fraldinha com pão brioche e batata frita",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -773,22 +784,22 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Cerveja + espetinhos: uma janta (ou cerveja em separado), álcool contado, sem perguntar o que já foi dito.",
-  "actions_count": [
-   1,
-   2
-  ],
+  "summary": "Mesmo contexto de tone-seco-sem-critica-nicolas, tom duro: a crítica nomeia o Jantar; sem exclamação, corpo ou jejum.",
   "actions": [
    {
     "type": "log",
-    "kcal_range": [
-     850,
-     1300
-    ]
+    "slot": "5"
    }
   ],
+  "actions_count": 1,
+  "reply_has": [
+   "[Jj]antar"
+  ],
   "reply_not": [
-   "registr(ei|ado)"
+   "!",
+   "\\bgord[oa]s?\\b",
+   "\\bpeso\\b",
+   "pul(e|ar) |jejum"
   ]
  }
 }

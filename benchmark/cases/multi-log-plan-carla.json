@@ -318,7 +318,7 @@
    {
     "id": "R1",
     "name": "Panqueca de aveia com banana",
-    "kcal": 310,
+    "kcal": 305,
     "p": 14,
     "c": 50,
     "g": 7,
@@ -357,7 +357,7 @@
    {
     "id": "R2",
     "name": "Sopa de abóbora com frango",
-    "kcal": 290,
+    "kcal": 289,
     "p": 30,
     "c": 25,
     "g": 6,
@@ -423,7 +423,7 @@
   "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "Almocei a marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado e legumes. O que eu janto hoje?",
+  "text": "Almocei a marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado e 100 g de legumes. O que eu janto hoje?",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -452,6 +452,9 @@
   "actions_count": 2,
   "reply_not": [
    "registr(ei|ado)"
+  ],
+  "baseline_unsupported": [
+   "actions_count"
   ]
  }
 }

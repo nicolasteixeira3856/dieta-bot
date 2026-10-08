@@ -7,7 +7,7 @@
   "copy",
   "named-day"
  ],
- "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar números sem recalcular e dizer o dia da semana; é refeição de hoje.",
+ "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar kcal e macros exatos sem recalcular e dizer o dia da semana; é refeição de hoje.",
  "image": null,
  "request": {
   "persona": "nicolas",
@@ -624,10 +624,10 @@
    {
     "id": "R2",
     "name": "Bruschetta de ovo na air fryer",
-    "kcal": 470,
-    "p": 33,
-    "c": 32,
-    "g": 22,
+    "kcal": 537,
+    "p": 37,
+    "c": 33,
+    "g": 26,
     "key_foods": [
      "pão francês",
      "ovo cozido",
@@ -763,14 +763,16 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar números sem recalcular e dizer o dia da semana; é refeição de hoje.",
+  "summary": "Dia nomeado (ontem) com COPY_SOURCE: copiar kcal e macros exatos sem recalcular e dizer o dia da semana; é refeição de hoje.",
   "actions": [
    {
     "type": "log",
     "slot": "1",
-    "kcal_range": [
-     403,
-     447
+    "kcal_exact": 425,
+    "macros_exact": [
+     24,
+     42,
+     17
     ],
     "question": "absent",
     "confidence": "high",
