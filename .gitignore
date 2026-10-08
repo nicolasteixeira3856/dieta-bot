@@ -27,3 +27,6 @@ key.properties
 google-services.json
 apps/rn/.expo/
 .claude/worktrees/
+
+# benchmark results (never versioned)
+/benchmark/out/

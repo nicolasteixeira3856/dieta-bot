@@ -1,0 +1,157 @@
+{
+ "id": "multi-workout-log-bruno",
+ "family": "multi",
+ "persona": "bruno",
+ "origin": "synthetic",
+ "tags": [
+  "multi",
+  "workout"
+ ],
+ "summary": "Treino em kcal + café: ação workout com o número exato e um log.",
+ "image": null,
+ "request": {
+  "persona": "bruno",
+  "local_time": "2026-10-07T08:50:00-03:00",
+  "profile": {
+   "ceiling_kcal": 2400,
+   "p_target": 180,
+   "c_target": 250,
+   "g_target": 80,
+   "eat_back": "full",
+   "slots": [
+    {
+     "id": "pt",
+     "name": "Pré-treino",
+     "time": "05:30"
+    },
+    {
+     "id": "cf",
+     "name": "Café da manhã",
+     "time": "08:30"
+    },
+    {
+     "id": "al",
+     "name": "Almoço",
+     "time": "13:00"
+    },
+    {
+     "id": "la",
+     "name": "Lanche",
+     "time": "17:00"
+    },
+    {
+     "id": "ja",
+     "name": "Jantar",
+     "time": "20:30"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [],
+  "recent": [],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": false
+   }
+  ],
+  "recipes": [],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": null,
+   "remaining_kcal": 2400,
+   "slots": [
+    {
+     "id": "pt",
+     "status": "empty"
+    },
+    {
+     "id": "cf",
+     "status": "empty"
+    },
+    {
+     "id": "al",
+     "status": "empty"
+    },
+    {
+     "id": "la",
+     "status": "empty"
+    },
+    {
+     "id": "ja",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "Treino de hoje 610 kcal na pulseira. Café: 2 ovos mexidos, 1 pão francês com manteiga e 250 ml de leite",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Treino em kcal + café: ação workout com o número exato e um log.",
+  "actions": [
+   {
+    "type": "workout",
+    "workout_kcal": 610,
+    "workout_mode": "replace"
+   },
+   {
+    "type": "log",
+    "kcal_range": [
+     380,
+     560
+    ],
+    "question": "absent"
+   }
+  ],
+  "actions_count": 2,
+  "reply_not": [
+   "registr(ei|ado)"
+  ]
+ }
+}

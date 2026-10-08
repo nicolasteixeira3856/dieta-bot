@@ -1,0 +1,55 @@
+{
+  "id": "ana",
+  "origin": "synthetic: woman, 34, 1600 kcal, four meals, tone duro, eat-back 50 %, yogurt and oats habits",
+  "today": "2026-10-07",
+  "tone": "duro",
+  "profile": {
+    "ceiling_kcal": 1600, "p_target": 120, "c_target": 160, "g_target": 53, "eat_back": "partial_50",
+    "slots": [
+      {"id": "c", "name": "Café da manhã", "time": "07:00"},
+      {"id": "a", "name": "Almoço", "time": "12:30"},
+      {"id": "l", "name": "Lanche", "time": "16:00"},
+      {"id": "j", "name": "Jantar", "time": "20:00"}
+    ]
+  },
+  "facts": [
+    {"id": "P1", "kind": "permanent", "category": "preference", "key": "iogurte", "text": "Iogurte desnatado natural, pote de 170 g", "slot": null, "days_seen": 12},
+    {"id": "P2", "kind": "permanent", "category": "preference", "key": "cafe", "text": "Café com adoçante, nunca açúcar", "slot": null, "days_seen": 10},
+    {"id": "D1", "kind": "dynamic", "category": "routine", "key": "cafe da manha", "text": "1 iogurte desnatado 170 g com 30 g de aveia e 1 banana prata", "slot": "c", "days_seen": 5, "kcal": 300, "p": 15, "c": 55, "g": 3},
+    {"id": "D2", "kind": "dynamic", "category": "portion", "key": "arroz", "text": "Arroz: 4 colheres de sopa (~100 g)", "slot": null, "days_seen": 4}
+  ],
+  "typical": {
+    "c": [
+      {"text": "1 iogurte desnatado 170 g com 30 g de aveia e 1 banana prata", "kcal": 300, "p": 15, "c": 55, "g": 3},
+      {"text": "2 fatias de pão integral com requeijão light e café com adoçante", "kcal": 230, "p": 10, "c": 36, "g": 5}
+    ],
+    "a": [
+      {"text": "100 g de arroz, 100 g de feijão, 120 g de frango grelhado, salada de alface e tomate", "kcal": 460, "p": 45, "c": 55, "g": 7},
+      {"text": "100 g de arroz, 1 concha de feijão, 100 g de carne moída refogada, 100 g de abobrinha", "kcal": 520, "p": 36, "c": 52, "g": 17}
+    ],
+    "l": [
+      {"text": "1 maçã e 20 g de castanha de caju", "kcal": 180, "p": 4, "c": 24, "g": 9},
+      {"text": "1 iogurte desnatado 170 g", "kcal": 90, "p": 9, "c": 12, "g": 0}
+    ],
+    "j": [
+      {"text": "Omelete de 2 ovos com queijo minas e salada", "kcal": 330, "p": 24, "c": 5, "g": 23},
+      {"text": "Sopa de legumes com 100 g de frango desfiado", "kcal": 280, "p": 30, "c": 20, "g": 6}
+    ]
+  },
+  "week_shape": {
+    "days": [
+      {"offset": 1, "gaps": []},
+      {"offset": 2, "over": {"slot": "j", "text": "Pizza: 3 fatias de calabresa e 1 lata de refrigerante", "kcal": 1050, "p": 36, "c": 110, "g": 48}, "gaps": []},
+      {"offset": 3, "gaps": ["l"]},
+      {"offset": 4, "over": {"slot": "j", "text": "Hambúrguer artesanal com batata frita", "kcal": 980, "p": 40, "c": 85, "g": 52}, "gaps": []},
+      {"offset": 5, "gaps": []},
+      {"offset": 6, "over": {"slot": "j", "text": "Churrasco: picanha, pão de alho, farofa e 2 cervejas", "kcal": 1400, "p": 70, "c": 90, "g": 80}, "gaps": ["l"]},
+      {"offset": 7, "none": true}
+    ]
+  },
+  "recipes": [
+    {"id": "R1", "name": "Omelete de forno com legumes", "kcal": 340, "p": 26, "c": 12, "g": 21, "key_foods": ["ovo", "abobrinha", "queijo minas"],
+     "ingredients": [{"name": "ovo", "g": 150, "kcal": 219}, {"name": "abobrinha", "g": 100, "kcal": 19}, {"name": "queijo minas frescal", "g": 30, "kcal": 79}, {"name": "tomate", "g": 80, "kcal": 16}],
+     "steps": ["Bater os ovos com sal e orégano.", "Misturar os legumes picados e o queijo em cubos.", "Forma untada, forno 180 °C por 25 min."]}
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "carla",
+  "origin": "synthetic: woman, 29, 1800 kcal, three meals, tone seco, weekend overshoot pattern, one day without record, memory nearly empty",
+  "today": "2026-10-07",
+  "tone": "seco",
+  "profile": {
+    "ceiling_kcal": 1800, "p_target": 130, "c_target": 190, "g_target": 60, "eat_back": "zero",
+    "slots": [
+      {"id": "m", "name": "Café", "time": "08:00"},
+      {"id": "t", "name": "Almoço", "time": "13:00"},
+      {"id": "n", "name": "Jantar", "time": "19:30"}
+    ]
+  },
+  "facts": [
+    {"id": "P1", "kind": "permanent", "category": "preference", "key": "leite", "text": "Leite vegetal de amêndoas sem açúcar", "slot": null, "days_seen": 4}
+  ],
+  "typical": {
+    "m": [
+      {"text": "Tapioca com 1 ovo e queijo branco, café com leite de amêndoas", "kcal": 330, "p": 16, "c": 40, "g": 11},
+      {"text": "Vitamina de banana com 200 ml de leite de amêndoas e 30 g de aveia", "kcal": 260, "p": 7, "c": 48, "g": 5}
+    ],
+    "t": [
+      {"text": "Marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado, legumes", "kcal": 540, "p": 48, "c": 65, "g": 9},
+      {"text": "Salada com 2 ovos cozidos, grão-de-bico e atum em água", "kcal": 420, "p": 40, "c": 30, "g": 15}
+    ],
+    "n": [
+      {"text": "Omelete de 2 ovos com espinafre", "kcal": 300, "p": 21, "c": 4, "g": 22},
+      {"text": "Sopa de abóbora com 100 g de frango desfiado", "kcal": 290, "p": 30, "c": 25, "g": 6}
+    ]
+  },
+  "week_shape": {
+    "days": [
+      {"offset": 1, "gaps": []},
+      {"offset": 2, "gaps": []},
+      {"offset": 3, "over": {"slot": "n", "text": "Rodízio de pizza: 6 fatias e 2 taças de vinho", "kcal": 1500, "p": 50, "c": 150, "g": 65}, "gaps": []},
+      {"offset": 4, "over": {"slot": "t", "text": "Feijoada completa com caipirinha", "kcal": 1300, "p": 55, "c": 110, "g": 60}, "gaps": ["n"]},
+      {"offset": 5, "none": true},
+      {"offset": 6, "gaps": []},
+      {"offset": 7, "gaps": ["m"]}
+    ]
+  },
+  "recipes": [
+    {"id": "R1", "name": "Panqueca de aveia com banana", "kcal": 310, "p": 14, "c": 50, "g": 7, "key_foods": ["aveia", "banana", "ovo"],
+     "ingredients": [{"name": "aveia em flocos", "g": 40, "kcal": 158}, {"name": "banana prata", "g": 70, "kcal": 69}, {"name": "ovo", "g": 50, "kcal": 73}, {"name": "canela", "g": 2, "kcal": 5}],
+     "steps": ["Bater tudo.", "Frigideira antiaderente, 2 min de cada lado."]},
+    {"id": "R2", "name": "Sopa de abóbora com frango", "kcal": 290, "p": 30, "c": 25, "g": 6, "key_foods": ["abóbora", "frango desfiado", "gengibre"],
+     "ingredients": [{"name": "abóbora cabotiá", "g": 250, "kcal": 100}, {"name": "frango desfiado", "g": 100, "kcal": 159}, {"name": "cebola e gengibre", "g": 30, "kcal": 12}, {"name": "azeite", "g": 2, "kcal": 18}],
+     "steps": ["Cozinhar a abóbora com cebola e gengibre.", "Bater e voltar à panela com o frango.", "Acertar o sal, 5 min."]}
+  ]
+}

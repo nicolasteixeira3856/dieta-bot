@@ -1,0 +1,163 @@
+{
+ "id": "discovery-pula-bruno",
+ "family": "discovery",
+ "persona": "bruno",
+ "origin": "synthetic",
+ "tags": [
+  "discovery",
+  "day0"
+ ],
+ "summary": "Usuário pula a descoberta: só o log, nenhuma rotina proposta.",
+ "image": null,
+ "request": {
+  "persona": "bruno",
+  "local_time": "2026-10-07T09:06:00-03:00",
+  "profile": {
+   "ceiling_kcal": 2400,
+   "p_target": 180,
+   "c_target": 250,
+   "g_target": 80,
+   "eat_back": "full",
+   "slots": [
+    {
+     "id": "pt",
+     "name": "Pré-treino",
+     "time": "05:30"
+    },
+    {
+     "id": "cf",
+     "name": "Café da manhã",
+     "time": "08:30"
+    },
+    {
+     "id": "al",
+     "name": "Almoço",
+     "time": "13:00"
+    },
+    {
+     "id": "la",
+     "name": "Lanche",
+     "time": "17:00"
+    },
+    {
+     "id": "ja",
+     "name": "Jantar",
+     "time": "20:30"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [],
+  "recent": [],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": false
+   }
+  ],
+  "recipes": [],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": null,
+   "remaining_kcal": 2400,
+   "slots": [
+    {
+     "id": "pt",
+     "status": "empty"
+    },
+    {
+     "id": "cf",
+     "status": "empty"
+    },
+    {
+     "id": "al",
+     "status": "empty"
+    },
+    {
+     "id": "la",
+     "status": "empty"
+    },
+    {
+     "id": "ja",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [
+   {
+    "role": "user",
+    "text": "oi"
+   },
+   {
+    "role": "assistant",
+    "text": "Pra começar, me conta (pode pular qualquer uma):\n- o que costuma comer no café?\n- e no almoço?\n- e no jantar?\n- alguma preferência fixa ou equipamento?"
+   }
+  ],
+  "pending_addition": null,
+  "discovery": true,
+  "text": "não quero responder agora, só registrar meu café: 2 ovos e 1 pão francês",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Usuário pula a descoberta: só o log, nenhuma rotina proposta.",
+  "actions": [
+   {
+    "type": "log",
+    "slot": "cf",
+    "kcal_range": [
+     280,
+     400
+    ]
+   }
+  ],
+  "actions_count": 1,
+  "memory_updates_not": [
+   {
+    "category": "routine"
+   }
+  ]
+ }
+}

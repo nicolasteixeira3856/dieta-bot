@@ -1,0 +1,1242 @@
+{
+ "id": "multi-log-plan-diego",
+ "family": "multi",
+ "persona": "diego",
+ "origin": "synthetic",
+ "tags": [
+  "multi",
+  "log-plan"
+ ],
+ "summary": "Registro + pedido de sugestão no mesmo turno: log primeiro, plano dimensionado com o log já comido.",
+ "image": null,
+ "request": {
+  "persona": "diego",
+  "local_time": "2026-10-07T13:05:00-03:00",
+  "profile": {
+   "ceiling_kcal": 2200,
+   "p_target": 140,
+   "c_target": 260,
+   "g_target": 70,
+   "eat_back": "partial_50",
+   "slots": [
+    {
+     "id": "s1",
+     "name": "Café",
+     "time": "07:00"
+    },
+    {
+     "id": "s2",
+     "name": "Lanche da manhã",
+     "time": "10:00"
+    },
+    {
+     "id": "s3",
+     "name": "Almoço",
+     "time": "12:30"
+    },
+    {
+     "id": "s4",
+     "name": "Lanche da tarde",
+     "time": "16:00"
+    },
+    {
+     "id": "s5",
+     "name": "Jantar",
+     "time": "19:30"
+    },
+    {
+     "id": "s6",
+     "name": "Ceia",
+     "time": "22:00"
+    }
+   ],
+   "tone": "duro"
+  },
+  "facts": [
+   {
+    "id": "P1",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref1",
+    "text": "Prefere tofu (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P2",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref2",
+    "text": "Prefere grão-de-bico (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P3",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref3",
+    "text": "Prefere lentilha (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P4",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref4",
+    "text": "Prefere ovo (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P5",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref5",
+    "text": "Prefere queijo minas (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P6",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref6",
+    "text": "Prefere iogurte grego (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P7",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref7",
+    "text": "Prefere aveia (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P8",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref8",
+    "text": "Prefere pão integral (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P9",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref9",
+    "text": "Prefere arroz integral (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P10",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref10",
+    "text": "Prefere feijão preto (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P11",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref11",
+    "text": "Prefere soja em grãos (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P12",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref12",
+    "text": "Prefere ervilha (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P13",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref13",
+    "text": "Prefere abacate (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P14",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref14",
+    "text": "Prefere castanha (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P15",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref15",
+    "text": "Prefere amendoim (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P16",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref16",
+    "text": "Prefere banana (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P17",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref17",
+    "text": "Prefere maçã (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P18",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref18",
+    "text": "Prefere mamão (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P19",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref19",
+    "text": "Prefere leite integral (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P20",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref20",
+    "text": "Prefere whey vegano (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P21",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref21",
+    "text": "Prefere cuscuz (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P22",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref22",
+    "text": "Prefere batata doce (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P23",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref23",
+    "text": "Prefere mandioca (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P24",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref24",
+    "text": "Prefere brócolis (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P25",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref25",
+    "text": "Prefere couve (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P26",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref26",
+    "text": "Prefere cogumelo (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P27",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref27",
+    "text": "Prefere azeite (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P28",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pref28",
+    "text": "Prefere chia (declarado)",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P29",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "dieta",
+    "text": "Vegetariano: sem carne, frango ou peixe",
+    "slot": null,
+    "days_seen": 20,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P30",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "equipment",
+    "text": "Air fryer e panela de pressão",
+    "slot": null,
+    "days_seen": 5,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "D1",
+    "kind": "dynamic",
+    "category": "routine",
+    "key": "cafe",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "slot": "s1",
+    "days_seen": 4,
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15,
+    "last_seen": "2026-10-07"
+   }
+  ],
+  "recent": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s2",
+    "slot_name": "Lanche da manhã",
+    "text": "1 maçã e 30 g de amendoim",
+    "kcal": 230,
+    "p": 8,
+    "c": 22,
+    "g": 14
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "Grão-de-bico refogado 200 g com 100 g de arroz e legumes",
+    "kcal": 520,
+    "p": 24,
+    "c": 78,
+    "g": 12
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s4",
+    "slot_name": "Lanche da tarde",
+    "text": "Iogurte grego 170 g com 1 banana",
+    "kcal": 250,
+    "p": 12,
+    "c": 36,
+    "g": 7
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Hambúrguer de grão-de-bico no pão integral",
+    "kcal": 480,
+    "p": 22,
+    "c": 65,
+    "g": 14
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s6",
+    "slot_name": "Ceia",
+    "text": "30 g de whey vegano com água",
+    "kcal": 115,
+    "p": 24,
+    "c": 2,
+    "g": 1
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "s2",
+    "slot_name": "Lanche da manhã",
+    "text": "1 maçã e 30 g de amendoim",
+    "kcal": 230,
+    "p": 8,
+    "c": 22,
+    "g": 14
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "150 g de arroz integral, 150 g de lentilha, 100 g de tofu grelhado, salada",
+    "kcal": 560,
+    "p": 32,
+    "c": 80,
+    "g": 12
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "s4",
+    "slot_name": "Lanche da tarde",
+    "text": "Iogurte grego 170 g com 1 banana",
+    "kcal": 250,
+    "p": 12,
+    "c": 36,
+    "g": 7
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Pizza vegetariana, 5 fatias",
+    "kcal": 1150,
+    "p": 45,
+    "c": 130,
+    "g": 45
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "Grão-de-bico refogado 200 g com 100 g de arroz e legumes",
+    "kcal": 520,
+    "p": 24,
+    "c": 78,
+    "g": 12
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Hambúrguer de grão-de-bico no pão integral",
+    "kcal": 480,
+    "p": 22,
+    "c": 65,
+    "g": 14
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "s6",
+    "slot_name": "Ceia",
+    "text": "30 g de whey vegano com água",
+    "kcal": 115,
+    "p": 24,
+    "c": 2,
+    "g": 1
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s2",
+    "slot_name": "Lanche da manhã",
+    "text": "1 maçã e 30 g de amendoim",
+    "kcal": 230,
+    "p": 8,
+    "c": 22,
+    "g": 14
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "150 g de arroz integral, 150 g de lentilha, 100 g de tofu grelhado, salada",
+    "kcal": 560,
+    "p": 32,
+    "c": 80,
+    "g": 12
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s4",
+    "slot_name": "Lanche da tarde",
+    "text": "Iogurte grego 170 g com 1 banana",
+    "kcal": 250,
+    "p": 12,
+    "c": 36,
+    "g": 7
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Omelete de 3 ovos com queijo minas e 100 g de batata doce",
+    "kcal": 520,
+    "p": 32,
+    "c": 30,
+    "g": 30
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s6",
+    "slot_name": "Ceia",
+    "text": "30 g de whey vegano com água",
+    "kcal": 115,
+    "p": 24,
+    "c": 2,
+    "g": 1
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s2",
+    "slot_name": "Lanche da manhã",
+    "text": "1 maçã e 30 g de amendoim",
+    "kcal": 230,
+    "p": 8,
+    "c": 22,
+    "g": 14
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "Grão-de-bico refogado 200 g com 100 g de arroz e legumes",
+    "kcal": 520,
+    "p": 24,
+    "c": 78,
+    "g": 12
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s4",
+    "slot_name": "Lanche da tarde",
+    "text": "Iogurte grego 170 g com 1 banana",
+    "kcal": 250,
+    "p": 12,
+    "c": 36,
+    "g": 7
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Lasanha de berinjela, 2 pedaços grandes, e 1 pedaço de bolo",
+    "kcal": 1100,
+    "p": 40,
+    "c": 120,
+    "g": 48
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s6",
+    "slot_name": "Ceia",
+    "text": "30 g de whey vegano com água",
+    "kcal": 115,
+    "p": 24,
+    "c": 2,
+    "g": 1
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "s2",
+    "slot_name": "Lanche da manhã",
+    "text": "1 maçã e 30 g de amendoim",
+    "kcal": 230,
+    "p": 8,
+    "c": 22,
+    "g": 14
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "150 g de arroz integral, 150 g de lentilha, 100 g de tofu grelhado, salada",
+    "kcal": 560,
+    "p": 32,
+    "c": 80,
+    "g": 12
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "s4",
+    "slot_name": "Lanche da tarde",
+    "text": "Iogurte grego 170 g com 1 banana",
+    "kcal": 250,
+    "p": 12,
+    "c": 36,
+    "g": 7
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Omelete de 3 ovos com queijo minas e 100 g de batata doce",
+    "kcal": 520,
+    "p": 32,
+    "c": 30,
+    "g": 30
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s1",
+    "slot_name": "Café",
+    "text": "Cuscuz com 2 ovos e café com leite integral",
+    "kcal": 420,
+    "p": 20,
+    "c": 52,
+    "g": 15
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s2",
+    "slot_name": "Lanche da manhã",
+    "text": "1 maçã e 30 g de amendoim",
+    "kcal": 230,
+    "p": 8,
+    "c": 22,
+    "g": 14
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s3",
+    "slot_name": "Almoço",
+    "text": "Grão-de-bico refogado 200 g com 100 g de arroz e legumes",
+    "kcal": 520,
+    "p": 24,
+    "c": 78,
+    "g": 12
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s4",
+    "slot_name": "Lanche da tarde",
+    "text": "Iogurte grego 170 g com 1 banana",
+    "kcal": 250,
+    "p": 12,
+    "c": 36,
+    "g": 7
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s5",
+    "slot_name": "Jantar",
+    "text": "Hambúrguer de grão-de-bico no pão integral",
+    "kcal": 480,
+    "p": 22,
+    "c": 65,
+    "g": 14
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s6",
+    "slot_name": "Ceia",
+    "text": "30 g de whey vegano com água",
+    "kcal": 115,
+    "p": 24,
+    "c": 2,
+    "g": 1
+   }
+  ],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": true,
+    "kcal": 2015,
+    "p": 110,
+    "c": 255,
+    "g": 63,
+    "ceiling_kcal": 2200,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": true,
+    "kcal": 2610,
+    "p": 117,
+    "c": 320,
+    "g": 93,
+    "ceiling_kcal": 2200,
+    "over_slot": "Jantar",
+    "gaps": [
+     "Ceia"
+    ]
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": true,
+    "kcal": 1535,
+    "p": 90,
+    "c": 197,
+    "g": 42,
+    "ceiling_kcal": 2200,
+    "over_slot": null,
+    "gaps": [
+     "Lanche da manhã",
+     "Lanche da tarde"
+    ]
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": true,
+    "kcal": 2095,
+    "p": 128,
+    "c": 222,
+    "g": 79,
+    "ceiling_kcal": 2200,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": true,
+    "kcal": 2635,
+    "p": 128,
+    "c": 310,
+    "g": 97,
+    "ceiling_kcal": 2200,
+    "over_slot": "Jantar",
+    "gaps": []
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": true,
+    "kcal": 1980,
+    "p": 104,
+    "c": 220,
+    "g": 78,
+    "ceiling_kcal": 2200,
+    "over_slot": null,
+    "gaps": [
+     "Ceia"
+    ]
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": true,
+    "kcal": 2015,
+    "p": 110,
+    "c": 255,
+    "g": 63,
+    "ceiling_kcal": 2200,
+    "over_slot": null,
+    "gaps": []
+   }
+  ],
+  "recipes": [
+   {
+    "id": "R1",
+    "name": "Hambúrguer de grão-de-bico",
+    "kcal": 480,
+    "p": 22,
+    "c": 65,
+    "g": 14,
+    "key_foods": [
+     "grão-de-bico",
+     "pão integral",
+     "aveia"
+    ],
+    "ingredients": [
+     {
+      "name": "grão-de-bico cozido",
+      "g": 150,
+      "kcal": 240
+     },
+     {
+      "name": "aveia",
+      "g": 20,
+      "kcal": 79
+     },
+     {
+      "name": "pão integral",
+      "g": 50,
+      "kcal": 127
+     },
+     {
+      "name": "alface e tomate",
+      "g": 60,
+      "kcal": 14
+     },
+     {
+      "name": "azeite",
+      "g": 2,
+      "kcal": 18
+     }
+    ],
+    "steps": [
+     "Amassar o grão-de-bico com a aveia, alho e sal.",
+     "Moldar 2 discos.",
+     "Air fryer 200 °C por 12 min, virando na metade."
+    ]
+   },
+   {
+    "id": "R2",
+    "name": "Curry de grão-de-bico com arroz",
+    "kcal": 620,
+    "p": 24,
+    "c": 95,
+    "g": 16,
+    "key_foods": [
+     "grão-de-bico",
+     "arroz",
+     "leite de coco"
+    ],
+    "ingredients": [
+     {
+      "name": "grão-de-bico cozido",
+      "g": 200,
+      "kcal": 320
+     },
+     {
+      "name": "arroz branco cozido",
+      "g": 150,
+      "kcal": 192
+     },
+     {
+      "name": "leite de coco",
+      "g": 50,
+      "kcal": 90
+     },
+     {
+      "name": "curry, cebola, tomate",
+      "g": 80,
+      "kcal": 20
+     }
+    ],
+    "steps": [
+     "Refogar cebola, tomate e curry.",
+     "Juntar o grão-de-bico e o leite de coco, 10 min.",
+     "Servir com o arroz."
+    ]
+   },
+   {
+    "id": "R3",
+    "name": "Omelete de forno com tofu",
+    "kcal": 380,
+    "p": 30,
+    "c": 8,
+    "g": 25,
+    "key_foods": [
+     "ovo",
+     "tofu",
+     "queijo minas"
+    ],
+    "ingredients": [
+     {
+      "name": "ovo",
+      "g": 150,
+      "kcal": 219
+     },
+     {
+      "name": "tofu",
+      "g": 100,
+      "kcal": 76
+     },
+     {
+      "name": "queijo minas frescal",
+      "g": 30,
+      "kcal": 79
+     },
+     {
+      "name": "espinafre",
+      "g": 50,
+      "kcal": 12
+     }
+    ],
+    "steps": [
+     "Bater os ovos, misturar o tofu esfarelado e o espinafre.",
+     "Forma untada, forno 180 °C por 25 min.",
+     "Queijo por cima nos últimos 5 min."
+    ]
+   },
+   {
+    "id": "R4",
+    "name": "Mingau de aveia proteico",
+    "kcal": 350,
+    "p": 30,
+    "c": 45,
+    "g": 6,
+    "key_foods": [
+     "aveia",
+     "whey vegano",
+     "banana"
+    ],
+    "ingredients": [
+     {
+      "name": "aveia em flocos",
+      "g": 40,
+      "kcal": 158
+     },
+     {
+      "name": "whey vegano",
+      "g": 30,
+      "kcal": 115
+     },
+     {
+      "name": "banana prata",
+      "g": 70,
+      "kcal": 69
+     },
+     {
+      "name": "canela",
+      "g": 2,
+      "kcal": 5
+     }
+    ],
+    "steps": [
+     "Cozinhar a aveia com 200 ml de água.",
+     "Fora do fogo, misturar o whey.",
+     "Banana e canela por cima."
+    ]
+   }
+  ],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": null,
+   "remaining_kcal": 2200,
+   "slots": [
+    {
+     "id": "s1",
+     "status": "empty"
+    },
+    {
+     "id": "s2",
+     "status": "empty"
+    },
+    {
+     "id": "s3",
+     "status": "empty"
+    },
+    {
+     "id": "s4",
+     "status": "empty"
+    },
+    {
+     "id": "s5",
+     "status": "empty"
+    },
+    {
+     "id": "s6",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "Almocei 150 g de arroz integral, 150 g de lentilha e 100 g de tofu grelhado. Me sugere um jantar vegetariano prático",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Registro + pedido de sugestão no mesmo turno: log primeiro, plano dimensionado com o log já comido.",
+  "actions": [
+   {
+    "type": "log",
+    "slot": "s3",
+    "kcal_range": [
+     470,
+     650
+    ],
+    "question": "absent"
+   },
+   {
+    "type": "plan",
+    "slot": "s5"
+   }
+  ],
+  "actions_count": 2,
+  "reply_not": [
+   "registr(ei|ado)"
+  ]
+ }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "bruno",
+  "origin": "synthetic: man, 42, 2400 kcal, five meals with pre-workout at 05:30, eat-back 100 %, fresh install (empty memory, no history) for discovery and day-0 cases",
+  "today": "2026-10-07",
+  "tone": "seco",
+  "profile": {
+    "ceiling_kcal": 2400, "p_target": 180, "c_target": 250, "g_target": 80, "eat_back": "full",
+    "slots": [
+      {"id": "pt", "name": "Pré-treino", "time": "05:30"},
+      {"id": "cf", "name": "Café da manhã", "time": "08:30"},
+      {"id": "al", "name": "Almoço", "time": "13:00"},
+      {"id": "la", "name": "Lanche", "time": "17:00"},
+      {"id": "ja", "name": "Jantar", "time": "20:30"}
+    ]
+  },
+  "facts": [],
+  "typical": {
+    "pt": [{"text": "1 banana e 1 colher de sopa de pasta de amendoim", "kcal": 190, "p": 5, "c": 28, "g": 8}],
+    "cf": [{"text": "3 ovos mexidos, 2 pães franceses, 300 ml de leite integral", "kcal": 760, "p": 36, "c": 70, "g": 36}],
+    "al": [{"text": "150 g de arroz, 100 g de feijão, 200 g de bife grelhado, salada", "kcal": 760, "p": 62, "c": 70, "g": 24}],
+    "la": [{"text": "1 sanduíche de frango no pão integral", "kcal": 350, "p": 28, "c": 40, "g": 8}],
+    "ja": [{"text": "Macarrão com carne moída, 300 g", "kcal": 560, "p": 32, "c": 60, "g": 20}]
+  },
+  "week_shape": {"days": [{"offset": 1, "none": true}, {"offset": 2, "none": true}, {"offset": 3, "none": true}, {"offset": 4, "none": true}, {"offset": 5, "none": true}, {"offset": 6, "none": true}, {"offset": 7, "none": true}]},
+  "recipes": []
+}

@@ -1,0 +1,47 @@
+{
+  "id": "elisa",
+  "origin": "synthetic: woman, 51, 1500 kcal, four meals, tone seco, planned dinner reserved today, workout already typed today, one temp fact (a label read yesterday)",
+  "today": "2026-10-07",
+  "tone": "seco",
+  "profile": {
+    "ceiling_kcal": 1500, "p_target": 110, "c_target": 150, "g_target": 50, "eat_back": "partial_50",
+    "slots": [
+      {"id": "b", "name": "Café", "time": "07:30"},
+      {"id": "l", "name": "Almoço", "time": "12:00"},
+      {"id": "s", "name": "Lanche", "time": "15:30"},
+      {"id": "d", "name": "Jantar", "time": "19:00"}
+    ]
+  },
+  "facts": [
+    {"id": "P1", "kind": "permanent", "category": "preference", "key": "pao", "text": "Pão integral Wickbold, fatia de 25 g", "slot": null, "days_seen": 14},
+    {"id": "P2", "kind": "permanent", "category": "preference", "key": "adocante", "text": "Café com adoçante sucralose", "slot": null, "days_seen": 14},
+    {"id": "D1", "kind": "dynamic", "category": "routine", "key": "cafe", "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante", "slot": "b", "days_seen": 6, "kcal": 230, "p": 14, "c": 26, "g": 8},
+    {"id": "T1", "kind": "temp", "category": "portion", "key": "lasanha congelada", "text": "Lasanha à bolonhesa congelada: 99 kcal e 7 g de proteína por 100 g; caixa de 600 g", "slot": null, "days_seen": 0}
+  ],
+  "today_state": {
+    "workout_kcal": 320,
+    "planned": {"slot": "d", "text": "Omelete de 2 ovos com salada e 1 fatia de pão integral", "kcal": 330, "p": 22, "c": 20, "g": 18}
+  },
+  "typical": {
+    "b": [{"text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante", "kcal": 230, "p": 14, "c": 26, "g": 8}],
+    "l": [{"text": "100 g de arroz, 80 g de feijão, 100 g de peito de frango, legumes cozidos", "kcal": 420, "p": 40, "c": 50, "g": 6}, {"text": "Salada grande com 1 lata de atum em água e 1 ovo", "kcal": 300, "p": 38, "c": 10, "g": 12}],
+    "s": [{"text": "1 iogurte natural desnatado e 1 pera", "kcal": 150, "p": 8, "c": 28, "g": 0}],
+    "d": [{"text": "Omelete de 2 ovos com salada e 1 fatia de pão integral", "kcal": 330, "p": 22, "c": 20, "g": 18}, {"text": "Sopa de legumes com 80 g de carne moída", "kcal": 280, "p": 24, "c": 22, "g": 10}]
+  },
+  "week_shape": {
+    "days": [
+      {"offset": 1, "gaps": []},
+      {"offset": 2, "gaps": ["s"]},
+      {"offset": 3, "gaps": []},
+      {"offset": 4, "gaps": []},
+      {"offset": 5, "over": {"slot": "d", "text": "Jantar de aniversário: massa ao molho branco e 2 fatias de bolo", "kcal": 1100, "p": 30, "c": 140, "g": 45}, "gaps": []},
+      {"offset": 6, "gaps": ["s"]},
+      {"offset": 7, "gaps": []}
+    ]
+  },
+  "recipes": [
+    {"id": "R1", "name": "Sopa de legumes com carne moída", "kcal": 280, "p": 24, "c": 22, "g": 10, "key_foods": ["carne moída", "abobrinha", "cenoura"],
+     "ingredients": [{"name": "carne moída magra", "g": 80, "kcal": 170}, {"name": "abobrinha", "g": 100, "kcal": 19}, {"name": "cenoura", "g": 80, "kcal": 27}, {"name": "batata", "g": 80, "kcal": 42}, {"name": "cebola, alho, sal", "g": 30, "kcal": 12}, {"name": "azeite", "g": 1, "kcal": 10}],
+     "steps": ["Refogar a carne com cebola e alho.", "Juntar os legumes e 600 ml de água, pressão 8 min.", "Acertar o sal."]}
+  ]
+}

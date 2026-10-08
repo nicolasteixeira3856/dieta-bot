@@ -1,0 +1,158 @@
+{
+ "id": "mem-rotina-declarada-bruno",
+ "family": "memory",
+ "persona": "bruno",
+ "origin": "real-owner",
+ "tags": [
+  "memory",
+  "routine",
+  "day0"
+ ],
+ "summary": "Rotina declarada junto com o registro: log e proposta de rotina com macros.",
+ "image": null,
+ "request": {
+  "persona": "bruno",
+  "local_time": "2026-10-07T08:30:00-03:00",
+  "profile": {
+   "ceiling_kcal": 2400,
+   "p_target": 180,
+   "c_target": 250,
+   "g_target": 80,
+   "eat_back": "full",
+   "slots": [
+    {
+     "id": "pt",
+     "name": "Pré-treino",
+     "time": "05:30"
+    },
+    {
+     "id": "cf",
+     "name": "Café da manhã",
+     "time": "08:30"
+    },
+    {
+     "id": "al",
+     "name": "Almoço",
+     "time": "13:00"
+    },
+    {
+     "id": "la",
+     "name": "Lanche",
+     "time": "17:00"
+    },
+    {
+     "id": "ja",
+     "name": "Jantar",
+     "time": "20:30"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [],
+  "recent": [],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": false
+   }
+  ],
+  "recipes": [],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": null,
+   "remaining_kcal": 2400,
+   "slots": [
+    {
+     "id": "pt",
+     "status": "empty"
+    },
+    {
+     "id": "cf",
+     "status": "empty"
+    },
+    {
+     "id": "al",
+     "status": "empty"
+    },
+    {
+     "id": "la",
+     "status": "empty"
+    },
+    {
+     "id": "ja",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "Café: 2 ovos mexidos, pão de 40 gramas de brioche, 250 ml de leite e café sem açúcar. Esse é o meu café de sempre, pode se lembrar",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Rotina declarada junto com o registro: log e proposta de rotina com macros.",
+  "actions": [
+   {
+    "type": "log",
+    "slot": "cf",
+    "kcal_range": [
+     380,
+     540
+    ]
+   }
+  ],
+  "actions_count": 1,
+  "memory_updates_has": [
+   {
+    "op": "add",
+    "category": "routine",
+    "slot": "cf",
+    "has_macros": true
+   }
+  ]
+ }
+}

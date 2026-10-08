@@ -1,0 +1,181 @@
+{
+  "$comment": "Strict structured output of the target Chat (benchmark). The runner fills the slot, fact and recipe id enums per request, exactly like server/llm.py chat_format does today.",
+  "type": "json_schema",
+  "name": "chat_turn_actions",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "reply": {"type": "string"},
+      "scope": {"type": "string", "enum": ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]},
+      "actions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "string"},
+            "type": {"type": "string", "enum": ["log", "plan", "skip", "workout", "recipe_recall", "question"]},
+            "slot": {"type": ["string", "null"], "enum": ["__SLOT_IDS__", null]},
+            "estimate": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kcal": {"type": "number"},
+                    "p": {"type": "number"},
+                    "c": {"type": "number"},
+                    "g": {"type": "number"},
+                    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+                    "question": {"type": ["string", "null"]},
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {"name": {"type": "string"}, "g": {"type": "number"}, "kcal": {"type": "number"}},
+                        "required": ["name", "g", "kcal"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "suggested_slot": {"type": ["string", "null"], "enum": ["__SLOT_IDS__", null]},
+                    "meal_text": {"type": "string"}
+                  },
+                  "required": ["kcal", "p", "c", "g", "confidence", "question", "items", "suggested_slot", "meal_text"],
+                  "additionalProperties": false
+                },
+                {"type": "null"}
+              ]
+            },
+            "record_intent": {"type": "string", "enum": ["clear", "unsure"]},
+            "meal_day": {"type": "string", "enum": ["today", "other"]},
+            "meal_change": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "operation": {"type": "string", "enum": ["new", "add", "revise"]},
+                    "base_slot": {"type": ["string", "null"], "enum": ["__SLOT_IDS__", null]},
+                    "addition": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "meal_text": {"type": "string"},
+                            "kcal": {"type": "number"}, "p": {"type": "number"}, "c": {"type": "number"}, "g": {"type": "number"},
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {"name": {"type": "string"}, "g": {"type": "number"}, "kcal": {"type": "number"}},
+                                "required": ["name", "g", "kcal"],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": ["meal_text", "kcal", "p", "c", "g", "items"],
+                          "additionalProperties": false
+                        },
+                        {"type": "null"}
+                      ]
+                    }
+                  },
+                  "required": ["operation", "base_slot", "addition"],
+                  "additionalProperties": false
+                },
+                {"type": "null"}
+              ]
+            },
+            "workout": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {"kcal": {"type": "number"}, "mode": {"type": "string", "enum": ["replace", "add"]}},
+                  "required": ["kcal", "mode"],
+                  "additionalProperties": false
+                },
+                {"type": "null"}
+              ]
+            },
+            "recipe_id": {"type": ["string", "null"], "enum": ["__RECIPE_IDS__", null]},
+            "options": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {"type": "string", "enum": ["o1", "o2"]},
+                      "name": {"type": "string"},
+                      "kcal": {"type": "number"}, "p": {"type": "number"}, "c": {"type": "number"}, "g": {"type": "number"},
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {"name": {"type": "string"}, "g": {"type": "number"}, "kcal": {"type": "number"}},
+                          "required": ["name", "g", "kcal"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "meal_text": {"type": "string"}
+                    },
+                    "required": ["id", "name", "kcal", "p", "c", "g", "items", "meal_text"],
+                    "additionalProperties": false
+                  }
+                },
+                {"type": "null"}
+              ]
+            },
+            "plan_budget": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "reserved": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {"label": {"type": "string"}, "kcal": {"type": "number"}},
+                        "required": ["label", "kcal"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "choice": {"type": ["string", "null"], "enum": ["over_ok", "fit", null]}
+                  },
+                  "required": ["reserved", "choice"],
+                  "additionalProperties": false
+                },
+                {"type": "null"}
+              ]
+            }
+          },
+          "required": ["id", "type", "slot", "estimate", "record_intent", "meal_day", "meal_change", "workout", "recipe_id", "options", "plan_budget"],
+          "additionalProperties": false
+        }
+      },
+      "memory_updates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "op": {"type": "string", "enum": ["add", "reinforce", "replace", "remove"]},
+            "id": {"type": ["string", "null"], "enum": ["__FACT_IDS__", null]},
+            "kind": {"type": "string", "enum": ["permanent", "dynamic", "temp"]},
+            "category": {"type": "string", "enum": ["preference", "portion", "routine"]},
+            "key": {"type": "string"},
+            "text": {"type": "string"},
+            "slot": {"type": ["string", "null"], "enum": ["__SLOT_IDS__", null]},
+            "kcal": {"type": ["number", "null"]},
+            "p": {"type": ["number", "null"]},
+            "c": {"type": ["number", "null"]},
+            "g": {"type": ["number", "null"]}
+          },
+          "required": ["op", "id", "kind", "category", "key", "text", "slot", "kcal", "p", "c", "g"],
+          "additionalProperties": false
+        }
+      },
+      "memory_used": {"type": "array", "items": {"type": "string", "enum": ["__FACT_IDS__"]}},
+      "digest": {"type": "null"}
+    },
+    "required": ["reply", "scope", "actions", "memory_updates", "memory_used", "digest"],
+    "additionalProperties": false
+  }
+}

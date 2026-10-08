@@ -1,0 +1,460 @@
+{
+ "id": "plan-ingredientes-casa-carla",
+ "family": "plan",
+ "persona": "carla",
+ "origin": "synthetic",
+ "tags": [
+  "plan",
+  "cooking",
+  "creativity"
+ ],
+ "summary": "Receita a partir do que há em casa e do equipamento declarado.",
+ "image": null,
+ "request": {
+  "persona": "carla",
+  "local_time": "2026-10-07T18:40:00-03:00",
+  "profile": {
+   "ceiling_kcal": 1800,
+   "p_target": 130,
+   "c_target": 190,
+   "g_target": 60,
+   "eat_back": "zero",
+   "slots": [
+    {
+     "id": "m",
+     "name": "Café",
+     "time": "08:00"
+    },
+    {
+     "id": "t",
+     "name": "Almoço",
+     "time": "13:00"
+    },
+    {
+     "id": "n",
+     "name": "Jantar",
+     "time": "19:30"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [
+   {
+    "id": "P1",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "leite",
+    "text": "Leite vegetal de amêndoas sem açúcar",
+    "slot": null,
+    "days_seen": 4,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   }
+  ],
+  "recent": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "t",
+    "slot_name": "Almoço",
+    "text": "Marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado, legumes",
+    "kcal": 540,
+    "p": 48,
+    "c": 65,
+    "g": 9
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "n",
+    "slot_name": "Jantar",
+    "text": "Sopa de abóbora com 100 g de frango desfiado",
+    "kcal": 290,
+    "p": 30,
+    "c": 25,
+    "g": 6
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "m",
+    "slot_name": "Café",
+    "text": "Tapioca com 1 ovo e queijo branco, café com leite de amêndoas",
+    "kcal": 330,
+    "p": 16,
+    "c": 40,
+    "g": 11
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "t",
+    "slot_name": "Almoço",
+    "text": "Salada com 2 ovos cozidos, grão-de-bico e atum em água",
+    "kcal": 420,
+    "p": 40,
+    "c": 30,
+    "g": 15
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "n",
+    "slot_name": "Jantar",
+    "text": "Omelete de 2 ovos com espinafre",
+    "kcal": 300,
+    "p": 21,
+    "c": 4,
+    "g": 22
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "m",
+    "slot_name": "Café",
+    "text": "Tapioca com 1 ovo e queijo branco, café com leite de amêndoas",
+    "kcal": 330,
+    "p": 16,
+    "c": 40,
+    "g": 11
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "t",
+    "slot_name": "Almoço",
+    "text": "Feijoada completa com caipirinha",
+    "kcal": 1300,
+    "p": 55,
+    "c": 110,
+    "g": 60
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "m",
+    "slot_name": "Café",
+    "text": "Vitamina de banana com 200 ml de leite de amêndoas e 30 g de aveia",
+    "kcal": 260,
+    "p": 7,
+    "c": 48,
+    "g": 5
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "t",
+    "slot_name": "Almoço",
+    "text": "Marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado, legumes",
+    "kcal": 540,
+    "p": 48,
+    "c": 65,
+    "g": 9
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "n",
+    "slot_name": "Jantar",
+    "text": "Rodízio de pizza: 6 fatias e 2 taças de vinho",
+    "kcal": 1500,
+    "p": 50,
+    "c": 150,
+    "g": 65
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "m",
+    "slot_name": "Café",
+    "text": "Tapioca com 1 ovo e queijo branco, café com leite de amêndoas",
+    "kcal": 330,
+    "p": 16,
+    "c": 40,
+    "g": 11
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "t",
+    "slot_name": "Almoço",
+    "text": "Salada com 2 ovos cozidos, grão-de-bico e atum em água",
+    "kcal": 420,
+    "p": 40,
+    "c": 30,
+    "g": 15
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "n",
+    "slot_name": "Jantar",
+    "text": "Omelete de 2 ovos com espinafre",
+    "kcal": 300,
+    "p": 21,
+    "c": 4,
+    "g": 22
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "m",
+    "slot_name": "Café",
+    "text": "Tapioca com 1 ovo e queijo branco, café com leite de amêndoas",
+    "kcal": 330,
+    "p": 16,
+    "c": 40,
+    "g": 11
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "t",
+    "slot_name": "Almoço",
+    "text": "Marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado, legumes",
+    "kcal": 540,
+    "p": 48,
+    "c": 65,
+    "g": 9
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "n",
+    "slot_name": "Jantar",
+    "text": "Sopa de abóbora com 100 g de frango desfiado",
+    "kcal": 290,
+    "p": 30,
+    "c": 25,
+    "g": 6
+   }
+  ],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": true,
+    "kcal": 830,
+    "p": 78,
+    "c": 90,
+    "g": 15,
+    "ceiling_kcal": 1800,
+    "over_slot": null,
+    "gaps": [
+     "Café"
+    ]
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": true,
+    "kcal": 1050,
+    "p": 77,
+    "c": 74,
+    "g": 48,
+    "ceiling_kcal": 1800,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": true,
+    "kcal": 1630,
+    "p": 71,
+    "c": 150,
+    "g": 71,
+    "ceiling_kcal": 1800,
+    "over_slot": "Almoço",
+    "gaps": [
+     "Jantar"
+    ]
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": true,
+    "kcal": 2300,
+    "p": 105,
+    "c": 263,
+    "g": 79,
+    "ceiling_kcal": 1800,
+    "over_slot": "Jantar",
+    "gaps": []
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": true,
+    "kcal": 1050,
+    "p": 77,
+    "c": 74,
+    "g": 48,
+    "ceiling_kcal": 1800,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": true,
+    "kcal": 1090,
+    "p": 85,
+    "c": 138,
+    "g": 20,
+    "ceiling_kcal": 1800,
+    "over_slot": null,
+    "gaps": []
+   }
+  ],
+  "recipes": [
+   {
+    "id": "R1",
+    "name": "Panqueca de aveia com banana",
+    "kcal": 310,
+    "p": 14,
+    "c": 50,
+    "g": 7,
+    "key_foods": [
+     "aveia",
+     "banana",
+     "ovo"
+    ],
+    "ingredients": [
+     {
+      "name": "aveia em flocos",
+      "g": 40,
+      "kcal": 158
+     },
+     {
+      "name": "banana prata",
+      "g": 70,
+      "kcal": 69
+     },
+     {
+      "name": "ovo",
+      "g": 50,
+      "kcal": 73
+     },
+     {
+      "name": "canela",
+      "g": 2,
+      "kcal": 5
+     }
+    ],
+    "steps": [
+     "Bater tudo.",
+     "Frigideira antiaderente, 2 min de cada lado."
+    ]
+   },
+   {
+    "id": "R2",
+    "name": "Sopa de abóbora com frango",
+    "kcal": 290,
+    "p": 30,
+    "c": 25,
+    "g": 6,
+    "key_foods": [
+     "abóbora",
+     "frango desfiado",
+     "gengibre"
+    ],
+    "ingredients": [
+     {
+      "name": "abóbora cabotiá",
+      "g": 250,
+      "kcal": 100
+     },
+     {
+      "name": "frango desfiado",
+      "g": 100,
+      "kcal": 159
+     },
+     {
+      "name": "cebola e gengibre",
+      "g": 30,
+      "kcal": 12
+     },
+     {
+      "name": "azeite",
+      "g": 2,
+      "kcal": 18
+     }
+    ],
+    "steps": [
+     "Cozinhar a abóbora com cebola e gengibre.",
+     "Bater e voltar à panela com o frango.",
+     "Acertar o sal, 5 min."
+    ]
+   }
+  ],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 870,
+   "eaten_p": 64,
+   "eaten_c": 105,
+   "eaten_g": 20,
+   "workout_kcal": null,
+   "remaining_kcal": 930,
+   "slots": [
+    {
+     "id": "m",
+     "status": "eaten",
+     "text": "Tapioca com 1 ovo e queijo branco, café com leite de amêndoas",
+     "kcal": 330,
+     "p": 16,
+     "c": 40,
+     "g": 11
+    },
+    {
+     "id": "t",
+     "status": "eaten",
+     "text": "Marmita: 120 g de arroz integral, 100 g de feijão, 130 g de frango grelhado, legumes",
+     "kcal": 540,
+     "p": 48,
+     "c": 65,
+     "g": 9
+    },
+    {
+     "id": "n",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "só tenho ovos e abóbora, o que dá pra fazer de jantar?",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Receita a partir do que há em casa e do equipamento declarado.",
+  "actions_count": 1,
+  "actions": [
+   {
+    "type": "plan",
+    "slot": "n"
+   }
+  ],
+  "reply_has": [
+   "ovo",
+   "abóbora"
+  ]
+ }
+}

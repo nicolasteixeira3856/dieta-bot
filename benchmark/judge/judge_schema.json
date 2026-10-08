@@ -1,0 +1,36 @@
+{
+  "type": "json_schema",
+  "name": "judge_verdict",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "correctness": {"type": "integer"},
+      "numbers": {"type": "integer"},
+      "tone": {"type": "integer"},
+      "format": {"type": "integer"},
+      "usefulness": {"type": "integer"},
+      "creativity": {"type": ["integer", "null"]},
+      "flags": {
+        "type": "object",
+        "properties": {
+          "mentions_body_weight": {"type": "boolean"},
+          "praise": {"type": "boolean"},
+          "exclamation_duro": {"type": "boolean"},
+          "claims_recorded": {"type": "boolean"},
+          "suggests_skip": {"type": "boolean"},
+          "computes_day_totals_in_reply": {"type": "boolean"},
+          "asks_known_detail": {"type": "boolean"},
+          "markdown_outside_subset": {"type": "boolean"},
+          "language_not_ptbr": {"type": "boolean"}
+        },
+        "required": ["mentions_body_weight", "praise", "exclamation_duro", "claims_recorded", "suggests_skip", "computes_day_totals_in_reply", "asks_known_detail", "markdown_outside_subset", "language_not_ptbr"],
+        "additionalProperties": false
+      },
+      "verdict": {"type": "string", "enum": ["pass", "partial", "fail"]},
+      "note": {"type": "string"}
+    },
+    "required": ["correctness", "numbers", "tone", "format", "usefulness", "creativity", "flags", "verdict", "note"],
+    "additionalProperties": false
+  }
+}

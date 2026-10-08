@@ -1,0 +1,595 @@
+{
+ "id": "log-quantificado-elisa",
+ "family": "log",
+ "persona": "elisa",
+ "origin": "synthetic",
+ "tags": [
+  "log",
+  "quantified"
+ ],
+ "summary": "Tudo quantificado na primeira mensagem: estimar, sem pergunta, gordura de preparo assumida.",
+ "image": null,
+ "request": {
+  "persona": "elisa",
+  "local_time": "2026-10-07T12:30:00-03:00",
+  "profile": {
+   "ceiling_kcal": 1500,
+   "p_target": 110,
+   "c_target": 150,
+   "g_target": 50,
+   "eat_back": "partial_50",
+   "slots": [
+    {
+     "id": "b",
+     "name": "Café",
+     "time": "07:30"
+    },
+    {
+     "id": "l",
+     "name": "Almoço",
+     "time": "12:00"
+    },
+    {
+     "id": "s",
+     "name": "Lanche",
+     "time": "15:30"
+    },
+    {
+     "id": "d",
+     "name": "Jantar",
+     "time": "19:00"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [
+   {
+    "id": "P1",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "pao",
+    "text": "Pão integral Wickbold, fatia de 25 g",
+    "slot": null,
+    "days_seen": 14,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P2",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "adocante",
+    "text": "Café com adoçante sucralose",
+    "slot": null,
+    "days_seen": 14,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "D1",
+    "kind": "dynamic",
+    "category": "routine",
+    "key": "cafe",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "slot": "b",
+    "days_seen": 6,
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8,
+    "last_seen": "2026-10-07"
+   },
+   {
+    "id": "T1",
+    "kind": "temp",
+    "category": "portion",
+    "key": "lasanha congelada",
+    "text": "Lasanha à bolonhesa congelada: 99 kcal e 7 g de proteína por 100 g; caixa de 600 g",
+    "slot": null,
+    "days_seen": 0,
+    "last_seen": null,
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   }
+  ],
+  "recent": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 80 g de feijão, 100 g de peito de frango, legumes cozidos",
+    "kcal": 420,
+    "p": 40,
+    "c": 50,
+    "g": 6
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "s",
+    "slot_name": "Lanche",
+    "text": "1 iogurte natural desnatado e 1 pera",
+    "kcal": 150,
+    "p": 8,
+    "c": 28,
+    "g": 0
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Omelete de 2 ovos com salada e 1 fatia de pão integral",
+    "kcal": 330,
+    "p": 22,
+    "c": 20,
+    "g": 18
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "Salada grande com 1 lata de atum em água e 1 ovo",
+    "kcal": 300,
+    "p": 38,
+    "c": 10,
+    "g": 12
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Sopa de legumes com 80 g de carne moída",
+    "kcal": 280,
+    "p": 24,
+    "c": 22,
+    "g": 10
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 80 g de feijão, 100 g de peito de frango, legumes cozidos",
+    "kcal": 420,
+    "p": 40,
+    "c": 50,
+    "g": 6
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "s",
+    "slot_name": "Lanche",
+    "text": "1 iogurte natural desnatado e 1 pera",
+    "kcal": 150,
+    "p": 8,
+    "c": 28,
+    "g": 0
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Jantar de aniversário: massa ao molho branco e 2 fatias de bolo",
+    "kcal": 1100,
+    "p": 30,
+    "c": 140,
+    "g": 45
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "Salada grande com 1 lata de atum em água e 1 ovo",
+    "kcal": 300,
+    "p": 38,
+    "c": 10,
+    "g": 12
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "s",
+    "slot_name": "Lanche",
+    "text": "1 iogurte natural desnatado e 1 pera",
+    "kcal": 150,
+    "p": 8,
+    "c": 28,
+    "g": 0
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Sopa de legumes com 80 g de carne moída",
+    "kcal": 280,
+    "p": 24,
+    "c": 22,
+    "g": 10
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 80 g de feijão, 100 g de peito de frango, legumes cozidos",
+    "kcal": 420,
+    "p": 40,
+    "c": 50,
+    "g": 6
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "s",
+    "slot_name": "Lanche",
+    "text": "1 iogurte natural desnatado e 1 pera",
+    "kcal": 150,
+    "p": 8,
+    "c": 28,
+    "g": 0
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Omelete de 2 ovos com salada e 1 fatia de pão integral",
+    "kcal": 330,
+    "p": 22,
+    "c": 20,
+    "g": 18
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "Salada grande com 1 lata de atum em água e 1 ovo",
+    "kcal": 300,
+    "p": 38,
+    "c": 10,
+    "g": 12
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Sopa de legumes com 80 g de carne moída",
+    "kcal": 280,
+    "p": 24,
+    "c": 22,
+    "g": 10
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "b",
+    "slot_name": "Café",
+    "text": "2 fatias de pão integral com 1 ovo mexido e café com adoçante",
+    "kcal": 230,
+    "p": 14,
+    "c": 26,
+    "g": 8
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "l",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 80 g de feijão, 100 g de peito de frango, legumes cozidos",
+    "kcal": 420,
+    "p": 40,
+    "c": 50,
+    "g": 6
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "s",
+    "slot_name": "Lanche",
+    "text": "1 iogurte natural desnatado e 1 pera",
+    "kcal": 150,
+    "p": 8,
+    "c": 28,
+    "g": 0
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "d",
+    "slot_name": "Jantar",
+    "text": "Omelete de 2 ovos com salada e 1 fatia de pão integral",
+    "kcal": 330,
+    "p": 22,
+    "c": 20,
+    "g": 18
+   }
+  ],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": true,
+    "kcal": 1130,
+    "p": 84,
+    "c": 124,
+    "g": 32,
+    "ceiling_kcal": 1500,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": true,
+    "kcal": 810,
+    "p": 76,
+    "c": 58,
+    "g": 30,
+    "ceiling_kcal": 1500,
+    "over_slot": null,
+    "gaps": [
+     "Lanche"
+    ]
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": true,
+    "kcal": 1900,
+    "p": 92,
+    "c": 244,
+    "g": 59,
+    "ceiling_kcal": 1500,
+    "over_slot": "Jantar",
+    "gaps": []
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": true,
+    "kcal": 960,
+    "p": 84,
+    "c": 86,
+    "g": 30,
+    "ceiling_kcal": 1500,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": true,
+    "kcal": 1130,
+    "p": 84,
+    "c": 124,
+    "g": 32,
+    "ceiling_kcal": 1500,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": true,
+    "kcal": 810,
+    "p": 76,
+    "c": 58,
+    "g": 30,
+    "ceiling_kcal": 1500,
+    "over_slot": null,
+    "gaps": [
+     "Lanche"
+    ]
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": true,
+    "kcal": 1130,
+    "p": 84,
+    "c": 124,
+    "g": 32,
+    "ceiling_kcal": 1500,
+    "over_slot": null,
+    "gaps": []
+   }
+  ],
+  "recipes": [
+   {
+    "id": "R1",
+    "name": "Sopa de legumes com carne moída",
+    "kcal": 280,
+    "p": 24,
+    "c": 22,
+    "g": 10,
+    "key_foods": [
+     "carne moída",
+     "abobrinha",
+     "cenoura"
+    ],
+    "ingredients": [
+     {
+      "name": "carne moída magra",
+      "g": 80,
+      "kcal": 170
+     },
+     {
+      "name": "abobrinha",
+      "g": 100,
+      "kcal": 19
+     },
+     {
+      "name": "cenoura",
+      "g": 80,
+      "kcal": 27
+     },
+     {
+      "name": "batata",
+      "g": 80,
+      "kcal": 42
+     },
+     {
+      "name": "cebola, alho, sal",
+      "g": 30,
+      "kcal": 12
+     },
+     {
+      "name": "azeite",
+      "g": 1,
+      "kcal": 10
+     }
+    ],
+    "steps": [
+     "Refogar a carne com cebola e alho.",
+     "Juntar os legumes e 600 ml de água, pressão 8 min.",
+     "Acertar o sal."
+    ]
+   }
+  ],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": 320,
+   "remaining_kcal": 1660,
+   "slots": [
+    {
+     "id": "b",
+     "status": "empty"
+    },
+    {
+     "id": "l",
+     "status": "empty"
+    },
+    {
+     "id": "s",
+     "status": "empty"
+    },
+    {
+     "id": "d",
+     "status": "planned",
+     "text": "Omelete de 2 ovos com salada e 1 fatia de pão integral",
+     "kcal": 330,
+     "p": 22,
+     "c": 20,
+     "g": 18
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "Almoço: 100 g de arroz, 80 g de feijão, 100 g de peito de frango grelhado e 120 g de legumes cozidos",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Tudo quantificado na primeira mensagem: estimar, sem pergunta, gordura de preparo assumida.",
+  "actions": [
+   {
+    "type": "log",
+    "slot": "l",
+    "kcal_range": [
+     360,
+     480
+    ],
+    "question": "absent",
+    "record_intent": "clear"
+   }
+  ],
+  "actions_count": 1
+ }
+}

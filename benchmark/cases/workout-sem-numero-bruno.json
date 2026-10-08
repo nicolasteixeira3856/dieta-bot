@@ -1,0 +1,150 @@
+{
+ "id": "workout-sem-numero-bruno",
+ "family": "workout",
+ "persona": "bruno",
+ "origin": "synthetic",
+ "tags": [
+  "workout",
+  "no-number"
+ ],
+ "summary": "Treino sem número: pedir o valor do relógio, nunca estimar.",
+ "image": null,
+ "request": {
+  "persona": "bruno",
+  "local_time": "2026-10-07T19:00:00-03:00",
+  "profile": {
+   "ceiling_kcal": 2400,
+   "p_target": 180,
+   "c_target": 250,
+   "g_target": 80,
+   "eat_back": "full",
+   "slots": [
+    {
+     "id": "pt",
+     "name": "Pré-treino",
+     "time": "05:30"
+    },
+    {
+     "id": "cf",
+     "name": "Café da manhã",
+     "time": "08:30"
+    },
+    {
+     "id": "al",
+     "name": "Almoço",
+     "time": "13:00"
+    },
+    {
+     "id": "la",
+     "name": "Lanche",
+     "time": "17:00"
+    },
+    {
+     "id": "ja",
+     "name": "Jantar",
+     "time": "20:30"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [],
+  "recent": [],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": false
+   }
+  ],
+  "recipes": [],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": null,
+   "remaining_kcal": 2400,
+   "slots": [
+    {
+     "id": "pt",
+     "status": "empty"
+    },
+    {
+     "id": "cf",
+     "status": "empty"
+    },
+    {
+     "id": "al",
+     "status": "empty"
+    },
+    {
+     "id": "la",
+     "status": "empty"
+    },
+    {
+     "id": "ja",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "treinei hoje, 1 hora de musculação",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Treino sem número: pedir o valor do relógio, nunca estimar.",
+  "actions": [
+   {
+    "type": "question"
+   }
+  ],
+  "actions_count": 1,
+  "reply_has": [
+   "kcal"
+  ],
+  "reply_not": [
+   "[2-9]\\d\\d ?kcal"
+  ]
+ }
+}

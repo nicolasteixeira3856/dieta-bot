@@ -1,0 +1,781 @@
+{
+ "id": "seq-dia2-t1-treino-nicolas",
+ "family": "sequence",
+ "persona": "nicolas",
+ "origin": "grok",
+ "tags": [
+  "sequence",
+  "workout"
+ ],
+ "summary": "Turno 1: treino em kcal, uma linha, sem dizer que gravou.",
+ "image": null,
+ "request": {
+  "persona": "nicolas",
+  "local_time": "2026-10-07T07:05:00-03:00",
+  "profile": {
+   "ceiling_kcal": 2030,
+   "p_target": 165,
+   "c_target": 195,
+   "g_target": 68,
+   "eat_back": "zero",
+   "slots": [
+    {
+     "id": "1",
+     "name": "Café",
+     "time": "07:30"
+    },
+    {
+     "id": "2",
+     "name": "Lanche da manhã",
+     "time": "10:00"
+    },
+    {
+     "id": "3",
+     "name": "Almoço",
+     "time": "12:00"
+    },
+    {
+     "id": "4",
+     "name": "Lanche da tarde",
+     "time": "15:30"
+    },
+    {
+     "id": "5",
+     "name": "Jantar",
+     "time": "18:30"
+    },
+    {
+     "id": "6",
+     "name": "Ceia",
+     "time": "21:00"
+    }
+   ],
+   "tone": "seco"
+  },
+  "facts": [
+   {
+    "id": "P1",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "leite",
+    "text": "Leite semidesnatado sempre",
+    "slot": null,
+    "days_seen": 9,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P2",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "iogurte",
+    "text": "Iogurte Nuv pote individual (integral, ~100 g)",
+    "slot": null,
+    "days_seen": 6,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P3",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "whey",
+    "text": "Whey Dux chocolate branco, 30 g na ceia",
+    "slot": null,
+    "days_seen": 8,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "P4",
+    "kind": "permanent",
+    "category": "preference",
+    "key": "equipment",
+    "text": "Air fryer e balança de cozinha",
+    "slot": null,
+    "days_seen": 3,
+    "last_seen": "2026-10-07",
+    "kcal": null,
+    "p": null,
+    "c": null,
+    "g": null
+   },
+   {
+    "id": "D1",
+    "kind": "dynamic",
+    "category": "routine",
+    "key": "cafe",
+    "text": "2 ovos mexidos com fio de azeite, 1 pão francês com 1 colher de chá de manteiga, 250 ml de leite semidesnatado e 100 ml de café sem açúcar",
+    "slot": "1",
+    "days_seen": 6,
+    "kcal": 485,
+    "p": 25,
+    "c": 41,
+    "g": 24,
+    "last_seen": "2026-10-07"
+   },
+   {
+    "id": "D2",
+    "kind": "dynamic",
+    "category": "routine",
+    "key": "ceia",
+    "text": "250 ml de leite semidesnatado com 30 g de whey Dux chocolate branco",
+    "slot": "6",
+    "days_seen": 7,
+    "kcal": 240,
+    "p": 32,
+    "c": 15,
+    "g": 7,
+    "last_seen": "2026-10-07"
+   },
+   {
+    "id": "D3",
+    "kind": "dynamic",
+    "category": "preference",
+    "key": "liked",
+    "text": "Wrap de frango com queijo no rap10 (jantar que funcionou)",
+    "slot": "5",
+    "days_seen": 1,
+    "kcal": 420,
+    "p": 45,
+    "c": 30,
+    "g": 13,
+    "last_seen": "2026-10-07"
+   }
+  ],
+  "recent": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "1",
+    "slot_name": "Café",
+    "text": "2 ovos mexidos, 1 pão de milho 40 g, 300 ml de leite semidesnatado, 100 ml de café",
+    "kcal": 425,
+    "p": 24,
+    "c": 42,
+    "g": 17
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "3",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 100 g de feijão, 112 g de bife de alcatra, 141 g de vagem com cenoura, 77 g de tomate com cebola, 15 g de farinha de sementes",
+    "kcal": 620,
+    "p": 51,
+    "c": 61,
+    "g": 20
+   },
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "slot_id": "5",
+    "slot_name": "Jantar",
+    "text": "Wrap de frango no rap10: 1 rap10 integral, 130 g de frango desfiado, 20 g de muçarela, 40 g de iogurte natural com mostarda, alface, tomate",
+    "kcal": 420,
+    "p": 45,
+    "c": 30,
+    "g": 13
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "1",
+    "slot_name": "Café",
+    "text": "2 ovos mexidos, 1 pão de milho 40 g, 300 ml de leite semidesnatado, 100 ml de café",
+    "kcal": 425,
+    "p": 24,
+    "c": 42,
+    "g": 17
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "2",
+    "slot_name": "Lanche da manhã",
+    "text": "150 g de mamão",
+    "kcal": 60,
+    "p": 1,
+    "c": 15,
+    "g": 0
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "3",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 100 g de feijão, 180 g de frango xadrez com peito de frango, 80 g de salada de pepino e tomate",
+    "kcal": 525,
+    "p": 51,
+    "c": 58,
+    "g": 12
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "4",
+    "slot_name": "Lanche da tarde",
+    "text": "1 iogurte Nuv natural e 1 banana prata média",
+    "kcal": 140,
+    "p": 11,
+    "c": 24,
+    "g": 1
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "5",
+    "slot_name": "Jantar",
+    "text": "Pizza de pão sírio na air fryer: 1 pão sírio, 30 g de molho de tomate, 125 g de frango desfiado, 30 g de muçarela, 30 g de milho, 30 g de iogurte natural",
+    "kcal": 500,
+    "p": 48,
+    "c": 48,
+    "g": 14
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "slot_id": "6",
+    "slot_name": "Ceia",
+    "text": "250 ml de leite semidesnatado com 30 g de whey Dux chocolate branco",
+    "kcal": 240,
+    "p": 32,
+    "c": 15,
+    "g": 7
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "1",
+    "slot_name": "Café",
+    "text": "2 ovos mexidos com fio de azeite, 1 pão francês com manteiga, 250 ml de leite semidesnatado, 100 ml de café sem açúcar",
+    "kcal": 485,
+    "p": 25,
+    "c": 41,
+    "g": 24
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "3",
+    "slot_name": "Almoço",
+    "text": "Buffet chinês: peixe frito, yakisoba, 2 rolinhos, sushi, 2 hot rolls e sundae grande",
+    "kcal": 1700,
+    "p": 55,
+    "c": 180,
+    "g": 70
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "5",
+    "slot_name": "Jantar",
+    "text": "Wrap de frango no rap10: 1 rap10 integral, 130 g de frango desfiado, 20 g de muçarela, 40 g de iogurte natural com mostarda, alface, tomate",
+    "kcal": 420,
+    "p": 45,
+    "c": 30,
+    "g": 13
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "slot_id": "6",
+    "slot_name": "Ceia",
+    "text": "250 ml de leite semidesnatado com 30 g de whey Dux chocolate branco",
+    "kcal": 240,
+    "p": 32,
+    "c": 15,
+    "g": 7
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "1",
+    "slot_name": "Café",
+    "text": "2 ovos mexidos, 1 pão de milho 40 g, 300 ml de leite semidesnatado, 100 ml de café",
+    "kcal": 425,
+    "p": 24,
+    "c": 42,
+    "g": 17
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "2",
+    "slot_name": "Lanche da manhã",
+    "text": "150 g de mamão",
+    "kcal": 60,
+    "p": 1,
+    "c": 15,
+    "g": 0
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "3",
+    "slot_name": "Almoço",
+    "text": "180 g de peito de frango grelhado, 170 g de batata doce, 160 g de brócolis, 5 g de azeite",
+    "kcal": 575,
+    "p": 61,
+    "c": 40,
+    "g": 13
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "4",
+    "slot_name": "Lanche da tarde",
+    "text": "1 iogurte Nuv natural e 1 banana prata média",
+    "kcal": 140,
+    "p": 11,
+    "c": 24,
+    "g": 1
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "slot_id": "5",
+    "slot_name": "Jantar",
+    "text": "6 espetinhos (5 de alcatra, 1 de porco) e 1 cerveja Session IPA 350 ml",
+    "kcal": 1090,
+    "p": 130,
+    "c": 12,
+    "g": 47
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "1",
+    "slot_name": "Café",
+    "text": "2 ovos mexidos com fio de azeite, 1 pão francês com manteiga, 250 ml de leite semidesnatado, 100 ml de café sem açúcar",
+    "kcal": 485,
+    "p": 25,
+    "c": 41,
+    "g": 24
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "3",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 100 g de feijão, 180 g de frango xadrez com peito de frango, 80 g de salada de pepino e tomate",
+    "kcal": 525,
+    "p": 51,
+    "c": 58,
+    "g": 12
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "4",
+    "slot_name": "Lanche da tarde",
+    "text": "100 g de morango, 1 iogurte Nuv e 1 banana média",
+    "kcal": 177,
+    "p": 12,
+    "c": 36,
+    "g": 1
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "5",
+    "slot_name": "Jantar",
+    "text": "Pizza de pão sírio na air fryer: 1 pão sírio, 30 g de molho de tomate, 125 g de frango desfiado, 30 g de muçarela, 30 g de milho, 30 g de iogurte natural",
+    "kcal": 500,
+    "p": 48,
+    "c": 48,
+    "g": 14
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "slot_id": "6",
+    "slot_name": "Ceia",
+    "text": "250 ml de leite semidesnatado com 30 g de whey Dux chocolate branco",
+    "kcal": 240,
+    "p": 32,
+    "c": 15,
+    "g": 7
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "1",
+    "slot_name": "Café",
+    "text": "2 ovos mexidos, 1 pão de milho 40 g, 300 ml de leite semidesnatado, 100 ml de café",
+    "kcal": 425,
+    "p": 24,
+    "c": 42,
+    "g": 17
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "2",
+    "slot_name": "Lanche da manhã",
+    "text": "150 g de mamão",
+    "kcal": 60,
+    "p": 1,
+    "c": 15,
+    "g": 0
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "3",
+    "slot_name": "Almoço",
+    "text": "100 g de arroz, 100 g de feijão, 112 g de bife de alcatra, 141 g de vagem com cenoura, 77 g de tomate com cebola, 15 g de farinha de sementes",
+    "kcal": 620,
+    "p": 51,
+    "c": 61,
+    "g": 20
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "4",
+    "slot_name": "Lanche da tarde",
+    "text": "1 iogurte Nuv natural e 1 banana prata média",
+    "kcal": 140,
+    "p": 11,
+    "c": 24,
+    "g": 1
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "5",
+    "slot_name": "Jantar",
+    "text": "Wrap de frango no rap10: 1 rap10 integral, 130 g de frango desfiado, 20 g de muçarela, 40 g de iogurte natural com mostarda, alface, tomate",
+    "kcal": 420,
+    "p": 45,
+    "c": 30,
+    "g": 13
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "slot_id": "6",
+    "slot_name": "Ceia",
+    "text": "250 ml de leite semidesnatado com 30 g de whey Dux chocolate branco",
+    "kcal": 240,
+    "p": 32,
+    "c": 15,
+    "g": 7
+   }
+  ],
+  "recent_days": [
+   {
+    "date": "2026-09-30",
+    "weekday": "quarta",
+    "recorded": true,
+    "kcal": 1465,
+    "p": 120,
+    "c": 133,
+    "g": 50,
+    "ceiling_kcal": 2030,
+    "over_slot": null,
+    "gaps": [
+     "Lanche da manhã",
+     "Lanche da tarde",
+     "Ceia"
+    ]
+   },
+   {
+    "date": "2026-10-01",
+    "weekday": "quinta",
+    "recorded": false
+   },
+   {
+    "date": "2026-10-02",
+    "weekday": "sexta",
+    "recorded": true,
+    "kcal": 1890,
+    "p": 167,
+    "c": 202,
+    "g": 51,
+    "ceiling_kcal": 2030,
+    "over_slot": null,
+    "gaps": []
+   },
+   {
+    "date": "2026-10-03",
+    "weekday": "sábado",
+    "recorded": true,
+    "kcal": 2845,
+    "p": 157,
+    "c": 266,
+    "g": 114,
+    "ceiling_kcal": 2030,
+    "over_slot": "Almoço",
+    "gaps": [
+     "Lanche da manhã",
+     "Lanche da tarde"
+    ]
+   },
+   {
+    "date": "2026-10-04",
+    "weekday": "domingo",
+    "recorded": true,
+    "kcal": 2290,
+    "p": 227,
+    "c": 133,
+    "g": 78,
+    "ceiling_kcal": 2030,
+    "over_slot": "Jantar",
+    "gaps": [
+     "Ceia"
+    ]
+   },
+   {
+    "date": "2026-10-05",
+    "weekday": "segunda",
+    "recorded": true,
+    "kcal": 1927,
+    "p": 168,
+    "c": 198,
+    "g": 58,
+    "ceiling_kcal": 2030,
+    "over_slot": null,
+    "gaps": [
+     "Lanche da manhã"
+    ]
+   },
+   {
+    "date": "2026-10-06",
+    "weekday": "terça",
+    "recorded": true,
+    "kcal": 1905,
+    "p": 164,
+    "c": 187,
+    "g": 58,
+    "ceiling_kcal": 2030,
+    "over_slot": null,
+    "gaps": []
+   }
+  ],
+  "recipes": [
+   {
+    "id": "R1",
+    "name": "Pizza de pão sírio na air fryer",
+    "kcal": 500,
+    "p": 48,
+    "c": 48,
+    "g": 14,
+    "key_foods": [
+     "pão sírio",
+     "frango desfiado",
+     "muçarela"
+    ],
+    "ingredients": [
+     {
+      "name": "pão sírio",
+      "g": 70,
+      "kcal": 131
+     },
+     {
+      "name": "molho de tomate Heinz",
+      "g": 30,
+      "kcal": 15
+     },
+     {
+      "name": "frango desfiado cozido",
+      "g": 125,
+      "kcal": 199
+     },
+     {
+      "name": "muçarela",
+      "g": 30,
+      "kcal": 90
+     },
+     {
+      "name": "milho",
+      "g": 30,
+      "kcal": 30
+     },
+     {
+      "name": "iogurte natural integral",
+      "g": 30,
+      "kcal": 20
+     },
+     {
+      "name": "iogurte natural no tempero do frango",
+      "g": 30,
+      "kcal": 15
+     }
+    ],
+    "steps": [
+     "Misturar o frango com 30 g de iogurte, alho, páprica, orégano, sal e pimenta.",
+     "Aquecer o pão na air fryer 3 min a 180 °C.",
+     "Montar: molho, frango, muçarela, milho.",
+     "Air fryer 180 °C por 6 a 8 min até o queijo derreter.",
+     "Finalizar com 30 g de iogurte natural por cima."
+    ]
+   },
+   {
+    "id": "R2",
+    "name": "Bruschetta de ovo na air fryer",
+    "kcal": 470,
+    "p": 33,
+    "c": 32,
+    "g": 22,
+    "key_foods": [
+     "pão francês",
+     "ovo cozido",
+     "iogurte natural"
+    ],
+    "ingredients": [
+     {
+      "name": "pão francês",
+      "g": 50,
+      "kcal": 150
+     },
+     {
+      "name": "ovo cozido",
+      "g": 200,
+      "kcal": 292
+     },
+     {
+      "name": "iogurte natural",
+      "g": 40,
+      "kcal": 25
+     },
+     {
+      "name": "muçarela",
+      "g": 20,
+      "kcal": 60
+     },
+     {
+      "name": "tomate",
+      "g": 50,
+      "kcal": 10
+     }
+    ],
+    "steps": [
+     "Cortar o pão ao meio.",
+     "Picar 4 ovos cozidos e misturar com o iogurte, sal e cheiro-verde.",
+     "Cobrir as metades, 10 g de muçarela em cada.",
+     "Air fryer 180 °C por 5 a 7 min."
+    ]
+   },
+   {
+    "id": "R3",
+    "name": "Wrap de frango com queijo no rap10",
+    "kcal": 420,
+    "p": 45,
+    "c": 30,
+    "g": 13,
+    "key_foods": [
+     "rap10",
+     "frango desfiado",
+     "iogurte com mostarda"
+    ],
+    "ingredients": [
+     {
+      "name": "rap10 integral",
+      "g": 40,
+      "kcal": 110
+     },
+     {
+      "name": "frango desfiado",
+      "g": 130,
+      "kcal": 207
+     },
+     {
+      "name": "muçarela",
+      "g": 20,
+      "kcal": 60
+     },
+     {
+      "name": "iogurte natural com mostarda",
+      "g": 40,
+      "kcal": 28
+     },
+     {
+      "name": "alface, tomate e cebola roxa",
+      "g": 60,
+      "kcal": 15
+     }
+    ],
+    "steps": [
+     "Aquecer o frango com sal, alho, páprica e limão.",
+     "Montar o wrap com o queijo, o molho de iogurte e as folhas.",
+     "Dourar na frigideira antiaderente 2 min de cada lado."
+    ]
+   }
+  ],
+  "recipe_full": null,
+  "day": {
+   "date": "2026-10-07",
+   "eaten_kcal": 0,
+   "eaten_p": 0,
+   "eaten_c": 0,
+   "eaten_g": 0,
+   "workout_kcal": null,
+   "remaining_kcal": 2030,
+   "slots": [
+    {
+     "id": "1",
+     "status": "empty"
+    },
+    {
+     "id": "2",
+     "status": "empty"
+    },
+    {
+     "id": "3",
+     "status": "empty"
+    },
+    {
+     "id": "4",
+     "status": "empty"
+    },
+    {
+     "id": "5",
+     "status": "empty"
+    },
+    {
+     "id": "6",
+     "status": "empty"
+    }
+   ]
+  },
+  "digests": [],
+  "messages": [],
+  "pending_addition": null,
+  "discovery": false,
+  "text": "Treino de hoje finalizado, 610 calorias.",
+  "clarify_rounds": 0,
+  "force_estimate": false,
+  "auto_record": true,
+  "meal_changes": true,
+  "skip_slots": true,
+  "plan_budget": true,
+  "temp_facts": true
+ },
+ "expect": {
+  "summary": "Turno 1: treino em kcal, uma linha, sem dizer que gravou.",
+  "actions": [
+   {
+    "type": "workout",
+    "workout_kcal": 610,
+    "workout_mode": "replace"
+   }
+  ],
+  "actions_count": 1,
+  "reply_not": [
+   "registr(ei|ado)",
+   "!"
+  ],
+  "reply_max_chars": 220
+ }
+}
