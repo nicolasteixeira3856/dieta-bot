@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Opções", new component in `Componentes`. Repository: `docs/qa/figma/{dark,light}/chatO.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D24](d24-release-2-visible-memory.md) `Concluído` (same release section order); [ADR-051](../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) accepted with S37.
+- Prerequisites: D24 `Concluído` ([history](completed/)) (same release section order); [ADR-051](../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) accepted with S37.
 - Figma MCP budget: ≤ 40 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d25-release-2-plan-options.md. Implemente o plano aprovado.`

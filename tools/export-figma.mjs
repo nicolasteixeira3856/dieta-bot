@@ -78,7 +78,7 @@ export const DARK_FRAMES = {
   chatI: "123:4230",
   chatIC: "123:4308",
   chatTI: "123:4385",
-  cfg: "78:3664",
+  cfg: "198:988", // Release 2 (D24: block DA TALI)
   cfgS: "78:3695",
   wipe: "78:3723",
   cfgR: "135:4375",
@@ -87,6 +87,8 @@ export const DARK_FRAMES = {
   // Recipes (D23, Release 2)
   rcpL: "193:277",
   rcpD: "193:356",
+  // Visible memory (D24, Release 2)
+  memL: "198:867",
   // Landing site (D11)
   land: "107:853",
   landM: "107:1003",
@@ -145,7 +147,7 @@ export const LIGHT_FRAMES = {
   chatI: "123:3802",
   chatIC: "123:3909",
   chatTI: "123:4014",
-  cfg: "78:3425",
+  cfg: "198:740", // Release 2 (D24: block DA TALI)
   cfgS: "78:3520",
   wipe: "78:3596",
   cfgR: "135:4306",
@@ -154,6 +156,8 @@ export const LIGHT_FRAMES = {
   // Recipes (D23, Release 2)
   rcpL: "192:9",
   rcpD: "192:226",
+  // Visible memory (D24, Release 2)
+  memL: "198:385",
   // Landing site (D11)
   land: "106:530",
   landM: "106:716",
