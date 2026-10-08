@@ -1,6 +1,6 @@
 # Plan — D23 Release 2: Recipes
 
-- Status: Pendente aprovação manual (Figma review gate, 08/10/2026)
+- Status: Concluído (08/10/2026)
 - Date: 08/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Receitas", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{rcpL,rcpD}.png`, the changed `chatRK` (Salvar receita action), and the node ids in `tools/export-figma.mjs`.
@@ -114,3 +114,18 @@ Icon: `bookmark-simple` (regular) is not in the file; its official SVG comes fro
 3. Review images: `node tools/export-figma.mjs --only <node ids> --dry-run` (no MCP calls), one per frame, sent to the owner. One fix before sending: the totals separators lost their spaces (trailing spaces of an auto-width text), now `·` with a 5 px gap.
 
 Figma MCP budget: 15 of 60 calls (whoami, 3 skill reads, 4 reads, 5 writes, 2 failed writes retried, 1 read-back).
+
+### Owner review
+
+**OK (08/10/2026)** on the first round, with no fixes ("telas aprovadas, exporte tudo e pode continuar"). Asked where the list is opened from: Config → Receitas (ADR-052 § 2). The owner accepted the proposal to draw that entry row in `cfg` within D24, in a new block with "O que a Tali sabe".
+
+### Export (08/10/2026)
+
+- `tools/export-figma.mjs`: `rcpL` (Light `192:9`, Dark `193:277`) and `rcpD` (Light `192:226`, Dark `193:356`) added; `chatRK` now points to the `Release 2` frames (Light `192:438`, Dark `193:422`); the map comment names both release pages.
+- `node tools/export-figma.mjs --only chatRK,rcpL,rcpD`: `rcpL` 780 × 1688 and `rcpD` 780 × 1742 (new, both themes); `chatRK` 780 × 2134 → 780 × 2250 (both themes).
+- Inventory: `rcpL.png · rcpD.png` added to [docs/qa/README.md](../../../qa/README.md); the golds-per-flow table of the [plans README](../README.md) gains the `Release 2` recipes row.
+- `node tools/check-figma.mjs`: 104 golds verified (52 dark + 52 light). `node tools/check-docs.mjs` passes.
+- Gold check of the current app (no `apps/` change; `GoldTest.chatRK*`, run with `--rerun`): the whole frame is report-only (blurred 3.30 % Dark, 2.67 % Light); the header region passes (0.22 %, 0.29 %); the bottom region fails (4.50 % Dark, 3.08 % Light), by design: the app does not draw **Salvar receita** yet.
+- **Hand-over to [A68](../../../android/plans/a68-saved-recipes.md):** the action under a cooking plan, the list and detail against `rcpL` and `rcpD`, and the `chatRK` qualifier at 1125 dp. Until A68, `GoldTest.chatRK_dark` and `chatRK_light` fail on their bottom region; a client plan that runs before A68 needs a temporary exception there (owner decision). The Config entry row is drawn by [D24](../d24-release-2-visible-memory.md).
+
+Figma MCP budget: 15 of 60 calls in total (no call after the review: the export uses the REST API).
