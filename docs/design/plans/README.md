@@ -159,7 +159,7 @@ Behavior: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md), [ADR-053](../.
 | Client | [A68](../../android/plans/a68-saved-recipes.md) — saved recipes | D23, S38 on dev, A67 |
 | Design | D24 — "O que a Tali sabe" (`memL`, `cfg`), delivered ([history](completed/)) | D23, ADR-053 accepted (A69) |
 | Client | [A69](../../android/plans/a69-visible-memory.md) — memory screen | D24, A68 |
-| Design | [D25](d25-release-2-plan-options.md) — plan option control (`chatO`) | D24, ADR-051 accepted (S37) |
+| Design | [D25](pending_manual_validation/d25-release-2-plan-options.md) — plan option control (`chatO`) | D24, ADR-051 accepted (S37) |
 | Client | [A67](../../android/plans/a67-plan-options-and-discovery.md) — options and discovery | D25, S37 on dev, A66 |
 
 ## History
