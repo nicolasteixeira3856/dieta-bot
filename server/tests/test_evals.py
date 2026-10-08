@@ -90,6 +90,7 @@ class CheckTests(unittest.TestCase):
         output["digest"] = "Pergunta em aberto: qual leite?"
         output["memory_used"] = ["P9"]
         output["meal_change"] = {"operation": "add", "base_slot": "1", "addition": None}
+        output["workout"] = {"kcal": 300, "mode": "add"}
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -118,6 +119,7 @@ class CheckTests(unittest.TestCase):
             "digest_not": ["leite"],
             "meal_change": None,
             "meal_change_op": ["revise", None],
+            "workout": {"kcal": 450, "mode": "replace"},
             "estimate_values": {"kcal": 90},
             "item_portions": {"absent": 70},
             "memory_used_only": ["P1"],
@@ -287,6 +289,17 @@ class MealChangeOpTests(unittest.TestCase):
         self.assertEqual(evaluate(want, {"meal_change": {"operation": "revise"}})["meal_change_op"]["status"], PASS)
         self.assertEqual(evaluate(want, {"meal_change": {"operation": "add"}})["meal_change_op"]["status"], FAIL)
         self.assertEqual(evaluate(want, {"reply": "x"})["meal_change_op"]["status"], NA)
+
+
+class WorkoutCheckTests(unittest.TestCase):
+    def test_workout_null_exact_range_and_na(self) -> None:
+        def status(want, output):
+            return evaluate({"workout": want}, output)["workout"]["status"]
+        self.assertEqual(status(None, {"workout": None}), PASS)
+        self.assertEqual(status({"kcal": 450, "mode": "replace"}, {"workout": {"kcal": 450, "mode": "replace"}}), PASS)
+        self.assertEqual(status({"kcal": [400, 500]}, {"workout": {"kcal": 450, "mode": "add"}}), PASS)
+        self.assertEqual(status({"kcal": 450, "mode": "add"}, {"workout": {"kcal": 450, "mode": "replace"}}), FAIL)
+        self.assertEqual(status(None, {"reply": "x"}), NA)
 
 
 class CaseFileTests(unittest.TestCase):

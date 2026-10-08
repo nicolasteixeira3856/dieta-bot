@@ -654,7 +654,7 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
             schema["required"],
             [
                 "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slots",
-                "memory_updates", "memory_used", "digest", "plan_budget", "scope",
+                "memory_updates", "memory_used", "digest", "plan_budget", "workout", "scope",
             ],
         )
         self.assertFalse(schema["additionalProperties"])

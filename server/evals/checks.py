@@ -54,6 +54,7 @@ KNOWN = (
     "digest_not",
     "meal_change",
     "meal_change_op",
+    "workout",
     "estimate_values",
     "item_portions",
     "memory_used_only",
@@ -333,6 +334,19 @@ def _check(
 
     if key == "meal_change":
         return _change_check(want, output, estimate)
+    if key == "workout":
+        # S35 (ADR-049): null, or {kcal, mode} exactly; a "kcal" list accepts a range. NA without the field.
+        if "workout" not in output:
+            return _na("no workout in output")
+        got = output["workout"]
+        if want is None:
+            return _result(got is None, f"got {got}")
+        if not isinstance(got, dict):
+            return _result(False, f"got {got}")
+        kcal = want.get("kcal")
+        ok_kcal = (kcal[0] <= got.get("kcal", -1) <= kcal[1]) if isinstance(kcal, list) else got.get("kcal") == kcal
+        ok_mode = "mode" not in want or got.get("mode") == want["mode"]
+        return _result(ok_kcal and ok_mode, f"got {got}")
     if key == "meal_change_op":
         # S33: the accepted operations of an opted-in answer; null accepts no actionable change.
         if "meal_change" not in output:
