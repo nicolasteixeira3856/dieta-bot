@@ -55,7 +55,7 @@ The server resolves in code what the model gets wrong when asked to search: the 
 
 ## Out of scope
 
-- The app sending the new fields: [A64](../../../android/plans/a64-chat-context-fields-day-balance.md). Actions, workout, options, recipes: later plans. The protein boost: [S34](../s34-protein-boost-hybrid.md).
+- The app sending the new fields: [A64](../../../android/plans/a64-chat-context-fields-day-balance.md). Actions, workout, options, recipes: later plans. The protein boost: [S34](s34-protein-boost-hybrid.md).
 
 ## Validation
 

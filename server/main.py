@@ -1229,14 +1229,15 @@ def _meal_window(body: ChatIn, payload: dict[str, Any]) -> meal_window.Window | 
 
 
 def _protein_boost(body: ChatIn, payload: dict[str, Any], record: dict[str, Any]) -> None:
-    """ADR-043 decision 4: the server appends (opcional) protein foods to a named dish that needs them."""
+    """ADR-055: the model proposes (opcional) protein foods for a named dish; the server validates and completes."""
     record["protein_boost"] = None
-    if payload_scope(payload) != IN_SCOPE or payload.get("meal_day") == "other":
+    if payload_scope(payload) != IN_SCOPE:
         return
     window = _meal_window(body, payload)
-    if window is None:
-        return
-    record["protein_boost"] = protein_boost.apply(payload, window.window_kcal, _remaining_macros(body)["p"])
+    record["protein_boost"] = protein_boost.validate(
+        payload, window.window_kcal if window else None, _remaining_macros(body)["p"], body.facts or [],
+        another_day=protein_boost.other_day(body.text),
+    )
 
 
 def _usual_foods(body: ChatIn) -> dict[str, str]:
