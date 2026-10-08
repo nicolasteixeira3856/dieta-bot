@@ -127,21 +127,49 @@ def totals_only(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 OCCUPIED_TEXT_MAX = 60
+DRAFT_TEXT_MAX = 160
 
 
-def occupied_question(slot: dict[str, Any], state: dict[str, Any]) -> str:
-    """S31: name what the eaten slot already holds and ask add or replace. Never raises."""
-    text = state.get("text")
+def _clip(value: Any, limit: int) -> str:
+    if not isinstance(value, str) or not value.strip():
+        return ""
+    text = " ".join(value.split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip(" ,;") + "…"
+
+
+def _kcal(value: Any) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+        return None
+    return rounded(value)
+
+
+def occupied_question(slot: dict[str, Any], state: dict[str, Any], draft: dict[str, Any] | None = None) -> str:
+    """S31/S32: name what the eaten slot holds and the drafted meal, and ask add or replace. Never raises.
+
+    S32: the draft (foods, portions, kcal) is written into the question because HISTORY carries only the
+    reply: the answer turn rebuilds the add or the revision from it instead of asking the portions again.
+    """
     held = ""
-    if isinstance(text, str) and text.strip():
-        text = " ".join(text.split())
-        if len(text) > OCCUPIED_TEXT_MAX:
-            text = text[: OCCUPIED_TEXT_MAX - 1].rstrip(" ,;") + "…"
+    if text := _clip(state.get("text"), OCCUPIED_TEXT_MAX):
         held = f": {text}"
-    kcal = state.get("kcal")
-    if not isinstance(kcal, bool) and isinstance(kcal, (int, float)) and math.isfinite(kcal) and kcal >= 0:
-        held += f" ({rounded(kcal)} kcal)"
-    return f"{slot['name']} de hoje já tem registro{held}. Somo a esse registro ou substituo?"
+    if (kcal := _kcal(state.get("kcal"))) is not None:
+        held += f" ({kcal} kcal)"
+    name = slot["name"]
+    meal = _clip((draft or {}).get("meal_text"), DRAFT_TEXT_MAX)
+    if not meal:
+        return f"{name} de hoje já tem registro{held}. Somo a esse registro ou substituo?"
+    if (kcal := _kcal((draft or {}).get("kcal"))) is not None:
+        meal += f", ~{kcal} kcal,"
+    return f"{name} de hoje já tem registro{held}. Somo {meal} a esse registro ou substituo o registro por isso?"
+
+
+def _draft_addition(estimate: dict[str, Any]) -> dict[str, Any] | None:
+    """S32: an add whose addition is null uses the draft estimate, which for add describes
+    only the added food (server Chat rule 5e). None when the draft is not a usable nutrition object."""
+    try:
+        return nutrition({k: estimate.get(k) for k in ("meal_text", *NUTRIENTS, "items")})
+    except ValueError:
+        return None
 
 
 def prepare_change(
@@ -158,8 +186,10 @@ def prepare_change(
     if out.get("intent") != "log":
         out["meal_change"] = None
         return out
-    if estimate is None and change is None:
+    if estimate is None:
         # An unresolved operation has no candidate record. The outer gate bounds the question.
+        # S32: an operation with no estimate is the same unresolved turn; its metadata is dropped.
+        out["meal_change"] = None
         return out
     if "meal_change" in out and change is None and isinstance(estimate, dict):
         question = estimate.get("question")
@@ -185,12 +215,30 @@ def prepare_change(
     if op == "new" and base is None and occupied:
         # S31: a new meal aimed at an eaten slot is add or revise; the server never picks. The outer gate
         # asks (or, with no round left, states) instead of failing the turn.
-        out.update(estimate=None, meal_change=None, reply=occupied_question(slots[target], states[target]))
+        reply = occupied_question(slots[target], states[target], estimate)
+        out.update(estimate=None, meal_change=None, reply=reply)
         return out
+    if op in ("add", "revise") and base is None and occupied:
+        # S32: for an occupied target base_slot must equal suggested_slot (rule 5e); a null base there has
+        # one valid value.
+        base = change["base_slot"] = target
     if op == "add":
         if occupied != (base is not None):
             raise ValueError("addition must preserve occupied target")
-        addition = nutrition(change.get("addition"))
+        # S32: the addition total is the sum of its items too (ADR-042), recomputed instead of refused.
+        estimate_total.apply(change.get("addition"))
+        try:
+            addition = nutrition(change.get("addition"))
+        except ValueError:
+            # S32: a null addition falls back to the draft (add drafts only the new food); with no usable
+            # draft, the model's question is asked; otherwise the turn fails as before.
+            addition = _draft_addition(estimate) if change.get("addition") is None else None
+            if addition is None:
+                question = estimate.get("question")
+                if isinstance(question, str) and question.strip():
+                    out.update(estimate=None, meal_change=None, reply=question.strip())
+                    return out
+                raise
         change["addition"] = addition
         if base is None:
             estimate.update(addition)

@@ -230,12 +230,11 @@ class RouteTests(unittest.IsolatedAsyncioTestCase):
         variants = []
         for change in [None, {}, dict(operation='merge', base_slot='cafe', addition=delta()),
                        dict(operation='new', base_slot=None, addition=None),
-                       dict(operation='revise', base_slot=None, addition=None),
-                       dict(operation='add', base_slot='other', addition=delta()),
-                       dict(operation='add', base_slot=None, addition=delta()),
-                       dict(operation='add', base_slot='cafe', addition=delta(kcal=55))]:
+                       dict(operation='add', base_slot='other', addition=delta())]:
             variants.append(model(meal_change=change))
         # An energy mismatch on revise is recomputed by the server since ADR-042 (tests/test_estimate_total.py).
+        # Since S32 a null base on the occupied target takes that target and an addition total is recomputed
+        # from its items (tests/test_s32_occupied_answers.py).
         for raw in variants:
             with self.subTest(raw=raw['meal_change']):
                 response, _ = await self.post(request(force_estimate=True, clarify_rounds=3), raw)
