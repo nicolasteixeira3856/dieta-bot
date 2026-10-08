@@ -26,6 +26,7 @@ Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.
 | Chat core | `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP`, `chatX`, `chatCP`, `chatCC` |
 | Chat records and memory | `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `chatRK`, `chatRB`, `chatRL` |
 | Config and push | `cfg`, `cfgS`, `wipe`, `cfgR`, `cfgT`, `push` |
+| Recipes (`Release 2`) | `rcpL`, `rcpD` |
 
 ## Figma review gate
 
@@ -153,7 +154,7 @@ Behavior: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md), [ADR-053](../.
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D23](d23-release-2-recipes.md) — Recipes (`rcpL`, `rcpD`, `chatRK`) | D22, ADR-052 accepted (S38) |
+| Design | D23 — Recipes (`rcpL`, `rcpD`, `chatRK`), delivered ([history](completed/)) | D22, ADR-052 accepted (S38) |
 | Client | [A68](../../android/plans/a68-saved-recipes.md) — saved recipes | D23, S38 on dev, A67 |
 | Design | [D24](d24-release-2-visible-memory.md) — "O que a Tali sabe" (`memL`, `cfg`) | D23, ADR-053 accepted (A69) |
 | Client | [A69](../../android/plans/a69-visible-memory.md) — memory screen | D24, A68 |

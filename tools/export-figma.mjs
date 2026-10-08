@@ -24,7 +24,7 @@ export const FIGMA_DIR = path.join(root, "docs", "qa", "figma");
 
 export const FIGMA_FILE_KEY = "qNiqNN3vk9GpmPL3bcV9W1";
 
-// gold id → Figma node id of its frame on the `Release 1` page (app) or the `Landing page` page (site, D11). Each design
+// gold id → Figma node id of its frame on the `Release 1` or `Release 2` page (app) or the `Landing page` page (site, D11). Each design
 // plan adds its ids after the owner's review OK. A mapped id must exist in both themes.
 export const DARK_FRAMES = {
   // Home (D3)
@@ -65,7 +65,7 @@ export const DARK_FRAMES = {
   chatM: "72:3333",
   chatS: "72:3359",
   // Rich replies (D17), plan over budget (D12), planned meal (D18)
-  chatRK: "147:5274",
+  chatRK: "193:422", // Release 2 (D23: Salvar receita)
   chatRB: "144:5179",
   chatRL: "151:5399",
   // Skips next to other actions (D19)
@@ -84,6 +84,9 @@ export const DARK_FRAMES = {
   cfgR: "135:4375",
   cfgT: "140:4720",
   push: "78:3757",
+  // Recipes (D23, Release 2)
+  rcpL: "193:277",
+  rcpD: "193:356",
   // Landing site (D11)
   land: "107:853",
   landM: "107:1003",
@@ -129,7 +132,7 @@ export const LIGHT_FRAMES = {
   chatM: "72:3034",
   chatS: "72:3104",
   // Rich replies (D17), plan over budget (D12), planned meal (D18)
-  chatRK: "147:5180",
+  chatRK: "192:438", // Release 2 (D23: Salvar receita)
   chatRB: "144:5081",
   chatRL: "151:5326",
   // Skips next to other actions (D19)
@@ -148,6 +151,9 @@ export const LIGHT_FRAMES = {
   cfgR: "135:4306",
   cfgT: "140:4593",
   push: "78:3646",
+  // Recipes (D23, Release 2)
+  rcpL: "192:9",
+  rcpD: "192:226",
   // Landing site (D11)
   land: "106:530",
   landM: "106:716",
