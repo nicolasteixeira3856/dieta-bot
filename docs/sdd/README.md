@@ -147,17 +147,17 @@ Pedido para analisar, documentar, criar spec, criar ADR ou criar plano **não** 
 6. Rode `node tools/check-docs.mjs` (e `node tools/check-skills.mjs` se mexeu em skills). Falha bloqueia a entrega.
 7. Entregue pelo fluxo git abaixo.
 
-### 6. Entrega git (decisão do dono, 29/09/2026)
+### 6. Entrega git (decisão do dono, 29/09/2026; branches em 08/10/2026)
 
-Ao fim da implementação de qualquer plano, o agente faz sozinho, sem pedir:
+Branches: `develop` é a branch de desenvolvimento (todo agente começa nela, atualizada; todo PR aponta para ela; deploy de dev e build de teste saem dela). `master` é produção e fica travada: sem push direto, sem merge e sem deploy salvo pedido explícito do dono naquela mensagem, e só depois da validação completa ponta a ponta (§ Ritmo de entrega). Ao fim da implementação de qualquer plano, o agente faz sozinho, sem pedir:
 
-1. `git switch -c <tipo>/<id-do-plano>` a partir da `master` atualizada (ex.: `fix/s8-chat-json-slot`, `feat/a22-treino-home`, `docs/d8-archive-stitch`).
+1. `git switch -c <tipo>/<id-do-plano>` a partir da `develop` atualizada (ex.: `fix/s8-chat-json-slot`, `feat/a22-treino-home`, `docs/d8-archive-stitch`).
 2. Commit(s) só com os arquivos do plano. Nada de `git add -A` com lixo de fora do escopo.
-3. `git push -u origin <branch>` e `gh pr create --base master` com resumo, validação executada e pendências.
+3. `git push -u origin <branch>` e `gh pr create --base develop` com resumo, validação executada e pendências.
 4. `gh pr merge --merge --delete-branch` (merge commit, sem squash).
-5. `git switch master` e `git pull --ff-only`. O repositório local termina igual ao remote.
+5. `git switch develop` e `git pull --ff-only`. O repositório local termina igual ao remote.
 
-Exceções: o commit `chore(release)` + tag do `tools/distribute-dev.ps1` (A16) continua indo direto na `master`, porque faz parte do deploy e não de um plano. PR com CI vermelho ou conflito não é mergeado: o agente para e reporta.
+Exceções: o commit `chore(release)` + tag do `tools/distribute-dev.ps1` (A16) continua indo direto na `develop`, porque faz parte do deploy e não de um plano. PR com CI vermelho ou conflito não é mergeado: o agente para e reporta. Promoção para `master` (produção): só por pedido explícito do dono, por PR `develop` → `master`, depois da validação completa.
 
 ## Execução autônoma
 
@@ -265,6 +265,15 @@ O corpo de ADR aceito é imutável. A linha `- Status:` (ou `- Estado:`) é a ú
 4. Atualize a spec viva no Completion do plano que entrega a decisão.
 5. Atualize índices sem copiar o status.
 6. Preserve o corpo do ADR anterior.
+
+## Ritmo de entrega (decisão do dono, 08/10/2026)
+
+Iterar rápido, codificar rápido, testar minimamente e entregar rápido. Testes massivos e chamadas pagas ao modelo não fazem parte do desenvolvimento.
+
+- App: captura no emulador e comparação de gold só nas telas que o plano toca (regra de validação parcial abaixo); a regressão JVM cobre o resto. Nunca o fluxo inteiro para um build ou deploy de dev; nunca o fluxo inteiro numa feature pequena.
+- Server: smoke mínimo que prove a mudança, no máximo **12 disparos ao modelo por plano** (casos novos uma vez; sem conjunto sentinela, sem suíte, sem repetição para decidir caso instável). Testes unitários e o smoke HTTP de três turnos depois do deploy de dev não custam e continuam.
+- Produção (`master`, futuro): a validação completa ponta a ponta de server e app roda uma vez antes de qualquer deploy de produção, nunca durante o desenvolvimento.
+- Cada plano declara o seu teto na seção Validação; um plano que precise de mais para e pergunta ao dono.
 
 ## Validação
 

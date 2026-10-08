@@ -28,16 +28,16 @@ cd server
 .venv/Scripts/python -m evals.run --tag cp2 --moderation all                 # refusal cases, real moderation
 ```
 
-How much to run (owner decision, 2026-10-05, after one day of evaluation exhausted the provider's moderation cap and took the dev Chat down):
+How much to run (owner decision, 2026-10-08, [Delivery pace](../../AGENTS.md#delivery-pace-owner-decision-08102026): paid model calls are not part of development):
 
 | Change | Validation | Model calls |
 | --- | --- | --- |
 | Server code only (route, shaping, log, infra) | unit tests + the three-turn HTTP smoke after the dev deploy | 0 |
-| Prompt or schema change, attended | the cases the change touches at `--repeat 3`, then the whole suite at `--repeat 1`, compared with the last recorded full run | about 250 |
-| Prompt or schema change, unattended ([autonomous run](../sdd/autonomous-run.md), owner decision 07/10/2026) | the plan's own tag at `--repeat 3`, then the sentinel set `--tag s22 --tag s23 --tag s24 --tag recipe --repeat 1`; whole suite never; US$ 0.50 per session for every plan together | about 60 |
-| New or changed evaluator check | unit tests for the check; the cases that use it at `--repeat 3` | tens |
+| Prompt or schema change, attended or unattended ([autonomous run](../sdd/autonomous-run.md)) | the plan's own cases once (`--tag <plan> --repeat 1`), inside the plan's cap; no sentinel set, no suite, no repeat to settle a flaky case | at most 12 per plan |
+| New or changed evaluator check | unit tests for the check; at most the cases that use it, once | inside the same 12 |
+| Production deploy (future, `master`) | the whole suite once and the app end to end, before the deploy | once per production deploy |
 
-- The previous full run is the baseline; do not rerun the old prompt on the same day. Rerun a baseline only when the model or effort changes.
+- There is no running baseline during development: a case that fails is read by its output, fixed as a rule or a fixture, and rerun once. The whole suite runs only before a production deploy.
 - A case that passes and fails across runs of the same prompt is noise, not a regression: record it and move on; fix the rule or the fixture when there is time. No ten-repetition tiebreaks and no run on both prompts to settle one case.
 - Moderation: by default only CP2 cases (`since: cp2` or tag `cp2`) call the provider's moderation endpoint; every other case gets a local clean verdict (`--moderation cp2`). The endpoint's daily request cap is per project; the evaluator and the dev server use keys from different projects ([runbook](deploy-gcp.md)). `--moderation all` restores the old behavior for a deliberate CP2 review; `--moderation none` is for offline replay only.
 - The closed test has two testers. Validation exists to catch a broken rule before they see it, not to prove a rate.

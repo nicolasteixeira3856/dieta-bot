@@ -31,8 +31,8 @@ The user sees every fact Tali keeps, with its origin, and can delete or correct 
 ## Validation
 
 1. `testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass.
-2. Capture of `memL` vs the gold; diff list in Results.
-3. Device smoke on dev: delete a routine, send "café de sempre", the routine is not recreated; correct a preference and see it in the next prompt.
+2. Capture of `memL` vs the gold; diff list in Results. Only the screens this plan touches (Delivery pace rule): never the whole flow, never a full capture run; the JVM regression covers the rest.
+3. Device smoke on dev (dev build shipped from `develop`): delete a routine, send "café de sempre", the routine is not recreated; correct a preference and see it in the next prompt.
 4. `node tools/check-docs.mjs` passes.
 
 ## Results

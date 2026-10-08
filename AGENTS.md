@@ -137,16 +137,27 @@ Single writer: state a fact (status, version, date, list, value) only in the fil
 After a documentation change, run `node tools/check-docs.mjs` (read-only; `--root <path>` supports fixture checks): links, spec Provenance, status copies, ADR status lines, README routing, gold inventory.
 Everything about user-supplied content reaching the AI (scope, injection, moderation, harmful content, correlation, content logging, incidents) lives in `docs/content-policy/`. Keep that folder; do not split the topic elsewhere. Each approved plan keeps one executable folder boundary. Future owner-authorized deferrals use `Fora de escopo` in `plans/out_of_scope/`, with reason and re-entry conditions, per SDD. Deferred plans are not runnable `/goal` work.
 Planning is documentation only. Code starts only after an explicit approval that names the plan file.
+
+## Delivery pace (owner decision, 08/10/2026)
+
+Iterate fast, code fast, test the minimum, deliver fast. Massive test runs and paid model calls are not part of development.
+
+- App: emulator captures and gold comparison only for the screens the plan touches, with the partial-validation rule of SDD; JVM regression (`testDevDebugUnitTest`, `verifyRoborazziDevDebug`) covers the rest. Never the whole flow for a dev build or deploy; never the whole flow for a small feature.
+- Server: a minimal smoke that proves the change, at most **12 model calls per plan** in total (new cases once, no sentinel set, no suite, no repeat to settle a flaky case). Unit tests and the three-turn HTTP smoke after the dev deploy cost nothing and stay.
+- Production (future, `master`): the complete end-to-end validation of server and app runs once before any production deploy, never during development.
+- Each plan's Validation section states its cap; a plan that needs more stops and asks the owner.
 `/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.
 New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/decisions/`.
 UI DONE = gold PNG comparison above. No screenshot, UI is not done.
 Test before marking done.
 
-Git delivery (every implemented plan, no need to ask): new branch from an up-to-date `master` → commit only the plan's files → push → `gh pr create --base master` → `gh pr merge --merge --delete-branch` → `git switch master` → `git pull --ff-only`. Red CI or conflict: stop and report. Exception: the `chore(release)` commit + tag of `tools/distribute-dev.ps1` goes straight to `master`. Details: `docs/sdd/README.md` § Entrega git.
+Branches (owner decision, 08/10/2026): `develop` is the development branch; every agent starts from an up-to-date `develop`, every plan branch is cut from it, every PR targets it, every dev deploy and test build ships from it. `master` is production and is locked: no direct push, no merge, no deploy there unless the owner asks for it explicitly in that message, and only after the full end-to-end validation of the Delivery pace rules. A session that finds itself on `master` switches to `develop` before touching anything.
+
+Git delivery (every implemented plan, no need to ask): new branch from an up-to-date `develop` → commit only the plan's files → push → `gh pr create --base develop` → `gh pr merge --merge --delete-branch` → `git switch develop` → `git pull --ff-only`. Red CI or conflict: stop and report. Exception: the `chore(release)` commit + tag of `tools/distribute-dev.ps1` goes straight to `develop`. Details: `docs/sdd/README.md` § Entrega git.
 
 Figma review gate: a layout change that needs a new or changed gold is drawn by the agent in the Figma file `Design` through the Figma MCP, inside a design plan (`docs/design/plans/D<n>`, one flow per plan). The owner's only manual step is the visual review in Figma; after the owner's OK the agent exports the golds. Client plans that need it list the design plan as a prerequisite and do not start until it is `Concluído`. Details: [docs/design/plans/README.md § Figma review gate](docs/design/plans/README.md#figma-review-gate) and `docs/sdd/README.md` § Gate Figma.
 
-Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1`.
+Test builds (A16): when the owner asks for a test build or deploy of the app, run `./tools/distribute-dev.ps1` from `develop` (the release commit and tag land on `develop`).
 It ships the signed dev release APK through Firebase App Distribution (group `testers`: owner + Icaro, installed via Firebase App Tester).
 Release notes are a human changelog in pt-BR written by the agent (what changed for the tester: Novidades / Correções / Ajustes), never a raw `git log`. Pass it with `-Notes <file.md>` (required; scratchpad file). The script rejects hashes and commit prefixes and prepends the notes to `apps/android/CHANGELOG.md` in the `chore(release)` commit.
 The version bumps by itself (0.0.N → 0.0.N+1) and is recorded as a commit + tag `dev-v0.0.N`.

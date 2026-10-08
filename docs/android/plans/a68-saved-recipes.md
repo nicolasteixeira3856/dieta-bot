@@ -33,8 +33,8 @@ A recipe the model built can be saved, listed, opened, sent back to the model by
 ## Validation
 
 1. `testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass.
-2. Captures vs the golds `rcpL`, `rcpD`; diff list in Results.
-3. Device smoke on dev: save a recipe, "lembra a receita X?", record by recipe, delete.
+2. Captures vs the golds `rcpL`, `rcpD`; diff list in Results. Only the screens this plan touches (Delivery pace rule): never the whole flow, never a full capture run; the JVM regression covers the rest.
+3. Device smoke on dev (dev build shipped from `develop`): save a recipe, "lembra a receita X?", record by recipe, delete.
 4. `node tools/check-docs.mjs` passes.
 
 ## Results

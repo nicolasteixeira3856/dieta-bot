@@ -20,7 +20,7 @@ A plan that fails a validation twice stays `Em implementação` with "what is mi
 
 ## Evaluation budget (server plans)
 
-The provider cost of a whole batch is capped: **US$ 0.50 per unattended session** (owner decision, 07/10/2026), read from the `cost_usd` of every `logs/evals/*.json` report the session wrote, summed in a ledger the agent keeps in the report file (below). The cap replaces "the whole suite once per prompt change" of the server README for unattended work.
+The provider cost of a whole batch is capped: **US$ 0.50 per unattended session** (owner decision, 07/10/2026), read from the `cost_usd` of every `logs/evals/*.json` report the session wrote, summed in a ledger the agent keeps in the report file (below). The cap replaces "the whole suite once per prompt change" of the server README for unattended work. Since 08/10/2026 the per-plan rule of `AGENTS.md` § Delivery pace also applies: at most 12 model calls per plan, attended or not.
 
 | Step of a server plan | Model calls | Typical cost |
 | --- | --- | --- |

@@ -30,8 +30,8 @@ Each option of a plan is a thing the user can record or reserve; the first openi
 ## Validation
 
 1. `testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass.
-2. Captures vs the golds including `chatO`; diff list in Results.
-3. Device smoke on dev: open request, "fiz a 2", fresh install discovery and a routine copied on the next day.
+2. Captures vs the golds including `chatO`; diff list in Results. Only the screens this plan touches (Delivery pace rule): never the whole flow, never a full capture run; the JVM regression covers the rest.
+3. Device smoke on dev (dev build shipped from `develop`): open request, "fiz a 2", fresh install discovery and a routine copied on the next day.
 4. `node tools/check-docs.mjs` passes.
 
 ## Results

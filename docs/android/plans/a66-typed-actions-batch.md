@@ -32,8 +32,8 @@ A message that does several things produces several receipts, applied together a
 ## Validation
 
 1. `testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass.
-2. Captures of the touched flows vs the golds; diff list in Results.
-3. Device smoke on dev: the whole-day message, "jantei X, me sugere o lanche", Desfazer.
+2. Captures of the touched flows vs the golds; diff list in Results. Only the screens this plan touches (Delivery pace rule): never the whole flow, never a full capture run; the JVM regression covers the rest.
+3. Device smoke on dev (dev build shipped from `develop`): the whole-day message, "jantei X, me sugere o lanche", Desfazer.
 4. `node tools/check-docs.mjs` passes.
 
 ## Results

@@ -18,7 +18,7 @@ The server resolves in code what the model gets wrong when asked to search: the 
 ### 1. Effort low (ADR-054)
 
 - `config.py`: `CHAT_EFFORT = "low"`; compaction and closures keep `none`. `llm.py`: generation timeout raised to cover the measured p95 (16 s) with margin (25 s). The dev log records the effort and the reasoning tokens.
-- `evals/run.py`: default effort `low`; the full-suite baseline is rerun once at `low` and recorded in Results as the new baseline.
+- `evals/run.py`: default effort `low`. No suite rerun: the baseline for development is the benchmark of 08/10/2026 (`benchmark/RESULTADOS_08_10_2026.md`).
 
 ### 2. Named-day record in code (`COPY_SOURCE`)
 
@@ -39,10 +39,9 @@ The server resolves in code what the model gets wrong when asked to search: the 
 - `log`: a canned drink without a stated volume is estimated at the most common can of that product in Brazil (350 ml for beer) and the volume assumed is said.
 - `history_copy`/`ambiguous`: a clarifying question on a clear log (amount of butter, of salad) is not asked; an unstated condiment is assumed and stated (`low` asked more than `none`).
 
-### 5. Evaluation
+### 5. Smoke (at most 12 model calls)
 
-- New cases, tag `s33`, synthetic situations independent of the benchmark texts (ADR-033): named-day copy for three profiles (one, ambiguous, none), two days in one message, routine with macros copied, week pattern under `duro` with a gap day, the five rules of 4. Each 3/3 at `low`.
-- Regression at `low`: `--tag s22 --tag s23 --tag s24 --tag recipe --repeat 3`, then the whole suite once as the new baseline. Flakes recorded by name.
+- New cases, tag `s33`, synthetic situations independent of the benchmark texts (ADR-033), twelve at most: named-day copy (one row, ambiguous, none), two days in one message, routine with macros copied, week pattern under `duro` with a gap day, and one case per rule of 4. Run once: `--tag s33 --repeat 1`. No sentinel set, no suite.
 
 ### 6. Dev deploy
 
@@ -61,8 +60,8 @@ The server resolves in code what the model gets wrong when asked to search: the 
 ## Validation
 
 1. `server/.venv/Scripts/python -m pytest server/tests -q` passes, including the resolver tests (moved from the benchmark's dry-run checks into unit tests).
-2. Evaluation as in 5, numbers in Results; cached share before/after.
-3. Dev deploy and smoke.
+2. Smoke as in 5 (≤ 12 calls), numbers in Results; cached share read from those calls.
+3. Dev deploy from `develop` and the three-turn HTTP smoke (no model-call budget).
 4. `node tools/check-docs.mjs` passes.
 
 ## Results

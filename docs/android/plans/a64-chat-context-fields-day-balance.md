@@ -32,8 +32,8 @@ The app sends what the server now reads in code (routine macros, seven-day total
 ## Validation
 
 1. `testDevDebugUnitTest` and `verifyRoborazziDevDebug` pass.
-2. Captures of the touched flows vs the golds (partial validation rule), diff list in Results.
-3. Three-turn smoke on the dev app against the S33 server: a routine with macros is copied; "mesmo almoço de ontem" copies the record.
+2. Captures of the touched flows vs the golds (partial validation rule), diff list in Results. Only the screens this plan touches (Delivery pace rule): never the whole flow, never a full capture run; the JVM regression covers the rest.
+3. Three-turn smoke on the dev app (dev build shipped from `develop`) against the S33 server: a routine with macros is copied; "mesmo almoço de ontem" copies the record.
 4. `node tools/check-docs.mjs` passes.
 
 ## Results
