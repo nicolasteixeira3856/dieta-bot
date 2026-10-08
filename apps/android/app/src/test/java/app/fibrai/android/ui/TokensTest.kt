@@ -1,6 +1,7 @@
 package app.fibrai.android.ui
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import com.google.common.truth.Truth.assertThat
 import app.fibrai.android.core.designsystem.SplashBoot
 import app.fibrai.android.core.designsystem.aero.AeroColors
@@ -18,20 +19,20 @@ class TokensTest {
         }
     }
 
+    private fun luminance(color: Color): Double {
+        fun channel(c: Float): Double = if (c <= 0.03928f) (c / 12.92).toDouble() else Math.pow(((c + 0.055) / 1.055).toDouble(), 2.4)
+        return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue)
+    }
+
+    private fun contrast(c1: Color, c2: Color): Double {
+        val l1 = luminance(c1)
+        val l2 = luminance(c2)
+        return (maxOf(l1, l2) + 0.05) / (minOf(l1, l2) + 0.05)
+    }
+
     /** Every number and label on the page clears WCAG AA 4.5:1 against bg/page in both themes. */
     @Test
     fun wcagContrastOnPage() {
-        fun luminance(color: Color): Double {
-            fun channel(c: Float): Double = if (c <= 0.03928f) (c / 12.92).toDouble() else Math.pow(((c + 0.055) / 1.055).toDouble(), 2.4)
-            return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue)
-        }
-
-        fun contrast(c1: Color, c2: Color): Double {
-            val l1 = luminance(c1)
-            val l2 = luminance(c2)
-            return (maxOf(l1, l2) + 0.05) / (minOf(l1, l2) + 0.05)
-        }
-
         fun check(c: AeroColors) {
             assertThat(contrast(c.textPrimary, c.bgPage)).isAtLeast(10.0)
             listOf(c.textMuted, c.textDim, c.accentDefault, c.statusBad, c.statusGood, c.macroProtein, c.macroCarbs, c.macroFat)
@@ -39,6 +40,19 @@ class TokensTest {
         }
         check(AeroDarkColors)
         check(AeroLightColors)
+    }
+
+    /**
+     * text/dim clears 4.5:1 on the backgrounds it really sits on (D21): the page gradient from bg/mid down,
+     * surface/2, and in Light the chat bubbles over the top of the gradient. Dark over bg/top is not asserted (A63).
+     */
+    @Test
+    fun textDimContrastOnRealBackgrounds() {
+        for (c in listOf(AeroDarkColors, AeroLightColors)) {
+            listOf(c.bgPage, c.surface2, c.bgMid).forEach { assertThat(contrast(c.textDim, it)).isAtLeast(4.5) }
+        }
+        val l = AeroLightColors
+        listOf(l.surfaceTint, l.surfaceGlass).forEach { assertThat(contrast(l.textDim, it.compositeOver(l.bgTop))).isAtLeast(4.5) }
     }
 
     @Test

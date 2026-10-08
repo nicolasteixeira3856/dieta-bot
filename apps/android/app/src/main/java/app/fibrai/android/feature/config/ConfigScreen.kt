@@ -181,7 +181,7 @@ private fun ConfigHeader(onBack: () -> Unit) {
     }
 }
 
-/** A block: Label/Section in text/muted (an optional Caption on the right), then the group 12 dp below. */
+/** A block: Label/Section in text/muted (an optional Caption in text/dim on the right), then the group 12 dp below. */
 @Composable
 private fun Block(label: String, trailing: String? = null, content: @Composable ColumnScope.() -> Unit) {
     val c = Aero.colors
@@ -190,7 +190,7 @@ private fun Block(label: String, trailing: String? = null, content: @Composable 
         // 16 dp for the label alone, 18 with the Caption (cfgS).
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             AeroText(AeroTextTokens.labelSection.cased(label), style = type.labelSection.copy(color = c.textMuted))
-            if (trailing != null) AeroText(trailing, style = type.caption.copy(color = c.textMuted), maxLines = 1)
+            if (trailing != null) AeroText(trailing, style = type.caption.copy(color = c.textDim), maxLines = 1)
         }
         content()
     }
