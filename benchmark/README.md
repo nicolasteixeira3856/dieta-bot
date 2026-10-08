@@ -48,6 +48,8 @@ benchmark/
   judge.py                    juiz LLM sobre um results.jsonl
   report.py                   agrega resultados e julgamentos em report-<stamp>.md
   rescore.py                  reavalia um results.jsonl com o scoring e os casos atuais, sem chamada
+  judge_export.py             exporta os julgamentos como arquivos para um agente (Codex) julgar
+  judge_import.py             valida e junta os vereditos do agente num judge-<stamp>-codex.jsonl
   RESULTADOS_08_10_2026.md    resultados e veredito da primeira execução
   judge/                      rubrica e schema do juiz
   media/                      fotos (não versionadas) para os 10 casos com imagem
@@ -122,6 +124,8 @@ python benchmark/report.py benchmark/out/results-<stamp>.jsonl benchmark/out/jud
 ```
 
 Depois de corrigir uma checagem ou uma expectativa, `python benchmark/rescore.py benchmark/out/results-<stamp>.jsonl` reavalia o arquivo com o `scoring.py` e os `cases/` atuais sem nova chamada (gera `-rescored.jsonl`, uma linha por braço × caso × repetição, descartando as linhas de erro que um `--resume` substituiu). O juiz aceita `--resume` para continuar um arquivo `judge-<stamp>.jsonl` interrompido.
+
+Juiz por agente em vez de API (decisão do owner em 08/10/2026, para usar a assinatura e não a tarifa do astra): `python benchmark/judge_export.py benchmark/out/results-<stamp>-rescored.jsonl` grava um `.md` por resposta em `out/judge-jobs/` (rubrica inteira + a mesma entrada do `judge.py`, foto ao lado quando há), com id opaco; o mapa id → braço fica fora da pasta, para o juiz seguir cego. O agente escreve `<id>.json` no formato de `judge/judge_schema.json`; `python benchmark/judge_import.py <stamp>` valida e junta tudo em `out/judge-<stamp>-codex.jsonl` para o `report.py`.
 
 Requisitos: `OPENAI_API_KEY` no ambiente ou no `.env` da raiz (lido por `server/config.load_settings`, como os evals do server; nunca impresso), `openai` e `pydantic` instalados (os do server), `Pillow` opcional para as fotos. `out/` é ignorado pelo git.
 
