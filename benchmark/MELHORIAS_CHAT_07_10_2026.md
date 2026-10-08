@@ -1433,7 +1433,7 @@ Depois do benchmark (`RESULTADOS_08_10_2026.md`, nesta pasta) o owner decidiu `r
 | 2 | — | `docs/android/plans/a64-chat-context-fields-day-balance.md` |
 | 3 | ADR-049 | `docs/content-policy/plans/cp10-workout-in-scope-and-skip-boundary.md`, `docs/server/plans/s35-workout-via-chat.md`, `docs/android/plans/a65-workout-via-chat.md` |
 | 4 | ADR-050 | `docs/server/plans/s36-typed-actions.md`, `docs/android/plans/a66-typed-actions-batch.md` |
-| 5 | ADR-051 | `docs/server/plans/s37-plan-options-and-discovery.md`, `docs/android/plans/a67-plan-options-and-discovery.md` (gold `chatO` por D25, a abrir) |
+| 5 | ADR-051 | `docs/server/plans/s37-plan-options-and-discovery.md`, `docs/design/plans/d25-release-2-plan-options.md`, `docs/android/plans/a67-plan-options-and-discovery.md` |
 | 6 | ADR-052 | `docs/design/plans/d23-release-2-recipes.md`, `docs/server/plans/s38-saved-recipes.md`, `docs/android/plans/a68-saved-recipes.md` |
 | 7 | ADR-053 | `docs/design/plans/d24-release-2-visible-memory.md`, `docs/android/plans/a69-visible-memory.md`; O6 e A56 continuam condicionais |
 
