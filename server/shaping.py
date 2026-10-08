@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from collections.abc import Iterable
@@ -348,18 +349,29 @@ def _memory_updates(
         text = update.get("text").strip() if isinstance(update.get("text"), str) else ""
         if not key or not text:
             continue
-        out.append(
-            {
-                "op": op,
-                "id": fact_id,
-                "kind": kind,
-                "category": category,
-                "key": key[:FACT_KEY_MAX],
-                "text": text[:FACT_TEXT_MAX],
-                "slot": slot if category == "routine" else None,
-            }
-        )
+        shaped = {
+            "op": op,
+            "id": fact_id,
+            "kind": kind,
+            "category": category,
+            "key": key[:FACT_KEY_MAX],
+            "text": text[:FACT_TEXT_MAX],
+            "slot": slot if category == "routine" else None,
+        }
+        if category == "routine":
+            shaped.update(_routine_macros(update))
+        out.append(shaped)
     return out
+
+
+def _routine_macros(update: dict[str, Any]) -> dict[str, int]:
+    """S33: a routine proposal's kcal, p, c and g, whole numbers; all four finite and nonnegative or none."""
+    values = [update.get(k) for k in ("kcal", "p", "c", "g")]
+    if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 for v in values):
+        return {}
+    if values[0] <= 0:
+        return {}
+    return {k: int(round(v)) for k, v in zip(("kcal", "p", "c", "g"), values)}
 
 
 def _memory_used(raw: Any, known_facts: set[str]) -> list[str]:

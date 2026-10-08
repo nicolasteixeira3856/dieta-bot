@@ -1,0 +1,159 @@
+{
+  "id": "s33-duro-semana-lacuna",
+  "since": "meal_changes",
+  "tags": [
+    "s33"
+  ],
+  "request": {
+    "local_time": "2026-10-15T21:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "duro"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1050,
+      "eaten_p": 50,
+      "eaten_c": 125,
+      "eaten_g": 35,
+      "workout_kcal": null,
+      "remaining_kcal": 850,
+      "slots": [
+        {
+          "id": "c",
+          "status": "eaten",
+          "text": "iogurte com granola",
+          "kcal": 300,
+          "p": 12,
+          "c": 40,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "prato feito",
+          "kcal": 750,
+          "p": 38,
+          "c": 85,
+          "g": 26
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "jantei 2 fatias de pizza de calabresa",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "recent_days": [
+      {
+        "date": "2026-10-09",
+        "recorded": true,
+        "kcal": 2350,
+        "p": 98,
+        "c": 260,
+        "g": 95,
+        "ceiling_kcal": 1900,
+        "over_slot": "j",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-10",
+        "recorded": false,
+        "ceiling_kcal": 1900
+      },
+      {
+        "date": "2026-10-11",
+        "recorded": true,
+        "kcal": 1250,
+        "p": 70,
+        "c": 140,
+        "g": 40,
+        "ceiling_kcal": 1900,
+        "missing_slots": [
+          "l",
+          "j"
+        ]
+      },
+      {
+        "date": "2026-10-13",
+        "recorded": true,
+        "kcal": 2210,
+        "p": 104,
+        "c": 230,
+        "g": 88,
+        "ceiling_kcal": 1900,
+        "over_slot": "j",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-14",
+        "recorded": true,
+        "kcal": 1820,
+        "p": 121,
+        "c": 190,
+        "g": 60,
+        "ceiling_kcal": 1900,
+        "missing_slots": []
+      }
+    ]
+  },
+  "expect": {
+    "intent": "log",
+    "estimate": "present",
+    "suggested_slot": "j",
+    "reply_any": [
+      "sexta",
+      "terça",
+      "terca"
+    ],
+    "reply_not": [
+      "abaixo do teto",
+      "domingo ficou abaixo",
+      "sábado ficou abaixo"
+    ],
+    "refusal": "none"
+  }
+}

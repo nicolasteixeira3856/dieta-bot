@@ -22,6 +22,8 @@ FLOOR_PCT = 30
 MIN_ROOM_KCAL = 60
 MAX_GRAMS = 150
 MAX_FOODS = 2
+# S33: a plan of one food under this many kcal answers "posso adicionar X?" with that food alone: not a dish.
+MIN_DISH_KCAL = 150
 
 
 @dataclass(frozen=True)
@@ -86,6 +88,8 @@ def apply(payload: Any, window_kcal: int | None, remaining_p: int | None) -> dic
     if kcal is None or p is None or kcal <= 0:
         return None
     if p >= floor_p(remaining_p):
+        return None
+    if len(estimate.get("items") or []) == 1 and kcal < MIN_DISH_KCAL:
         return None
     room = window_kcal - kcal
     gap = remaining_p - p

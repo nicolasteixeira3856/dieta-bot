@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: `PromptBuilder` (facts macros, `recent_days`), the receipt composable (balance line), `FactMemory` application ("Anotado: …"), the Chat waiting state, unit tests, captures.
-- Prerequisites: [S33](../../server/plans/s33-chat-context-effort-low.md) on the dev server (the fields are optional: the app may ship first). Figma gate: none if the balance line and the waiting state fit the current golds (`chatF`, `chatQ`); otherwise a design plan before this one.
+- Prerequisites: [S33](../../server/plans/pending_manual_validation/s33-chat-context-effort-low.md) on the dev server (the fields are optional: the app may ship first). Figma gate: none if the balance line and the waiting state fit the current golds (`chatF`, `chatQ`); otherwise a design plan before this one.
 - Related documentation: [ADR-054](../../server/adrs/ADR-054-chat-reasoning-effort-low.md) (waiting state), [ADR-053](../../produto/adrs/ADR-053-visible-memory-screen.md) § 2 ("Anotado"), [ADR-023](../../produto/adrs/ADR-023-chat-v2-memoria-v2.md), [product Chat](../../produto/specifications/chat.md), [HTTP contract](../../api-contract.md); brainstorm conclusion `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5.4 Plano 2.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a64-chat-context-fields-day-balance.md. Implemente o plano aprovado.`

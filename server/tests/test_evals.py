@@ -89,6 +89,7 @@ class CheckTests(unittest.TestCase):
         output["skip_slots"] = []
         output["digest"] = "Pergunta em aberto: qual leite?"
         output["memory_used"] = ["P9"]
+        output["meal_change"] = {"operation": "add", "base_slot": "1", "addition": None}
         failing = {
             "intent": "log",
             "estimate": "absent",
@@ -116,6 +117,7 @@ class CheckTests(unittest.TestCase):
             "digest_has": ["arroz"],
             "digest_not": ["leite"],
             "meal_change": None,
+            "meal_change_op": ["revise", None],
             "estimate_values": {"kcal": 90},
             "item_portions": {"absent": 70},
             "memory_used_only": ["P1"],
@@ -277,6 +279,16 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(case_status([NA, NA, NA]), NA)
 
 
+class MealChangeOpTests(unittest.TestCase):
+    def test_accepted_operations_and_null(self) -> None:
+        from evals.checks import evaluate
+        want = {"meal_change_op": ["revise", None]}
+        self.assertEqual(evaluate(want, {"meal_change": None})["meal_change_op"]["status"], PASS)
+        self.assertEqual(evaluate(want, {"meal_change": {"operation": "revise"}})["meal_change_op"]["status"], PASS)
+        self.assertEqual(evaluate(want, {"meal_change": {"operation": "add"}})["meal_change_op"]["status"], FAIL)
+        self.assertEqual(evaluate(want, {"reply": "x"})["meal_change_op"]["status"], NA)
+
+
 class CaseFileTests(unittest.TestCase):
     def test_every_case_is_valid(self) -> None:
         cases = run.load_cases()
@@ -404,7 +416,7 @@ class RunTests(unittest.TestCase):
         self.assertIn("error", case["failed_checks"])
         self.assertNotIn(FAKE_KEY, json.dumps(report))
 
-    def test_default_effort_of_the_route_stays_none(self) -> None:
+    def test_default_effort_of_the_chat_route_is_low(self) -> None:
         seen: list[dict[str, Any]] = []
 
         def handler(request: httpx2.Request) -> httpx2.Response:
@@ -414,9 +426,12 @@ class RunTests(unittest.TestCase):
         llm = run.LlmClient(api_key=FAKE_KEY, transport=httpx2.MockTransport(handler))
         try:
             llm.chat_json(user_text="oi", image_b64=None, slot_ids=["1"])
+            llm.digest_json(history_text="user: oi")
         finally:
             llm.close()
-        self.assertEqual(seen[0]["reasoning"], {"effort": "none"})
+        # ADR-054: the Chat generation runs at low; compaction keeps none.
+        self.assertEqual(seen[0]["reasoning"], {"effort": "low"})
+        self.assertEqual(seen[1]["reasoning"], {"effort": "none"})
 
     def test_compact_eval_uses_digest_schema_and_moderation_failure_path(self) -> None:
         case = next(c for c in run.load_cases() if c["id"] == "digest-pergunta-aberta")

@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: `chat_instructions.py` (the ACTIONS rule and the rewrite of `intent`/`skip_slots`/`meal_changes` references), `llm.py` schema (`actions[]`, strict, 1–6), `shaping.py` (per action), `main.py` (arithmetic, window, boost, closing per action), dev log, `evals/` (checks and cases in the actions shape), tests.
 - Related documentation: [ADR-050](../../produto/adrs/ADR-050-typed-actions-per-message.md) (accepted with this plan), ADR-028/032/042/043/047, [v1-chat](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md); target schema `benchmark/prompts/new_schema.json`, rule text `benchmark/prompts/new_instructions.py` (`actions`); benchmark [results](../../../benchmark/RESULTADOS_08_10_2026.md) family `multi`.
-- Prerequisites: [S33](s33-chat-context-effort-low.md), [S34](s34-protein-boost-hybrid.md), [S35](s35-workout-via-chat.md) delivered.
+- Prerequisites: [S33](pending_manual_validation/s33-chat-context-effort-low.md), [S34](s34-protein-boost-hybrid.md), [S35](s35-workout-via-chat.md) delivered.
 
 Approving this plan accepts ADR-050. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s36-typed-actions.md. Implemente o plano aprovado.`
 

@@ -74,3 +74,11 @@ def test_grams_step_and_caps():
     assert pb._grams(chicken, room_kcal=30, gap_p=100) == 0
     egg = pb.FOODS[1]
     assert pb._grams(egg, room_kcal=200, gap_p=10) == 50  # 10 g of protein is 76 g of egg -> one 50 g egg
+
+
+def test_one_small_food_added_to_a_stated_dish_is_not_a_dish():
+    # S33 ONE ITEM: "posso pôr uma colher de azeite?" is answered with the oil alone; no boost on it.
+    payload = plan(kcal=119, p=0, c=0, g=13, text='13 g de azeite', items=[dict(name='azeite', g=13, kcal=119)])
+    assert pb.apply(payload, window_kcal=700, remaining_p=80) is None
+    single_dish = plan(kcal=320, p=8, text='1 tapioca com coco', items=[dict(name='tapioca com coco', g=120, kcal=320)])
+    assert pb.apply(single_dish, window_kcal=700, remaining_p=80) is not None

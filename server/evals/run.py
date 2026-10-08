@@ -2,7 +2,7 @@
 
 Inside server/, with the .venv:
 
-    python -m evals.run --effort none low --repeat 3 [--only id,...] [--tag tag] [--moderation cp2|all|none]
+    python -m evals.run [--effort low] --repeat 1 [--only id,...] [--tag tag] [--moderation cp2|all|none]
 
 Same orchestration as the route (main.chat_reply: moderation, generation, scope, shaping,
 output moderation; CP2), no HTTP. The provider's moderation endpoint has a daily request cap per
@@ -400,7 +400,7 @@ def write_report(report: dict[str, Any], directory: Path = REPORT_DIR) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m evals.run")
-    parser.add_argument("--effort", nargs="+", default=["none"], choices=EFFORTS)
+    parser.add_argument("--effort", nargs="+", default=["low"], choices=EFFORTS)
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--only", help="comma-separated case ids")
     parser.add_argument("--tag", action="append", help="run cases with this tag (repeatable)")

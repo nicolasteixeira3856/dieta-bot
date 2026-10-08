@@ -1,0 +1,97 @@
+{
+  "id": "s33-esqueci-item-registrado",
+  "since": "meal_changes",
+  "tags": [
+    "s33"
+  ],
+  "request": {
+    "local_time": "2026-10-15T10:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 395,
+      "eaten_p": 18,
+      "eaten_c": 45,
+      "eaten_g": 15,
+      "workout_kcal": null,
+      "remaining_kcal": 1505,
+      "slots": [
+        {
+          "id": "c",
+          "status": "eaten",
+          "text": "1 cuscuz de milho de 120 g com 1 ovo e 1 fatia de queijo coalho",
+          "kcal": 395,
+          "p": 18,
+          "c": 45,
+          "g": 15
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "esqueci de dizer que no café teve o queijo coalho",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true
+  },
+  "expect": {
+    "meal_change_op": [
+      "revise",
+      null
+    ],
+    "reply_not": [
+      "+"
+    ],
+    "refusal": "none"
+  },
+  "note": "A food already in the record is never an add: a revise with the same totals or the reaffirmation answer."
+}
