@@ -58,6 +58,8 @@ KNOWN = (
     "actions",
     "actions_order",
     "options",
+    "recipe_id",
+    "recipe",
     "estimate_values",
     "item_portions",
     "memory_used_only",
@@ -352,6 +354,18 @@ def _check(
         got = output["options"]
         count = len(got) if isinstance(got, list) else 0
         return _result(count == int(want or 0), f"{count} options")
+    if key == "recipe_id":
+        # S38: the saved recipe an action names (null for none). NA when the field is missing.
+        if "recipe_id" not in output:
+            return _na("no recipe_id in output")
+        return _result(output["recipe_id"] == want, f"got {output['recipe_id']}")
+    if key == "recipe":
+        # S38: present/absent recipe structure of a cooking plan (name, ingredients, steps).
+        if "recipe" not in output:
+            return _na("no recipe in output")
+        got = output["recipe"]
+        present = isinstance(got, dict) and bool(got.get("ingredients")) and bool(got.get("name"))
+        return _result(("present" if present else "absent") == want, f"got {'present' if present else 'absent'}")
     if key == "workout":
         # S35 (ADR-049): null, or {kcal, mode} exactly; a "kcal" list accepts a range. NA without the field.
         if "workout" not in output:
@@ -624,7 +638,7 @@ ACTION_KEYS = (
     "type", "estimate", "meal_progress", "confidence", "suggested_slot", "kcal_range", "meal_text_has",
     "meal_text_not", "question", "question_not", "top_question", "top_question_not", "record", "skip_slot",
     "meal_change", "meal_change_op", "estimate_values", "item_portions", "items_beyond", "plan_budget",
-    "estimate_min", "workout", "slot", "options",
+    "estimate_min", "workout", "slot", "options", "recipe_id", "recipe",
 )
 _ACTION_INTENT = {"log": "log", "plan": "plan", "skip": "skip"}
 
@@ -642,6 +656,8 @@ def action_view(action: dict[str, Any], output: dict[str, Any]) -> dict[str, Any
         "workout": action.get("workout"),
         "plan_budget": action.get("plan_budget"),
         "options": action.get("options"),
+        "recipe_id": action.get("recipe_id"),
+        "recipe": action.get("recipe"),
         "skip_slot": slot if kind == "skip" else None,
         "skip_slots": [slot] if kind == "skip" and slot is not None else [],
     }

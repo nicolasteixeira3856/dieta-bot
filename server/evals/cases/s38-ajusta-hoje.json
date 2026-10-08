@@ -1,0 +1,196 @@
+{
+  "id": "s38-ajusta-hoje",
+  "since": "meal_changes",
+  "tags": [
+    "s38"
+  ],
+  "request": {
+    "local_time": "2026-10-15T19:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1020,
+      "eaten_p": 50,
+      "eaten_c": 130,
+      "eaten_g": 31,
+      "workout_kcal": null,
+      "remaining_kcal": 880,
+      "slots": [
+        {
+          "id": "c",
+          "status": "eaten",
+          "text": "café com leite e 1 pão",
+          "kcal": 320,
+          "p": 12,
+          "c": 45,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "arroz, feijão e carne",
+          "kcal": 700,
+          "p": 38,
+          "c": 85,
+          "g": 22
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "manda o escondidinho de frango ajustado pra caber no jantar de hoje",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true,
+    "recipes": [
+      {
+        "id": "R1",
+        "name": "Omelete de forno com espinafre",
+        "kcal": 380,
+        "p": 30,
+        "c": 8,
+        "g": 25,
+        "key_foods": [
+          "ovos",
+          "espinafre",
+          "queijo minas"
+        ]
+      },
+      {
+        "id": "R2",
+        "name": "Escondidinho de frango",
+        "kcal": 540,
+        "p": 40,
+        "c": 55,
+        "g": 17,
+        "key_foods": [
+          "mandioca",
+          "frango desfiado",
+          "requeijão light"
+        ]
+      },
+      {
+        "id": "R3",
+        "name": "Escondidinho de carne seca",
+        "kcal": 610,
+        "p": 38,
+        "c": 52,
+        "g": 27,
+        "key_foods": [
+          "mandioca",
+          "carne seca",
+          "queijo coalho"
+        ]
+      },
+      {
+        "id": "R4",
+        "name": "Salada de grão-de-bico",
+        "kcal": 410,
+        "p": 18,
+        "c": 50,
+        "g": 15,
+        "key_foods": [
+          "grão-de-bico",
+          "tomate",
+          "pepino"
+        ]
+      }
+    ],
+    "recipe_full": {
+      "id": "R2",
+      "name": "Escondidinho de frango",
+      "kcal": 540,
+      "p": 40,
+      "c": 55,
+      "g": 17,
+      "key_foods": [
+        "mandioca",
+        "frango desfiado",
+        "requeijão light"
+      ],
+      "ingredients": [
+        {
+          "name": "mandioca cozida",
+          "g": 200,
+          "kcal": 250
+        },
+        {
+          "name": "frango desfiado",
+          "g": 120,
+          "kcal": 190
+        },
+        {
+          "name": "requeijão light",
+          "g": 40,
+          "kcal": 70
+        },
+        {
+          "name": "cebola e alho",
+          "g": 30,
+          "kcal": 30
+        }
+      ],
+      "steps": [
+        "Amasse a mandioca.",
+        "Monte em camadas com o frango.",
+        "Leve ao forno 15 min a 200 °C."
+      ]
+    }
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "recipe_id": "R2",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

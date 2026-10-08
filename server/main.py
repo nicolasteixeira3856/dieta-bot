@@ -44,6 +44,13 @@ from config import (
     FACT_KCAL_MAX,
     RECENT_DAYS_MAX,
     RECENT_MAX,
+    RECIPE_FOOD_MAX,
+    RECIPE_INGREDIENTS_MAX,
+    RECIPE_KEY_FOODS_MAX,
+    RECIPE_NAME_MAX,
+    RECIPE_STEP_MAX,
+    RECIPE_STEPS_MAX,
+    RECIPES_MAX,
     RECENT_TEXT_MAX,
     load_settings,
 )
@@ -95,6 +102,7 @@ from shaping import (
     refuse_chat,
     shape_chat,
     shape_options,
+    shape_recipe,
     shape_workout,
     shape_digest,
     shape_estimate,
@@ -263,6 +271,45 @@ class RecentDayIn(BaseModel):
     missing_slots: list[str] = Field(default_factory=list, max_length=12)
 
 
+class RecipeIn(BaseModel):
+    """One saved recipe of the index (S38, ADR-052): name, totals and up to three key foods."""
+
+    id: str = Field(..., pattern=r"^R[0-9]{1,4}$")
+    name: str = Field(..., min_length=1, max_length=RECIPE_NAME_MAX)
+    kcal: float = Field(..., ge=0, le=FACT_KCAL_MAX)
+    p: float = Field(..., ge=0, le=FACT_GRAMS_MAX)
+    c: float = Field(..., ge=0, le=FACT_GRAMS_MAX)
+    g: float = Field(..., ge=0, le=FACT_GRAMS_MAX)
+    key_foods: list[str] = Field(default_factory=list, max_length=RECIPE_KEY_FOODS_MAX)
+
+    @field_validator("key_foods")
+    @classmethod
+    def _foods(cls, value: list[str]) -> list[str]:
+        if any(not isinstance(f, str) or not f.strip() or len(f) > RECIPE_FOOD_MAX for f in value):
+            raise ValueError("key food must be 1-40 characters")
+        return value
+
+
+class RecipeIngredientIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=RECIPE_FOOD_MAX)
+    g: float = Field(..., gt=0, le=FACT_GRAMS_MAX * 5)
+    kcal: float = Field(..., ge=0, le=FACT_KCAL_MAX)
+
+
+class RecipeFullIn(RecipeIn):
+    """The one saved recipe the message names (S38): its ingredients and steps."""
+
+    ingredients: list[RecipeIngredientIn] = Field(..., min_length=1, max_length=RECIPE_INGREDIENTS_MAX)
+    steps: list[str] = Field(default_factory=list, max_length=RECIPE_STEPS_MAX)
+
+    @field_validator("steps")
+    @classmethod
+    def _steps(cls, value: list[str]) -> list[str]:
+        if any(not isinstance(s, str) or len(s) > RECIPE_STEP_MAX for s in value):
+            raise ValueError("step too long")
+        return value
+
+
 class ChatIn(BaseModel):
     local_time: str | None = None
     profile: ProfileIn
@@ -298,6 +345,9 @@ class ChatIn(BaseModel):
     actions: bool = Field(default=False, strict=True)
     # ADR-051 (S37): the first Chat opening with an empty memory (DISCOVERY: first_open in the input).
     discovery: bool = Field(default=False, strict=True)
+    # ADR-052 (S38): the saved-recipe index on every turn, the full recipe only when the message names one.
+    recipes: list[RecipeIn] = Field(default_factory=list, max_length=RECIPES_MAX)
+    recipe_full: RecipeFullIn | None = None
     fit_kcal: int | None = Field(default=None, strict=True, ge=1, le=budgets.FIT_KCAL_MAX)
 
     @model_validator(mode="before")
@@ -360,6 +410,11 @@ class ChatIn(BaseModel):
         for day in self.recent_days:
             if (day.over_slot is not None and day.over_slot not in slot_ids) or not set(day.missing_slots) <= slot_ids:
                 raise ValueError("recent day slot not in profile")
+        ids = [r.id for r in self.recipes]
+        if len(set(ids)) != len(ids):
+            raise ValueError("duplicate recipe ids")
+        if self.recipe_full is not None and self.recipe_full.id not in ids:
+            raise ValueError("recipe_full must be in recipes")
         return self
 
     @property
@@ -944,6 +999,7 @@ def chat_reply(
                 trace=record,
                 timeout=timeout,
                 safety_identifier=safety_identifier,
+                recipe_ids=[r.id for r in body.recipes],
             )
 
         if body.meal_changes:
@@ -989,6 +1045,7 @@ def chat_reply(
         for action in listed:
             view = actions.view(payload, action, reply=reply, first=False)
             resums.append(estimate_total.apply_turn(view, _record_totals(body)))
+            _copy_recipe(body, action)
             for option in action.get("options") or []:
                 if isinstance(option, dict):
                     estimate_total.apply(option.get("estimate"))
@@ -1104,6 +1161,8 @@ def chat_reply(
                 result["workout"] = shape_workout(view)
             if action["type"] == "plan":
                 result["options"] = shape_options(action.get("options"), slot_ids)
+                result["recipe"] = shape_recipe(action.get("recipe"))
+            result["recipe_id"] = _recipe_id(body, action)
             differences.append(_plan_difference(day_body, view, result))
             if result.get("intent") == "plan" and result.get("estimate"):
                 window = _meal_window(day_body, view)
@@ -1128,8 +1187,8 @@ def chat_reply(
         if body.skip_slots:
             own = (legacy.get("estimate") or {}).get("suggested_slot") if legacy.get("intent") == "log" else None
             legacy["skip_slots"] = [a["slot"] for a, *_ in shaped if a["type"] == "skip" and a["slot"] != own]
-        legacy.pop("workout", None)
-        legacy.pop("options", None)
+        for key in ("workout", "options", "recipe", "recipe_id"):
+            legacy.pop(key, None)
         if body.workout:
             legacy["workout"] = next((r["workout"] for a, _, r, *_ in shaped if a["type"] == "workout"), None)
             if (legacy["workout"] and legacy.get("estimate") is None and not legacy.get("question")
@@ -1232,7 +1291,8 @@ def _action_out(action: dict[str, Any], result: dict[str, Any], fields: dict[str
         "meal_day": fields.get("meal_day"),
         "meal_change": result.get("meal_change") if kind == "log" else None,
         "workout": result.get("workout") if kind == "workout" else None,
-        "recipe_id": None,
+        "recipe_id": result.get("recipe_id"),
+        "recipe": result.get("recipe") if kind == "plan" else None,
         "options": result.get("options") if kind == "plan" else None,
         "plan_budget": result.get("plan_budget") if kind == "plan" else None,
     }
@@ -1418,11 +1478,39 @@ def shape_chat_turn(
 
 
 def _record_totals(body: ChatIn) -> frozenset[float]:
-    """kcal of the supplied records: a model total equal to one of them is a copy and stays (ADR-042)."""
+    """kcal of the supplied records and saved recipes: a model total equal to one of them is a copy (ADR-042)."""
     return frozenset(
         [float(m.kcal) for m in body.recent]
         + [float(s.kcal) for s in body.day.slots if s.kcal is not None and s.status == "eaten"]
+        + [float(r.kcal) for r in body.recipes]
     )
+
+
+def _recipe_id(body: ChatIn, action: dict[str, Any]) -> str | None:
+    """S38: the action's recipe id when it is a saved recipe of this request, else None."""
+    rid = action.get("recipe_id")
+    return rid if rid in {r.id for r in body.recipes} and action.get("type") in ("log", "plan", "recipe_recall") else None
+
+
+def _copy_recipe(body: ChatIn, action: dict[str, Any]) -> None:
+    """ADR-052 decision 4: a log of a saved recipe with no stated change (confidence high) copies the recipe's
+    numbers, never a re-estimate. Like any copied record (S28) it keeps the totals with no items; meal_text
+    names the recipe and its ingredients (RECIPE_FULL) or key foods (RECIPES line)."""
+    rid = _recipe_id(body, action)
+    estimate = action.get("estimate")
+    if action.get("type") != "log" or rid is None or not isinstance(estimate, dict):
+        return
+    if estimate.get("confidence") != "high":
+        return
+    recipe = body.recipe_full if body.recipe_full is not None and body.recipe_full.id == rid else next(
+        r for r in body.recipes if r.id == rid)
+    estimate.update(kcal=meal_window.rounded(recipe.kcal), p=meal_window.rounded(recipe.p),
+                    c=meal_window.rounded(recipe.c), g=meal_window.rounded(recipe.g))
+    ingredients = getattr(recipe, "ingredients", None) or []
+    estimate["items"] = []
+    if not str(estimate.get("meal_text") or "").strip():
+        foods = [i.name for i in ingredients] or list(getattr(recipe, "key_foods", []))
+        estimate["meal_text"] = f"{recipe.name}: {', '.join(foods)}" if foods else recipe.name
 
 
 def _summed(record: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
@@ -1673,6 +1761,8 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
     if body.recent_days:
         lines.extend(_recent_days_lines(body))
 
+    lines.extend(_recipe_lines(body))
+
     lines.extend(_copy_source_lines(body))
 
     day_slots = ", ".join(_day_slot(s) for s in body.day.slots)
@@ -1779,6 +1869,27 @@ def _recent_days_lines(body: ChatIn) -> list[str]:
             f"{head}: {_num(day.kcal)} kcal de {_num(day.ceiling_kcal)} · P {_num(day.p)} · C {_num(day.c)} "
             f"· G {_num(day.g)} · registrado{over} · sem registro em: {missing}"
         )
+    return lines
+
+
+def _recipe_head(recipe: RecipeIn) -> str:
+    return (f"{recipe.id} {recipe.name} · {_num(recipe.kcal)} kcal · P {_num(recipe.p)} · C {_num(recipe.c)} "
+            f"· G {_num(recipe.g)}")
+
+
+def _recipe_lines(body: ChatIn) -> list[str]:
+    """S38 (ADR-052): RECIPES (index: names, totals, key foods) and, when sent, RECIPE_FULL (one recipe)."""
+    lines: list[str] = []
+    if body.recipes:
+        lines.append("RECIPES:")
+        lines.extend(_recipe_head(r) + (f" · {', '.join(r.key_foods)}" if r.key_foods else "") for r in body.recipes)
+    full = body.recipe_full
+    if full is not None:
+        lines.append("RECIPE_FULL:")
+        lines.append(_recipe_head(full))
+        lines.append("ingredientes: " + "; ".join(f"{i.name} {_num(i.g)} g ({_num(i.kcal)} kcal)" for i in full.ingredients))
+        if full.steps:
+            lines.append("passos: " + " ".join(f"{n}. {s}" for n, s in enumerate(full.steps, start=1)))
     return lines
 
 

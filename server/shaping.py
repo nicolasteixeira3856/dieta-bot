@@ -21,6 +21,11 @@ from config import (
     MEMORY_UPDATES_MAX,
     MEMORY_USED_MAX,
     MODEL,
+    RECIPE_FOOD_MAX,
+    RECIPE_INGREDIENTS_MAX,
+    RECIPE_NAME_MAX,
+    RECIPE_STEP_MAX,
+    RECIPE_STEPS_MAX,
     RECORD_INTENTS,
 )
 from moderation import (
@@ -269,6 +274,32 @@ def shape_chat(
         "digest": digest,
         "model": MODEL,
     }
+
+
+def shape_recipe(raw: Any) -> dict[str, Any] | None:
+    """S38 (ADR-052): {name, ingredients[{name, g, kcal}], steps[]} of a cooking plan, bounded; else None."""
+    if not isinstance(raw, dict):
+        return None
+    name = " ".join(str(raw.get("name") or "").split())[:RECIPE_NAME_MAX]
+    ingredients = []
+    for item in raw.get("ingredients") or []:
+        if not isinstance(item, dict) or len(ingredients) == RECIPE_INGREDIENTS_MAX:
+            continue
+        label = " ".join(str(item.get("name") or "").split())[:RECIPE_FOOD_MAX]
+        grams, kcal = item.get("g"), item.get("kcal")
+        if (not label or isinstance(grams, bool) or not isinstance(grams, (int, float)) or not math.isfinite(grams)
+                or grams <= 0 or isinstance(kcal, bool) or not isinstance(kcal, (int, float))
+                or not math.isfinite(kcal) or kcal < 0):
+            continue
+        ingredients.append({"name": label, "g": _grams_number(grams), "kcal": int(round(kcal))})
+    steps = [" ".join(str(s).split())[:RECIPE_STEP_MAX] for s in raw.get("steps") or [] if str(s).strip()]
+    if not name or not ingredients:
+        return None
+    return {"name": name, "ingredients": ingredients, "steps": steps[:RECIPE_STEPS_MAX]}
+
+
+def _grams_number(value: float) -> float | int:
+    return int(value) if float(value).is_integer() else round(float(value), 1)
 
 
 def shape_options(raw: Any, valid_slot_ids: Iterable[str]) -> list[dict[str, Any]] | None:

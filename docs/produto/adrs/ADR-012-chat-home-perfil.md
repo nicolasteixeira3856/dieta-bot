@@ -1,6 +1,6 @@
 # ADR-012 — Chat é tela; Home é contador; perfil nomeado
 
-- Estado: Aceito (em vigor desde os planos A0–A5 e A12, concluídos; registrado em 30/09/2026); parcialmente substituído pelo [ADR-017](ADR-017-registro-consolidado.md) (regra 5), [ADR-018](../../android/adrs/ADR-018-foto-2048.md) (regra 7), [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (lista fechada de telas), [ADR-021](ADR-021-refeicoes-por-dia.md) (regra 4) e [ADR-028](ADR-028-registro-autonomo.md) (registro só depois do toque em Gravar)
+- Estado: Aceito (em vigor desde os planos A0–A5 e A12, concluídos; registrado em 30/09/2026); parcialmente substituído pelo [ADR-017](ADR-017-registro-consolidado.md) (regra 5), [ADR-018](../../android/adrs/ADR-018-foto-2048.md) (regra 7), [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (lista fechada de telas), [ADR-021](ADR-021-refeicoes-por-dia.md) (regra 4), [ADR-028](ADR-028-registro-autonomo.md) (registro só depois do toque em Gravar) e [ADR-052](ADR-052-saved-recipes.md) (lista e detalhe de receitas salvas, a partir da Config)
 - Data: 2026-09-25
 - Contexto: `produto`
 - Substitui: parcialmente `AGENTS.md` (Chat sheet, Home com composer, onboarding 2 telas, foto ≤1280 JPEG 70, telas só splash O1 O2 T0 T1 T2 T3, FAB proibido). Não substitui ADR 010 (Room) nem 011 (tap grava). ADR 011 continua para T2/T3 até o plano A5 remover essas rotas.
