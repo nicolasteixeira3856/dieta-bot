@@ -806,8 +806,8 @@ def run_guarded(
     except (ModerationUnavailable, HTTPException):
         raise
     except Exception as exc:
-        _LOG.warning("%s failed: %s", record.get("route"), type(exc).__name__)
         record["error"] = _error_record(exc)
+        _LOG.warning("%s failed: %s %s", record.get("route"), type(exc).__name__, record["error"].get("reason", ""))
         record["fallback"] = "error"
         result = fail()
         record["response"] = result
@@ -1023,12 +1023,22 @@ def _block(reply: str) -> dict[str, Any]:
     raise HTTPException(status_code=400, detail="content_policy_blocked")
 
 
+_SERVER_REASON = re.compile(r"[a-z][a-z0-9 _]{0,79}")
+
+
 def _error_record(exc: Exception) -> dict[str, Any]:
-    """Type and HTTP status only. Raw provider error text is never logged (CP2)."""
+    """Type and HTTP status. Raw provider error text is never logged (CP2).
+
+    S31: a plain ValueError also logs its message when it is one of the server's fixed check strings
+    (lowercase words only); library messages that carry values (quotes, colons) never match.
+    """
     error: dict[str, Any] = {"type": type(exc).__name__}
     status = getattr(exc, "status_code", None)
     if isinstance(status, int):
         error["status"] = status
+    if type(exc) is ValueError and len(exc.args) == 1 and isinstance(exc.args[0], str):
+        if _SERVER_REASON.fullmatch(exc.args[0]):
+            error["reason"] = exc.args[0]
     return error
 
 
