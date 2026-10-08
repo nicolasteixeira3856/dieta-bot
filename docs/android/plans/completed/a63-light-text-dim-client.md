@@ -1,15 +1,15 @@
 # Plan — A63 Light `textDim` in the app
 
-- Status: Aguardando aprovação
+- Status: Concluído (aprovado e implementado 07/10/2026)
 - Date: 07/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` (one line in `ConfigScreen.kt`, `TokensTest`, the Roborazzi baselines in `app/src/test/snapshots/light/`), the Light captures in `docs/qa/android/current/light/`, and the run classes of `tools/contrast-gold.mjs`. No server, no Room, no token value (the values are D21's).
-- Related documentation: [D21](../../design/plans/completed/d21-light-text-dim-contrast.md), [tokens](../../tokens.md), [QA](../../qa/README.md).
+- Related documentation: [D21](../../../design/plans/completed/d21-light-text-dim-contrast.md), [tokens](../../../tokens.md), [QA](../../../qa/README.md).
 - Prerequisites:
-  - [D21](../../design/plans/completed/d21-light-text-dim-contrast.md) `Concluído`: Light `text/dim` `#435463` in Figma, `docs/design/tokens.json` and the Light golds;
-  - [A61](pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged (it is); no parallel Android plan.
+  - [D21](../../../design/plans/completed/d21-light-text-dim-contrast.md) `Concluído`: Light `text/dim` `#435463` in Figma, `docs/design/tokens.json` and the Light golds;
+  - [A61](../pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged (it is); no parallel Android plan.
 
-Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a63-light-text-dim-client.md. Implemente o plano aprovado.`
+Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a63-light-text-dim-client.md. Implemente o plano aprovado.`
 
 ## Objective
 
@@ -58,7 +58,7 @@ Tool: on the Dark captures, `contrast-gold.mjs` classed the skip icon's minus (a
 ## Out of scope
 
 - **Dark `text/dim` near the top of the Chat (finding).** The Dark app captures put the user-bubble time at 4.43–4.49 when the bubble sits right under the header (`chatR`, `chatM`, `chatCP`, `chatG`, `chatRL`, `chatF`). The app's gradient spans the 844 dp screen, while the golds are taller frames, so they never show it (Dark gold worst 4.67). `surfaceTint` over Dark `bgTop` is 4.35. A token value is a design decision: a later design plan, like D21, would set it. A first sizing gives Dark `#87a3bb` (4.64–4.71 on those backgrounds, still dimmer than `text/muted`). Until then the `TokensTest` Dark assertions stop at `bgMid`.
-- Light `text/muted` on the gradient ([D21 finding](../../design/plans/completed/d21-light-text-dim-contrast.md)).
+- Light `text/muted` on the gradient ([D21 finding](../../../design/plans/completed/d21-light-text-dim-contrast.md)).
 - Any other screen, copy or layout change.
 
 ## Validation
@@ -68,8 +68,54 @@ Tool: on the Dark captures, `contrast-gold.mjs` classed the skip icon's minus (a
 3. `node tools/contrast-gold.mjs --theme light --dir docs/qa/android/current/light --ids <the recaptured ids>`: every text run ≥ 4.5, `cfgS` included. With `--hex #546a7d`, 0 text runs left in those ids.
 4. `node tools/diff-gold.mjs` passes on every recaptured id that has a gate. Report-only screens are listed as such.
 5. `node tools/check-docs.mjs` passes.
-6. Test build only if the owner asks for one ([A16](completed/a16-app-distribution.md), `tools/distribute-dev.ps1`, notes under Ajustes).
+6. Test build only if the owner asks for one ([A16](a16-app-distribution.md), `tools/distribute-dev.ps1`, notes under Ajustes).
 
 ## Results
 
-<Filled at Completion: test results, re-recorded baselines, captures and contrast table, diff list.>
+Implemented 07/10/2026 on `android/a63-light-text-dim`. Emulator: AVD `Medium_Phone` (API 36) at gold geometry (780 × 1688, density 320), devDebug against `tools/fake-chat-server.mjs`.
+
+1. **Code.** `ConfigScreen.kt` `Block`: the trailing Caption is `c.textDim`. `TokensTest.textDimContrastOnRealBackgrounds` added; the luminance and contrast helpers moved to class level, shared with `wcagContrastOnPage`.
+2. **Unit tests.** `testDevDebugUnitTest --rerun`: 673 tests, 0 failures, `GoldTest` and the new test included.
+3. **Roborazzi.** `recordRoborazziDevDebug` rewrote 25 files. Kept: the 23 Light baselines that draw `textDim` (`aero/ChatBubble`, `aero/Composer`, `aero/MealCard`, `aero/TimelineNode`, `cfgSlots`, `chatA`, `chatCC`, `chatCP`, `chatD`, `chatE`, `chatF`, `chatG`, `chatM`, `chatQ`, `chatR`, `chatRB`, `chatRK`, `chatRL`, `chatS`, `chatSD`, `chatSK`, `chatU`, `o1e`); every changed pixel has Δ ≤ 26, around the dim ink. Restored: `light/homeW` and `dark/homeW`, whose whole frame moved by Δ ≤ 2 (render noise, no `textDim` change). The `cfgSlots` baseline is the `Todos os dias` state, so it does not show the mode label. `verifyRoborazziDevDebug` then passes, with only Light files in the diff.
+4. **Tool.** `contrast-gold.mjs`: class `line` after `separator`, so the 2 × 2 dots stay separators. The Dark captures' `chatSK` minus (20 × 2 px, 3.66) is now `line`. The gold results are unchanged (Light 249 text runs, worst 4.75; Dark 254, worst 4.65).
+5. **Captures** (all scripts 0 ✗): `capture-home.sh light` 18 ✓; `capture-config.sh light` 49 ✓, `dark` 49 ✓; `capture-onboarding.sh light`; `SCENES=v2` 32 ✓ (`chatS`, `chatM`); `SCENES=a30` 20 ✓ (`chatQ`); `SCENES=a57` 12 ✓ (`chatR`, `chatE`, `chatRK`).
+
+   Changes to Scope 5:
+   - `chatR` and `chatE` are taken from `SCENES=a57`: the `v2` and `a30` scenes send the older plain replies (thread tail 10.14 %, whole screen 6.50 %), while the golds and the committed captures show the formatted reply.
+   - Dark `cfgS` is captured too, because the `Block` change also reaches Dark. The Dark gold paints the label in `text/dim` as well.
+
+   Kept: Light `home0`, `home1`, `homeX`, `homeW`, `cfg`, `cfgS`, `wipe`, `cfgR`, `o1e`, `o3`, `o3s`, `chatS`, `chatR`, `chatM`, `chatQ`, `chatE`, `chatRK`; Dark `cfgS`. The other files the runs touched went back to their committed bytes.
+
+Contrast (`contrast-gold.mjs --theme light --dir docs/qa/android/current/light`, the 17 Light ids):
+
+| Id | Worst `textDim` text | Note |
+|---|---|---|
+| `cfgS` | 4.66 | mode label; 3.77 in `textMuted` before |
+| `homeX` | 4.67 | `{n} Refeições` |
+| `home1` / `home0` | 4.75 / 4.86 | |
+| `chatR`, `chatM`, `chatS`, `chatQ`, `chatE`, `chatRK` | ≥ 5.17 | bubble times, `MICRO & MACRONUTRIENTES` |
+| `o1e` / `o3` | 6.41 / 6.64 | placeholders |
+| `homeW`, `cfg`, `wipe`, `cfgR`, `o3s` | — | no `textDim` text on screen (`homeW`, `wipe`, `cfgR` are behind a scrim) |
+
+58 text runs, 0 under 4.5. With `--hex #546a7d`: 0 text runs left. Dark `cfgS` label: 6.00.
+
+`diff-gold.mjs` (every gate passes):
+
+| Id | Result |
+|---|---|
+| `home0`, `home1`, `homeX` | 0.60 %, 0.81 %, 0.41 % |
+| `homeW` | region 1.14 %, bottom 0.32 %; whole screen report-only |
+| `cfg`, `cfgS` (Light, Dark) | 0.00 % |
+| `wipe`, `cfgR` | dialog 0.21 %, 0.07 % |
+| `o1e`, `o3`, `o3s` | 0.00 %, 0.73 %, 0.74 % |
+| `chatS` | regions 0.00 %, 0.07 %; whole screen report-only |
+| `chatR`, `chatM`, `chatRK` | thread tail 0.25 %, 0.23 %, 0.80 %; whole screen report-only (long thread) |
+| `chatQ` | regions 0.00 %, 1.48 %; whole screen report-only |
+| `chatE` | 0.31 % |
+
+Diff list (capture against gold):
+- **Layout, type size, radius, CTA, macros:** unchanged by this plan; the gates above hold.
+- **Tokens:** `textDim` renders `#435463` in every Light flow. The `cfgS` mode label now matches the gold's `text/dim` in both themes (Light 4.66 on the app gradient, gold 4.95).
+- **Gradient:** the app's backgrounds are a little darker than the gold frames at the same text (`cfgS` `#85d2f3` against the gold's lighter band), because the gradient spans the 844 dp screen. This is the reason the app's worst value (4.66) sits under the golds' (4.75); all values stay ≥ 4.5.
+
+Not run: a test build (the owner did not ask).

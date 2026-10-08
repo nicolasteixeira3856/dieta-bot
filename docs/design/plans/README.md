@@ -128,7 +128,7 @@ Finding: the D20 owner review ([history](completed/)). Order (prerequisites live
 | Step | Plan | Depends on |
 |---|---|---|
 | Design | D21 — Light `text/dim` contrast (Light golds that show `text/dim`, site tokens and phone screens), delivered ([history](completed/)) | D20, A61 merged |
-| Client | [A63](../../android/plans/a63-light-text-dim-client.md) — Light `textDim` in the app: contrast test, `cfgS` mode label, Roborazzi re-record, Light captures | D21 |
+| Client | A63 — Light `textDim` in the app: contrast test, `cfgS` mode label, Roborazzi re-record, Light captures, delivered ([history](../../android/plans/completed/)) | D21 |
 
 ## Fibrai brand follow-up
 

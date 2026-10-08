@@ -7,7 +7,8 @@
 // the ink. Contrast = WCAG 2.x relative luminance of the token's hex against that median.
 //
 // Run classes: `scrim` (an id drawn behind a modal: inactive content), `marker` (square ink box ≥ 40 px: timeline nodes),
-// `separator` (≤ 13 x 13 px: ` · `), `small` (< 25 ink px: icon pieces), else `text`. Only `text` runs are gated:
+// `separator` (≤ 13 x 13 px: ` · `), `line` (otherwise ≤ 4 px wide or tall: icon strokes such as the skip minus, A63),
+// `small` (< 25 ink px: icon pieces), else `text`. Only `text` runs are gated:
 // the exit code is 1 when one is under --min (default 4.5).
 //
 // Usage: node tools/contrast-gold.mjs --token text/dim --theme light [--dir <png folder>] [--ids a,b] [--hex #rrggbb]
@@ -140,6 +141,7 @@ export function classify(id, run) {
   if (SCRIM_IDS.includes(id)) return "scrim";
   if (bw >= 40 && bh >= 40 && Math.abs(bw - bh) <= 4) return "marker";
   if (bw <= 13 && bh <= 13) return "separator";
+  if (bw <= 4 || bh <= 4) return "line";
   if (run.ink < TEXT_INK) return "small";
   return "text";
 }
