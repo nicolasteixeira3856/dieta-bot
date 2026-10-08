@@ -1,0 +1,102 @@
+{
+  "id": "s34-devido-com-folga",
+  "since": "meal_changes",
+  "tags": [
+    "s34"
+  ],
+  "request": {
+    "local_time": "2026-10-15T19:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 950,
+      "eaten_p": 37,
+      "eaten_c": 140,
+      "eaten_g": 28,
+      "workout_kcal": null,
+      "remaining_kcal": 950,
+      "slots": [
+        {
+          "id": "c",
+          "status": "eaten",
+          "text": "café com leite e 1 pão com manteiga",
+          "kcal": 350,
+          "p": 12,
+          "c": 45,
+          "g": 13
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "prato de arroz, feijão e legumes",
+          "kcal": 600,
+          "p": 25,
+          "c": 95,
+          "g": 15
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "vou jantar 2 fatias de pão de forma com requeijão e tomate",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true
+  },
+  "expect": {
+    "intent": "plan",
+    "estimate": "present",
+    "reply_has": [
+      "Para a proteína"
+    ],
+    "meal_text_has": [
+      "(opcional)"
+    ],
+    "refusal": "none"
+  }
+}

@@ -1,6 +1,6 @@
 # ADR-055 — Protein boost of a named dish: the model proposes, the server validates
 
-- Status: Proposed (owner decision of 08/10/2026 after the benchmark: "o reforço de proteína pode utilizar um modelo híbrido para testarmos"; accepted with the approval of S34)
+- Status: Accepted (2026-10-08, owner approval of S34 in the batch message; owner decision after the benchmark: "o reforço de proteína pode utilizar um modelo híbrido para testarmos")
 - Date: 2026-10-08
 - Context: `produto`
 - Supersedes: partially [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) decision 4 as delivered by S24 (the server chose the foods from a fixed table of three). The floor (30 % of the remaining protein), the room (at least 60 kcal), the `(opcional)` mark and the limit of two foods survive.

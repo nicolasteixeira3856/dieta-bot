@@ -1,6 +1,6 @@
 # ADR-043 — A plan targets the protein gap inside the meal window
 
-- Status: Accepted (2026-10-06, with the owner's approval of S24; delivery stopped in implementation, see the plan)
+- Status: Accepted (2026-10-06, with the owner's approval of S24; delivery stopped in implementation, see the plan); decision 4 partially superseded by [ADR-055](ADR-055-protein-boost-hybrid.md) (the model proposes the boost foods, the server validates)
 - Date: 2026-10-06
 - Context: `produto`
 - Supersedes: partially [ADR-039](ADR-039-plan-cooking-and-budget-choice.md) (the budget of a plan: the limit is the meal window, not the whole remaining day, and the server computes the default reservations); complements [ADR-041](ADR-041-reference-portions-in-chat-instructions.md) (open requests answered as plans) and [ADR-042](../../server/adrs/ADR-042-estimate-total-is-server-arithmetic.md) (server arithmetic).
