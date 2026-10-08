@@ -8,9 +8,10 @@ Origem: brainstorm e conclusão em [`../MELHORIAS_CHAT_07_10_2026.md`](../MELHOR
 
 | Pergunta | Como |
 |---|---|
-| O novo prompt (estado final da Conclusão) resolve os casos que o owner listou? | 143 casos com checagens determinísticas sobre o JSON de saída (ações, slots, faixas de kcal, perguntas, memória, recusas, texto). |
+| O novo prompt (estado final da Conclusão) resolve os casos que o owner listou? | 155 casos com checagens determinísticas sobre o JSON de saída (ações, slots, faixas de kcal, perguntas, memória, recusas, texto). |
 | `reasoning.effort=low` melhora sobre `none` com o mesmo prompt, e a que custo? | Dois braços idênticos exceto o effort; tokens, latência e US$ por chamada. |
 | Quanto do ganho é capacidade nova (ações, treino, receitas) e quanto é execução? | Braço baseline (prompt e schema atuais) pontuado com `det_supported`, que ignora o que ele não pode expressar. |
+| O reforço de proteína de um prato nomeado (ADR-043 decisão 4) pode sair do server e ir para o modelo? | Família `boost` (8 casos): a regra entra no prompt novo com alimentos livres e variados; checagem determinística dos itens `(opcional)` (presentes só quando devidos, no máximo dois, com gramas e kcal, prato dentro da janela, proteína até o piso, sem carne para vegetariano, nunca para outro dia) e flag `protein_boost_wrong` do juiz. A baseline não tem a regra (o server a aplica em código depois do modelo): conta em `det_supported`. |
 | Tom, formato, utilidade e criatividade | Juiz `gpt-6-astra` com rubrica fixa ([`judge/judge_prompt.md`](judge/judge_prompt.md)), nota 1–5 por dimensão e flags (corpo/peso, elogio, "registrei", pular refeição, totais do dia na prosa). |
 
 ## Braços e orçamento
@@ -21,7 +22,7 @@ Origem: brainstorm e conclusão em [`../MELHORIAS_CHAT_07_10_2026.md`](../MELHOR
 | `new-none` | `prompts/new_prompt_{seco,duro}.md` | `prompts/input_format.md` | `prompts/new_schema.json` | none |
 | `new-low` | idem | idem | idem | low |
 
-150 casos × 3 repetições × 3 braços = **1.350 disparos** (teto 1.400; o runner recusa acima disso sem `--force` e para em `--max-usd`, padrão US$ 5). Os 10 casos com foto só rodam se o arquivo existir em `media/` (ver [`media/README.md`](media/README.md)); sem as fotos são 140 casos = 1.260 disparos. Tentativas por falha de rede ou limite de taxa (até 3 por disparo) são contadas no resultado, não no teto. O juiz é orçamento à parte (uma chamada por resposta, até 1.350).
+155 casos × 3 repetições × 3 braços = **1.395 disparos** (teto 1.400; o runner recusa acima disso sem `--force` e para em `--max-usd`, padrão US$ 5). Os 10 casos com foto só rodam se o arquivo existir em `media/` (ver [`media/README.md`](media/README.md)); sem as fotos são 145 casos = 1.305 disparos. Tentativas por falha de rede ou limite de taxa (até 3 por disparo) são contadas no resultado, não no teto. O juiz é orçamento à parte (uma chamada por resposta, até 1.395).
 
 Custo esperado das gerações, pela tarifa do `gpt-6-luna` em `server/evals/run.py` (US$ 0,10 / 0,01 cacheado / 0,50 por milhão): o prefixo tem ~43–50 mil caracteres (~12 mil tokens) e a entrada por caso mais 2–6 mil; saída 200–500 (+ raciocínio no `low`). **Entre US$ 0,5 (prefixo cacheado como nos evals do S19, 96 %) e US$ 1,9 (sem cache algum)**; o relatório imprime o custo medido. Juiz: ~5 M tokens de entrada com o contexto completo e as fotos; a tarifa do `gpt-6-astra` não está no repositório e precisa ser passada por ambiente.
 
@@ -41,7 +42,7 @@ benchmark/
     render.py                 regenera os .md
   personas/*.json             6 perfis (1 real: o owner; 5 inventados), com memória, semana típica, receitas
   build_cases.py              gera cases/ a partir de personas × cenários (determinístico)
-  cases/*.json                143 casos (um disparo cada, por braço e repetição)
+  cases/*.json                155 casos (um disparo cada, por braço e repetição)
   scoring.py                  checagens determinísticas + mapeamento da baseline para a forma de ações
   run.py                      runner (dry-run disponível); resultados em out/ (fora do git)
   judge.py                    juiz LLM sobre um results.jsonl
@@ -62,7 +63,8 @@ Gerados por `build_cases.py` (rodar de novo recria `cases/`). Famílias e contag
 | sequence | 6 | o "dia 2" do Grok como sequência roteirizada (treino, café de sempre, correção, almoço, farinha de sementes, chocolate) |
 | workout | 10 | kcal declaradas, somar × substituir, sem número, distância, pulseira, fora de escopo |
 | recipe | 12 | pedido de receita, lembrar por nome, ambígua, inexistente, comer receita salva (com e sem mudança), adaptar, "ficou boa", "salva" |
-| plan | 23 | sem ideia (2 opções com id), "quanto de iogurte", "fiz a 2", opções no digest, gramas por item, maionese, "cabem quantos", buffet sem balança, dia honesto que estoura, pipoca × Doritos, ingredientes de casa, bruschetta, duas variações, janela zero, rótulo para amanhã |
+| plan | 20 | sem ideia (2 opções com id), "quanto de iogurte", "fiz a 2", opções no digest, gramas por item, maionese, "cabem quantos", buffet sem balança, dia honesto que estoura, pipoca × Doritos, ingredientes de casa, bruschetta, duas variações, janela zero, rótulo para amanhã |
+| boost | 8 | reforço de proteína de um prato nomeado feito pelo modelo: com folga, prato que já tem frango (outro alimento), acima do piso, sem folga, vegetariano, tom duro, "tá bom?", outro dia |
 | log | 15 | quantificado, sem porção, indisponível, rótulo em fato temporário, acréscimo, revisão, outro dia, só total, resposta a pergunta, ceia com marca, cerveja + espetinhos |
 | photo | 10 | prato, cobertura visível, mamão, chocolate, cerveja, espetinhos, rótulo, pizza pronta com elogio, sem comida, energético |
 | tone | 12 | duro: estouro, padrão da semana, isca de corpo, pular refeição, plano combinado, pulo e treino sem crítica; seco: sem crítica; elogio sem elogio de volta |
@@ -73,14 +75,14 @@ Gerados por `build_cases.py` (rodar de novo recria `cases/`). Famílias e contag
 
 Origem dos textos (contagem impressa por `build_cases.py`): `grok` (suas mensagens das transcrições), `real-owner` (suas mensagens no log do server de dev, instalações `v1_ec1fea060`, `v1_9615563db` e `v1_d7fd00baf`), `synthetic-from-tester` (modo de falha dos testers reconstruído com outros alimentos, números e frases; nenhum texto de tester copiado), `synthetic`.
 
-Autorização e limite: o uso das suas próprias mensagens neste benchmark foi decidido por você em 08/10/2026 (pergunta e resposta na sessão). O ADR-033 governa exemplos globais do prompt e fixtures dos evals do server: **nenhum caso desta pasta pode ser copiado para `server/evals/` nem para `server/chat_instructions.py`**, e os exemplos dentro das regras novas de `prompts/new_instructions.py` são de autoria independente (sem alimentos, números ou frases das transcrições). Famílias adicionadas depois da revisão: par seco/duro no mesmo contexto, treino seguido de plano com crédito, limite de seis ações, pulo e refeição no mesmo slot, refeição num slot reservado, dois dias nomeados numa mensagem.
+Autorização e limite: o uso das suas próprias mensagens neste benchmark foi decidido por você em 08/10/2026 (pergunta e resposta na sessão). O ADR-033 governa exemplos globais do prompt e fixtures dos evals do server: **nenhum caso desta pasta pode ser copiado para `server/evals/` nem para `server/chat_instructions.py`**, e os exemplos dentro das regras novas de `prompts/new_instructions.py` são de autoria independente (sem alimentos, números ou frases das transcrições). Famílias adicionadas depois da revisão: par seco/duro no mesmo contexto, treino seguido de plano com crédito, limite de seis ações, pulo e refeição no mesmo slot, refeição num slot reservado, dois dias nomeados numa mensagem. Em 08/10/2026 o owner pediu o reforço de proteína pelo modelo (família `boost`, 8 casos); para caber no teto de 1.400 disparos saíram três duplicatas por persona do mesmo texto (`plan-sem-ideia-ana`, `plan-fiz-a-2-ana`, `plan-cabe-quanto-ana`), cobertas pelas outras personas.
 
 Cada caso tem `expect.summary` (uma linha legível, também dada ao juiz) e checagens. Sequências multi-turno usam HISTORY fixo, nunca a resposta anterior do modelo: cada disparo é independente e repetível.
 
 ## Métricas (report.py)
 
 - `det_strict`: todas as checagens determinísticas passam, por caso × repetição. Inclui invariantes estruturais dos braços novos (1–6 ações, ids únicos, campos coerentes com o tipo). Regex de texto sem distinção de acento (o server escreve `terca`, os casos `terça`).
-- `det_supported`: idem ignorando o que a baseline não consegue expressar (treino, receita, opções com id, macros na memória, contagem de várias ações, escopo de treino), listado por caso em `expect.baseline_unsupported`.
+- `det_supported`: idem ignorando o que a baseline não consegue expressar (treino, receita, opções com id, macros na memória, contagem de várias ações, escopo de treino, reforço de proteína pelo modelo), listado por caso em `expect.baseline_unsupported`.
 - `items_sum` (kcal da estimativa = soma dos itens) é checagem branda: o server recalcula (ADR-042); aparece no relatório, não conta na aprovação.
 - `casos ≥ 2/3`: aprovação por maioria das repetições.
 - Juiz: média 1–5 em correctness, numbers, tone, format, usefulness, creativity (só planos); pass/partial/fail; taxa de cada flag.
@@ -121,7 +123,7 @@ Requisitos: `OPENAI_API_KEY` no ambiente (nunca no repositório), `openai` e `py
 
 ## Limites conhecidos
 
-- O braço baseline recebe exatamente o texto do server, mas sem moderação, shaping (`reply_format`, `estimate_total`, `protein_boost`) e sem o `adjust_retry` / `BUDGET_TARGET`; mede o modelo, não a rota. Nos dois braços o reforço de proteína dos pratos nomeados (ADR-043 decisão 4, código do server) não é aplicado nem cobrado.
+- O braço baseline recebe exatamente o texto do server, mas sem moderação, shaping (`reply_format`, `estimate_total`, `protein_boost`) e sem o `adjust_retry` / `BUDGET_TARGET`; mede o modelo, não a rota. O reforço de proteína dos pratos nomeados (ADR-043 decisão 4) é código do server hoje (`server/protein_boost.py`, depois do modelo); por decisão do owner em 08/10/2026 o benchmark o cobra do modelo no prompt novo (regra PROTEIN BOOST em `prompts/new_instructions.py`, família `boost`), com alimentos livres em vez dos três fixos do server. A baseline, sem a regra, é pontuada à parte em `det_supported`. O server não muda; a janela e o piso usados nas checagens vêm das mesmas funções de `server/meal_window.py`.
 - Cada disparo é independente: sequências usam HISTORY fixo escrito à mão. O benchmark não mede continuidade entre respostas geradas, aplicação de lotes no app, Desfazer nem rodadas de clarificação acumuladas.
 - A baseline recebe menos contexto (sem macros da rotina, RECENT_DAYS, RECIPES, COPY_SOURCE) e outro schema: a diferença para os braços novos é prompt + contexto + schema juntos; só `new-none` × `new-low` isola o effort.
 - O novo prompt é um alvo de benchmark, não o prompt de produção: as regras novas não passaram pelo registro de proveniência do server nem pelos evals existentes.

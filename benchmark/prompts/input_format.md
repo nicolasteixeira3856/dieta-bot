@@ -34,7 +34,7 @@ user: ...
 assistant: ...
 PENDING_ADDITION: null
 WINDOWS: 1: 485 kcal · P 25 | 2: 60 kcal · P 1 | ...     (linhas do server, ADR-043; mesmas funções de server/meal_window.py)
-BUDGET: window_kcal=... (quando há plano)
+BUDGET: protein_floor=24; window_kcal by meal: Jantar=485 (reserved_upcoming=240: Ceia); any other meal=245 (reserved_upcoming=480: Jantar, Ceia)   (linha do server; o novo prompt usa protein_floor e window_kcal no reforço de proteína do prato nomeado)
 DISCOVERY: first_open                                    (só na primeira abertura com memória vazia)
 CURRENT_USER_MESSAGE:
 ### USER_MESSAGE_START

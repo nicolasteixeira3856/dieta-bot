@@ -5,7 +5,8 @@
 
 Writes benchmark/out/judge-<stamp>.jsonl, one verdict per answered row. The judge never sees the arm or the
 effort. It receives the whole context the rubric needs: profile with slot ids, memory, RECENT (last 7 days),
-RECENT_DAYS, recipes, COPY_SOURCE when the app resolved one, digests, history, the photo when the case has
+RECENT_DAYS, recipes, COPY_SOURCE when the app resolved one, the WINDOWS/BUDGET lines (window and protein
+floor of each meal), digests, history, the photo when the case has
 one, the reply, the actions, the memory updates and the facts cited. `--sample N` is paired: it picks N/arms
 (case, rep) pairs and judges every arm for each, so arms are compared on the same answers.
 The judge's prices must be given explicitly: the astra tariff is not recorded in this repository.
@@ -34,7 +35,8 @@ CASES = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in (HERE / "cas
 
 
 def judge_input(row: dict[str, Any]) -> str:
-    from run import load_image, recent_line, resolve_copy_source  # noqa: F401  (read-only reuse)
+    from run import (ChatIn, _day_slots, _expected, _now, _remaining_macros, legacy_request, load_image,  # noqa: F401
+                     meal_window, recent_line, resolve_copy_source)
 
     case = CASES[row["case_id"]]
     r = case["request"]
@@ -51,11 +53,17 @@ def judge_input(row: dict[str, Any]) -> str:
     day_slots = ", ".join(f"{s['id']}:{s['status']}" + (f" {s['kcal']} kcal {s['text']}" if s["status"] in ("eaten", "planned") else "") for s in day["slots"])
     hist = "\n".join(f"{m['role']}: {m['text']}" for m in r["messages"]) or "(nenhum)"
     digests = "\n".join(f"- {d}" for d in r["digests"]) or "(nenhum)"
+    body = ChatIn.model_validate(legacy_request(case))
+    slots, left = _day_slots(body), _remaining_macros(body)
+    expected = _expected(body, slots)
+    budget = "\n".join(x for x in (meal_window.windows_line(slots, expected, body.day.remaining_kcal, left["p"], _now(body)),
+                                   meal_window.budget_line(slots, expected, body.day.remaining_kcal, left["p"], _now(body))) if x) or "(nenhuma)"
     view = row.get("view") or {}
     return (
         f"PROFILE: teto {prof['ceiling_kcal']} kcal, metas P {prof['p_target']} C {prof['c_target']} G {prof['g_target']}, eat_back {prof['eat_back']}, tom {prof.get('tone', 'seco')}; "
         f"refeições (id=nome hora): {slots}\n"
-        f"DAY: {day['date']} às {r['local_time'][11:16]}; comeu {day['eaten_kcal']} kcal (P {day['eaten_p']}), restam {day['remaining_kcal']} kcal; treino {day['workout_kcal']}; slots: {day_slots}\n"
+        f"DAY: {day['date']} às {r['local_time'][11:16]}; comeu {day['eaten_kcal']} kcal (P {day['eaten_p']}), restam {day['remaining_kcal']} kcal e {left['p']} g de proteína; treino {day['workout_kcal']}; slots: {day_slots}\n"
+        f"WINDOWS/BUDGET (server, ADR-043):\n{budget}\n"
         f"MEMORY:\n{facts}\nRECENT (7 dias):\n{recent}\nRECENT_DAYS:\n{days}\nRECIPES:\n{recipes}\n"
         + (f"RECIPE_FULL:\n{r['recipe_full']}\n" if r.get("recipe_full") else "")
         + f"COPY_SOURCE (resolvido pelo app):\n{copy_src}\nDIGESTS:\n{digests}\nHISTORY:\n{hist}\n"

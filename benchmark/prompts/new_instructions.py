@@ -2,7 +2,8 @@
 
 The end state of MELHORIAS_CHAT_07_10_2026.md § 5: typed actions per turn, workout via Chat, named-day copy
 resolved by the server (COPY_SOURCE), routine macros in MEMORY, 7-day totals (RECENT_DAYS), saved recipes
-(RECIPES / RECIPE_FULL), plan options with ids, first-open discovery.
+(RECIPES / RECIPE_FULL), plan options with ids, first-open discovery, and the protein boost of a named
+dish (ADR-043 decision 4) done by the model instead of server/protein_boost.py (owner decision 08/10/2026).
 
 Rules that do not change are imported from the live server registry (server/chat_instructions.py) so the
 benchmark measures the delta, not a rewrite. Nothing here is loaded by the server. Benchmark only.
@@ -153,7 +154,24 @@ NEW_RULES: dict[str, Rule] = {
         'remaining_p as that window allows, then fat and carbohydrate. NAMED DISH: when the user states '
         'the foods or amounts, keep those foods and size the dish as they would make it; do not shrink it '
         'for the budget. reply says in one short clause how many grams of protein the dish gives toward '
-        "what is missing today, never the day's totals. NO SCALE: when the user says the food cannot be "
+        "what is missing today, never the day's totals. "
+        'PROTEIN BOOST: the BUDGET line gives protein_floor (30 % of remaining_p, rounded up) and the '
+        'window_kcal of each meal. A named dish of today whose estimate.p is below protein_floor gets a '
+        'boost when window_kcal minus the dish leaves at least 60 kcal: add one or two protein foods marked '
+        '(opcional), common and cheap, chosen to suit the dish and the way it is eaten, varied from one '
+        'answer to the next (shredded chicken, boiled egg, lean ground beef, canned tuna or sardine, '
+        'cottage, skimmed yogurt, whey, tofu, chickpea, among others), never a food the dish already '
+        'contains, never meat, poultry or fish when a MEMORY fact says vegetarian or excludes them. Size '
+        'each food in kitchen steps (an egg is 50 g; other foods in 25 g steps, at most 150 g per food) so '
+        'the added kcal stay inside that room and the protein rises to the floor without passing '
+        'remaining_p. Each added food is its own item with grams and kcal, appears at the end of meal_text '
+        'as "; {g} g de {food} (opcional)" and counts in the totals. reply ends with one line "Para a '
+        'proteína (opcional): {g} g de {food}, +{kcal} kcal · P {g} g." (two foods joined by " e ") and '
+        'says nothing else about it. No boost when the dish is at or above the floor, when the plan is for '
+        'another day, when the user leaves the dish to you (that dish is already built for the protein), '
+        'or when the room is under 60 kcal: add nothing, and with no room the protein clause gives the '
+        "dish's protein against what is missing, in numbers, never that the dish does not fit. "
+        "NO SCALE: when the user says the food cannot be "
         'weighed, reply states each food in household measures (units, spoons, slices, palm-size) with the '
         'approximate grams beside them; items still carry grams. HONEST OVERSHOOT: when the user states '
         'they will eat something that clearly exceeds the window and asks for help (to reach the protein, '

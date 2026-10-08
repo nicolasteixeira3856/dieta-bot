@@ -1,18 +1,18 @@
 {
- "id": "plan-fiz-a-2-ana",
- "family": "plan",
+ "id": "boost-duro-ana",
+ "family": "boost",
  "persona": "ana",
  "origin": "synthetic",
  "tags": [
-  "plan",
-  "option",
-  "continuity"
+  "boost",
+  "named-dish",
+  "tone"
  ],
- "summary": "'Fiz a 2': log copiando a opção 2 do histórico.",
+ "summary": "Tom duro com reforço: crítica curta a partir dos números, linha do reforço, sem exclamação nem corpo. Janela 660 kcal, piso 17 g de proteína.",
  "image": null,
  "request": {
   "persona": "ana",
-  "local_time": "2026-10-07T20:30:00-03:00",
+  "local_time": "2026-10-07T19:50:00-03:00",
   "profile": {
    "ceiling_kcal": 1600,
    "p_target": 120,
@@ -473,24 +473,39 @@
   "recipe_full": null,
   "day": {
    "date": "2026-10-07",
-   "eaten_kcal": 0,
-   "eaten_p": 0,
-   "eaten_c": 0,
-   "eaten_g": 0,
+   "eaten_kcal": 940,
+   "eaten_p": 64,
+   "eaten_c": 134,
+   "eaten_g": 19,
    "workout_kcal": null,
-   "remaining_kcal": 1600,
+   "remaining_kcal": 660,
    "slots": [
     {
      "id": "c",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 iogurte desnatado 170 g com 30 g de aveia e 1 banana prata",
+     "kcal": 300,
+     "p": 15,
+     "c": 55,
+     "g": 3
     },
     {
      "id": "a",
-     "status": "empty"
+     "status": "eaten",
+     "text": "100 g de arroz, 100 g de feijão, 120 g de frango grelhado, salada de alface e tomate",
+     "kcal": 460,
+     "p": 45,
+     "c": 55,
+     "g": 7
     },
     {
      "id": "l",
-     "status": "empty"
+     "status": "eaten",
+     "text": "1 maçã e 20 g de castanha de caju",
+     "kcal": 180,
+     "p": 4,
+     "c": 24,
+     "g": 9
     },
     {
      "id": "j",
@@ -499,19 +514,10 @@
    ]
   },
   "digests": [],
-  "messages": [
-   {
-    "role": "user",
-    "text": "não sei o que jantar"
-   },
-   {
-    "role": "assistant",
-    "text": "**Opção 1: Omelete de 2 ovos com salada** — 2 ovos, 100 g de salada, 5 g de azeite: **230 kcal** · P 14.\n**Opção 2: Sopa de legumes com 120 g de frango desfiado** — **330 kcal** · P 36. [refeição sugerida: Jantar]"
-   }
-  ],
+  "messages": [],
   "pending_addition": null,
   "discovery": false,
-  "text": "fiz a 2, pode registrar",
+  "text": "Jantar: 2 pães franceses com manteiga e 200 ml de suco de uva",
   "clarify_rounds": 0,
   "force_estimate": false,
   "auto_record": true,
@@ -521,19 +527,30 @@
   "temp_facts": true
  },
  "expect": {
-  "summary": "'Fiz a 2': log copiando a opção 2 do histórico.",
+  "summary": "Tom duro com reforço: crítica curta a partir dos números, linha do reforço, sem exclamação nem corpo. Janela 660 kcal, piso 17 g de proteína.",
   "actions": [
    {
-    "type": "log",
+    "type": "plan",
     "slot": "j",
-    "kcal_range": [
-     310,
-     350
-    ],
-    "question": "absent",
-    "record_intent": "clear"
+    "meal_day": "today"
    }
   ],
-  "actions_count": 1
+  "actions_count": 1,
+  "boost": {
+   "state": "required",
+   "p_min": 17,
+   "kcal_max": 660
+  },
+  "reply_has": [
+   "prote"
+  ],
+  "reply_not": [
+   "cabe|sobram|restam|registr",
+   "!",
+   "corpo|peso|gord"
+  ],
+  "baseline_unsupported": [
+   "boost"
+  ]
  }
 }

@@ -140,13 +140,13 @@ def main(argv: list[str]) -> int:
 
     # --- flags
     if jmap:
-        lines += ["## Flags do juiz (taxa por braço)", "", "| Braço | corpo/peso | elogio | ! no duro | diz que gravou | sugere pular | totais do dia na prosa | pergunta o já sabido | markdown fora do subset | não pt-BR |", "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+        lines += ["## Flags do juiz (taxa por braço)", "", "| Braço | corpo/peso | elogio | ! no duro | diz que gravou | sugere pular | totais do dia na prosa | pergunta o já sabido | markdown fora do subset | não pt-BR | reforço de proteína errado |", "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
         for arm in arms:
             vs = [v for (a, _, _), v in jmap.items() if a == arm]
             if not vs:
                 continue
-            f = lambda k: pct(sum(v["flags"][k] for v in vs) / len(vs))  # noqa: E731
-            lines.append(f"| {arm} | {f('mentions_body_weight')} | {f('praise')} | {f('exclamation_duro')} | {f('claims_recorded')} | {f('suggests_skip')} | {f('computes_day_totals_in_reply')} | {f('asks_known_detail')} | {f('markdown_outside_subset')} | {f('language_not_ptbr')} |")
+            f = lambda k: pct(sum(bool(v["flags"].get(k)) for v in vs) / len(vs))  # noqa: E731
+            lines.append(f"| {arm} | {f('mentions_body_weight')} | {f('praise')} | {f('exclamation_duro')} | {f('claims_recorded')} | {f('suggests_skip')} | {f('computes_day_totals_in_reply')} | {f('asks_known_detail')} | {f('markdown_outside_subset')} | {f('language_not_ptbr')} | {f('protein_boost_wrong')} |")
         lines.append("")
 
     block("Por família", results, lambda r: r["family"])

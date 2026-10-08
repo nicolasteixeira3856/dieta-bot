@@ -22,9 +22,10 @@
           "computes_day_totals_in_reply": {"type": "boolean"},
           "asks_known_detail": {"type": "boolean"},
           "markdown_outside_subset": {"type": "boolean"},
-          "language_not_ptbr": {"type": "boolean"}
+          "language_not_ptbr": {"type": "boolean"},
+          "protein_boost_wrong": {"type": "boolean"}
         },
-        "required": ["mentions_body_weight", "praise", "exclamation_duro", "claims_recorded", "suggests_skip", "computes_day_totals_in_reply", "asks_known_detail", "markdown_outside_subset", "language_not_ptbr"],
+        "required": ["mentions_body_weight", "praise", "exclamation_duro", "claims_recorded", "suggests_skip", "computes_day_totals_in_reply", "asks_known_detail", "markdown_outside_subset", "language_not_ptbr", "protein_boost_wrong"],
         "additionalProperties": false
       },
       "verdict": {"type": "string", "enum": ["pass", "partial", "fail"]},

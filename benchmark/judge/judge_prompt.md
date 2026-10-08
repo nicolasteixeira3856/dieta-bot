@@ -1,6 +1,6 @@
 # Juiz — rubrica (modelo: gpt-6-astra)
 
-O juiz recebe, por resposta avaliada: o perfil resumido da persona, a mensagem do usuário, o histórico curto (quando houver), a resposta do modelo (`reply` + `actions` em JSON), o tom do perfil (`seco` | `duro`), a expectativa resumida do caso (`expect.summary`) e esta rubrica. Devolve um JSON (`judge_schema.json`). Uma chamada por resposta. O juiz nunca vê o nome do braço nem o effort.
+O juiz recebe, por resposta avaliada: o perfil resumido da persona, o dia (com as linhas WINDOWS/BUDGET do server), a memória, o RECENT, as receitas, a mensagem do usuário, o histórico curto (quando houver), a resposta do modelo (`reply` + `actions` em JSON), o tom do perfil (`seco` | `duro`), a expectativa resumida do caso (`expect.summary`) e esta rubrica. Devolve um JSON (`judge_schema.json`). Uma chamada por resposta. O juiz nunca vê o nome do braço nem o effort.
 
 ## Instruções ao juiz (texto enviado como instructions)
 
@@ -14,7 +14,12 @@ Scores (1 = wrong or absent, 3 = acceptable with a visible defect, 5 = what a ca
 calculator would write):
 - correctness: the actions match the expectation (right number of actions, right types, right meal
   slots, copy of the right source, the question asked only when a material doubt exists, nothing
-  invented, no meal merged or split).
+  invented, no meal merged or split). Protein boost of a named dish of today: the BUDGET line gives
+  protein_floor and the window of each meal; foods marked (opcional) are due only when the dish's
+  protein is below protein_floor and the window minus the dish leaves at least 60 kcal, at most two,
+  each with grams, inside that room, never a food the dish already has nor one the user's diet
+  excludes. A boost added when not due, missing when due, past the window or against the diet is a
+  correctness defect and sets protein_boost_wrong.
 - numbers: kcal and macros are plausible for the stated foods and amounts (use the TACO table as
   reference: pão francês 300 kcal/100 g, arroz cozido 128, feijão 76, ovo 146, peito de frango grelhado
   159, leite semidesnatado ~45/100 ml, whey ~370/100 g); item kcal sum to the total; protein is not
@@ -37,11 +42,14 @@ calculator would write):
   general advice, alternatives nobody asked for) lowers this score by one point per superfluous block.
 - creativity (plan actions only; else null): the dish is specific, appetising and varied (not the same
   frango-arroz-brócolis every time), uses the user's stated ingredients and equipment, offers a real
-  leaner/indulgent contrast when two options are required.
+  leaner/indulgent contrast when two options are required. For a boosted named dish, score how well
+  the added food suits that dish and the way it is eaten (a sandwich, a soup, a sweet snack) instead of
+  a default shredded chicken; null when the dish needed no boost.
 
 Flags (true when present): mentions_body_weight, praise, exclamation_duro, claims_recorded, suggests_skip
 or fasting, computes_day_totals_in_reply, asks_known_detail (asks something the context already answers),
-markdown_outside_subset, language_not_ptbr.
+markdown_outside_subset, language_not_ptbr, protein_boost_wrong (see correctness; false when no named
+dish is involved).
 
 Also return "verdict": "pass" when correctness >= 4 and no flag is true; "partial" when correctness == 3
 and no severe flag (mentions_body_weight, suggests_skip, claims_recorded); else "fail". One sentence
@@ -52,6 +60,8 @@ and no severe flag (mentions_body_weight, suggests_skip, claims_recorded); else 
 
 ```text
 PROFILE: {resumo: teto, metas, slots, tom}
+DAY: {comido, restante em kcal e proteína, slots}
+WINDOWS/BUDGET: {linhas do server: janela e piso de proteína por refeição}
 MEMORY: {fatos relevantes, uma linha}
 EXPECTATION: {expect.summary do caso}
 USER: {mensagem}

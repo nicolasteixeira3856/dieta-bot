@@ -13,8 +13,10 @@ tester's text is never copied). No case text is ever loaded into any prompt (ADR
 from __future__ import annotations
 
 import json
+import math
 import re
 import shutil
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -24,6 +26,9 @@ PERSONAS = HERE / "personas"
 CASES = HERE / "cases"
 
 WEEKDAYS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+sys.dont_write_bytecode = True  # no __pycache__ under server/ from the benchmark
+sys.path.insert(0, str(HERE.parent / "server"))
+import meal_window  # noqa: E402  (server arithmetic, read-only reuse: the window a boost case is scored against)
 OTHER_DAY_NOTICE = "O Chat registra apenas refeições de hoje."
 
 # ----------------------------------------------------------------------------------------------- personas
@@ -191,6 +196,21 @@ def request(p: dict[str, Any], text: str, *, time: str = "12:30", eaten: list[tu
         "clarify_rounds": 0, "force_estimate": False, "auto_record": True, "meal_changes": True,
         "skip_slots": True, "plan_budget": True, "temp_facts": True,
     }
+
+
+def window_kcal(req: dict[str, Any], slot_id: str) -> tuple[int, int]:
+    """(window_kcal, protein_floor) the server sends in BUDGET for a plan of [slot_id] on this request."""
+    from types import SimpleNamespace
+
+    prof, day = req["profile"], req["day"]
+    states = {s["id"]: s for s in day["slots"]}
+    slots = [meal_window.Slot(s["id"], s["name"], states[s["id"]]["status"], float(states[s["id"]].get("kcal") or 0),
+                              float(states[s["id"]].get("p") or 0), s["time"]) for s in prof["slots"]]
+    recent = [SimpleNamespace(slot_id=m["slot_id"], date=m["date"], kcal=m["kcal"]) for m in req["recent"]]
+    expected = meal_window.expected_by_slot(slots, recent, prof["ceiling_kcal"])
+    w = meal_window.window(slots, expected, day["remaining_kcal"], slot_id, now=req["local_time"][11:16])
+    remaining_p = meal_window.rounded(prof["p_target"] - day["eaten_p"])
+    return w.window_kcal, math.ceil(max(0, remaining_p) * meal_window.PROTEIN_FLOOR_PCT / 100)
 
 
 def u(text: str) -> dict[str, str]:
@@ -485,7 +505,7 @@ def build(P: dict[str, dict[str, Any]]) -> None:
     }, tags=["recipe", "save"], summary="Pedido para salvar: o modelo não salva; aponta o botão do app sem afirmar que salvou.")
 
     # ---------------------------------------------------------------- E. plans, options, creativity
-    for p, slot, t in ((nic, "5", "17:30"), (ana, "j", "19:00"), (car, "n", "18:45"), (die, "s5", "18:30"), (eli, "s", "15:00")):
+    for p, slot, t in ((nic, "5", "17:30"), (car, "n", "18:45"), (die, "s5", "18:30"), (eli, "s", "15:00")):
         eaten = [(s["id"], typical(p, s["id"], 0)) for s in p["profile"]["slots"] if s["time"] < t and s["id"] != slot][:4]
         exp = {"actions": [act("plan", slot=slot, options=2)], "actions_count": 1, "reply_has": ["Opção 1", "Opção 2"], "reply_not": ["cabe|sobram|restam|registr"]}
         if p is die:
@@ -496,7 +516,7 @@ def build(P: dict[str, dict[str, Any]]) -> None:
     case("plan-opcao-quanto-nicolas", "plan", nic, request(nic, "Quantas gramas de iogurte natural?", time="18:00", messages=wrap_hist), {
         "actions": [act("question")], "actions_count": 1, "reply_has": ["40 ?g"], "reply_not": ["\\| ?Item"],
     }, origin="grok", tags=["plan", "option", "continuity"], summary="Pergunta sobre um item da opção 1: responder com os 40 g já dados, sem refazer o plano.")
-    for p, hist, slot, k2 in ((nic, wrap_hist, "5", 560), (ana, [u("não sei o que jantar"), a("**Opção 1: Omelete de 2 ovos com salada** — 2 ovos, 100 g de salada, 5 g de azeite: **230 kcal** · P 14.\n**Opção 2: Sopa de legumes com 120 g de frango desfiado** — **330 kcal** · P 36. [refeição sugerida: Jantar]")], "j", 330)):
+    for p, hist, slot, k2 in ((nic, wrap_hist, "5", 560),):
         case(f"plan-fiz-a-2-{p['id']}", "plan", p, request(p, "fiz a 2, pode registrar", time="20:30", messages=hist), {
             "actions": [act("log", slot=slot, kcal_range=kcal_range(k2, 0.06), question="absent", record_intent="clear")], "actions_count": 1,
         }, tags=["plan", "option", "continuity"], summary="'Fiz a 2': log copiando a opção 2 do histórico.")
@@ -511,7 +531,7 @@ def build(P: dict[str, dict[str, Any]]) -> None:
                                                    messages=[u("No almoço de hoje pretendo comer batata doce, filé de peito de frango e brócolis, quanto peso de cada?"), a("| Item | Gramas |\n| --- | --- |\n| peito de frango | 180 |\n| batata doce | 170 |\n| brócolis | 160 |\n**530 kcal** · P 61 · C 40 · G 8. [refeição sugerida: Almoço]")]), {
         "actions_count": 1, "reply_has": ["(8\\d|9\\d|10\\d) ?kcal", "gordura"], "reply_not": ["culpa", "não pode"],
     }, origin="grok", tags=["plan", "follow-up"], summary="Follow-up de uma colher de maionese: ~90–100 kcal, quase só gordura, sem moralismo.")
-    for p, slot in ((ana, "l"), (eli, "s")):
+    for p, slot in ((eli, "s"),):
         case(f"plan-cabe-quanto-{p['id']}", "plan", p, request(p, "quero comer pão francês com manteiga no lanche, cabem quantos?", time="15:45", eaten=[(s["id"], typical(p, s["id"], 0)) for s in p["profile"]["slots"][:2]]), {
             "actions": [act("plan", slot=slot)], "actions_count": 1, "reply_has": ["(unidade|pão|pães)"], "reply_not": ["cabe[m]? ?\\d|sobram|restam"],
         }, tags=["plan", "fit"], summary="'Cabem quantos': plano com unidades e gramas; não afirma se cabe (o app mostra).")
@@ -769,6 +789,52 @@ def build(P: dict[str, dict[str, Any]]) -> None:
         "actions_count": 2, "reply_has": [row_cafe["weekday"], "segunda"],
     }, tags=["copy", "named-day", "multi"], summary="Dois dias nomeados na mesma mensagem: dois COPY_SOURCE, dois logs copiados exatos.")
 
+    # ---------------------------------------------------------------- L. protein boost of a named dish by the model
+    # ADR-043 decision 4 is server code today (server/protein_boost.py); owner decision 08/10/2026: measure the
+    # model doing it from the BUDGET line (protein_floor, window_kcal), with freer and more varied foods.
+    def boost_case(cid: str, p: dict[str, Any], text: str, slot: str, boost: dict[str, Any], *, time: str,
+                   eaten: list[tuple[str, dict[str, Any]]], tone: str | None = None, extra: dict[str, Any] | None = None,
+                   summary: str, tags: list[str] = ()) -> None:
+        req = request(p, text, time=time, eaten=eaten, tone=tone)
+        win, floor = window_kcal(req, slot)
+        b = dict(boost)
+        if b.get("p_min") == "floor":
+            b["p_min"] = floor
+        if b.get("kcal_max") == "window":
+            b["kcal_max"] = win
+        exp = {"actions": [act("plan", slot=slot, meal_day="today")], "actions_count": 1, "boost": b,
+               "reply_has": ["prote"], "reply_not": ["cabe|sobram|restam|registr"], **(extra or {})}
+        case(cid, "boost", p, req, exp, tags=["boost", "named-dish", *tags],
+             summary=f"{summary} Janela {win} kcal, piso {floor} g de proteína.")
+
+    nic_day4 = [(s, typical(nic, s, 0)) for s in ("1", "2", "3", "4")]
+    boost_case("boost-folga-nicolas", nic, "Jantar hoje vai ser 1 pão francês com requeijão e um copo de 250 ml de leite semidesnatado", "5",
+               {"state": "required", "p_min": "floor", "kcal_max": "window"}, time="18:00", eaten=nic_day4,
+               summary="Prato nomeado pobre em proteína com folga na janela: um ou dois alimentos (opcional) até o piso, dentro da janela, linha única no reply.")
+    boost_case("boost-ja-tem-frango-nicolas", nic, "Jantar: 1 rap10 integral com 40 g de frango desfiado e alface, e um copo de 200 ml de suco de laranja", "5",
+               {"state": "required", "p_min": "floor", "kcal_max": "window", "not": ["frango"]}, time="18:00", eaten=nic_day4,
+               summary="Prato com pouco frango: o reforço usa outro alimento, nunca repete o que o prato já tem.", tags=["variety"])
+    boost_case("boost-acima-do-piso-nicolas", nic, "Jantar: 150 g de peito de frango grelhado, 100 g de arroz e salada de alface com tomate", "5",
+               {"state": "absent"}, time="18:00", eaten=nic_day4,
+               summary="Prato já acima do piso de proteína: nada é acrescentado; a frase da proteína em números.")
+    boost_case("boost-sem-folga-nicolas", nic, "Jantar vai ser 2 fatias de pizza de muçarela da padaria e 300 ml de coca normal", "5",
+               {"state": "absent"}, time="18:00", eaten=nic_day4,
+               summary="Prato maior que a janela: sem reforço, sem dizer que não cabe; a proteína do prato contra o que falta, em números.")
+    boost_case("boost-vegetariano-diego", die, "Janta de hoje: 100 g de arroz branco com 150 g de batata-doce assada e salada de tomate", "s5",
+               {"state": "required", "p_min": "floor", "kcal_max": "window", "not": ["frango", "carne", "patinho", "bife", "peixe", "atum", "sardinha", "presunto", "peru"]},
+               time="19:00", eaten=[(s, typical(die, s, 0)) for s in ("s1", "s2", "s3", "s4")],
+               summary="Vegetariano (fato na MEMORY): reforço sem carne, frango ou peixe (ovo, tofu, grão-de-bico, laticínio).", tags=["diet"])
+    boost_case("boost-duro-ana", ana, "Jantar: 2 pães franceses com manteiga e 200 ml de suco de uva", "j",
+               {"state": "required", "p_min": "floor", "kcal_max": "window"}, time="19:50", tone="duro",
+               eaten=[(s, typical(ana, s, 0)) for s in ("c", "a", "l")], extra={"reply_not": ["cabe|sobram|restam|registr", "!", "corpo|peso|gord"]},
+               summary="Tom duro com reforço: crítica curta a partir dos números, linha do reforço, sem exclamação nem corpo.", tags=["tone"])
+    boost_case("boost-ta-bom-carla", car, "jantar: 1 tapioca com 2 colheres de goma e 30 g de queijo branco, tá bom?", "n",
+               {"state": "required", "p_min": "floor", "kcal_max": "window"}, time="18:50", eaten=[(s, typical(car, s, 0)) for s in ("m", "t")],
+               summary="'Tá bom?' com prato nomeado não é pedido aberto: um prato, options null, reforço até o piso com no máximo dois alimentos.")
+    case("boost-amanha-nicolas", "boost", nic, request(nic, "Amanhã no almoço vou comer 200 g de macarrão ao sugo com queijo ralado", time="21:30", eaten=[(s, typical(nic, s, 0)) for s in ("1", "2", "3", "4", "5")]), {
+        "actions": [act("plan", meal_day="other")], "actions_count": 1, "boost": {"state": "absent"}, "reply_not": ["registr"],
+    }, tags=["boost", "named-dish", "other-day"], summary="Prato nomeado para outro dia: plano com meal_day other e nenhum reforço.")
+
     # Checks a baseline cannot satisfy by construction (scored apart as det_supported).
     for c in CASES_OUT:
         unsupported: list[str] = []
@@ -778,6 +844,8 @@ def build(P: dict[str, dict[str, Any]]) -> None:
             unsupported.append("actions_count")
         if any(a.get("type") == "workout" for a in c["expect"].get("actions", [])):
             unsupported.append("scope")
+        if c["expect"].get("boost", {}).get("state") == "required":
+            unsupported.append("boost")  # the server prompt has no boost rule: protein_boost.py does it after the model
         if unsupported:
             c["expect"]["baseline_unsupported"] = sorted(set(unsupported))
 

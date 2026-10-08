@@ -10,6 +10,8 @@
   reply_has / reply_not: regex list (re.I | re.M, accent-insensitive)   reply_max_chars   reply_bullets_max
   memory_updates_has / memory_updates_not: [ {op, op_in, id, kind, category, key_has, slot, has_macros} ]
   memory_updates_empty: bool          memory_used_has: [fact ids]
+  boost: {state: required|absent, not: [regex], p_min, kcal_max}   the (opcional) protein foods of the first
+         plan action with an estimate (ADR-043 decision 4 done by the model; owner decision 08/10/2026)
   baseline_unsupported: [check names the current server cannot satisfy by construction]
 
 Every answer of the new arms also passes INVARIANTS (1–6 actions, unique ids, field/type consistency,
@@ -228,6 +230,11 @@ def evaluate(expect: dict[str, Any], view: dict[str, Any], *, baseline: bool = F
         n = len(re.findall(r"^- ", reply, re.M))
         add("reply_bullets_max", n <= expect["reply_bullets_max"], f"{n} bullets")
 
+    if "boost" in expect:
+        plan = next((a for a in actions if a.get("type") == "plan" and isinstance(a.get("estimate"), dict)), None)
+        ok, why = _check_boost(expect["boost"], plan, reply)
+        add("boost", ok, why)
+
     ups = view.get("memory_updates") or []
 
     def up_match(exp: dict[str, Any], up: dict[str, Any]) -> bool:
@@ -258,6 +265,41 @@ def evaluate(expect: dict[str, Any], view: dict[str, Any], *, baseline: bool = F
     if not baseline:
         checks.extend(invariants(view))
     return checks
+
+
+def _check_boost(exp: dict[str, Any], plan: dict[str, Any] | None, reply: str) -> tuple[bool, str]:
+    """The (opcional) protein foods of a named dish: present only when due, at most two, with grams and kcal,
+    inside the window, up to the protein floor, never a food the diet excludes."""
+    if plan is None:
+        return False, "no plan action with an estimate"
+    est = plan["estimate"]
+    items = est.get("items") or []
+    opt = [i for i in items if _rx("opcional", i.get("name") or "")]
+    text = est.get("meal_text") or ""
+    if exp["state"] == "required":
+        if not opt:
+            return False, "no (opcional) item"
+        if len(opt) > 2:
+            return False, f"{len(opt)} optional items"
+        if any(float(i.get("g") or 0) <= 0 or float(i.get("kcal") or 0) <= 0 for i in opt):
+            return False, "optional item without grams or kcal"
+        if not _rx("opcional", text):
+            return False, "meal_text lacks (opcional)"
+        if not _rx("opcional", reply):
+            return False, "reply lacks the (opcional) line"
+    else:
+        if opt:
+            return False, f"unexpected optional item: {opt[0].get('name')}"
+        if _rx("opcional", reply) or _rx("opcional", text):
+            return False, "reply or meal_text offers an (opcional) food"
+    for pat in exp.get("not", []):
+        if any(_rx(pat, i.get("name") or "") for i in opt):
+            return False, f"optional item matches /{pat}/"
+    if "p_min" in exp and float(est.get("p") or 0) < exp["p_min"]:
+        return False, f"p {est.get('p')} < {exp['p_min']}"
+    if "kcal_max" in exp and float(est.get("kcal") or 0) > exp["kcal_max"]:
+        return False, f"kcal {est.get('kcal')} > {exp['kcal_max']}"
+    return True, "ok"
 
 
 def passed(checks: list[dict[str, Any]]) -> bool:
