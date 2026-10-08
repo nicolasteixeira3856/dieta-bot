@@ -6,7 +6,7 @@ Rescoped by the owner on 2026-09-30: the app is in a closed test. Active plans c
 
 Files at the root of this folder. Plan state: each plan's own State line and its folder.
 
-- [CP10 — Workout reports in scope; the boundary of "skipping a meal"](cp10-workout-in-scope-and-skip-boundary.md) (prerequisite of S35).
+None.
 
 ## Out of scope
 
@@ -19,7 +19,7 @@ Each plan records its reason. Do not run `/goal` on an out-of-scope plan. Reacti
 
 ## History
 
-[`completed/`](completed/) (closed-test controls CP1–CP5).
+[`completed/`](completed/) (closed-test controls CP1–CP5, CP10).
 
 ## Approval
 
