@@ -1,14 +1,16 @@
 # Benchmark do Chat — resultados da primeira execução (08/10/2026)
 
-Execução autorizada pelo owner em 08/10/2026. Modelo `gpt-6-luna`; braços `baseline-none`, `new-none`, `new-low`; 155 casos × 3 repetições. Arquivos brutos em `benchmark/out/` (fora do git): `results-20261008-113718.jsonl` (bruto), `results-20261008-113718-rescored.jsonl` (reavaliado), `judge-20261008-113718.jsonl` (parcial), `report-20261008-113718-rescored.md`.
+Execução autorizada pelo owner em 08/10/2026. Modelo `gpt-6-luna`; braços `baseline-none`, `new-none`, `new-low`; 155 casos × 3 repetições. Juiz: `gpt-6-astra` pelo Codex do owner (assinatura), cego ao braço, 1.387 respostas. Arquivos brutos em `benchmark/out/` (fora do git): `results-20261008-113718.jsonl` (bruto), `results-20261008-113718-rescored.jsonl` (reavaliado), `judge-20261008-113718-codex.jsonl` (juiz), `report-20261008-113718-rescored.md`.
+
+**Decisões do owner (08/10/2026, após estes resultados):** `reasoning.effort=low` sempre no Chat; o reforço de proteína passa a um modelo híbrido para teste (o modelo propõe os alimentos, o server valida piso, folga e dieta em código). A constituição (`AGENTS.md` § LLM, `effort=none`) e o ADR-043 decisão 4 precisam de ADR e plano para registrar a mudança antes de código.
 
 ## Veredito em cinco linhas
 
 1. **O novo prompt resolve a maior parte do que o atual não resolve.** `det_strict` sobe de 44,5 % (baseline) para 75,3 % (`new-none`) com o mesmo effort; nas famílias que motivaram o brainstorm (várias ações, treino, receitas, cópia de dia nomeado) o salto é de 17–24 % para 70–97 %.
-2. **`effort=low` ganha 9 pontos sobre `none` (84,3 %), mas dobra a latência.** p95 vai de 10,2 s para 16,4 s e o p50 de 3,9 s para 7,0 s; custo 1,3×. Pelo critério fixado no README (p95 < 8 s) o `low` **não** justifica mudar a constituição como regra geral.
-3. **Reforço de proteína pelo modelo: não em `none`; parcial em `low`.** Em `none` o modelo não fez o reforço em nenhum dos 10 planos devidos e acrescentou "(opcional)" em 2 de 3 pratos que já estavam acima do piso. Em `low` acertou 7 dos 9 planos devidos, mas sem variedade (frango em 4 de 5) e sem resolver o vegetariano (1 de 3). A regra em código do server (`protein_boost.py`) segue sendo a opção segura para `effort=none`.
-4. **Erros de forma caíram com o novo schema:** zero JSON inválido em `new-low`, 6 em `new-none`, 2 na baseline. Nenhuma resposta julgada mencionou corpo ou peso, elogiou, sugeriu pular refeição ou disse que gravou.
-5. **O juiz cobriu só 153 respostas** (famílias boost, copy, digest e discovery): a conta OpenAI ficou sem créditos no meio do julgamento. As notas do juiz abaixo valem para essas famílias; o placar determinístico está completo.
+2. **`effort=low` ganha 9 pontos de `det_strict` sobre `none` (84,3 %) e 10 pontos de aprovação do juiz (79,4 % contra 69,1 %), mas dobra a latência.** p95 vai de 10,2 s para 16,4 s e o p50 de 3,9 s para 7,0 s; custo 1,3×. Pelo critério fixado no README (p95 < 8 s) não passaria como regra geral; o owner decidiu adotar `low` aceitando a latência.
+3. **Reforço de proteína pelo modelo: não em `none`; parcial em `low`.** Em `none` o modelo não fez o reforço em nenhum dos 10 planos devidos e acrescentou "(opcional)" em 2 de 3 pratos que já estavam acima do piso. Em `low` acertou 7 dos 9 planos devidos (juiz: 66,7 % de aprovação na família contra 29,2 % em `none`), mas sem variedade (frango em 4 de 5) e sem resolver o vegetariano (1 de 3). Daí o híbrido decidido: o modelo propõe, o server valida.
+4. **Erros de forma caíram com o novo schema:** zero JSON inválido em `new-low`, 6 em `new-none`, 2 na baseline. Flags graves do juiz em 1.387 respostas: `new-low` 1 "diz que gravou" e 1 elogio; `new-none` 7 "diz que gravou" e 1 menção a corpo; baseline 7, 2 e 1 sugestão de pular.
+5. **Juiz e checagens concordam.** Nos 457 pares comuns, a nota do juiz (0–1) é 0,672 / 0,762 / 0,819 para baseline / `new-none` / `new-low`, na mesma ordem do `det_strict`. O composite final é 0,559 / 0,757 / 0,832.
 
 ## Execução
 
@@ -18,7 +20,8 @@ Execução autorizada pelo owner em 08/10/2026. Modelo `gpt-6-luna`; braços `ba
 | Custo das gerações (tarifa luna) | US$ 0,59 |
 | Cache do prefixo | 93 % dos tokens de entrada em todos os braços |
 | JSON inválido | 8 (6 `new-none`, 2 `baseline-none`, 0 `new-low`) |
-| Juiz (`gpt-6-astra`, effort medium) | 153 respostas julgadas, 610 k tokens de entrada; 1.234 chamadas devolveram `insufficient_quota` |
+| Juiz pela API (`gpt-6-astra`) | abortado: 153 + 21 respostas e a conta sem créditos; descartado para manter um critério só |
+| Juiz pelo Codex (`judge_export.py` / `judge_import.py`) | 1.387 vereditos válidos, 0 faltando, rubrica com a regra CLOSING, cego ao braço, custo zero em API |
 
 Reavaliação sem nova chamada (`rescore.py`), após a leitura dos resultados: as respostas não mudaram; mudaram checagens e expectativas com defeito meu, listadas em "Defeitos do benchmark" abaixo. Efeito: 19 linhas trocaram de aprovação (de 1.395).
 
@@ -63,13 +66,13 @@ Critério do README: `low` justifica mudar a constituição se ganhar ≥ 5 pont
 | det_strict multi | 70,0 % | 78,3 % | +8,3 ✓ |
 | det_strict copy | 97,0 % | 93,9 % | −3,1 ✗ |
 | det_strict plan | 76,7 % | 85,0 % | +8,3 ✓ |
-| correctness do juiz (42 pares comuns) | 3,64 | 3,88 | +0,24 ✗ |
+| correctness do juiz (457 pares comuns) | 4,15 | 4,42 | +0,27 ✗ (por pouco) |
 | p95 | 10,2 s | 16,4 s | ✗ (limite 8 s; `none` também não cumpre) |
 | custo por chamada | 1× | 1,31× | ✓ |
 
 Onde `low` muda de fato: memory (+26), discovery (+56), habit (+17), photo (+17), boost (+29). Onde regride: log (−6) e copy (−3), sempre por perguntas de clarificação a mais ("quantos gramas de manteiga?", "qual foi a quantidade da salada?") em mensagens que o `none` registra direto. O raciocínio custa 240 tokens por chamada e 3 s de p50.
 
-Recomendação: manter `effort=none` na constituição. O ganho do `low` está concentrado em turnos raros (primeira abertura, memória) e vem com o dobro de espera em todo turno. Se a latência do `low` for aceitável para você como usuário, a decisão é sua; os números acima são a base.
+Pelo juiz, `low` também ganha em usefulness (3,71 contra 3,43) e em creativity dos planos (3,43 contra 2,60), e cai em "pergunta o já sabido" (1,1 % contra 3,9 %) e em "diz que gravou" (1 contra 7). Minha recomendação era manter `none` pela latência; o owner decidiu `low` sempre. Consequência prática: o p95 de 16 s precisa de feedback de espera no app e de timeout acima disso no server.
 
 ## Reforço de proteína: server ou modelo
 
@@ -89,7 +92,7 @@ Leitura:
 - Em `low` a regra funciona na maioria (7 de 9 planos), mas a variedade que motivou a mudança não apareceu: frango em 4 dos 5 reforços, e no vegetariano o modelo citou "tofu ou lentilha" na prosa sem montar o item em 2 de 3 vezes.
 - Seis das 15 respostas devidas por braço viraram `log` em vez de `plan` ("Jantar: 2 pães franceses..." às 19:50 foi lido como relato). Dois textos meus eram ambíguos (`boost-duro-ana`, `boost-vegetariano-diego`); estão corrigidos para a próxima execução, mas o número acima já desconta isso ao olhar só os planos.
 
-Veredito: com `effort=none`, o reforço fica no server (`protein_boost.py`), como está. Se um dia o `low` for adotado, vale um desenho híbrido: o modelo propõe o alimento (variedade) e o server valida piso, folga e dieta em código. O ADR-043 decisão 4 e a Conclusão do `MELHORIAS_CHAT_07_10_2026.md` não precisam mudar agora.
+Veredito e decisão: com `low` adotado, o owner escolheu testar o híbrido: o modelo propõe os alimentos `(opcional)` com gramas (variedade e adequação ao prato), e o server valida em código piso, folga, limite de dois alimentos, repetição do prato e dieta, completando ou cortando o que o modelo errar (`protein_boost.py` vira validador). Isso pede um ADR que suceda a decisão 4 do ADR-043 e um plano de server; o benchmark da família `boost` é o critério de aceite.
 
 ## O que cada braço acertou e errou
 
@@ -116,17 +119,23 @@ Regressões só em `new-low`:
 
 Baseline: além das capacidades ausentes, errou a cópia de dia nomeado em 25 de 33 (copia o slot errado ou o dia errado), misturou refeições de uma mensagem numa estimativa só (multi 16,7 %) e não aplicou o tom `duro` com a crítica certa em 29 % dos casos de tom. Em nenhum braço houve menção a corpo ou peso, elogio, sugestão de pular refeição ou "registrei".
 
-## Juiz (parcial: boost, copy, digest, discovery)
+## Juiz (1.387 respostas, Codex, rubrica com CLOSING)
 
-| Braço | respostas | pass / partial / fail | correctness | numbers | tone | format | usefulness |
-|---|---:|---|---:|---:|---:|---:|---:|
-| baseline-none | 53 | 20,8 / 24,5 / 54,7 % | 2,66 | 3,38 | 3,83 | 4,62 | 2,43 |
-| new-none | 50 | 52,0 / 20,0 / 28,0 % | 3,78 | 3,74 | 4,18 | 4,62 | 3,42 |
-| new-low | 50 | 60,0 / 22,0 / 18,0 % | 3,96 | 3,64 | 3,84 | 4,54 | 3,02 |
+| Braço | respostas | pass / partial / fail | correctness | numbers | tone | format | usefulness | creativity (planos) |
+|---|---:|---|---:|---:|---:|---:|---:|---:|
+| baseline-none | 463 | 42,8 / 18,1 / 39,1 % | 3,25 | 3,60 | 4,27 | 4,83 | 2,75 | 2,51 |
+| new-none | 459 | 69,1 / 17,6 / 13,3 % | 4,15 | 3,73 | 4,36 | 4,79 | 3,43 | 2,60 |
+| new-low | 465 | 79,4 / 13,1 / 7,5 % | 4,42 | 4,08 | 4,41 | 4,82 | 3,71 | 3,43 |
 
-Nos 42 pares comuns aos três braços: correctness 2,52 / 3,64 / 3,88; usefulness 2,40 / 3,24 / 2,98. O `low` é mais correto e menos útil pelo juiz: respostas mais longas e perguntas a mais. Observação sobre a rubrica: o juiz penalizou as linhas de fechamento ("Ceia: ... ~218 kcal · P 23") como "ceia não solicitada"; elas são exigidas pela regra CLOSING. A rubrica foi corrigida para a próxima rodada; as notas acima carregam esse viés contra os braços novos, que fecham mais vezes.
+Aprovação do juiz por família (baseline / none / low): workout 10 / 93 / 97 %; recipe 28 / 80 / 86 %; copy 49 / 85 / 91 %; multi 18 / 58 / 73 %; plan 28 / 65 / 75 %; memory 26 / 50 / 78 %; habit 79 / 70 / 92 %; photo 43 / 40 / 60 %; sequence 39 / 53 / 61 %; discovery 33 / 78 / 78 %; boost 38 / 29 / 67 %; tone 75 / 93 / 86 %; log 79 / 89 / 88 %; scope 61 / 67 / 72 %; digest 67 / 50 / 67 %.
 
-Custo do juiz: tokens registrados por linha; a tarifa do `gpt-6-astra` não está no repositório (as 153 chamadas custariam US$ 0,08 pela tarifa do luna).
+Por tom: no `duro` o juiz aprova 36 / 66 / 80 % e dá nota de tom 3,43 / 3,68 / 3,83; no `seco` 45 / 70 / 79 % com tom 4,52 / 4,57 / 4,58. O tom duro continua a dimensão mais fraca dos três braços: a crítica existe, mas o juiz a acha genérica ou fora do número que quebrou o dia.
+
+Flags por braço (baseline / none / low): "diz que gravou" 1,5 / 1,5 / 0,2 %; "pergunta o já sabido" 4,3 / 3,9 / 1,1 %; "totais do dia na prosa" 0,9 / 0,7 / 1,3 %; "reforço de proteína errado" 4,5 / 5,0 / 2,2 %; corpo/peso 0,4 / 0,2 / 0,0 %; elogio 0 / 0 / 0,2 %; markdown fora do subset 0,9 / 0,2 / 0,4 %.
+
+Onde o juiz discorda das checagens: em `tone` ele aprova mais o `new-none` (92,9 %) que o `new-low` (85,7 %) porque o `low` escreve mais; em `log` prefere o `none` em utilidade (3,77 contra 3,21) pelas perguntas a mais do `low`. Nas famílias de capacidade nova (workout, recipe, copy, multi) juiz e checagens apontam a mesma ordem.
+
+Uma rodada anterior pela API (153 + 21 respostas, rubrica sem a regra CLOSING, conta sem créditos no meio) foi descartada; ficou em `out/judge-20261008-113718-rubric1.jsonl` só como registro.
 
 ## Defeitos do benchmark encontrados nesta execução
 
@@ -140,17 +149,13 @@ Corrigidos e reavaliados sem nova chamada (commit desta data):
 Para a próxima execução (não reavaliáveis):
 
 - Textos ambíguos entre relato e plano em `boost-duro-ana` e `boost-vegetariano-diego` ("Jantar: ..." sem marcador de futuro).
-- Rubrica do juiz sem a regra CLOSING (corrigida em `judge/judge_prompt.md`).
-- Juiz sem proteção contra conta sem créditos (corrigido: para na primeira `insufficient_quota`, continua com `--resume`).
+- Rubrica do juiz sem a regra CLOSING (corrigida em `judge/judge_prompt.md` antes da rodada pelo Codex).
+- Juiz pela API sem proteção contra conta sem créditos (corrigido: para na primeira `insufficient_quota`, continua com `--resume`); a rodada válida foi pelo Codex.
 
 ## Próximos passos
 
-1. Adicionar créditos na conta OpenAI e concluir o juiz (1.234 respostas restantes, ~5 M tokens de entrada), com a tarifa real:
-
-```bash
-JUDGE_PRICE_INPUT=<usd/1M> JUDGE_PRICE_OUTPUT=<usd/1M> server/.venv/Scripts/python benchmark/judge.py benchmark/out/results-20261008-113718.jsonl --resume --workers 3
-```
-
-2. Decisões do owner: manter `effort=none` (recomendado); manter o reforço de proteína no server; definir `meal_day` de planos para outro dia.
-3. Plano 2 (ações): limite de seis ações, pergunta dentro da ação, frase de fechamento do pulo, revisão sem acréscimo de item já registrado, fronteira entre "pular uma refeição" e sinal de segurança.
+1. ADR para `reasoning.effort=low` no Chat (sucede a linha da constituição em `AGENTS.md` § LLM) com os números deste benchmark; o server só muda depois do plano aprovado. Incluir o feedback de espera no app para o p95 de 16 s.
+2. ADR e plano do reforço híbrido (sucede ADR-043 decisão 4): regra PROTEIN BOOST do prompt novo como está em `prompts/new_instructions.py`, `protein_boost.py` como validador; aceite pela família `boost` deste benchmark.
+3. Plano 2 (ações): limite de seis ações, pergunta dentro da ação, frase de fechamento do pulo, revisão sem acréscimo de item já registrado, fronteira entre "pular uma refeição" e sinal de segurança, `meal_day` de planos para outro dia.
 4. Plano de memória: `replace`/`reinforce` explícitos com exemplos independentes (ADR-033) e a primeira abertura com macros.
+5. Tom duro: a crítica precisa nomear a refeição que quebrou o dia e o número; é a dimensão com menor nota nos três braços.
