@@ -1,10 +1,10 @@
 # Plan — D24 Release 2: "O que a Tali sabe"
 
-- Status: Pendente aprovação manual (Figma review gate, 08/10/2026)
+- Status: Concluído (08/10/2026)
 - Date: 08/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Memória", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/memL.png`, the changed `cfg` (entry row), and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D23 `Concluído` ([history](../completed/)) (same release section order); [ADR-053](../../../produto/adrs/ADR-053-visible-memory-screen.md) accepted with A69.
+- Prerequisites: D23 `Concluído` ([history](./)) (same release section order); [ADR-053](../../../produto/adrs/ADR-053-visible-memory-screen.md) accepted with A69.
 - Figma MCP budget: ≤ 40 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d24-release-2-visible-memory.md. Implemente o plano aprovado.`
@@ -96,3 +96,18 @@ Outside this plan, listed for the owner: the delete confirmation (an existing `D
 3. Review images from `node tools/export-figma.mjs --only <node ids> --dry-run` (no MCP calls), one per frame, sent to the owner.
 
 Figma MCP budget: 6 of 40 calls (whoami, 1 read, 2 writes, 1 failed write retried, 1 read-back); the Figma skills were already loaded in this session by D23.
+
+### Owner review
+
+**OK (08/10/2026)** on the first round, with no fixes ("Está perfeito, pode exportar e concluir o plano"), including the correction state inside `memL`.
+
+### Export (08/10/2026)
+
+- `tools/export-figma.mjs`: `memL` added (Light `198:385`, Dark `198:867`); `cfg` now points to the `Release 2` frames (Light `198:740`, Dark `198:988`).
+- `node tools/export-figma.mjs --only cfg,memL`: `memL` 780 × 2340 (new, both themes); `cfg` 780 × 2208 → 780 × 2542 (both themes).
+- Inventory: `memL.png` added to [docs/qa/README.md](../../../qa/README.md); the golds-per-flow table of the [plans README](../README.md) gains the visible-memory row.
+- `node tools/check-figma.mjs`: 106 golds verified (53 dark + 53 light). `node tools/check-docs.mjs` passes.
+- Gold check of the current app (no `apps/` change; `GoldTest.cfg*`, `--rerun`): all eight pass. `cfg` blurred 0.24 % Dark and 0.11 % Light (the test draws the frame at its 1104 dp qualifier, above the new block); `cfgR`, `cfgS`, `cfgT` unchanged.
+- **Hand-over:** [A68](../../../android/plans/a68-saved-recipes.md) and [A69](../../../android/plans/a69-visible-memory.md) draw the `DA TALI` block (the first of them adds the block with its own row) and move the `cfg` qualifier to 1271 dp; A69 draws `memL`.
+
+Figma MCP budget: 6 of 40 calls in total.
