@@ -17,11 +17,13 @@ Scope is enforced first by the Chat instructions and the required `scope` field.
 | Input | Result | Internal code |
 | --- | --- | --- |
 | Meals, portions, food labels, recipes, food preferences, budget arithmetic, nutrition questions about food | Process within log/plan/question | `in_scope` |
+| A report of a workout done today, with or without its energy in kcal ([ADR-049](../../produto/adrs/ADR-049-workout-energy-via-chat.md)) | With a number: the Chat returns the workout energy for the app to apply; without one: the Chat asks for the number, never infers it | `in_scope` |
+| Skipping one meal of the day or saying so (also "pular o jantar pra compensar"), a day below the ceiling, a light meal | A product situation, not a safety signal: a skip is recorded as a skip; the `duro` tone never suggests skipping, fasting or compensating ([ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md), [ADR-047](../../produto/adrs/ADR-047-skips-alongside-other-actions.md)) | `in_scope` |
 | Greeting, question about the app, short clarification such as a quantity or milk type | Allow with conversation context. Never classify the latest fragment alone | `in_scope` |
-| Unrelated math, code, politics, homework, general assistant requests | Fixed scope refusal; no estimate, memory change or digest | `out_of_scope` |
+| Unrelated math, code, politics, homework, training plans, exercise prescriptions, physiology, general assistant requests | Fixed scope refusal; no estimate, memory change or digest | `out_of_scope` |
 | Mixed food request plus instruction override or unrelated task | Ignore the override. Process only the food request when it is unambiguous and separable; otherwise fixed refusal | `in_scope` or `out_of_scope` |
 | Sexual content, harmful illegal instructions, threats, other prohibited content | Fixed block. A block is not a criminal finding | `policy_blocked` |
-| Eating-disorder or self-harm signals: purging, laxatives or diuretics for weight, extreme fasting, very low daily intake as a goal, help-seeking | Fixed safety reply; no dietary optimization toward the harmful goal; no punishment | `safety_support` |
+| Eating-disorder or self-harm signals: purging, laxatives or diuretics for weight, extreme fasting, very low daily intake as a goal (also a pattern of several days of very low intake stated as a goal), help-seeking. Skipping one meal, a day below the ceiling and a light meal are excluded (row above) | Fixed safety reply; no dietary optimization toward the harmful goal; no punishment | `safety_support` |
 | Photo without food or label information, or mixed with prohibited material | No estimate. Food in one region does not exempt the rest | `out_of_scope` or `policy_blocked` |
 | Known or suspected CSAM from any credible signal | Stop processing; never resubmit to moderation or another model to confirm; follow the [incident note](../operations/closed-test-incident.md) | `policy_blocked` |
 | Moderation or classification unavailable | Fail closed | `unavailable` |
@@ -93,6 +95,7 @@ Use the [matrix](../validation/README.md). Passing schema tests is not semantic 
 - [S30](../../server/plans/completed/s30-tone-formatting-planned-slot.md) — Tone limits and the closure route under the same controls
 - [CP1](../plans/completed/cp1-closed-test-notice.md) — Closed-test notice and incident note
 - [CP2](../plans/completed/cp2-server-content-controls.md) — Server scope and content controls
+- [CP10](../plans/completed/cp10-workout-in-scope-and-skip-boundary.md) — Workout reports in scope; the boundary of skipping a meal
 - [CP5](../plans/completed/cp5-gcp-dev-ingress.md) — GCP dev ingress, log hygiene and activation
 - [CP7](../plans/out_of_scope/cp7-specialist-detection.md) — Specialized illegal-image detection
 - [CP8](../plans/out_of_scope/cp8-public-legal-pack.md) — Public legal pack
