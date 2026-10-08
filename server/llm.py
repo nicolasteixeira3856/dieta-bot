@@ -13,6 +13,8 @@ import plan_budget
 from config import CHAT_EFFORT, MEAL_DAYS, MODEL, REASONING_EFFORT, RECORD_INTENTS, TIMEOUT_SECONDS
 
 SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
+# ADR-050 (S36): the types of a Chat action.
+ACTION_TYPES = ("log", "plan", "skip", "workout", "recipe_recall", "question")
 
 # CP2 / ADR-024: estimate/fit scope. Chat renders the same policy in its reviewed registry.
 # The server replaces non-in_scope output with fixed copy, without model-authored refusals.
@@ -260,27 +262,67 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
         },
     }
     if meal_changes:
-        addition_keys = ("meal_text", "kcal", "p", "c", "g", "items")
-        addition = {
-            "type": "object",
-            "properties": {k: estimate["properties"][k] for k in addition_keys},
-            "required": list(addition_keys),
-            "additionalProperties": False,
-        }
-        change = {
+        return _actions_format(result["schema"]["properties"], estimate, slots)
+    return result
+
+
+def _actions_format(legacy: dict[str, Any], estimate: dict[str, Any], slots: list[Any]) -> dict[str, Any]:
+    """ADR-050 (S36): the meal-change branch answers with an ordered list of typed actions."""
+    addition_keys = ("meal_text", "kcal", "p", "c", "g", "items")
+    addition = {
+        "type": "object",
+        "properties": {k: estimate["properties"][k] for k in addition_keys},
+        "required": list(addition_keys),
+        "additionalProperties": False,
+    }
+    change = {
+        "type": "object",
+        "properties": {
+            "operation": {"type": "string", "enum": ["new", "add", "revise"]},
+            "base_slot": {"type": ["string", "null"], "enum": slots},
+            "addition": {"anyOf": [addition, {"type": "null"}]},
+        },
+        "required": ["operation", "base_slot", "addition"],
+        "additionalProperties": False,
+    }
+    action = {
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "type": {"type": "string", "enum": list(ACTION_TYPES)},
+            "slot": {"type": ["string", "null"], "enum": slots},
+            "estimate": legacy["estimate"],
+            "record_intent": legacy["record_intent"],
+            "meal_day": legacy["meal_day"],
+            "meal_change": {"anyOf": [change, {"type": "null"}]},
+            "workout": legacy["workout"],
+            # S37 options and S38 recipe ids: always null until those plans.
+            "recipe_id": {"type": "null"},
+            "options": {"type": "null"},
+            "plan_budget": legacy["plan_budget"],
+        },
+        "required": ["id", "type", "slot", "estimate", "record_intent", "meal_day", "meal_change", "workout",
+                     "recipe_id", "options", "plan_budget"],
+        "additionalProperties": False,
+    }
+    return {
+        "type": "json_schema",
+        "name": "chat_turn_actions",
+        "strict": True,
+        "schema": {
             "type": "object",
             "properties": {
-                "operation": {"type": "string", "enum": ["new", "add", "revise"]},
-                "base_slot": {"type": ["string", "null"], "enum": slots},
-                "addition": {"anyOf": [addition, {"type": "null"}]},
+                "reply": legacy["reply"],
+                "scope": legacy["scope"],
+                "actions": {"type": "array", "items": action},
+                "memory_updates": legacy["memory_updates"],
+                "memory_used": legacy["memory_used"],
+                "digest": legacy["digest"],
             },
-            "required": ["operation", "base_slot", "addition"],
+            "required": ["reply", "scope", "actions", "memory_updates", "memory_used", "digest"],
             "additionalProperties": False,
-        }
-        schema = result["schema"]
-        schema["properties"]["meal_change"] = {"anyOf": [change, {"type": "null"}]}
-        schema["required"].insert(-1, "meal_change")
-    return result
+        },
+    }
 
 
 class TextOnlyOutput(ValueError):

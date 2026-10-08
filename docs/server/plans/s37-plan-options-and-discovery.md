@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: `chat_instructions.py` (`plan_options`, `discovery`, `memory_changes` for `equipment` and `liked`), `llm.py` schema (`options[]`, categories), compaction (`digest` keeps option ids), `main.py`, `evals/`, tests.
 - Related documentation: [ADR-051](../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) (accepted with this plan), ADR-023/029/043/046, [v1-chat](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md); rule text `benchmark/prompts/new_instructions.py` (`plan_options`, `discovery`, `memory_changes_macros`); benchmark [results](../../../benchmark/RESULTADOS_08_10_2026.md) families `plan`, `discovery`, `memory`.
-- Prerequisites: [S36](s36-typed-actions.md) delivered.
+- Prerequisites: [S36](pending_manual_validation/s36-typed-actions.md) delivered.
 
 Approving this plan accepts ADR-051. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s37-plan-options-and-discovery.md. Implemente o plano aprovado.`
 

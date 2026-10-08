@@ -30,7 +30,7 @@ from typing import Any
 import httpx2
 
 from config import MODEL, load_settings
-from evals.checks import FAIL, NA, PASS, case_status, evaluate, repetition_status, spread_check
+from evals.checks import FAIL, NA, PASS, case_status, evaluate, migrate_expect, repetition_status, spread_check
 from llm import LlmClient
 from main import ChatIn, CloseIn, chat_reply, close_reply, compact_reply
 from moderation import CLEAN, Deadline, ModerationUnavailable, Moderator
@@ -141,6 +141,16 @@ def case_request(case: dict[str, Any]) -> dict[str, Any]:
     if BUDGET_TAG in case.get("tags", []):
         return {**case["request"], "plan_budget": True}
     return case["request"]
+
+
+def as_actions(case: dict[str, Any]) -> dict[str, Any]:
+    """S36 `--actions`: a meal-change case sent with the actions capability, its expectation migrated to one
+    action (checks.migrate_expect). Other cases are unchanged."""
+    request = case["request"]
+    if not request.get("meal_changes") or request.get("actions") or case.get("route") == CLOSE_ROUTE:
+        return case
+    return {**case, "request": {**request, "actions": True}, "expect": migrate_expect(case["expect"]),
+            "required": [k for k in case.get("required", []) if k in migrate_expect(case["expect"])]}
 
 
 def run_once(
@@ -408,6 +418,8 @@ def main(argv: list[str] | None = None) -> int:
                         help=f"default {DEFAULT_WORKERS}, max {MAX_WORKERS}")
     parser.add_argument("--moderation", choices=MODERATION_MODES, default="cp2",
                         help="which cases call the provider's moderation endpoint (default cp2 cases only)")
+    parser.add_argument("--actions", action="store_true",
+                        help="send meal-change cases with the actions capability and migrated expectations (S36)")
     args = parser.parse_args(argv)
     if args.repeat < 1:
         parser.error("--repeat must be >= 1")
@@ -420,6 +432,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     only = [i.strip() for i in args.only.split(",") if i.strip()] if args.only else None
     cases = select_cases(load_cases(), only, args.tag)
+    if args.actions:
+        cases = [as_actions(case) for case in cases]
     if not cases:
         print("no case selected", file=sys.stderr)
         return 2

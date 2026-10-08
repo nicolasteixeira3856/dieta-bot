@@ -200,9 +200,11 @@ def test_new_schema_and_legacy_schema_are_separate():
     legacy = chat_format(['old-id'])['schema']
     modern = chat_format(['old-id'], meal_changes=True)['schema']
     assert 'meal_change' not in legacy['properties']
-    change = modern['properties']['meal_change']['anyOf'][0]
+    # S36: the meal-change branch answers in actions; each action carries its meal_change.
+    action = modern['properties']['actions']['items']
+    change = action['properties']['meal_change']['anyOf'][0]
     assert change['properties']['base_slot']['enum'] == ['old-id', None]
-    assert 'meal_change' in modern['required']
+    assert 'meal_change' in action['required']
 
 
 def test_pending_context_is_not_inserted_into_day_and_cannot_forge_delimiters():

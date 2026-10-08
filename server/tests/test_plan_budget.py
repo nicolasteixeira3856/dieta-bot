@@ -108,7 +108,8 @@ def test_adjustment_needs_a_choice_an_excess_and_a_positive_target():
 
 def test_every_schema_carries_the_same_required_plan_budget():
     legacy = chat_format(["a"])["schema"]
-    modern = chat_format(["a"], meal_changes=True)["schema"]
+    # S36: in the meal-change branch the plan budget sits on each action.
+    modern = chat_format(["a"], meal_changes=True)["schema"]["properties"]["actions"]["items"]
     for schema in (legacy, modern):
         assert "plan_budget" in schema["required"]
         assert schema["properties"]["plan_budget"] == plan_budget.SCHEMA

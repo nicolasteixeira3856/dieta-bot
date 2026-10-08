@@ -55,6 +55,8 @@ KNOWN = (
     "meal_change",
     "meal_change_op",
     "workout",
+    "actions",
+    "actions_order",
     "estimate_values",
     "item_portions",
     "memory_used_only",
@@ -334,6 +336,14 @@ def _check(
 
     if key == "meal_change":
         return _change_check(want, output, estimate)
+    if key == "actions":
+        return _actions_check(want, output)
+    if key == "actions_order":
+        # S36: the exact type sequence of the returned actions (skips last, in profile order).
+        got = [a.get("type") for a in output.get("actions") or [] if isinstance(a, dict)] if "actions" in output else None
+        if got is None:
+            return _na("no actions in output")
+        return _result(got == list(want), f"got {got}")
     if key == "workout":
         # S35 (ADR-049): null, or {kcal, mode} exactly; a "kcal" list accepts a range. NA without the field.
         if "workout" not in output:
@@ -599,3 +609,98 @@ def case_status(repetitions: list[str], strict: bool = False) -> str:
     passes = sum(1 for s in repetitions if s == PASS)
     needed = len(repetitions) if strict else needed_passes(len(repetitions))
     return PASS if passes >= needed else FAIL
+
+
+# S36 (ADR-050): expectations of one action, judged on a single-estimate view of that action.
+ACTION_KEYS = (
+    "type", "estimate", "meal_progress", "confidence", "suggested_slot", "kcal_range", "meal_text_has",
+    "meal_text_not", "question", "question_not", "top_question", "top_question_not", "record", "skip_slot",
+    "meal_change", "meal_change_op", "estimate_values", "item_portions", "items_beyond", "plan_budget",
+    "estimate_min", "workout", "slot",
+)
+_ACTION_INTENT = {"log": "log", "plan": "plan", "skip": "skip"}
+
+
+def action_view(action: dict[str, Any], output: dict[str, Any]) -> dict[str, Any]:
+    """One action as the single-estimate output the existing checks read."""
+    kind = action.get("type")
+    slot = action.get("slot")
+    view = {
+        "intent": _ACTION_INTENT.get(kind, "question"),
+        "estimate": action.get("estimate"),
+        "reply": output.get("reply"),
+        "question": action.get("question"),
+        "meal_change": action.get("meal_change"),
+        "workout": action.get("workout"),
+        "plan_budget": action.get("plan_budget"),
+        "skip_slot": slot if kind == "skip" else None,
+        "skip_slots": [slot] if kind == "skip" and slot is not None else [],
+    }
+    if "record" in action:
+        view["record"] = action["record"]
+    return view
+
+
+def _action_match(want: dict[str, Any], action: dict[str, Any], output: dict[str, Any]) -> str | None:
+    """None when the action meets every expectation, else the first failure."""
+    if "type" in want and action.get("type") != want["type"]:
+        return f"type {action.get('type')}"
+    if "slot" in want and action.get("slot") != want["slot"]:
+        return f"slot {action.get('slot')}"
+    rest = {k: v for k, v in want.items() if k not in ("type", "slot")}
+    for name, check in evaluate(rest, action_view(action, output)).items():
+        if check["status"] == FAIL:
+            return f"{name}: {check['detail']}"
+    return None
+
+
+def _actions_check(want: list[dict[str, Any]], output: dict[str, Any]) -> dict[str, Any]:
+    """Greedy one-to-one match, order-free (benchmark scoring): each expected action needs its own output action."""
+    if "actions" not in output:
+        return _na("no actions in output")
+    got = [a for a in output.get("actions") or [] if isinstance(a, dict)]
+    used: set[int] = set()
+    for index, expected in enumerate(want):
+        unknown = set(expected) - set(ACTION_KEYS)
+        if unknown:
+            raise ValueError(f"unknown action expectation: {sorted(unknown)}")
+        reasons = []
+        for i, action in enumerate(got):
+            if i in used:
+                continue
+            reason = _action_match(expected, action, output)
+            if reason is None:
+                used.add(i)
+                break
+            reasons.append(f"{action.get('id')}: {reason}")
+        else:
+            return _result(False, f"action {index + 1} {expected.get('type')} unmatched ({'; '.join(reasons) or 'none left'})")
+    return _result(True, f"{len(want)} of {len(got)} actions matched")
+
+
+# Legacy expectation keys that describe the one action of a single-estimate answer.
+_MIGRATED = ("estimate", "meal_progress", "confidence", "suggested_slot", "kcal_range", "meal_text_has",
+             "meal_text_not", "question", "question_not", "record", "meal_change", "meal_change_op",
+             "estimate_values", "item_portions", "items_beyond", "plan_budget", "estimate_min", "workout")
+
+
+def migrate_expect(expect: dict[str, Any]) -> dict[str, Any]:
+    """A legacy expectation in the actions shape (S36): one action from the estimate keys, one skip action per
+    expected skip slot, the rest unchanged at the top level."""
+    out = {k: v for k, v in expect.items() if k not in _MIGRATED and k not in (
+        "intent", "skip_slot", "skip_slots", "top_question", "top_question_not")}
+    action: dict[str, Any] = {k: expect[k] for k in _MIGRATED if k in expect}
+    intent = expect.get("intent")
+    if intent in ("log", "plan", "question"):
+        action["type"] = intent
+    for key in ("top_question", "top_question_not"):
+        if key in expect:
+            action[key] = expect[key]
+    skips = list(expect.get("skip_slots") or [])
+    if intent == "skip" and not skips and expect.get("skip_slot"):
+        skips = [expect["skip_slot"]]
+    planned = [action] if action and intent != "skip" else []
+    planned += [{"type": "skip", "slot": slot} for slot in skips]
+    if planned:
+        out["actions"] = planned
+    return out

@@ -107,6 +107,11 @@ def chat_output_texts(result: dict[str, Any]) -> list[str]:
             f"{update.get('key')}: {update.get('text')}" for update in result.get("memory_updates") or []
         )
     )
+    # ADR-050 (S36): every action's generated text, after the first action's above.
+    for action in result.get("actions") or []:
+        if isinstance(action, dict):
+            texts.extend(chat_output_texts({k: action.get(k) for k in ("question", "estimate", "plan_budget",
+                                                                          "meal_change")}))
     return _texts(texts)
 
 
