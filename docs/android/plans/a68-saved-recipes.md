@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Room entities `recipe` and `recipe_version` (v14), local search by name and ingredient, `PromptBuilder` (`recipes[]` index, `recipe_full` when found), "Salvar receita" action under a cooking plan, Config entry, list and detail screens (`rcpL`, `rcpD`), record by recipe with receipt, tests, captures.
-- Prerequisites: [S38](../../server/plans/s38-saved-recipes.md) on the dev server; [A67](a67-plan-options-and-discovery.md) delivered; [D23](../../design/plans/d23-release-2-recipes.md) `Concluído`.
+- Prerequisites: [S38](../../server/plans/s38-saved-recipes.md) on the dev server; [A67](a67-plan-options-and-discovery.md) delivered; [D23](../../design/plans/pending_manual_validation/d23-release-2-recipes.md) `Concluído`.
 - Related documentation: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md), ADR-017/048, [product Chat](../../produto/specifications/chat.md), [memoria-push](../../produto/specifications/memoria-push.md), [Room](../specifications/room-v2.md), [gold inventory](../../qa/README.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a68-saved-recipes.md. Implemente o plano aprovado.`

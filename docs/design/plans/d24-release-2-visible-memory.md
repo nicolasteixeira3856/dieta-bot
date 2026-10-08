@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Memória", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/memL.png`, the changed `cfg` (entry row), and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D23](d23-release-2-recipes.md) `Concluído` (same release section order); [ADR-053](../../produto/adrs/ADR-053-visible-memory-screen.md) accepted with A69.
+- Prerequisites: [D23](pending_manual_validation/d23-release-2-recipes.md) `Concluído` (same release section order); [ADR-053](../../produto/adrs/ADR-053-visible-memory-screen.md) accepted with A69.
 - Figma MCP budget: ≤ 40 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d24-release-2-visible-memory.md. Implemente o plano aprovado.`

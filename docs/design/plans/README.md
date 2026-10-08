@@ -153,7 +153,7 @@ Behavior: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md), [ADR-053](../.
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Design | [D23](d23-release-2-recipes.md) — Recipes (`rcpL`, `rcpD`, `chatRK`) | D22, ADR-052 accepted (S38) |
+| Design | [D23](pending_manual_validation/d23-release-2-recipes.md) — Recipes (`rcpL`, `rcpD`, `chatRK`) | D22, ADR-052 accepted (S38) |
 | Client | [A68](../../android/plans/a68-saved-recipes.md) — saved recipes | D23, S38 on dev, A67 |
 | Design | [D24](d24-release-2-visible-memory.md) — "O que a Tali sabe" (`memL`, `cfg`) | D23, ADR-053 accepted (A69) |
 | Client | [A69](../../android/plans/a69-visible-memory.md) — memory screen | D24, A68 |
