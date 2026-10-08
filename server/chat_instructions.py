@@ -143,6 +143,10 @@ CUES: dict[str, Cue] = {
         "habitual meal: resolve its source under branches A to C; a copy from RECENT says the copied "
         "row's weekday word in reply",
         "de sempre", "de costume", "como sempre", "o habitual"),
+    "option-reference": _cue(
+        "plan", "Recognise a later reference to a numbered plan option",
+        "a reference to an option of an earlier plan by its number or name: answer about that option only",
+        "a primeira", "a segunda", "fiz a", "comi a opção", "da opção", "na opção"),
     "particular-day": _cue(
         "history", "Recognise a copy of a particular prior day",
         "a named source day after an equality word: particular-day request, never habitual",
@@ -151,6 +155,10 @@ CUES: dict[str, Cue] = {
         "memory_changes", "Recognise an enduring habit or preference statement",
         "enduring habit or preference (permanent)",
         "sempre uso", "costumo", "lembra que", "agora uso", "não uso mais", "todo dia"),
+    "liked": _cue(
+        "memory_changes", "Recognise approval of a dish already eaten",
+        "approval of a dish the user ate (add liked)",
+        "ficou bom", "ficou ótimo", "ficou ótima", "gostei", "quero repetir", "vou fazer de novo"),
     "forget": _cue(
         "memory_changes", "Recognise a request to forget a fact",
         "request to forget a fact (remove)",
@@ -420,10 +428,16 @@ RULES: dict[str, Rule] = {
         'about the food: assume, and say in reply what you assumed; question is null and confidence may '
         'be medium. '
         'OPEN REQUEST: a request about what to eat, order or make, how to organise a meal out, or a '
-        'message saying the user has no idea what to eat, is a plan with a dish. reply gives two concrete '
-        'options, one leaner and one more indulgent, each with the grams of each item and its own total, '
-        'both inside the window of that meal (WINDOW below); estimate, items and meal_text describe the '
-        'first option only. A message that already names the foods of the dish, even asking whether it is '
+        'message saying the user has no idea what to eat, is a plan with two options: two concrete dishes, '
+        'one leaner and one more indulgent, both inside the window of that meal (WINDOW below), each with '
+        'its own id (o1, o2), a short name and its own estimate (items with grams and totals). reply presents '
+        'them as **Opção 1: {name}** and **Opção 2: {name}**, each followed by the grams of its items, its '
+        'total and its protein; estimate, items and meal_text describe option 1. Under ACTIONS the plan '
+        "action's options holds both; without ACTIONS the reply alone carries them. LATER REFERENCE: when the "
+        'user later refers to an option by its number or name, find it in HISTORY or DIGESTS and answer about '
+        'that option only: a question about its amounts is a question that quotes the grams already given; '
+        'eating it is a log copying that option unchanged (its foods, grams and totals); planning it again '
+        'is a plan of that option. A message that already names the foods of the dish, even asking whether it is '
         'fine, is not an open request: answer with that one dish, and PROTEIN BOOST below still applies to '
         'it. ONE ITEM: a question about adding one food to a dish already stated in the conversation is '
         "answered with that food's grams, kcal and main macro in one line; the estimate describes that food "
@@ -433,7 +447,9 @@ RULES: dict[str, Rule] = {
         'user does not have). When the user names a venue or occasion, the dish is what that venue '
         'typically serves, sized under BUDGET below. '
         'COOKING: a request for a recipe or for what to make is cooking help, not a sum of the listed '
-        'foods. Name a real dish a cook would serve. The foods the user has are the base. You may add up '
+        'foods. Name a real dish a cook would serve. The foods the user has are the base; a MEMORY equipment '
+        'fact (an appliance) and a MEMORY liked fact (a dish that worked before) are preferred over unstated '
+        'ones. You may add up '
         'to 3 common, low-cost foods that change the dish, not only seasoning, chosen for flavor, volume, '
         'protein or satiety for few kcal. Mark each added food as (opcional) in reply and include it in '
         'items and in the totals. For a recipe, reply lists the ingredients with grams and up to 5 '
@@ -562,7 +578,15 @@ RULES: dict[str, Rule] = {
     )),
     'memory_changes': Rule('server Chat 3e/5; ADR-023/029', (
         'MEMORY CHANGES: memory_updates lists at most 5 changes {op, id, kind, category, key, text, slot, '
-        'kcal, p, c, g}. '
+        'kcal, p, c, g, declared}. category is preference, portion, routine, equipment (an appliance the user '
+        'declared: air fryer, pressure cooker, kitchen scale; kind permanent, slot null) or liked (a dish the '
+        'user says worked and wants to repeat after eating it: kind dynamic, the dish name in text, slot of '
+        'that meal, its numbers). declared is true only for a routine the user declares without eating it '
+        'now (DISCOVERY); false otherwise. A preference restated with another value (now uses X, no longer '
+        'uses Y) is replace of that fact id, never a second add. A log of a routine meal that names its brand '
+        'or product is reinforce of that routine id, also when a brand fact exists. A statement that a dish '
+        'the user ate worked (it was good, they will make it again) always proposes add liked for that dish, '
+        'whatever else the message asks; the plan or log of the same message still follows its own rule. '
         'key is a short lowercase identifier for the food or routine. For a habitual food preference, '
         'use the base food noun as key; keep the chosen type, preparation and brand in text, not in key. '
         'This stable key must still identify the same food when its preferred type changes. '
@@ -886,7 +910,10 @@ RULES: dict[str, Rule] = {
         'about why a question was closed. Use that literal prefix. Include only the unanswered question'
         ' sentence, not preceding assistant claims. Keep the pending food/photo description. Do not '
         'infer a slot from the suggestion marker. No new estimates, numbers, judgement, record status '
-        'or assistant assumptions. When every asked attribute is answered or unavailable, the digest '
+        'or assistant assumptions. One exception: when an assistant turn offered numbered options (Opção 1, '
+        'Opção 2), keep for the last such turn each option as Opção {n}: {name}, {kcal} kcal, P {protein} g, '
+        'copying its numbers, so a later reference to an option can still be answered. When every asked '
+        'attribute is answered or unavailable, the digest '
         'contains no question sentence or question mark, no pending marker and no explanation that '
         'questions are closed. This also applies when the final assistant turn repeats an unavailable '
         'detail. A detail is answerable by default unless the user explicitly cannot supply it; '
@@ -911,6 +938,20 @@ RULES: dict[str, Rule] = {
         'A stated portion assumption is not a user fact. Only DAY establishes committed records; '
         'history, digests and pending proposals explain the conversation without proving that an action was '
         'saved.'
+    )),
+    'discovery': Rule('server Chat 3n; ADR-051', (
+        'DISCOVERY: an input line DISCOVERY: first_open means MEMORY is empty and the Chat was just opened for '
+        'the first time. If the message is a greeting, asks how to start or says nothing about food, reply '
+        'with one short line and at most four questions as - lines: the usual breakfast, the usual lunch, '
+        'the usual dinner, and fixed preferences or equipment (milk type, a protein supplement, an air '
+        'fryer); say each can be skipped; the answer is a question with nothing to estimate. When the message '
+        'answers them (with DISCOVERY: first_open, or right after those questions in HISTORY), propose one '
+        'memory_updates add per stated meal routine (kind dynamic, category routine, the slot of that meal, '
+        'foods and amounts in text, kcal, p, c and g estimated with the REFERENCE PORTIONS, declared true), '
+        'one permanent preference per stated fixed preference and one permanent equipment fact per stated '
+        'appliance; nothing eaten is logged; the answer is a question with nothing to estimate and reply '
+        'lists what will be remembered, one line per fact, without saying it was saved. A user who skips or '
+        'refuses the questions gets no proposal. A declared routine is never a meal of today.'
     )),
     'workout': Rule('server Chat 3l; ADR-049', (
         'WORKOUT: workout is {kcal, mode} only when the user states the energy of a workout done today as a '
@@ -949,7 +990,8 @@ RULES: dict[str, Rule] = {
         'and its grams. A recipe always lists its ingredients in that table (more than six foods: - lines '
         'instead) and then its steps as 1. 2. 3. No headings, links, images, code, emoji, italics, quotes, '
         'nested lists or HTML. A reply that only asks a question, a skip reply, the other-day notice and '
-        'the CLOSING lines carry no markers. Markers never enter meal_text, items, question or memory.'
+        'the CLOSING lines carry no markers, except the DISCOVERY questions, which are - lines. Markers never '
+        'enter meal_text, items, question or memory.'
     )),
     'tone_seco': Rule('server Chat 3; ADR-044', (
         'TONE: seco, chosen by the user. Scope, refusals and safety_support above are decided first and '
@@ -1020,10 +1062,11 @@ _CAPABILITY = {
         ("rule", "record"), ("cues", "record"), ("rule", "estimate"), ("cues", "estimate"),
         ("example", "answer-continues-meal-v1"),
         ("rule", "log"), ("cues", "log"),
-        ("rule", "plan"), ("rule", "closing"), ("rule", "reference"), ("rule", "history"), ("cues", "history"),
+        ("rule", "plan"), ("cues", "plan"), ("rule", "closing"), ("rule", "reference"), ("rule", "history"),
+        ("cues", "history"),
         ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"), ("rule", "memory_use"),
         ("rule", "memory_changes"), ("cues", "memory_changes"), ("rule", "temp_references"),
-        ("rule", "skips"), ("rule", "workout"), ("rule", "planned"), ("rule", "format"),
+        ("rule", "skips"), ("rule", "workout"), ("rule", "discovery"), ("rule", "planned"), ("rule", "format"),
     ),
     "meal_changes": (
         ("rule", "product_actions"), ("rule", "context"),
@@ -1031,11 +1074,13 @@ _CAPABILITY = {
         ("rule", "record_meal_changes"), ("cues", "record"),
         ("rule", "estimate_meal_changes"), ("cues", "estimate"),
         ("example", "answer-continues-meal-v1"), ("rule", "meal_changes"),
-        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("rule", "closing"), ("rule", "reference"),
+        ("rule", "log_meal_changes"), ("cues", "log"), ("rule", "plan"), ("cues", "plan"), ("rule", "closing"),
+        ("rule", "reference"),
         ("rule", "history"),
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
-        ("rule", "temp_references"), ("rule", "workout"), ("rule", "planned"), ("rule", "format"),
+        ("rule", "temp_references"), ("rule", "workout"), ("rule", "discovery"), ("rule", "planned"),
+        ("rule", "format"),
     ),
 }
 

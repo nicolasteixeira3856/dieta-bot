@@ -1,0 +1,116 @@
+{
+  "id": "s37-equipamento-e-receita",
+  "since": "meal_changes",
+  "tags": [
+    "s37"
+  ],
+  "request": {
+    "local_time": "2026-10-15T19:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [
+      {
+        "id": "P1",
+        "kind": "permanent",
+        "category": "equipment",
+        "key": "air fryer",
+        "text": "Tem air fryer",
+        "slot": null,
+        "days_seen": 1,
+        "last_seen": "2026-10-14"
+      }
+    ],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1020,
+      "eaten_p": 50,
+      "eaten_c": 130,
+      "eaten_g": 31,
+      "workout_kcal": null,
+      "remaining_kcal": 880,
+      "slots": [
+        {
+          "id": "c",
+          "status": "eaten",
+          "text": "café com leite e 1 pão",
+          "kcal": 320,
+          "p": 12,
+          "c": 45,
+          "g": 9
+        },
+        {
+          "id": "a",
+          "status": "eaten",
+          "text": "arroz, feijão e carne",
+          "kcal": 700,
+          "p": 38,
+          "c": 85,
+          "g": 22
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "me passa uma receita de jantar com frango",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "estimate": "present"
+      }
+    ],
+    "reply_any": [
+      "air fryer",
+      "airfryer"
+    ],
+    "refusal": "none"
+  }
+}

@@ -94,6 +94,7 @@ from shaping import (
     refusal_reply,
     refuse_chat,
     shape_chat,
+    shape_options,
     shape_workout,
     shape_digest,
     shape_estimate,
@@ -207,7 +208,8 @@ class FactIn(BaseModel):
 
     id: str = Field(..., pattern=r"^[PDT][0-9]{1,4}$")
     kind: Literal["permanent", "dynamic", "temp"]
-    category: Literal["preference", "portion", "routine"]
+    # S37 (ADR-051): equipment the user declared and dishes they liked.
+    category: Literal["preference", "portion", "routine", "equipment", "liked"]
     key: str = Field(..., max_length=FACT_KEY_MAX)
     text: str = Field(..., max_length=FACT_TEXT_MAX)
     slot: str | None = None
@@ -294,6 +296,8 @@ class ChatIn(BaseModel):
     workout: bool = Field(default=False, strict=True)
     # ADR-050 (S36): the response carries actions[]. Requires meal_changes (whose branch answers in actions).
     actions: bool = Field(default=False, strict=True)
+    # ADR-051 (S37): the first Chat opening with an empty memory (DISCOVERY: first_open in the input).
+    discovery: bool = Field(default=False, strict=True)
     fit_kcal: int | None = Field(default=None, strict=True, ge=1, le=budgets.FIT_KCAL_MAX)
 
     @model_validator(mode="before")
@@ -301,7 +305,7 @@ class ChatIn(BaseModel):
     def _meal_change_input(cls, data: Any) -> Any:
         if isinstance(data, dict) and data.get("compact") is True:
             return {**data, "meal_changes": False, "pending_addition": None,
-                    "plan_budget": False, "fit_kcal": None, "skip_slots": False, "workout": False, "actions": False}
+                    "plan_budget": False, "fit_kcal": None, "skip_slots": False, "workout": False, "actions": False, "discovery": False}
         if isinstance(data, dict) and data.get("meal_changes") is True:
             day = data.get("day")
             states = day.get("slots", []) if isinstance(day, dict) else []
@@ -985,7 +989,11 @@ def chat_reply(
         for action in listed:
             view = actions.view(payload, action, reply=reply, first=False)
             resums.append(estimate_total.apply_turn(view, _record_totals(body)))
-            if action["type"] == "plan":
+            for option in action.get("options") or []:
+                if isinstance(option, dict):
+                    estimate_total.apply(option.get("estimate"))
+            # An open request (options) is already built for the protein: no boost (ADR-055).
+            if action["type"] == "plan" and not action.get("options"):
                 boost: dict[str, Any] = {}
                 _protein_boost(day_body, view, boost)
                 boosts.append(boost.get("protein_boost"))
@@ -1094,6 +1102,8 @@ def chat_reply(
                 result["reply"] = reply
             if action["type"] == "workout":
                 result["workout"] = shape_workout(view)
+            if action["type"] == "plan":
+                result["options"] = shape_options(action.get("options"), slot_ids)
             differences.append(_plan_difference(day_body, view, result))
             if result.get("intent") == "plan" and result.get("estimate"):
                 window = _meal_window(day_body, view)
@@ -1119,6 +1129,7 @@ def chat_reply(
             own = (legacy.get("estimate") or {}).get("suggested_slot") if legacy.get("intent") == "log" else None
             legacy["skip_slots"] = [a["slot"] for a, *_ in shaped if a["type"] == "skip" and a["slot"] != own]
         legacy.pop("workout", None)
+        legacy.pop("options", None)
         if body.workout:
             legacy["workout"] = next((r["workout"] for a, _, r, *_ in shaped if a["type"] == "workout"), None)
             if (legacy["workout"] and legacy.get("estimate") is None and not legacy.get("question")
@@ -1222,7 +1233,7 @@ def _action_out(action: dict[str, Any], result: dict[str, Any], fields: dict[str
         "meal_change": result.get("meal_change") if kind == "log" else None,
         "workout": result.get("workout") if kind == "workout" else None,
         "recipe_id": None,
-        "options": None,
+        "options": result.get("options") if kind == "plan" else None,
         "plan_budget": result.get("plan_budget") if kind == "plan" else None,
     }
 
@@ -1706,6 +1717,10 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
         ):
             if line:
                 lines.append(line)
+
+    if body.discovery:
+        # ADR-051: the first opening with an empty memory; the DISCOVERY rule asks the routines in one message.
+        lines.append("DISCOVERY: first_open")
 
     # Client text cannot forge a section marker (CP2).
     lines = [neutralize_delimiters(line) for line in lines]

@@ -111,7 +111,7 @@ def test_undeclared_cue_block_and_unassembled_cue_fail():
     branches = {**BRANCHES, "compact": BRANCHES["compact"] + (("cues", "digest"),)}
     with pytest.raises(ValueError):
         assemble("compact", branches=branches)
-    extra = {**CUES, "fixture": replace(CUES["eating-now"], rule="plan")}
+    extra = {**CUES, "fixture": replace(CUES["eating-now"], rule="closing")}
     with pytest.raises(ValueError):
         validate_inventory(RULES, EXAMPLES, BRANCHES, extra)
 

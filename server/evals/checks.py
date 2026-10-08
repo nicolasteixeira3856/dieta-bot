@@ -57,6 +57,7 @@ KNOWN = (
     "workout",
     "actions",
     "actions_order",
+    "options",
     "estimate_values",
     "item_portions",
     "memory_used_only",
@@ -344,6 +345,13 @@ def _check(
         if got is None:
             return _na("no actions in output")
         return _result(got == list(want), f"got {got}")
+    if key == "options":
+        # S37: the number of plan options returned (null or absent = none). NA when the field is missing.
+        if "options" not in output:
+            return _na("no options in output")
+        got = output["options"]
+        count = len(got) if isinstance(got, list) else 0
+        return _result(count == int(want or 0), f"{count} options")
     if key == "workout":
         # S35 (ADR-049): null, or {kcal, mode} exactly; a "kcal" list accepts a range. NA without the field.
         if "workout" not in output:
@@ -616,7 +624,7 @@ ACTION_KEYS = (
     "type", "estimate", "meal_progress", "confidence", "suggested_slot", "kcal_range", "meal_text_has",
     "meal_text_not", "question", "question_not", "top_question", "top_question_not", "record", "skip_slot",
     "meal_change", "meal_change_op", "estimate_values", "item_portions", "items_beyond", "plan_budget",
-    "estimate_min", "workout", "slot",
+    "estimate_min", "workout", "slot", "options",
 )
 _ACTION_INTENT = {"log": "log", "plan": "plan", "skip": "skip"}
 
@@ -633,6 +641,7 @@ def action_view(action: dict[str, Any], output: dict[str, Any]) -> dict[str, Any
         "meal_change": action.get("meal_change"),
         "workout": action.get("workout"),
         "plan_budget": action.get("plan_budget"),
+        "options": action.get("options"),
         "skip_slot": slot if kind == "skip" else None,
         "skip_slots": [slot] if kind == "skip" and slot is not None else [],
     }

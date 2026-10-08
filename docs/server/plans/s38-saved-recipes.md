@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: `chat_instructions.py` (`recipes` rule), `llm.py` schema (`recipe_id`, `recipe` structure in a plan), `main.py` (`RECIPES`, `RECIPE_FULL` serialization, recipe log copy), `evals/`, tests.
 - Related documentation: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md) (accepted with this plan), ADR-039/042/043, [v1-chat](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md); rule text `benchmark/prompts/new_instructions.py` (`recipes`); benchmark [results](../../../benchmark/RESULTADOS_08_10_2026.md) family `recipe`.
-- Prerequisites: [S37](s37-plan-options-and-discovery.md) delivered.
+- Prerequisites: [S37](pending_manual_validation/s37-plan-options-and-discovery.md) delivered.
 
 Approving this plan accepts ADR-052. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s38-saved-recipes.md. Implemente o plano aprovado.`
 

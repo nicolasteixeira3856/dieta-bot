@@ -1,0 +1,100 @@
+{
+  "id": "s37-descoberta-pulada",
+  "since": "meal_changes",
+  "tags": [
+    "s37"
+  ],
+  "request": {
+    "local_time": "2026-10-15T08:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 1900,
+      "slots": [
+        {
+          "id": "c",
+          "status": "empty"
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "oi"
+      },
+      {
+        "role": "assistant",
+        "text": "Para eu conhecer sua rotina (pode pular qualquer uma):\n- O que você costuma tomar no café?\n- E no almoço?\n- E no jantar?\n- Alguma preferência fixa ou equipamento (tipo de leite, air fryer)?"
+      }
+    ],
+    "text": "agora não quero responder isso",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true,
+    "discovery": true
+  },
+  "expect": {
+    "memory_updates_not": [
+      {
+        "op": "add"
+      }
+    ],
+    "refusal": "none"
+  }
+}
