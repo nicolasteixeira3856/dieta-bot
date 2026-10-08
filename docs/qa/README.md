@@ -26,7 +26,7 @@ chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · ch
 chatRK.png · chatRB.png · chatRL.png · chatSK.png · chatSD.png
 chatI.png · chatIC.png · chatTI.png
 cfg.png · cfgS.png · wipe.png · cfgR.png · cfgT.png · push.png
-rcpL.png · rcpD.png · memL.png
+rcpL.png · rcpD.png · memL.png · chatO.png
 land.png · landM.png · priv.png
 ```
 
