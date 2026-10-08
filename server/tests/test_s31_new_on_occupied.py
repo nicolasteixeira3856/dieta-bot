@@ -23,7 +23,8 @@ def test_new_on_eaten_slot_asks_add_or_replace():
     assert out['record'] == 'none'
     assert out['memory_updates'] == []
     assert out['question'] == out['reply']
-    assert out['reply'] == 'Cafe da manha de hoje já tem registro: Base, íntegra 🥣 (301 kcal). Somo a esse registro ou substituo?'
+    assert out['reply'] == ('Cafe da manha de hoje já tem registro: Base, íntegra 🥣 (301 kcal). '
+                            'Somo 1 iogurte e 2 frutas, ~40 kcal, a esse registro ou substituo o registro por isso?')
     assert clarify == main.CLARIFY_ASKED
     assert record_log == main.RECORD_NONE_INTENT
 
@@ -44,7 +45,7 @@ def test_long_or_missing_base_text_never_fails():
     assert held.endswith('…') and len(held) <= 60
     req['day']['slots'][0]['text'] = None
     out, _, _ = turn(req)
-    assert out['reply'] == 'Cafe da manha de hoje já tem registro (301 kcal). Somo a esse registro ou substituo?'
+    assert out['reply'].startswith('Cafe da manha de hoje já tem registro (301 kcal). Somo 1 iogurte')
 
 
 @pytest.mark.parametrize('status', ['empty', 'skipped', 'planned'])

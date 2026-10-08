@@ -1,0 +1,103 @@
+{
+  "id": "s32-occupied-ambiguous",
+  "since": "meal_changes",
+  "tags": [
+    "s32"
+  ],
+  "strict": false,
+  "provenance": "Independent synthetic fixture (S32, incident 2026-10-08 rewritten with other foods); never global prompt material.",
+  "request": {
+    "local_time": "2026-10-08T16:20:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 140,
+      "c_target": 260,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "am",
+          "name": "Café",
+          "time": "08:00"
+        },
+        {
+          "id": "mid",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "pm",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "eve",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ]
+    },
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-08",
+      "slots": [
+        {
+          "id": "am",
+          "status": "eaten",
+          "text": "2 fatias de pão integral e 1 ovo",
+          "kcal": 230,
+          "p": 13,
+          "c": 26,
+          "g": 8
+        },
+        {
+          "id": "mid",
+          "status": "eaten",
+          "text": "160 g de arroz e 100 g de peixe",
+          "kcal": 390,
+          "p": 27,
+          "c": 46,
+          "g": 10
+        },
+        {
+          "id": "pm",
+          "status": "eaten",
+          "text": "120 g de melão",
+          "kcal": 36,
+          "p": 1,
+          "c": 9,
+          "g": 0
+        },
+        {
+          "id": "eve",
+          "status": "empty"
+        }
+      ],
+      "eaten_kcal": 656,
+      "eaten_p": 41,
+      "eaten_c": 81,
+      "eaten_g": 18,
+      "remaining_kcal": 1544
+    },
+    "text": "Lanche: 1 pote de coalhada e 1 maçã pequena",
+    "messages": [],
+    "digests": [],
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "meal_changes": true
+  },
+  "expect": {
+    "refusal": "none",
+    "meal_progress": "present",
+    "reply_not": [
+      "nao deu pra estimar"
+    ]
+  },
+  "required": [
+    "refusal",
+    "meal_progress",
+    "reply_not"
+  ],
+  "note": "Ambiguous by rule 5e: either the add-or-replace question (model or server) or a resolved add is acceptable; the error fallback is not."
+}
