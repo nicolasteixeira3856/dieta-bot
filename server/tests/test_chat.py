@@ -960,7 +960,7 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
                       "remaining_g=67, eaten_kcal=", prompt)
         self.assertIn('RECENT:\n2026-09-29 terca 1 Cafe: "2 ovos mexidos, 1 pao frances" 440kcal 25P 38C 22G', prompt)
         self.assertIn('2026-09-28 segunda Outros: "barra de cereal" 90.5kcal', prompt)
-        order = [prompt.index(k) for k in ("PROFILE:", "MEMORY:", "DAY:", "RECENT:", "DIGESTS:", "HISTORY:", "CURRENT_USER_MESSAGE:")]
+        order = [prompt.index(k) for k in ("PROFILE:", "MEMORY:", "RECENT:", "DAY:", "DIGESTS:", "HISTORY:", "CURRENT_USER_MESSAGE:")]
         self.assertEqual(order, sorted(order))
 
     async def test_prompt_empty_facts_still_shows_counts(self) -> None:

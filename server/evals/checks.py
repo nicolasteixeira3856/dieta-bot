@@ -53,6 +53,7 @@ KNOWN = (
     "digest_has",
     "digest_not",
     "meal_change",
+    "meal_change_op",
     "estimate_values",
     "item_portions",
     "memory_used_only",
@@ -332,6 +333,13 @@ def _check(
 
     if key == "meal_change":
         return _change_check(want, output, estimate)
+    if key == "meal_change_op":
+        # S33: the accepted operations of an opted-in answer; null accepts no actionable change.
+        if "meal_change" not in output:
+            return _na("no meal_change in output")
+        change = output["meal_change"]
+        got = change.get("operation") if isinstance(change, dict) else None
+        return _result(got in want, f"got {got}")
     if key == "intent":
         got, deduced = output_intent(output)
         return _result(got == want, f"got {got}" + (" (deduced)" if deduced else ""))

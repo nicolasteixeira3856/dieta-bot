@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: `chat_instructions.py` (scope and `workout` rule), `llm.py` schema, `shaping.py`, `main.py`, `evals/`, tests.
 - Related documentation: [ADR-049](../../produto/adrs/ADR-049-workout-energy-via-chat.md) (accepted with this plan), [CP10](../../content-policy/plans/cp10-workout-in-scope-and-skip-boundary.md), [v1-chat](../specifications/v1-chat.md), [HTTP contract](../../api-contract.md); benchmark [results](../../../benchmark/RESULTADOS_08_10_2026.md) family `workout`.
-- Prerequisites: [S33](s33-chat-context-effort-low.md) delivered; [CP10](../../content-policy/plans/cp10-workout-in-scope-and-skip-boundary.md) delivered (scope).
+- Prerequisites: [S33](pending_manual_validation/s33-chat-context-effort-low.md) delivered; [CP10](../../content-policy/plans/cp10-workout-in-scope-and-skip-boundary.md) delivered (scope).
 
 Approving this plan accepts ADR-049. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s35-workout-via-chat.md. Implemente o plano aprovado.`
 

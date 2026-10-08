@@ -107,18 +107,25 @@ Optional fields (S11, ADR-023). Every one is optional; out of limits → HTTP 42
     {"id": "P1", "kind": "permanent", "category": "preference", "key": "leite",
      "text": "Leite semidesnatado", "slot": null, "days_seen": 5, "last_seen": "2026-09-29"},
     {"id": "D2", "kind": "dynamic", "category": "routine", "key": "cafe",
-     "text": "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite", "slot": "1", "days_seen": 3, "last_seen": "2026-09-30"}
+     "text": "2 ovos mexidos, 1 pão francês c/ manteiga, 200 ml leite", "slot": "1", "days_seen": 3, "last_seen": "2026-09-30",
+     "kcal": 480, "p": 27, "c": 40, "g": 24}
   ],
   "recent": [
     {"date": "2026-09-29", "slot_id": "1", "slot_name": "Café", "text": "2 ovos mexidos, 1 pão francês",
      "kcal": 440, "p": 25, "c": 38, "g": 22}
   ],
+  "recent_days": [
+    {"date": "2026-09-29", "recorded": true, "kcal": 2140, "p": 120, "c": 230, "g": 70, "ceiling_kcal": 2000,
+     "over_slot": "5", "missing_slots": ["4"]},
+    {"date": "2026-09-28", "recorded": false, "ceiling_kcal": 2000}
+  ],
   "day": {"remaining_kcal": 640}
 }
 ```
-- `facts`: ≤ 75 items. `id` matches `[PDT][0-9]{1,4}`. `kind` `permanent` | `dynamic` | `temp`. A `T` id requires `kind: temp` and vice versa, otherwise HTTP 422. `category` `preference` | `portion` | `routine`. `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`.
+- `facts`: ≤ 75 items. `id` matches `[PDT][0-9]{1,4}`. `kind` `permanent` | `dynamic` | `temp`. A `T` id requires `kind: temp` and vice versa, otherwise HTTP 422. `category` `preference` | `portion` | `routine`. `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`. Optional `kcal` (0–5000), `p`, `c`, `g` (0–1000): the numbers of a routine (S33); the server prints them after the text only when all four are present.
 - **v2 client** = `facts` present (even `[]`): the facts replace `memory` in the prompt. **Legacy client** = no `facts`: `memory` (text) goes to the prompt as before.
 - `recent`: meals recorded in the last 7 days, ≤ 42 items, `text` ≤ 240, `date` ISO, `slot_id` `null` = "Outros". Any client may send it.
+- `recent_days` (S33): ≤ 7 items, the app's totals of each of the last days. `date` ISO; `recorded` JSON boolean (false = nothing recorded that day); `kcal`, `p`, `c`, `g` ≥ 0 (default 0); `ceiling_kcal` > 0, the effective ceiling of that day with its own workout credit; `over_slot`: the `profile.slots` id that went furthest over its expected size, or `null`; `missing_slots`: `profile.slots` ids without record that day. An unknown slot id → HTTP 422. Any client may send it; the server serializes it as `RECENT_DAYS` and derives nothing from it.
 - `day.remaining_kcal`: integer or `null`, effective ceiling − eaten, computed by the app (may be negative). Any client may send it.
 
 Optional fields (S13, ADR-026), out of limits → HTTP 422:
@@ -187,7 +194,7 @@ OUT
 - A `plan` reply never states whether the dish fits the day or by how much it goes over, for any client; the app shows the projected day. A recipe plan lists ingredients with grams and up to five numbered steps, and may include up to three foods marked `(opcional)` that are part of `estimate.items` and the totals (ADR-039).
 - `estimate`: present for `log` and `plan`, `null` for `question`. A `plan` never carries a `question`.
 - `estimate.meal_text`: the whole meal in pt-BR as corrected by the conversation, within the [meal-description bounds](#meal-change-capability). The app records this complete text; overflow returns a safe failure rather than truncated food.
-- `memory_updates` (v2 client only, else `[]`): at most 5 proposals `{op, id, kind, category, key, text, slot}`, `op` `add` | `reinforce` | `replace` | `remove`. `add` has `id: null`; the others carry an id from `facts`. `slot` is set only for `routine`. The app decides and applies them; the server stores nothing.
+- `memory_updates` (v2 client only, else `[]`): at most 5 proposals `{op, id, kind, category, key, text, slot}`, `op` `add` | `reinforce` | `replace` | `remove`. `add` has `id: null`; the others carry an id from `facts`. `slot` is set only for `routine`. A `routine` proposal also carries `kcal`, `p`, `c`, `g` (integers) when the model estimated them (S33); otherwise the four keys are absent. The app decides and applies them; the server stores nothing.
 - Temp proposals require v5 capability. Only `add` with null id, or `replace`/`remove` of a known T id, category `portion`/`preference`, slot null survive shaping. Temp reinforce/routine and operations on T ids with another kind are dropped. Without the flag, temp proposals are dropped. The model uses a matching reference on every portion, cites its T id and does not remove or reinforce it merely on use; the client owns lifetime/capacity.
 - `memory_used` (v2 client only, else `[]`): ids from `facts` the reply relied on, unique, at most 10.
 - Legacy client: `intent: plan` returns `estimate: null` (no record card on APK ≤ 0.0.3; grams and total stay in `reply`).
@@ -247,7 +254,7 @@ v4 client (`clarify_rounds` + `auto_record: true`, S14): the OUT also carries `r
 - Content refusal (CP2): the model's `scope` is not `in_scope`, or moderation flagged the input or the output. HTTP 200 in the normal shape: fixed pt-BR `reply` (e.g. `"Posso ajudar com refeições, porções e o orçamento alimentar do dia."`), `intent: "question"`, `estimate: null`, `memory_updates: []`, `memory_used: []`, `digest: null`, plus `question: null` for a v3 client. Copy: [refusal-copy.pt-BR.md](content-policy/specifications/refusal-copy.pt-BR.md). `scope` is never returned.
 - Moderation error or timeout: HTTP 503 `{"detail": "content_policy_unavailable"}`.
 - Model answered plain text (no JSON): the fixed out-of-scope `reply`, `estimate: null`. The model text is never returned. Model failure, timeout, empty or invalid output: HTTP 200 `{"reply": "nao deu pra estimar", "intent": "question", "estimate": null, "memory_updates": [], "memory_used": [], "digest": null}`.
-- `model`: always `gpt-6-luna`.
+- `model`: always `gpt-6-luna`. The Chat generation runs at `reasoning.effort=low` ([ADR-054](server/adrs/ADR-054-chat-reasoning-effort-low.md)); the effort is never a client field.
 
 v5 held turn (S16): when the clarify gate withholds an estimate, `question_slot` is the sanitized suggested profile slot id or null. It is absent for clients without effective temp capability, released turns, fallbacks and refusals. The field allows the client to retain the suggestion in history even when estimate is null. Dev chat log metadata adds `temp_facts` (T count, or null without capability) and `question_slot` (id or null), with no fact text in these fields.
 

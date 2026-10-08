@@ -20,8 +20,10 @@ MAX_BODY_BYTES = 24 * 1024 * 1024
 RATE_LIMIT_ESTIMATE = "30/minute"
 RATE_LIMIT_FIT = "30/minute"
 RATE_LIMIT_CHAT = "30/minute"
-# reasoning.effort of every call (ADR-023 decision 6, chosen by the S11 evaluator).
+# reasoning.effort of estimate, fit, compaction and closures (ADR-023 decision 6, S11 evaluator).
 REASONING_EFFORT = "none"
+# reasoning.effort of the Chat generation (ADR-054, S33). Measured p95 16 s; the 60 s deadline covers it.
+CHAT_EFFORT = "low"
 FALLBACK_QUESTION = "descreve em 1 linha"
 CHAT_FALLBACK_QUESTION = "Alguma porção foi diferente do que considerei?"
 # Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
@@ -34,6 +36,10 @@ MEMORY_TEMP_MAX = 5
 FACT_KEY_MAX = 40
 FACT_TEXT_MAX = 160
 RECENT_MAX = 42
+# S33: seven-day totals and routine numbers (optional request fields).
+RECENT_DAYS_MAX = 7
+FACT_KCAL_MAX = 5000
+FACT_GRAMS_MAX = 1000
 RECENT_TEXT_MAX = 240
 MEAL_TEXT_MAX = 500
 COMPOSED_MEAL_TEXT_MAX = 2000

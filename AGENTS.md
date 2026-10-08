@@ -46,7 +46,7 @@ Timezone: America/Sao_Paulo.
 
 ## LLM
 
-LLM only on the server: gpt-6-luna, reasoning.effort=low for the Chat generation (owner decision 08/10/2026, [ADR-054](docs/server/adrs/ADR-054-chat-reasoning-effort-low.md); the server rollout is S33, until then the deployed server runs `none`); compaction and closures at `none`.
+LLM only on the server: gpt-6-luna, reasoning.effort=low for the Chat generation (owner decision 08/10/2026, [ADR-054](docs/server/adrs/ADR-054-chat-reasoning-effort-low.md)); compaction and closures at `none`.
 Before changing global Chat instructions or examples, apply [ADR-033 — Global Chat example provenance](docs/content-policy/adrs/ADR-033-global-chat-example-provenance.md).
 Client carries API_PUBLIC_URL + INVITE_CODE. Header X-Invite.
 Zero OpenAI key in the APK. Never print OPENAI_API_KEY. Never commit .env.

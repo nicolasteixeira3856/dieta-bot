@@ -10,7 +10,7 @@ from openai import OpenAI
 
 from chat_instructions import assemble, chat_branch, close_branch, validate_assembled
 import plan_budget
-from config import MEAL_DAYS, MODEL, REASONING_EFFORT, RECORD_INTENTS, TIMEOUT_SECONDS
+from config import CHAT_EFFORT, MEAL_DAYS, MODEL, REASONING_EFFORT, RECORD_INTENTS, TIMEOUT_SECONDS
 
 SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
 
@@ -215,8 +215,10 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
             "key": {"type": "string"},
             "text": {"type": "string"},
             "slot": {"type": ["string", "null"], "enum": slots},
+            # S33: a routine proposal carries the meal's numbers; every other proposal null.
+            **{k: {"type": ["number", "null"]} for k in ("kcal", "p", "c", "g")},
         },
-        "required": ["op", "id", "kind", "category", "key", "text", "slot"],
+        "required": ["op", "id", "kind", "category", "key", "text", "slot", "kcal", "p", "c", "g"],
         "additionalProperties": False,
     }
     used: dict[str, Any] = {"type": "string", "enum": facts} if facts else {"type": "string"}
@@ -320,11 +322,12 @@ class LlmClient:
         self,
         api_key: str,
         transport: httpx2.BaseTransport | None = None,
-        effort: str = REASONING_EFFORT,
+        effort: str = CHAT_EFFORT,
         model: str = MODEL,
         base_url: str | None = None,
     ) -> None:
-        # reasoning.effort: config.REASONING_EFFORT; the evaluator (S10) passes others.
+        # effort: reasoning.effort of the Chat generation (config.CHAT_EFFORT, ADR-054); the evaluator (S10)
+        # passes others. Estimate, fit, compaction and closures keep config.REASONING_EFFORT.
         # model and base_url: config defaults; only the pilot evaluator points elsewhere.
         self._effort = effort
         self._model = model
@@ -492,10 +495,13 @@ class LlmClient:
         extra: dict[str, Any] = {"text": {"format": text_format}} if text_format else {}
         if safety_identifier:
             extra["safety_identifier"] = safety_identifier
+        effort = self._effort if prompt == "chat" else REASONING_EFFORT
+        if trace is not None:
+            trace["effort"] = effort
         try:
             response = self._openai.responses.create(
                 model=self._model,
-                reasoning={"effort": self._effort},
+                reasoning={"effort": effort},
                 instructions=instructions,
                 input=[{"role": "user", "content": content}],
                 timeout=min(timeout, TIMEOUT_SECONDS),
@@ -509,9 +515,28 @@ class LlmClient:
         text = response.output_text
         if trace is not None:
             trace["raw_output"] = text
+            trace["usage"] = _usage(response)
         if not text.strip():
             raise ValueError("empty response")
         return _parse_json_object(text)
+
+
+def _usage(response: Any) -> dict[str, int] | None:
+    """Token counts for the dev log (ADR-054): input, cached input, output and reasoning. Numbers only."""
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return None
+
+    def count(owner: Any, name: str) -> int:
+        value = getattr(owner, name, None) if owner is not None else None
+        return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+    return {
+        "input": count(usage, "input_tokens"),
+        "cached": count(getattr(usage, "input_tokens_details", None), "cached_tokens"),
+        "output": count(usage, "output_tokens"),
+        "reasoning": count(getattr(usage, "output_tokens_details", None), "reasoning_tokens"),
+    }
 
 
 def _parse_json_object(text: str) -> dict[str, Any]:

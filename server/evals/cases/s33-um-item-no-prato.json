@@ -1,0 +1,101 @@
+{
+  "id": "s33-um-item-no-prato",
+  "since": "meal_changes",
+  "tags": [
+    "s33"
+  ],
+  "request": {
+    "local_time": "2026-10-15T19:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 1900,
+      "slots": [
+        {
+          "id": "c",
+          "status": "empty"
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [
+      {
+        "role": "user",
+        "text": "vou jantar 150 g de batata-doce assada com 150 g de peito de frango grelhado"
+      },
+      {
+        "role": "assistant",
+        "text": "150 g de batata-doce assada e 150 g de peito de frango grelhado: **368 kcal** · P 50 · C 39 · G 4."
+      }
+    ],
+    "text": "posso colocar uma colher de sopa de azeite por cima?",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true
+  },
+  "expect": {
+    "estimate": "present",
+    "kcal_range": [
+      60,
+      135
+    ],
+    "reply_not": [
+      "368"
+    ],
+    "refusal": "none"
+  }
+}

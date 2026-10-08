@@ -40,6 +40,9 @@ from config import (
     RATE_LIMIT_CHAT,
     RATE_LIMIT_ESTIMATE,
     RATE_LIMIT_FIT,
+    FACT_GRAMS_MAX,
+    FACT_KCAL_MAX,
+    RECENT_DAYS_MAX,
     RECENT_MAX,
     RECENT_TEXT_MAX,
     load_settings,
@@ -49,6 +52,7 @@ from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
 from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_change, number, nutrition
 import closure
+import copy_source
 import estimate_total
 import meal_window
 import protein_boost
@@ -205,6 +209,16 @@ class FactIn(BaseModel):
     slot: str | None = None
     days_seen: int = Field(default=0, ge=0)
     last_seen: date | None = None
+    # S33: a routine's numbers, printed after its text so the model copies them (optional, all four or none).
+    kcal: float | None = Field(default=None, ge=0, le=FACT_KCAL_MAX)
+    p: float | None = Field(default=None, ge=0, le=FACT_GRAMS_MAX)
+    c: float | None = Field(default=None, ge=0, le=FACT_GRAMS_MAX)
+    g: float | None = Field(default=None, ge=0, le=FACT_GRAMS_MAX)
+
+    @property
+    def macros(self) -> tuple[float, float, float, float] | None:
+        values = (self.kcal, self.p, self.c, self.g)
+        return None if any(v is None for v in values) else values  # type: ignore[return-value]
 
     @model_validator(mode="after")
     def _temp_id_matches_kind(self) -> "FactIn":
@@ -226,6 +240,23 @@ class RecentMealIn(BaseModel):
     g: float
 
 
+class RecentDayIn(BaseModel):
+    """One of the last seven days (S33): the app's totals against that day's effective ceiling.
+
+    over_slot and missing_slots are PROFILE slot ids; the server prints their names. No user text.
+    """
+
+    date: date
+    recorded: bool = Field(..., strict=True)
+    kcal: float = Field(default=0, ge=0, le=FACT_KCAL_MAX * 10)
+    p: float = Field(default=0, ge=0, le=FACT_GRAMS_MAX * 10)
+    c: float = Field(default=0, ge=0, le=FACT_GRAMS_MAX * 10)
+    g: float = Field(default=0, ge=0, le=FACT_GRAMS_MAX * 10)
+    ceiling_kcal: float = Field(..., gt=0, le=FACT_KCAL_MAX * 10)
+    over_slot: str | None = None
+    missing_slots: list[str] = Field(default_factory=list, max_length=12)
+
+
 class ChatIn(BaseModel):
     local_time: str | None = None
     profile: ProfileIn
@@ -233,6 +264,8 @@ class ChatIn(BaseModel):
     # ADR-023: facts present (even empty) = v2 client. Absent = legacy client, memory text.
     facts: list[FactIn] | None = Field(default=None, max_length=FACTS_MAX)
     recent: list[RecentMealIn] = Field(default_factory=list, max_length=RECENT_MAX)
+    # S33: totals of the last seven days, optional; serialized as RECENT_DAYS after RECENT.
+    recent_days: list[RecentDayIn] = Field(default_factory=list, max_length=RECENT_DAYS_MAX)
     day: DayIn
     digests: list[str] = Field(default_factory=list, max_length=2)
     messages: list[ChatMessageIn] = Field(default_factory=list, max_length=12)
@@ -308,6 +341,9 @@ class ChatIn(BaseModel):
         for fact in self.facts or []:
             if fact.slot is not None and fact.slot not in slot_ids:
                 raise ValueError("fact slot not in profile")
+        for day in self.recent_days:
+            if (day.over_slot is not None and day.over_slot not in slot_ids) or not set(day.missing_slots) <= slot_ids:
+                raise ValueError("recent day slot not in profile")
         return self
 
     @property
@@ -1353,6 +1389,16 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
     elif body.memory:
         lines.append(f"MEMORY: {body.memory}")
 
+    # S33: the blocks stable within a day come before DAY, so the prefix cache covers them between turns.
+    if body.recent:
+        lines.append("RECENT:")
+        lines.extend(_recent_line(meal) for meal in body.recent)
+
+    if body.recent_days:
+        lines.extend(_recent_days_lines(body))
+
+    lines.extend(_copy_source_lines(body))
+
     day_slots = ", ".join(_day_slot(s) for s in body.day.slots)
     remaining = ""
     if body.day.remaining_kcal is not None:
@@ -1368,10 +1414,6 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
         f"eaten_c={body.day.eaten_c}, eaten_g={body.day.eaten_g}, "
         f"workout_kcal={body.day.workout_kcal}, slots=[{day_slots}]"
     )
-
-    if body.recent:
-        lines.append("RECENT:")
-        lines.extend(_recent_line(meal) for meal in body.recent)
 
     if body.digests:
         lines.append("DIGESTS:")
@@ -1433,9 +1475,43 @@ def _memory_lines(facts: list[FactIn], *, temp_facts: bool = False) -> list[str]
             continue
         slot = f" slot={fact.slot}" if fact.slot is not None else ""
         last = f", last {fact.last_seen.isoformat()}" if fact.last_seen else ""
+        macros = fact.macros
+        numbers = (f" · {_num(macros[0])} kcal · P {_num(macros[1])} · C {_num(macros[2])} · G {_num(macros[3])}"
+                   if macros else "")
         lines.append(
-            f"{fact.id} {fact.category}{slot} {fact.key}: {fact.text} (seen {fact.days_seen} days{last})"
+            f"{fact.id} {fact.category}{slot} {fact.key}: {fact.text}{numbers} (seen {fact.days_seen} days{last})"
         )
+    return lines
+
+
+def _recent_days_lines(body: ChatIn) -> list[str]:
+    """S33: one line per day, totals against that day's effective ceiling; a day without record says so."""
+    names = {s.id: s.name for s in body.profile.slots}
+    lines = ["RECENT_DAYS:"]
+    for day in sorted(body.recent_days, key=lambda d: d.date):
+        head = f"{day.date.isoformat()} {_WEEKDAYS[day.date.weekday()]}"
+        if not day.recorded:
+            lines.append(f"{head}: sem registro")
+            continue
+        over = f" · passou em: {names[day.over_slot]}" if day.over_slot is not None else ""
+        missing = ", ".join(names[s] for s in day.missing_slots) or "—"
+        lines.append(
+            f"{head}: {_num(day.kcal)} kcal de {_num(day.ceiling_kcal)} · P {_num(day.p)} · C {_num(day.c)} "
+            f"· G {_num(day.g)} · registrado{over} · sem registro em: {missing}"
+        )
+    return lines
+
+
+def _copy_source_lines(body: ChatIn) -> list[str]:
+    """S33: the RECENT row of a named-day request, resolved in code; `ambiguous` lists every candidate row."""
+    try:
+        today = date.fromisoformat(body.day.date)
+    except ValueError:
+        return []
+    lines: list[str] = []
+    for block in copy_source.resolve(body.text, today, body.profile.slots, body.recent):
+        lines.append("COPY_SOURCE: ambiguous" if block.ambiguous else "COPY_SOURCE:")
+        lines.extend(_recent_line(row) for row in block.rows)
     return lines
 
 

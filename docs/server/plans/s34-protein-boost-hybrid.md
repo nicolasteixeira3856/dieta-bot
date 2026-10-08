@@ -5,7 +5,7 @@
 - Owning context: `server`
 - Executable boundary: `server/` only: `chat_instructions.py` (`plan` rule, PROTEIN BOOST), `protein_boost.py` (validator), `main.py` (call site), tests, `evals/` cases. No contract change for the client.
 - Related documentation: [ADR-055](../../produto/adrs/ADR-055-protein-boost-hybrid.md) (accepted with this plan), [ADR-043](../../produto/adrs/ADR-043-plan-objective-protein-and-meal-window.md), [ADR-054](../adrs/ADR-054-chat-reasoning-effort-low.md), [v1-chat](../specifications/v1-chat.md); benchmark [results](../../../benchmark/RESULTADOS_08_10_2026.md) § reforço de proteína, rule text in `benchmark/prompts/new_instructions.py`.
-- Prerequisites: [S33](s33-chat-context-effort-low.md) delivered (effort low; the rule failed at none).
+- Prerequisites: [S33](pending_manual_validation/s33-chat-context-effort-low.md) delivered (effort low; the rule failed at none).
 
 Approving this plan accepts ADR-055. Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s34-protein-boost-hybrid.md. Implemente o plano aprovado.`
 

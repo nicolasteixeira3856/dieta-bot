@@ -1,0 +1,147 @@
+{
+  "id": "s33-copia-sem-registro",
+  "since": "meal_changes",
+  "tags": [
+    "s33"
+  ],
+  "request": {
+    "local_time": "2026-10-15T16:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1900,
+      "p_target": 130,
+      "c_target": 210,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-10-12",
+        "slot_id": "a",
+        "slot_name": "Almoço",
+        "text": "150 g de nhoque ao sugo, 90 g de carne de panela",
+        "kcal": 610,
+        "p": 31,
+        "c": 70,
+        "g": 21
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "j",
+        "slot_name": "Jantar",
+        "text": "caldo verde, 1 concha grande",
+        "kcal": 280,
+        "p": 9,
+        "c": 30,
+        "g": 13
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "j",
+        "slot_name": "Jantar",
+        "text": "2 torradas com patê de atum",
+        "kcal": 230,
+        "p": 14,
+        "c": 24,
+        "g": 8
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "a",
+        "slot_name": "Almoço",
+        "text": "120 g de arroz integral, 100 g de grão-de-bico, 140 g de pernil assado",
+        "kcal": 655,
+        "p": 49,
+        "c": 68,
+        "g": 19
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "c",
+        "slot_name": "Café",
+        "text": "1 cuscuz de milho de 120 g com 1 ovo e 1 fatia de queijo coalho",
+        "kcal": 395,
+        "p": 18,
+        "c": 45,
+        "g": 15
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "a",
+        "slot_name": "Almoço",
+        "text": "130 g de baião de dois, 110 g de frango ao molho, salada de repolho",
+        "kcal": 585,
+        "p": 40,
+        "c": 60,
+        "g": 18
+      }
+    ],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 1900,
+      "slots": [
+        {
+          "id": "c",
+          "status": "empty"
+        },
+        {
+          "id": "a",
+          "status": "empty"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "lanche foi o mesmo de ontem",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true
+  },
+  "expect": {
+    "estimate": "absent",
+    "top_question": "present",
+    "refusal": "none"
+  }
+}
