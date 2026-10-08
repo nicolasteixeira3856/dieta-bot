@@ -2,6 +2,13 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.20 — 08/10/2026
+
+### Ajustes
+
+- Tema claro: os textos mais apagados ficaram mais escuros e fáceis de ler, como o horário das mensagens no Chat, o contador de refeições na tela inicial e os exemplos dentro dos campos do cadastro.
+- Configurações → Distribuição das refeições: o modo escolhido ao lado de "Horários das refeições" (por exemplo, Seg–Sex · Sáb–Dom) agora usa a mesma cor dos outros textos de apoio.
+
 ## 0.0.19 — 07/10/2026
 
 ### Novidades
