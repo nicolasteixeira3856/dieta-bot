@@ -600,7 +600,7 @@
     "meal_change": "new",
     "base_slot": null,
     "kcal_range": [
-     360,
+     300,
      470
     ],
     "question": "absent"

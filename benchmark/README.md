@@ -1,6 +1,6 @@
 # Benchmark do Chat — novo prompt × baseline, effort none × low
 
-Medição única, fora do fluxo SDD: nada aqui muda `server/`, `apps/` ou `docs/`. O runner importa funções do server em modo leitura (contrato `ChatIn`, texto de entrada atual, janelas do ADR-043, schema atual) para que a baseline seja exatamente o que o server envia hoje. **Nenhuma execução foi feita ainda**: o owner dispara.
+Medição única, fora do fluxo SDD: nada aqui muda `server/`, `apps/` ou `docs/`. O runner importa funções do server em modo leitura (contrato `ChatIn`, texto de entrada atual, janelas do ADR-043, schema atual) para que a baseline seja exatamente o que o server envia hoje. Primeira execução em 08/10/2026 com autorização do owner: resultados e veredito em [`RESULTADOS_08_10_2026.md`](RESULTADOS_08_10_2026.md).
 
 Origem: brainstorm e conclusão em [`../MELHORIAS_CHAT_07_10_2026.md`](../MELHORIAS_CHAT_07_10_2026.md) § 5.
 
@@ -47,6 +47,8 @@ benchmark/
   run.py                      runner (dry-run disponível); resultados em out/ (fora do git)
   judge.py                    juiz LLM sobre um results.jsonl
   report.py                   agrega resultados e julgamentos em report-<stamp>.md
+  rescore.py                  reavalia um results.jsonl com o scoring e os casos atuais, sem chamada
+  RESULTADOS_08_10_2026.md    resultados e veredito da primeira execução
   judge/                      rubrica e schema do juiz
   media/                      fotos (não versionadas) para os 10 casos com imagem
 ```
@@ -93,7 +95,7 @@ Cada caso tem `expect.summary` (uma linha legível, também dada ao juiz) e chec
 
 Critério de leitura sugerido: `new-low` justifica a mudança de constituição (`effort=none`) só se ganhar ≥ 5 pontos percentuais de `det_strict` ou ≥ 0,3 de correctness sobre `new-none` nas famílias multi, copy e plan, com p95 abaixo de 8 s e custo abaixo do dobro.
 
-## Como rodar (quando o owner autorizar)
+## Como rodar
 
 ```bash
 python benchmark/build_cases.py
@@ -119,7 +121,9 @@ JUDGE_PRICE_INPUT=<usd/1M> JUDGE_PRICE_OUTPUT=<usd/1M> python benchmark/judge.py
 python benchmark/report.py benchmark/out/results-<stamp>.jsonl benchmark/out/judge-<stamp>.jsonl
 ```
 
-Requisitos: `OPENAI_API_KEY` no ambiente (nunca no repositório), `openai` e `pydantic` instalados (os do server), `Pillow` opcional para as fotos. `out/` é ignorado pelo git.
+Depois de corrigir uma checagem ou uma expectativa, `python benchmark/rescore.py benchmark/out/results-<stamp>.jsonl` reavalia o arquivo com o `scoring.py` e os `cases/` atuais sem nova chamada (gera `-rescored.jsonl`, uma linha por braço × caso × repetição, descartando as linhas de erro que um `--resume` substituiu). O juiz aceita `--resume` para continuar um arquivo `judge-<stamp>.jsonl` interrompido.
+
+Requisitos: `OPENAI_API_KEY` no ambiente ou no `.env` da raiz (lido por `server/config.load_settings`, como os evals do server; nunca impresso), `openai` e `pydantic` instalados (os do server), `Pillow` opcional para as fotos. `out/` é ignorado pelo git.
 
 ## Limites conhecidos
 

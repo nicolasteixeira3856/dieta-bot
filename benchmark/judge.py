@@ -82,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--model", default=os.environ.get("JUDGE_MODEL", "gpt-6-astra"))
     ap.add_argument("--effort", default=os.environ.get("JUDGE_EFFORT", "medium"))
     ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--resume", action="store_true", help="skip the (arm, case, rep) rows already judged in the output file and append")
     args = ap.parse_args(argv)
     try:
         price_in = float(os.environ["JUDGE_PRICE_INPUT"])
@@ -98,6 +99,16 @@ def main(argv: list[str] | None = None) -> int:
         pairs = sorted({(r["case_id"], r["rep"]) for r in rows})
         keep = set(random.sample(pairs, min(len(pairs), max(1, args.sample // max(1, len(arms))))))
         rows = [r for r in rows if (r["case_id"], r["rep"]) in keep]
+    out = Path(args.results).with_name(Path(args.results).name.replace("results-", "judge-"))
+    done: set[tuple[str, str, int]] = set()
+    if args.resume and out.exists():
+        for line in out.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                j = json.loads(line)
+                if j.get("verdict"):
+                    done.add((j["arm"], j["case_id"], j["rep"]))
+        rows = [r for r in rows if (r["arm"], r["case_id"], r["rep"]) not in done]
+        print(f"resume: {len(done)} judged rows kept")
     print(f"judging {len(rows)} answers ({len(arms)} arms) with {args.model} effort={args.effort}")
     from openai import OpenAI
     from run import load_image
@@ -105,7 +116,6 @@ def main(argv: list[str] | None = None) -> int:
     from config import load_settings  # server loader: repo-root .env, never printed
 
     client = OpenAI(api_key=load_settings().api_key, max_retries=0)
-    out = Path(args.results).with_name(Path(args.results).name.replace("results-", "judge-"))
     cost = 0.0
     images: dict[str, str | None] = {}
 
@@ -129,15 +139,18 @@ def main(argv: list[str] | None = None) -> int:
                         "usage": {"input": u.input_tokens or 0, "output": u.output_tokens or 0}, "error": None}
             except Exception as exc:
                 err = f"{type(exc).__name__}: {str(exc)[:200]}"
+                if "insufficient_quota" in str(exc):
+                    raise SystemExit("OpenAI account without credits: stopping the judge (continue later with --resume)")
                 if ("RateLimit" in type(exc).__name__ or "429" in str(exc)) and attempt < 2:
                     time.sleep(5 * (attempt + 1))
                     continue
                 return {**meta, "verdict": None, "cost_usd": 0.0, "error": err}
         return {**meta, "verdict": None, "cost_usd": 0.0, "error": "rate limit"}
 
-    with out.open("w", encoding="utf-8") as fh, ThreadPoolExecutor(max_workers=args.workers) as pool:
+    with out.open("a" if args.resume else "w", encoding="utf-8") as fh, ThreadPoolExecutor(max_workers=args.workers) as pool:
         for n, res in enumerate(pool.map(work, rows), start=1):
             fh.write(json.dumps(res, ensure_ascii=False) + "\n")
+            fh.flush()
             cost += res["cost_usd"]
             if n % 25 == 0 or n == len(rows):
                 print(f"{n}/{len(rows)} · US$ {cost:.4f}", flush=True)

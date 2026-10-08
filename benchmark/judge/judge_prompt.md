@@ -40,6 +40,10 @@ calculator would write):
   line plus the question; a plan is the dish, its items with grams, the total and the protein clause; a
   recipe adds the table and up to five steps. Anything beyond that (explanations, restated context,
   general advice, alternatives nobody asked for) lowers this score by one point per superfluous block.
+  Exception: the CLOSING lines. After a log or plan of today the assistant must end with one short line
+  per remaining meal of today ("Ceia: leite com whey ~218 kcal · P 23"), built from the WINDOWS line and
+  the user's usual foods. Those lines are required by the product, never unsolicited or superfluous;
+  grade only whether they are short and consistent with WINDOWS.
 - creativity (plan actions only; else null): the dish is specific, appetising and varied (not the same
   frango-arroz-brócolis every time), uses the user's stated ingredients and equipment, offers a real
   leaner/indulgent contrast when two options are required. For a boosted named dish, score how well
