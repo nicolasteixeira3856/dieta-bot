@@ -561,6 +561,27 @@ def text_only_chat(text: str) -> dict[str, Any]:
     return refuse_chat(REFUSAL_OUT_OF_SCOPE)
 
 
+WORKOUT_KCAL_MAX = 5000
+WORKOUT_MODES = ("replace", "add")
+RECORD_AUTO_WORKOUT = "auto_workout"
+
+
+def shape_workout(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """ADR-049 (S35): {kcal, mode} with kcal a whole number 1–5000 and a known mode, else None."""
+    if payload_scope(payload) != IN_SCOPE:
+        return None
+    raw = payload.get("workout")
+    if not isinstance(raw, dict) or raw.get("mode") not in WORKOUT_MODES:
+        return None
+    kcal = raw.get("kcal")
+    if isinstance(kcal, bool) or not isinstance(kcal, (int, float)) or not math.isfinite(kcal):
+        return None
+    kcal = int(round(kcal))
+    if not 1 <= kcal <= WORKOUT_KCAL_MAX:
+        return None
+    return {"kcal": kcal, "mode": raw["mode"]}
+
+
 def fail_chat() -> dict[str, Any]:
     return {
         "reply": CHAT_FALLBACK_REPLY,

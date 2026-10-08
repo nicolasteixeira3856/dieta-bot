@@ -331,6 +331,21 @@ Effective responses always include `plan_budget`, either null or:
 - Adjusting (`fit_kcal` sent, or `choice` `fit`) with `limit_kcal` ≥ 1 and the plan over it: the server asks the model once for the same dish within the target and returns that plan when it is valid. A plan still above the target returns with `over_kcal` > 0; there is no further attempt. With `limit_kcal` < 1 no adjustment is tried.
 - A plan stays `record: none`. The server stores nothing. Dev chat log metadata adds `plan_budget` (this object or null) and `adjust_retry` (boolean).
 
+### Workout capability
+
+Normal requests may opt into `workout: true` (S35, [ADR-049](produto/adrs/ADR-049-workout-energy-via-chat.md)) with `clarify_rounds` present and `auto_record: true`; a JSON boolean only, other combinations return 422. Absent or false keeps every older response shape. Compact ignores it.
+
+Effective responses always include `workout`, either null or:
+
+```json
+{"kcal": 450, "mode": "replace"}
+```
+
+- Present when the user stated the energy of a workout done today as a number of kcal; never inferred from duration, distance, heart rate or a watch without a number (that turn is a question asking for the number, `workout: null`). `kcal`: integer 1–5000, the number the user stated. `mode`: `replace` (the day's workout energy becomes `kcal`) or `add` (the user said it adds to the workout already in `day.workout_kcal`).
+- The app writes the day's workout energy with a receipt and recomputes the credit; the server never returns a credit or a ceiling, and any estimate of the same answer uses `day` as sent.
+- A turn that only reports the workout (no estimate, no question) carries `record: "auto"`; next to a meal the record mark describes the meal as before. Null on a refusal, a fallback and an out-of-scope turn.
+- Until the typed actions of S36 the field sits next to `intent`; with the actions capability it becomes the `workout` action.
+
 ### compact=true (S3)
 
 Same IN. Only `messages` go to the model (no profile, day, digests, text or photo; `image_b64` is ignored). `messages` empty → HTTP 422 `{"detail":"compact_needs_messages"}`, model not called.

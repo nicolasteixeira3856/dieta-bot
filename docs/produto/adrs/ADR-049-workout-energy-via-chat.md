@@ -1,6 +1,6 @@
 # ADR-049 — Workout energy reported through the Chat
 
-- Status: Proposed (owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5; accepted with the approval of S35)
+- Status: Accepted (2026-10-08, owner approval of S35 in the batch message; owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5)
 - Date: 2026-10-08
 - Context: `produto`
 - Supersedes: none. Complements the constitution rule "Workout is a typed number. No number that day → credit = 0" and [ADR-028](ADR-028-registro-autonomo.md) (autonomous record with a reversible receipt). Content-policy scope: [CP10](../../content-policy/plans/completed/cp10-workout-in-scope-and-skip-boundary.md).

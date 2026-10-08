@@ -100,6 +100,13 @@ _ITEM_SCHEMA: dict[str, Any] = {
 
 _SCOPE_SCHEMA: dict[str, Any] = {"type": "string", "enum": SCOPE_VALUES}
 
+_WORKOUT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {"kcal": {"type": "number"}, "mode": {"type": "string", "enum": ["replace", "add"]}},
+    "required": ["kcal", "mode"],
+    "additionalProperties": False,
+}
+
 _ESTIMATE_FORMAT: dict[str, Any] = {
     "type": "json_schema",
     "name": "estimate",
@@ -241,11 +248,13 @@ def chat_format(slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_
                 "digest": {"type": "null"},
                 # ADR-039: one shape for every client, so the schema family stays cacheable.
                 "plan_budget": plan_budget.SCHEMA,
+                # ADR-049 (S35): the energy of a workout the user stated, for every client (one schema family).
+                "workout": {"anyOf": [_WORKOUT_SCHEMA, {"type": "null"}]},
                 "scope": _SCOPE_SCHEMA,
             },
             "required": [
                 "reply", "intent", "estimate", "record_intent", "meal_day", "skip_slots",
-                "memory_updates", "memory_used", "digest", "plan_budget", "scope",
+                "memory_updates", "memory_used", "digest", "plan_budget", "workout", "scope",
             ],
             "additionalProperties": False,
         },

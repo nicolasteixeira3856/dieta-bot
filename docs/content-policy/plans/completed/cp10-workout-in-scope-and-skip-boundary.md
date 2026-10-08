@@ -3,7 +3,7 @@
 - Status: Concluído (08/10/2026; approved in the owner's batch message)
 - Date: 08/10/2026
 - Owning context: `content-policy`
-- Executable boundary: documentation of this context plus the scope sentences of `server/chat_instructions.py` (`product_actions`/scope rule) delivered inside [S35](../../../server/plans/s35-workout-via-chat.md); this plan authorizes no other code.
+- Executable boundary: documentation of this context plus the scope sentences of `server/chat_instructions.py` (`product_actions`/scope rule) delivered inside [S35](../../../server/plans/completed/s35-workout-via-chat.md); this plan authorizes no other code.
 - Related documentation: [ADR-024](../../adrs/ADR-024-content-safety-boundaries.md), [ADR-049](../../../produto/adrs/ADR-049-workout-energy-via-chat.md), [content policy](../../specifications/content-policy.md); benchmark [results](../../../../benchmark/RESULTADOS_08_10_2026.md) (families `workout`, `scope`, `tone`: "vou pular o jantar pra compensar" classified as `safety_support` in 4 of 6 answers).
 - Prerequisites: none; S35 depends on this plan.
 
