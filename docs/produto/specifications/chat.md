@@ -161,12 +161,12 @@ Comportamento: `produto`. UI e Room: `android`. Contrato HTTP: `server`.
 - [S24](../../server/plans/completed/s24-protein-first-plan.md) — plano com proteína dentro da janela da refeição; linhas de fechamento
 - [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai and Tali in the app
 - [A54](../../android/plans/completed/a54-auto-record-addition-empty-slot.md) — Auto-record of an addition into an empty meal
-- [A59](../../android/plans/pending_manual_validation/a59-skips-with-other-actions.md) — Skips next to other actions in the Chat
-- [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — over-budget choice, tone in the prompt, formatted replies, reserved plan
+- [A59](../../android/plans/completed/a59-skips-with-other-actions.md) — Skips next to other actions in the Chat
+- [A60](../../android/plans/completed/a60-tone-formatting-planned-skips.md) — over-budget choice, tone in the prompt, formatted replies, reserved plan
 - [D20](../../design/plans/completed/d20-figma-review-inline-actions.md) — actions in the thread, copying messages (`chatCP`, `chatCC`)
-- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot
-- [A64](../../android/plans/pending_manual_validation/a64-chat-context-fields-day-balance.md) — routine macros and `recent_days` in the request, day balance on the receipt, `Anotado`, waiting state
-- [A65](../../android/plans/pending_manual_validation/a65-workout-via-chat.md) — workout reported in the Chat
-- [A66](../../android/plans/pending_manual_validation/a66-typed-actions-batch.md) — typed actions applied as one batch
-- [A67](../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md) — plan options in the bubble, discovery on the first opening
-- [A68](../../android/plans/pending_manual_validation/a68-saved-recipes.md) — Salvar receita, the recipe index and records by recipe
+- [A61](../../android/plans/completed/a61-chat-copy-scroll-capture-inline-actions.md) — actions in the thread, copying messages, scrolling screenshot
+- [A64](../../android/plans/completed/a64-chat-context-fields-day-balance.md) — routine macros and `recent_days` in the request, day balance on the receipt, `Anotado`, waiting state
+- [A65](../../android/plans/completed/a65-workout-via-chat.md) — workout reported in the Chat
+- [A66](../../android/plans/completed/a66-typed-actions-batch.md) — typed actions applied as one batch
+- [A67](../../android/plans/completed/a67-plan-options-and-discovery.md) — plan options in the bubble, discovery on the first opening
+- [A68](../../android/plans/completed/a68-saved-recipes.md) — Salvar receita, the recipe index and records by recipe

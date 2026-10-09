@@ -102,7 +102,7 @@ Comportamento: `produto`. Client: `android`.
 - [A44](../../android/plans/completed/a44-config-push-aero.md) — Config and push on Aero
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
 - [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app
-- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem
-- [A67](../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md) — fatos `equipment` e `liked`, rotina declarada na descoberta
-- [A68](../../android/plans/pending_manual_validation/a68-saved-recipes.md) — Config → Receitas, lista e receita
-- [A69](../../android/plans/pending_manual_validation/a69-visible-memory.md) — O que a Tali sabe: fatos com origem, apagar com lápide, corrigir
+- [A61](../../android/plans/completed/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem
+- [A67](../../android/plans/completed/a67-plan-options-and-discovery.md) — fatos `equipment` e `liked`, rotina declarada na descoberta
+- [A68](../../android/plans/completed/a68-saved-recipes.md) — Config → Receitas, lista e receita
+- [A69](../../android/plans/completed/a69-visible-memory.md) — O que a Tali sabe: fatos com origem, apagar com lápide, corrigir

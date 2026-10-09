@@ -7,7 +7,7 @@
 - Related documentation: [ADR-048](../../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md), [product Chat](../../../produto/specifications/chat.md), [QA](../../../qa/README.md).
 - Prerequisites:
   - [D22](../../../design/plans/completed/d22-chatm-action-in-thread.md) `Concluído`: the `chatM` gold draws Registrar in the thread (780 × 1854, 927 dp);
-  - [A61](../pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged (it is); no parallel Android plan.
+  - [A61](../completed/a61-chat-copy-scroll-capture-inline-actions.md) merged (it is); no parallel Android plan.
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a62-chatm-gold-gate.md. Implemente o plano aprovado.`
 

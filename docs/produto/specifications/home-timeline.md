@@ -65,6 +65,6 @@ Comportamento: `produto`. UI: `android`.
 - [A24](../../android/plans/completed/a24-refeicoes-por-dia.md) — Refeições por dia da semana
 - [A40](../../android/plans/completed/a40-home-aero.md) — Home no Aero
 - [A52](../../android/plans/completed/a52-home-card-gestures.md) — Home: toque registra, toque longo pula
-- [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — fechamentos do dia e da semana, refeição reservada
-- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem
-- [A65](../../android/plans/pending_manual_validation/a65-workout-via-chat.md) — treino informado pelo Chat
+- [A60](../../android/plans/completed/a60-tone-formatting-planned-skips.md) — fechamentos do dia e da semana, refeição reservada
+- [A61](../../android/plans/completed/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem
+- [A65](../../android/plans/completed/a65-workout-via-chat.md) — treino informado pelo Chat

@@ -4,7 +4,7 @@
 - Date: 07/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 1` → section "Chat · D6", frames `chatM` Light (`72:3034`) and Dark (`72:3333`) only; no new component. Repository: `docs/qa/figma/{dark,light}/chatM.png`; `tools/export-figma.mjs` only if a node id changes.
-- Prerequisites: D20 `Concluído` ([history](../completed/)); [A61](../../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged (0.0.19-dev: the app the frame is compared with).
+- Prerequisites: D20 `Concluído` ([history](../completed/)); [A61](../../../android/plans/completed/a61-chat-copy-scroll-capture-inline-actions.md) merged (0.0.19-dev: the app the frame is compared with).
 - Figma MCP budget: ≤ 12 calls (at most 120 a day, ADR-031 § 6).
 
 One frame, two themes. It was found during A61: `chatM` shows **Registrar** (an `ask` estimate), but it was not in the D20 list. The gold still draws Registrar in the slot pinned above the composer, while the app has drawn it in the thread since A61 ([ADR-048](../../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) decision 1). Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d22-chatm-action-in-thread.md. Implemente o plano aprovado.`

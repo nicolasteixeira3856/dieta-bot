@@ -27,7 +27,7 @@ One message, several things: the server returns an ordered list of typed actions
 
 ## Out of scope
 
-- The app applying the batch: [A66](../../../android/plans/pending_manual_validation/a66-typed-actions-batch.md). Options and recipes: S37, S38.
+- The app applying the batch: [A66](../../../android/plans/completed/a66-typed-actions-batch.md). Options and recipes: S37, S38.
 
 ## Validation
 

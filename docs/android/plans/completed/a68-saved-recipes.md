@@ -1,6 +1,6 @@
 # Plan — A68 Saved recipes
 
-- Status: Pendente aprovação manual (approved 08/10/2026 in the owner's batch message A64–A69; code, tests, the `rcpL`, `rcpD` and `chatRK` gold comparisons and emulator checks done; the device smoke on a dev build is the owner's manual acceptance)
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Room entities `recipe` and `recipe_version` (v14), local search by name and ingredient, `PromptBuilder` (`recipes[]` index, `recipe_full` when found), "Salvar receita" action under a cooking plan, Config entry, list and detail screens (`rcpL`, `rcpD`), record by recipe with receipt, tests, captures.

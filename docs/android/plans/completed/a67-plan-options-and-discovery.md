@@ -1,6 +1,6 @@
 # Plan — A67 Plan options in the bubble; discovery on the first opening
 
-- Status: Pendente aprovação manual (approved 08/10/2026 in the owner's batch message A64–A69; code, tests, the `chatO` gold comparison and emulator checks done; the device smoke on a dev build is the owner's manual acceptance)
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: plan bubble with one action group per option (Registrar, Reservar), persistence of option ids in `chat_message`, the `discovery` flag on the first opening, application of declared facts (`declared`, `equipment`, `liked`), tests, captures.

@@ -30,7 +30,7 @@ Code: `apps/android/.../feature/chat`.
 
 ## Out of scope
 
-- Compose ([A67](../../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md)). The discovery message (text only, no new layout). Other flows.
+- Compose ([A67](../../../android/plans/completed/a67-plan-options-and-discovery.md)). The discovery message (text only, no new layout). Other flows.
 
 ## Validation
 
@@ -43,7 +43,7 @@ Code: `apps/android/.../feature/chat`.
 
 ### Discovery (08/10/2026, before any write)
 
-Read only: the `chatR` and `chatRL` golds and frames, `ChatFixtures.optionsBubble` (the two dinner options), [ADR-051](../../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) § 1, [ADR-048](../../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) § 1, [A67](../../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md) scope 1.
+Read only: the `chatR` and `chatRL` golds and frames, `ChatFixtures.optionsBubble` (the two dinner options), [ADR-051](../../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md) § 1, [ADR-048](../../../produto/adrs/ADR-048-chat-actions-in-thread-copy-scroll-capture.md) § 1, [A67](../../../android/plans/completed/a67-plan-options-and-discovery.md) scope 1.
 
 `chatO` (open request answered with two options; references `chatR` and `chatRL`, layout only):
 
@@ -86,6 +86,6 @@ Figma MCP budget: 6 of 40 calls (whoami, 2 reads, 1 failed read retried, 2 write
 - Inventory: `chatO.png` added to [docs/qa/README.md](../../../qa/README.md); the golds-per-flow table of the [plans README](../README.md) gains the plan-options row.
 - `node tools/check-figma.mjs`: 108 golds verified (54 dark + 54 light). `node tools/check-docs.mjs` passes.
 - No app gate changes: `chatO` has no `GoldTest` yet, and `chatR` and `chatRL` keep their golds.
-- **Hand-over to [A67](../../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md):** the option block per `options[]` entry, the action row per option, the `GoldTest` and capture of `chatO`.
+- **Hand-over to [A67](../../../android/plans/completed/a67-plan-options-and-discovery.md):** the option block per `options[]` entry, the action row per option, the `GoldTest` and capture of `chatO`.
 
 Figma MCP budget: 6 of 40 calls in total.

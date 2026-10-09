@@ -1,6 +1,6 @@
 # Plan — A69 "O que a Tali sabe": memory screen in Config
 
-- Status: Pendente aprovação manual (approved 08/10/2026 in the owner's batch message A64–A69; code, tests, the `memL` and `cfg` gold comparisons and emulator checks done; the device smoke on a dev build is the owner's manual acceptance)
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Config entry and screen (`memL`), fact list with origin, delete and correct, tombstones for deleted facts (Room v15), removal of the dev tool A23, tests, captures.
