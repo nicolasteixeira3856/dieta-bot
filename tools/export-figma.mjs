@@ -90,7 +90,7 @@ export const DARK_FRAMES = {
   // Visible memory (D24, Release 2)
   memL: "198:867",
   // Plan options (D25, Release 2)
-  chatO: "202:916",
+  chatO: "205:8286",
   // Landing site (D11)
   land: "107:853",
   landM: "107:1003",

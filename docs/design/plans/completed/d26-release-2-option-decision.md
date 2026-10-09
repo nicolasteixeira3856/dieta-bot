@@ -1,10 +1,10 @@
 # Plan — D26 Release 2: Decision line and per-option fit in the plan bubble
 
-- Status: Pendente aprovação manual
+- Status: Concluído (09/10/2026)
 - Date: 09/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Opções" (frame `chatO` redrawn), the option component in `Componentes` extended. Repository: `docs/qa/figma/{dark,light}/chatO.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D25 `Concluído` ([history](../completed/)); [ADR-056](../../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) accepted with [S39](../../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md).
+- Prerequisites: D25 `Concluído` ([history](./)); [ADR-056](../../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) accepted with [S39](../../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md).
 - Figma MCP budget: ≤ 30 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d26-release-2-option-decision.md. Implemente o plano aprovado.`
@@ -78,4 +78,14 @@ Figma MCP budget: 7 of 30 calls (whoami, 3 skill reads, 1 read, 2 writes with re
 
 ### Owner review
 
-<Pending: the owner's OK in Figma, section `Opções · D25–D26` on `Release 2`.>
+**OK (09/10/2026)** on the first round, with no fixes ("Aprovado, pode exportar e concluir o plano").
+
+### Export (09/10/2026)
+
+- `tools/export-figma.mjs`: `chatO` Dark now `205:8286` (the reclone); Light unchanged `202:753`.
+- `node tools/export-figma.mjs --only chatO`: 780 × 2200 → 780 × 2696 (both themes). The inventory id is unchanged.
+- `node tools/check-figma.mjs`: 108 golds verified (54 dark + 54 light). `node tools/check-docs.mjs` passes.
+- Gold check of the current app (no `apps/` change; `GoldTest.chatO*`, run with `--rerun`): both fail by design, the app does not draw the decision line, the fit and day lines or the trailing text yet (Dark blurred 9.66 %, ink 0.76; Light blurred 9.79 %, ink 0.86).
+- **Hand-over to [A70](../../../android/plans/a70-option-fit-and-projection.md):** the lead/trailing split, the `Fit` and `Day` lines under each option's totals, the day panel on the chosen option and the `chatO` captures. Until A70, `GoldTest.chatO_dark` and `chatO_light` fail; a client plan that runs before A70 needs a temporary exception there (owner decision).
+
+Figma MCP budget: 7 of 30 calls in total (no call after the review: the export uses the REST API).
