@@ -2,6 +2,22 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.23 — 09/10/2026
+
+### Novidades
+
+- Decisão no topo: quando a Tali sugere duas opções, a primeira linha já diz qual escolher e por quê (calorias, proteína e se cabe no que sobra para a refeição).
+- Embaixo de cada opção aparece se ela cabe na refeição ("Cabe na janela do Jantar" ou "Passa 130 kcal da janela do Jantar") e como o dia fecha com ela ("Dia: ~1.930 de 2.200 kcal · P 124 de 150").
+- O resto da resposta (modo de preparo, comentário, refeição pulada, sugestão para a ceia) aparece embaixo das opções.
+- Comparação: perguntar "isso ou aquilo, qual?" traz as duas opções do jeito que você descreveu, sem trocar por outros pratos.
+
+### Ajustes
+
+- Pular uma refeição na mesma mensagem ("hoje pulo o lanche; o que janto?") já libera essas calorias para o jantar.
+- O painel do dia e o aviso de "passa do que sobra" agora seguem a opção que a Tali recomendou. Se ela passar do limite, os botões Pode passar e Ajustar para caber aparecem embaixo.
+- Se você diz como vai preparar (air fryer, forno, frigideira), a Tali manda o passo a passo com temperatura e tempo, e dá para salvar a receita.
+- O que você não especificou (pão, queijo, molho) é completado com base no que você já registrou de pratos parecidos.
+
 ## 0.0.22 — 09/10/2026
 
 ### Novidades
