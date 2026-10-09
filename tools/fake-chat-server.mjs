@@ -40,6 +40,7 @@
 // recipe, the chatE log with a bold total, or a reply with broken markup.
 // A60 part D: POST /__mode {"planned": true} answers a dinner log into the slot whose name starts with "Jan", with the
 // server's difference line against the plan the request carried in DAY (`status: planned`).
+// A64: /__calls reports `recentDays`, the `recent_days` of the last turn (S33), and `facts` carries their macros.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -68,6 +69,7 @@ let lastTone = null;
 let lastClose = null;
 let lastMessages = [];
 let lastSkipSlots = null;
+let lastRecentDays = null;
 let lastDay = [];
 let lastAutoRecord = null;
 let lastClarify = { rounds: null, force: false };
@@ -126,7 +128,7 @@ http.createServer(async (req, res) => {
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {
@@ -169,6 +171,7 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastAutoRecord = input.auto_record ?? null;
     if (!input.compact) lastDay = input.day?.slots ?? [];
     if (!input.compact) lastSkipSlots = input.skip_slots ?? null;
+    if (!input.compact) lastRecentDays = input.recent_days ?? null;
     if (!input.compact) lastPlanBudget = input.plan_budget ?? null;
     if (!input.compact) lastFit = input.fit_kcal ?? null;
     if (!input.compact) lastMessages = input.messages ?? [];

@@ -3,6 +3,21 @@ package app.fibrai.android.core.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/** Every migration, oldest first: the app and the migration tests open the file with all of them. */
+val ALL_MIGRATIONS: Array<Migration> by lazy {
+    arrayOf(
+        MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
+        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
+    )
+}
+
+/** v12 -> v13 (A64, ADR-053 § 2): the facts an answer saved from an explicit statement, `Anotado: {text}`. Old rows: null. */
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `noted` TEXT")
+    }
+}
+
 /**
  * v11 -> v12, the one version of A60 (ADR-039, ADR-044, ADR-046): the plan budget of an answer, the profile tone, the
  * closure table and the planned meal table. Old rows keep null budgets and read back the tone `seco`.

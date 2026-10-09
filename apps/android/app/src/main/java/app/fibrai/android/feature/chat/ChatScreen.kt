@@ -333,7 +333,7 @@ private fun Thread(
         val added = items.indexOfFirst { it.key == seen[0] }.coerceAtLeast(0)
         seen[0] = newest.key
         // Follows only from the bottom or for the user's own send; scrolled up, nothing jumps.
-        val own = (newest as? ThreadRow.Item)?.item.let { it is ChatItem.Loading || it is ChatItem.User && it.pending }
+        val own = (newest as? ThreadRow.Item)?.item.let { it is ChatItem.Loading || it is ChatItem.Thinking || it is ChatItem.User && it.pending }
         if (own || list.firstVisibleItemIndex <= added + 1) list.animateScrollToItem(0)
     }
     val nearOldest by remember {
@@ -516,6 +516,7 @@ private fun ThreadItem(
         is ChatItem.SkipMark -> SkipMarkLabel(item.kept, Modifier.padding(start = 8.dp))
         is ChatItem.Greeting -> Greeting(item, ui)
         ChatItem.Loading -> LoadingBubble()
+        ChatItem.Thinking -> LoadingBubble(thinking = true)
         ChatItem.Failed -> FailedBubble(onRetry)
         is ChatItem.Routine -> RoutineSuggestionCard(item.suggestion, onRoutineRecord, onRoutineEdit)
     }
@@ -595,9 +596,11 @@ private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false)
         }
         MemoryChips(item.memory)
         if (item.memory.any && item.estimate?.question.isNullOrBlank()) BubbleTime(item.time, Modifier.padding(top = 8.dp, start = 4.dp))
+        item.noted.forEach { NotedLabel(it, Modifier.padding(top = 6.dp, start = 8.dp)) }
         if (item.notRecorded) NotRecordedLabel(Modifier.padding(top = 6.dp, start = 8.dp))
         item.budget?.let { BudgetLines(it, Modifier.padding(top = 8.dp)) }
         item.reservedFor?.let { ReservedLabel(it, Modifier.padding(top = 8.dp, start = 2.dp)) }
+        item.projection?.let { ProjectionLabel(it, Modifier.padding(top = 6.dp, start = 8.dp)) }
     }
 }
 
@@ -758,9 +761,12 @@ private fun Greeting(item: ChatItem.Greeting, ui: ChatUiState) {
     }
 }
 
-/** chatL: Loader/Aero, the status in two lines and the bot label under the bubble. */
+/**
+ * chatL: Loader/Aero, the status in two lines and the bot label under the bubble. [thinking] (A64, ADR-054 § 3): after
+ * 4 s without an answer the first line says `Tali está pensando…`.
+ */
 @Composable
-private fun LoadingBubble() {
+private fun LoadingBubble(thinking: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     val r = AeroDimens.radiusCard
@@ -776,7 +782,11 @@ private fun LoadingBubble() {
         ) {
             AeroLoader()
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                AeroText("Analisando e calculando estimativa...", style = type.bodyStrong.copy(color = c.textMuted))
+                AeroText(
+                    if (thinking) "Tali está pensando…" else "Analisando e calculando estimativa...",
+                    Modifier.testTag(if (thinking) "chat-thinking" else "chat-loading-text"),
+                    style = type.bodyStrong.copy(color = c.textMuted),
+                )
                 AeroText(AeroTextTokens.labelSection.cased("Micro & macronutrientes"), style = type.labelSection.copy(color = c.textDim))
             }
         }
@@ -850,6 +860,22 @@ private fun BudgetLines(note: BudgetNote, modifier: Modifier = Modifier) {
         AeroText("Passa ${note.overKcal} kcal do que sobra.", style = style)
         note.reserved.forEach { (kcal, label) -> AeroText("Reservei $kcal kcal para $label.", style = style) }
     }
+}
+
+/** A64 (ADR-053 § 2): a permanent fact this answer saved, as stored; the caption line of `Não registrado`. */
+@Composable
+private fun NotedLabel(text: String, modifier: Modifier = Modifier) {
+    val c = Aero.colors
+    Row(modifier.testTag("chat-noted"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Top) {
+        AeroIcon(AeroIconName.Checks, c.iconMuted, size = 14.dp, modifier = Modifier.padding(top = 2.dp))
+        AeroText("Anotado: $text", style = Aero.type.caption.copy(color = c.textMuted))
+    }
+}
+
+/** A64: the day with the estimate waiting for Registrar, in the caption style of the receipt's balance line. */
+@Composable
+private fun ProjectionLabel(text: String, modifier: Modifier = Modifier) {
+    AeroText(text, modifier.testTag("chat-projection"), style = Aero.type.caption.copy(color = Aero.colors.textMuted))
 }
 
 /** chatRL (A60 part D): the plan holds the reservation of its meal. */

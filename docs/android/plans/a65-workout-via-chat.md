@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Chat response handling (`workout`), `commitRecord` path for `day.workoutKcal`, receipt and Desfazer, tests, captures.
-- Prerequisites: [S35](../../server/plans/completed/s35-workout-via-chat.md) on the dev server; [A64](a64-chat-context-fields-day-balance.md) delivered. Figma gate: a design plan only if the workout receipt does not fit the receipt golds (`chatF`, `chatSK`).
+- Prerequisites: [S35](../../server/plans/completed/s35-workout-via-chat.md) on the dev server; [A64](pending_manual_validation/a64-chat-context-fields-day-balance.md) delivered. Figma gate: a design plan only if the workout receipt does not fit the receipt golds (`chatF`, `chatSK`).
 - Related documentation: [ADR-049](../../produto/adrs/ADR-049-workout-energy-via-chat.md), [ADR-028](../../produto/adrs/ADR-028-registro-autonomo.md), [product Chat](../../produto/specifications/chat.md), [home-timeline](../../produto/specifications/home-timeline.md), [HTTP contract](../../api-contract.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a65-workout-via-chat.md. Implemente o plano aprovado.`

@@ -624,7 +624,9 @@ class GoldTest {
          * everything below moves one line: the bubble down to the steps, and the total, the day panel and Registrar
          * assim, each at its best offset.
          */
-        private val CHAT_RK_BOXES = listOf(intArrayOf(0, 0, 780, 1370), intArrayOf(0, 1450, 780, 2054))
+        // Until A68: the D23 export added Salvar receita under Registrar assim, a button A68 delivers, so the second box
+        // stops above the action rows; A68 restores it to the end of the frame.
+        private val CHAT_RK_BOXES = listOf(intArrayOf(0, 0, 780, 1370), intArrayOf(0, 1450, 780, 1780))
 
         private val CHAT_F_BOXES = listOf(intArrayOf(0, 0, 780, 228), intArrayOf(0, 470, 780, 1922))
 

@@ -4,7 +4,6 @@ import app.fibrai.android.core.database.ClosureEntity
 import app.fibrai.android.core.database.DayRepository
 import app.fibrai.android.core.database.DaySnapshot
 import app.fibrai.android.core.database.InstantClock
-import app.fibrai.android.core.database.budgetOn
 import app.fibrai.android.core.database.ceilingProfile
 import app.fibrai.android.core.database.slotsOn
 import app.fibrai.android.core.network.ChatSlot
@@ -14,9 +13,7 @@ import app.fibrai.android.core.network.CloseProfile
 import app.fibrai.android.core.telemetry.NoopTelemetry
 import app.fibrai.android.core.telemetry.Telemetry
 import app.fibrai.android.core.telemetry.TelemetryEvents
-import app.fibrai.android.domain.BudgetCalculator
 import app.fibrai.android.domain.ClosureDay
-import app.fibrai.android.domain.ClosureMeal
 import app.fibrai.android.domain.ClosureWeek
 import app.fibrai.android.domain.Closures
 import app.fibrai.android.domain.Macros
@@ -135,15 +132,9 @@ class ClosureRunner @Inject constructor(
 
     /** The numbers of [date] from Room: its meals in slot order, every record (Outros included) and its ceiling. */
     suspend fun dayNumbers(snapshot: DaySnapshot, date: LocalDate): ClosureDay {
-        val record = repository.dayRecord(date.toString())
-        val meals = snapshot.slotsOn(date).sortedBy { it.minutesFromMidnight }.take(SLOTS_MAX).map { slot ->
-            val logs = record.logs.filter { it.second == slot.id }.map { it.first }
-            ClosureMeal(slot.id, slot.name.take(NAME_MAX), logs.sumOf { it.kcal }, slot.id in record.skipped, record.planned[slot.id]?.kcal, logs.isNotEmpty())
-        }
-        val all = record.logs.map { it.first }
-        val totals = Macros(all.sumOf { it.kcal }, all.sumOf { it.p }, all.sumOf { it.c }, all.sumOf { it.g })
-        val ceiling = BudgetCalculator().calculate(snapshot.budgetOn(date).copy(workoutKcal = record.workoutKcal)).effectiveCeiling
-        return Closures.day(date, meals, totals.clamped(), ceiling.coerceIn(1, KCAL_MAX), record.workoutKcal?.coerceIn(0, KCAL_MAX))
+        val day = repository.dayTotals(snapshot, date)
+        val meals = day.meals.take(SLOTS_MAX).map { it.copy(name = it.name.take(NAME_MAX)) }
+        return Closures.day(date, meals, day.totals.clamped(), day.ceilingKcal.coerceIn(1, KCAL_MAX), day.workoutKcal?.coerceIn(0, KCAL_MAX))
     }
 
     suspend fun weekNumbers(snapshot: DaySnapshot, monday: LocalDate, until: LocalDate): ClosureWeek {
