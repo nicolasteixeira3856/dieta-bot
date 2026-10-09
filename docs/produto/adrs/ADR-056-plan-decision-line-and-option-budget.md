@@ -69,6 +69,6 @@ Rejected: the choice between two dishes needs the model's judgment about protein
 
 - Affected specifications: [v1-chat](../../server/specifications/v1-chat.md), [HTTP contract](../../api-contract.md), [product Chat](../specifications/chat.md).
 - Related ADRs: [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md), [ADR-039](ADR-039-plan-cooking-and-budget-choice.md), [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md), [ADR-044](ADR-044-assistant-tone-and-closures.md), [ADR-047](ADR-047-skips-alongside-other-actions.md), [ADR-051](ADR-051-plan-option-identity-and-chat-discovery.md), [ADR-052](ADR-052-saved-recipes.md).
-- Consuming contexts: [server](../../server/README.md) ([S39](../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md)), [android](../../android/README.md) ([A70](../../android/plans/a70-option-fit-and-projection.md)), [design](../../design/README.md) ([D26](../../design/plans/d26-release-2-option-decision.md)).
+- Consuming contexts: [server](../../server/README.md) ([S39](../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md)), [android](../../android/README.md) ([A70](../../android/plans/a70-option-fit-and-projection.md)), [design](../../design/README.md) ([D26](../../design/plans/pending_manual_validation/d26-release-2-option-decision.md)).
 
 Depois de aceito, o corpo deste ADR não se edita. Só a linha `- Status:` muda, para registrar substituição total ou parcial por um ADR novo.
