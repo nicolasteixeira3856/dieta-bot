@@ -35,4 +35,6 @@ data class MealLogEntity(
     val fat: Int = 0,
     @ColumnInfo(defaultValue = "'user'")
     val source: String = "user",
+    /** A68 (v15): the recipe version a record by recipe used; null otherwise. Not a foreign key: deleting a recipe keeps the record. */
+    val recipeVersionId: Long? = null,
 )

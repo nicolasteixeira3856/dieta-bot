@@ -44,7 +44,7 @@ Code: `apps/android/.../feature/config`.
 
 ### Owner decision (08/10/2026, D23 review)
 
-Asked where the recipe list is opened from, the owner accepted the proposal to draw the Config entry of [A68](../../../android/plans/a68-saved-recipes.md) here, since `cfg` changes in this plan anyway: a new block `DA TALI` between the note and `DADOS`, with two `Row/Setting` rows, **Receitas** and **O que a Tali sabe**, each with a chevron.
+Asked where the recipe list is opened from, the owner accepted the proposal to draw the Config entry of [A68](../../../android/plans/pending_manual_validation/a68-saved-recipes.md) here, since `cfg` changes in this plan anyway: a new block `DA TALI` between the note and `DADOS`, with two `Row/Setting` rows, **Receitas** and **O que a Tali sabe**, each with a chevron.
 
 ### Discovery (08/10/2026, before any write)
 
@@ -108,6 +108,6 @@ Figma MCP budget: 6 of 40 calls (whoami, 1 read, 2 writes, 1 failed write retrie
 - Inventory: `memL.png` added to [docs/qa/README.md](../../../qa/README.md); the golds-per-flow table of the [plans README](../README.md) gains the visible-memory row.
 - `node tools/check-figma.mjs`: 106 golds verified (53 dark + 53 light). `node tools/check-docs.mjs` passes.
 - Gold check of the current app (no `apps/` change; `GoldTest.cfg*`, `--rerun`): all eight pass. `cfg` blurred 0.24 % Dark and 0.11 % Light (the test draws the frame at its 1104 dp qualifier, above the new block); `cfgR`, `cfgS`, `cfgT` unchanged.
-- **Hand-over:** [A68](../../../android/plans/a68-saved-recipes.md) and [A69](../../../android/plans/a69-visible-memory.md) draw the `DA TALI` block (the first of them adds the block with its own row) and move the `cfg` qualifier to 1271 dp; A69 draws `memL`.
+- **Hand-over:** [A68](../../../android/plans/pending_manual_validation/a68-saved-recipes.md) and [A69](../../../android/plans/a69-visible-memory.md) draw the `DA TALI` block (the first of them adds the block with its own row) and move the `cfg` qualifier to 1271 dp; A69 draws `memL`.
 
 Figma MCP budget: 6 of 40 calls in total.

@@ -22,6 +22,14 @@ data class ActionParts(val rows: List<ChatOut>, val workouts: List<ChatWorkout>,
     fun actionsOf(row: Int): String? = rowActions.getOrNull(row)
 }
 
+/** A68 (S38 `recipe`): the cooking recipe of a plan, as the app saves it. */
+@Serializable
+data class PlanRecipe(
+    val name: String = "",
+    val ingredients: List<app.fibrai.android.domain.RecipeIngredient> = emptyList(),
+    val steps: List<String> = emptyList(),
+)
+
 /** A67 (ADR-051): one option of an open request, its estimate as the server totalled it. */
 data class PlanOption(
     val id: String,
@@ -96,6 +104,23 @@ object ChatActions {
         val name = item.name.trim()
         if (item.g <= 0.0) return name
         return if (name.firstOrNull()?.isDigit() == true) "$name ($grams g)" else "$grams g de $name"
+    }
+
+    /** A68 (S38): the cooking recipe a plan row carries (its own action's `recipe`); null when none or without ingredients. */
+    fun recipe(actions: String?): PlanRecipe? {
+        val own = actions?.let { runCatching { json.decodeFromString(ListSerializer(ChatAction.serializer()), it) }.getOrNull() }
+            ?.firstOrNull { it.type == LOG || it.type == PLAN }?.takeIf { it.type == PLAN } ?: return null
+        val raw = own.recipe?.let { runCatching { json.decodeFromJsonElement(PlanRecipe.serializer(), it) }.getOrNull() } ?: return null
+        val ingredients = raw.ingredients.filter { it.name.isNotBlank() }
+        if (raw.name.isBlank() || ingredients.isEmpty()) return null
+        return raw.copy(name = raw.name.trim(), ingredients = ingredients, steps = raw.steps.filter { it.isNotBlank() })
+    }
+
+    /** A68 (S38): the saved recipe a log or plan row refers to (its own action's `recipe_id`), as the app's id. */
+    fun recipeId(actions: String?): Long? {
+        val own = actions?.let { runCatching { json.decodeFromString(ListSerializer(ChatAction.serializer()), it) }.getOrNull() }
+            ?.firstOrNull { it.type == LOG || it.type == PLAN } ?: return null
+        return PromptBuilder.recipeIdOf(own.recipeId)
     }
 
     @Serializable

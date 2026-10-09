@@ -21,6 +21,7 @@ enum class AeroIconName(@param:DrawableRes val res: Int) {
     ArrowRight(R.drawable.ph_arrow_right_bold),
     ArrowUp(R.drawable.ph_arrow_up_bold),
     Barbell(R.drawable.ph_barbell_duotone),
+    BookmarkSimple(R.drawable.ph_bookmark_simple_regular),
     Camera(R.drawable.ph_camera_regular),
     CaretLeft(R.drawable.ph_caret_left_regular),
     CaretRight(R.drawable.ph_caret_right_regular),

@@ -23,6 +23,10 @@ data class ChatIn(
      * false is not encoded: the server reads an absent field as false.
      */
     val discovery: Boolean = false,
+    /** A68 (S38): the index of saved recipes, most recent first, at most 30; empty = not sent. */
+    val recipes: List<ChatRecipe> = emptyList(),
+    /** A68 (S38): the saved recipe the message names, complete, only on that turn; null = none. */
+    @SerialName("recipe_full") val recipeFull: ChatRecipeFull? = null,
     /** A64 (S33): the app's totals of each of the 7 days before today, newest first; empty = not sent. */
     @SerialName("recent_days") val recentDays: List<ChatRecentDay> = emptyList(),
     /**
@@ -116,6 +120,32 @@ data class ChatFact(
     val p: Int? = null,
     val c: Int? = null,
     val g: Int? = null,
+)
+
+/** A68 (S38 `recipes`): `id` R{n}, name ≤ 60, totals of the current version, ≤ 3 key foods. */
+@Serializable
+data class ChatRecipe(
+    val id: String,
+    val name: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    @SerialName("key_foods") val keyFoods: List<String>,
+)
+
+/** A68 (S38 `recipe_full`): a [ChatRecipe] with its ingredients (1–30, g > 0) and steps (≤ 10, ≤ 300 characters). */
+@Serializable
+data class ChatRecipeFull(
+    val id: String,
+    val name: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    @SerialName("key_foods") val keyFoods: List<String>,
+    val ingredients: List<ChatAdditionItem>,
+    val steps: List<String>,
 )
 
 /**

@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 /** The schema version; the version tests read it, so a new version changes one line. */
-const val DB_VERSION = 14
+const val DB_VERSION = 15
 
 @Database(
     entities = [
@@ -18,6 +18,8 @@ const val DB_VERSION = 14
         DayDigestEntity::class,
         ClosureEntity::class,
         PlannedMealEntity::class,
+        RecipeEntity::class,
+        RecipeVersionEntity::class,
     ],
     version = DB_VERSION,
     exportSchema = true,
@@ -33,4 +35,5 @@ abstract class FibraiDatabase : RoomDatabase() {
     abstract fun dayDigestDao(): DayDigestDao
     abstract fun closureDao(): ClosureDao
     abstract fun plannedMealDao(): PlannedMealDao
+    abstract fun recipeDao(): RecipeDao
 }

@@ -174,6 +174,8 @@ fun ChatScreen(
     onBudgetFit: (estimateId: Long) -> Unit = {},
     /** chatR (A60 part D): Reservar para o {slot}. */
     onReserve: (estimateId: Long) -> Unit = {},
+    /** chatRK (A68): Salvar receita under a cooking plan. */
+    onSaveRecipe: (estimateId: Long) -> Unit = {},
     /** chatO (A67): Registrar | Reservar inside an option of a plan. */
     onOptionRecord: (estimateId: Long, optionId: String) -> Unit = { _, _ -> },
     onOptionReserve: (estimateId: Long, optionId: String) -> Unit = { _, _ -> },
@@ -228,7 +230,7 @@ fun ChatScreen(
             )
             val answer = AnswerCallbacks(
                 { end(); onRegister(it) }, { end(); onRecordPlan(it) }, { end(); onForceEstimate() },
-                { end(); onBudgetOverOk(it) }, { end(); onBudgetFit(it) }, { end(); onReserve(it) },
+                { end(); onBudgetOverOk(it) }, { end(); onBudgetFit(it) }, { end(); onReserve(it) }, { end(); onSaveRecipe(it) },
             )
             val select = SelectCallbacks(onLongPress, onSelectTap)
             if (ui.loaded) Thread(ui, onRetry, onRoutineRecord, onRoutineEdit, onLoadOlder, record, answer, select, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
@@ -278,6 +280,7 @@ private class AnswerCallbacks(
     val onBudgetOverOk: (Long) -> Unit,
     val onBudgetFit: (Long) -> Unit,
     val onReserve: (Long) -> Unit,
+    val onSaveRecipe: (Long) -> Unit = {},
 )
 
 /** A61 part B: the long press and the selection taps of the text bubbles. */
@@ -476,6 +479,10 @@ private fun AnswerActions(ui: ChatUiState, on: AnswerCallbacks) {
                 PlanBar(actions) { on.onRecordPlan(actions.estimateId) }
                 actions.reserve?.let { slot ->
                     AeroActionBar("Reservar para o ${slot.name}", AeroIconName.CalendarCheck, { on.onReserve(actions.estimateId) }, Modifier.testTag("chat-reserve"))
+                }
+                // A68 (chatRK): a cooking plan not saved yet.
+                if (actions.saveRecipe) {
+                    AeroActionBar("Salvar receita", AeroIconName.BookmarkSimple, { on.onSaveRecipe(actions.estimateId) }, Modifier.testTag("chat-save-recipe"))
                 }
             }
             else -> RegisterBar { on.onRegister(actions.estimateId) }

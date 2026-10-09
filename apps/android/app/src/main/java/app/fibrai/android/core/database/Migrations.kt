@@ -7,8 +7,27 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 val ALL_MIGRATIONS: Array<Migration> by lazy {
     arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
+        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15,
     )
+}
+
+/** v14 -> v15 (A68, ADR-052): saved recipes and their versions; a record keeps the version it used. Nothing to backfill. */
+val MIGRATION_14_15 = object : Migration(14, 15) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `recipe` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, " +
+                "`originMessageId` INTEGER, `createdAtEpochMs` INTEGER NOT NULL)",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_recipe_originMessageId` ON `recipe` (`originMessageId`)")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `recipe_version` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipeId` INTEGER NOT NULL, " +
+                "`version` INTEGER NOT NULL, `ingredients` TEXT NOT NULL, `steps` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `p` INTEGER NOT NULL, " +
+                "`c` INTEGER NOT NULL, `g` INTEGER NOT NULL, `yieldText` TEXT, `portion` TEXT, `createdAtEpochMs` INTEGER NOT NULL, " +
+                "FOREIGN KEY(`recipeId`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_recipe_version_recipeId` ON `recipe_version` (`recipeId`)")
+        db.execSQL("ALTER TABLE `meal_log` ADD COLUMN `recipeVersionId` INTEGER")
+    }
 }
 
 /** v13 -> v14 (A66, ADR-050): the raw typed actions of an answer, on its first row. Old rows: null (a legacy answer). */

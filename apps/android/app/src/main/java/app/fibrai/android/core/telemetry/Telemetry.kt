@@ -99,6 +99,12 @@ object TelemetryEvents {
     /** A61 part B: Copiar in the Chat, `count` of messages, `has_user` / `has_tali` booleans. Never the text. */
     const val MESSAGE_COPIED = "message_copied"
 
+    /** A68: Excluir receita confirmed in Config. */
+    const val RECIPE_DELETED = "recipe_deleted"
+
+    /** A68: Salvar receita, `ingredients` and `steps` counts. */
+    const val RECIPE_SAVED = "recipe_saved"
+
     /** A67: Registrar or Reservar on a plan option, `action` record | reserve. */
     const val PLAN_OPTION = "plan_option"
 
