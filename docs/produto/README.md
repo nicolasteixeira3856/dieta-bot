@@ -82,6 +82,8 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-053](adrs/ADR-053-visible-memory-screen.md) — "O que a Tali sabe": the memory as a product screen.
 - [ADR-055](adrs/ADR-055-protein-boost-hybrid.md) — protein boost: the model proposes, the server validates.
 - [ADR-056](adrs/ADR-056-plan-decision-line-and-option-budget.md) — decision line of a plan with options; budget, closings and app lines on the chosen option.
+- [ADR-057](adrs/ADR-057-conversational-onboarding.md) — conversational onboarding: Tali builds the profile on day 0.
+- [ADR-058](adrs/ADR-058-extras-and-history.md) — extras outside the meals; the last 30 days on the Home; recording another day.
 
 ### Planos
 
@@ -90,5 +92,7 @@ This context has no `plans/`. Deliveries belong to [Android](../android/README.m
 Meal updates: D9 and A47 (history: [`completed/`](../design/plans/completed/), [`completed/`](../android/plans/completed/)).
 
 Chat after the brainstorm of 07/10/2026 (`benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5, benchmark `benchmark/RESULTADOS_08_10_2026.md`), in execution order: [S33](../server/plans/pending_manual_validation/s33-chat-context-effort-low.md) → [S34](../server/plans/pending_manual_validation/s34-protein-boost-hybrid.md) → A64 ([history](../android/plans/completed/)) → CP10 ([history](../content-policy/plans/completed/)) → S35 ([history](../server/plans/completed/)) → A65 ([history](../android/plans/completed/)) → [S36](../server/plans/pending_manual_validation/s36-typed-actions.md) → A66 ([history](../android/plans/completed/)) → [S37](../server/plans/pending_manual_validation/s37-plan-options-and-discovery.md) → A67 ([history](../android/plans/completed/)) → D23 ([history](../design/plans/completed/)) → [S38](../server/plans/pending_manual_validation/s38-saved-recipes.md) → A68 ([history](../android/plans/completed/)) → D24 ([history](../design/plans/completed/)) → A69 ([history](../android/plans/completed/)) (ADR-049 to ADR-055).
+
+Day 0 and history, brainstorm of 09/10/2026 (ADR-057, ADR-058), in execution order: [S40](../server/plans/s40-eval-personas.md) (eval personas) → [D27](../design/plans/d27-conversational-onboarding.md) → [S41](../server/plans/s41-onboarding-profile.md) → [A71](../android/plans/a71-conversational-onboarding.md) (conversational onboarding, absorbs [A56](../android/plans/out_of_scope/a56-goal-weight.md)) → [D28](../design/plans/d28-home-extras-and-history.md) → [S42](../server/plans/s42-extras-and-other-day.md) → [A72](../android/plans/a72-extras-and-history.md) (extras and history, absorbs [A35](../android/plans/out_of_scope/a35-registro-retroativo.md)).
 
 Protein-first plan, tone, formatting, planned meal and skips: S24 ([`completed/`](../server/plans/completed/), ADR-043); S30 ([`completed/`](../server/plans/completed/), server, ADR-044/045/046) and A60 ([history](../android/plans/completed/)) (app, ADR-039/044/045/046/047); its part E, the skips, by A59 ([history](../android/plans/completed/)); the auto-record defect A54 ([`completed/`](../android/plans/completed/)). Deferred by owner decision: goal weight, [A56](../android/plans/out_of_scope/a56-goal-weight.md).

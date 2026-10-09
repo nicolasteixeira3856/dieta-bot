@@ -1,6 +1,6 @@
 # A56 — Goal weight and date in the profile
 
-- Status: Fora de escopo
+- Status: Fora de escopo; reactivated on 2026-10-09 by owner decision inside [ADR-057](../../../produto/adrs/ADR-057-conversational-onboarding.md), [S41](../../../server/plans/s41-onboarding-profile.md) and [A71](../a71-conversational-onboarding.md) (this file stays as the dated deferral history)
 - Date: 2026-10-06
 - Owner: `android` (product decision in `produto`; a paired server plan and a design plan are expected)
 - Prospective delivery boundary: documentation first (product ADR and spec changes), then one `design` plan (O1 or a new field in Config), one `apps/android/` plan and one `server/` plan, never in the same `/goal`

@@ -86,6 +86,8 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [054](server/adrs/ADR-054-chat-reasoning-effort-low.md) | server | Chat generation at `reasoning.effort=low` (benchmark of 08/10/2026) |
 | [055](produto/adrs/ADR-055-protein-boost-hybrid.md) | produto | protein boost of a named dish: the model proposes the `(opcional)` foods, the server validates |
 | [056](produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) | produto | a plan with options opens with the decision line, numbers written by the server; budget, closings and the app's fit and day lines on the chosen option; a same-message skip leaves the window |
+| [057](produto/adrs/ADR-057-conversational-onboarding.md) | produto | conversational onboarding: guided chat on the device, one `POST /v1/profile` call builds the profile and up to 30 facts; resumable; goal weight; closure time; permanent cap 50 |
+| [058](produto/adrs/ADR-058-extras-and-history.md) | produto | extras outside the meals, timeline by time, 30-day strip and past day on the Home, record in a named past day from the Chat |
 
 ## Outros docs
 

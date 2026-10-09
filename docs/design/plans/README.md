@@ -173,6 +173,20 @@ Behavior: [ADR-056](../../produto/adrs/ADR-056-plan-decision-line-and-option-bud
 | Design | D26 — decision line and per-option fit (`chatO` redrawn), delivered ([history](completed/)) | D25, ADR-056 accepted (S39) |
 | Client | [A70](../../android/plans/pending_manual_validation/a70-option-fit-and-projection.md) — fit and day lines per option | D26, S39 on dev, A67 |
 
+## Day 0 and history follow-up (Release 2)
+
+Behavior: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [ADR-058](../../produto/adrs/ADR-058-extras-and-history.md) (brainstorm of 09/10/2026). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Server | [S40](../../server/plans/s40-eval-personas.md) — eval personas | — |
+| Design | [D27](d27-conversational-onboarding.md) — conversational onboarding (`ob0`–`ob6`; `o1`–`o5` retired) | D26, ADR-057 accepted |
+| Server | [S41](../../server/plans/s41-onboarding-profile.md) — `POST /v1/profile` | S40 |
+| Client | [A71](../../android/plans/a71-conversational-onboarding.md) — conversational onboarding in the app | D27, S41 on dev, A70 merged |
+| Design | [D28](d28-home-extras-and-history.md) — Home day strip, past day and extras (`home1` redrawn, `homeH`, `homeE`, `chatGX`) | D27, ADR-058 accepted |
+| Server | [S42](../../server/plans/s42-extras-and-other-day.md) — extras and a record in a named past day | S40 |
+| Client | [A72](../../android/plans/a72-extras-and-history.md) — extras, the strip and the past-day record | D28, S42 on dev, A71 |
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.
