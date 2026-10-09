@@ -63,7 +63,7 @@ const FIGMA = {
   // SystemUI draws the screen and the card. Reported, never gated.
   // themeConflicts: { id: "dark" | "light" } reports one theme only, for a frame that is stale in that theme (none since D20).
   themeConflicts: {},
-  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS", "chatSK", "chatRB", "chatRK", "chatRL", "chatCP", "chatCC", "chatO", "push"]),
+  conflicts: new Set(["homeW", "chatL", "chatQ", "chatF", "chatG", "chatD", "chatR", "chatM", "chatU", "chatS", "chatSK", "chatRB", "chatRK", "chatRL", "chatCP", "chatCC", "chatO", "memL", "push"]),
   // chatP (A42): Dialog/Confirm centred over the blurred Home (the capture's Home is scrolled to the Lanche card).
   // wipe (A44): Dialog/Confirm Tone=Danger centred over the blurred Config. cfgR (A53): the reset dialog, same pattern.
   center: { o3t: { dark: [48, 600, 732, 1388], light: [48, 600, 732, 1388] }, chatP: { dark: [48, 614, 732, 1074], light: [48, 614, 732, 1074] }, wipe: { dark: [48, 424, 732, 1264], light: [48, 424, 732, 1264] }, cfgR: { dark: [48, 448, 732, 1240], light: [48, 448, 732, 1240] } },
@@ -71,7 +71,10 @@ const FIGMA = {
     homeW: [0, 80, 780, 900],
     chatL: [0, 500, 780, 740],
     chatQ: [HEADER_BOX, [0, 168, 780, 1296]],
-    chatF: HEADER_BOX, chatG: HEADER_BOX, chatD: HEADER_BOX, chatR: HEADER_BOX, chatM: HEADER_BOX, chatU: HEADER_BOX, chatSK: HEADER_BOX, chatRB: HEADER_BOX, chatRK: HEADER_BOX, chatRL: HEADER_BOX, chatCP: HEADER_BOX, chatCC: HEADER_BOX, chatO: HEADER_BOX, chatS: [HEADER_BOX, [32, 728, 748, 1256]],
+    chatF: HEADER_BOX, chatG: HEADER_BOX, chatD: HEADER_BOX, chatR: HEADER_BOX, chatM: HEADER_BOX, chatU: HEADER_BOX, chatSK: HEADER_BOX, chatRB: HEADER_BOX, chatRK: HEADER_BOX, chatRL: HEADER_BOX, chatCP: HEADER_BOX, chatCC: HEADER_BOX, chatO: HEADER_BOX,
+    // memL (A69): the facts are the device's own (the encrypted memory cannot be seeded like Room); the header and the first
+    // group label are gated, the rest is reported. The JVM GoldTest gates the whole frame with the gold's facts.
+    memL: [0, 48, 780, 300], chatS: [HEADER_BOX, [32, 728, 748, 1256]],
   },
   tail: { chatF: 660, chatG: 0, chatD: 0, chatR: 0, chatM: 0, chatU: 0, chatSK: 0, chatRB: 0, chatRK: 0, chatRL: 0, chatCP: 0, chatCC: 0, chatO: 0 },
   // Bottom-anchored zone of each Chat frame, px: its bottom stack read from the frame (the composer for chatQ / chatE,

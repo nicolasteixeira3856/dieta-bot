@@ -22,7 +22,7 @@ FAIL=0
 # shellcheck source=tools/input-checks.sh
 . "$ROOT/tools/input-checks.sh"
 
-# A23 (ADR-019): hide the dev-only "Memória da IA (dev)" row so cfg matches the gold. Cleared on exit.
+# ADR-019: hide any dev-only tool row so cfg matches the gold (none since A69 removed "Memória da IA (dev)"). Cleared on exit.
 "$ADB" shell setprop debug.fibrai.hide_dev_tools 1
 trap '"$ADB" shell setprop debug.fibrai.hide_dev_tools 0' EXIT
 
@@ -83,7 +83,10 @@ sleep 3
 tap 'resource-id="home-config"' && expect "gear opens Config" 'resource-id="cfg"'
 expect "ceiling row 2000 kcal" 'text="2000 kcal"'
 expect "no workout: credit 0" 'Crédito atual: 0 kcal'
-dump; if grep -q 'resource-id="cfg-dev-memory"' "$TMP/ui.xml"; then echo "  ✗ dev row hidden"; FAIL=1; else echo "  ✓ dev row hidden"; fi
+dump; if grep -q 'resource-id="cfg-dev-memory"' "$TMP/ui.xml"; then echo "  ✗ the A23 dev row is back"; FAIL=1; else echo "  ✓ no dev tool row (A69)"; fi
+"$ADB" shell input swipe 390 1400 390 300 300; sleep 0.8
+expect "Da Tali: Receitas and O que a Tali sabe" 'resource-id="cfg-recipes".*resource-id="cfg-memory"|resource-id="cfg-memory".*resource-id="cfg-recipes"'
+"$ADB" shell input swipe 390 300 390 1400 300; sleep 0.8
 shot cfg
 
 # A46: in Config the focused field rises above the keyboard and an edit starts at the end of the value.

@@ -139,10 +139,12 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
                     }
                 }
                 AeroNoteCard(AeroIconName.Info, "Alterar a meta de calorias reinicia os registros do dia atual. O histórico da conversa será mantido.")
-                // A68 (D24 cfg): the recipes the user saved from the Chat.
+                // A68, A69 (D24 cfg): the recipes saved from the Chat and what Tali keeps in memory.
                 Block("Da Tali") {
                     Group {
                         SettingRow("Receitas", "", "cfg-recipes") { actions.onOpenRecipes() }
+                        Divider()
+                        SettingRow("O que a Tali sabe", "", "cfg-memory") { actions.onOpenMemory() }
                     }
                 }
                 Block("Dados") {

@@ -52,6 +52,7 @@
 // A68: POST /__mode {"recipe": "plan"|"log"} answers a client that sent actions: true: "plan" = the chatRK recipe as a plan
 // action with its `recipe` (Salvar receita); "log" = a log of the first saved recipe in `recipes` (recipe_id, its totals).
 // /__calls reports `recipes` (the index ids) and `recipeFull` (the id sent complete, or null).
+// A69: /__calls reports `factTexts`, the text of each fact of the last turn (the correction reaches the prompt).
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -152,7 +153,7 @@ http.createServer(async (req, res) => {
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery, recipes: lastRecipes, recipeFull: lastRecipeFull }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery, recipes: lastRecipes, recipeFull: lastRecipeFull, factTexts: lastFacts.map((f) => f.text) }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {

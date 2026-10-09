@@ -55,6 +55,9 @@ import app.fibrai.android.feature.chat.rememberPhotoLaunchers
 import app.fibrai.android.feature.config.ConfigActions
 import app.fibrai.android.feature.config.ConfigScreen
 import app.fibrai.android.feature.config.ConfigViewModel
+import app.fibrai.android.feature.memory.MemoryActions
+import app.fibrai.android.feature.memory.MemoryScreen
+import app.fibrai.android.feature.memory.MemoryViewModel
 import app.fibrai.android.feature.recipes.RecipeScreen
 import app.fibrai.android.feature.recipes.RecipesScreen
 import app.fibrai.android.feature.recipes.RecipesViewModel
@@ -78,6 +81,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteChat
 @Serializable data object RouteConfig
 @Serializable data object RouteRecipes
+@Serializable data object RouteMemory
 @Serializable data class RouteRecipe(val id: Long)
 
 @AndroidEntryPoint
@@ -367,6 +371,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onConfirmReset = vm::confirmReset,
                         onCancelReset = vm::cancelReset,
                         onOpenRecipes = { nav.navigate(RouteRecipes) },
+                        onOpenMemory = { nav.navigate(RouteMemory) },
                     )
                 }
                 // ADR-040: after the reset the app starts over at O1; back from O1 leaves the app.
@@ -380,6 +385,24 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 AeroTheme {
                     ConfigScreen(ui, actions) { FlavorConfigRows(nav) }
                 }
+            }
+            // A69 (ADR-053): Config → O que a Tali sabe (memL).
+            composable<RouteMemory> {
+                val vm: MemoryViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                val actions = remember(vm) {
+                    MemoryActions(
+                        onBack = { nav.popBackStack() },
+                        onEdit = vm::edit,
+                        onDraft = vm::setDraft,
+                        onCancelEdit = vm::cancelEdit,
+                        onSaveEdit = vm::saveEdit,
+                        onDelete = vm::askDelete,
+                        onConfirmDelete = vm::confirmDelete,
+                        onCancelDelete = vm::cancelDelete,
+                    )
+                }
+                AeroTheme { MemoryScreen(ui, actions) }
             }
             // A68 (ADR-052): Config → Receitas (rcpL) → a recipe (rcpD).
             composable<RouteRecipes> {
@@ -413,6 +436,7 @@ internal fun screenName(route: String?): String? = when (route?.substringAfterLa
     "RouteChat" -> "chat"
     "RouteConfig" -> "cfg"
     "RouteRecipes" -> "rcpL"
+    "RouteMemory" -> "memL"
     "RouteRecipe" -> "rcpD"
     else -> null
 }

@@ -8,6 +8,7 @@ import app.fibrai.android.domain.MemoryRules
 import app.fibrai.android.domain.MemoryUpdate
 import app.fibrai.android.domain.NextIds
 import app.fibrai.android.domain.RecordedMeal
+import app.fibrai.android.domain.Tombstone
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -88,23 +89,41 @@ class FactMemory @Inject constructor(private val file: MemoryFile) {
         return apply(listOf(update), today, meal)
     }
 
-    /** A23 dev editor: the whole memory, already validated by the editor. */
+    /** The whole memory as given (tests seed it). */
     suspend fun replaceAll(memory: Memory) = mutex.withLock { store(memory) }
 
+    /** A69 (memL): the user deletes a fact; its key is kept as a tombstone. Returns the memory after expiry. */
+    suspend fun delete(id: String, today: LocalDate): Memory = change(today) { MemoryRules.delete(it, id, today) }
+
+    /** A69 (memL): the user corrects a fact's text. Returns the memory after expiry. */
+    suspend fun correct(id: String, text: String, today: LocalDate): Memory = change(today) { MemoryRules.correct(it, id, text) }
+
+    /** A69: a compaction was stored; the tombstones end. */
+    suspend fun clearTombstones(today: LocalDate) {
+        change(today) { MemoryRules.clearTombstones(it) }
+    }
+
+    private suspend fun change(today: LocalDate, transform: (Memory) -> Memory): Memory = mutex.withLock {
+        val stored = load()
+        val next = transform(MemoryRules.expire(stored, today).memory)
+        if (next != stored) store(next)
+        next
+    }
+
     private suspend fun store(memory: Memory) = withContext(Dispatchers.IO) {
-        file.write(json.encodeToString(Stored.serializer(), Stored(VERSION, memory.next, memory.facts)))
+        file.write(json.encodeToString(Stored.serializer(), Stored(VERSION, memory.next, memory.facts, memory.tombstones)))
     }
 
     private suspend fun load(): Memory = withContext(Dispatchers.IO) {
         val text = file.read() ?: return@withContext Memory()
         runCatching { json.decodeFromString(Stored.serializer(), text) }.getOrNull()
             ?.takeIf { it.v == VERSION }
-            ?.let { Memory(it.next, it.facts) }
+            ?.let { Memory(it.next, it.facts, it.tombstones) }
             ?: Memory()
     }
 
     @Serializable
-    private data class Stored(val v: Int, val next: NextIds = NextIds(), val facts: List<Fact> = emptyList())
+    private data class Stored(val v: Int, val next: NextIds = NextIds(), val facts: List<Fact> = emptyList(), val tombstones: List<Tombstone> = emptyList())
 
     companion object {
         const val VERSION = 2

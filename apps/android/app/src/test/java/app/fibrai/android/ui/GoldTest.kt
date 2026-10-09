@@ -288,11 +288,11 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h948dp-xhdpi")
     fun chatCC_light() = check("chatCC", dark = false) { Chat(ChatFixtures.chatCC) }
 
-    /** cfg gold is a full-page capture (1047 dp) ending on the Dados block (D15). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1104dp-xhdpi")
+    /** cfg gold is a full-page capture (1271 dp) with the Da Tali block (D24) and ending on the Dados block. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1271dp-xhdpi")
     fun cfg_dark() = check("cfg", dark = true) { Cfg() }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1104dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1271dp-xhdpi")
     fun cfg_light() = check("cfg", dark = false) { Cfg() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -306,6 +306,13 @@ class GoldTest {
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun wipe_light() = check("wipe", dark = false, region = WIPE_BOX, reportOnly = true) { Cfg(wipe = true) }
+
+    /** memL (D24, A69): what Tali knows, a portion being corrected. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1170dp-xhdpi")
+    fun memL_dark() = check("memL", dark = true) { app.fibrai.android.feature.memory.MemoryScreen(app.fibrai.android.feature.memory.MemoryFixtures.memL, app.fibrai.android.feature.memory.MemoryActions()) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1170dp-xhdpi")
+    fun memL_light() = check("memL", dark = false) { app.fibrai.android.feature.memory.MemoryScreen(app.fibrai.android.feature.memory.MemoryFixtures.memL, app.fibrai.android.feature.memory.MemoryActions()) }
 
     /** rcpL (D23, A68): Config → Receitas. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
