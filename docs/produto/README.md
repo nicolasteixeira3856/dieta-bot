@@ -81,6 +81,7 @@ Status: a linha de status de cada ADR. Histórico em `docs/decisions/` (ver [mat
 - [ADR-052](adrs/ADR-052-saved-recipes.md) — saved recipes.
 - [ADR-053](adrs/ADR-053-visible-memory-screen.md) — "O que a Tali sabe": the memory as a product screen.
 - [ADR-055](adrs/ADR-055-protein-boost-hybrid.md) — protein boost: the model proposes, the server validates.
+- [ADR-056](adrs/ADR-056-plan-decision-line-and-option-budget.md) — decision line of a plan with options; budget, closings and app lines on the chosen option.
 
 ### Planos
 
