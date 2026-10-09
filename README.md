@@ -1,8 +1,8 @@
-# Dieta Bot
+# Fibrai
 
 Android app that fits the next meal into today's remaining budget, dinner first. Log a meal in natural language or with a photo; the app shows kcal and macros against the day's target. An estimate, not advice.
 
-Product name: Dieta Bot. Technical IDs stay `nutri` ([ADR-016](docs/produto/adrs/ADR-016-nome-dieta-bot.md)). The app is in a closed test.
+Product name: Fibrai; the assistant is Tali ([ADR-034](docs/produto/adrs/ADR-034-fibrai-brand-tali-assistant.md)). Repository: `dieta-bot`. App identifiers: `app.fibrai.android` ([ADR-036](docs/android/adrs/ADR-036-fibrai-technical-identity.md)); `nutri` stays only in server, VM and Stitch IDs ([ADR-016](docs/produto/adrs/ADR-016-nome-dieta-bot.md)). The app is in a closed test.
 
 ## Start here
 

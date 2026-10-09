@@ -1,6 +1,6 @@
 # Documentação — matriz
 
-Índice global do Dieta Bot. Política: [`sdd/README.md`](sdd/README.md).
+Índice global do Fibrai. Política: [`sdd/README.md`](sdd/README.md).
 
 Constituição: [`../AGENTS.md`](../AGENTS.md). Não duplicar regras aqui. Este arquivo roteia: estado, versão e data ficam no arquivo dono, não aqui.
 

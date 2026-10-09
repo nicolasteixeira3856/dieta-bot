@@ -1,6 +1,6 @@
 ---
 name: aero-compose
-description: Build and change Dieta Bot Compose UI with the own Aero design system (tokens, glass, components, icons) instead of Material 3.
+description: Build and change Fibrai Compose UI with the own Aero design system (tokens, glass, components, icons) instead of Material 3.
 ---
 
 # Aero Compose

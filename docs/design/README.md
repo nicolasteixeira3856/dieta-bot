@@ -4,7 +4,7 @@ This README routes. State, version and date live in the owning file.
 
 ## Purpose
 
-Design source for the Dieta Bot UI: the own design system "Aero" ([ADR-030](adrs/ADR-030-own-design-system-aero.md)) and every product screen and state, kept in the Figma file `Design` ([ADR-031](adrs/ADR-031-figma-source-of-truth.md)).
+Design source for the Fibrai UI: the own design system "Aero" ([ADR-030](adrs/ADR-030-own-design-system-aero.md)) and every product screen and state, kept in the Figma file `Design` ([ADR-031](adrs/ADR-031-figma-source-of-truth.md)).
 
 ## Type and ownership
 

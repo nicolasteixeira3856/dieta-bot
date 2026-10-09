@@ -1,6 +1,6 @@
 ---
 name: fastapi-security
-description: Apply Dieta Bot FastAPI authentication, rate-limit, payload and LLM-input boundaries when an approved server plan changes routes or security handling.
+description: Apply Fibrai FastAPI authentication, rate-limit, payload and LLM-input boundaries when an approved server plan changes routes or security handling.
 ---
 
 # FastAPI boundaries

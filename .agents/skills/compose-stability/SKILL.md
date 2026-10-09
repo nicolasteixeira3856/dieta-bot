@@ -1,6 +1,6 @@
 ---
 name: compose-stability
-description: Review Compose state stability and recomposition in Dieta Bot when changing UiState, complex composables or lists, or investigating rendering delays.
+description: Review Compose state stability and recomposition in Fibrai when changing UiState, complex composables or lists, or investigating rendering delays.
 ---
 
 # Compose stability

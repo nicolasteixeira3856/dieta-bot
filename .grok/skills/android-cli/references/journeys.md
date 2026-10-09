@@ -3,7 +3,7 @@ a list of approved interactions on a coordinated idle test device. Read
 [device interaction rules](interact.md) first. Journey XML describes a test;
 it does not authorize changes to the product, installation, data resets or
 interruption of another chat's device work. A visible cold-start splash is
-expected in Dieta Bot and is not evidence of a freeze; measure its duration
+expected in Fibrai and is not evidence of a freeze; measure its duration
 against the current specification before reporting a startup failure.
 
 The journey format consists of

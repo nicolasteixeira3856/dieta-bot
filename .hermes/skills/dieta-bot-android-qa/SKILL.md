@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-android-qa
-description: Validate a Dieta Bot delivery against its approved plan, dev checks, visual evidence and manual-validation requirements.
+description: Validate a Fibrai delivery against its approved plan, dev checks, visual evidence and manual-validation requirements.
 ---
 
-# Dieta Bot delivery QA
+# Fibrai delivery QA
 
 Use [AGENTS](../../../AGENTS.md), the approved plan and [Android validation guidance](../../../docs/android/README.md). Run relevant checks from apps/android using assembleDevRelease, testDevDebugUnitTest and verifyRoborazziDevDebug. Do not substitute aggregate test or unflavored compileDebugKotlin tasks.
 

@@ -1,12 +1,12 @@
-# Aviso aos testers — Dieta Bot (teste fechado)
+# Aviso aos testers — Fibrai (teste fechado)
 
 Versão 2 · 2026-10-05 · vale para o app de teste (`app.fibrai.android.dev`) instalado pelo Firebase App Tester. A versão 1 (2026-10-01) valia para o app anterior (`com.nutri.android.dev`).
 
-O Dieta Bot está em teste fechado com quatro testers. Este aviso diz o que sai do seu celular, para onde vai e por quanto tempo fica. Não é Termos de Uso nem Política de Privacidade.
+O Fibrai está em teste fechado com quatro testers. Este aviso diz o que sai do seu celular, para onde vai e por quanto tempo fica. Não é Termos de Uso nem Política de Privacidade.
 
 ## O que o app envia
 
-Cada mensagem do Chat vai para o servidor de teste do Dieta Bot (Google Cloud, EUA) e de lá para a OpenAI. Vão juntos:
+Cada mensagem do Chat vai para o servidor de teste do Fibrai (Google Cloud, EUA) e de lá para a OpenAI. Vão juntos:
 
 - o texto que você digitou;
 - a foto, quando você anexa uma;
@@ -39,7 +39,7 @@ IP e pseudônimo não provam quem usou o app. Um IP pode ser compartilhado (Wi-F
 
 ## OpenAI
 
-As chamadas vão com `store=false`: a OpenAI não guarda a conversa para o app reutilizar. A OpenAI ainda pode reter dados por um tempo para monitorar abuso, conforme a política dela para a API. O Dieta Bot não controla essa retenção.
+As chamadas vão com `store=false`: a OpenAI não guarda a conversa para o app reutilizar. A OpenAI ainda pode reter dados por um tempo para monitorar abuso, conforme a política dela para a API. O Fibrai não controla essa retenção.
 
 ## Diagnóstico do app
 
@@ -53,7 +53,7 @@ O app de teste envia relatórios de falha e eventos de uso ao Firebase (Crashlyt
 
 ## Estimativa, não orientação
 
-Os números do Dieta Bot são estimativas. Não são orientação médica nem nutricional. Se algo da sua saúde depende disso, fale com um profissional.
+Os números do Fibrai são estimativas. Não são orientação médica nem nutricional. Se algo da sua saúde depende disso, fale com um profissional.
 
 ## Uso fora do assunto
 

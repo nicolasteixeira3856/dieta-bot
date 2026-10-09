@@ -1,6 +1,6 @@
 # docs/qa
 
-Padrão oficial de Qualidade Visual e Validação do Dieta Bot.
+Padrão oficial de Qualidade Visual e Validação do Fibrai.
 
 ## Folders
 

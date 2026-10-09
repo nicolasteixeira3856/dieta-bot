@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-android-decision
-description: Evaluate a Dieta Bot product or architecture proposal before a specification or implementation plan, especially when it touches a frozen decision.
+description: Evaluate a Fibrai product or architecture proposal before a specification or implementation plan, especially when it touches a frozen decision.
 ---
 
-# Dieta Bot decisions
+# Fibrai decisions
 
 Start at the [documentation matrix](../../../docs/README.md), then read [AGENTS](../../../AGENTS.md), the owning context and [SDD precedence](../../../docs/sdd/README.md#precedência).
 

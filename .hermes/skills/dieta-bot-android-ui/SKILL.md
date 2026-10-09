@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-android-ui
-description: Build or revise Dieta Bot Compose screens, timeline, Chat composer and Expressive controls within a named approved plan and the Figma gold of each id in the inventory.
+description: Build or revise Fibrai Compose screens, timeline, Chat composer and Expressive controls within a named approved plan and the Figma gold of each id in the inventory.
 ---
 
-# Dieta Bot Compose UI
+# Fibrai Compose UI
 
 Use [AGENTS](../../../AGENTS.md), [tokens](../../../docs/tokens.md), the owning live specification and the Figma gold of each id in the [gold inventory](../../../docs/qa/README.md). Implementation follows golds only. New/changed golds need the completed design plan (Figma review gate).
 

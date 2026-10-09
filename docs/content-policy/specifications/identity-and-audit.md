@@ -10,7 +10,7 @@ The closed-test profile is current behavior on the dev server and the dev APK. A
 
 - Android creates a cryptographically random UUID v4 once, atomically, in private no-backup storage. No advertising ID, Android ID, IMEI, CPF, email, Firebase ID or fingerprint.
 - Header `X-Client-Instance-Id`. Stable across restarts, updates and the daily wipe; reinstall or clear-data creates another. Flavors have separate storage. No new UI.
-- Sent only to the configured Dieta Bot API origin; never propagated on cross-origin redirects or other HTTP clients.
+- Sent only to the configured Fibrai API origin; never propagated on cross-origin redirects or other HTTP clients.
 - The server validates canonical UUID shape and length. Missing header is accepted (old APKs). Invalid header returns 400 `invalid_client_instance_id`; the value is never reflected.
 - The value is untrusted and spoofable. It authorizes nothing and is not an account.
 

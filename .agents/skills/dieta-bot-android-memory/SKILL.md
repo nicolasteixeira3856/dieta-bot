@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-android-memory
-description: Record an explicit durable Dieta Bot product or architecture decision in its plan and ADR without changing accepted history.
+description: Record an explicit durable Fibrai product or architecture decision in its plan and ADR without changing accepted history.
 ---
 
-# Dieta Bot decision records
+# Fibrai decision records
 
 Read [AGENTS](../../../AGENTS.md), the [context matrix](../../../docs/README.md) and [SDD](../../../docs/sdd/README.md) before choosing an owner.
 

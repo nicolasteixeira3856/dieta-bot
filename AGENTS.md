@@ -1,4 +1,4 @@
-# Dieta Bot — repo constitution
+# Fibrai — repo constitution (`dieta-bot`)
 
 Product name: Fibrai. Assistant: Tali (ADR-034, ADR-035). App identifiers are `app.fibrai.android` (package, applicationId, `fibrai.db`, Firebase `fibrai-dev`) per [ADR-036](docs/android/adrs/ADR-036-fibrai-technical-identity.md); `nutri` remains only in server, VM (`nutri-api`) and Stitch IDs per ADR-016.
 

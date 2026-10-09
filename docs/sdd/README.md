@@ -1,6 +1,6 @@
 # Spec-Driven Development
 
-Política global de SDD do Dieta Bot. Governa todos os contextos da [matriz](../README.md).
+Política global de SDD do Fibrai. Governa todos os contextos da [matriz](../README.md).
 
 READMEs de contexto complementam ownership, estado e ordem de leitura. Não redefinem gates, estados ou regras globais.
 

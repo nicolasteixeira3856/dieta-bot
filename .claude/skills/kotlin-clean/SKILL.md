@@ -1,6 +1,6 @@
 ---
 name: kotlin-clean
-description: Keep Dieta Bot Kotlin responsibilities, naming, coroutine ownership and API error boundaries clear during an approved implementation or refactor.
+description: Keep Fibrai Kotlin responsibilities, naming, coroutine ownership and API error boundaries clear during an approved implementation or refactor.
 ---
 
 # Kotlin boundaries

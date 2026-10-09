@@ -39,7 +39,7 @@ The user sees "Fibrai" on the launcher, splash and onboarding, and "Tali" with h
    - Chat: the AI label is the avatar plus "Tali"; the rule "Sem foto de perfil" is removed; the header title is "Tali".
    - Profile/onboarding: the splash wordmark and onboarding header say "Fibrai".
    - Add A49 to each spec's Provenance.
-5. **`AGENTS.md`:** "Product name: Fibrai. Assistant: Tali (ADR-034, ADR-035)." This replaces the "Dieta Bot" line. Other docs and skills prose follow in [SD5](../../../sdd/plans/sd5-fibrai-docs-prose.md).
+5. **`AGENTS.md`:** "Product name: Fibrai. Assistant: Tali (ADR-034, ADR-035)." This replaces the "Dieta Bot" line. Other docs and skills prose follow in [SD5](../../../sdd/plans/completed/sd5-fibrai-docs-prose.md).
 
 ## Out of scope
 
