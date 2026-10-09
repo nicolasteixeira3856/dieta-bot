@@ -2,6 +2,19 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.21 — 08/10/2026
+
+### Novidades
+
+- Saldo do dia no recibo: depois de cada registro, o recibo mostra quanto você já comeu do teto e quanto falta de proteína (por exemplo, "1.240 de 2.000 kcal · faltam 62 g de proteína").
+- Quando a Tali pergunta se pode registrar, aparece embaixo a projeção do dia com aquela refeição.
+- "Anotado": quando você conta uma preferência fixa (por exemplo, "uso leite semidesnatado"), a Tali mostra embaixo da resposta o que guardou, do jeito que ficou salvo.
+
+### Ajustes
+
+- Se a resposta demora mais de 4 segundos, o balão de espera passa a dizer "Tali está pensando…".
+- A Tali agora recebe os totais dos últimos 7 dias e os números das suas rotinas, o que ajuda em pedidos como "almocei o mesmo de ontem".
+
 ## 0.0.20 — 08/10/2026
 
 ### Ajustes
