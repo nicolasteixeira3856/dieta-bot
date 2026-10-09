@@ -47,6 +47,8 @@ Firebase, Health/Xiaomi, TDEE, multipart, stream.
 
 12. Tom da Tali (`cfg`, `cfgT`, [ADR-044](../adrs/ADR-044-assistant-tone-and-closures.md)): linha `Tom da Tali` com o valor atual (`Seco` | `Duro`) no bloco de metas, depois dos macros. O toque abre o sheet `Tom da Tali` com as duas opções da O5 e o par `Salvar` / `Cancelar`. Salvar grava o tom sem wipe e sem confirmação: o próximo turno já vai com ele. Telemetria `tone_set` (`seco` | `duro`, `onboarding` | `config`), só enums; o tom não é chave do Crashlytics.
 
+13. Receitas ([ADR-052](../adrs/ADR-052-saved-recipes.md)): bloco `Da Tali` antes de `Dados`, linha **Receitas** (`cfg`). A lista (`rcpL`) mostra as receitas salvas no Chat, a mais recente primeiro, cada uma com nome e `{kcal} kcal · {P}P · {C}C · {G}G` da versão atual; sem receita, a linha `Nenhuma receita salva. Peça uma receita no Chat e toque em Salvar receita.` O toque abre a receita (`rcpD`): nome, `Versão {n} · salva em {d de mês}`, os totais, `INGREDIENTES` na tabela `Item` · `Gramas`, `MODO DE PREPARO` em passos numerados e **Excluir receita** (`status/bad`), que pergunta antes (`Excluir receita?`, `{nome} sai da sua lista e a Tali deixa de conhecê-la. Os registros feitos com ela continuam.`, **Excluir** | **Cancelar**) e volta para a lista. Receita não é fato de memória. `recipe_deleted`.
+
 ## Regras — push
 
 1. Exact alarm no horário de cada slot do dia corrente em America/Sao_Paulo (inexato quando a permissão não permite exato).
@@ -102,3 +104,4 @@ Comportamento: `produto`. Client: `android`.
 - [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app
 - [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — captura de tela com rolagem
 - [A67](../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md) — fatos `equipment` e `liked`, rotina declarada na descoberta
+- [A68](../../android/plans/pending_manual_validation/a68-saved-recipes.md) — Config → Receitas, lista e receita

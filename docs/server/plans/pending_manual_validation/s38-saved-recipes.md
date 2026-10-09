@@ -27,7 +27,7 @@ The model sees the recipe index on every turn and the full recipe when the messa
 
 ## Out of scope
 
-- Storage, search, screens and the bubble action: [D23](../../../design/plans/completed/d23-release-2-recipes.md), [A68](../../../android/plans/a68-saved-recipes.md).
+- Storage, search, screens and the bubble action: [D23](../../../design/plans/completed/d23-release-2-recipes.md), [A68](../../../android/plans/pending_manual_validation/a68-saved-recipes.md).
 
 ## Validation
 

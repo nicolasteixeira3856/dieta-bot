@@ -2,6 +2,11 @@ package app.fibrai.android.feature.chat
 
 import app.fibrai.android.core.closure.DayTotals
 import app.fibrai.android.core.database.ChatMessageEntity
+import app.fibrai.android.core.database.SavedRecipe
+import app.fibrai.android.core.network.ChatRecipe
+import app.fibrai.android.core.network.ChatRecipeFull
+import app.fibrai.android.domain.RecipeRef
+import app.fibrai.android.domain.Recipes
 import app.fibrai.android.core.database.DayDigestEntity
 import app.fibrai.android.core.database.DayRepository
 import app.fibrai.android.core.database.MealLogEntity
@@ -90,7 +95,10 @@ object PromptBuilder {
         pastDays: List<DayTotals> = emptyList(),
         /** A67 (ADR-051): the first turns with an empty memory ask the routines once. */
         discovery: Boolean = false,
+        /** A68 (ADR-052): the saved recipes, most recent first; the one [text] names also goes complete. */
+        recipes: List<SavedRecipe> = emptyList(),
     ): Turn {
+        val index = recipeIndex(recipes)
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
         val slotNames = day.slotsOn(today).associate { it.id to it.name }
@@ -110,6 +118,8 @@ object PromptBuilder {
                 recent = recent(recentLogs, day.slots, today),
                 recentDays = recentDays(pastDays, day.slotsOn(today).map { it.id.toString() }.toSet(), today),
                 discovery = discovery,
+                recipes = index.map { it.first },
+                recipeFull = recipeFull(text, index),
                 facts = chatFacts(facts, day.slotsOn(today).map { it.id.toString() }.toSet()),
                 clarifyRounds = clarifyRounds(todayMessages),
                 forceEstimate = forceEstimate,
@@ -251,6 +261,40 @@ object PromptBuilder {
         ).withMacros(it)
     }
 
+    /** A68: the index (≤ 30, the order given) with each recipe's version; a recipe without a usable name is left out. */
+    private fun recipeIndex(recipes: List<SavedRecipe>): List<Pair<ChatRecipe, SavedRecipe>> = recipes
+        .filter { it.recipe.name.isNotBlank() }
+        .take(Recipes.INDEX_MAX)
+        .map { saved ->
+            val v = saved.version
+            ChatRecipe(
+                id = recipeId(saved.recipe.id),
+                name = Recipes.clip(saved.recipe.name.trim(), Recipes.NAME_MAX),
+                kcal = v.kcal.coerceIn(0, FACT_KCAL_MAX),
+                p = v.p.coerceIn(0, FACT_GRAMS_MAX),
+                c = v.c.coerceIn(0, FACT_GRAMS_MAX),
+                g = v.g.coerceIn(0, FACT_GRAMS_MAX),
+                keyFoods = Recipes.keyFoods(Recipes.decodeIngredients(v.ingredients)),
+            ) to saved
+        }
+
+    /** A68 (ADR-052 § 3): the recipe [text] names, complete; null when none or when it has no usable ingredient. */
+    private fun recipeFull(text: String, index: List<Pair<ChatRecipe, SavedRecipe>>): ChatRecipeFull? {
+        val refs = index.map { (_, s) -> RecipeRef(s.recipe.id, s.recipe.name, Recipes.decodeIngredients(s.version.ingredients)) }
+        val named = Recipes.named(text, refs) ?: return null
+        val (entry, saved) = index.first { it.second.recipe.id == named.id }
+        val ingredients = named.ingredients.filter { it.name.isNotBlank() && it.g > 0.0 }.take(Recipes.INGREDIENTS_MAX)
+            .map { ChatAdditionItem(Recipes.clip(it.name.trim(), 500), it.g, it.kcal.toInt().coerceAtLeast(0)) }
+        if (ingredients.isEmpty()) return null
+        val steps = Recipes.decodeSteps(saved.version.steps).filter { it.isNotBlank() }.take(Recipes.STEPS_MAX).map { Recipes.clip(it.trim(), Recipes.STEP_MAX) }
+        return ChatRecipeFull(entry.id, entry.name, entry.kcal, entry.p, entry.c, entry.g, entry.keyFoods, ingredients, steps)
+    }
+
+    /** A68: the id the server sees for a saved recipe (`R{n}`), and back. */
+    fun recipeId(id: Long) = "R$id"
+
+    fun recipeIdOf(serverId: String?): Long? = serverId?.takeIf { it.startsWith("R") }?.drop(1)?.toLongOrNull()
+
     /** A64 (S33): a routine or liked dish goes with its numbers when it has all four; otherwise none of them. */
     private fun ChatFact.withMacros(fact: Fact): ChatFact {
         if (fact.category !in MACRO_CATEGORIES) return this
@@ -292,7 +336,7 @@ object PromptBuilder {
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), discovery = false, pendingAddition = null, skipSlots = false, planBudget = false, workout = false, actions = false, fitKcal = null)
+        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), discovery = false, recipes = emptyList(), recipeFull = null, pendingAddition = null, skipSlots = false, planBudget = false, workout = false, actions = false, fitKcal = null)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {

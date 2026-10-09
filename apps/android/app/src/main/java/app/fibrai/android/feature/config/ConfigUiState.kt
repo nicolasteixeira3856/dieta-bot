@@ -114,4 +114,6 @@ class ConfigActions(
     val onOpenReset: () -> Unit = {},
     val onConfirmReset: () -> Unit = {},
     val onCancelReset: () -> Unit = {},
+    /** A68 (cfg, D24): Da Tali → Receitas. */
+    val onOpenRecipes: () -> Unit = {},
 )

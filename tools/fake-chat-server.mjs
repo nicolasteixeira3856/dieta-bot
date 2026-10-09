@@ -49,6 +49,9 @@
 // A67: POST /__mode {"discovery": true} answers a client that sent discovery: true: the first turn (no assistant message in
 // HISTORY) asks the routines as - lines; the next proposes a declared breakfast routine with its numbers and an equipment
 // fact. /__calls reports the last `discovery` flag.
+// A68: POST /__mode {"recipe": "plan"|"log"} answers a client that sent actions: true: "plan" = the chatRK recipe as a plan
+// action with its `recipe` (Salvar receita); "log" = a log of the first saved recipe in `recipes` (recipe_id, its totals).
+// /__calls reports `recipes` (the index ids) and `recipeFull` (the id sent complete, or null).
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -81,6 +84,9 @@ let lastRecentDays = null;
 let workoutMode = null;
 let actionsMode = null;
 let discoveryMode = false;
+let recipeMode = null;
+let lastRecipes = [];
+let lastRecipeFull = null;
 let lastDiscovery = null;
 let lastActions = null;
 let lastWorkout = null;
@@ -141,11 +147,12 @@ http.createServer(async (req, res) => {
     workoutMode = mode.workout ?? null;
     actionsMode = mode.actions ?? null;
     discoveryMode = Boolean(mode.discovery);
+    recipeMode = mode.recipe ?? null;
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery, recipes: lastRecipes, recipeFull: lastRecipeFull }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {
@@ -192,6 +199,8 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastWorkout = input.workout ?? null;
     if (!input.compact) lastActions = input.actions ?? null;
     if (!input.compact) lastDiscovery = input.discovery ?? false;
+    if (!input.compact) lastRecipes = (input.recipes ?? []).map((r) => r.id);
+    if (!input.compact) lastRecipeFull = input.recipe_full?.id ?? null;
     if (!input.compact) lastPlanBudget = input.plan_budget ?? null;
     if (!input.compact) lastFit = input.fit_kcal ?? null;
     if (!input.compact) lastMessages = input.messages ?? [];
@@ -230,6 +239,26 @@ http.createServer(async (req, res) => {
     const listed = () => (input.skip_slots === true
       ? { skip_slots: skipPrefixes.map((p) => slots.find((s) => s.name.startsWith(p))?.id).filter(Boolean) }
       : {});
+    if (recipeMode && input.actions === true) {
+      const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
+      const base = { question: null, record_intent: "unsure", meal_day: "today", workout: null, options: null, plan_budget: null, recipe: null, recipe_id: null };
+      const saved = (input.recipes ?? [])[0];
+      const est = { kcal: 520, p: 46, c: 41, g: 17, confidence: "high", question: null, items: [], suggested_slot: jantar.id, meal_text: "Frango com brócolis e arroz" };
+      const action = recipeMode === "log" && saved
+        ? { ...base, id: "a1", type: "log", slot: jantar.id, estimate: { ...est, kcal: saved.kcal }, record: "auto", record_intent: "clear",
+            meal_change: { operation: "new", base_slot: null, addition: null }, recipe_id: saved.id }
+        : { ...base, id: "a1", type: "plan", slot: jantar.id, estimate: est, record: "none", meal_change: null,
+            recipe: { name: "Frango com brócolis e arroz", steps: ["Corte o frango em cubos e grelhe por 8 min.", "Refogue o alho no azeite e junte o brócolis por 3 min.", "Misture o arroz e o frango e finalize com o queijo."],
+              ingredients: [{ name: "Peito de frango", g: 120, kcal: 198 }, { name: "Arroz cozido", g: 120, kcal: 154 }, { name: "Brócolis", g: 100, kcal: 34 },
+                { name: "Azeite", g: 5, kcal: 44 }, { name: "Alho", g: 5, kcal: 7 }, { name: "Queijo ralado (opcional)", g: 15, kcal: 60 }] } };
+      const reply = action.type === "log" ? "Jantar: frango com brócolis e arroz, 520 kcal."
+        : ["Frango com brócolis e arroz", "| Item | Gramas |", "| --- | --- |", "| Peito de frango | 120 g |", "| Arroz cozido | 120 g |", "| Brócolis | 100 g |",
+          "1. Corte o frango em cubos e grelhe por 8 min.", "Total: ~**520 kcal** · 46P · 41C · 17G"].join(NL);
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply, actions: [action], memory_updates: [], memory_used: [], digest: null, model: "gpt-6-luna",
+      }));
+      return;
+    }
     if (discoveryMode && input.discovery === true) {
       const cafe = slots.find((s) => s.name.startsWith("Caf")) ?? slots[0];
       const answered = (input.messages ?? []).some((m) => m.role === "assistant");

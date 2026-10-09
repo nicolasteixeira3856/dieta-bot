@@ -305,7 +305,7 @@ object ChatFixtures {
             ),
         ),
         emptyDay = false,
-        actions = EstimateActions(8, record = slots[3], plan = true),
+        actions = EstimateActions(8, record = slots[3], plan = true, saveRecipe = true),
         slots = slots,
         currentSlotId = 4,
     )

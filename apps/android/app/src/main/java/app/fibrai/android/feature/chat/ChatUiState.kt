@@ -211,7 +211,7 @@ data class OptionView(
 )
 
 /** Receipt roles (A34): title and icon of the card. */
-enum class ReceiptKind { LOGGED, REPLACED, SKIPPED, MOVED, RESTORED, WORKOUT, WORKOUT_ADDED }
+enum class ReceiptKind { LOGGED, REPLACED, SKIPPED, MOVED, RESTORED, WORKOUT, WORKOUT_ADDED, RECIPE_SAVED }
 
 /** The mark of a receipt that lost its actions by a tap on it (A34). */
 enum class ReceiptMark(val label: String) {
@@ -312,6 +312,8 @@ data class EstimateActions(
     val choice: BudgetChoice? = null,
     /** A60 part D (chatR): Reservar para o {slot} below Registrar assim; null = no pill. */
     val reserve: SlotRef? = null,
+    /** A68 (chatRK): a cooking plan not saved yet: Salvar receita under the plan's actions. */
+    val saveRecipe: Boolean = false,
 )
 
 /** chatRB (A60 part A): the window the plan goes over ([limitKcal]) and by how much. */

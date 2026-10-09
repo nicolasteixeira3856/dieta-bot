@@ -117,6 +117,7 @@ private fun receiptIcon(kind: ReceiptKind): AeroIconName = when (kind) {
     ReceiptKind.RESTORED -> AeroIconName.ClockCounterClockwise
     ReceiptKind.MOVED -> AeroIconName.ArrowsLeftRight
     ReceiptKind.WORKOUT, ReceiptKind.WORKOUT_ADDED -> AeroIconName.Barbell
+    ReceiptKind.RECIPE_SAVED -> AeroIconName.BookmarkSimple
     else -> AeroIconName.Checks
 }
 
@@ -129,6 +130,8 @@ private fun receiptTitle(kind: ReceiptKind) = when (kind) {
     // A65: `Treino registrado · {kcal} kcal` (or `somado`); the receipt has no meal name.
     ReceiptKind.WORKOUT -> "Treino registrado"
     ReceiptKind.WORKOUT_ADDED -> "Treino somado"
+    // A68: `Receita salva: {name}`.
+    ReceiptKind.RECIPE_SAVED -> "Receita salva: "
 }
 
 /** `+380 kcal`, `380 → 620 kcal` (replacement), `380 kcal` (move, restore). Skip: none. */

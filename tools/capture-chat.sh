@@ -33,8 +33,10 @@
 #   a plan; a clarification on one of two). No new gold: receipts and bubbles of chatSK, chatR, chatQ.
 # SCENES=a67 only onboarding + A67: chatO seeded (two options, each with Registrar and Reservar; option 2 recorded and
 #   reserved with its numbers) and the discovery turns on an empty memory (memory.bin removed; the facts sent next).
+# SCENES=a68 only onboarding + A68: Salvar receita under a cooking plan (Receita salva, version 1, nothing recorded), the index
+#   and the named recipe on the wire, a record by recipe with its version, and rcpL / rcpD seeded with delete.
 # SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -1568,6 +1570,71 @@ keys=$(fact_keys)
 case "$keys" in *"air fryer"*"cafe"*) echo "  ✓ facts sent: $keys";; *) echo "  ✗ facts: $keys"; FAIL=1;; esac
 fake_mode '{}'
 sql "$CLEAN"
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a68 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+called() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin); print(d.get(sys.argv[1]))" "$1"; }
+set_clock 0 20:15
+echo "  A68: Salvar receita under a cooking plan"
+sql "$CLEAN"'
+c.execute("delete from recipe_version"); c.execute("delete from recipe")
+c.execute("delete from planned_meal")
+'
+fake_mode '{"recipe": "plan"}'
+open_chat
+say "me%spassa%suma%sreceita%sde%sfrango%scom%sbrocolis"; kb_off
+expect "Salvar receita under the plan" 'resource-id="chat-save-recipe"'
+tap 'resource-id="chat-save-recipe"' 1.5
+expect "receipt Receita salva" 'text="Receita salva: Frango com brócolis e arroz"'
+[ "$(db "select r.name, v.version, v.kcal from recipe r join recipe_version v on v.recipeId = r.id")" = "[('Frango com brócolis e arroz', 1, 520)]" ] && echo "  ✓ recipe saved as version 1" || { echo "  ✗ recipe rows"; FAIL=1; }
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ saving records nothing" || { echo "  ✗ a meal was recorded"; FAIL=1; }
+echo "  A68: the index on every turn, the named recipe complete"
+fake_mode '{"record": "none", "reply": "Ok."}'
+open_chat
+say "lembra%sa%sreceita%sdo%sfrango%scom%sbrocolis%se%sarroz?"; kb_off
+case "$(called recipes)" in "['R"*) echo "  ✓ recipes index sent: $(called recipes)";; *) echo "  ✗ recipes: $(called recipes)"; FAIL=1;; esac
+case "$(called recipeFull)" in R*) echo "  ✓ recipe_full sent: $(called recipeFull)";; *) echo "  ✗ recipe_full: $(called recipeFull)"; FAIL=1;; esac
+echo "  A68: a record by recipe keeps its version"
+fake_mode '{"recipe": "log"}'
+say "jantei%so%sfrango%scom%sbrocolis"; kb_off
+[ "$(db "select l.kcal, l.recipeVersionId = (select max(id) from recipe_version) from meal_log l")" = "[(520, 1)]" ] && echo "  ✓ recorded with the recipe version" || { echo "  ✗ meal_log: $(db "select kcal, recipeVersionId from meal_log")"; FAIL=1; }
+echo "  A68 golds: rcpL and rcpD (seeded as the D23 frames)"
+sql "$CLEAN"'
+import json
+c.execute("delete from recipe_version"); c.execute("delete from recipe")
+now = int(time.time() * 1000)
+day = int(__import__("datetime").datetime(2026, 9, 25, 12, 0).timestamp() * 1000)
+rows = [("Iogurte com granola e banana", 310, 18, 46, 6), ("Omelete de claras com aveia", 340, 32, 30, 9), ("Pizza de pão sírio", 480, 30, 52, 16),
+        ("Macarrão com atum ao sugo", 620, 42, 70, 18), ("Frango com brócolis e arroz", 520, 46, 41, 17)]
+ing = [{"name": "Peito de frango", "g": 120, "kcal": 198}, {"name": "Arroz cozido", "g": 120, "kcal": 154}, {"name": "Brócolis", "g": 100, "kcal": 34},
+       {"name": "Azeite", "g": 5, "kcal": 44}, {"name": "Alho", "g": 5, "kcal": 7}, {"name": "Queijo ralado (opcional)", "g": 15, "kcal": 60}]
+steps = ["Corte o frango em cubos e grelhe por 8 min.", "Refogue o alho no azeite e junte o brócolis por 3 min.", "Misture o arroz e o frango e finalize com o queijo."]
+for i, (name, kcal, p, cc, g) in enumerate(rows):
+    c.execute("insert into recipe(name, originMessageId, createdAtEpochMs) values(?,?,?)", (name, None, now + i))
+    rid = c.execute("select max(id) from recipe").fetchone()[0]
+    c.execute("insert into recipe_version(recipeId,version,ingredients,steps,kcal,p,c,g,yieldText,portion,createdAtEpochMs) values(?,?,?,?,?,?,?,?,?,?,?)",
+              (rid, 1, json.dumps(ing, ensure_ascii=False), json.dumps(steps, ensure_ascii=False), kcal, p, cc, g, None, None, day))
+'
+"$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+tap 'resource-id="home-config"' 1.5
+"$ADB" shell input swipe 390 1400 390 300 300; sleep 0.8
+tap 'resource-id="cfg-recipes"' 1.5
+expect "rcpL: five rows" 'rcp-row-'
+shot rcpL
+dump; first=$(grep -o 'resource-id="rcp-row-[0-9]*"' "$TMP/ui.xml" | head -1)
+tap "$first" 1.5
+expect "rcpD: the version line" 'text="Versão 1 · salva em 25 de setembro"'
+shot rcpD
+echo "  A68: Excluir receita asks first, then deletes"
+tap 'resource-id="rcp-delete"' 1
+expect "delete confirmation" 'resource-id="rcp-delete-dialog"'
+tap 'resource-id="rcp-delete-confirm"' 1.5
+[ "$(db "select count(*) from recipe")" = "[(4,)]" ] && echo "  ✓ one recipe deleted" || { echo "  ✗ recipes after delete: $(db "select count(*) from recipe")"; FAIL=1; }
+fake_mode '{}'
+sql "$CLEAN"'
+c.execute("delete from recipe_version"); c.execute("delete from recipe")
+'
 fi
 
 "$ADB" shell settings put global auto_time 1

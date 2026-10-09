@@ -25,7 +25,10 @@ import app.fibrai.android.core.telemetry.Telemetry
 import app.fibrai.android.core.telemetry.TelemetryEvents
 import app.fibrai.android.core.database.RecordGuard
 import app.fibrai.android.core.database.SkipMove
+import app.fibrai.android.core.database.RecipeEntity
+import app.fibrai.android.core.database.RecipeVersionEntity
 import app.fibrai.android.domain.ChatText
+import app.fibrai.android.domain.Recipes
 import app.fibrai.android.domain.DayBalance
 import app.fibrai.android.domain.EstimateNumbers
 import app.fibrai.android.domain.MealChanges
@@ -197,6 +200,9 @@ class ChatViewModel @Inject constructor(
     /** Facts after expiration, for the routine card (A29). Reloaded after every memory change. */
     private val facts = MutableStateFlow<List<Fact>>(emptyList())
 
+    /** A68: the plan rows a saved recipe came from (Salvar receita leaves them). */
+    private val recipeOrigins = MutableStateFlow<Set<Long>>(emptySet())
+
     /** Minute tick: the slot of the hour changes with the clock, not with Room. */
     private val minute = MutableStateFlow(0L)
 
@@ -229,7 +235,7 @@ class ChatViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            combine(repository.observeToday(), window, local, facts, combine(minute, pageLimit) { _, limit -> limit }) { d, w, l, f, limit ->
+            combine(repository.observeToday(), window, local, facts, combine(minute, pageLimit, recipeOrigins) { _, limit, _ -> limit }) { d, w, l, f, limit ->
                 Rendered(d, w, l, f, limit)
             }.collect { r ->
                 todayMessages = r.w.today
@@ -243,6 +249,9 @@ class ChatViewModel @Inject constructor(
             }
         }
         viewModelScope.launch { reloadFacts() }
+        viewModelScope.launch {
+            runCatching { repository.observeRecipes().collect { list -> recipeOrigins.value = list.mapNotNull { it.recipe.originMessageId }.toSet() } }
+        }
         // A59: skips an answer listed but never applied (the screen or the process died in between).
         viewModelScope.launch { resumeSkips() }
         viewModelScope.launch {
@@ -396,6 +405,37 @@ class ChatViewModel @Inject constructor(
         once(estimateId) {
             val plan = openEstimate(estimateId)?.takeIf { it.isPlanEstimate } ?: return@once
             reservePlan(plan, slot)
+        }
+    }
+
+    // ------------------------------------------------------------------ saved recipes (A68, ADR-052)
+
+    /**
+     * Salvar receita (chatRK): the cooking plan's recipe is saved as version 1 with the plan's totals, once per plan; the thread
+     * gets the `Receita salva` receipt. Nothing is recorded.
+     */
+    fun saveRecipe(estimateId: Long) {
+        if (_uiState.value.actions?.takeIf { it.estimateId == estimateId }?.saveRecipe != true) return
+        once(estimateId) {
+            val plan = repository.message(estimateId)?.takeIf { it.isPlanEstimate } ?: return@once
+            val recipe = ChatActions.recipe(plan.actions) ?: return@once
+            if (repository.recipeByOrigin(plan.id) != null) return@once
+            repository.saveRecipe(
+                RecipeEntity(name = Recipes.clip(recipe.name, Recipes.NAME_MAX), originMessageId = plan.id, createdAtEpochMs = 0),
+                RecipeVersionEntity(
+                    recipeId = 0,
+                    version = 1,
+                    ingredients = Recipes.encodeIngredients(recipe.ingredients.take(Recipes.INGREDIENTS_MAX)),
+                    steps = Recipes.encodeSteps(recipe.steps.take(Recipes.STEPS_MAX)),
+                    kcal = plan.estimateKcal ?: 0,
+                    p = plan.estimateP ?: 0,
+                    c = plan.estimateC ?: 0,
+                    g = plan.estimateG ?: 0,
+                    createdAtEpochMs = 0,
+                ),
+            )
+            repository.insertMessage(role = ROLE_RECIPE_SAVED, text = recipe.name)
+            telemetry.event(TelemetryEvents.RECIPE_SAVED, mapOf("ingredients" to recipe.ingredients.size, "steps" to recipe.steps.size))
         }
     }
 
@@ -563,6 +603,8 @@ class ChatViewModel @Inject constructor(
         // An unreadable memory never blocks the turn: it goes empty.
         val facts = runCatching { memory.read(SaoPaulo.date(sentAt)).facts }.getOrDefault(emptyList())
         val recentLogs = repository.recentLogs()
+        // A68 (ADR-052): the saved recipes, the index of every turn; a failed read sends none.
+        val recipes = runCatching { repository.savedRecipes() }.onFailure { if (it is CancellationException) throw it }.getOrDefault(emptyList())
         // A64: the totals of the days before today; a failed read never blocks the turn.
         val pastDays = runCatching { pastDays(snapshot, SaoPaulo.date(sentAt)) }.onFailure { if (it is CancellationException) throw it }.getOrDefault(emptyList())
         // A67 (ADR-051): with an empty memory, the first answer ever and the turn that answers it carry the discovery flag.
@@ -575,7 +617,7 @@ class ChatViewModel @Inject constructor(
         }
         var turn = PromptBuilder.build(
             snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force, pendingAddition = pendingAddition,
-            fitKcal = fit, pastDays = pastDays, discovery = discovery,
+            fitKcal = fit, pastDays = pastDays, discovery = discovery, recipes = recipes,
         )
         if (turn.needsCompact) {
             // A38: the oldest block(s), the open tail stays raw. A failed compact never fails the turn: nothing
@@ -592,7 +634,7 @@ class ChatViewModel @Inject constructor(
                 digests = repository.digestsToday()
                 turn = PromptBuilder.build(
                     snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force,
-                    pendingAddition = pendingAddition, fitKcal = fit, pastDays = pastDays, discovery = discovery,
+                    pendingAddition = pendingAddition, fitKcal = fit, pastDays = pastDays, discovery = discovery, recipes = recipes,
                 )
             }
             if (stored > 0) {
@@ -1036,8 +1078,10 @@ class ChatViewModel @Inject constructor(
     }
 
     /** The record of [estimate] (A34): the meal_log row, the receipt source and its routine. */
-    private fun newRecord(estimate: ChatMessageEntity, day: List<ChatMessageEntity>): NewRecord {
+    private suspend fun newRecord(estimate: ChatMessageEntity, day: List<ChatMessageEntity>): NewRecord {
         val source = sourceOf(estimate, day)
+        // A68 (ADR-052): a log or plan by a saved recipe keeps the version it used.
+        val recipeVersion = ChatActions.recipeId(estimate.actions)?.let { runCatching { repository.currentRecipeVersion(it)?.id }.getOrNull() }
         return NewRecord(
             record = SlotRecord(
                 text = descriptionOf(estimate, day),
@@ -1046,6 +1090,7 @@ class ChatViewModel @Inject constructor(
                 c = estimate.estimateC ?: 0,
                 g = estimate.estimateG ?: 0,
                 source = source,
+                recipeVersionId = recipeVersion,
             ),
             source = if (estimate.isPlanEstimate) SOURCE_PLAN else source,
             routine = routineOf(estimate),
@@ -1511,6 +1556,11 @@ class ChatViewModel @Inject constructor(
                 items += ChatItem.User(m.id, m.text, time, photoPath = m.photoPath)
                 continue
             }
+            // A68: Salvar receita leaves its own receipt, with no actions.
+            if (m.role == ROLE_RECIPE_SAVED) {
+                items += ChatItem.Receipt(m.id, ReceiptKind.RECIPE_SAVED, m.text, null, null)
+                continue
+            }
             // A30: a question before the estimate is only its question bubble (chatQ).
             if (PromptBuilder.isQuestionOnly(m)) {
                 items += ChatItem.Question(m.id, m.estimateQuestion.orEmpty().trim(), time, standalone = true, memory = memoryOf(m))
@@ -1595,6 +1645,7 @@ class ChatViewModel @Inject constructor(
                 reserve = it.estimateSlotId?.takeIf { id ->
                     it.isPlanEstimate && (todayStates[id]?.open != false) && d.planned[id]?.sourceMessageId != it.id
                 }?.let { id -> slotById[id] },
+                saveRecipe = it.isPlanEstimate && it.id !in recipeOrigins.value && ChatActions.recipe(it.actions) != null,
             )
         }
         // A30: from the second question in a row, Forçar estimativa takes the actions slot (chatQ).
@@ -2032,6 +2083,9 @@ class ChatViewModel @Inject constructor(
 
         /** A64: the receipts that leave a record in a slot; the newest active one of today carries the day balance. */
         private val BALANCE_RECEIPTS = setOf(ReceiptRules.LOGGED, ReceiptRules.REPLACED, ReceiptRules.MOVED, ReceiptRules.RESTORED, ReceiptRules.WORKOUT)
+
+        /** A68: the receipt of Salvar receita; UI only, never sent. */
+        const val ROLE_RECIPE_SAVED = "recipe_saved"
 
         /** A65: server bounds of `workout.kcal` and its modes (S35). */
         private const val WORKOUT_MAX = 5000

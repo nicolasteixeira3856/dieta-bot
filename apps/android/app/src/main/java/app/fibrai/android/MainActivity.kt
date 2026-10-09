@@ -32,6 +32,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import app.fibrai.android.core.push.PushHandler
@@ -54,6 +55,9 @@ import app.fibrai.android.feature.chat.rememberPhotoLaunchers
 import app.fibrai.android.feature.config.ConfigActions
 import app.fibrai.android.feature.config.ConfigScreen
 import app.fibrai.android.feature.config.ConfigViewModel
+import app.fibrai.android.feature.recipes.RecipeScreen
+import app.fibrai.android.feature.recipes.RecipesScreen
+import app.fibrai.android.feature.recipes.RecipesViewModel
 import app.fibrai.android.core.telemetry.NoopTelemetry
 import app.fibrai.android.core.telemetry.Telemetry
 import app.fibrai.android.core.telemetry.TelemetryEvents
@@ -73,6 +77,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteHome
 @Serializable data object RouteChat
 @Serializable data object RouteConfig
+@Serializable data object RouteRecipes
+@Serializable data class RouteRecipe(val id: Long)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -305,6 +311,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onBudgetFit = vm::adjustToFit,
                         onReserve = vm::reserve,
                         onOptionRecord = vm::recordOption,
+                        onSaveRecipe = vm::saveRecipe,
                         onOptionReserve = vm::reserveOption,
                         onRoutineRecord = vm::recordRoutine,
                         onRoutineEdit = vm::editRoutine,
@@ -359,6 +366,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onOpenReset = vm::openReset,
                         onConfirmReset = vm::confirmReset,
                         onCancelReset = vm::cancelReset,
+                        onOpenRecipes = { nav.navigate(RouteRecipes) },
                     )
                 }
                 // ADR-040: after the reset the app starts over at O1; back from O1 leaves the app.
@@ -372,6 +380,20 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                 AeroTheme {
                     ConfigScreen(ui, actions) { FlavorConfigRows(nav) }
                 }
+            }
+            // A68 (ADR-052): Config → Receitas (rcpL) → a recipe (rcpD).
+            composable<RouteRecipes> {
+                val vm: RecipesViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                AeroTheme { RecipesScreen(ui, onBack = { nav.popBackStack() }, onOpen = { nav.navigate(RouteRecipe(it)) }) }
+            }
+            composable<RouteRecipe> { entry ->
+                val id = entry.toRoute<RouteRecipe>().id
+                val vm: RecipesViewModel = hiltViewModel()
+                LaunchedEffect(id) { vm.open(id) }
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                LaunchedEffect(ui.deleted) { if (ui.deleted) nav.popBackStack() }
+                AeroTheme { RecipeScreen(ui, onBack = { nav.popBackStack() }, onDelete = vm::askDelete, onConfirmDelete = vm::confirmDelete, onCancelDelete = vm::cancelDelete) }
             }
             // ADR-019: dev-only tool routes (A23). prod adds none.
             flavorDestinations(nav)
@@ -390,6 +412,8 @@ internal fun screenName(route: String?): String? = when (route?.substringAfterLa
     "RouteHome" -> "home"
     "RouteChat" -> "chat"
     "RouteConfig" -> "cfg"
+    "RouteRecipes" -> "rcpL"
+    "RouteRecipe" -> "rcpD"
     else -> null
 }
 

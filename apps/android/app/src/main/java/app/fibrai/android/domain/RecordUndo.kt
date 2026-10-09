@@ -14,6 +14,8 @@ data class SlotRecord(
     val source: String = "user",
     val window: String = "",
     val stable: Boolean = true,
+    /** A68: the recipe version a record by recipe used (meal_log.recipeVersionId); null otherwise. */
+    val recipeVersionId: Long? = null,
 )
 
 /** A plan reserved for a meal (A60 part D, ADR-046): its dish and numbers, nothing eaten. */

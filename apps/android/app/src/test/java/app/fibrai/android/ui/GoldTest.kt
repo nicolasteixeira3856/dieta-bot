@@ -108,10 +108,10 @@ class GoldTest {
     fun o3s_light() = check("o3s", dark = false) { O3S() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
-    fun cfgS_dark() = check("cfgS", dark = true) { CfgS() }
+    fun cfgS_dark() = check("cfgS", dark = true, region = CFG_S_BOX, reportOnly = true) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
-    fun cfgS_light() = check("cfgS", dark = false) { CfgS() }
+    fun cfgS_light() = check("cfgS", dark = false, region = CFG_S_BOX, reportOnly = true) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
     fun o4_dark() = check("o4", dark = true) { O4() }
@@ -296,16 +296,30 @@ class GoldTest {
     fun cfg_light() = check("cfg", dark = false) { Cfg() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun cfgR_dark() = check("cfgR", dark = true) { Cfg(reset = true) }
+    fun cfgR_dark() = check("cfgR", dark = true, region = CFG_R_BOX, reportOnly = true) { Cfg(reset = true) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun cfgR_light() = check("cfgR", dark = false) { Cfg(reset = true) }
+    fun cfgR_light() = check("cfgR", dark = false, region = CFG_R_BOX, reportOnly = true) { Cfg(reset = true) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun wipe_dark() = check("wipe", dark = true) { Cfg(wipe = true) }
+    fun wipe_dark() = check("wipe", dark = true, region = WIPE_BOX, reportOnly = true) { Cfg(wipe = true) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun wipe_light() = check("wipe", dark = false) { Cfg(wipe = true) }
+    fun wipe_light() = check("wipe", dark = false, region = WIPE_BOX, reportOnly = true) { Cfg(wipe = true) }
+
+    /** rcpL (D23, A68): Config → Receitas. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun rcpL_dark() = check("rcpL", dark = true) { app.fibrai.android.feature.recipes.RecipesScreen(app.fibrai.android.feature.recipes.RecipeFixtures.rcpL, {}, {}) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun rcpL_light() = check("rcpL", dark = false) { app.fibrai.android.feature.recipes.RecipesScreen(app.fibrai.android.feature.recipes.RecipeFixtures.rcpL, {}, {}) }
+
+    /** rcpD (D23, A68): a recipe with its table, steps and Excluir receita. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h871dp-xhdpi")
+    fun rcpD_dark() = check("rcpD", dark = true) { app.fibrai.android.feature.recipes.RecipeScreen(app.fibrai.android.feature.recipes.RecipeFixtures.rcpD, {}, {}, {}, {}) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h871dp-xhdpi")
+    fun rcpD_light() = check("rcpD", dark = false) { app.fibrai.android.feature.recipes.RecipeScreen(app.fibrai.android.feature.recipes.RecipeFixtures.rcpD, {}, {}, {}, {}) }
 
     /** chatO (D25, A67): two options, each with its own Registrar and Reservar. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1100dp-xhdpi")
@@ -322,10 +336,10 @@ class GoldTest {
     fun chatRL_light() = check("chatRL", dark = false) { Chat(ChatFixtures.chatRL) }
 
     /** chatRK (D17, A60 part C): the recipe with its table and steps. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1067dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1125dp-xhdpi")
     fun chatRK_dark() = check("chatRK", dark = true, reportOnly = true, regions = CHAT_RK_BOXES) { Chat(ChatFixtures.chatRK) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1067dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1125dp-xhdpi")
     fun chatRK_light() = check("chatRK", dark = false, reportOnly = true, regions = CHAT_RK_BOXES) { Chat(ChatFixtures.chatRK) }
 
     /** homeP (D18, A60 part D): the dinner reserved on the timeline. */
@@ -629,11 +643,17 @@ class GoldTest {
         /**
          * chatRK: the app fits "finalize" on the third step's first line where the Figma text wraps it (font raster), so
          * everything below moves one line: the bubble down to the steps, and the total, the day panel and Registrar
-         * assim, each at its best offset.
+         * assim and Salvar receita (D23, A68), each at its best offset.
          */
-        // Until A68: the D23 export added Salvar receita under Registrar assim, a button A68 delivers, so the second box
-        // stops above the action rows; A68 restores it to the end of the frame.
-        private val CHAT_RK_BOXES = listOf(intArrayOf(0, 0, 780, 1370), intArrayOf(0, 1450, 780, 1780))
+        private val CHAT_RK_BOXES = listOf(intArrayOf(0, 0, 780, 1370), intArrayOf(0, 1450, 780, 2170))
+
+        /**
+         * cfgS and cfgR predate the D24 cfg, whose Da Tali block (A68, A69) the app now draws: cfgS is gated above the
+         * frame's bottom edge, where that block's label starts, and cfgR and wipe on their dialog (the box the emulator gate uses).
+         */
+        private val CFG_S_BOX = intArrayOf(0, 0, 780, 1750)
+        private val CFG_R_BOX = intArrayOf(48, 448, 732, 1240)
+        private val WIPE_BOX = intArrayOf(48, 424, 732, 1264)
 
         private val CHAT_F_BOXES = listOf(intArrayOf(0, 0, 780, 228), intArrayOf(0, 470, 780, 1922))
 

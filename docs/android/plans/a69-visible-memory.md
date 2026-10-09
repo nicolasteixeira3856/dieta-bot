@@ -4,7 +4,7 @@
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Config entry and screen (`memL`), fact list with origin, delete and correct, tombstones for deleted facts (Room v15), removal of the dev tool A23, tests, captures.
-- Prerequisites: [D24](../../design/plans/completed/d24-release-2-visible-memory.md) `Concluído`; [A68](a68-saved-recipes.md) delivered (Room version order).
+- Prerequisites: [D24](../../design/plans/completed/d24-release-2-visible-memory.md) `Concluído`; [A68](pending_manual_validation/a68-saved-recipes.md) delivered (Room version order).
 - Related documentation: [ADR-053](../../produto/adrs/ADR-053-visible-memory-screen.md), ADR-019/023/029, [memoria-push](../../produto/specifications/memoria-push.md), [Room](../specifications/room-v2.md), [gold inventory](../../qa/README.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a69-visible-memory.md. Implemente o plano aprovado.`

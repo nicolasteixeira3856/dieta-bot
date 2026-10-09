@@ -421,13 +421,14 @@ class DayRepository @Inject constructor(
                     carbs = r.c,
                     fat = r.g,
                     source = r.source,
+                    recipeVersionId = r.recipeVersionId,
                 ),
             )
         }
         if (state.skipped) db.slotSkipDao().insert(SlotSkipEntity(date = date, slotId = slotId))
     }
 
-    private fun MealLogEntity.toRecord() = SlotRecord(text, kcal, p, carbs, fat, source, window, stable != 0)
+    private fun MealLogEntity.toRecord() = SlotRecord(text, kcal, p, carbs, fat, source, window, stable != 0, recipeVersionId)
 
     private fun PlannedMealEntity.toPlanned() = PlannedSlot(text, kcal, p, c, g, sourceMessageId)
 
@@ -613,6 +614,32 @@ class DayRepository @Inject constructor(
             )
         }
     }
+
+    // ------------------------------------------------------------------ saved recipes (A68, ADR-052)
+
+    /** Saves a recipe and its version 1 in one transaction; returns the recipe id. */
+    suspend fun saveRecipe(recipe: RecipeEntity, version: RecipeVersionEntity): Long = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            val id = db.recipeDao().insertRecipe(recipe.copy(createdAtEpochMs = clock.now().toEpochMilli()))
+            db.recipeDao().insertVersion(version.copy(recipeId = id, version = 1, createdAtEpochMs = clock.now().toEpochMilli()))
+            id
+        }
+    }
+
+    /** Every saved recipe with its current version, most recent first. */
+    fun observeRecipes(): Flow<List<SavedRecipe>> = combine(db.recipeDao().observeRecipes(), db.recipeDao().observeVersions()) { recipes, versions ->
+        val current = versions.groupBy { it.recipeId }.mapValues { (_, v) -> v.maxBy { it.version } }
+        recipes.mapNotNull { r -> current[r.id]?.let { SavedRecipe(r, it) } }
+    }
+
+    suspend fun savedRecipes(): List<SavedRecipe> = observeRecipes().first()
+
+    suspend fun recipeByOrigin(messageId: Long): RecipeEntity? = withContext(Dispatchers.IO) { db.recipeDao().byOrigin(messageId) }
+
+    suspend fun currentRecipeVersion(recipeId: Long): RecipeVersionEntity? = withContext(Dispatchers.IO) { db.recipeDao().currentVersion(recipeId) }
+
+    /** Deletes the recipe and its versions; records that used it keep their numbers. */
+    suspend fun deleteRecipe(id: Long) = withContext(Dispatchers.IO) { db.recipeDao().delete(id) }
 
     /** A67: the chosen option of a plan row becomes its estimate. */
     suspend fun setEstimate(id: Long, kcal: Int, p: Int, c: Int, g: Int, mealText: String?) =
