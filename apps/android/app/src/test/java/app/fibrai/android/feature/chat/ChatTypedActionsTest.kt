@@ -183,7 +183,8 @@ class ChatTypedActionsTest {
         val vm = vm()
         send(vm, "café 2 ovos e almoço arroz e frango", rows = 2)
         withTimeout(5_000) { while (repo.slotState("2026-09-25", cafe).kcal != 300) delay(10) }
-        val ui = vm.await { s -> s.items.any { it is ChatItem.Question && it.text == "Quanto de arroz no almoço?" } }
+        // The café's receipt is written after its record: wait for it next to the question, then count.
+        val ui = vm.await { s -> s.items.any { it is ChatItem.Question && it.text == "Quanto de arroz no almoço?" } && s.items.any { it is ChatItem.Receipt } }
         assertThat(ui.items.count { it is ChatItem.Receipt }).isEqualTo(1)
         assertThat(repo.slotState("2026-09-25", almoco).records).isEmpty()
         // One receipt alone: its own actions, no batch Desfazer added.
