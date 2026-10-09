@@ -29,8 +29,10 @@
 #   balance line in the receipt) and chatL.
 # SCENES=a65 only onboarding + A65: a workout reported in the Chat writes day.workoutKcal with its receipt (Treino registrado),
 #   Home shows it, Desfazer restores the previous number, and add sums (Treino somado). No gold: the receipt is Chat/Receipt.
+# SCENES=a66 only onboarding + A66: typed actions (the whole day: two records and a skip with Desfazer of the batch; a log and
+#   a plan; a clarification on one of two). No new gold: receipts and bubbles of chatSK, chatR, chatQ.
 # SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -1456,6 +1458,48 @@ fake_mode '{}'
 sql "$CLEAN"'
 c.execute("update day set workoutKcal = null")
 '
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a66 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+actions_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['actions'])"; }
+set_clock 0 20:15
+echo "  A66: the whole day in one message -> two records and a skip, three receipts, Desfazer of the batch"
+sql "$CLEAN"
+fake_mode '{"actions": "day"}'
+open_chat
+say "cafe%s2%spaes%se%s2%sovos,%salmoco%sarroz%sfeijao%sfrango,%spulei%so%slanche"; kb_off
+[ "$(actions_sent)" = "True" ] && echo "  ✓ actions true on the wire" || { echo "  ✗ actions sent: $(actions_sent)"; FAIL=1; }
+rows=$(db "select m.name, l.kcal from meal_log l join meal_slot m on m.id = l.slotId order by m.minutesFromMidnight")
+case "$rows" in "[('Café da manhã', 380), ('Almoço', 640)]") echo "  ✓ two records: $rows";; *) echo "  ✗ meal_log: $rows"; FAIL=1;; esac
+[ "$(db "select count(*) from slot_skip")" = "[(1,)]" ] && echo "  ✓ lanche skipped" || { echo "  ✗ slot_skip"; FAIL=1; }
+[ "$(db "select count(*) from chat_message where role in ('logged','skipped')")" = "[(3,)]" ] && echo "  ✓ three receipts" || { echo "  ✗ receipts"; FAIL=1; }
+[ "$(db "select count(*) from chat_message where role = 'assistant' and actions is not null")" = "[(1,)]" ] && echo "  ✓ actions stored on the first row" || { echo "  ✗ actions column"; FAIL=1; }
+open_chat
+"$ADB" exec-out screencap -p > "${A66_EVIDENCE:-$TMP}/a66-day-$THEME.png"
+tap 'resource-id="chat-receipt-undo"' 1.5
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ Desfazer reverted both records" || { echo "  ✗ meal_log after Desfazer"; FAIL=1; }
+[ "$(db "select count(*) from slot_skip")" = "[(0,)]" ] && echo "  ✓ Desfazer reverted the skip" || { echo "  ✗ slot_skip after Desfazer"; FAIL=1; }
+echo "  A66: jantei X, me sugere o lanche -> the dinner recorded, the plan with Registrar assim"
+sql "$CLEAN"
+fake_mode '{"actions": "plan"}'
+open_chat
+say "jantei%sfrango%se%sarroz,%sme%ssugere%so%slanche"; kb_off
+[ "$(db "select kcal from meal_log")" = "[(610,)]" ] && echo "  ✓ dinner recorded" || { echo "  ✗ meal_log: $(db "select kcal from meal_log")"; FAIL=1; }
+open_chat
+expect "the plan keeps Registrar assim" 'resource-id="chat-record-plan"'
+"$ADB" exec-out screencap -p > "${A66_EVIDENCE:-$TMP}/a66-plan-$THEME.png"
+echo "  A66: a clarification on one of two -> one recorded, the question shows"
+sql "$CLEAN"
+fake_mode '{"actions": "held"}'
+open_chat
+say "cafe%s2%spaes%se%s2%sovos%se%salmoco%sarroz%se%sfrango"; kb_off
+[ "$(db "select kcal from meal_log")" = "[(380,)]" ] && echo "  ✓ breakfast recorded alone" || { echo "  ✗ meal_log: $(db "select kcal from meal_log")"; FAIL=1; }
+open_chat
+expect "the held question shows" 'text="Quanto de arroz no almoço\?"'
+"$ADB" exec-out screencap -p > "${A66_EVIDENCE:-$TMP}/a66-held-$THEME.png"
+fake_mode '{}'
+sql "$CLEAN"
 fi
 
 "$ADB" shell settings put global auto_time 1

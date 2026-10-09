@@ -79,6 +79,8 @@ data class UndoData(
     val routine: List<RoutineUpdate> = emptyList(),
     /** A65: the day's workout number a workout receipt changed; null on every other receipt. */
     val workout: WorkoutChange? = null,
+    /** A66 (ADR-050): the first answer row of the typed-actions answer that wrote this receipt by itself; null otherwise. */
+    val batch: Long? = null,
 ) {
     /** The slot that holds the record after this receipt: the one whose "after" has records. */
     val recordSlot: SlotChange? get() = slots.lastOrNull { it.after.records.isNotEmpty() }

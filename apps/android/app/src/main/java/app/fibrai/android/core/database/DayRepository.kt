@@ -575,6 +575,7 @@ class DayRepository @Inject constructor(
         skipOutcomes: String? = null,
         planBudget: String? = null,
         noted: String? = null,
+        actions: String? = null,
     ): Long {
         importOnce()
         val now = clock.now()
@@ -607,6 +608,7 @@ class DayRepository @Inject constructor(
                     skipOutcomes = skipOutcomes,
                     planBudget = planBudget,
                     noted = noted,
+                    actions = actions,
                 ),
             )
         }

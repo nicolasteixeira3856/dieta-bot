@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 /** The schema version; the version tests read it, so a new version changes one line. */
-const val DB_VERSION = 13
+const val DB_VERSION = 14
 
 @Database(
     entities = [

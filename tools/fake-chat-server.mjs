@@ -43,6 +43,9 @@
 // A64: /__calls reports `recentDays`, the `recent_days` of the last turn (S33), and `facts` carries their macros.
 // A65: POST /__mode {"workout": {"kcal": 450, "mode": "replace"}} answers a workout-only turn (S35: intent "question",
 // no estimate, record "auto") to a client that sent workout: true; /__calls reports the last `workout` flag.
+// A66: POST /__mode {"actions": "day"|"plan"|"held"} answers typed actions (S36) to a client that sent actions: true:
+// "day" = log café 380 + log almoço 640 + skip lanche; "plan" = log jantar 610 + plan lanche 180; "held" = log café 380 +
+// a held log of the almoço with its question. /__calls reports the last `actions` flag.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -73,6 +76,8 @@ let lastMessages = [];
 let lastSkipSlots = null;
 let lastRecentDays = null;
 let workoutMode = null;
+let actionsMode = null;
+let lastActions = null;
 let lastWorkout = null;
 let lastDay = [];
 let lastAutoRecord = null;
@@ -129,11 +134,12 @@ http.createServer(async (req, res) => {
     format = mode.format ?? null;
     planned = Boolean(mode.planned);
     workoutMode = mode.workout ?? null;
+    actionsMode = mode.actions ?? null;
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {
@@ -178,6 +184,7 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastSkipSlots = input.skip_slots ?? null;
     if (!input.compact) lastRecentDays = input.recent_days ?? null;
     if (!input.compact) lastWorkout = input.workout ?? null;
+    if (!input.compact) lastActions = input.actions ?? null;
     if (!input.compact) lastPlanBudget = input.plan_budget ?? null;
     if (!input.compact) lastFit = input.fit_kcal ?? null;
     if (!input.compact) lastMessages = input.messages ?? [];
@@ -216,6 +223,31 @@ http.createServer(async (req, res) => {
     const listed = () => (input.skip_slots === true
       ? { skip_slots: skipPrefixes.map((p) => slots.find((s) => s.name.startsWith(p))?.id).filter(Boolean) }
       : {});
+    if (actionsMode && input.actions === true) {
+      const by = (p, i) => slots.find((s) => s.name.startsWith(p)) ?? slots[i];
+      const cafe = by("Caf", 0), almoco = by("Alm", 1), lanche = by("Lan", 2), jantar = by("Jan", slots.length - 1);
+      const est = (kcal, slot, text) => ({ kcal, p: 20, c: 30, g: 10, confidence: "high", question: null,
+        items: [{ name: text, g: 200, kcal }], suggested_slot: slot.id, meal_text: text });
+      const base = { estimate: null, question: null, record: "none", record_intent: "unsure", meal_day: "today", meal_change: null,
+        workout: null, recipe_id: null, options: null, plan_budget: null, recipe: null };
+      const log = (id, kcal, slot, text) => ({ ...base, id, type: "log", slot: slot.id, estimate: est(kcal, slot, text), record: "auto",
+        record_intent: "clear", meal_change: { operation: "new", base_slot: null, addition: null } });
+      const answers = {
+        day: { reply: "Café, almoço e lanche de hoje: café 380 kcal, almoço 640 kcal, lanche fora.", actions: [
+          log("a1", 380, cafe, "2 pães e 2 ovos"), log("a2", 640, almoco, "arroz, feijão e frango"),
+          { ...base, id: "a3", type: "skip", slot: lanche.id, record: "auto" }] },
+        plan: { reply: "Jantar: 610 kcal. Para o lanche: iogurte natural com banana, 180 kcal.", actions: [
+          log("a1", 610, jantar, "frango e arroz"), { ...base, id: "a2", type: "plan", slot: lanche.id, estimate: est(180, lanche, "iogurte natural com banana") }] },
+        held: { reply: "Café anotado. E no almoço, quanto de arroz?", actions: [
+          log("a1", 380, cafe, "2 pães e 2 ovos"), { ...base, id: "a2", type: "log", slot: almoco.id, question: "Quanto de arroz no almoço?" }] },
+      };
+      const a = answers[actionsMode] ?? answers.day;
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: a.reply, actions: a.actions, memory_updates: [], memory_used: [], digest: null, model: "gpt-6-luna",
+        intent: "log", estimate: a.actions[0].estimate, record: "auto", skip_slot: null, skip_slots: [], meal_change: null,
+      }));
+      return;
+    }
     if (workoutMode && input.workout === true) {
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
         reply: `Treino de hoje: ${workoutMode.kcal} kcal.`, intent: "question", estimate: null, digest: null, model: "gpt-6-luna",

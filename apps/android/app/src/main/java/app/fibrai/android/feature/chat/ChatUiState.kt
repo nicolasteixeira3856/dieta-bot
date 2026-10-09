@@ -160,6 +160,8 @@ sealed interface ChatItem {
         val planLine: String? = null,
         /** A64: the day after the record, on today's newest active record receipt only (`{eaten} de {ceiling} kcal · …`). */
         val balance: String? = null,
+        /** A66: the typed-actions answer that wrote this receipt by itself; its Desfazer reverts the batch. */
+        val batch: Long? = null,
     ) : ChatItem {
         override val key = "r-$id"
         val skipped: Boolean get() = kind == ReceiptKind.SKIPPED
