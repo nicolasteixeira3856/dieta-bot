@@ -85,6 +85,7 @@ Status: a linha `Status`/`Estado` de cada ADR. Fonte histórica: [`decisions/`](
 | [053](produto/adrs/ADR-053-visible-memory-screen.md) | produto | "O que a Tali sabe" memory screen in Config; deleted facts never return; dev tool A23 retired; O6 conditional |
 | [054](server/adrs/ADR-054-chat-reasoning-effort-low.md) | server | Chat generation at `reasoning.effort=low` (benchmark of 08/10/2026) |
 | [055](produto/adrs/ADR-055-protein-boost-hybrid.md) | produto | protein boost of a named dish: the model proposes the `(opcional)` foods, the server validates |
+| [056](produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) | produto | a plan with options opens with the decision line, numbers written by the server; budget, closings and the app's fit and day lines on the chosen option; a same-message skip leaves the window |
 
 ## Outros docs
 

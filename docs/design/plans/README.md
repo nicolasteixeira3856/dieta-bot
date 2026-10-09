@@ -163,6 +163,16 @@ Behavior: [ADR-052](../../produto/adrs/ADR-052-saved-recipes.md), [ADR-053](../.
 | Design | D25 — plan option control (`chatO`), delivered ([history](completed/)) | D24, ADR-051 accepted (S37) |
 | Client | [A67](../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md) — options and discovery | D25, S37 on dev, A66 |
 
+## Plan decision follow-up
+
+Behavior: [ADR-056](../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Server | [S39](../../server/plans/s39-plan-decision-line-and-option-budget.md) — decision line, budget on the chosen option | S37, S38 on dev |
+| Design | [D26](d26-release-2-option-decision.md) — decision line and per-option fit (`chatO` redrawn) | D25, ADR-056 accepted (S39) |
+| Client | [A70](../../android/plans/a70-option-fit-and-projection.md) — fit and day lines per option | D26, S39 on dev, A67 |
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.

@@ -115,6 +115,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 ### Planos e validação
 
+- [A70 — Decision line, fit and day projection per option in the plan bubble](plans/a70-option-fit-and-projection.md): awaiting approval; needs S39 on the dev server and D26.
 - [A64 — Chat context fields, day balance, Anotado, waiting state](plans/pending_manual_validation/a64-chat-context-fields-day-balance.md): delivered in the run of A64–A69 ([report](validation/batch-2026-10-08-a64-a69.md)), awaiting the owner's device acceptance.
 - [A65 — Workout energy recorded from the Chat](plans/pending_manual_validation/a65-workout-via-chat.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
 - [A66 — Typed actions applied as one batch](plans/pending_manual_validation/a66-typed-actions-batch.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
