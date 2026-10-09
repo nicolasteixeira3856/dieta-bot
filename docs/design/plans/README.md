@@ -171,7 +171,7 @@ Behavior: [ADR-056](../../produto/adrs/ADR-056-plan-decision-line-and-option-bud
 |---|---|---|
 | Server | [S39](../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md) — decision line, budget on the chosen option | S37, S38 on dev |
 | Design | D26 — decision line and per-option fit (`chatO` redrawn), delivered ([history](completed/)) | D25, ADR-056 accepted (S39) |
-| Client | [A70](../../android/plans/a70-option-fit-and-projection.md) — fit and day lines per option | D26, S39 on dev, A67 |
+| Client | [A70](../../android/plans/pending_manual_validation/a70-option-fit-and-projection.md) — fit and day lines per option | D26, S39 on dev, A67 |
 
 ## History
 

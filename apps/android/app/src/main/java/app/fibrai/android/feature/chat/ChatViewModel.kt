@@ -1503,10 +1503,14 @@ class ChatViewModel @Inject constructor(
         val targets = Macros(0, d.proteinTargetG, d.carbTargetG, d.fatTargetG)
         // Date pills, plans and memory notices: the window only. Actions and rounds: all of today.
         val todayRows = w.today.filter { it.date == todayIso }
+        // A recorded plan is already inside the day: it is counted once, not projected on top.
+        val baseOf = { m: ChatMessageEntity ->
+            val plan = Macros(m.estimateKcal ?: 0, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
+            if (recordedPlan(m, todayRows)) eaten.minus(plan) else eaten
+        }
         val project = { m: ChatMessageEntity ->
             val plan = Macros(m.estimateKcal ?: 0, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
-            // A recorded plan is already inside the day: it is counted once, not projected on top.
-            val base = if (recordedPlan(m, todayRows)) eaten.minus(plan) else eaten
+            val base = baseOf(m)
             // A60 part D: the plans reserved for the other meals count in the day; this plan's own meal is the plan itself.
             val others = d.planned.filterKeys { it != m.estimateSlotId }.values
             val reserved = Macros(others.sumOf { it.kcal }, others.sumOf { it.p }, others.sumOf { it.c }, others.sumOf { it.g })
@@ -1599,7 +1603,14 @@ class ChatViewModel @Inject constructor(
                 budget = choice?.takeIf { open?.id == m.id }?.let { BudgetNote(it.overKcal, it.reserved.map { r -> r.kcal to r.label }) },
                 reservedFor = m.estimateSlotId?.takeIf { m.date == todayIso && d.planned[it]?.sourceMessageId == m.id }?.let { slotById[it]?.name },
                 projection = m.takeIf { open?.id == it.id && !it.isPlanEstimate }?.let { projected(it) }?.let { DayBalance.projection(eaten, it, meta, d.proteinTargetG) },
-                options = if (m.isPlanEstimate) optionViews(m, open?.id == m.id && l.pending == null, todayStates, d) else emptyList(),
+                options = if (m.isPlanEstimate) {
+                    optionViews(
+                        m, open?.id == m.id && l.pending == null, todayStates, d,
+                        meal = m.estimateSlotId?.let { slotById[it]?.name },
+                        // A70: the day per option, as the A64 projection, for a plan of today.
+                        day = { o: Macros -> DayBalance.optionDay(baseOf(m), o, meta, d.proteinTargetG) }.takeIf { m.date == todayIso },
+                    )
+                } else emptyList(),
             )
             if (proposalOpen && holds && proposal != null) {
                 when (m.recordState) {
@@ -1654,8 +1665,10 @@ class ChatViewModel @Inject constructor(
         val forceEstimate = l.pending == null && l.attachment == null &&
             todayRows.lastOrNull()?.let(PromptBuilder::isQuestionOnly) == true &&
             PromptBuilder.clarifyRounds(todayRows) >= FORCE_FROM_ROUND
-        // A67 (chatO): a plan with options carries its actions inside each option; nothing under the bubble.
-        val shownActions = actions.takeUnless { forceEstimate || open?.let { ChatActions.options(it.actions).isNotEmpty() } == true }
+        // A67 (chatO): a plan with options carries its actions inside each option; nothing under the bubble but, A70
+        // (ADR-056 § 8), the budget choice of the chosen option.
+        val shownActions = actions.takeUnless { forceEstimate }
+            ?.takeUnless { a -> a.choice == null && open?.let { ChatActions.options(it.actions).isNotEmpty() } == true }
         shownActions?.takeIf { !it.plan && shownAsks.add(it.estimateId) }?.let {
             telemetry.event(TelemetryEvents.RECORD_ASK, mapOf("action" to "shown"))
         }
@@ -1940,8 +1953,18 @@ class ChatViewModel @Inject constructor(
         )
     }
 
-    /** A67: the option blocks of [m]; Registrar while the plan is open, Reservar for a meal of today still open. */
-    private fun optionViews(m: ChatMessageEntity, open: Boolean, todayStates: Map<Long, SlotState>, d: DaySnapshot): List<OptionView> {
+    /**
+     * A67: the option blocks of [m]; Registrar while the plan is open, Reservar for a meal of today still open. A70: the
+     * fit line from the server's `over_kcal` against the window of [meal], and the [day] with each option.
+     */
+    private fun optionViews(
+        m: ChatMessageEntity,
+        open: Boolean,
+        todayStates: Map<Long, SlotState>,
+        d: DaySnapshot,
+        meal: String?,
+        day: ((Macros) -> String)?,
+    ): List<OptionView> {
         val reservable = open && m.estimateSlotId?.let { id -> todayStates[id]?.open != false && d.slotsOfDay.any { it.id == id } } == true
         return ChatActions.options(m.actions).mapIndexed { i, o ->
             OptionView(
@@ -1954,6 +1977,8 @@ class ChatViewModel @Inject constructor(
                 g = o.g,
                 canRecord = open,
                 canReserve = reservable,
+                fit = o.overKcal?.let { over -> meal?.let { DayBalance.optionFit(over, it) } },
+                day = day?.invoke(Macros(o.kcal, o.p, o.c, o.g)),
             )
         }
     }
@@ -2018,9 +2043,13 @@ class ChatViewModel @Inject constructor(
             projection = projection,
             noted = m.noted?.lines()?.filter { it.isNotBlank() }.orEmpty(),
             options = options,
-            // A67: a plan with options shows only the reply's lead line; the options carry the rest.
-            text = if (options.isEmpty()) m.text else ReplyMarkup.plain(m.text).lineSequence().firstOrNull { it.isNotBlank() }.orEmpty(),
-        ).let { if (options.isEmpty()) it else it.copy(blocks = null) }
+            text = m.text,
+        ).let {
+            if (options.isEmpty()) return@let it
+            // A70 (ADR-056 § 8): the lead text above the option blocks, the trailing text below; the paragraphs go to the blocks.
+            val (lead, trailing) = ReplyMarkup.splitOptions(m.text)
+            it.copy(text = lead, trailing = trailing, blocks = null)
+        }
     }
 
     private fun memoryOf(m: ChatMessageEntity) = m.memoryUsedKinds.orEmpty().split(',').let { kinds ->

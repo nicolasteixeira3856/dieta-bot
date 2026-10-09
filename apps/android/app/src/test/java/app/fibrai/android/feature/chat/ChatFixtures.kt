@@ -247,26 +247,32 @@ object ChatFixtures {
         currentSlotId = 4,
     )
 
-    /** chatO (D25, A67): an open request answered with two options, each with its items, total and own actions. */
+    /**
+     * chatO (D25, A67; D26, A70): an open request answered with two options under the decision line, each with its items,
+     * total, fit and day lines and own actions, then the rest of the reply and the day with the chosen option.
+     */
     val chatO = ChatUiState(
         items = listOf(
             date,
             ideas,
             ChatItem.Assistant(
                 id = 8,
-                text = "Duas opções para o jantar:",
+                text = "Vai de Omelete de forno: ~360 kcal · P 28 g, cabe na janela do Jantar. Pizza de pão sírio passa ~20 kcal.",
                 time = "20:15",
-                plan = ProjectedDay(1640, Macros(2060, 126, 190, 58), 2200, Macros(0, 167, 223, 74)),
+                plan = ProjectedDay(1640, Macros(2000, 114, 166, 66), 2200, Macros(0, 167, 223, 74)),
+                trailing = "Ainda faltam 53 g de proteína; ajuste a ceia para priorizar proteína.\nCeia: iogurte natural com whey ~160 kcal · P 22",
                 options = listOf(
                     OptionView(
                         "o1", "Opção 1: Pizza de pão sírio",
                         listOf("1 pão sírio (60 g)", "30 g de molho de tomate", "100 g de frango desfiado", "30 g de milho", "30 g de muçarela"),
                         420, 40, 38, 12, canRecord = true, canReserve = true,
+                        fit = "Passa 20 kcal da janela do Jantar", day = "Dia: ~2.060 de 2.200 kcal · P 126 de 167",
                     ),
                     OptionView(
                         "o2", "Opção 2: Omelete de forno",
                         listOf("3 ovos", "50 g de ricota", "1 fatia de pão integral (25 g)"),
                         360, 28, 14, 20, canRecord = true, canReserve = true,
+                        fit = "Cabe na janela do Jantar", day = "Dia: ~2.000 de 2.200 kcal · P 114 de 167",
                     ),
                 ),
             ),

@@ -19,7 +19,7 @@ Redraw the plan bubble with options in Aero, in both themes: the decision line a
 |---|---|---|
 | `chatO` | current `chatO` (D25: option block, action row), `chatRB` (caption style of the budget note), `chatE` (the projection line) | ADR-056 § 8: lead text, fit line `Cabe na janela do {meal}` / `Passa {n} kcal da janela do {meal}`, day line `Dia: ~{kcal} de {ceiling} kcal · P {p} de {target}`, trailing text (critique, skip clause, closing lines) |
 
-Code: `apps/android/.../feature/chat` ([A70](../../../android/plans/a70-option-fit-and-projection.md) implements it).
+Code: `apps/android/.../feature/chat` ([A70](../../../android/plans/pending_manual_validation/a70-option-fit-and-projection.md) implements it).
 
 ## Scope
 
@@ -43,7 +43,7 @@ Code: `apps/android/.../feature/chat` ([A70](../../../android/plans/a70-option-f
 
 ### Discovery (09/10/2026, before any write)
 
-Read only: the `chatO` frame and the `Chat/PlanOption` component (D25), the budget note of `chatRB` (`Passa 310 kcal do que sobra.`, Caption, `text/muted`), the `chatE` frame (its projection is the `Card/MealPlan` panel, no caption line), `ChatFixtures.chatO`, [ADR-056](../../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) § 1 and § 8, the decision-line form and the app preview of [S39](../../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md), [A70](../../../android/plans/a70-option-fit-and-projection.md) scopes 1–3.
+Read only: the `chatO` frame and the `Chat/PlanOption` component (D25), the budget note of `chatRB` (`Passa 310 kcal do que sobra.`, Caption, `text/muted`), the `chatE` frame (its projection is the `Card/MealPlan` panel, no caption line), `ChatFixtures.chatO`, [ADR-056](../../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) § 1 and § 8, the decision-line form and the app preview of [S39](../../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md), [A70](../../../android/plans/pending_manual_validation/a70-option-fit-and-projection.md) scopes 1–3.
 
 `chatO` (open request answered with two options; references `chatO`, `chatRB`, `chatE`, layout only):
 
@@ -86,6 +86,6 @@ Figma MCP budget: 7 of 30 calls (whoami, 3 skill reads, 1 read, 2 writes with re
 - `node tools/export-figma.mjs --only chatO`: 780 × 2200 → 780 × 2696 (both themes). The inventory id is unchanged.
 - `node tools/check-figma.mjs`: 108 golds verified (54 dark + 54 light). `node tools/check-docs.mjs` passes.
 - Gold check of the current app (no `apps/` change; `GoldTest.chatO*`, run with `--rerun`): both fail by design, the app does not draw the decision line, the fit and day lines or the trailing text yet (Dark blurred 9.66 %, ink 0.76; Light blurred 9.79 %, ink 0.86).
-- **Hand-over to [A70](../../../android/plans/a70-option-fit-and-projection.md):** the lead/trailing split, the `Fit` and `Day` lines under each option's totals, the day panel on the chosen option and the `chatO` captures. Until A70, `GoldTest.chatO_dark` and `chatO_light` fail; a client plan that runs before A70 needs a temporary exception there (owner decision).
+- **Hand-over to [A70](../../../android/plans/pending_manual_validation/a70-option-fit-and-projection.md):** the lead/trailing split, the `Fit` and `Day` lines under each option's totals, the day panel on the chosen option and the `chatO` captures. Until A70, `GoldTest.chatO_dark` and `chatO_light` fail; a client plan that runs before A70 needs a temporary exception there (owner decision).
 
 Figma MCP budget: 7 of 30 calls in total (no call after the review: the export uses the REST API).

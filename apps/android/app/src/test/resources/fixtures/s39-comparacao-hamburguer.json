@@ -1,0 +1,528 @@
+{
+  "request": {
+    "local_time": "2026-10-15T16:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2200,
+      "p_target": 150,
+      "c_target": 240,
+      "g_target": 70,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "n",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ],
+      "tone": "duro"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-10-12",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "j",
+        "slot_name": "Jantar",
+        "text": "wrap integral com 120 g de frango, 20 g de queijo minas e molho de iogurte com mostarda",
+        "kcal": 430,
+        "p": 38,
+        "c": 35,
+        "g": 14
+      }
+    ],
+    "recent_days": [
+      {
+        "date": "2026-10-08",
+        "recorded": true,
+        "kcal": 2120,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": null,
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-09",
+        "recorded": true,
+        "kcal": 2120,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": null,
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-10",
+        "recorded": true,
+        "kcal": 2550,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": "j",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-11",
+        "recorded": true,
+        "kcal": 2550,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": "j",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-12",
+        "recorded": true,
+        "kcal": 2120,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": null,
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-13",
+        "recorded": true,
+        "kcal": 2120,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": null,
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-14",
+        "recorded": true,
+        "kcal": 2120,
+        "p": 110,
+        "c": 230,
+        "g": 70,
+        "ceiling_kcal": 2200,
+        "over_slot": null,
+        "missing_slots": []
+      }
+    ],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1250,
+      "eaten_p": 85,
+      "eaten_c": 143,
+      "eaten_g": 37,
+      "workout_kcal": null,
+      "remaining_kcal": 950,
+      "slots": [
+        {
+          "id": "c",
+          "text": "pão com ovo e café com leite",
+          "kcal": 450,
+          "p": 28,
+          "c": 48,
+          "g": 15,
+          "status": "eaten"
+        },
+        {
+          "id": "a",
+          "text": "arroz, feijão, frango e salada",
+          "kcal": 800,
+          "p": 57,
+          "c": 95,
+          "g": 22,
+          "status": "eaten"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "n",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "hoje pulo o lanche; à noite quero um hambúrguer caprichado: dois de patinho de 120 g na frigideira, ou um só com 100 g de batata rústica no forno, qual?",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true
+  },
+  "response": {
+    "reply": "Vai de Hambúrguer com batata rústica: ~680 kcal · P 39 g, cabe na janela do Jantar. Hambúrguer duplo caprichado passa ~130 kcal.\n**Opção 1: Hambúrguer duplo caprichado**\n- 240 g de patinho, 75 g de pão de hambúrguer, 30 g de queijo, 15 g de molho e 50 g de salada\nTotal: **820 kcal** · P **65 g**\n**Opção 2: Hambúrguer com batata rústica**\n- 120 g de patinho, 75 g de pão de hambúrguer, 20 g de queijo, 15 g de molho, 50 g de salada e 100 g de batata\nTotal: **680 kcal** · P **39 g**\n1. Asse a batata a 220 °C por 25–30 min, virando na metade.\n2. Grelhe o patinho em frigideira quente até o ponto desejado; derreta o queijo sobre ele.\n3. Monte no pão com o molho e a salada.\nLanche de hoje fora.\nO jantar passou do teto no fim de semana: sábado e domingo. Ainda faltam 65 g de proteína; ajuste a ceia para priorizar proteína.\nCeia: iogurte natural com whey ~270 kcal · P 26",
+    "intent": "plan",
+    "estimate": {
+      "kcal": 680,
+      "p": 39,
+      "c": 62,
+      "g": 29,
+      "confidence": "medium",
+      "question": null,
+      "items": [
+        {
+          "name": "patinho grelhado",
+          "g": 120,
+          "kcal": 263
+        },
+        {
+          "name": "pão de hambúrguer",
+          "g": 75,
+          "kcal": 200
+        },
+        {
+          "name": "queijo",
+          "g": 20,
+          "kcal": 66
+        },
+        {
+          "name": "molho",
+          "g": 15,
+          "kcal": 25
+        },
+        {
+          "name": "salada",
+          "g": 50,
+          "kcal": 10
+        },
+        {
+          "name": "batata rústica",
+          "g": 100,
+          "kcal": 116
+        }
+      ],
+      "suggested_slot": "j",
+      "meal_text": "Hambúrguer com batata rústica"
+    },
+    "memory_updates": [],
+    "memory_used": [],
+    "digest": null,
+    "model": "gpt-6-luna",
+    "question": null,
+    "record": "none",
+    "skip_slot": null,
+    "meal_change": null,
+    "skip_slots": [
+      "l"
+    ],
+    "plan_budget": {
+      "limit_kcal": 730,
+      "over_kcal": 0,
+      "reserved": [
+        {
+          "label": "Ceia",
+          "kcal": 220
+        }
+      ],
+      "choice": null
+    },
+    "actions": [
+      {
+        "id": "a1",
+        "type": "plan",
+        "slot": "j",
+        "estimate": {
+          "kcal": 680,
+          "p": 39,
+          "c": 62,
+          "g": 29,
+          "confidence": "medium",
+          "question": null,
+          "items": [
+            {
+              "name": "patinho grelhado",
+              "g": 120,
+              "kcal": 263
+            },
+            {
+              "name": "pão de hambúrguer",
+              "g": 75,
+              "kcal": 200
+            },
+            {
+              "name": "queijo",
+              "g": 20,
+              "kcal": 66
+            },
+            {
+              "name": "molho",
+              "g": 15,
+              "kcal": 25
+            },
+            {
+              "name": "salada",
+              "g": 50,
+              "kcal": 10
+            },
+            {
+              "name": "batata rústica",
+              "g": 100,
+              "kcal": 116
+            }
+          ],
+          "suggested_slot": "j",
+          "meal_text": "Hambúrguer com batata rústica"
+        },
+        "question": null,
+        "record": "none",
+        "record_intent": "unsure",
+        "meal_day": "today",
+        "meal_change": null,
+        "workout": null,
+        "recipe_id": null,
+        "recipe": {
+          "name": "Hambúrguer com batata rústica",
+          "ingredients": [
+            {
+              "name": "patinho grelhado",
+              "g": 120,
+              "kcal": 263
+            },
+            {
+              "name": "pão de hambúrguer",
+              "g": 75,
+              "kcal": 200
+            },
+            {
+              "name": "queijo",
+              "g": 20,
+              "kcal": 66
+            },
+            {
+              "name": "molho",
+              "g": 15,
+              "kcal": 25
+            },
+            {
+              "name": "salada",
+              "g": 50,
+              "kcal": 10
+            },
+            {
+              "name": "batata rústica",
+              "g": 100,
+              "kcal": 116
+            }
+          ],
+          "steps": [
+            "Asse a batata a 220 °C por 25–30 min, virando na metade.",
+            "Grelhe o patinho em frigideira quente até o ponto desejado; derreta o queijo sobre ele.",
+            "Monte no pão com o molho e a salada."
+          ]
+        },
+        "options": [
+          {
+            "id": "o1",
+            "name": "Hambúrguer duplo caprichado",
+            "estimate": {
+              "kcal": 860,
+              "p": 68,
+              "c": 59,
+              "g": 39,
+              "confidence": "medium",
+              "question": null,
+              "items": [
+                {
+                  "name": "patinho grelhado",
+                  "g": 240,
+                  "kcal": 526
+                },
+                {
+                  "name": "pão de hambúrguer",
+                  "g": 75,
+                  "kcal": 200
+                },
+                {
+                  "name": "queijo",
+                  "g": 30,
+                  "kcal": 99
+                },
+                {
+                  "name": "molho",
+                  "g": 15,
+                  "kcal": 25
+                },
+                {
+                  "name": "salada",
+                  "g": 50,
+                  "kcal": 10
+                }
+              ],
+              "suggested_slot": "j",
+              "meal_text": "Hambúrguer duplo caprichado"
+            },
+            "over_kcal": 130
+          },
+          {
+            "id": "o2",
+            "name": "Hambúrguer com batata rústica",
+            "estimate": {
+              "kcal": 680,
+              "p": 39,
+              "c": 62,
+              "g": 29,
+              "confidence": "medium",
+              "question": null,
+              "items": [
+                {
+                  "name": "patinho grelhado",
+                  "g": 120,
+                  "kcal": 263
+                },
+                {
+                  "name": "pão de hambúrguer",
+                  "g": 75,
+                  "kcal": 200
+                },
+                {
+                  "name": "queijo",
+                  "g": 20,
+                  "kcal": 66
+                },
+                {
+                  "name": "molho",
+                  "g": 15,
+                  "kcal": 25
+                },
+                {
+                  "name": "salada",
+                  "g": 50,
+                  "kcal": 10
+                },
+                {
+                  "name": "batata rústica",
+                  "g": 100,
+                  "kcal": 116
+                }
+              ],
+              "suggested_slot": "j",
+              "meal_text": "Hambúrguer com batata rústica"
+            },
+            "over_kcal": 0
+          }
+        ],
+        "plan_budget": {
+          "limit_kcal": 730,
+          "over_kcal": 0,
+          "reserved": [
+            {
+              "label": "Ceia",
+              "kcal": 220
+            }
+          ],
+          "choice": null
+        }
+      },
+      {
+        "id": "a2",
+        "type": "skip",
+        "slot": "l",
+        "estimate": null,
+        "question": null,
+        "record": "auto",
+        "record_intent": "unsure",
+        "meal_day": "today",
+        "meal_change": null,
+        "workout": null,
+        "recipe_id": null,
+        "recipe": null,
+        "options": null,
+        "plan_budget": null
+      }
+    ]
+  }
+}

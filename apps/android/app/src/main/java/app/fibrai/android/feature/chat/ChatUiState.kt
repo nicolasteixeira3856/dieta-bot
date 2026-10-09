@@ -97,8 +97,12 @@ sealed interface ChatItem {
         val projection: String? = null,
         /** A64 (ADR-053 § 2): one `Anotado: {text}` line per permanent fact this answer saved, as stored. */
         val noted: List<String> = emptyList(),
-        /** A67 (chatO): the options of an open request; the bubble shows the reply's first line, then one block per option. */
+        /**
+         * A67 (chatO): the options of a plan; A70 (ADR-056 § 8): the bubble shows [text] (the reply's lead, the decision
+         * line), one block per option, then [trailing] (the reply after the last option paragraph), markers kept.
+         */
         val options: List<OptionView> = emptyList(),
+        val trailing: String = "",
     ) : ChatItem {
         override val key = "a-$id"
     }
@@ -196,6 +200,8 @@ sealed interface ChatItem {
 /**
  * A67 (chatO, Chat/PlanOption): `Opção {n}: {name}`, its items with grams, `~{kcal} kcal · {p}P · {c}C · {g}G`, and its own
  * Registrar and Reservar while the plan is open ([canRecord]; [canReserve] for a meal of today with nothing eaten).
+ * A70 (ADR-056 § 8): under the totals, [fit] (`Cabe na janela do {meal}` / `Passa {n} kcal da janela do {meal}`, null
+ * without the server's `over_kcal`) and [day] (`Dia: ~{kcal} de {ceiling} kcal · P {p} de {target}`, a plan of today).
  */
 @Immutable
 data class OptionView(
@@ -208,6 +214,8 @@ data class OptionView(
     val g: Int,
     val canRecord: Boolean = false,
     val canReserve: Boolean = false,
+    val fit: String? = null,
+    val day: String? = null,
 )
 
 /** Receipt roles (A34): title and icon of the card. */
@@ -332,7 +340,12 @@ data class BudgetNote(val overKcal: Int, val reserved: List<Pair<Int, String>>)
 val ChatItem.copyText: String?
     get() = when (this) {
         is ChatItem.User -> text.takeIf { it.isNotBlank() && !pending }
-        is ChatItem.Assistant -> text.takeIf { prose && it.isNotBlank() }?.let { if (blocks != null) ReplyMarkup.plain(it, bullet = "- ") else it }
+        is ChatItem.Assistant -> if (options.isNotEmpty()) {
+            // A70: the lead and the trailing text as shown; the option blocks are cards.
+            listOf(text, trailing).filter { it.isNotBlank() }.joinToString("\n").takeIf { it.isNotBlank() }?.let { ReplyMarkup.plain(it, bullet = "- ") }
+        } else {
+            text.takeIf { prose && it.isNotBlank() }?.let { if (blocks != null) ReplyMarkup.plain(it, bullet = "- ") else it }
+        }
         is ChatItem.Question -> text.takeIf { it.isNotBlank() }
         else -> null
     }

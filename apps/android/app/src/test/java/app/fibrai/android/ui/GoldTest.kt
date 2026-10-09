@@ -328,11 +328,11 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h871dp-xhdpi")
     fun rcpD_light() = check("rcpD", dark = false) { app.fibrai.android.feature.recipes.RecipeScreen(app.fibrai.android.feature.recipes.RecipeFixtures.rcpD, {}, {}, {}, {}) }
 
-    /** chatO (D25, A67): two options, each with its own Registrar and Reservar. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1100dp-xhdpi")
+    /** chatO (D26, A70): the decision line, two options with their fit and day lines and own actions, the trailing text. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1348dp-xhdpi")
     fun chatO_dark() = check("chatO", dark = true) { Chat(ChatFixtures.chatO) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1100dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1348dp-xhdpi")
     fun chatO_light() = check("chatO", dark = false) { Chat(ChatFixtures.chatO) }
 
     /** chatRL (D18, A60 part D): the reserved plan. */

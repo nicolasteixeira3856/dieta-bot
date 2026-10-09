@@ -91,6 +91,33 @@ object ReplyMarkup {
         }
     }
 
+    /**
+     * A70 (ADR-056 § 8): a plan reply with options as (lead, trailing), markers kept: the lines before the first
+     * `Opção {n}` paragraph and the lines after the last one. An option paragraph is its title line, then its list or
+     * table lines and its total (`… kcal · …`); a closing line (`{meal}: {food} ~{kcal} kcal · P {p}`) ends it. A reply
+     * with no such paragraph is all lead.
+     */
+    fun splitOptions(reply: String): Pair<String, String> {
+        val lines = reply.split('\n')
+        val titles = lines.indices.filter { OPTION_TITLE.containsMatchIn(lineText(lines[it])) }
+        if (titles.isEmpty()) return reply.trim() to ""
+        var end = titles.last() + 1
+        while (end < lines.size && inOption(lines[end])) end++
+        return lines.subList(0, titles.first()).joinToString("\n").trim() to lines.subList(end, lines.size).joinToString("\n").trim()
+    }
+
+    private val OPTION_TITLE = Regex("""^Opção \d+\b""")
+    private val OPTION_TOTAL = Regex("""\d\s*kcal\s*[·|]""")
+    private val CLOSING = Regex("""^[^.:\n;]{1,40}: (?:(?!kcal).)*? ?~\d+ kcal · P \d+(?: g)?[.;]?$""")
+
+    private fun lineText(line: String) = line.replace("**", "").replace(Regex("""^(?:- |\d{1,2}\. )"""), "").trim()
+
+    private fun inOption(line: String): Boolean {
+        val text = lineText(line)
+        if (CLOSING.matches(text)) return false
+        return line.startsWith("- ") || line.startsWith("|") || OPTION_TOTAL.containsMatchIn(text)
+    }
+
     /** True when [reply] carries any marker of the subset (a bubble that renders blocks, not plain prose). */
     fun formatted(reply: String): Boolean = parse(reply).any { block ->
         block !is ReplyBlock.Paragraph || block.spans.any { it.bold }

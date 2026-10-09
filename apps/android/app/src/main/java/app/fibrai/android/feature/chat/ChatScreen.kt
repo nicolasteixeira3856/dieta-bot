@@ -51,6 +51,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import app.fibrai.android.domain.ReplyMarkup
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalFocusManager
@@ -590,12 +591,17 @@ private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false,
         AiLabel()
         BotBubble(Modifier.aeroSelectedBubble(selected, BotTailShape).testTag("chat-bot-${item.id}")) {
             val blocks = item.blocks
-            if (item.plan != null) {
-                if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else if (item.text.isNotBlank()) PlanText(item.text)
-                // A67 (chatO): the lead line, one block per option with its own actions, then the day with option 1.
+            if (item.options.isNotEmpty()) {
+                // A70 (chatO, ADR-056 § 8): the decision line, one block per option with its own actions, the rest of the
+                // reply, then the day with the chosen option.
+                OptionReplyText(item.text)
                 item.options.forEach { option ->
                     PlanOptionCard(option, { record?.onOptionRecord?.invoke(item.id, option.id) }, { record?.onOptionReserve?.invoke(item.id, option.id) })
                 }
+                OptionReplyText(item.trailing)
+                item.plan?.let { PlanPanel(it) }
+            } else if (item.plan != null) {
+                if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else if (item.text.isNotBlank()) PlanText(item.text)
                 PlanPanel(item.plan)
             } else if (item.prose) {
                 // A formatted reply carries its own emphasis (D17): no accent highlight of the item names.
@@ -947,6 +953,18 @@ private fun PlanOptionCard(option: OptionView, onRecord: () -> Unit, onReserve: 
             },
             style = style,
         )
+        // A70 (ADR-056 § 8): the fit and the day with this option, in the caption style of the budget note.
+        if (option.fit != null || option.day != null) {
+            val caption = type.caption.copy(color = c.textMuted)
+            // D26 `Budget lines`: 1 dp more above and below than the block's 8 dp gap.
+            Column(
+                Modifier.fillMaxWidth().padding(vertical = 1.dp).testTag("chat-option-budget-${option.id}"),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                option.fit?.let { AeroText(it, style = caption) }
+                option.day?.let { AeroText(it, style = caption) }
+            }
+        }
         if (option.canRecord || option.canReserve) {
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (option.canRecord) {
@@ -957,6 +975,19 @@ private fun PlanOptionCard(option: OptionView, onRecord: () -> Unit, onReserve: 
                 }
             }
         }
+    }
+}
+
+/** A70 (chatO): the lead or trailing text of a plan with options in Body, markers kept (ADR-045), no macro colours. */
+@Composable
+private fun OptionReplyText(text: String) {
+    if (text.isBlank()) return
+    val blocks = remember(text) { ReplyMarkup.parse(text).takeIf { ReplyMarkup.formatted(text) } }
+    if (blocks != null) {
+        AeroReplyBlocks(blocks)
+    } else {
+        val lines = remember(text) { text.trim().lines().filter { it.isNotBlank() }.joinToString("\n") { it.trim() } }
+        AeroText(lines, style = Aero.type.body.copy(color = Aero.colors.textPrimary))
     }
 }
 

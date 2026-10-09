@@ -33,12 +33,15 @@
 #   a plan; a clarification on one of two). No new gold: receipts and bubbles of chatSK, chatR, chatQ.
 # SCENES=a67 only onboarding + A67: chatO seeded (two options, each with Registrar and Reservar; option 2 recorded and
 #   reserved with its numbers) and the discovery turns on an empty memory (memory.bin removed; the facts sent next).
+# SCENES=a70 only onboarding + A70: chatO seeded with the D26 content (decision line, fit and day lines per option,
+#   trailing text, the day panel on the chosen option) and the S39 comparison fixture replayed through the fake
+#   ({"fixture": ...}): decision line first, `Passa 130` / `Cabe` under the options, no budget note.
 # SCENES=a68 only onboarding + A68: Salvar receita under a cooking plan (Receita salva, version 1, nothing recorded), the index
 #   and the named recipe on the wire, a record by recipe with its version, and rcpL / rcpD seeded with delete.
 # SCENES=a69 only onboarding + A69: facts from the Chat listed in O que a Tali sabe (memL), a correction that reaches the next
 #   prompt, a deleted preference the model cannot add back (tombstone).
 # SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68|a69] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68|a69|a70] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -1508,10 +1511,8 @@ fake_mode '{}'
 sql "$CLEAN"
 fi
 
-if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a67 ]; then
-kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
-discovery_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['discovery'])"; }
-# chatO: the chatR gold day (1.640 eaten of 2.200) with the open dinner request answered with two options.
+# chatO (D26): the chatR gold day (1.640 eaten of 2.200) with the open dinner request answered with two options under the
+# decision line; the row's estimate is the chosen option (o2, S39), each option with its server `over_kcal`.
 CHAT_O='
 import json
 slots = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
@@ -1526,13 +1527,19 @@ items1 = [{"name": "1 pão sírio", "g": 60, "kcal": 160}, {"name": "molho de to
 items2 = [{"name": "3 ovos", "g": 0, "kcal": 210}, {"name": "ricota", "g": 50, "kcal": 80}, {"name": "1 fatia de pão integral", "g": 25, "kcal": 70}]
 o1 = {"kcal": 420, "p": 40, "c": 38, "g": 12, "items": items1, "meal_text": "Pizza de pão sírio", "suggested_slot": str(slots[3])}
 o2 = {"kcal": 360, "p": 28, "c": 14, "g": 20, "items": items2, "meal_text": "Omelete de forno: 3 ovos, ricota e pão integral", "suggested_slot": str(slots[3])}
-actions = [{"id": "a1", "type": "plan", "slot": str(slots[3]), "estimate": o1, "record": "none",
-            "options": [{"id": "o1", "name": "Pizza de pão sírio", "estimate": o1}, {"id": "o2", "name": "Omelete de forno", "estimate": o2}]}]
-reply = chr(10).join(["Duas opções para o jantar:", "**Opção 1: Pizza de pão sírio**", "- 1 pão sírio (60 g)", "**Opção 2: Omelete de forno**", "- 3 ovos"])
+actions = [{"id": "a1", "type": "plan", "slot": str(slots[3]), "estimate": o2, "record": "none",
+            "options": [{"id": "o1", "name": "Pizza de pão sírio", "estimate": o1, "over_kcal": 20}, {"id": "o2", "name": "Omelete de forno", "estimate": o2, "over_kcal": 0}]}]
+reply = chr(10).join(["Vai de Omelete de forno: ~360 kcal · P 28 g, cabe na janela do Jantar. Pizza de pão sírio passa ~20 kcal.",
+                      "**Opção 1: Pizza de pão sírio**", "- 1 pão sírio (60 g)", "**Opção 2: Omelete de forno**", "- 3 ovos",
+                      "Ainda faltam 53 g de proteína; ajuste a ceia para priorizar proteína.", "Ceia: iogurte natural com whey ~160 kcal · P 22"])
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "Não sei o que jantar. Me dá umas ideias?", now - 2000))
 c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,intent,recordMode,actions) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-          (today, "assistant", reply, now - 1000, 420, 40, 38, 12, "high", slots[3], "plan", "none", json.dumps(actions, ensure_ascii=False)))
+          (today, "assistant", reply, now - 1000, 360, 28, 14, 20, "high", slots[3], "plan", "none", json.dumps(actions, ensure_ascii=False)))
 '
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a67 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+discovery_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['discovery'])"; }
 set_clock 0 20:15
 echo "  A67 gold: chatO"
 sql "$CLEAN$CHAT_O"
@@ -1540,7 +1547,7 @@ open_chat
 expect "two option blocks" 'chat-option-o1.*chat-option-o2|chat-option-o2.*chat-option-o1'
 expect "each option with Registrar and Reservar" 'chat-option-record-o2'
 if has chat-record-plan; then echo "  ✗ Registrar assim under a plan with options"; FAIL=1; else echo "  ✓ no Registrar assim under the bubble"; fi
-expect "gold day: Dia 1.640 -> 2.060 de 2.200" '1\.640.*2\.060.*2\.200'
+expect "gold day: Dia 1.640 -> 2.000 de 2.200 (the chosen option)" '1\.640.*2\.000.*2\.200'
 shot chatO
 echo "  A67: Registrar on option 2 records its numbers"
 tap 'resource-id="chat-option-record-o2"' 1.5
@@ -1684,6 +1691,55 @@ case "$keys" in *leite*) echo "  ✗ the deleted preference came back: $keys"; F
 fake_mode '{}'
 sql "$CLEAN"
 "$ADB" shell run-as $PKG rm -f files/memory.bin
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a70 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+set_clock 0 20:15
+echo "  A70 gold: chatO (D26)"
+sql "$CLEAN$CHAT_O"
+open_chat
+expect "fit line of option 2" 'text="Cabe na janela do Jantar"'
+expect "day line of option 1" 'text="Dia: ~2\.060 de 2\.200 kcal · P 126 de 167"'
+expect "the trailing text below the options" 'Ceia: iogurte natural com whey ~160'
+if has chat-budget-note; then echo "  ✗ budget note for a chosen option that fits"; FAIL=1; else echo "  ✓ no budget note"; fi
+shot chatO
+# The bubble is taller than the screen: its top (decision line, option 1) after scrolling up.
+up() { "$ADB" shell input swipe 390 500 390 1300 400; sleep 0.8; }
+up
+expect "the decision line above the options" 'text="Vai de Omelete de forno: ~360 kcal'
+expect "fit line of option 1" 'text="Passa 20 kcal da janela do Jantar"'
+echo "  A70: the S39 comparison fixture replayed (ceiling 2200, P 150, café and almoço eaten: 1250 · P 85)"
+FIXTURE="$ROOT/apps/android/app/src/test/resources/fixtures/s39-comparacao-hamburguer.json"
+command -v cygpath >/dev/null && FIXTURE="$(cygpath -m "$FIXTURE")"
+set_clock 0 16:40
+sql "$CLEAN"'
+slots = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+c.execute("update profile set ceilingMode=?, kcalSame=2200, eat=?, proteinTargetG=150, carbTargetG=240, fatTargetG=70", ("same", "zero"))
+c.execute("update day set workoutKcal=null")
+c.execute("delete from planned_meal")
+for slot, kcal, p, carbs, fat in [(slots[0], 450, 28, 48, 15), (slots[1], 800, 57, 95, 22)]:
+    c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "x", kcal, p, slot, carbs, fat, "user"))
+'
+fake_mode "{\"fixture\": \"$FIXTURE\"}"
+open_chat
+say "hoje%spulo%so%slanche%shamburguer%sduplo%sou%scom%sbatata%squal"; kb_off
+if has chat-budget-note; then echo "  ✗ budget note for the chosen option that fits"; FAIL=1; else echo "  ✓ no budget note"; fi
+"$ADB" exec-out screencap -p > "${A70_EVIDENCE:-$TMP}/a70-fixture-bottom-$THEME.png"
+# The bubble spans several screens: every line seen while scrolling up to its top.
+dump; cp "$TMP/ui.xml" "$TMP/seen.xml"
+for _ in 1 2 3 4; do up; dump; cat "$TMP/ui.xml" >> "$TMP/seen.xml"; done
+seen() { if grep -qE "$2" "$TMP/seen.xml"; then echo "  ✓ $1"; else echo "  ✗ $1"; FAIL=1; fi; }
+seen "the decision line first" 'text="Vai de Hambúrguer com batata rústica: ~680 kcal'
+seen "option 1 passes the window" 'text="Passa 130 kcal da janela do Jantar"'
+seen "day with option 1" 'text="Dia: ~2\.110 de 2\.200 kcal · P 153 de 150"'
+seen "option 2 fits" 'text="Cabe na janela do Jantar"'
+seen "day with option 2" 'text="Dia: ~1\.930 de 2\.200 kcal · P 124 de 150"'
+"$ADB" exec-out screencap -p > "${A70_EVIDENCE:-$TMP}/a70-fixture-top-$THEME.png"
+fake_mode '{}'
+sql "$CLEAN"'
+c.execute("delete from planned_meal")
+'
 fi
 
 "$ADB" shell settings put global auto_time 1
