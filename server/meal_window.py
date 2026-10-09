@@ -184,6 +184,38 @@ def served_numbers(slots: Sequence[Slot], expected: dict[str, int], remaining_kc
     return {n for n in out if n > 0}
 
 
+# A meal named at most this many words after a firm skip marker is the meal it skips.
+SKIP_REACH = 3
+
+
+def cued_skips(text: str, slots: Sequence[Slot], firm: Iterable[str], hold: Iterable[str]) -> list[str]:
+    """ADR-056 decision 6: the empty slots the message skips before generation, from the skip lexicon.
+
+    A clause (between punctuation) with a firm marker and no pending or hedge marker skips each empty slot whose
+    name follows the marker within SKIP_REACH words. Anything the lexicon does not cover is left to the model's
+    skip actions after generation.
+    """
+    firm_words = [_key(m).split() for m in firm]
+    hold_words = [f" {' '.join(_key(m).split())} " for m in hold]
+    names = [(s.id, _key(s.name).split()) for s in slots if s.status == "empty"]
+    out: list[str] = []
+    for clause in re.split(r"[.,;:!?\n]+", text or ""):
+        words = re.findall(r"\w+", _key(clause))
+        if any(h in f" {' '.join(words)} " for h in hold_words):
+            continue
+        for marker in firm_words:
+            for start in range(len(words) - len(marker) + 1):
+                if words[start:start + len(marker)] != marker:
+                    continue
+                after = words[start + len(marker):]
+                for slot_id, name in names:
+                    reach = after[: SKIP_REACH + len(name)]
+                    hit = any(reach[i:i + len(name)] == name for i in range(len(reach) - len(name) + 1))
+                    if name and hit and slot_id not in out:
+                        out.append(slot_id)
+    return out
+
+
 def typed_numbers(texts: Iterable[str]) -> set[int]:
     """Every whole number the user wrote (`300`, `1.200`, `250kcal`): the only figures a stated reservation may carry."""
     out: set[int] = set()

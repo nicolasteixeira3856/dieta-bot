@@ -141,6 +141,9 @@ class CheckTests(unittest.TestCase):
             "reply_any": ["colher"],
             "reply_format": True,
             "reply_markers": {"has": ["table"]},
+            "decision_line": True,
+            "option_over": {},
+            "reply_count": {"registrei": 0},
         }
         self.assertEqual(set(failing), set(KNOWN))
         results = _status(failing, output)
