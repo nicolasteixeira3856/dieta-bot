@@ -1,6 +1,6 @@
 # Execução autônoma — 07 para 08/10/2026
 
-Relatório da execução autônoma pedida pelo dono em 07/10/2026, pelo [runbook](../../sdd/autonomous-run.md). Ordem aprovada: [S30](../plans/completed/s30-tone-formatting-planned-slot.md) (partes A → B → C), depois [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) (partes A → D; a parte E foi entregue pelo A59).
+Relatório da execução autônoma pedida pelo dono em 07/10/2026, pelo [runbook](../../sdd/autonomous-run.md). Ordem aprovada: [S30](../plans/completed/s30-tone-formatting-planned-slot.md) (partes A → B → C), depois [A60](../../android/plans/completed/a60-tone-formatting-planned-skips.md) (partes A → D; a parte E foi entregue pelo A59).
 
 Concluída em 07/10/2026. Nenhuma parte ficou de fora; nenhuma validação falhou duas vezes.
 
@@ -9,7 +9,7 @@ Concluída em 07/10/2026. Nenhuma parte ficou de fora; nenhuma validação falho
 | Plano | Partes | Estado final | PR |
 |---|---|---|---|
 | [S30](../plans/completed/s30-tone-formatting-planned-slot.md) — tom, formatação e refeição planejada (servidor) | A → B → C, todas entregues | `Concluído` | [#174](https://github.com/nicolasteixeira3856/dieta-bot/pull/174) |
-| [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — escolha acima da janela, tom e fechamentos, respostas formatadas, reserva (app) | A → B → C → D, todas entregues; E entregue pelo A59, aceite manual pendente | `Pendente aprovação manual` | [#175](https://github.com/nicolasteixeira3856/dieta-bot/pull/175) |
+| [A60](../../android/plans/completed/a60-tone-formatting-planned-skips.md) — escolha acima da janela, tom e fechamentos, respostas formatadas, reserva (app) | A → B → C → D, todas entregues; E entregue pelo A59, aceite manual pendente | `Pendente aprovação manual` | [#175](https://github.com/nicolasteixeira3856/dieta-bot/pull/175) |
 
 - **Deploy:** S30 no servidor dev com `tools/deploy-gcp.ps1` (código do head do branch, igual ao mergeado), `GET /health` 200; smoke de cada parte com request ids no Results do S30. Nada em produção.
 - **Versão distribuída:** `0.0.18-dev` (versionCode 18, tag `dev-v0.0.18`) pelo Firebase App Distribution ao grupo `testers`, com as notas em pt-BR do A60 e dos pulos do A59 (o A59 ainda não tinha sido distribuído).

@@ -7,7 +7,7 @@
 - Related documentation: [D21](../../../design/plans/completed/d21-light-text-dim-contrast.md), [tokens](../../../tokens.md), [QA](../../../qa/README.md).
 - Prerequisites:
   - [D21](../../../design/plans/completed/d21-light-text-dim-contrast.md) `Concluído`: Light `text/dim` `#435463` in Figma, `docs/design/tokens.json` and the Light golds;
-  - [A61](../pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) merged (it is); no parallel Android plan.
+  - [A61](../completed/a61-chat-copy-scroll-capture-inline-actions.md) merged (it is); no parallel Android plan.
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a63-light-text-dim-client.md. Implemente o plano aprovado.`
 

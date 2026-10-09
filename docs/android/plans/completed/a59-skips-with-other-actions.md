@@ -1,6 +1,6 @@
 # Plan — A59 Skips next to other actions in the Chat
 
-- Status: Pendente aprovação manual
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Note: cancelled in PR #171 (scope folded into A60 part E) while it was being implemented; restored and merged as implemented by owner decision (07/10/2026). A60 carries it as part E, delivered.
 - Date: 07/10/2026
 - Owning context: `android`

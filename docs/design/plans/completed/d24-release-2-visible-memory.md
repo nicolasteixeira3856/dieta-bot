@@ -31,7 +31,7 @@ Code: `apps/android/.../feature/config`.
 
 ## Out of scope
 
-- Compose ([A69](../../../android/plans/pending_manual_validation/a69-visible-memory.md)). O6 onboarding. Other flows.
+- Compose ([A69](../../../android/plans/completed/a69-visible-memory.md)). O6 onboarding. Other flows.
 
 ## Validation
 
@@ -44,11 +44,11 @@ Code: `apps/android/.../feature/config`.
 
 ### Owner decision (08/10/2026, D23 review)
 
-Asked where the recipe list is opened from, the owner accepted the proposal to draw the Config entry of [A68](../../../android/plans/pending_manual_validation/a68-saved-recipes.md) here, since `cfg` changes in this plan anyway: a new block `DA TALI` between the note and `DADOS`, with two `Row/Setting` rows, **Receitas** and **O que a Tali sabe**, each with a chevron.
+Asked where the recipe list is opened from, the owner accepted the proposal to draw the Config entry of [A68](../../../android/plans/completed/a68-saved-recipes.md) here, since `cfg` changes in this plan anyway: a new block `DA TALI` between the note and `DADOS`, with two `Row/Setting` rows, **Receitas** and **O que a Tali sabe**, each with a chevron.
 
 ### Discovery (08/10/2026, before any write)
 
-Read only: `whoami` (Student team, seat Full), the `Componentes` page (`Chip/Log`, `Field/Number`, `Card/Note`, `Chip/Memory`), the `cfg` frame read in D23. Code and specifications: [memoria-push](../../../produto/specifications/memoria-push.md) rules 2–7 (fact `id` `P`/`D`/`T`, `category` `preference` | `portion` | `routine`, `slot` and kcal/P/C/G of a routine, days seen, temporary facts expire 3 days after creation), the dev tool `DevMemoryScreen.kt` (A23, layout only), [A69](../../../android/plans/pending_manual_validation/a69-visible-memory.md) scope 1.
+Read only: `whoami` (Student team, seat Full), the `Componentes` page (`Chip/Log`, `Field/Number`, `Card/Note`, `Chip/Memory`), the `cfg` frame read in D23. Code and specifications: [memoria-push](../../../produto/specifications/memoria-push.md) rules 2–7 (fact `id` `P`/`D`/`T`, `category` `preference` | `portion` | `routine`, `slot` and kcal/P/C/G of a routine, days seen, temporary facts expire 3 days after creation), the dev tool `DevMemoryScreen.kt` (A23, layout only), [A69](../../../android/plans/completed/a69-visible-memory.md) scope 1.
 
 `memL` (Config → O que a Tali sabe):
 
@@ -108,6 +108,6 @@ Figma MCP budget: 6 of 40 calls (whoami, 1 read, 2 writes, 1 failed write retrie
 - Inventory: `memL.png` added to [docs/qa/README.md](../../../qa/README.md); the golds-per-flow table of the [plans README](../README.md) gains the visible-memory row.
 - `node tools/check-figma.mjs`: 106 golds verified (53 dark + 53 light). `node tools/check-docs.mjs` passes.
 - Gold check of the current app (no `apps/` change; `GoldTest.cfg*`, `--rerun`): all eight pass. `cfg` blurred 0.24 % Dark and 0.11 % Light (the test draws the frame at its 1104 dp qualifier, above the new block); `cfgR`, `cfgS`, `cfgT` unchanged.
-- **Hand-over:** [A68](../../../android/plans/pending_manual_validation/a68-saved-recipes.md) and [A69](../../../android/plans/pending_manual_validation/a69-visible-memory.md) draw the `DA TALI` block (the first of them adds the block with its own row) and move the `cfg` qualifier to 1271 dp; A69 draws `memL`.
+- **Hand-over:** [A68](../../../android/plans/completed/a68-saved-recipes.md) and [A69](../../../android/plans/completed/a69-visible-memory.md) draw the `DA TALI` block (the first of them adds the block with its own row) and move the `cfg` qualifier to 1271 dp; A69 draws `memL`.
 
 Figma MCP budget: 6 of 40 calls in total.

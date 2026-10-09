@@ -116,15 +116,6 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 ### Planos e validação
 
 - [A70 — Decision line, fit and day projection per option in the plan bubble](plans/a70-option-fit-and-projection.md): awaiting approval; needs S39 on the dev server and D26.
-- [A64 — Chat context fields, day balance, Anotado, waiting state](plans/pending_manual_validation/a64-chat-context-fields-day-balance.md): delivered in the run of A64–A69 ([report](validation/batch-2026-10-08-a64-a69.md)), awaiting the owner's device acceptance.
-- [A65 — Workout energy recorded from the Chat](plans/pending_manual_validation/a65-workout-via-chat.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
-- [A66 — Typed actions applied as one batch](plans/pending_manual_validation/a66-typed-actions-batch.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
-- [A67 — Plan options in the bubble; discovery on the first opening](plans/pending_manual_validation/a67-plan-options-and-discovery.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
-- [A68 — Saved recipes](plans/pending_manual_validation/a68-saved-recipes.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
-- [A69 — "O que a Tali sabe": memory screen in Config](plans/pending_manual_validation/a69-visible-memory.md): delivered in the run of A64–A69, awaiting the owner's device acceptance.
-- [A59 — Skips next to other actions in the Chat](plans/pending_manual_validation/a59-skips-with-other-actions.md): part E of A60, restored from `cancelled/` by owner decision (07/10/2026).
-- [A60 — Budget choice, tone and closures, rich replies, planned meal and skips](plans/pending_manual_validation/a60-tone-formatting-planned-skips.md): parts A–D delivered, awaiting the owner's device acceptance.
-- [A61 — Chat actions in the thread, copying messages, scrolling screenshot](plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md): parts A–C delivered, awaiting the owner's device acceptance.
 - Cancelados (decisão do dono, 07/10/2026, um plano por contexto): A50, A55, A57, A58 em [`plans/cancelled/`](plans/cancelled/).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md), [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md).
 - Histórico: [`plans/completed/`](plans/completed/).

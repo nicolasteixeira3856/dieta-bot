@@ -431,9 +431,9 @@ OUT
 - [S29](server/plans/completed/s29-skip-slots.md) — skip slots next to any intent
 - [S24](server/plans/completed/s24-protein-first-plan.md) — the limit is the meal window; computed reservations in `reserved`; `(opcional)` protein items
 - [S30](server/plans/completed/s30-tone-formatting-planned-slot.md) — `profile.tone`, `POST /v1/close`, the `reply` formatting subset and `status: planned`
-- [A64](android/plans/pending_manual_validation/a64-chat-context-fields-day-balance.md) — the Android client sends routine macros and `recent_days`
-- [A65](android/plans/pending_manual_validation/a65-workout-via-chat.md) — the Android client records `workout`
-- [A66](android/plans/pending_manual_validation/a66-typed-actions-batch.md) — the Android client applies `actions`
-- [A67](android/plans/pending_manual_validation/a67-plan-options-and-discovery.md) — the Android client shows plan `options` and sends `discovery`
-- [A68](android/plans/pending_manual_validation/a68-saved-recipes.md) — the Android client sends `recipes` and `recipe_full`
+- [A64](android/plans/completed/a64-chat-context-fields-day-balance.md) — the Android client sends routine macros and `recent_days`
+- [A65](android/plans/completed/a65-workout-via-chat.md) — the Android client records `workout`
+- [A66](android/plans/completed/a66-typed-actions-batch.md) — the Android client applies `actions`
+- [A67](android/plans/completed/a67-plan-options-and-discovery.md) — the Android client shows plan `options` and sends `discovery`
+- [A68](android/plans/completed/a68-saved-recipes.md) — the Android client sends `recipes` and `recipe_full`
 - [S39](server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md) — `options[].over_kcal`; the action's estimate is the chosen option

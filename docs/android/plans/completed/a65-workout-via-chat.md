@@ -1,6 +1,6 @@
 # Plan — A65 Workout energy recorded from the Chat
 
-- Status: Pendente aprovação manual (approved 08/10/2026 in the owner's batch message A64–A69; code, tests and emulator checks done; the device smoke on a dev build is the owner's manual acceptance)
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: Chat response handling (`workout`), `commitRecord` path for `day.workoutKcal`, receipt and Desfazer, tests, captures.

@@ -66,6 +66,6 @@ Dono: produto. Implementação: `android`.
 - [A46](../../android/plans/completed/a46-input-cursor-keyboard.md) — Cursor no fim do valor e campo acima do teclado
 - [A49](../../android/plans/completed/a49-fibrai-tali-visible-rename.md) — Fibrai e Tali no app
 - [A53](../../android/plans/completed/a53-config-app-reset.md) — Config: resetar o app
-- [A60](../../android/plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — O5: o tom da Tali
+- [A60](../../android/plans/completed/a60-tone-formatting-planned-skips.md) — O5: o tom da Tali
 - [D20](../../design/plans/completed/d20-figma-review-inline-actions.md) — contador `n/5` nos golds da O1–O4
-- [A61](../../android/plans/pending_manual_validation/a61-chat-copy-scroll-capture-inline-actions.md) — contador `n/5`, captura de tela com rolagem
+- [A61](../../android/plans/completed/a61-chat-copy-scroll-capture-inline-actions.md) — contador `n/5`, captura de tela com rolagem

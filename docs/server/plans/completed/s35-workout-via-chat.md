@@ -27,7 +27,7 @@ Approving this plan accepts ADR-049. Authorization and delivery follow [SDD](../
 
 ## Out of scope
 
-- The app recording the number and the credit: [A65](../../../android/plans/pending_manual_validation/a65-workout-via-chat.md). Inferred energy, exercise advice.
+- The app recording the number and the credit: [A65](../../../android/plans/completed/a65-workout-via-chat.md). Inferred energy, exercise advice.
 
 ## Validation
 

@@ -1,6 +1,6 @@
 # Plan — A64 Chat context fields, day balance in the receipt, "Anotado" line, waiting state
 
-- Status: Pendente aprovação manual (approved 08/10/2026 in the owner's batch message A64–A69; code, tests, captures and an emulator smoke against the dev server done; the routine-with-macros turn on the owner's dev install is the manual acceptance)
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 08/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: `PromptBuilder` (facts macros, `recent_days`), the receipt composable (balance line), `FactMemory` application ("Anotado: …"), the Chat waiting state, unit tests, captures.

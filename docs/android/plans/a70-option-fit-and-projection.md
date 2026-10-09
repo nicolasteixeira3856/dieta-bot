@@ -4,7 +4,7 @@
 - Date: 09/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` only: plan bubble with options (`ChatViewModel` option views and text split, `ChatScreen` option block, `ChatUiState`), `PlanBudget` on the chosen option, `DayBalance` projection per option, `tools/fake-chat-server.mjs` mode, `tools/capture-chat.sh` scene, tests, captures.
-- Prerequisites: [S39](../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md) on the dev server; [A67](pending_manual_validation/a67-plan-options-and-discovery.md) delivered; [D26](../../design/plans/completed/d26-release-2-option-decision.md) `Concluído` (gold `chatO` redrawn).
+- Prerequisites: [S39](../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md) on the dev server; [A67](completed/a67-plan-options-and-discovery.md) delivered; [D26](../../design/plans/completed/d26-release-2-option-decision.md) `Concluído` (gold `chatO` redrawn).
 - Related documentation: [ADR-056](../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md), [ADR-039](../../produto/adrs/ADR-039-plan-cooking-and-budget-choice.md), [ADR-051](../../produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md), [product Chat](../../produto/specifications/chat.md), [HTTP contract](../../api-contract.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/android/plans/a70-option-fit-and-projection.md. Implemente o plano aprovado.`

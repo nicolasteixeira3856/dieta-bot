@@ -1,6 +1,6 @@
 # Plan — A61 Chat actions in the thread, copying messages, scrolling screenshot
 
-- Status: Pendente aprovação manual (aprovado e implementado 07/10/2026)
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 07/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` only, in three parts on one branch: (A) Chat actions in the thread plus the `app gap` items D20 hands over; (B) copying messages the WhatsApp way (selection bar with Copiar); (C) scrolling screenshot on every scrollable product screen. Plus the QA tooling `tools/capture-chat.sh`, a new `tools/capture-scroll.sh`, `tools/diff-gold.mjs` and `GoldTest`. No server change, no Room change.

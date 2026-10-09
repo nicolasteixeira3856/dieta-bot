@@ -63,8 +63,8 @@ Android owns the database. Schema version 15. The file is `fibrai.db` ([ADR-036]
 - [A34](../plans/completed/a34-registro-autonomo.md) — Autonomous record, receipts with actions
 - [A38](../plans/completed/a38-fatos-temporarios-compactacao.md) — Temp facts on the device, suggested slot in the history, compaction that keeps the open tail
 - [A47](../plans/completed/a47-chat-meal-updates.md) — Chat meal updates
-- [A59](../plans/pending_manual_validation/a59-skips-with-other-actions.md) — Skips next to other actions in the Chat
-- [A60](../plans/pending_manual_validation/a60-tone-formatting-planned-skips.md) — v12: plan budget, tone, closures, planned meal
-- [A64](../plans/pending_manual_validation/a64-chat-context-fields-day-balance.md) — v13: the facts an answer noted
-- [A66](../plans/pending_manual_validation/a66-typed-actions-batch.md) — v14: the typed actions of an answer
-- [A68](../plans/pending_manual_validation/a68-saved-recipes.md) — v15: saved recipes and the version a record used
+- [A59](../plans/completed/a59-skips-with-other-actions.md) — Skips next to other actions in the Chat
+- [A60](../plans/completed/a60-tone-formatting-planned-skips.md) — v12: plan budget, tone, closures, planned meal
+- [A64](../plans/completed/a64-chat-context-fields-day-balance.md) — v13: the facts an answer noted
+- [A66](../plans/completed/a66-typed-actions-batch.md) — v14: the typed actions of an answer
+- [A68](../plans/completed/a68-saved-recipes.md) — v15: saved recipes and the version a record used

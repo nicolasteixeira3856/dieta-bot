@@ -1,6 +1,6 @@
 # Plan — A60 Budget choice, tone and closures, rich replies, planned meal and skips (app)
 
-- Status: Pendente aprovação manual
+- Status: Concluído (09/10/2026, owner acceptance: "todos os planos pendentes de minha revisão no Android estão aprovados")
 - Date: 07/10/2026
 - Owning context: `android`
 - Executable boundary: `apps/android/` only, in five parts delivered in order on one branch: (A) the over-budget choice in the Chat; (B) tone choice at onboarding and in Config, day and week closures; (C) the reply formatting subset rendered in the bubbles; (D) reserving a plan for its meal; (E) skips next to other actions. Plus the QA tooling `tools/fake-chat-server.mjs` and `tools/capture-*.sh`. One Room version for the whole plan: every column and table of the five parts goes into one migration decided at the start of part A (non-destructive, exported schema, migration test), so later parts add no version.

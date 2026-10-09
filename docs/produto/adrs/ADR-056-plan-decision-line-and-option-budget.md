@@ -9,7 +9,7 @@
 
 On 09/10/2026 the owner compared, on the dev app, one answer of Tali with the same request answered by Grok: a dinner with two alternatives the user named, a skip of the afternoon meal in the same message, a preparation appliance named. The dev conversation log ([ADR-015](../../server/adrs/ADR-015-log-conversa-dev.md)) showed six general gaps, none tied to the foods of that case:
 
-1. The app shows only the first line of a plan with options ([A67](../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md), ADR-051): that line was `Opção 1: …`, so the recommendation the model wrote in its third paragraph never reached the screen.
+1. The app shows only the first line of a plan with options ([A67](../../android/plans/completed/a67-plan-options-and-discovery.md), ADR-051): that line was `Opção 1: …`, so the recommendation the model wrote in its third paragraph never reached the screen.
 2. The meal window served to the model and the `plan_budget` counted the meal the same message skipped ([ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) reservation, [ADR-047](ADR-047-skips-alongside-other-actions.md) skip): the limit was wrong by that meal's reservation and the `Passa {over} kcal` note contradicted the recommendation.
 3. The budget and the closing lines ([ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) decision 6) were computed on option 1 because the action's estimate is option 1 by contract, not on the option the reply recommended; a closing line with a few kcal for the last meal followed.
 4. The appliance named in the message did not make it a cooking plan: no steps, no `recipe` ([ADR-052](ADR-052-saved-recipes.md)).
