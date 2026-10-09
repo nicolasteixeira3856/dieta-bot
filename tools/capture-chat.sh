@@ -24,7 +24,10 @@
 #   selects (1), a tap on the reply adds it (2), a tap on a receipt changes nothing (chatCP), Copiar ends the selection and
 #   Colar in the composer gives both messages as plain text (PASTE=1, see the scene); the app's copy confirmation
 #   (chatCC) on Android 12 and earlier only (an API 30 AVD at gold geometry); back and ✕ end the selection.
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61] tools/capture-chat.sh dark|light
+# SCENES=a64 only onboarding + A64: recent_days on the wire, the day balance on the newest receipt, the projection of an
+#   `ask` estimate, `Anotado:` for an explicit permanent fact, `Tali está pensando…` after 4 s, and chatF seeded (with the
+#   balance line in the receipt) and chatL.
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -1293,7 +1296,8 @@ echo "  A61 part B: the copy confirmation (the app's own on Android 12 and earli
 open_chat
 hold "chat-row-u-$uid"
 tap 'resource-id="chat-copy"' 0.3
-if [ "$("$ADB" shell getprop ro.build.version.sdk | tr -d '')" -le 32 ]; then
+if [ "$("$ADB" shell getprop ro.build.version.sdk | tr -d '
+')" -le 32 ]; then
   expect "Mensagem copiada above the composer" 'text="Mensagem copiada"'
   shot chatCC 0.2
   sleep 2.5
@@ -1310,6 +1314,103 @@ hold "chat-row-a-$aid"
 tap 'resource-id="chat-selection-close"' 1
 if has chat-selection; then echo "  ✗ ✕ kept the selection"; FAIL=1; else echo "  ✓ ✕ ends the selection"; fi
 "$ADB" shell am force-stop $PKG
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a64 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+recent_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; d=json.load(sys.stdin)['recentDays'] or []; print(len(d), d[0]['recorded'] if d else None, d[0]['kcal'] if d else None)"; }
+set_clock 0 20:15
+echo "  A64: recent_days on the wire (yesterday's dinner), the day balance on the receipt"
+sql "$CLEAN"'
+import datetime
+yesterday = (datetime.date.fromisoformat(today) - datetime.timedelta(days=1)).isoformat()
+c.execute("update profile set firstDay = ?", ((datetime.date.fromisoformat(today) - datetime.timedelta(days=3)).isoformat(),))
+jantar = c.execute("select id from meal_slot where name like ?", ("Jan%",)).fetchone()[0]
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)",
+          (yesterday, "", "frango e arroz", 900, 50, jantar, 80, 20, "user"))
+'
+fake_mode '{"record": "auto"}'
+open_chat
+say "comi%s2%spaes%se%s2%sovos"; kb_off
+got=$(recent_sent)
+[ "$got" = "3 True 900" ] && echo "  ✓ recent_days: 3 days, yesterday recorded with 900 kcal" || { echo "  ✗ recent_days sent: $got"; FAIL=1; }
+expect "balance line on the receipt" 'resource-id="chat-receipt-balance"'
+expect "balance: 380 de ... kcal" 'text="380 de [0-9.]+ kcal · faltam [0-9]+ g de proteína"'
+
+echo "  A64: an ask estimate projects the day; Registrar moves it to the receipt"
+fake_mode '{"record": "ask", "slot": "Jan"}'
+say "frango%scom%sarroz"; kb_off
+expect "projection under the estimate" 'text="Projeção: 760 de [0-9.]+ kcal'
+tap 'resource-id="chat-register"' 1.5
+expect "after Registrar: the balance on the new receipt" 'text="760 de [0-9.]+ kcal'
+if has chat-projection; then echo "  ✗ projection left after Registrar"; FAIL=1; else echo "  ✓ no projection after Registrar"; fi
+
+echo "  A64: an explicit permanent fact is noted as stored"
+sql "$CLEAN"
+fake_mode '{"routine": true}'
+open_chat
+say "cafe%sde%ssempre"; kb_off
+expect "Anotado line" 'text="Anotado: Usa leite semidesnatado"'
+
+echo "  A64: after 4 s without an answer, Tali está pensando…"
+sql "$CLEAN"
+mode true
+open_chat
+tap 'resource-id="chat-suggestion-0"'
+tap 'resource-id="chat-send"' 0.5
+expect "loading copy first" 'resource-id="chat-loading-text"'
+sleep 4.5
+expect "waiting copy after 4 s" 'resource-id="chat-thinking"'
+mode false
+"$ADB" shell am force-stop $PKG
+
+echo "  A64 gold: chatL"
+sql "$CLEAN"
+mode true
+open_chat
+tap 'resource-id="chat-suggestion-0"'
+# The shot comes before any dump: a dump takes seconds and the copy changes at 4 s.
+tap 'resource-id="chat-send"' 1
+shot chatL 0.1
+expect "loading bubble, still the first copy" 'resource-id="chat-loading-text"'
+mode false
+"$ADB" shell am force-stop $PKG
+
+echo "  A64 gold: chatF (seeded as capture-photo.sh does, the receipt with its balance line)"
+"$PY" - "$TMP/prato.jpg" "$ROOT" <<'PYEOF'
+import sys
+from PIL import Image
+root = sys.argv[2]
+Image.open(root + "/docs/qa/_legacy/stitch/dark/chatF.png").convert("RGB").crop((238, 392, 722, 662)).resize((2000, 1116), Image.LANCZOS).save(sys.argv[1], "JPEG", quality=85)
+PYEOF
+"$ADB" push "$TMP/prato.jpg" /data/local/tmp/chatf.jpg >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/chatf.jpg
+"$ADB" shell run-as $PKG sh -c "'mkdir -p files/photos; cp /data/local/tmp/chatf.jpg files/photos/chatf.jpg'"
+set_clock 0 12:41
+sql "$CLEAN"'
+import json
+slots = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+almoco = slots[1]
+c.execute("update meal_slot set name=?, minutesFromMidnight=750 where id=?", ("Almoço", almoco))
+now = int(time.time() * 1000)
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,photoPath) values(?,?,?,?,?)",
+          (today, "user", "Almoço de hoje", now - 2000, "/data/user/0/app.fibrai.android.dev/files/photos/chatf.jpg"))
+text = "Identifiquei um Prato Feito com filé de frango grelhado, arroz, feijão e salada verde."
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
+          "estimateConfidence,estimateSlotId,estimateItems,intent,recordMode,recordState) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", text, now - 1000, 680, 48, 82, 18, "high", almoco, "Prato Feito", "log", "auto", "recorded"))
+rec = {"text": text, "kcal": 680, "p": 48, "c": 82, "g": 18, "source": "photo", "window": "", "stable": True}
+c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)",
+          (today, "", text, 680, 48, almoco, 82, 18, "photo"))
+undo = {"slots": [{"date": today, "slotId": almoco, "before": {"records": [], "skipped": False}, "after": {"records": [rec], "skipped": False}}]}
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateSlotId,undoData,recordSource) values(?,?,?,?,?,?,?,?)",
+          (today, "logged", "Almoço", now - 500, 680, almoco, json.dumps(undo), "photo"))
+'
+open_chat
+expect "chatF: receipt with Excluir and Trocar refeição" 'chat-receipt-delete.*chat-receipt-move'
+expect "chatF: the balance line" 'text="680 de [0-9.]+ kcal · faltam [0-9]+ g de proteína"'
+shot chatF
+sql "$CLEAN"
 fi
 
 "$ADB" shell settings put global auto_time 1

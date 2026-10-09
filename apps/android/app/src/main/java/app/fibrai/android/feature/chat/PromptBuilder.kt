@@ -1,5 +1,6 @@
 package app.fibrai.android.feature.chat
 
+import app.fibrai.android.core.closure.DayTotals
 import app.fibrai.android.core.database.ChatMessageEntity
 import app.fibrai.android.core.database.DayDigestEntity
 import app.fibrai.android.core.database.DayRepository
@@ -16,6 +17,7 @@ import app.fibrai.android.core.network.ChatFact
 import app.fibrai.android.core.network.ChatIn
 import app.fibrai.android.core.network.ChatPendingAddition
 import app.fibrai.android.core.network.ChatProfile
+import app.fibrai.android.core.network.ChatRecentDay
 import app.fibrai.android.core.network.ChatRecentMeal
 import app.fibrai.android.core.network.ChatSlot
 import app.fibrai.android.core.network.ChatTurn
@@ -84,6 +86,8 @@ object PromptBuilder {
         pendingAddition: ChatPendingAddition? = null,
         /** A60 part A: Ajustar para caber, the target of the adjusted plan; null otherwise. */
         fitKcal: Int? = null,
+        /** A64: the days before today as the closures read them ([recentDays]); empty = not sent. */
+        pastDays: List<DayTotals> = emptyList(),
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -102,6 +106,7 @@ object PromptBuilder {
                 text = ChatText.clip(text),
                 compact = false,
                 recent = recent(recentLogs, day.slots, today),
+                recentDays = recentDays(pastDays, day.slotsOn(today).map { it.id.toString() }.toSet(), today),
                 facts = chatFacts(facts, day.slotsOn(today).map { it.id.toString() }.toSet()),
                 clarifyRounds = clarifyRounds(todayMessages),
                 forceEstimate = forceEstimate,
@@ -238,12 +243,51 @@ object PromptBuilder {
             slot = it.slot?.takeIf { slot -> slot in todaySlots },
             daysSeen = if (it.temp) 1 else it.days.size,
             lastSeen = if (it.temp) it.created else it.lastSeen,
-        )
+        ).withMacros(it)
     }
+
+    /** A64 (S33): a routine or liked dish goes with its numbers when it has all four; otherwise none of them. */
+    private fun ChatFact.withMacros(fact: Fact): ChatFact {
+        if (fact.category !in MACRO_CATEGORIES) return this
+        val kcal = fact.kcal?.takeIf { it in 0..FACT_KCAL_MAX } ?: return this
+        val p = fact.p?.takeIf { it in 0..FACT_GRAMS_MAX } ?: return this
+        val c = fact.c?.takeIf { it in 0..FACT_GRAMS_MAX } ?: return this
+        val g = fact.g?.takeIf { it in 0..FACT_GRAMS_MAX } ?: return this
+        return copy(kcal = kcal, p = p, c = c, g = g)
+    }
+
+    private val MACRO_CATEGORIES = setOf("routine", "liked")
+    private const val FACT_KCAL_MAX = 5000
+    private const val FACT_GRAMS_MAX = 1000
+
+    /**
+     * A64 (S33 `recent_days`): the [days] before [today], newest first, at most 7, none before the first day of the app
+     * ([DayTotals] of days the user was not using it would read as days without record). A slot id outside [todaySlots]
+     * (a slot of another weekday or deleted) is left out: the server accepts only profile slots.
+     */
+    fun recentDays(days: List<DayTotals>, todaySlots: Set<String>, today: LocalDate): List<ChatRecentDay> = days
+        .filter { it.date.isBefore(today) && !it.date.isBefore(today.minusDays(DayRepository.RECENT_DAYS)) }
+        .sortedByDescending { it.date }
+        .take(DayRepository.RECENT_DAYS.toInt())
+        .map { day ->
+            val share = if (day.meals.isEmpty()) 0 else day.ceilingKcal / day.meals.size
+            val over = day.meals.filter { it.eaten && it.kcal > share }.maxByOrNull { it.kcal - share }
+            ChatRecentDay(
+                date = day.date.toString(),
+                recorded = day.totals.kcal > 0 || day.meals.any { it.eaten },
+                kcal = day.totals.kcal.coerceAtLeast(0),
+                p = day.totals.p.coerceAtLeast(0),
+                c = day.totals.c.coerceAtLeast(0),
+                g = day.totals.g.coerceAtLeast(0),
+                ceilingKcal = day.ceilingKcal.coerceAtLeast(1),
+                overSlot = over?.slotId?.toString()?.takeIf { it in todaySlots },
+                missingSlots = day.meals.filter { !it.eaten && !it.skipped }.map { it.slotId.toString() }.filter { it in todaySlots },
+            )
+        }
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, pendingAddition = null, skipSlots = false, planBudget = false, fitKcal = null)
+        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), pendingAddition = null, skipSlots = false, planBudget = false, fitKcal = null)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {

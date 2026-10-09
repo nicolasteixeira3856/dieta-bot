@@ -93,6 +93,10 @@ sealed interface ChatItem {
         val reservedFor: String? = null,
         /** A60 part C (chatR, chatE, chatRK): the reply's subset blocks; null = plain prose. */
         val blocks: List<app.fibrai.android.domain.ReplyBlock>? = null,
+        /** A64: `Projeção: …` below an estimate still waiting for Registrar; the day with it, computed by the app. */
+        val projection: String? = null,
+        /** A64 (ADR-053 § 2): one `Anotado: {text}` line per permanent fact this answer saved, as stored. */
+        val noted: List<String> = emptyList(),
     ) : ChatItem {
         override val key = "a-$id"
     }
@@ -154,6 +158,8 @@ sealed interface ChatItem {
         val moveConfirm: ReplaceConfirm? = null,
         /** A60 part D: a record into a reserved meal, `Plano: {kcal} · Registrado: {kcal} ({+n} kcal)`. */
         val planLine: String? = null,
+        /** A64: the day after the record, on today's newest active record receipt only (`{eaten} de {ceiling} kcal · …`). */
+        val balance: String? = null,
     ) : ChatItem {
         override val key = "r-$id"
         val skipped: Boolean get() = kind == ReceiptKind.SKIPPED
@@ -170,6 +176,11 @@ sealed interface ChatItem {
     }
 
     data object Loading : ChatItem {
+        override val key = "loading"
+    }
+
+    /** A64 (ADR-054 § 3): the same bubble after [ChatViewModel.WAITING_MS] without an answer, `Tali está pensando…`. */
+    data object Thinking : ChatItem {
         override val key = "loading"
     }
 

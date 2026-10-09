@@ -74,6 +74,11 @@ data class ChatMessageEntity(
      * the local choice (Pode passar). Null = no budget check (older row, older server or not a plan).
      */
     val planBudget: String? = null,
+    /**
+     * Assistant rows (A64, v13): the text of each permanent fact this answer saved from an explicit statement, as stored in
+     * the memory, one per line; drawn as `Anotado: {text}` (ADR-053 § 2). Null = none.
+     */
+    val noted: String? = null,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

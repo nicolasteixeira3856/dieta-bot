@@ -92,6 +92,8 @@ internal fun ReceiptCard(
                 }
                 if (item.kind != ReceiptKind.RESTORED) receiptChip(item)?.let { KcalChip(it) }
                 item.planLine?.let { AeroText(it, Modifier.testTag("chat-receipt-plan"), style = type.caption.copy(color = c.textMuted)) }
+                // A64: the day after the record, in the receipt's caption line (as the plan line of A60 part D).
+                item.balance?.let { AeroText(it, Modifier.testTag("chat-receipt-balance"), style = type.caption.copy(color = c.textMuted)) }
             }
             item.mark?.let { ReceiptMarkLabel(it) }
         }

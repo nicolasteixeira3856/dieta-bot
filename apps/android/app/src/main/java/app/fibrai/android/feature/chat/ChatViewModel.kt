@@ -3,6 +3,8 @@ package app.fibrai.android.feature.chat
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.fibrai.android.core.closure.DayTotals
+import app.fibrai.android.core.closure.dayTotals
 import app.fibrai.android.core.database.ChatMessageEntity
 import app.fibrai.android.core.database.slotsOfDay
 import app.fibrai.android.core.database.DayRepository
@@ -24,6 +26,7 @@ import app.fibrai.android.core.telemetry.TelemetryEvents
 import app.fibrai.android.core.database.RecordGuard
 import app.fibrai.android.core.database.SkipMove
 import app.fibrai.android.domain.ChatText
+import app.fibrai.android.domain.DayBalance
 import app.fibrai.android.domain.EstimateNumbers
 import app.fibrai.android.domain.MealChanges
 import app.fibrai.android.domain.MealProposal
@@ -155,6 +158,8 @@ class ChatViewModel @Inject constructor(
         val selectedWipe: Long = 0,
         /** A61 part B (chatCC, Android 12 and earlier): messages just copied, for the app's own confirmation. */
         val copied: Int? = null,
+        /** A64 (ADR-054 § 3): the pending send has waited [WAITING_MS]; the loading bubble says Tali is thinking. */
+        val slow: Boolean = false,
     )
 
     private sealed interface Sheet {
@@ -471,7 +476,21 @@ class ChatViewModel @Inject constructor(
         captureFile?.let { photos.delete(it.path) }
     }
 
+    /** One turn; after [WAITING_MS] without an answer the loading bubble changes its copy (A64, ADR-054 § 3). */
     private suspend fun post(text: String, photo: String? = null, force: Boolean = false, fit: Int? = null) {
+        val waiting = viewModelScope.launch {
+            delay(WAITING_MS)
+            local.update { it.copy(slow = true) }
+        }
+        try {
+            postTurn(text, photo, force, fit)
+        } finally {
+            waiting.cancel()
+            local.update { it.copy(slow = false) }
+        }
+    }
+
+    private suspend fun postTurn(text: String, photo: String?, force: Boolean, fit: Int?) {
         val sentAt = clock.now()
         val date = SaoPaulo.date(sentAt).toString()
         val today = repository.messagesOf(date)
@@ -495,6 +514,8 @@ class ChatViewModel @Inject constructor(
         // An unreadable memory never blocks the turn: it goes empty.
         val facts = runCatching { memory.read(SaoPaulo.date(sentAt)).facts }.getOrDefault(emptyList())
         val recentLogs = repository.recentLogs()
+        // A64: the totals of the days before today; a failed read never blocks the turn.
+        val pastDays = runCatching { pastDays(snapshot, SaoPaulo.date(sentAt)) }.onFailure { if (it is CancellationException) throw it }.getOrDefault(emptyList())
         val image = photo?.let { photos.base64(it) }
         if (photo != null && image == null) {
             chatResult("error")
@@ -503,7 +524,7 @@ class ChatViewModel @Inject constructor(
         }
         var turn = PromptBuilder.build(
             snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force, pendingAddition = pendingAddition,
-            fitKcal = fit,
+            fitKcal = fit, pastDays = pastDays,
         )
         if (turn.needsCompact) {
             // A38: the oldest block(s), the open tail stays raw. A failed compact never fails the turn: nothing
@@ -520,7 +541,7 @@ class ChatViewModel @Inject constructor(
                 digests = repository.digestsToday()
                 turn = PromptBuilder.build(
                     snapshot, today, digests, text, sentAt, facts = facts, recentLogs = recentLogs, forceEstimate = force,
-                    pendingAddition = pendingAddition, fitKcal = fit,
+                    pendingAddition = pendingAddition, fitKcal = fit, pastDays = pastDays,
                 )
             }
             if (stored > 0) {
@@ -584,7 +605,7 @@ class ChatViewModel @Inject constructor(
         } else {
             out.memoryUpdates.partition { it.waitsForRecord }.let { (r, i) -> (if (fresh) r else emptyList()) to i }
         }
-        val updated = applyMemory(immediate.map { it.toDomain() })
+        val applied = applyMemory(immediate.map { it.toDomain() })
         val answerId = repository.insertMessage(
             role = "assistant",
             // Question only: the server's history text (draft + question), sent back as is next turn.
@@ -601,13 +622,14 @@ class ChatViewModel @Inject constructor(
             intent = intent,
             pendingMemory = routine.takeIf { it.isNotEmpty() }?.let { memoryJson.encodeToString(UPDATES, it) },
             memoryUsedKinds = usedKinds(out.memoryUsed, facts),
-            memoryUpdated = updated,
+            memoryUpdated = applied?.changed == true,
             recordMode = recordMode,
             recordState = recordState,
             mealChange = proposal?.encode(),
             skipOutcomes = skips?.encode(),
             // A60 part A: only a plan with its estimate carries the budget check; malformed or absent = no choice UI.
             planBudget = PlanBudget.parse(out.planBudget)?.takeIf { intent == "plan" && out.estimate != null }?.encode(),
+            noted = applied?.let(::notedOf),
         )
         local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null, pendingFit = null) }
         proposal?.let { proposalShown(it, fresh) }
@@ -836,13 +858,30 @@ class ChatViewModel @Inject constructor(
         mapOf("kind" to kind, "slot_state" to slotState, "source" to source, "rounds" to rounds),
     )
 
-    /** Applies [updates]; true when at least one changed the memory. A failed write changes nothing. */
-    private suspend fun applyMemory(updates: List<MemoryUpdate>): Boolean {
-        if (updates.isEmpty()) return false
-        val result = runCatching { memory.apply(updates, SaoPaulo.date(clock.now())) }.getOrNull() ?: return false
+    /** Applies [updates]; null when there was nothing to apply or the write failed (nothing changed). */
+    private suspend fun applyMemory(updates: List<MemoryUpdate>): MemoryResult? {
+        if (updates.isEmpty()) return null
+        val result = runCatching { memory.apply(updates, SaoPaulo.date(clock.now())) }.getOrNull() ?: return null
         memoryChanged(result)
         reloadFacts()
-        return result.changed
+        return result
+    }
+
+    /**
+     * A64 (ADR-053 § 2): the permanent facts [result] added or rewrote from an explicit statement, as stored, one per line;
+     * null when none. A promoted fact or an untouched text is not news.
+     */
+    private fun notedOf(result: MemoryResult): String? = result.images
+        .mapNotNull { image -> image.after?.takeIf { it.permanent && it.source == MemoryRules.EXPLICIT && it.text != image.before?.text } }
+        .joinToString("\n") { it.text }
+        .ifEmpty { null }
+
+    /** A64: the days before today since the first day of the app, as the closures read them. */
+    private suspend fun pastDays(snapshot: DaySnapshot, today: LocalDate): List<DayTotals> {
+        val first = snapshot.firstDay.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        return (1..DayRepository.RECENT_DAYS).map { today.minusDays(it) }
+            .filter { first == null || !it.isBefore(first) }
+            .map { repository.dayTotals(snapshot, it) }
     }
 
     private fun memoryChanged(result: MemoryResult) {
@@ -1324,6 +1363,10 @@ class ChatViewModel @Inject constructor(
             ?.let { PlanBudget.decode(it.planBudget) }?.takeIf { it.choosing }
         val stalePending = mutableListOf<ChatMessageEntity>()
         val wipeToday = todayRows.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
+        // A64: the day balance rides on today's newest active record receipt; an estimate waiting for Registrar projects it.
+        val meta = d.metaOn(today)
+        val balanceReceipt = todayRows.lastOrNull { it.role in BALANCE_RECEIPTS && it.receiptState == null && (wipeToday == null || it.id > wipeToday) }?.id
+        val balance = DayBalance.line(eaten, meta, d.proteinTargetG)
         wipeMark = wipeToday ?: 0L
 
         val items = mutableListOf<ChatItem>()
@@ -1345,6 +1388,7 @@ class ChatViewModel @Inject constructor(
             val time = timeOf(m.createdAtEpochMs)
             if (m.role in ReceiptRules.ROLES) {
                 items += receipt(m, allSlotTimes, receiptActions[m.id].orEmpty(), l.moveConfirm?.takeIf { it.receiptId == m.id }?.confirm)
+                    .let { r -> if (m.id == balanceReceipt) r.copy(balance = balance) else r }
                 continue
             }
             if (m.role == "user") {
@@ -1386,6 +1430,7 @@ class ChatViewModel @Inject constructor(
                 notRecorded = notRecorded,
                 budget = choice?.takeIf { open?.id == m.id }?.let { BudgetNote(it.overKcal, it.reserved.map { r -> r.kcal to r.label }) },
                 reservedFor = m.estimateSlotId?.takeIf { m.date == todayIso && d.planned[it]?.sourceMessageId == m.id }?.let { slotById[it]?.name },
+                projection = m.takeIf { open?.id == it.id && !it.isPlanEstimate }?.let { projected(it) }?.let { DayBalance.projection(eaten, it, meta, d.proteinTargetG) },
             )
             if (proposalOpen && holds && proposal != null) {
                 when (m.recordState) {
@@ -1414,7 +1459,11 @@ class ChatViewModel @Inject constructor(
         l.pending?.let { text ->
             if (lastDate != todayIso && !emptyDay) items += ChatItem.DateSeparator(dateLabel(today, today))
             items += ChatItem.User(-1, text, timeOf(now.toEpochMilli()), pending = true, photoPath = l.pendingPhoto)
-            items += if (l.failed) ChatItem.Failed else ChatItem.Loading
+            items += when {
+                l.failed -> ChatItem.Failed
+                l.slow -> ChatItem.Thinking
+                else -> ChatItem.Loading
+            }
         }
 
         val nowMinutes = SlotClock.minutesFromMidnight(now)
@@ -1449,7 +1498,6 @@ class ChatViewModel @Inject constructor(
         val routine = if (l.sentOnce || l.pending != null) null else routineFor(current, d, facts)
         routine?.let { items += ChatItem.Routine(it) }
         routine?.takeIf { shownRoutines.add(it.factId + "@" + it.slot.id) }?.let { routineEvent("shown") }
-        val meta = d.metaOn(today)
         // A61 part B: the selection holds while its messages are drawn, on the day it started, before a send or a wipe.
         val selected = if (l.selectedOn != todayIso || l.pending != null || (wipeToday ?: 0L) != l.selectedWipe) emptySet() else {
             items.filter { it.key in l.selected && it.copyText != null }.mapTo(LinkedHashSet()) { it.key }
@@ -1691,6 +1739,15 @@ class ChatViewModel @Inject constructor(
         )
     }
 
+    /** A64: what an estimate waiting for Registrar adds to the day: the added food of an addition, else the whole meal. */
+    private fun projected(m: ChatMessageEntity): Macros? {
+        val proposal = MealProposal.decode(m.mealChange)
+        if (proposal?.actionable == false || proposal?.isRevision == true) return null
+        proposal?.addition?.takeIf { proposal.isAddition }?.let { return Macros(it.kcal, it.p, it.c, it.g) }
+        val kcal = m.estimateKcal ?: return null
+        return Macros(kcal, m.estimateP ?: 0, m.estimateC ?: 0, m.estimateG ?: 0)
+    }
+
     /** [offer]: Registrar is open for this answer: the slot question stays in the bubble (chatE). */
     private fun assistant(
         m: ChatMessageEntity,
@@ -1701,6 +1758,7 @@ class ChatViewModel @Inject constructor(
         notRecorded: Boolean,
         budget: BudgetNote? = null,
         reservedFor: String? = null,
+        projection: String? = null,
     ): ChatItem.Assistant {
         val slotQuestion = m.estimateSlotId?.takeIf { offer }?.let { id -> slotById[id] }?.let { s -> "Deseja registrar essa refeição no ${s.name}?" }
         // A47: an addition shows only the added food (+ numbers), a revision its NOVO TOTAL; a rejected proposal no card.
@@ -1737,6 +1795,8 @@ class ChatViewModel @Inject constructor(
             reservedFor = reservedFor,
             // A60 part C: a reply with the subset's markers is drawn as blocks (ADR-045); plain prose stays as it was.
             blocks = m.text.takeIf { ReplyMarkup.formatted(it) }?.let(ReplyMarkup::parse),
+            projection = projection,
+            noted = m.noted?.lines()?.filter { it.isNotBlank() }.orEmpty(),
         )
     }
 
@@ -1791,8 +1851,14 @@ class ChatViewModel @Inject constructor(
         /** Forçar estimativa shows from this question round on (owner decision, ADR-026). */
         const val FORCE_FROM_ROUND = 2
 
+        /** A64 (ADR-054 § 3): a send without an answer this long shows `Tali está pensando…`. */
+        const val WAITING_MS = 4_000L
+
         /** Rows per page of the thread (A32). */
         const val PAGE_SIZE = 20
+
+        /** A64: the receipts that leave a record in a slot; the newest active one of today carries the day balance. */
+        private val BALANCE_RECEIPTS = setOf(ReceiptRules.LOGGED, ReceiptRules.REPLACED, ReceiptRules.MOVED, ReceiptRules.RESTORED)
 
         /** Receipt of Substituir (ADR-017). UI only, like "logged". */
         const val ROLE_REPLACED = ReceiptRules.REPLACED

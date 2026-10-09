@@ -4,6 +4,9 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
+/** The schema version; the version tests read it, so a new version changes one line. */
+const val DB_VERSION = 13
+
 @Database(
     entities = [
         ProfileEntity::class,
@@ -16,7 +19,7 @@ import androidx.room.TypeConverters
         ClosureEntity::class,
         PlannedMealEntity::class,
     ],
-    version = 12,
+    version = DB_VERSION,
     exportSchema = true,
 )
 @TypeConverters(FibraiConverters::class)

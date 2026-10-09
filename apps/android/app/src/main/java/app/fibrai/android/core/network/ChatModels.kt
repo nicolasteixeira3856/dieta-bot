@@ -18,6 +18,8 @@ data class ChatIn(
     val compact: Boolean = false,
     /** Meals of the 7 days before today (S11). */
     val recent: List<ChatRecentMeal> = emptyList(),
+    /** A64 (S33): the app's totals of each of the 7 days before today, newest first; empty = not sent. */
+    @SerialName("recent_days") val recentDays: List<ChatRecentDay> = emptyList(),
     /**
      * Memory v2 (A28). Present, even empty, = v2 client: the server reads these instead of [memory]
      * and answers memory_updates / memory_used. Null only to talk as a legacy client.
@@ -94,6 +96,29 @@ data class ChatFact(
     val slot: String?,
     @SerialName("days_seen") val daysSeen: Int,
     @SerialName("last_seen") val lastSeen: String?,
+    /** A64 (S33): the numbers of a routine, all four or none; null = not encoded. */
+    val kcal: Int? = null,
+    val p: Int? = null,
+    val c: Int? = null,
+    val g: Int? = null,
+)
+
+/**
+ * A64 (S33 `recent_days`): one past day from Room. [ceilingKcal] is that day's effective ceiling with its own workout
+ * credit; [overSlot] the profile slot that went furthest over its share of the ceiling; [missingSlots] the profile slots
+ * with nothing recorded and not skipped. Both use today's profile slot ids only (the server refuses any other).
+ */
+@Serializable
+data class ChatRecentDay(
+    val date: String,
+    val recorded: Boolean,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    @SerialName("ceiling_kcal") val ceilingKcal: Int,
+    @SerialName("over_slot") val overSlot: String?,
+    @SerialName("missing_slots") val missingSlots: List<String>,
 )
 
 /** op: "add" | "reinforce" | "replace" | "remove". id is null only on add. */
