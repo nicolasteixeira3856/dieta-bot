@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-figma
-description: Build or edit the Dieta Bot Figma file Design (Aero variables, components, flow screens) through the Figma MCP within an approved design plan, run the Figma review gate and export golds and tokens.
+description: Build or edit the Fibrai Figma file Design (Aero variables, components, flow screens) through the Figma MCP within an approved design plan, run the Figma review gate and export golds and tokens.
 ---
 
-# Dieta Bot Figma
+# Fibrai Figma
 
 File `Design`, key qNiqNN3vk9GpmPL3bcV9W1, Figma Student team. Read first: the [design README](../../../docs/design/README.md), [ADR-030](../../../docs/design/adrs/ADR-030-own-design-system-aero.md), [ADR-031](../../../docs/design/adrs/ADR-031-figma-source-of-truth.md), the [Figma review gate](../../../docs/design/plans/README.md#figma-review-gate) and the named approved flow plan. Work only inside that plan.
 

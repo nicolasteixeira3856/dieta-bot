@@ -1,6 +1,6 @@
 ---
 name: room-ksp-coroutines
-description: Implement Dieta Bot Room persistence with Kotlin entities, KSP, coroutines and Flow during an approved schema, DAO or repository change.
+description: Implement Fibrai Room persistence with Kotlin entities, KSP, coroutines and Flow during an approved schema, DAO or repository change.
 ---
 
 # Room persistence

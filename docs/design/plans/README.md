@@ -143,7 +143,7 @@ Names: [ADR-034](../../produto/adrs/ADR-034-fibrai-brand-tali-assistant.md). Rec
 | Golds | D10 — Fibrai and Tali in the golds ([ADR-035](../../produto/adrs/ADR-035-tali-in-app-identity.md)) ([`completed/`](completed/)) | — |
 | Model | S20 — Tali identity in the model instructions ([`completed/`](../../server/plans/completed/)) | D10 approved, S19 |
 | Client | A49 — Fibrai and Tali in the app ([`completed/`](../../android/plans/completed/)) | D10, A48 |
-| Docs | [SD5](../../sdd/plans/sd5-fibrai-docs-prose.md) — Fibrai in documentation and skills prose | A49 |
+| Docs | SD5 — Fibrai in documentation and skills prose ([`completed/`](../../sdd/plans/completed/)) | A49 |
 | Landing design | D11 — Landing page ([ADR-037](../../site/adrs/ADR-037-landing-site.md)) ([`completed/`](completed/)) | — |
 | Landing code | W1 — Landing page code in `web/` ([ADR-038](../../site/adrs/ADR-038-web-project-folder.md)) ([`completed/`](../../site/plans/completed/)) | D11, D10 |
 | Landing hosting | [W2](../../site/plans/w2-landing-hosting.md) — Landing hosting on fibrai.app | W1 |

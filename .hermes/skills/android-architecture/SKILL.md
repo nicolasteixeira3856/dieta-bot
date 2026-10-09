@@ -1,6 +1,6 @@
 ---
 name: android-architecture
-description: Apply Dieta Bot's Android UI, domain and data boundaries when adding a screen, ViewModel, repository, use case or dependency injection.
+description: Apply Fibrai's Android UI, domain and data boundaries when adding a screen, ViewModel, repository, use case or dependency injection.
 ---
 
 # Android architecture

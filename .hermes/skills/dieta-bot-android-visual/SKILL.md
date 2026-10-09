@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-android-visual
-description: Compare fresh Dieta Bot emulator captures and measured layout bounds with the dark/light Figma gold of each id after a visual change.
+description: Compare fresh Fibrai emulator captures and measured layout bounds with the dark/light Figma gold of each id after a visual change.
 ---
 
-# Dieta Bot visual QA
+# Fibrai visual QA
 
 Read [AGENTS](../../../AGENTS.md), the [QA workflow](../../../docs/qa/README.md), [tokens](../../../docs/tokens.md) and the gold of the id in the inventory (docs/qa/figma/). Use [Android CLI interaction guidance](../android-cli/references/interact.md); discover the installed executable before treating stale PATH as an absent installation.
 

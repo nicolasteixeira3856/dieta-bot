@@ -1,6 +1,6 @@
 ---
 name: screenshot-testing
-description: Verify Dieta Bot JVM screenshot regression with Roborazzi and distinguish app baselines from read-only Figma golds after visual changes.
+description: Verify Fibrai JVM screenshot regression with Roborazzi and distinguish app baselines from read-only Figma golds after visual changes.
 ---
 
 # Screenshot regression

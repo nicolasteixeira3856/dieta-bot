@@ -1,9 +1,9 @@
 ---
 name: dieta-bot-android-feature
-description: Implement a named approved Dieta Bot Android plan for a screen, domain rule, API client or local persistence, within apps/android.
+description: Implement a named approved Fibrai Android plan for a screen, domain rule, API client or local persistence, within apps/android.
 ---
 
-# Dieta Bot Android implementation
+# Fibrai Android implementation
 
 Read [AGENTS](../../../AGENTS.md), [SDD](../../../docs/sdd/README.md), the [Android context](../../../docs/android/README.md) and the named approved plan. Planning alone does not authorize code. Check any prerequisite design plan is completed before layout work.
 

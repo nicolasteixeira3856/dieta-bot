@@ -4,7 +4,7 @@ Shared workflow maintenance follows [the SDD policy](../README.md) and [AGENTS.m
 
 ## Active
 
-- [SD5 — Fibrai in documentation and skills prose](sd5-fibrai-docs-prose.md).
+None.
 
 ## History
 

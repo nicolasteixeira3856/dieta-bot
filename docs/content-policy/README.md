@@ -4,7 +4,7 @@
 
 Single home for every safety concern about user-supplied content reaching the AI: anything a user sends (text, photo, history, memory, profile fields, headers) that could be malicious or harmful. Covers scope drift, prompt injection, memory/digest poisoning, prohibited and illegal content, eating-disorder and self-harm risk, abuse of model cost, correlation of abusive requests, logging of that content, and incident handling.
 
-Keep Dieta Bot within its meal-budgeting purpose without turning conversation logs into an unrestricted content archive.
+Keep Fibrai within its meal-budgeting purpose without turning conversation logs into an unrestricted content archive.
 
 ## Type and ownership
 
