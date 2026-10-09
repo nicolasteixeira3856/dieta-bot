@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -54,6 +55,7 @@ from config import (
     RECENT_TEXT_MAX,
     load_settings,
 )
+from chat_instructions import CUES
 from conversation_log import ConversationLog, now_iso
 from identity import INSTANCE_ID_HEADER, InvalidInstanceId, SafetyIds
 from llm import LlmClient, TextOnlyOutput, neutralize_delimiters
@@ -774,6 +776,8 @@ def create_app(
                     "tone": body.profile.tone,
                     "format_stripped": None,
                     "plan_difference": None,
+                    "chosen": None,
+                    "decision_line": None,
                 },
             )
         finally:
@@ -1035,13 +1039,16 @@ def chat_reply(
 
     def prepare_actions(payload: dict[str, Any]) -> None:
         """ADR-050: normalize the list, then per action the server total (ADR-042) and the boost (ADR-055),
-        each plan seeing the DAY after the logs stated before it in the same message."""
+        each plan seeing the DAY after the logs stated before it in the same message and without the meals it
+        skips (ADR-056). A plan with options takes the option its decision line chooses."""
         listed = actions.normalize(payload, slot_ids)
         record["actions_dropped"] = actions.dropped(payload) or None
         payload["actions"] = listed
         reply = payload.get("reply")
         day_body = body
+        skips = _skipped(listed)
         resums, boosts = [], []
+        record["chosen"] = None
         for action in listed:
             view = actions.view(payload, action, reply=reply, first=False)
             resums.append(estimate_total.apply_turn(view, _record_totals(body)))
@@ -1049,10 +1056,14 @@ def chat_reply(
             for option in action.get("options") or []:
                 if isinstance(option, dict):
                     estimate_total.apply(option.get("estimate"))
-            # An open request (options) is already built for the protein: no boost (ADR-055).
+            chosen = _choose_option(action, view["reply"])
+            if chosen is not None:
+                record["chosen"] = record["chosen"] or chosen
+                view = actions.view(payload, action, reply=view["reply"], first=False)
+            # An open request or a comparison (options) gets no boost (ADR-055, ADR-056).
             if action["type"] == "plan" and not action.get("options"):
                 boost: dict[str, Any] = {}
-                _protein_boost(day_body, view, boost)
+                _protein_boost(_without_meals(day_body, skips), view, boost)
                 boosts.append(boost.get("protein_boost"))
             reply = view["reply"]
             day_body = _after_log(day_body, view, view.get("estimate"))
@@ -1061,8 +1072,9 @@ def chat_reply(
         record["protein_boost"] = next((b for b in boosts if b), None)
 
     def first_plan(payload: dict[str, Any]) -> tuple[ChatIn, dict[str, Any]] | None:
-        """The first plan action as a single-estimate view, with the DAY after the logs before it."""
-        day_body = body
+        """The first plan action as a single-estimate view, with the DAY after the logs before it and without the
+        meals the answer skips."""
+        day_body = _without_meals(body, _skipped(payload["actions"]))
         for action in payload["actions"]:
             view = actions.view(payload, action, reply=payload.get("reply"), first=False)
             if action["type"] == "plan":
@@ -1147,6 +1159,7 @@ def chat_reply(
         listed = payload["actions"]
         reply = payload.get("reply")
         day_body = body
+        skips = _skipped(listed)
         shaped: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any], str, str | None]] = []
         befores: list[ChatIn] = []
         differences = []
@@ -1165,15 +1178,25 @@ def chat_reply(
             result["recipe_id"] = _recipe_id(body, action)
             differences.append(_plan_difference(day_body, view, result))
             if result.get("intent") == "plan" and result.get("estimate"):
-                window = _meal_window(day_body, view)
+                # ADR-056 decision 6: a meal this message skips reserves nothing.
+                unskipped = _without_meals(day_body, skips)
+                window = _meal_window(unskipped, view)
                 record["meal_window"] = record.get("meal_window") or (window.log() if window else None)
                 if body.plan_budget:
-                    result["plan_budget"] = _plan_budget(day_body, view)
+                    result["plan_budget"] = _plan_budget(unskipped, view)
+                    for option in result.get("options") or [] if result["plan_budget"] else []:
+                        option["over_kcal"] = budgets.option_over(option["estimate"]["kcal"],
+                                                                  result["plan_budget"]["limit_kcal"])
             reply = result.get("reply", reply)
             shaped.append((action, view, result, clarify, record_log))
             if result.get("intent") == "log" and isinstance(result.get("estimate"), dict):
                 day_body = _after_log(day_body, view, result["estimate"], draft=False)
         reply = close_actions(shaped, befores, reply)
+        record["decision_line"] = None
+        for k, (action, view, result, *_ ) in enumerate(shaped):
+            if action["type"] == "plan" and result.get("options"):
+                reply, record["decision_line"] = _decide(_without_meals(befores[k], skips), view, result, reply)
+                break
         main = next((i for i, (a, *_ ) in enumerate(shaped) if a["type"] in ("log", "plan")),
                     next((i for i, (a, *_ ) in enumerate(shaped) if a["type"] != "skip"), 0))
         action, view, result, clarify, record_log = shaped[main]
@@ -1604,14 +1627,68 @@ def _protein_boost(body: ChatIn, payload: dict[str, Any], record: dict[str, Any]
 
 
 def _usual_foods(body: ChatIn) -> dict[str, str]:
-    """The latest RECENT text per slot, shortened: the food of a closing line the model left out."""
+    """The latest RECENT text per slot, shortened at a word boundary: the food of a closing line the model left out."""
     out: dict[str, str] = {}
     for meal in sorted(body.recent, key=lambda r: r.date):
         if meal.slot_id is None:
             continue
         text = " ".join(meal.text.split())
-        out[meal.slot_id] = text if len(text) <= 60 else text[:57].rstrip() + "..."
+        if len(text) > 60:
+            cut = text[:58]
+            cut = cut[: cut.rfind(" ")] if " " in cut else cut[:57]
+            text = cut.rstrip(" ,;:-") + "..."
+        out[meal.slot_id] = text
     return out
+
+
+# ADR-056 decision 6: the skip lexicon of the INTENT cues, read by the server before generation.
+_SKIP_FIRM = CUES["skip-firm"].markers
+_SKIP_HOLD = CUES["skip-pending"].markers + CUES["skip-hedge"].markers
+
+
+def _served_slots(body: ChatIn) -> list[meal_window.Slot]:
+    """Today's slots for the BUDGET and WINDOWS lines: a meal the message skips in words is left out."""
+    slots = _day_slots(body)
+    skipped = meal_window.cued_skips(body.text, slots, _SKIP_FIRM, _SKIP_HOLD)
+    return _day_slots(_without_meals(body, skipped)) if skipped else slots
+
+
+def _skipped(listed: list[dict[str, Any]]) -> list[str]:
+    """The slots the answer's skip actions skip (ADR-056 decision 6)."""
+    return [a["slot"] for a in listed if a.get("type") == "skip" and a.get("slot") is not None]
+
+
+def _choose_option(action: dict[str, Any], reply: Any) -> str | None:
+    """ADR-056 decision 2: the option the decision line names becomes the plan's estimate. Without a line
+    naming one, the estimate stays option 1 (o1). None for an action without options."""
+    options = [o for o in action.get("options") or [] if isinstance(o, dict) and isinstance(o.get("estimate"), dict)]
+    if action.get("type") != "plan" or not options:
+        return None
+    _, chosen = budgets.decision_option(reply if isinstance(reply, str) else "", options)
+    picked = next((o for o in options if o.get("id") == chosen), None)
+    if picked is None:
+        return "o1"
+    estimate = copy.deepcopy(picked["estimate"])
+    first = action.get("estimate")
+    if estimate.get("suggested_slot") is None and isinstance(first, dict):
+        estimate["suggested_slot"] = first.get("suggested_slot")
+    action["estimate"] = estimate
+    return picked["id"]
+
+
+def _decide(body: ChatIn, view: dict[str, Any], result: dict[str, Any], reply: Any) -> tuple[Any, str | None]:
+    """(reply, status) after the decision-line rewrite of a plan with options, against the window of the chosen
+    option's meal. Status None: no options, no reply or no window (another day, no remaining_kcal)."""
+    options = result.get("options")
+    budget = _plan_budget(body, view)
+    if not options or not isinstance(reply, str) or budget is None:
+        return reply, None
+    target = _target(body, view)
+    meal = next((s.name for s in body.profile.slots if s.id == target), "")
+    out, status = budgets.rewrite_decision(reply, options, budget["limit_kcal"], meal)
+    if status == budgets.DECISION_OFF_FORM:
+        _LOG.info("decision line off form")
+    return out, status
 
 
 def _close_day(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) -> None:
@@ -1798,8 +1875,9 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
         ))
 
     if body.day.remaining_kcal is not None:
-        # ADR-043: meal windows, per request and never in the fixed instructions.
-        slots = _day_slots(body)
+        # ADR-043: meal windows, per request and never in the fixed instructions; ADR-056: without a meal the
+        # message skips in words.
+        slots = _served_slots(body)
         expected = _expected(body, slots)
         for line in (
             meal_window.windows_line(slots, expected, body.day.remaining_kcal, _remaining_macros(body)["p"], _now(body)),

@@ -4,7 +4,7 @@
 - Date: 09/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Opções" (frame `chatO` redrawn), the option component in `Componentes` extended. Repository: `docs/qa/figma/{dark,light}/chatO.png` and the node ids in `tools/export-figma.mjs`.
-- Prerequisites: D25 `Concluído` ([history](completed/)); [ADR-056](../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) accepted with [S39](../../server/plans/s39-plan-decision-line-and-option-budget.md).
+- Prerequisites: D25 `Concluído` ([history](completed/)); [ADR-056](../../produto/adrs/ADR-056-plan-decision-line-and-option-budget.md) accepted with [S39](../../server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md).
 - Figma MCP budget: ≤ 30 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d26-release-2-option-decision.md. Implemente o plano aprovado.`

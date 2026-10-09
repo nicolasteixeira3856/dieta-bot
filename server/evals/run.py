@@ -3,6 +3,7 @@
 Inside server/, with the .venv:
 
     python -m evals.run [--effort low] --repeat 1 [--only id,...] [--tag tag] [--moderation cp2|all|none]
+        [--show] [--save-fixture logs/evals/fixtures]
 
 Same orchestration as the route (main.chat_reply: moderation, generation, scope, shaping,
 output moderation; CP2), no HTTP. The provider's moderation endpoint has a daily request cap per
@@ -10,7 +11,8 @@ project, shared with the dev server, so by default only CP2 cases (since cp2 or 
 every other case gets a local clean verdict. A case may name a benign synthetic photo in "image".
 A "strict" case (CP2 safety sets) passes only when every repetition passes: no leak is excused.
 Key: OPENAI_API_KEY from the repo-root .env via config.load_settings(). Never printed.
-Report: terminal + logs/evals/<date>-<effort>.json (outside git).
+Report: terminal + logs/evals/<date>-<effort>.json (outside git). --show prints each case's reply and its app preview
+(evals/preview.py); --save-fixture writes <case id>.json with the request and the first response (S39).
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ import httpx2
 
 from config import MODEL, load_settings
 from evals.checks import FAIL, NA, PASS, case_status, evaluate, migrate_expect, repetition_status, spread_check
+from evals.preview import bubble
 from llm import LlmClient
 from main import ChatIn, CloseIn, chat_reply, close_reply, compact_reply
 from moderation import CLEAN, Deadline, ModerationUnavailable, Moderator
@@ -400,6 +403,28 @@ def print_report(report: dict[str, Any]) -> None:
                 print(f"       raw: {case['raw_outputs'][0][:400]}")
 
 
+def show(report: dict[str, Any], cases: list[dict[str, Any]]) -> None:
+    """S39: each case's final reply as the app receives it, then the app preview built from the response."""
+    requests = {case["id"]: case_request(case) for case in cases}
+    for case in report["cases"]:
+        output = case["outputs"][0] if case["outputs"] else {}
+        print(f"\n== {case['id']} ==\n-- reply --\n{output.get('reply')}\n-- app --")
+        print(bubble(requests[case["id"]], output))
+
+
+def save_fixtures(report: dict[str, Any], cases: list[dict[str, Any]], directory: Path) -> list[Path]:
+    """S39: <case id>.json with the request as sent and the first response (synthetic data only)."""
+    directory.mkdir(parents=True, exist_ok=True)
+    requests = {case["id"]: case_request(case) for case in cases}
+    paths = []
+    for case in report["cases"]:
+        path = directory / f"{case['id']}.json"
+        fixture = {"request": requests[case["id"]], "response": case["outputs"][0] if case["outputs"] else None}
+        path.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        paths.append(path)
+    return paths
+
+
 def write_report(report: dict[str, Any], directory: Path = REPORT_DIR) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(TZ).strftime("%Y-%m-%d-%H%M%S")
@@ -420,6 +445,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="which cases call the provider's moderation endpoint (default cp2 cases only)")
     parser.add_argument("--actions", action="store_true",
                         help="send meal-change cases with the actions capability and migrated expectations (S36)")
+    parser.add_argument("--show", action="store_true",
+                        help="print each case's reply and its app preview after the report (S39)")
+    parser.add_argument("--save-fixture", metavar="DIR",
+                        help="write <case id>.json with request and response; a relative DIR is under the repo root")
     args = parser.parse_args(argv)
     if args.repeat < 1:
         parser.error("--repeat must be >= 1")
@@ -444,6 +473,12 @@ def main(argv: list[str] | None = None) -> int:
                             moderation=args.moderation)
         print_report(report)
         print(f"report: {write_report(report)}")
+        if args.show:
+            show(report, cases)
+        if args.save_fixture:
+            directory = Path(args.save_fixture)
+            for path in save_fixtures(report, cases, directory if directory.is_absolute() else SERVER.parent / directory):
+                print(f"fixture: {path}")
     return 0
 
 

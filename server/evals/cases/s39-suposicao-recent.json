@@ -1,0 +1,189 @@
+{
+  "id": "s39-suposicao-recent",
+  "since": "meal_changes",
+  "tags": [
+    "s39"
+  ],
+  "request": {
+    "local_time": "2026-10-15T18:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 2000,
+      "p_target": 140,
+      "c_target": 220,
+      "g_target": 65,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "n",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-10-12",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "j",
+        "slot_name": "Jantar",
+        "text": "wrap integral com 120 g de frango, 20 g de queijo minas e molho de iogurte com mostarda",
+        "kcal": 430,
+        "p": 38,
+        "c": 35,
+        "g": 14
+      }
+    ],
+    "recent_days": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1250,
+      "eaten_p": 85,
+      "eaten_c": 143,
+      "eaten_g": 37,
+      "workout_kcal": null,
+      "remaining_kcal": 750,
+      "slots": [
+        {
+          "id": "c",
+          "text": "pão com ovo e café com leite",
+          "kcal": 450,
+          "p": 28,
+          "c": 48,
+          "g": 15,
+          "status": "eaten"
+        },
+        {
+          "id": "a",
+          "text": "arroz, feijão, frango e salada",
+          "kcal": 800,
+          "p": 57,
+          "c": 95,
+          "g": 22,
+          "status": "eaten"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "n",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "vou jantar um wrap de atum",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "estimate": "present",
+        "options": 0,
+        "meal_text_has": [
+          "mostarda"
+        ]
+      }
+    ],
+    "reply_count": {
+      "assumi": 1
+    },
+    "refusal": "none"
+  }
+}

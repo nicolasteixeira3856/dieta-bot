@@ -1,0 +1,179 @@
+{
+  "id": "s39-comparacao-ambos-passam",
+  "since": "meal_changes",
+  "tags": [
+    "s39"
+  ],
+  "request": {
+    "local_time": "2026-10-15T19:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1800,
+      "p_target": 120,
+      "c_target": 200,
+      "g_target": 60,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "c",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "a",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "l",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "j",
+          "name": "Jantar",
+          "time": "19:30"
+        },
+        {
+          "id": "n",
+          "name": "Ceia",
+          "time": "22:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "memory": "",
+    "facts": [],
+    "recent": [
+      {
+        "date": "2026-10-12",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "l",
+        "slot_name": "Lanche",
+        "text": "banana com pasta de amendoim",
+        "kcal": 250,
+        "p": 8,
+        "c": 30,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "n",
+        "slot_name": "Ceia",
+        "text": "iogurte natural com whey",
+        "kcal": 220,
+        "p": 25,
+        "c": 15,
+        "g": 6
+      }
+    ],
+    "recent_days": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1200,
+      "eaten_p": 56,
+      "eaten_c": 150,
+      "eaten_g": 38,
+      "workout_kcal": null,
+      "remaining_kcal": 600,
+      "slots": [
+        {
+          "id": "c",
+          "text": "tapioca com queijo",
+          "kcal": 380,
+          "p": 14,
+          "c": 50,
+          "g": 12,
+          "status": "eaten"
+        },
+        {
+          "id": "a",
+          "text": "macarrão com carne moída",
+          "kcal": 820,
+          "p": 42,
+          "c": 100,
+          "g": 26,
+          "status": "eaten"
+        },
+        {
+          "id": "l",
+          "status": "empty"
+        },
+        {
+          "id": "j",
+          "status": "empty"
+        },
+        {
+          "id": "n",
+          "status": "empty"
+        }
+      ]
+    },
+    "digests": [],
+    "messages": [],
+    "text": "pro jantar: 4 fatias de pizza de calabresa ou 450 g de lasanha à bolonhesa, qual dos dois?",
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "actions": true
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "estimate": "present",
+        "options": 2
+      }
+    ],
+    "decision_line": {
+      "verdict": "both_over"
+    },
+    "option_over": {
+      "each_min": 1
+    },
+    "refusal": "none"
+  }
+}

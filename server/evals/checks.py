@@ -72,6 +72,9 @@ KNOWN = (
     "reply_any",
     "reply_format",
     "reply_markers",
+    "decision_line",
+    "option_over",
+    "reply_count",
 )
 
 # Case-level expectations (S22): judged across the repetitions of a case in evals.run, never per repetition.
@@ -119,6 +122,8 @@ def _budget_check(want: Any, output: dict[str, Any], estimate: dict | None) -> d
         return _result(False, f"choice {got.get('choice')}")
     if "limit_kcal" in want and limit != want["limit_kcal"]:
         return _result(False, f"limit_kcal {limit}")
+    if "limit_kcal_min" in want and limit < want["limit_kcal_min"]:
+        return _result(False, f"limit_kcal {limit} below {want['limit_kcal_min']}")
     labels = normalize(" ".join(str(r.get("label", "")) for r in reserved if isinstance(r, dict)))
     missing = [term for term in want.get("reserved_has", []) if normalize(term) not in labels]
     if missing:
@@ -286,10 +291,27 @@ def _check(
         return _result(totals >= int(want), f"{totals} totals; need {want}")
 
     if key == "closing_lines":
-        # S24 (ADR-043 decision 6): exactly one closing line per named slot, none for any other.
-        got = [normalize(m.group(1)) for m in map(_CLOSING_LINE.match, str(output.get("reply") or "").split("\n")) if m]
+        # S24 (ADR-043 decision 6): exactly one closing line per named slot, none for any other. A dict also
+        # gives each line's minimum kcal (S39).
+        found = [m for m in map(_CLOSING_LINE.match, str(output.get("reply") or "").split("\n")) if m]
+        got = [normalize(m.group(1)) for m in found]
         wanted = sorted(normalize(w) for w in want)
-        return _result(sorted(got) == wanted, f"closing lines for {got}; want {wanted}")
+        if sorted(got) != wanted:
+            return _result(False, f"closing lines for {got}; want {wanted}")
+        kcal = {normalize(m.group(1)): int(re.search(r"~(\d+) kcal", m.group(0)).group(1)) for m in found}
+        low = [n for n, minimum in (want.items() if isinstance(want, dict) else []) if kcal[normalize(n)] < minimum]
+        return _result(not low, f"closing kcal {kcal}; want at least {want}" if low else f"closing lines for {got}")
+
+    if key == "decision_line":
+        return _decision_check(want, output)
+    if key == "option_over":
+        return _option_over_check(want, output)
+    if key == "reply_count":
+        # S39: each term at most n times in the reply (an assumption or the week pattern said once).
+        haystack = normalize(str(output.get("reply") or ""))
+        counts = {term: haystack.count(normalize(term)) for term in want}
+        over = {term: n for term, n in counts.items() if n > int(want[term])}
+        return _result(not over, f"counts {counts}; max {want}")
 
     if key == "reply_any":
         haystack = normalize(str(output.get("reply") or ""))
@@ -556,6 +578,86 @@ def _format_check(reply: str) -> dict[str, Any]:
         return _result(False, f"{found['table']} tables")
     return _result(True, f"{found}")
 _CLOSING_LINE = re.compile(r"^([^:\n]{1,40}): .+? ~\d+ kcal · P \d+(?: g)?[.;]?\s*$")
+
+
+# S39 (ADR-056): the decision line as the server writes it.
+_DECISION_LINE = re.compile(
+    r"^Vai de (?P<name>.+?): ~(?P<kcal>\d+) kcal · P (?P<p>\d+) g, (?:"
+    r"cabe na janela do (?P<meal>.+?)\. (?P<other>.+?) (?:passa ~(?P<other_over>\d+) kcal|(?P<both_fit>também cabe))\."
+    r"|passa ~(?P<over>\d+) kcal da janela do (?P<meal_over>.+?)"
+    r"(?:; (?P<other_b>.+?) passa ~(?P<other_over_b>\d+)|\. (?P<other_c>.+?) cabe)\.)$"
+)
+DECISION_VERDICTS = ("other_over", "both_fit", "both_over", "chosen_over")
+
+
+def _option_plan(output: dict[str, Any]) -> dict[str, Any] | None:
+    """The first plan action with options."""
+    return next((a for a in output.get("actions") or [] if isinstance(a, dict) and a.get("type") == "plan"
+                 and isinstance(a.get("options"), list) and a["options"]), None)
+
+
+def _chosen(plan: dict[str, Any]) -> dict[str, Any] | None:
+    """The option the plan's estimate is (S39: the action's estimate is the chosen option)."""
+    estimate = plan.get("estimate") or {}
+    return next((o for o in plan["options"] if isinstance(o, dict) and isinstance(o.get("estimate"), dict)
+                 and o["estimate"].get("kcal") == estimate.get("kcal")
+                 and o["estimate"].get("meal_text") == estimate.get("meal_text")), None)
+
+
+def _decision_check(want: Any, output: dict[str, Any]) -> dict[str, Any]:
+    """The first reply line is the decision line, it names the option the plan's estimate is, its kcal and
+    protein are that option's; want may fix the chosen id and the verdict (DECISION_VERDICTS)."""
+    if "actions" not in output:
+        return _na("no actions in output")
+    plan = _option_plan(output)
+    if plan is None:
+        return _result(False, "no plan with options")
+    first = next((line for line in str(output.get("reply") or "").split("\n") if line.strip()), "")
+    m = _DECISION_LINE.match(reply_format.plain(first).strip())
+    if not m:
+        return _result(False, f"first line off form: {first[:160]!r}")
+    chosen = _chosen(plan)
+    if chosen is None or chosen.get("name") != m.group("name"):
+        return _result(False, f"line names {m.group('name')!r}, estimate is {chosen and chosen.get('name')!r}")
+    estimate = chosen["estimate"]
+    if int(m.group("kcal")) != round(estimate["kcal"]) or int(m.group("p")) != round(estimate["p"]):
+        return _result(False, f"numbers {m.group('kcal')}/{m.group('p')} for {estimate['kcal']}/{estimate['p']}")
+    verdict = ("other_over" if m.group("other_over") else "both_fit" if m.group("both_fit")
+               else "both_over" if m.group("other_over_b") else "chosen_over")
+    want = want if isinstance(want, dict) else {}
+    if "chosen" in want and chosen.get("id") != want["chosen"]:
+        return _result(False, f"chosen {chosen.get('id')}")
+    accepted = want.get("verdict")
+    if accepted is not None and verdict not in (accepted if isinstance(accepted, list) else [accepted]):
+        return _result(False, f"verdict {verdict}: {first[:160]!r}")
+    return _result(True, f"{chosen.get('id')} {verdict}")
+
+
+def _option_over_check(want: Any, output: dict[str, Any]) -> dict[str, Any]:
+    """over_kcal on each option is max(0, ceil(kcal - plan_budget.limit_kcal)); want: {"chosen": n or [low,
+    high]} for the chosen option, {"each_min": n} for every option."""
+    if "actions" not in output:
+        return _na("no actions in output")
+    plan = _option_plan(output)
+    budget = plan.get("plan_budget") if plan else None
+    if plan is None or not isinstance(budget, dict):
+        return _result(False, "no plan with options and plan_budget")
+    overs = {}
+    for option in plan["options"]:
+        over, kcal = option.get("over_kcal"), (option.get("estimate") or {}).get("kcal")
+        if not isinstance(over, int) or not isinstance(kcal, (int, float)) or over != max(
+                0, math.ceil(kcal - budget["limit_kcal"])):
+            return _result(False, f"{option.get('id')}: over_kcal {over} for {kcal} against {budget['limit_kcal']}")
+        overs[option.get("id")] = over
+    chosen = _chosen(plan)
+    if "chosen" in want:
+        low, high = want["chosen"] if isinstance(want["chosen"], list) else (want["chosen"], want["chosen"])
+        got = chosen.get("over_kcal") if chosen else None
+        if got is None or not low <= got <= high:
+            return _result(False, f"chosen over_kcal {got}; overs {overs}")
+    if "each_min" in want and any(o < want["each_min"] for o in overs.values()):
+        return _result(False, f"overs {overs}")
+    return _result(True, f"overs {overs}, limit {budget['limit_kcal']}")
 
 
 def _terms(must_have: bool, terms: list[str], text: str) -> dict[str, Any]:

@@ -64,7 +64,7 @@ CUES: dict[str, Cue] = {
         "intent", "Recognise a firm skip",
         "firm skip: a meal of today that did not happen, or a firm decision that it will not happen "
         "today, only when no pending or hedge marker comes with it",
-        "pulei", "vou pular", "fiquei sem", "hoje não vou"),
+        "pulei", "pulo", "vou pular", "fiquei sem", "hoje não vou"),
     "skip-pending": _cue(
         "intent", "Separate a pending meal from a skip",
         "the meal is still pending, never skip; with a request for what to eat it is plan",
@@ -147,6 +147,10 @@ CUES: dict[str, Cue] = {
         "plan", "Recognise a later reference to a numbered plan option",
         "a reference to an option of an earlier plan by its number or name: answer about that option only",
         "a primeira", "a segunda", "fiz a", "comi a opção", "da opção", "na opção"),
+    "comparison": _cue(
+        "plan", "Recognise a choice between alternatives the user names",
+        "a choice question between dishes the user names: a COMPARISON, each option the user's dish as named",
+        "qual dos dois", "qual deles", "qual é melhor", "qual compensa mais", "ou então", "isso ou aquilo"),
     "particular-day": _cue(
         "history", "Recognise a copy of a particular prior day",
         "a named source day after an equality word: particular-day request, never habitual",
@@ -420,24 +424,39 @@ RULES: dict[str, Rule] = {
         'side, spread or condiment (butter, salad, sauce) is never asked: assume its common amount and state '
         'it in the assumption line.'
     )),
-    'plan': Rule('server Chat 3c; ADR-023/039', (
+    'plan': Rule('server Chat 3c; ADR-023/039/056', (
         'PLAN: identified food always has an estimate object, including a plan for a later day that also '
         'saves a temporary reference. A memory proposal does not substitute for that estimate. Preserve '
         'supplied nutrients; estimate any missing nutrients in the estimate only, never in the saved fact. '
         'reply gives the grams of each item and the dish total as kcal · P · C · G. A plan never asks '
         'about the food: assume, and say in reply what you assumed; question is null and confidence may '
-        'be medium. '
+        'be medium. ASSUMPTIONS: when RECENT has a dish of the same kind as the dish the message names (a wrap, '
+        'a sandwich, a burger, a salad, a bowl), each component of that record the message neither names nor '
+        'excludes (its bread, cheese, sauce, side or dressing) is in the dish with the amount of that record, '
+        'before any generic assumption; a component neither the message nor such a record gives gets a '
+        'generic assumption. reply states each assumption once, in one clause, never again in another sentence. '
         'OPEN REQUEST: a request about what to eat, order or make, how to organise a meal out, or a '
         'message saying the user has no idea what to eat, is a plan with two options: two concrete dishes, '
         'one leaner and one more indulgent, both inside the window of that meal (WINDOW below), each with '
-        'its own id (o1, o2), a short name and its own estimate (items with grams and totals). reply presents '
-        'them as **Opção 1: {name}** and **Opção 2: {name}**, each followed by the grams of its items, its '
-        'total and its protein; estimate, items and meal_text describe option 1. Under ACTIONS the plan '
+        'its own id (o1, o2), a short name and its own estimate (items with grams and totals). '
+        'COMPARISON: two alternative dishes the user names with a choice question (pt-BR cues below) are a '
+        "plan with two options too: each option is the user's dish as named, with its foods and amounts, "
+        'never a leaner and an indulgent dish of your own; what the message leaves open follows ASSUMPTIONS. '
+        'DECISION LINE: reply of a plan with options opens with one plain line, no markers, in exactly this '
+        'form: Vai de {name}: ~{kcal} kcal · P {protein} g, cabe na janela do {meal}. {other name} passa '
+        '~{n} kcal. When both fit, the line ends "{other name} também cabe." instead; when both pass the '
+        'window: Vai de {name}: ~{kcal} kcal · P {protein} g, passa ~{n} kcal da janela do {meal}; '
+        '{other name} passa ~{m}. {name} is the chosen option and {other name} the other one, each exactly as in options; '
+        'choose by the protein still missing, what the user asked for and the window of the meal (BUDGET). '
+        'Copy the window from BUDGET and kcal and protein from your estimates; the server rewrites these '
+        'numbers. Then reply presents the options as **Opção 1: {name}** and **Opção 2: {name}**, each '
+        'followed by the grams of its items, its total and its protein; estimate, items and meal_text '
+        'describe the option the DECISION LINE chooses. Under ACTIONS the plan '
         "action's options holds both; without ACTIONS the reply alone carries them. LATER REFERENCE: when the "
         'user later refers to an option by its number or name, find it in HISTORY or DIGESTS and answer about '
         'that option only: a question about its amounts is a question that quotes the grams already given; '
         'eating it is a log copying that option unchanged (its foods, grams and totals); planning it again '
-        'is a plan of that option. A message that already names the foods of the dish, even asking whether it is '
+        'is a plan of that option. A message that already names the foods of one dish, even asking whether it is '
         'fine, is not an open request: answer with that one dish, and PROTEIN BOOST below still applies to '
         'it. ONE ITEM: a question about adding one food to a dish already stated in the conversation is '
         "answered with that food's grams, kcal and main macro in one line; the estimate describes that food "
@@ -453,9 +472,14 @@ RULES: dict[str, Rule] = {
         'to 3 common, low-cost foods that change the dish, not only seasoning, chosen for flavor, volume, '
         'protein or satiety for few kcal. Mark each added food as (opcional) in reply and include it in '
         'items and in the totals. For a recipe, reply lists the ingredients with grams and up to 5 '
-        'numbered steps with temperature and time. A plan that is not a recipe has no preparation steps. '
+        'numbered steps with temperature and time. COOKING METHOD: a plan whose message names an appliance '
+        '(an air fryer, an oven, a pan, a pressure cooker) or a way of preparing a dish the user will make '
+        '(grilled, baked, roasted, pan-fried) is a cooking plan: up to 5 numbered steps with temperature and '
+        'time for that dish, or for the chosen option of a plan with options. A plan whose message names '
+        'neither and is not a recipe has no preparation steps. '
         'BUDGET: the app shows whether the dish fits the day. reply never says whether the dish fits, '
-        "how many kcal are left, or by how many kcal it goes over, and never computes the day's totals. "
+        "how many kcal are left, or by how many kcal it goes over, except in the DECISION LINE, and never "
+        "computes the day's totals. "
         'WINDOW: an input line starting with BUDGET: gives window_kcal for a plan of each empty meal of '
         'today and for any other meal; without that line the window is DAY remaining_kcal. A window of 0, or a '
         'dish larger than its window, is never a reason to refuse or ask: answer the dish anyway, the app shows '
@@ -482,8 +506,8 @@ RULES: dict[str, Rule] = {
         'totals. reply ends with one line "Para a proteína (opcional): {g} g de {food}, +{kcal} kcal · P {g} '
         'g." (two foods joined by " e ") and says nothing else about it; the server checks this line. No '
         'boost when the dish is at or above the floor, when the plan is for another day, when the user '
-        'leaves the dish to you (that dish is already built for the protein), or when the room is under 60 '
-        'kcal: add nothing. '
+        'leaves the dish to you (that dish is already built for the protein), for a plan with options, or '
+        'when the room is under 60 kcal: add nothing. '
         'NO SCALE: when the user says the food cannot be '
         'weighed, reply states each food in household measures (units, spoons, slices, palm-size) with the '
         'approximate grams beside them; items still carry grams. plan_budget is {reserved, choice} for a plan with an estimate and null for every other '
@@ -1021,7 +1045,7 @@ RULES: dict[str, Rule] = {
         'the dish, no praise, no slogans. Never mention body, weight or appearance, even when the user does, '
         'and never suggest eating below the ceiling, skipping a meal or fasting to compensate.'
     )),
-    'tone_duro': Rule('server Chat 3; ADR-044', (
+    'tone_duro': Rule('server Chat 3; ADR-044/056', (
         'TONE: duro, chosen by the user. Scope, refusals and safety_support above are decided first and '
         'never change with the tone: a message that is not in_scope gets no critique. Every in_scope log or '
         'plan of today with an estimate gets its critique, even when another rule says the reply is one '
@@ -1042,7 +1066,8 @@ RULES: dict[str, Rule] = {
         'gets the numbers of what is left, never a yes. Question-only turns and skip replies carry no '
         'critique. WEEK: when two or more RECENT_DAYS lines marked registrado show the same meal under '
         'passou em, or the weekend days over their ceiling, the critique of a log or plan of today names '
-        'that pattern in one clause: the meal name and the weekday words copied from those lines. The week '
+        'that pattern in one clause: the meal name and the weekday words copied from those lines, once a day: '
+        'not when an assistant turn of today in HISTORY already names that pattern. The week '
         'is cited only from lines marked registrado. A day listed as sem registro, or with meals '
         'under sem registro em, is never called a day below the ceiling: its total is incomplete; it still '
         'counts as over when its kcal exceed its ceiling.'

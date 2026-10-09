@@ -1,6 +1,6 @@
 # ADR-039 — Cooking help and the over-budget choice in a plan
 
-- Status: Accepted (2026-10-05, with the owner's approval of [S21](../../server/plans/completed/s21-plan-cooking-and-budget-choice.md)); partially superseded by [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) (the budget of a plan is the meal window; the server computes the default reservations)
+- Status: Accepted (2026-10-05, with the owner's approval of [S21](../../server/plans/completed/s21-plan-cooking-and-budget-choice.md)); partially superseded by [ADR-043](ADR-043-plan-objective-protein-and-meal-window.md) (the budget of a plan is the meal window; the server computes the default reservations) and by [ADR-056](ADR-056-plan-decision-line-and-option-budget.md) (a plan with options states the fit in its decision line, numbers written by the server)
 - Date: 2026-10-05
 - Context: `produto`
 - Supersedes on acceptance: partially [ADR-023](ADR-023-chat-v2-memoria-v2.md), decision 3 (preparation "in a few lines"; the plan answer is final), and the sentence of [ADR-026](ADR-026-perguntas-antes-da-estimativa.md) decision 1 "`plan` keeps its rule (never asks)", only for the budget choice below. The rest of both remains: the app computes the projected day, **Registrar assim**, a plan never asks about the food and assumes instead. Adds gold `chatRB`. Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively.
