@@ -146,6 +146,7 @@ Iterate fast, code fast, test the minimum, deliver fast. Massive test runs and p
 - Server: a minimal smoke that proves the change, at most **12 model calls per plan** in total (new cases once, no sentinel set, no suite, no repeat to settle a flaky case). Unit tests and the three-turn HTTP smoke after the dev deploy cost nothing and stay.
 - Production (future, `master`): the complete end-to-end validation of server and app runs once before any production deploy, never during development.
 - Each plan's Validation section states its cap; a plan that needs more stops and asks the owner.
+- Personas (owner decision, 09/10/2026): every test that calls the model, in dev now and in production later, runs as a named fake user from `server/evals/personas/` (profile, facts, recent days), so a prompt, product, app or profile-structure change is measured as usefulness for a person. A smoke that cannot name its persona is not run. Dev is for breaking, production never.
 `/goal` is the Implementation phase of an approved plan. 1 /goal = 1 folder. Do not edit `server/` in a client goal.
 New ADRs live in `docs/<context>/adrs/`. Accepted ADRs 001–011 stay in `docs/decisions/`.
 UI DONE = gold PNG comparison above. No screenshot, UI is not done.

@@ -115,8 +115,10 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 ### Planos e validação
 
+- [A71 — Conversational onboarding in the app](plans/a71-conversational-onboarding.md): awaiting approval; depends on D27 and S41 ([ADR-057](../produto/adrs/ADR-057-conversational-onboarding.md)).
+- [A72 — Extras, the 30-day strip and a record in a past day](plans/a72-extras-and-history.md): awaiting approval; depends on D28, S42 and A71 ([ADR-058](../produto/adrs/ADR-058-extras-and-history.md)).
 - [A70 — Decision line, fit and day projection per option in the plan bubble](plans/pending_manual_validation/a70-option-fit-and-projection.md): delivered, awaiting the owner's device smoke on a dev build.
 - Cancelados (decisão do dono, 07/10/2026, um plano por contexto): A50, A55, A57, A58 em [`plans/cancelled/`](plans/cancelled/).
-- Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md), [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md).
+- Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md) (reactivated inside A72) and [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md) (reactivated inside A71), owner decision of 09/10/2026.
 - Histórico: [`plans/completed/`](plans/completed/).
 - Validação: [`validation/`](validation/).
