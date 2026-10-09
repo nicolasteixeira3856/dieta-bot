@@ -247,6 +247,35 @@ object ChatFixtures {
         currentSlotId = 4,
     )
 
+    /** chatO (D25, A67): an open request answered with two options, each with its items, total and own actions. */
+    val chatO = ChatUiState(
+        items = listOf(
+            date,
+            ideas,
+            ChatItem.Assistant(
+                id = 8,
+                text = "Duas opções para o jantar:",
+                time = "20:15",
+                plan = ProjectedDay(1640, Macros(2060, 126, 190, 58), 2200, Macros(0, 167, 223, 74)),
+                options = listOf(
+                    OptionView(
+                        "o1", "Opção 1: Pizza de pão sírio",
+                        listOf("1 pão sírio (60 g)", "30 g de molho de tomate", "100 g de frango desfiado", "30 g de milho", "30 g de muçarela"),
+                        420, 40, 38, 12, canRecord = true, canReserve = true,
+                    ),
+                    OptionView(
+                        "o2", "Opção 2: Omelete de forno",
+                        listOf("3 ovos", "50 g de ricota", "1 fatia de pão integral (25 g)"),
+                        360, 28, 14, 20, canRecord = true, canReserve = true,
+                    ),
+                ),
+            ),
+        ),
+        emptyDay = false,
+        slots = slots,
+        currentSlotId = 4,
+    )
+
     /** chatRL (D18, A60 part D): the plan reserved for the dinner, Registrar assim kept. */
     val chatRL = chatR.copy(
         items = listOf(date, ideas, optionsBubble(reservedFor = "Jantar")),

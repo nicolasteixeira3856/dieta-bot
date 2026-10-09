@@ -97,6 +97,8 @@ sealed interface ChatItem {
         val projection: String? = null,
         /** A64 (ADR-053 § 2): one `Anotado: {text}` line per permanent fact this answer saved, as stored. */
         val noted: List<String> = emptyList(),
+        /** A67 (chatO): the options of an open request; the bubble shows the reply's first line, then one block per option. */
+        val options: List<OptionView> = emptyList(),
     ) : ChatItem {
         override val key = "a-$id"
     }
@@ -190,6 +192,23 @@ sealed interface ChatItem {
         override val key = "failed"
     }
 }
+
+/**
+ * A67 (chatO, Chat/PlanOption): `Opção {n}: {name}`, its items with grams, `~{kcal} kcal · {p}P · {c}C · {g}G`, and its own
+ * Registrar and Reservar while the plan is open ([canRecord]; [canReserve] for a meal of today with nothing eaten).
+ */
+@Immutable
+data class OptionView(
+    val id: String,
+    val title: String,
+    val items: List<String>,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    val canRecord: Boolean = false,
+    val canReserve: Boolean = false,
+)
 
 /** Receipt roles (A34): title and icon of the card. */
 enum class ReceiptKind { LOGGED, REPLACED, SKIPPED, MOVED, RESTORED, WORKOUT, WORKOUT_ADDED }

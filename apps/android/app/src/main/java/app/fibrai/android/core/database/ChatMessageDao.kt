@@ -80,4 +80,10 @@ interface ChatMessageDao {
     /** A59: answers with a delete proposal still waiting for Excluir e pular or Manter registro, any day. */
     @Query("SELECT * FROM chat_message WHERE role = 'assistant' AND skipOutcomes LIKE '%\"pending_delete\"%'")
     suspend fun getOpenSkips(): List<ChatMessageEntity>
+    /** A67: answers ever stored (any day); the discovery turns are the first two with an empty memory. */
+    @Query("SELECT COUNT(*) FROM chat_message WHERE role = 'assistant'")
+    suspend fun assistantCount(): Int
+    /** A67: the option the user chose becomes the plan row's estimate (Registrar and Reservar use it). */
+    @Query("UPDATE chat_message SET estimateKcal = :kcal, estimateP = :p, estimateC = :c, estimateG = :g, estimateMealText = :mealText WHERE id = :id")
+    suspend fun setEstimate(id: Long, kcal: Int, p: Int, c: Int, g: Int, mealText: String?)
 }

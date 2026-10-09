@@ -27,7 +27,7 @@ Each option of a plan has an id the user can refer to, before and after compacti
 
 ## Out of scope
 
-- The option control, the discovery flow in the app and the fact application: [A67](../../../android/plans/a67-plan-options-and-discovery.md). O6 (conditional, ADR-053 § 4).
+- The option control, the discovery flow in the app and the fact application: [A67](../../../android/plans/pending_manual_validation/a67-plan-options-and-discovery.md). O6 (conditional, ADR-053 § 4).
 
 ## Validation
 

@@ -88,6 +88,8 @@ object PromptBuilder {
         fitKcal: Int? = null,
         /** A64: the days before today as the closures read them ([recentDays]); empty = not sent. */
         pastDays: List<DayTotals> = emptyList(),
+        /** A67 (ADR-051): the first turns with an empty memory ask the routines once. */
+        discovery: Boolean = false,
     ): Turn {
         val today = SaoPaulo.date(now)
         val raw = rawSinceDigest(todayMessages, digests)
@@ -107,6 +109,7 @@ object PromptBuilder {
                 compact = false,
                 recent = recent(recentLogs, day.slots, today),
                 recentDays = recentDays(pastDays, day.slotsOn(today).map { it.id.toString() }.toSet(), today),
+                discovery = discovery,
                 facts = chatFacts(facts, day.slotsOn(today).map { it.id.toString() }.toSet()),
                 clarifyRounds = clarifyRounds(todayMessages),
                 forceEstimate = forceEstimate,
@@ -289,7 +292,7 @@ object PromptBuilder {
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), pendingAddition = null, skipSlots = false, planBudget = false, workout = false, actions = false, fitKcal = null)
+        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), discovery = false, pendingAddition = null, skipSlots = false, planBudget = false, workout = false, actions = false, fitKcal = null)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {

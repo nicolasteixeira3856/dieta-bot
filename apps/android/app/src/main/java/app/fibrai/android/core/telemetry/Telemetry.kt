@@ -99,6 +99,9 @@ object TelemetryEvents {
     /** A61 part B: Copiar in the Chat, `count` of messages, `has_user` / `has_tali` booleans. Never the text. */
     const val MESSAGE_COPIED = "message_copied"
 
+    /** A67: Registrar or Reservar on a plan option, `action` record | reserve. */
+    const val PLAN_OPTION = "plan_option"
+
     /** A65: a workout reported in the Chat was written, `mode` replace | add, `kcal` the stated number. */
     const val WORKOUT_SAVED = "workout_saved"
 

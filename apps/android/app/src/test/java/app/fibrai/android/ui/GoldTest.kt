@@ -307,6 +307,13 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun wipe_light() = check("wipe", dark = false) { Cfg(wipe = true) }
 
+    /** chatO (D25, A67): two options, each with its own Registrar and Reservar. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1100dp-xhdpi")
+    fun chatO_dark() = check("chatO", dark = true) { Chat(ChatFixtures.chatO) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1100dp-xhdpi")
+    fun chatO_light() = check("chatO", dark = false) { Chat(ChatFixtures.chatO) }
+
     /** chatRL (D18, A60 part D): the reserved plan. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h898dp-xhdpi")
     fun chatRL_dark() = check("chatRL", dark = true) { Chat(ChatFixtures.chatRL) }

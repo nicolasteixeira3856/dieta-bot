@@ -18,6 +18,11 @@ data class ChatIn(
     val compact: Boolean = false,
     /** Meals of the 7 days before today (S11). */
     val recent: List<ChatRecentMeal> = emptyList(),
+    /**
+     * A67 (S37, ADR-051): the first Chat turns with an empty memory (the greeting and the answer to the questions). Default
+     * false is not encoded: the server reads an absent field as false.
+     */
+    val discovery: Boolean = false,
     /** A64 (S33): the app's totals of each of the 7 days before today, newest first; empty = not sent. */
     @SerialName("recent_days") val recentDays: List<ChatRecentDay> = emptyList(),
     /**
@@ -131,7 +136,10 @@ data class ChatRecentDay(
     @SerialName("missing_slots") val missingSlots: List<String>,
 )
 
-/** op: "add" | "reinforce" | "replace" | "remove". id is null only on add. */
+/**
+ * op: "add" | "reinforce" | "replace" | "remove". id is null only on add. A67 (S33, S37): kcal/p/c/g of a routine or a liked
+ * dish when the model estimated them; [declared] = a routine the user declared without a recorded day (discovery).
+ */
 @Serializable
 data class ChatMemoryUpdate(
     val op: String,
@@ -141,6 +149,11 @@ data class ChatMemoryUpdate(
     val key: String = "",
     val text: String = "",
     val slot: String? = null,
+    val kcal: Int? = null,
+    val p: Int? = null,
+    val c: Int? = null,
+    val g: Int? = null,
+    val declared: Boolean = false,
 )
 
 /** slotId null = "Outros" (orphan or deleted slot). */
