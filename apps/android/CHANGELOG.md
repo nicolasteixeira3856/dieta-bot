@@ -2,6 +2,21 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.22 — 09/10/2026
+
+### Novidades
+
+- Treino pelo Chat: escreva, por exemplo, "treino de hoje 450 kcal" e a Tali grava o treino do dia com um recibo e o botão Desfazer. "Mais 200 kcal de treino" soma ao que já estava. A Home mostra o mesmo número e o crédito na meta.
+- Várias coisas numa mensagem só: "café 2 ovos, almoço arroz e frango, pulei o lanche" vira um recibo para cada refeição e para o pulo. Desfazer em qualquer um desses recibos desfaz todos de uma vez. "Jantei frango, me sugere o lanche" registra o jantar e deixa a sugestão do lanche pronta para registrar ou reservar.
+- Opções no plano: quando a Tali sugere duas opções, cada uma aparece num quadro próprio com os ingredientes, as calorias e os botões Registrar e Reservar. Também dá para responder "fiz a 2".
+- Primeira conversa: com a memória vazia, um "oi" faz a Tali perguntar seu café, almoço, jantar e preferências de costume (dá para pular). O que você responder fica guardado.
+- Receitas: embaixo de uma receita da Tali aparece "Salvar receita". As receitas salvas ficam em Configurações → Receitas, onde dá para abrir e excluir. Depois é só pedir "lembra a receita X?" ou dizer "jantei a X" para registrar com os números salvos.
+- O que a Tali sabe: em Configurações há uma tela nova com tudo o que a Tali guardou sobre você (preferências, rotinas, lembretes temporários), com a origem de cada item. Dá para corrigir o texto ou apagar. Um item apagado não volta sozinho.
+
+### Ajustes
+
+- A Tali agora lembra que você tem air fryer, panela de pressão ou balança, e também os pratos de que você disse ter gostado.
+
 ## 0.0.21 — 08/10/2026
 
 ### Novidades
