@@ -20,6 +20,7 @@ import app.fibrai.android.domain.SlotChange
 import app.fibrai.android.domain.SlotRecord
 import app.fibrai.android.domain.SlotState
 import app.fibrai.android.domain.UndoData
+import app.fibrai.android.domain.WorkoutChange
 
 /** A record about to be written by the Chat (A34): the meal_log row and what its receipt keeps. */
 internal data class NewRecord(
@@ -130,6 +131,25 @@ internal class ChatRecorder(
     }
 
     /**
+     * A65 (ADR-049): the workout of today as the Chat reported it, exactly as the Home dialog writes it: [mode] `replace`
+     * sets [kcal], `add` sums it to the day's number. One transaction under [guard] that rechecks the number it read; the
+     * receipt keeps both numbers for Desfazer. Null when anything moved.
+     */
+    suspend fun workout(kcal: Int, mode: String, guard: RecordGuard?): Long? {
+        val date = today().toString()
+        val before = repository.dayRecord(date).workoutKcal
+        val after = if (mode == WORKOUT_ADD) (before ?: 0) + kcal else kcal
+        val change = WorkoutChange(date, before, after)
+        val receipt = ChatMessageEntity(
+            role = ReceiptRules.WORKOUT,
+            text = mode,
+            estimateKcal = kcal,
+            undoData = UndoData(emptyList(), workout = change).encode(),
+        )
+        return repository.commitRecord(emptyList(), receipts = listOf(receipt), guard = guard, workout = change)?.single()
+    }
+
+    /**
      * Excluir (or Editar with [ReceiptMark.EDITED]): the record's slot becomes empty and the memory change of
      * the receipt is reverted. Returns the records removed, or null when the slot no longer matches.
      */
@@ -152,7 +172,7 @@ internal class ChatRecorder(
         val restored = changes.filter { it.after.records.isNotEmpty() }.map {
             receipt(ReceiptRules.RESTORED, slotName(it.slotId), it.slotId, it.after.kcal, it.after.records.first().source.asReceiptSource(), UndoData(listOf(it)))
         }
-        repository.commitRecord(changes, receipts = restored, receiptMarks = mapOf(receipt.id to UNDONE)) ?: return false
+        repository.commitRecord(changes, receipts = restored, receiptMarks = mapOf(receipt.id to UNDONE), workout = undo.workout?.reversed()) ?: return false
         revert(undo.facts)
         return true
     }
@@ -244,5 +264,9 @@ internal class ChatRecorder(
         const val DELETED = "deleted"
         const val MOVED = "moved"
         const val EDITED = "edited"
+
+        /** A65: the workout modes of the server (S35). */
+        const val WORKOUT_REPLACE = "replace"
+        const val WORKOUT_ADD = "add"
     }
 }

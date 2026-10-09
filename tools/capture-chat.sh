@@ -27,7 +27,10 @@
 # SCENES=a64 only onboarding + A64: recent_days on the wire, the day balance on the newest receipt, the projection of an
 #   `ask` estimate, `Anotado:` for an explicit permanent fact, `Tali está pensando…` after 4 s, and chatF seeded (with the
 #   balance line in the receipt) and chatL.
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64] tools/capture-chat.sh dark|light
+# SCENES=a65 only onboarding + A65: a workout reported in the Chat writes day.workoutKcal with its receipt (Treino registrado),
+#   Home shows it, Desfazer restores the previous number, and add sums (Treino somado). No gold: the receipt is Chat/Receipt.
+# SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -44,7 +47,8 @@ ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
-bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+# SKIP_ONBOARDING=1: the app is already onboarded on this emulator (a scene rerun); only the theme and the slot name below.
+if [ "${SKIP_ONBOARDING:-0}" = 1 ]; then "$ADB" shell am force-stop $PKG; else bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1; fi
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
@@ -1411,6 +1415,47 @@ expect "chatF: receipt with Excluir and Trocar refeição" 'chat-receipt-delete.
 expect "chatF: the balance line" 'text="680 de [0-9.]+ kcal · faltam [0-9]+ g de proteína"'
 shot chatF
 sql "$CLEAN"
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a65 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+workout_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['workout'])"; }
+day_workout() { db "select workoutKcal from day where date = (select max(date) from day)"; }
+set_clock 0 19:30
+echo "  A65: \"treino de hoje 450 kcal\" writes the day's number with a receipt"
+sql "$CLEAN"'
+c.execute("update day set workoutKcal = null")
+'
+fake_mode '{"workout": {"kcal": 450, "mode": "replace"}}'
+open_chat
+say "treino%sde%shoje%s450%skcal"; kb_off
+[ "$(workout_sent)" = "True" ] && echo "  ✓ workout true on the wire" || { echo "  ✗ workout sent: $(workout_sent)"; FAIL=1; }
+expect "workout receipt" 'text="Treino registrado"'
+expect "receipt chip 450 kcal" 'text="450 kcal"'
+expect "Desfazer on the receipt" 'resource-id="chat-receipt-undo"'
+"$ADB" exec-out screencap -p > "$TMP/a65-receipt.png"; cp "$TMP/a65-receipt.png" "${A65_EVIDENCE:-$TMP}/a65-receipt-$THEME.png" 2>/dev/null
+[ "$(day_workout)" = "[(450,)]" ] && echo "  ✓ day.workoutKcal 450" || { echo "  ✗ day workout: $(day_workout)"; FAIL=1; }
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
+expect "Home: the workout line shows the Chat value" 'resource-id="home-workout-value"[^>]*|text="450 kcal'
+dump; grep -o 'text="450 kcal[^"]*"' "$TMP/ui.xml" | head -1 | sed 's/^/  · Home: /'
+echo "  A65: Desfazer restores the previous number"
+open_chat
+tap 'resource-id="chat-receipt-undo"' 1.5
+expect "receipt marked Desfeito" 'text="Desfeito"'
+[ "$(day_workout)" = "[(None,)]" ] && echo "  ✓ day.workoutKcal back to none" || { echo "  ✗ day workout after Desfazer: $(day_workout)"; FAIL=1; }
+echo "  A65: replace 300 then add 200 -> 500"
+fake_mode '{"workout": {"kcal": 300, "mode": "replace"}}'
+open_chat
+say "treinei%s300%skcal"; kb_off
+fake_mode '{"workout": {"kcal": 200, "mode": "add"}}'
+say "mais%s200%skcal%sde%streino"; kb_off
+expect "Treino somado receipt" 'text="Treino somado"'
+expect "chip +200 kcal" 'text="\+200 kcal"'
+[ "$(day_workout)" = "[(500,)]" ] && echo "  ✓ day.workoutKcal 500" || { echo "  ✗ day workout after add: $(day_workout)"; FAIL=1; }
+fake_mode '{}'
+sql "$CLEAN"'
+c.execute("update day set workoutKcal = null")
+'
 fi
 
 "$ADB" shell settings put global auto_time 1

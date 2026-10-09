@@ -636,9 +636,13 @@ class ChatViewModel @Inject constructor(
         if (recordMode == RECORD_AUTO && recordState == ChatRecorder.NOT_RECORDED) {
             recordGuard(proposal?.takeIf { !it.actionable }?.reason ?: GUARD_STALE)
         }
-        if (recordMode == RECORD_AUTO && recordState == null) autoRecord(answerId, out, snapshot, turn.body.clarifyRounds)
+        // A65: a turn that only reports a workout is `auto` with nothing else to record.
+        val workoutOnly = out.workout != null && out.estimate == null && out.intent != "skip"
+        if (recordMode == RECORD_AUTO && recordState == null && !workoutOnly) autoRecord(answerId, out, snapshot, turn.body.clarifyRounds)
         // A59 (ADR-047): the log first, then each listed skip.
         if (skips != null) applySkips(answerId, turn.body.clarifyRounds)
+        // A65 (ADR-049): the workout the user stated, with its own receipt, under the request's day and wipe.
+        out.workout?.takeIf { it.kcal in 1..WORKOUT_MAX && it.mode in WORKOUT_MODES }?.let { applyWorkout(it.kcal, it.mode, RecordGuard(date, wipeId)) }
     }
 
     /**
@@ -743,6 +747,16 @@ class ChatViewModel @Inject constructor(
                 answerId,
                 if (proposal?.addition != null && target != null && MealChanges.compose(target, proposal.addition, "user") == null) GUARD_OVERFLOW else GUARD_STALE,
             )
+        }
+    }
+
+    /** A65: the day's workout number from the Chat; a day, wipe or number that moved writes nothing (record_guard stale). */
+    private suspend fun applyWorkout(kcal: Int, mode: String, guard: RecordGuard) {
+        val id = runCatching { recorder.workout(kcal, mode, guard) }.onFailure { if (it is CancellationException) throw it }
+        when {
+            id.isFailure -> recordGuard(GUARD_WRITE_FAILED)
+            id.getOrNull() == null -> recordGuard(GUARD_STALE)
+            else -> telemetry.event(TelemetryEvents.WORKOUT_SAVED, mapOf("from" to "chat", "mode" to mode, "kcal" to kcal))
         }
     }
 
@@ -1354,7 +1368,8 @@ class ChatViewModel @Inject constructor(
         val stateOf = { date: String, slotId: Long ->
             (if (date == todayIso) todayStates else w.pastSlots[date].orEmpty())[slotId] ?: SlotState.EMPTY
         }
-        val receiptActions = receiptActions(w.receipts, stateOf)
+        // A65: today's workout from the snapshot; another day's is never undone from the Chat.
+        val receiptActions = receiptActions(w.receipts, stateOf) { date -> if (date == todayIso) d.workoutKcal else WORKOUT_UNKNOWN }
         // Registrar (chatE) or Registrar assim (chatR): the last estimate of today that is still open.
         val lastEstimate = todayRows.lastOrNull { it.role == "assistant" && it.isRecordable }
         val open = lastEstimate?.takeIf { l.pending == null && isOpen(it, todayRows) }
@@ -1559,10 +1574,14 @@ class ChatViewModel @Inject constructor(
      * ([ReceiptRules.latest]), and every slot still exactly as the receipt left it (a change by another path
      * hides them, so an action never reverses a state that is gone).
      */
-    private fun receiptActions(receipts: List<ChatMessageEntity>, stateOf: (String, Long) -> SlotState): Map<Long, List<ReceiptAction>> {
+    private fun receiptActions(
+        receipts: List<ChatMessageEntity>,
+        stateOf: (String, Long) -> SlotState,
+        workoutOf: (String) -> Int?,
+    ): Map<Long, List<ReceiptAction>> {
         val undo = receipts.associate { it.id to UndoData.decode(it.undoData) }
         val rule = receipts.map { r ->
-            val touched = undo[r.id]?.slots?.map { it.date to it.slotId }?.toSet()
+            val touched = undo[r.id]?.let { u -> (u.slots.map { it.date to it.slotId } + listOfNotNull(u.workout?.let { it.date to ReceiptRules.WORKOUT_SLOT })).toSet() }
                 ?: setOfNotNull(r.estimateSlotId?.let { r.date to it })
             ReceiptRules.Receipt(r.id, r.createdAtEpochMs, touched, active = r.receiptState == null && undo[r.id] != null)
         }
@@ -1570,6 +1589,8 @@ class ChatViewModel @Inject constructor(
         return receipts.filter { it.id in latest }.mapNotNull { r ->
             val data = undo[r.id] ?: return@mapNotNull null
             if (data.slots.any { stateOf(it.date, it.slotId) != it.after }) return@mapNotNull null
+            // A65: Desfazer of a workout only while the day still holds the number it wrote (the Home dialog may change it).
+            if (data.workout?.let { workoutOf(it.date) != it.after } == true) return@mapNotNull null
             r.id to ReceiptRules.actions(r.role, r.recordSource, data)
         }.toMap()
     }
@@ -1680,9 +1701,11 @@ class ChatViewModel @Inject constructor(
                 ReceiptRules.SKIPPED -> ReceiptKind.SKIPPED
                 ReceiptRules.MOVED -> ReceiptKind.MOVED
                 ReceiptRules.RESTORED -> ReceiptKind.RESTORED
+                ReceiptRules.WORKOUT -> if (m.text == ChatRecorder.WORKOUT_ADD) ReceiptKind.WORKOUT_ADDED else ReceiptKind.WORKOUT
                 else -> ReceiptKind.LOGGED
             },
-            slotName = m.text,
+            // A65: a workout receipt keeps its mode in the text, not a meal name.
+            slotName = if (m.role == ReceiptRules.WORKOUT) "" else m.text,
             slotTime = m.estimateSlotId?.let { slotTimes[it] },
             kcal = m.estimateKcal,
             fromKcal = undo?.takeIf { m.role == ReceiptRules.REPLACED }?.recordSlot?.before?.kcal,
@@ -1858,13 +1881,20 @@ class ChatViewModel @Inject constructor(
         const val PAGE_SIZE = 20
 
         /** A64: the receipts that leave a record in a slot; the newest active one of today carries the day balance. */
-        private val BALANCE_RECEIPTS = setOf(ReceiptRules.LOGGED, ReceiptRules.REPLACED, ReceiptRules.MOVED, ReceiptRules.RESTORED)
+        private val BALANCE_RECEIPTS = setOf(ReceiptRules.LOGGED, ReceiptRules.REPLACED, ReceiptRules.MOVED, ReceiptRules.RESTORED, ReceiptRules.WORKOUT)
+
+        /** A65: server bounds of `workout.kcal` and its modes (S35). */
+        private const val WORKOUT_MAX = 5000
+        private val WORKOUT_MODES = setOf(ChatRecorder.WORKOUT_REPLACE, ChatRecorder.WORKOUT_ADD)
+
+        /** A65: a number no day holds, so a workout receipt of another day never matches. */
+        private const val WORKOUT_UNKNOWN = Int.MIN_VALUE
 
         /** Receipt of Substituir (ADR-017). UI only, like "logged". */
         const val ROLE_REPLACED = ReceiptRules.REPLACED
 
         /** Rows that closed an old plan row (before A34): its Registrar assim goes away. A wipe closes it too. */
-        private val CLOSERS = ReceiptRules.ROLES + DayRepository.ROLE_WIPED
+        private val CLOSERS = ReceiptRules.ROLES - ReceiptRules.WORKOUT + DayRepository.ROLE_WIPED
 
         /** server `record` (S14, A34). */
         const val RECORD_AUTO = "auto"

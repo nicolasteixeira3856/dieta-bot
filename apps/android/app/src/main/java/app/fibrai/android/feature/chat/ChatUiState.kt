@@ -190,7 +190,7 @@ sealed interface ChatItem {
 }
 
 /** Receipt roles (A34): title and icon of the card. */
-enum class ReceiptKind { LOGGED, REPLACED, SKIPPED, MOVED, RESTORED }
+enum class ReceiptKind { LOGGED, REPLACED, SKIPPED, MOVED, RESTORED, WORKOUT, WORKOUT_ADDED }
 
 /** The mark of a receipt that lost its actions by a tap on it (A34). */
 enum class ReceiptMark(val label: String) {

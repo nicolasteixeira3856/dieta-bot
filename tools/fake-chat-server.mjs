@@ -41,6 +41,8 @@
 // A60 part D: POST /__mode {"planned": true} answers a dinner log into the slot whose name starts with "Jan", with the
 // server's difference line against the plan the request carried in DAY (`status: planned`).
 // A64: /__calls reports `recentDays`, the `recent_days` of the last turn (S33), and `facts` carries their macros.
+// A65: POST /__mode {"workout": {"kcal": 450, "mode": "replace"}} answers a workout-only turn (S35: intent "question",
+// no estimate, record "auto") to a client that sent workout: true; /__calls reports the last `workout` flag.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -70,6 +72,8 @@ let lastClose = null;
 let lastMessages = [];
 let lastSkipSlots = null;
 let lastRecentDays = null;
+let workoutMode = null;
+let lastWorkout = null;
 let lastDay = [];
 let lastAutoRecord = null;
 let lastClarify = { rounds: null, force: false };
@@ -124,11 +128,12 @@ http.createServer(async (req, res) => {
     closeFail = Boolean(mode.close_fail);
     format = mode.format ?? null;
     planned = Boolean(mode.planned);
+    workoutMode = mode.workout ?? null;
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {
@@ -172,6 +177,7 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastDay = input.day?.slots ?? [];
     if (!input.compact) lastSkipSlots = input.skip_slots ?? null;
     if (!input.compact) lastRecentDays = input.recent_days ?? null;
+    if (!input.compact) lastWorkout = input.workout ?? null;
     if (!input.compact) lastPlanBudget = input.plan_budget ?? null;
     if (!input.compact) lastFit = input.fit_kcal ?? null;
     if (!input.compact) lastMessages = input.messages ?? [];
@@ -210,6 +216,13 @@ http.createServer(async (req, res) => {
     const listed = () => (input.skip_slots === true
       ? { skip_slots: skipPrefixes.map((p) => slots.find((s) => s.name.startsWith(p))?.id).filter(Boolean) }
       : {});
+    if (workoutMode && input.workout === true) {
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply: `Treino de hoje: ${workoutMode.kcal} kcal.`, intent: "question", estimate: null, digest: null, model: "gpt-6-luna",
+        ...marks({ record: "auto", skip_slot: null }), workout: workoutMode,
+      }));
+      return;
+    }
     if (skipPrefix) {
       const skipped = slots.find((s) => s.name.startsWith(skipPrefix)) ?? slots[0];
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
