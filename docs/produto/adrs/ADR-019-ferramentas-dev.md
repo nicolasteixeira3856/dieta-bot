@@ -1,6 +1,6 @@
 # ADR-019 — Telas de ferramenta só no flavor dev
 
-- Estado: Aceito (29/09/2026, com a aprovação do A23)
+- Estado: Aceito (29/09/2026, com a aprovação do A23); parcialmente substituído pelo [ADR-053](ADR-053-visible-memory-screen.md) (08/10/2026: a ferramenta `Memória da IA (dev)` sai; a regra só-dev vale para qualquer outra ferramenta)
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o `AGENTS.md` ("Screens: ADR-012 … Nothing else", "No screenshot, UI is not done"), só para telas que existem apenas no flavor `dev`.

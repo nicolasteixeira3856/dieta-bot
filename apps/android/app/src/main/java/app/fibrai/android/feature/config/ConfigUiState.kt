@@ -116,4 +116,6 @@ class ConfigActions(
     val onCancelReset: () -> Unit = {},
     /** A68 (cfg, D24): Da Tali → Receitas. */
     val onOpenRecipes: () -> Unit = {},
+    /** A69 (cfg, D24): Da Tali → O que a Tali sabe. */
+    val onOpenMemory: () -> Unit = {},
 )

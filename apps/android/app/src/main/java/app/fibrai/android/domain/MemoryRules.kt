@@ -37,8 +37,13 @@ data class Fact(
 @Serializable
 data class NextIds(@SerialName("P") val p: Int = 1, @SerialName("D") val d: Int = 1, @SerialName("T") val t: Int = 1)
 
+/** A69 (ADR-053 § 1): the key of a fact the user deleted and the day it was deleted. */
 @Serializable
-data class Memory(val next: NextIds = NextIds(), val facts: List<Fact> = emptyList())
+data class Tombstone(val key: String, val deleted: String)
+
+/** [tombstones] (A69): keys an `add` may not bring back until the next compaction. */
+@Serializable
+data class Memory(val next: NextIds = NextIds(), val facts: List<Fact> = emptyList(), val tombstones: List<Tombstone> = emptyList())
 
 /** A proposal of the AI (server `memory_updates`). id is null only on add. A67: numbers of a routine or liked dish; [declared]. */
 data class MemoryUpdate(
@@ -211,14 +216,34 @@ object MemoryRules {
         return RevertResult(memory.copy(facts = facts), reverted, kept)
     }
 
+    /**
+     * A69 (ADR-053 § 1): the user deletes [id]: the fact leaves and, unless it is temporary, its key stays as a tombstone
+     * dated [today], so an `add` with the same key is refused until the next compaction. Unknown id: unchanged.
+     */
+    fun delete(memory: Memory, id: String, today: LocalDate): Memory {
+        val fact = memory.facts.firstOrNull { it.id == id } ?: return memory
+        val tombstones = if (fact.temp) memory.tombstones else memory.tombstones.filterNot { sameKey(it.key, fact.key) } + Tombstone(fact.key, today.toString())
+        return memory.copy(facts = memory.facts - fact, tombstones = tombstones)
+    }
+
+    /** A69: the user corrects the text of [id]; category, slot, kind and days stay. A blank or unchanged text: unchanged. */
+    fun correct(memory: Memory, id: String, text: String): Memory {
+        val clean = clean(text, TEXT_MAX).takeIf { it.isNotEmpty() } ?: return memory
+        return memory.copy(facts = memory.facts.map { if (it.id == id && it.text != clean) it.copy(text = clean) else it })
+    }
+
+    /** A69: a compaction was stored: the tombstones end (ADR-053 § 1, "until the next compaction"). */
+    fun clearTombstones(memory: Memory): Memory = if (memory.tombstones.isEmpty()) memory else memory.copy(tombstones = emptyList())
+
     private class State(memory: Memory, val today: String) {
         val facts = memory.facts.toMutableList()
+        val tombstones = memory.tombstones
         var nextP = memory.next.p
         var nextD = memory.next.d
         var nextT = memory.next.t
         val counts = (OPS + TEMP_OPS).filter { it != EXPIRE && it != TEMP_EXPIRE }.associateWith { 0 }.toMutableMap()
 
-        fun memory() = Memory(NextIds(nextP, nextD, nextT), facts.toList())
+        fun memory() = Memory(NextIds(nextP, nextD, nextT), facts.toList(), tombstones)
 
         private fun count(op: String) {
             counts[op] = counts.getValue(op) + 1
@@ -233,7 +258,8 @@ object MemoryRules {
             val key = clean(update.key, KEY_MAX)
             val text = clean(update.text, TEXT_MAX)
             when (update.op) {
-                ADD -> if (key.isNotEmpty() && text.isNotEmpty()) {
+                // A69: a key the user deleted is not added back until the next compaction.
+                ADD -> if (key.isNotEmpty() && text.isNotEmpty() && (update.kind == TEMP || tombstones.none { sameKey(it.key, key) })) {
                     if (update.kind == TEMP) addTemp(update, key, text) else add(update, key, text, recorded)
                 }
                 // A temp fact is never reinforced: it lives from its creation (A38).

@@ -1,6 +1,6 @@
 # ADR-053 — "O que a Tali sabe": the memory as a product screen
 
-- Status: Proposed (owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5; accepted with the approval of A69)
+- Status: Accepted (2026-10-08, owner approval of A69 in the batch message; owner direction of 07/10/2026 in `benchmark/MELHORIAS_CHAT_07_10_2026.md` § 5)
 - Date: 2026-10-08
 - Context: `produto`
 - Supersedes: partially [ADR-019](ADR-019-ferramentas-dev.md) (the dev-only tool `Memória da IA (dev)`, A23, is replaced by a product screen; the dev-only rule survives for every other tool). Complements [ADR-023](ADR-023-chat-v2-memoria-v2.md) and [ADR-029](ADR-029-fatos-temporarios-compactacao.md).

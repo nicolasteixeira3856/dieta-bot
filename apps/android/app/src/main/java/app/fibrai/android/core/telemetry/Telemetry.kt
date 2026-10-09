@@ -99,6 +99,10 @@ object TelemetryEvents {
     /** A61 part B: Copiar in the Chat, `count` of messages, `has_user` / `has_tali` booleans. Never the text. */
     const val MESSAGE_COPIED = "message_copied"
 
+    /** A69: a fact deleted or corrected in memL, `kind` and `category` only. */
+    const val MEMORY_FACT_DELETED = "memory_fact_deleted"
+    const val MEMORY_FACT_CORRECTED = "memory_fact_corrected"
+
     /** A68: Excluir receita confirmed in Config. */
     const val RECIPE_DELETED = "recipe_deleted"
 

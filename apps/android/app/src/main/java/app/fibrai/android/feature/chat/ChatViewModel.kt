@@ -638,6 +638,8 @@ class ChatViewModel @Inject constructor(
                 )
             }
             if (stored > 0) {
+                // A69 (ADR-053 § 1): a deleted fact's tombstone lasts until this compaction.
+                runCatching { memory.clearTombstones(SaoPaulo.date(sentAt)) }
                 val summarised = planned.blocks.take(stored).sumOf { it.messages.size }
                 val kept = planned.kept + planned.blocks.drop(stored).sumOf { it.messages.size }
                 telemetry.event(TelemetryEvents.CHAT_COMPACT, mapOf("blocks" to stored, "kept" to kept, "summarised" to summarised))

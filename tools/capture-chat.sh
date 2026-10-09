@@ -35,8 +35,10 @@
 #   reserved with its numbers) and the discovery turns on an empty memory (memory.bin removed; the facts sent next).
 # SCENES=a68 only onboarding + A68: Salvar receita under a cooking plan (Receita salva, version 1, nothing recorded), the index
 #   and the named recipe on the wire, a record by recipe with its version, and rcpL / rcpD seeded with delete.
+# SCENES=a69 only onboarding + A69: facts from the Chat listed in O que a Tali sabe (memL), a correction that reaches the next
+#   prompt, a deleted preference the model cannot add back (tombstone).
 # SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68|a69] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -1635,6 +1637,53 @@ fake_mode '{}'
 sql "$CLEAN"'
 c.execute("delete from recipe_version"); c.execute("delete from recipe")
 '
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a69 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+fact_texts() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(' | '.join(json.load(sys.stdin)['factTexts']))"; }
+open_memory() { "$ADB" shell am force-stop $PKG; "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3; tap 'resource-id="home-config"' 1.5; "$ADB" shell input swipe 390 1400 390 300 300; sleep 0.8; tap 'resource-id="cfg-memory"' 1.5; }
+set_clock 0 08:10
+echo "  A69: facts from the Chat (a permanent preference, a routine on its record)"
+sql "$CLEAN"
+"$ADB" shell run-as $PKG rm -f files/memory.bin
+fake_mode '{"routine": true}'
+open_chat
+say "cafe%sde%ssempre"; kb_off
+tap 'resource-id="chat-register"' 1.5
+echo "  A69: O que a Tali sabe lists them (memL)"
+open_memory
+expect "memL: the preference" 'text="Usa leite semidesnatado"'
+expect "memL: the routine with its slot" 'text="Rotina · Café da manhã"'
+expect "memL: groups" 'text="FIXAS".*text="ROTINAS"'
+shot memL
+echo "  A69: correct the routine; the next prompt carries the new text"
+dump; edit=$(grep -o 'resource-id="mem-edit-D[0-9]*"' "$TMP/ui.xml" | head -1)
+tap "$edit" 1
+tap 'resource-id="mem-field"' 0.5
+"$ADB" shell input keyevent 123
+"$ADB" shell input text "%sintegral"
+kb_off
+tap 'resource-id="mem-save"' 1.5
+open_memory
+expect "the corrected text" 'text="[^"]*integral'
+echo "  A69: delete the preference; the model's add with the same key is refused"
+dump; del=$(grep -o 'resource-id="mem-delete-P[0-9]*"' "$TMP/ui.xml" | head -1)
+tap "$del" 1
+expect "delete confirmation" 'resource-id="mem-delete-dialog"'
+tap 'resource-id="mem-delete-confirm"' 1.5
+delid=$(echo "$del" | sed 's/resource-id="//; s/"$//')
+if has "$delid"; then echo "  ✗ the preference is still listed"; FAIL=1; else echo "  ✓ the preference is gone"; fi
+open_chat
+say "cafe%sde%ssempre%sde%snovo"; kb_off
+case "$(fact_texts)" in *integral*) echo "  ✓ the correction reached the prompt";; *) echo "  ✗ facts sent: $(fact_texts)"; FAIL=1;; esac
+fake_mode '{"record": "none", "reply": "Ok."}'
+say "ok"; kb_off
+keys=$(fact_keys)
+case "$keys" in *leite*) echo "  ✗ the deleted preference came back: $keys"; FAIL=1;; *) echo "  ✓ tombstone: leite not recreated ($keys)";; esac
+fake_mode '{}'
+sql "$CLEAN"
+"$ADB" shell run-as $PKG rm -f files/memory.bin
 fi
 
 "$ADB" shell settings put global auto_time 1

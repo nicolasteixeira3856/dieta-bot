@@ -25,7 +25,7 @@ Numbers first. Tone chosen by the user: `seco` (default: numbers, no judgment) o
 - Disclaimer: estimate, not advice.
 - Day closure 22:00 and week closure Sunday 22:00 (America/Sao_Paulo): notification + Home card with the app's numbers and a short server text in the chosen tone (ADR-044). Reminders per meal time stay as the push rule.
 - Screens: ADR-012 and its accepted successors. Every product screen and state has a gold in the inventory of `docs/qa/README.md`. Nothing else.
-- Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: `Memória da IA (dev)` (A23), hidden by `debug.fibrai.hide_dev_tools=1` for the cfg capture.
+- Dev-only tools (ADR-019): not product screens, no gold, dev flavor only, never delete data. Today: none (the memory editor became the product screen `O que a Tali sabe`, ADR-053); `debug.fibrai.hide_dev_tools=1` still hides any future tool for the cfg capture.
 
 ## Splash
 
