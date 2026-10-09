@@ -58,6 +58,11 @@ data class ChatIn(
      * like [skipSlots]: the field must always go; a compact request sends false.
      */
     @SerialName("plan_budget") val planBudget: Boolean,
+    /**
+     * The client records a workout reported in the Chat (A65, ADR-049): the server answers [ChatOut.workout]. No default,
+     * like [planBudget]: the field must always go; a compact request sends false.
+     */
+    val workout: Boolean,
     /** Ajustar para caber: the target of the adjusted plan, the `limit_kcal` the choice showed. Null = none. */
     @SerialName("fit_kcal") val fitKcal: Int? = null,
     /** The unrecorded addition the user is continuing (A47); null = none. Never on a compact request. */
@@ -240,7 +245,13 @@ data class ChatOut(
      * answer. Null or absent = no choice UI.
      */
     @SerialName("plan_budget") val planBudget: JsonElement? = null,
+    /** A65 (S35): the energy of a workout done today, as the user stated it; null = none. */
+    val workout: ChatWorkout? = null,
 )
+
+/** `mode`: "replace" (the day's workout becomes [kcal]) or "add" (it sums to the day's number). */
+@Serializable
+data class ChatWorkout(val kcal: Int = 0, val mode: String = "replace")
 
 /** Mirrors server/main.py CloseIn (POST /v1/close, A60 part B): the app's numbers of a day or a week. */
 @Serializable

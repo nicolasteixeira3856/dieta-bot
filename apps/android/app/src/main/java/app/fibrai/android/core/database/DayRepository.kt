@@ -13,6 +13,7 @@ import app.fibrai.android.domain.SlotChange
 import app.fibrai.android.domain.SlotRecord
 import app.fibrai.android.domain.SkipOutcomes
 import app.fibrai.android.domain.SlotState
+import app.fibrai.android.domain.WorkoutChange
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -319,6 +320,8 @@ class DayRepository @Inject constructor(
         recordStates: Map<Long, String> = emptyMap(),
         guard: RecordGuard? = null,
         skip: SkipMove? = null,
+        /** A65: the day's workout number must be [WorkoutChange.before]; it becomes [WorkoutChange.after]. */
+        workout: WorkoutChange? = null,
     ): List<Long>? {
         importOnce()
         val now = clock.now()
@@ -327,7 +330,12 @@ class DayRepository @Inject constructor(
                 if (changes.any { readSlot(it.date, it.slotId) != it.before }) return@withTransaction null
                 if (guard != null && !holds(guard, SaoPaulo.date(now).toString())) return@withTransaction null
                 if (skip != null && !moveSkipRow(skip)) return@withTransaction null
+                if (workout != null && db.dayDao().get(workout.date)?.workoutKcal != workout.before) return@withTransaction null
                 changes.forEach { writeSlot(it.date, it.slotId, it.after) }
+                workout?.let { w ->
+                    val row = db.dayDao().get(w.date) ?: DayEntity(w.date, null, emptyList(), emptyList())
+                    db.dayDao().upsert(row.copy(workoutKcal = w.after))
+                }
                 receiptMarks.forEach { (id, state) -> db.chatMessageDao().setReceiptState(id, state) }
                 recordStates.forEach { (id, state) -> db.chatMessageDao().setRecordState(id, state, null) }
                 receipts.map {

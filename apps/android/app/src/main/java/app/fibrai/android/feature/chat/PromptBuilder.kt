@@ -115,6 +115,7 @@ object PromptBuilder {
                 mealChanges = true,
                 skipSlots = true,
                 planBudget = true,
+                workout = true,
                 fitKcal = fitKcal,
                 pendingAddition = pendingAddition,
             ),
@@ -287,7 +288,7 @@ object PromptBuilder {
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), pendingAddition = null, skipSlots = false, planBudget = false, fitKcal = null)
+        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), pendingAddition = null, skipSlots = false, planBudget = false, workout = false, fitKcal = null)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {

@@ -55,6 +55,12 @@ data class SlotCheck(val date: String, val slotId: Long, val state: SlotState)
 @Serializable
 data class SlotChange(val date: String, val slotId: Long, val before: SlotState, val after: SlotState)
 
+/** A65 (ADR-049): the workout energy of [date] from [before] to [after]; null = no number that day. */
+@Serializable
+data class WorkoutChange(val date: String, val before: Int?, val after: Int?) {
+    fun reversed() = WorkoutChange(date, after, before)
+}
+
 /** Pre and post image of one memory fact (A34). Null = the fact did not exist. */
 @Serializable
 data class FactImage(val id: String, val before: Fact? = null, val after: Fact? = null) {
@@ -71,6 +77,8 @@ data class UndoData(
     val slots: List<SlotChange>,
     val facts: List<FactImage> = emptyList(),
     val routine: List<RoutineUpdate> = emptyList(),
+    /** A65: the day's workout number a workout receipt changed; null on every other receipt. */
+    val workout: WorkoutChange? = null,
 ) {
     /** The slot that holds the record after this receipt: the one whose "after" has records. */
     val recordSlot: SlotChange? get() = slots.lastOrNull { it.after.records.isNotEmpty() }
@@ -115,7 +123,13 @@ object ReceiptRules {
     const val SKIPPED = "skipped"
     const val MOVED = "moved"
     const val RESTORED = "restored"
-    val ROLES = setOf(LOGGED, REPLACED, SKIPPED, MOVED, RESTORED)
+
+    /** A65: the day's workout energy written from the Chat; text = its mode ("replace" | "add"), kcal = the stated number. */
+    const val WORKOUT = "workout"
+    val ROLES = setOf(LOGGED, REPLACED, SKIPPED, MOVED, RESTORED, WORKOUT)
+
+    /** A65: the slot id a workout receipt touches in [latest]: one per day, never a real slot. */
+    const val WORKOUT_SLOT = -1L
 
     /** One receipt as the rule sees it: [slots] = (date, slotId) it touched. */
     data class Receipt(val id: Long, val createdAt: Long, val slots: Set<Pair<String, Long>>, val active: Boolean)
@@ -135,7 +149,7 @@ object ReceiptRules {
      * over a skip (it brings the skip back); never on a restore. Editar never for a photo nor a skip.
      */
     fun actions(role: String, source: String?, undo: UndoData): List<ReceiptAction> {
-        if (role == SKIPPED) return listOf(ReceiptAction.UNDO)
+        if (role == SKIPPED || role == WORKOUT) return listOf(ReceiptAction.UNDO)
         return buildList {
             val overSkip = role == LOGGED && undo.slots.any { !it.before.empty }
             if (role == REPLACED || role == MOVED || overSkip) add(ReceiptAction.UNDO)
