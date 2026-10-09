@@ -2,7 +2,11 @@ package app.fibrai.android.feature.chat
 
 import app.fibrai.android.core.network.ChatAction
 import app.fibrai.android.core.network.ChatOut
+import app.fibrai.android.core.network.ChatEstimate
 import app.fibrai.android.core.network.ChatWorkout
+import app.fibrai.android.core.network.ItemOut
+import kotlin.math.roundToInt
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
@@ -13,7 +17,22 @@ import kotlinx.serialization.json.JsonNull
  * every `skip` action (as `skip_slots`) and the raw actions. With no log or plan, the first row is the answer alone (a
  * question, skips, a workout). Workouts are applied after the rows.
  */
-data class ActionParts(val rows: List<ChatOut>, val workouts: List<ChatWorkout>, val actions: String?)
+data class ActionParts(val rows: List<ChatOut>, val workouts: List<ChatWorkout>, val actions: String?, val rowActions: List<String?> = listOf(actions)) {
+    /** A67: what each row stores: the whole list on the first row, its own action on every later row. */
+    fun actionsOf(row: Int): String? = rowActions.getOrNull(row)
+}
+
+/** A67 (ADR-051): one option of an open request, its estimate as the server totalled it. */
+data class PlanOption(
+    val id: String,
+    val name: String,
+    val kcal: Int,
+    val p: Int,
+    val c: Int,
+    val g: Int,
+    val items: List<ItemOut>,
+    val mealText: String?,
+)
 
 object ChatActions {
     const val LOG = "log"
@@ -52,8 +71,35 @@ object ChatActions {
             skipSlots = skips,
         )
         val raw = json.encodeToString(ListSerializer(ChatAction.serializer()), actions)
-        return ActionParts(listOf(first) + rows.drop(1).map { it.copy(model = out.model, skipSlots = null) }, workouts, raw)
+        val own = estimates.drop(1).map { json.encodeToString(ListSerializer(ChatAction.serializer()), listOf(it)) }
+        return ActionParts(listOf(first) + rows.drop(1).map { it.copy(model = out.model, skipSlots = null) }, workouts, raw, listOf(raw) + own)
     }
+
+    /**
+     * A67: the options of the plan a row stores (its own action: the first log or plan of its list), each with an id, a name
+     * and an estimate; fewer than two = a plain plan.
+     */
+    fun options(actions: String?): List<PlanOption> {
+        val own = actions?.let { runCatching { json.decodeFromString(ListSerializer(ChatAction.serializer()), it) }.getOrNull() }
+            ?.firstOrNull { it.type == LOG || it.type == PLAN }?.takeIf { it.type == PLAN } ?: return emptyList()
+        val options = own.options?.let { runCatching { json.decodeFromJsonElement(ListSerializer(RawOption.serializer()), it) }.getOrNull() }.orEmpty()
+        return options.mapNotNull { o ->
+            val e = o.estimate ?: return@mapNotNull null
+            if (o.id.isBlank() || o.name.isBlank() || e.kcal <= 0.0) return@mapNotNull null
+            PlanOption(o.id, o.name.trim(), e.kcal.roundToInt(), e.p.roundToInt(), e.c.roundToInt(), e.g.roundToInt(), e.items, e.mealText?.trim()?.takeIf { it.isNotEmpty() })
+        }.distinctBy { it.id }.takeIf { it.size >= 2 }.orEmpty()
+    }
+
+    /** An option item as a line: `30 g de molho de tomate`; a name that starts with a count keeps it, `1 pão sírio (60 g)`. */
+    fun itemLine(item: ItemOut): String {
+        val grams = if (item.g % 1.0 == 0.0) item.g.toInt().toString() else item.g.toString().replace('.', ',')
+        val name = item.name.trim()
+        if (item.g <= 0.0) return name
+        return if (name.firstOrNull()?.isDigit() == true) "$name ($grams g)" else "$grams g de $name"
+    }
+
+    @Serializable
+    private data class RawOption(val id: String = "", val name: String = "", val estimate: ChatEstimate? = null)
 
     /** One log or plan action as a single-estimate answer: a held log is a question-only row with its slot. */
     private fun row(a: ChatAction): ChatOut {

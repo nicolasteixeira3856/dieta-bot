@@ -46,6 +46,9 @@
 // A66: POST /__mode {"actions": "day"|"plan"|"held"} answers typed actions (S36) to a client that sent actions: true:
 // "day" = log café 380 + log almoço 640 + skip lanche; "plan" = log jantar 610 + plan lanche 180; "held" = log café 380 +
 // a held log of the almoço with its question. /__calls reports the last `actions` flag.
+// A67: POST /__mode {"discovery": true} answers a client that sent discovery: true: the first turn (no assistant message in
+// HISTORY) asks the routines as - lines; the next proposes a declared breakfast routine with its numbers and an equipment
+// fact. /__calls reports the last `discovery` flag.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import http from "http";
@@ -77,6 +80,8 @@ let lastSkipSlots = null;
 let lastRecentDays = null;
 let workoutMode = null;
 let actionsMode = null;
+let discoveryMode = false;
+let lastDiscovery = null;
 let lastActions = null;
 let lastWorkout = null;
 let lastDay = [];
@@ -135,11 +140,12 @@ http.createServer(async (req, res) => {
     planned = Boolean(mode.planned);
     workoutMode = mode.workout ?? null;
     actionsMode = mode.actions ?? null;
+    discoveryMode = Boolean(mode.discovery);
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {
@@ -185,6 +191,7 @@ http.createServer(async (req, res) => {
     if (!input.compact) lastRecentDays = input.recent_days ?? null;
     if (!input.compact) lastWorkout = input.workout ?? null;
     if (!input.compact) lastActions = input.actions ?? null;
+    if (!input.compact) lastDiscovery = input.discovery ?? false;
     if (!input.compact) lastPlanBudget = input.plan_budget ?? null;
     if (!input.compact) lastFit = input.fit_kcal ?? null;
     if (!input.compact) lastMessages = input.messages ?? [];
@@ -223,6 +230,25 @@ http.createServer(async (req, res) => {
     const listed = () => (input.skip_slots === true
       ? { skip_slots: skipPrefixes.map((p) => slots.find((s) => s.name.startsWith(p))?.id).filter(Boolean) }
       : {});
+    if (discoveryMode && input.discovery === true) {
+      const cafe = slots.find((s) => s.name.startsWith("Caf")) ?? slots[0];
+      const answered = (input.messages ?? []).some((m) => m.role === "assistant");
+      const updates = answered ? [
+        { op: "add", id: null, kind: "dynamic", category: "routine", key: "cafe", text: "2 ovos mexidos e 1 pão francês", slot: cafe.id,
+          kcal: 320, p: 17, c: 29, g: 16, declared: true },
+        { op: "add", id: null, kind: "permanent", category: "equipment", key: "air fryer", text: "Tem air fryer", slot: null,
+          kcal: null, p: null, c: null, g: null, declared: false },
+      ] : [];
+      const reply = answered
+        ? ["Vou lembrar:", "- Café: 2 ovos mexidos e 1 pão francês", "- Air fryer"].join(NL)
+        : ["Oi! Para eu acertar desde hoje, me conta (pode pular qualquer uma):", "- O que você costuma tomar no café?",
+          "- E no almoço?", "- E no jantar?", "- Alguma preferência fixa ou equipamento (leite, whey, air fryer)?"].join(NL);
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+        reply, intent: "question", estimate: null, memory_updates: updates, memory_used: [], digest: null, model: "gpt-6-luna",
+        ...marks({ record: "none", skip_slot: null }),
+      }));
+      return;
+    }
     if (actionsMode && input.actions === true) {
       const by = (p, i) => slots.find((s) => s.name.startsWith(p)) ?? slots[i];
       const cafe = by("Caf", 0), almoco = by("Alm", 1), lanche = by("Lan", 2), jantar = by("Jan", slots.length - 1);

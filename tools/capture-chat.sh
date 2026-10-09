@@ -31,8 +31,10 @@
 #   Home shows it, Desfazer restores the previous number, and add sums (Treino somado). No gold: the receipt is Chat/Receipt.
 # SCENES=a66 only onboarding + A66: typed actions (the whole day: two records and a skip with Desfazer of the batch; a log and
 #   a plan; a clarification on one of two). No new gold: receipts and bubbles of chatSK, chatR, chatQ.
+# SCENES=a67 only onboarding + A67: chatO seeded (two options, each with Registrar and Reservar; option 2 recorded and
+#   reserved with its numbers) and the discovery turns on an empty memory (memory.bin removed; the facts sent next).
 # SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66] tools/capture-chat.sh dark|light
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -1498,6 +1500,72 @@ say "cafe%s2%spaes%se%s2%sovos%se%salmoco%sarroz%se%sfrango"; kb_off
 open_chat
 expect "the held question shows" 'text="Quanto de arroz no almoço\?"'
 "$ADB" exec-out screencap -p > "${A66_EVIDENCE:-$TMP}/a66-held-$THEME.png"
+fake_mode '{}'
+sql "$CLEAN"
+fi
+
+if [ "${SCENES:-all}" = all ] || [ "${SCENES:-all}" = a67 ]; then
+kb_off() { "$ADB" shell dumpsys input_method | grep -q 'mInputShown=true' && { "$ADB" shell input keyevent 4; sleep 0.8; }; }
+discovery_sent() { curl -s "$FAKE/__calls" | "$PY" -c "import json,sys; print(json.load(sys.stdin)['discovery'])"; }
+# chatO: the chatR gold day (1.640 eaten of 2.200) with the open dinner request answered with two options.
+CHAT_O='
+import json
+slots = [r[0] for r in c.execute("select id from meal_slot order by minutesFromMidnight")]
+c.execute("update profile set ceilingMode=?, kcalSame=2200, eat=?, proteinTargetG=167, carbTargetG=223, fatTargetG=74", ("same", "zero"))
+c.execute("update day set workoutKcal=null")
+c.execute("delete from planned_meal")
+for slot, kcal, p, carbs, fat in [(slots[0], 440, 25, 38, 22), (slots[1], 820, 45, 76, 14), (slots[2], 380, 16, 38, 10)]:
+    c.execute("insert into meal_log(date,window,text,kcal,p,stable,slotId,carbs,fat,source) values(?,?,?,?,?,1,?,?,?,?)", (today, "", "x", kcal, p, slot, carbs, fat, "user"))
+now = int(time.time() * 1000)
+items1 = [{"name": "1 pão sírio", "g": 60, "kcal": 160}, {"name": "molho de tomate", "g": 30, "kcal": 20}, {"name": "frango desfiado", "g": 100, "kcal": 160},
+          {"name": "milho", "g": 30, "kcal": 30}, {"name": "muçarela", "g": 30, "kcal": 90}]
+items2 = [{"name": "3 ovos", "g": 0, "kcal": 210}, {"name": "ricota", "g": 50, "kcal": 80}, {"name": "1 fatia de pão integral", "g": 25, "kcal": 70}]
+o1 = {"kcal": 420, "p": 40, "c": 38, "g": 12, "items": items1, "meal_text": "Pizza de pão sírio", "suggested_slot": str(slots[3])}
+o2 = {"kcal": 360, "p": 28, "c": 14, "g": 20, "items": items2, "meal_text": "Omelete de forno: 3 ovos, ricota e pão integral", "suggested_slot": str(slots[3])}
+actions = [{"id": "a1", "type": "plan", "slot": str(slots[3]), "estimate": o1, "record": "none",
+            "options": [{"id": "o1", "name": "Pizza de pão sírio", "estimate": o1}, {"id": "o2", "name": "Omelete de forno", "estimate": o2}]}]
+reply = chr(10).join(["Duas opções para o jantar:", "**Opção 1: Pizza de pão sírio**", "- 1 pão sírio (60 g)", "**Opção 2: Omelete de forno**", "- 3 ovos"])
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)", (today, "user", "Não sei o que jantar. Me dá umas ideias?", now - 2000))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,estimateConfidence,estimateSlotId,intent,recordMode,actions) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", reply, now - 1000, 420, 40, 38, 12, "high", slots[3], "plan", "none", json.dumps(actions, ensure_ascii=False)))
+'
+set_clock 0 20:15
+echo "  A67 gold: chatO"
+sql "$CLEAN$CHAT_O"
+open_chat
+expect "two option blocks" 'chat-option-o1.*chat-option-o2|chat-option-o2.*chat-option-o1'
+expect "each option with Registrar and Reservar" 'chat-option-record-o2'
+if has chat-record-plan; then echo "  ✗ Registrar assim under a plan with options"; FAIL=1; else echo "  ✓ no Registrar assim under the bubble"; fi
+expect "gold day: Dia 1.640 -> 2.060 de 2.200" '1\.640.*2\.060.*2\.200'
+shot chatO
+echo "  A67: Registrar on option 2 records its numbers"
+tap 'resource-id="chat-option-record-o2"' 1.5
+rows=$(db "select m.name, l.kcal from meal_log l join meal_slot m on m.id = l.slotId where m.name like 'Jan%'")
+case "$rows" in *"360)"*) echo "  ✓ option 2 recorded: $rows";; *) echo "  ✗ option record: $rows"; FAIL=1;; esac
+echo "  A67: Reservar on option 2 reserves its numbers"
+sql "$CLEAN$CHAT_O"
+open_chat
+tap 'resource-id="chat-option-reserve-o2"' 1.5
+[ "$(db "select kcal from planned_meal")" = "[(360,)]" ] && echo "  ✓ option 2 reserved" || { echo "  ✗ planned_meal: $(db "select kcal from planned_meal")"; FAIL=1; }
+echo "  A67: discovery on the first opening with an empty memory"
+sql "$CLEAN"'
+c.execute("delete from planned_meal")
+'
+"$ADB" shell run-as $PKG rm -f files/memory.bin
+fake_mode '{"discovery": true}'
+open_chat
+say "oi"; kb_off
+[ "$(discovery_sent)" = "True" ] && echo "  ✓ discovery true on the first turn" || { echo "  ✗ discovery sent: $(discovery_sent)"; FAIL=1; }
+expect "the questions as a list" 'O que você costuma tomar no café'
+say "cafe%s2%sovos%se%spao,%stenho%sair%sfryer"; kb_off
+[ "$(discovery_sent)" = "True" ] && echo "  ✓ discovery true on the answer" || { echo "  ✗ discovery on the answer: $(discovery_sent)"; FAIL=1; }
+[ "$(db "select count(*) from meal_log")" = "[(0,)]" ] && echo "  ✓ nothing logged" || { echo "  ✗ discovery logged a meal"; FAIL=1; }
+fake_mode '{"record": "none", "reply": "Ok."}'
+open_chat
+say "valeu"; kb_off
+[ "$(discovery_sent)" = "False" ] && echo "  ✓ no discovery once the memory has facts" || { echo "  ✗ discovery after: $(discovery_sent)"; FAIL=1; }
+keys=$(fact_keys)
+case "$keys" in *"air fryer"*"cafe"*) echo "  ✓ facts sent: $keys";; *) echo "  ✗ facts: $keys"; FAIL=1;; esac
 fake_mode '{}'
 sql "$CLEAN"
 fi

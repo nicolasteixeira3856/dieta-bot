@@ -24,6 +24,8 @@ data class Fact(
     val p: Int? = null,
     val c: Int? = null,
     val g: Int? = null,
+    /** A67 (ADR-051): a routine the user declared (discovery), with no recorded day; it lives from [created]. */
+    val declared: Boolean = false,
 ) {
     val permanent: Boolean get() = kind == MemoryRules.PERMANENT
     val dynamic: Boolean get() = kind == MemoryRules.DYNAMIC
@@ -38,7 +40,7 @@ data class NextIds(@SerialName("P") val p: Int = 1, @SerialName("D") val d: Int 
 @Serializable
 data class Memory(val next: NextIds = NextIds(), val facts: List<Fact> = emptyList())
 
-/** A proposal of the AI (server `memory_updates`). id is null only on add. */
+/** A proposal of the AI (server `memory_updates`). id is null only on add. A67: numbers of a routine or liked dish; [declared]. */
 data class MemoryUpdate(
     val op: String,
     val id: String?,
@@ -47,6 +49,11 @@ data class MemoryUpdate(
     val key: String,
     val text: String,
     val slot: String? = null,
+    val kcal: Int? = null,
+    val p: Int? = null,
+    val c: Int? = null,
+    val g: Int? = null,
+    val declared: Boolean = false,
 )
 
 /** [revert] outcome: the memory and how many facts went back or were left as they are. */
@@ -87,9 +94,19 @@ object MemoryRules {
     const val DYNAMIC = "dynamic"
     const val TEMP = "temp"
     const val ROUTINE = "routine"
-    val CATEGORIES = setOf("preference", "portion", ROUTINE)
+
+    /** A67 (ADR-051): an appliance the user declared (permanent, no slot) and a dish the user approved (dynamic, its slot). */
+    const val EQUIPMENT = "equipment"
+    const val LIKED = "liked"
+    val CATEGORIES = setOf("preference", "portion", ROUTINE, EQUIPMENT, LIKED)
+
+    /** A67: the categories that keep a slot and numbers. */
+    val MEAL_CATEGORIES = setOf(ROUTINE, LIKED)
 
     const val EXPLICIT = "explicit"
+
+    /** A67: the source of a routine the user declared in the discovery turn. */
+    const val DECLARED = "declared"
     const val PROMOTED = "promoted"
     const val OBSERVED = "observed"
 
@@ -126,7 +143,8 @@ object MemoryRules {
                     tempExpired++
                     null
                 }
-                fact.dynamic && days.isEmpty() -> {
+                // A67: a declared routine has no recorded day; it lives the same window from its creation.
+                fact.dynamic && days.isEmpty() && !(fact.declared && fact.created >= from) -> {
                     expired++
                     null
                 }
@@ -317,17 +335,27 @@ object MemoryRules {
             if (old.temp) count(TEMP_REPLACE)
         }
 
-        private fun newFact(id: String, kind: String, update: MemoryUpdate, key: String, text: String, source: String) = Fact(
-            id = id,
-            kind = kind,
-            category = update.category,
-            key = key,
-            text = text,
-            slot = update.slot.takeIf { update.category == ROUTINE },
-            source = source,
-            days = listOf(today),
-            created = today,
-        )
+        private fun newFact(id: String, kind: String, update: MemoryUpdate, key: String, text: String, source: String): Fact {
+            val meal = update.category in MEAL_CATEGORIES
+            // A67: a declared routine counts no day; a routine or liked dish keeps the numbers the model estimated.
+            val declared = update.declared && update.category == ROUTINE && kind == DYNAMIC
+            return Fact(
+                id = id,
+                kind = kind,
+                category = update.category,
+                key = key,
+                text = text,
+                slot = update.slot.takeIf { meal },
+                source = if (declared) DECLARED else source,
+                days = if (declared) emptyList() else listOf(today),
+                created = today,
+                kcal = update.kcal.takeIf { meal },
+                p = update.p.takeIf { meal },
+                c = update.c.takeIf { meal },
+                g = update.g.takeIf { meal },
+                declared = declared,
+            )
+        }
 
         /** A routine takes the slot and macros of the record it came with. */
         private fun withMeal(fact: Fact, meal: RecordedMeal?): Fact {

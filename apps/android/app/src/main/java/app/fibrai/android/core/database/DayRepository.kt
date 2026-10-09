@@ -614,6 +614,13 @@ class DayRepository @Inject constructor(
         }
     }
 
+    /** A67: the chosen option of a plan row becomes its estimate. */
+    suspend fun setEstimate(id: Long, kcal: Int, p: Int, c: Int, g: Int, mealText: String?) =
+        withContext(Dispatchers.IO) { db.chatMessageDao().setEstimate(id, kcal, p, c, g, mealText) }
+
+    /** A67: assistant rows ever stored. */
+    suspend fun assistantCount(): Int = withContext(Dispatchers.IO) { db.chatMessageDao().assistantCount() }
+
     /** meal_log of the [RECENT_DAYS] days before today (America/Sao_Paulo), for the Chat `recent` (A27). */
     suspend fun recentLogs(): List<MealLogEntity> {
         importOnce()

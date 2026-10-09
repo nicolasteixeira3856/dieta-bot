@@ -39,7 +39,7 @@ class FactMemoryTest {
         assertThat(file.text).isEqualTo(
             "{\"v\":2,\"next\":{\"P\":2,\"D\":1,\"T\":1},\"facts\":[{\"id\":\"P1\",\"kind\":\"permanent\",\"category\":\"preference\"," +
                 "\"key\":\"leite\",\"text\":\"Leite semidesnatado\",\"slot\":null,\"source\":\"explicit\",\"days\":[\"2026-09-30\"]," +
-                "\"created\":\"2026-09-30\",\"kcal\":null,\"p\":null,\"c\":null,\"g\":null}]}",
+                "\"created\":\"2026-09-30\",\"kcal\":null,\"p\":null,\"c\":null,\"g\":null,\"declared\":false}]}",
         )
     }
 

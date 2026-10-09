@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -173,6 +174,9 @@ fun ChatScreen(
     onBudgetFit: (estimateId: Long) -> Unit = {},
     /** chatR (A60 part D): Reservar para o {slot}. */
     onReserve: (estimateId: Long) -> Unit = {},
+    /** chatO (A67): Registrar | Reservar inside an option of a plan. */
+    onOptionRecord: (estimateId: Long, optionId: String) -> Unit = { _, _ -> },
+    onOptionReserve: (estimateId: Long, optionId: String) -> Unit = { _, _ -> },
     /** chatCP (A61 part B): long press on a text bubble, a tap on one while selecting, ✕ / back, Copiar. */
     onLongPress: (key: String) -> Unit = {},
     onSelectTap: (key: String) -> Unit = {},
@@ -220,6 +224,7 @@ fun ChatScreen(
                 { end(); onReplaceConfirm(it) }, { end(); onReplaceElsewhere(it) }, { id, a -> end(); onReceiptAction(id, a) },
                 { end(); onMoveConfirm() }, { end(); onMoveElsewhere() }, { end(); onAdditionConfirm(it) }, { end(); onAdditionElsewhere(it) },
                 { end(); onRevisionConfirm(it) }, { end(); onRevisionCancel(it) }, { a, s -> end(); onSkipDelete(a, s) }, { a, s -> end(); onSkipKeep(a, s) },
+                { e, o -> end(); onOptionRecord(e, o) }, { e, o -> end(); onOptionReserve(e, o) },
             )
             val answer = AnswerCallbacks(
                 { end(); onRegister(it) }, { end(); onRecordPlan(it) }, { end(); onForceEstimate() },
@@ -261,6 +266,8 @@ private class RecordCallbacks(
     val onRevisionCancel: (Long) -> Unit,
     val onSkipDelete: (Long, Long) -> Unit,
     val onSkipKeep: (Long, Long) -> Unit,
+    val onOptionRecord: (Long, String) -> Unit = { _, _ -> },
+    val onOptionReserve: (Long, String) -> Unit = { _, _ -> },
 )
 
 /** The action taps of the latest answer (A61: drawn in the thread, under their message). */
@@ -489,7 +496,7 @@ private fun ThreadItem(
     when (item) {
         is ChatItem.DateSeparator -> DatePill(item.label)
         is ChatItem.User -> item.photoPath?.let { PhotoBubble(item, it, selected) } ?: UserBubble(item, selected)
-        is ChatItem.Assistant -> AssistantBubble(item, selected)
+        is ChatItem.Assistant -> AssistantBubble(item, selected, record)
         is ChatItem.Question -> QuestionBubble(item, selected)
         is ChatItem.Receipt -> ReceiptCard(item, { record.onReceiptAction(item.id, it) }, record.onMoveConfirm, record.onMoveElsewhere)
         is ChatItem.ReplacePrompt -> ReplaceCard(
@@ -569,7 +576,7 @@ private fun BubbleTime(time: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false) {
+private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false, record: RecordCallbacks? = null) {
     val c = Aero.colors
     val type = Aero.type
     Column(Modifier.fillMaxWidth(BOT_FRACTION), horizontalAlignment = Alignment.Start) {
@@ -578,6 +585,10 @@ private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false)
             val blocks = item.blocks
             if (item.plan != null) {
                 if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else if (item.text.isNotBlank()) PlanText(item.text)
+                // A67 (chatO): the lead line, one block per option with its own actions, then the day with option 1.
+                item.options.forEach { option ->
+                    PlanOptionCard(option, { record?.onOptionRecord?.invoke(item.id, option.id) }, { record?.onOptionReserve?.invoke(item.id, option.id) })
+                }
                 PlanPanel(item.plan)
             } else if (item.prose) {
                 // A formatted reply carries its own emphasis (D17): no accent highlight of the item names.
@@ -887,6 +898,63 @@ private fun ReservedLabel(slot: String, modifier: Modifier = Modifier) {
         AeroText("Reservado para o $slot", style = Aero.type.caption.copy(color = c.textMuted), maxLines = 1)
     }
 }
+
+/**
+ * Chat/PlanOption (D25, chatO): an option of an open request on a `border/line` outline, `radius/card`, 12 dp in: the title
+ * in Body/Strong, its items as bullets, the total with the macro colours, and Registrar | Reservar side by side.
+ */
+@Composable
+private fun PlanOptionCard(option: OptionView, onRecord: () -> Unit, onReserve: () -> Unit) {
+    val c = Aero.colors
+    val type = Aero.type
+    val strong = type.bodyStrong.fontWeight
+    val style = type.body.copy(color = c.textPrimary)
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(Aero.shapes.card)
+            .border(1.dp, c.borderLine, Aero.shapes.card)
+            .padding(12.dp)
+            .testTag("chat-option-${option.id}"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AeroText(option.title, style = type.bodyStrong.copy(color = c.textPrimary))
+        // List/Bullet rows: 28 dp apart (24 dp line + 4 dp), tighter than the blocks of the card.
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            option.items.forEach { line ->
+                Row(Modifier.fillMaxWidth()) {
+                    Box(Modifier.width(OPTION_BULLET).padding(start = 4.dp)) { AeroText("•", style = style) }
+                    AeroText(line, Modifier.weight(1f), style = style)
+                }
+            }
+        }
+        AeroText(
+            buildAnnotatedString {
+                withStyle(SpanStyle(color = c.textPrimary)) { append("~${option.kcal} kcal") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroProtein)) { append("${option.p}P") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroCarbs)) { append("${option.c}C") }
+                withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
+                withStyle(SpanStyle(color = c.macroFat)) { append("${option.g}G") }
+            },
+            style = style,
+        )
+        if (option.canRecord || option.canReserve) {
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (option.canRecord) {
+                    AeroActionBar("Registrar", AeroIconName.CheckCircle, onRecord, Modifier.weight(1f).testTag("chat-option-record-${option.id}"))
+                }
+                if (option.canReserve) {
+                    AeroActionBar("Reservar", AeroIconName.CalendarCheck, onReserve, Modifier.weight(1f).testTag("chat-option-reserve-${option.id}"))
+                }
+            }
+        }
+    }
+}
+
+/** The bullet column of D17 (17 dp), as in the reply blocks. */
+private val OPTION_BULLET = 17.dp
 
 /** chatR: Registrar assim under the plan. */
 @Composable
