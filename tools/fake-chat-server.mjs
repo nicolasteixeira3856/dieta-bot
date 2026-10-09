@@ -53,8 +53,11 @@
 // action with its `recipe` (Salvar receita); "log" = a log of the first saved recipe in `recipes` (recipe_id, its totals).
 // /__calls reports `recipes` (the index ids) and `recipeFull` (the id sent complete, or null).
 // A69: /__calls reports `factTexts`, the text of each fact of the last turn (the correction reaches the prompt).
+// A70: POST /__mode {"fixture": "<path>"} answers every chat turn with the `response` of a saved evaluator fixture
+// (server `--save-fixture`: {request, response}), its slot ids mapped by name from the fixture's profile to the client's.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
+import fs from "fs";
 import http from "http";
 
 const port = Number(process.argv[2] ?? 8765);
@@ -86,6 +89,7 @@ let workoutMode = null;
 let actionsMode = null;
 let discoveryMode = false;
 let recipeMode = null;
+let fixturePath = null;
 let lastRecipes = [];
 let lastRecipeFull = null;
 let lastDiscovery = null;
@@ -149,6 +153,7 @@ http.createServer(async (req, res) => {
     actionsMode = mode.actions ?? null;
     discoveryMode = Boolean(mode.discovery);
     recipeMode = mode.recipe ?? null;
+    fixturePath = mode.fixture ?? null;
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
@@ -240,6 +245,17 @@ http.createServer(async (req, res) => {
     const listed = () => (input.skip_slots === true
       ? { skip_slots: skipPrefixes.map((p) => slots.find((s) => s.name.startsWith(p))?.id).filter(Boolean) }
       : {});
+    if (fixturePath) {
+      const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+      const names = Object.fromEntries((fixture.request?.profile?.slots ?? []).map((s) => [s.id, s.name]));
+      const ids = Object.fromEntries(Object.entries(names).map(([id, name]) => [id, slots.find((s) => s.name === name)?.id ?? id]));
+      const SLOT_KEYS = new Set(["slot", "suggested_slot", "skip_slot", "skip_slots", "question_slot"]);
+      const remap = (v, key) => Array.isArray(v) ? v.map((x) => remap(x, key))
+        : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, remap(x, k)]))
+        : SLOT_KEYS.has(key) && typeof v === "string" && v in ids ? ids[v] : v;
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(remap(fixture.response, null)));
+      return;
+    }
     if (recipeMode && input.actions === true) {
       const jantar = slots.find((s) => s.name.startsWith("Jan")) ?? slots[slots.length - 1];
       const base = { question: null, record_intent: "unsure", meal_day: "today", workout: null, options: null, plan_budget: null, recipe: null, recipe_id: null };

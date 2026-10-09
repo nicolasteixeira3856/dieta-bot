@@ -68,4 +68,33 @@ class ReplyMarkupTest {
         val perCall = (System.nanoTime() - started) / n
         assertThat(perCall).isLessThan(1_000_000L)
     }
+
+    // A70 (ADR-056 § 8): lead and trailing text of a plan with options.
+
+    @Test fun splitOptions_leadBeforeTheFirstOption_trailingAfterTheLastParagraph() {
+        val reply = listOf(
+            "Vai de Omelete: ~360 kcal · P 28 g, cabe na janela do Jantar. Pizza passa ~20 kcal.",
+            "**Opção 1: Pizza**",
+            "- 1 pão sírio (60 g)",
+            "Total: **420 kcal** · P **40 g**",
+            "**Opção 2: Omelete**",
+            "- 3 ovos",
+            "Total: **360 kcal** · P **28 g**",
+            "1. Asse a 200 °C por 15 min.",
+            "Lanche de hoje fora.",
+            "Ceia: iogurte natural com whey ~160 kcal · P 22",
+        ).joinToString("\n")
+        val (lead, trailing) = ReplyMarkup.splitOptions(reply)
+        assertThat(lead).isEqualTo("Vai de Omelete: ~360 kcal · P 28 g, cabe na janela do Jantar. Pizza passa ~20 kcal.")
+        assertThat(trailing).isEqualTo("1. Asse a 200 °C por 15 min.\nLanche de hoje fora.\nCeia: iogurte natural com whey ~160 kcal · P 22")
+    }
+
+    @Test fun splitOptions_aClosingLineRightAfterTheLastOptionIsTrailing() {
+        val reply = "Vai de B.\nOpção 1: A\n- x\nOpção 2: B\n- y\n~300 kcal · 20P\nCeia: iogurte ~200 kcal · P 20"
+        assertThat(ReplyMarkup.splitOptions(reply)).isEqualTo("Vai de B." to "Ceia: iogurte ~200 kcal · P 20")
+    }
+
+    @Test fun splitOptions_noOptionParagraph_isAllLead() {
+        assertThat(ReplyMarkup.splitOptions("Frango com arroz.\n- 120 g de frango\n")).isEqualTo("Frango com arroz.\n- 120 g de frango" to "")
+    }
 }

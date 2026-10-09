@@ -47,7 +47,7 @@ A plan with options opens with the decision and the numbers that support it, com
 
 ## Out of scope
 
-- The app rendering (fit lines, projection, lead/trailing split): [A70](../../../android/plans/a70-option-fit-and-projection.md); the `chatO` gold: [D26](../../../design/plans/completed/d26-release-2-option-decision.md).
+- The app rendering (fit lines, projection, lead/trailing split): [A70](../../../android/plans/pending_manual_validation/a70-option-fit-and-projection.md); the `chatO` gold: [D26](../../../design/plans/completed/d26-release-2-option-decision.md).
 - Model arithmetic in the reply (ADR-039/042 stand), model or effort change (ADR-054), a projection of the remaining meals beyond the closing lines.
 
 ## Validation

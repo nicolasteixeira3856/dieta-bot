@@ -6,6 +6,7 @@ import app.fibrai.android.core.network.ChatEstimate
 import app.fibrai.android.core.network.ChatWorkout
 import app.fibrai.android.core.network.ItemOut
 import kotlin.math.roundToInt
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -30,7 +31,10 @@ data class PlanRecipe(
     val steps: List<String> = emptyList(),
 )
 
-/** A67 (ADR-051): one option of an open request, its estimate as the server totalled it. */
+/**
+ * A67 (ADR-051): one option of an open request, its estimate as the server totalled it. A70 (ADR-056 § 2): [overKcal] is
+ * the server's excess of the option over the window of its meal (0 = fits); null from an older server.
+ */
 data class PlanOption(
     val id: String,
     val name: String,
@@ -40,6 +44,7 @@ data class PlanOption(
     val g: Int,
     val items: List<ItemOut>,
     val mealText: String?,
+    val overKcal: Int? = null,
 )
 
 object ChatActions {
@@ -94,7 +99,10 @@ object ChatActions {
         return options.mapNotNull { o ->
             val e = o.estimate ?: return@mapNotNull null
             if (o.id.isBlank() || o.name.isBlank() || e.kcal <= 0.0) return@mapNotNull null
-            PlanOption(o.id, o.name.trim(), e.kcal.roundToInt(), e.p.roundToInt(), e.c.roundToInt(), e.g.roundToInt(), e.items, e.mealText?.trim()?.takeIf { it.isNotEmpty() })
+            PlanOption(
+                o.id, o.name.trim(), e.kcal.roundToInt(), e.p.roundToInt(), e.c.roundToInt(), e.g.roundToInt(), e.items,
+                e.mealText?.trim()?.takeIf { it.isNotEmpty() }, o.overKcal?.takeIf { it >= 0 },
+            )
         }.distinctBy { it.id }.takeIf { it.size >= 2 }.orEmpty()
     }
 
@@ -124,7 +132,12 @@ object ChatActions {
     }
 
     @Serializable
-    private data class RawOption(val id: String = "", val name: String = "", val estimate: ChatEstimate? = null)
+    private data class RawOption(
+        val id: String = "",
+        val name: String = "",
+        val estimate: ChatEstimate? = null,
+        @SerialName("over_kcal") val overKcal: Int? = null,
+    )
 
     /** One log or plan action as a single-estimate answer: a held log is a question-only row with its slot. */
     private fun row(a: ChatAction): ChatOut {

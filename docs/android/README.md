@@ -115,7 +115,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 ### Planos e validação
 
-- [A70 — Decision line, fit and day projection per option in the plan bubble](plans/a70-option-fit-and-projection.md): awaiting approval; needs S39 on the dev server and D26.
+- [A70 — Decision line, fit and day projection per option in the plan bubble](plans/pending_manual_validation/a70-option-fit-and-projection.md): delivered, awaiting the owner's device smoke on a dev build.
 - Cancelados (decisão do dono, 07/10/2026, um plano por contexto): A50, A55, A57, A58 em [`plans/cancelled/`](plans/cancelled/).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md), [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md).
 - Histórico: [`plans/completed/`](plans/completed/).
