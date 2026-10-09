@@ -4,6 +4,7 @@ Inside server/, with the .venv:
 
     python -m evals.run [--effort low] --repeat 1 [--only id,...] [--tag tag] [--moderation cp2|all|none]
         [--show] [--save-fixture logs/evals/fixtures]
+    python -m evals.run --list | --dry-run [--only id,...] [--tag tag]     (no key, no network)
 
 Same orchestration as the route (main.chat_reply: moderation, generation, scope, shaping,
 output moderation; CP2), no HTTP. The provider's moderation endpoint has a daily request cap per
@@ -13,6 +14,8 @@ A "strict" case (CP2 safety sets) passes only when every repetition passes: no l
 Key: OPENAI_API_KEY from the repo-root .env via config.load_settings(). Never printed.
 Report: terminal + logs/evals/<date>-<effort>.json (outside git). --show prints each case's reply and its app preview
 (evals/preview.py); --save-fixture writes <case id>.json with the request and the first response (S39).
+S40: a case may name a fake user of evals/personas/ in "persona"; its request is merged under the case's own
+fields (with_persona). --list prints the personas and the cases of each; --dry-run prints the merged requests.
 """
 
 from __future__ import annotations
@@ -32,7 +35,9 @@ from typing import Any
 import httpx2
 
 from config import MODEL, load_settings
-from evals.checks import FAIL, NA, PASS, case_status, evaluate, migrate_expect, repetition_status, spread_check
+from evals.checks import (
+    FAIL, NA, PASS, case_file_errors, case_status, evaluate, migrate_expect, repetition_status, spread_check,
+)
 from evals.preview import bubble
 from llm import LlmClient
 from main import ChatIn, CloseIn, chat_reply, close_reply, compact_reply
@@ -42,6 +47,7 @@ from shaping import fail_chat, fail_digest
 SERVER = Path(__file__).resolve().parent.parent
 CASES_DIR = Path(__file__).resolve().parent / "cases"
 MEDIA_DIR = CASES_DIR / "media"
+PERSONAS_DIR = Path(__file__).resolve().parent / "personas"
 REPORT_DIR = SERVER.parent / "logs" / "evals"
 MAX_WORKERS = 3
 DEFAULT_WORKERS = 2
@@ -94,12 +100,42 @@ def _int(value: Any) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) else 0
 
 
-def load_cases(directory: Path = CASES_DIR) -> list[dict[str, Any]]:
-    cases = []
+def load_personas(directory: Path = PERSONAS_DIR) -> dict[str, dict[str, Any]]:
+    """S40: id -> persona ({id, summary, request}); the file name is the id."""
+    personas = {}
+    for path in sorted(directory.glob("*.json")):
+        persona = json.loads(path.read_text(encoding="utf-8"))
+        if persona.get("id") != path.stem:
+            raise SystemExit(f"{path.name}: id {persona.get('id')!r} differs from the file name")
+        personas[path.stem] = persona
+    return personas
+
+
+def with_persona(case: dict[str, Any], persona: dict[str, Any]) -> dict[str, Any]:
+    """S40: the persona's request under the case's own fields. Every case field replaces the persona's,
+    except facts: the case's facts are added, and one with a persona fact's id replaces it."""
+    base = persona["request"]
+    own = case.get("request", {})
+    request = {**base, **own}
+    if "facts" in own and base.get("facts") is not None:
+        added = {f["id"]: f for f in own["facts"] or []}
+        request["facts"] = [added.pop(f["id"], f) for f in base["facts"]] + list(added.values())
+    return {**case, "request": request, "persona_summary": persona["summary"]}
+
+
+def load_cases(directory: Path = CASES_DIR, personas_dir: Path = PERSONAS_DIR) -> list[dict[str, Any]]:
+    personas = load_personas(personas_dir)
+    cases, errors = [], []
     for path in sorted(directory.glob("*.json")):
         case = json.loads(path.read_text(encoding="utf-8"))
         case["_file"] = path.name
+        problems = case_file_errors(case, set(personas))
+        errors += problems
+        if case.get("persona") and not problems:
+            case = with_persona(case, personas[case["persona"]])
         cases.append(case)
+    if errors:
+        raise SystemExit("invalid case files:\n  " + "\n  ".join(errors))
     return cases
 
 
@@ -315,6 +351,8 @@ def summarize(
             {
                 "id": case["id"],
                 "since": case.get("since"),
+                "persona": case.get("persona"),
+                "persona_summary": case.get("persona_summary"),
                 "tags": case.get("tags", []),
                 "strict": bool(case.get("strict")),
                 "status": status,
@@ -397,6 +435,9 @@ def print_report(report: dict[str, Any]) -> None:
         mark = {PASS: "ok  ", FAIL: "FAIL", NA: "n/a "}[case["status"]]
         print(f"[{mark}] {case['id']} ({case['passes']}/{case['repeat']})")
         if case["status"] == FAIL:
+            if case.get("persona"):
+                # S40: the Codex judge reads the failing answer as this person.
+                print(f"       persona {case['persona']}: {case['persona_summary']}")
             for name, details in case["failed_checks"].items():
                 print(f"       {name}: {details[0]}")
             if case["raw_outputs"] and case["raw_outputs"][0]:
@@ -425,6 +466,28 @@ def save_fixtures(report: dict[str, Any], cases: list[dict[str, Any]], directory
     return paths
 
 
+def list_personas(cases: list[dict[str, Any]], personas: dict[str, dict[str, Any]]) -> None:
+    """S40 --list: each persona, its profile in one line and the cases that run as it."""
+    for pid, persona in personas.items():
+        profile = persona["request"]["profile"]
+        used = [c["id"] for c in cases if c.get("persona") == pid]
+        print(f"{pid}: {profile['ceiling_kcal']:g} kcal, {len(profile['slots'])} meals, "
+              f"eat_back {profile['eat_back']}, tone {profile.get('tone', 'seco')}")
+        print(f"  cases ({len(used)}): {', '.join(used) or '-'}")
+    without = sum(1 for c in cases if not c.get("persona"))
+    print(f"{len(personas)} personas, {len(cases) - without} persona cases, {without} cases without persona")
+
+
+def dry_run(cases: list[dict[str, Any]]) -> None:
+    """S40 --dry-run: the request each case sends, validated by the route's model, without any call."""
+    for case in cases:
+        request = case_request(case)
+        model = CloseIn if case.get("route") == CLOSE_ROUTE else ChatIn
+        model.model_validate(request)
+        print(f"== {case['id']} (persona {case.get('persona') or '-'}) ==")
+        print(json.dumps(request, ensure_ascii=False, indent=2))
+
+
 def write_report(report: dict[str, Any], directory: Path = REPORT_DIR) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(TZ).strftime("%Y-%m-%d-%H%M%S")
@@ -449,12 +512,28 @@ def main(argv: list[str] | None = None) -> int:
                         help="print each case's reply and its app preview after the report (S39)")
     parser.add_argument("--save-fixture", metavar="DIR",
                         help="write <case id>.json with request and response; a relative DIR is under the repo root")
+    parser.add_argument("--list", action="store_true", help="print the personas and their cases, no call (S40)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="print the request of each selected case with its persona merged, no call (S40)")
     args = parser.parse_args(argv)
     if args.repeat < 1:
         parser.error("--repeat must be >= 1")
 
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if args.list:
+        list_personas(load_cases(), load_personas())
+        return 0
+    if args.dry_run:
+        only = [i.strip() for i in args.only.split(",") if i.strip()] if args.only else None
+        selected = select_cases(load_cases(), only, args.tag)
+        if args.actions:
+            selected = [as_actions(case) for case in selected]
+        if not selected:
+            print("no case selected", file=sys.stderr)
+            return 2
+        dry_run(selected)
+        return 0
     api_key = load_settings().api_key
     if not api_key:
         print("OPENAI_API_KEY missing in .env", file=sys.stderr)

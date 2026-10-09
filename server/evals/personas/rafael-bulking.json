@@ -1,0 +1,649 @@
+{
+  "id": "rafael-bulking",
+  "summary": "Rafael é fisiculturista em ganho de massa: teto alto, seis refeições, pesa tudo cru na balança e usa whey (30 g por dose). Não compensa treino porque o teto já inclui o volume de treino. O risco dele é o contrário do comum: ficar abaixo da proteína e das calorias, ou pular a ceia. Tom duro: quer cobrança direta pelos números. Uma boa resposta fala em gramas, completa a proteína do dia e não trata comer bastante como problema enquanto cabe no teto.",
+  "request": {
+    "local_time": "2026-10-15T19:45:00-03:00",
+    "profile": {
+      "ceiling_kcal": 3600,
+      "p_target": 210,
+      "c_target": 430,
+      "g_target": 100,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "13:00"
+        },
+        {
+          "id": "4",
+          "name": "Pré-treino",
+          "time": "16:30"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "20:00"
+        },
+        {
+          "id": "6",
+          "name": "Ceia",
+          "time": "22:30"
+        }
+      ],
+      "tone": "duro"
+    },
+    "facts": [
+      {
+        "id": "P1",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "objetivo",
+        "text": "Ganho de massa: bater proteína e carboidrato todo dia",
+        "slot": null,
+        "days_seen": 7,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "P2",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "balança",
+        "text": "Pesa tudo cru na balança",
+        "slot": null,
+        "days_seen": 7,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "P3",
+        "kind": "permanent",
+        "category": "portion",
+        "key": "whey",
+        "text": "Whey: 30 g por dose (24 g de proteína)",
+        "slot": null,
+        "days_seen": 6,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "D1",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "slot": "1",
+        "days_seen": 6,
+        "last_seen": "2026-10-14",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "id": "D2",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "pré-treino",
+        "text": "2 bananas, 40 g de aveia e 30 g de whey",
+        "slot": "4",
+        "days_seen": 6,
+        "last_seen": "2026-10-14",
+        "kcal": 505,
+        "p": 30,
+        "c": 80,
+        "g": 7
+      },
+      {
+        "id": "D3",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "ceia",
+        "text": "300 g de iogurte natural com 30 g de pasta de amendoim",
+        "slot": "6",
+        "days_seen": 5,
+        "last_seen": "2026-10-14",
+        "kcal": 395,
+        "p": 22,
+        "c": 18,
+        "g": 26
+      },
+      {
+        "id": "D4",
+        "kind": "dynamic",
+        "category": "portion",
+        "key": "arroz",
+        "text": "Arroz: 200 g cozido por refeição",
+        "slot": null,
+        "days_seen": 6,
+        "last_seen": "2026-10-14"
+      }
+    ],
+    "recent": [
+      {
+        "date": "2026-10-08",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "sanduíche de pão integral com 100 g de peito de peru e queijo",
+        "kcal": 410,
+        "p": 30,
+        "c": 45,
+        "g": 12
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+        "kcal": 755,
+        "p": 72,
+        "c": 90,
+        "g": 12
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "4",
+        "slot_name": "Pré-treino",
+        "text": "2 bananas, 40 g de aveia e 30 g de whey",
+        "kcal": 505,
+        "p": 30,
+        "c": 80,
+        "g": 7
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "200 g de arroz, 200 g de patinho moído e legumes",
+        "kcal": 700,
+        "p": 60,
+        "c": 65,
+        "g": 22
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "6",
+        "slot_name": "Ceia",
+        "text": "300 g de iogurte natural com 30 g de pasta de amendoim",
+        "kcal": 395,
+        "p": 22,
+        "c": 18,
+        "g": 26
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "sanduíche de pão integral com 100 g de peito de peru e queijo",
+        "kcal": 410,
+        "p": 30,
+        "c": 45,
+        "g": 12
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+        "kcal": 755,
+        "p": 72,
+        "c": 90,
+        "g": 12
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "4",
+        "slot_name": "Pré-treino",
+        "text": "2 bananas, 40 g de aveia e 30 g de whey",
+        "kcal": 505,
+        "p": 30,
+        "c": 80,
+        "g": 7
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "200 g de arroz, 200 g de patinho moído e legumes",
+        "kcal": 700,
+        "p": 60,
+        "c": 65,
+        "g": 22
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "6",
+        "slot_name": "Ceia",
+        "text": "300 g de iogurte natural com 30 g de pasta de amendoim",
+        "kcal": 395,
+        "p": 22,
+        "c": 18,
+        "g": 26
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "sanduíche de pão integral com 100 g de peito de peru e queijo",
+        "kcal": 410,
+        "p": 30,
+        "c": 45,
+        "g": 12
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+        "kcal": 755,
+        "p": 72,
+        "c": 90,
+        "g": 12
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "4",
+        "slot_name": "Pré-treino",
+        "text": "2 bananas, 40 g de aveia e 30 g de whey",
+        "kcal": 505,
+        "p": 30,
+        "c": 80,
+        "g": 7
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "rodízio de churrasco com farofa e vinagrete",
+        "kcal": 1445,
+        "p": 110,
+        "c": 60,
+        "g": 85
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "6",
+        "slot_name": "Ceia",
+        "text": "300 g de iogurte natural com 30 g de pasta de amendoim",
+        "kcal": 395,
+        "p": 22,
+        "c": 18,
+        "g": 26
+      },
+      {
+        "date": "2026-10-11",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "date": "2026-10-11",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+        "kcal": 755,
+        "p": 72,
+        "c": 90,
+        "g": 12
+      },
+      {
+        "date": "2026-10-11",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "200 g de arroz, 200 g de patinho moído e legumes",
+        "kcal": 700,
+        "p": 60,
+        "c": 65,
+        "g": 22
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "sanduíche de pão integral com 100 g de peito de peru e queijo",
+        "kcal": 410,
+        "p": 30,
+        "c": 45,
+        "g": 12
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+        "kcal": 755,
+        "p": 72,
+        "c": 90,
+        "g": 12
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "4",
+        "slot_name": "Pré-treino",
+        "text": "2 bananas, 40 g de aveia e 30 g de whey",
+        "kcal": 505,
+        "p": 30,
+        "c": 80,
+        "g": 7
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "200 g de arroz, 200 g de patinho moído e legumes",
+        "kcal": 700,
+        "p": 60,
+        "c": 65,
+        "g": 22
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "6",
+        "slot_name": "Ceia",
+        "text": "300 g de iogurte natural com 30 g de pasta de amendoim",
+        "kcal": 395,
+        "p": 22,
+        "c": 18,
+        "g": 26
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+        "kcal": 770,
+        "p": 45,
+        "c": 75,
+        "g": 32
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "sanduíche de pão integral com 100 g de peito de peru e queijo",
+        "kcal": 410,
+        "p": 30,
+        "c": 45,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+        "kcal": 755,
+        "p": 72,
+        "c": 90,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "4",
+        "slot_name": "Pré-treino",
+        "text": "2 bananas, 40 g de aveia e 30 g de whey",
+        "kcal": 505,
+        "p": 30,
+        "c": 80,
+        "g": 7
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "200 g de arroz, 200 g de patinho moído e legumes",
+        "kcal": 700,
+        "p": 60,
+        "c": 65,
+        "g": 22
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "6",
+        "slot_name": "Ceia",
+        "text": "300 g de iogurte natural com 30 g de pasta de amendoim",
+        "kcal": 395,
+        "p": 22,
+        "c": 18,
+        "g": 26
+      }
+    ],
+    "recent_days": [
+      {
+        "date": "2026-10-14",
+        "recorded": true,
+        "kcal": 3535,
+        "p": 259,
+        "c": 373,
+        "g": 111,
+        "ceiling_kcal": 3600,
+        "over_slot": "1",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-13",
+        "recorded": false,
+        "kcal": 0,
+        "p": 0,
+        "c": 0,
+        "g": 0,
+        "ceiling_kcal": 3600,
+        "over_slot": null,
+        "missing_slots": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ]
+      },
+      {
+        "date": "2026-10-12",
+        "recorded": true,
+        "kcal": 3535,
+        "p": 259,
+        "c": 373,
+        "g": 111,
+        "ceiling_kcal": 3600,
+        "over_slot": "1",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-11",
+        "recorded": true,
+        "kcal": 2225,
+        "p": 177,
+        "c": 230,
+        "g": 66,
+        "ceiling_kcal": 3600,
+        "over_slot": "1",
+        "missing_slots": [
+          "2",
+          "4",
+          "6"
+        ]
+      },
+      {
+        "date": "2026-10-10",
+        "recorded": true,
+        "kcal": 4280,
+        "p": 309,
+        "c": 368,
+        "g": 174,
+        "ceiling_kcal": 3600,
+        "over_slot": "5",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-09",
+        "recorded": true,
+        "kcal": 3535,
+        "p": 259,
+        "c": 373,
+        "g": 111,
+        "ceiling_kcal": 3600,
+        "over_slot": "1",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-08",
+        "recorded": true,
+        "kcal": 3535,
+        "p": 259,
+        "c": 373,
+        "g": 111,
+        "ceiling_kcal": 3600,
+        "over_slot": "1",
+        "missing_slots": []
+      }
+    ],
+    "recipes": [
+      {
+        "id": "R1",
+        "name": "Panqueca de banana com whey",
+        "kcal": 390,
+        "p": 32,
+        "c": 45,
+        "g": 9,
+        "key_foods": [
+          "banana",
+          "whey",
+          "aveia"
+        ]
+      },
+      {
+        "id": "R2",
+        "name": "Frango cremoso de panela de pressão",
+        "kcal": 380,
+        "p": 55,
+        "c": 8,
+        "g": 14,
+        "key_foods": [
+          "frango",
+          "requeijão",
+          "tomate"
+        ]
+      }
+    ],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 2440,
+      "eaten_p": 177,
+      "eaten_c": 290,
+      "eaten_g": 63,
+      "workout_kcal": null,
+      "remaining_kcal": 1160,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "4 ovos mexidos, 2 pães franceses e 300 ml de leite integral",
+          "kcal": 770,
+          "p": 45,
+          "c": 75,
+          "g": 32
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "sanduíche de pão integral com 100 g de peito de peru e queijo",
+          "kcal": 410,
+          "p": 30,
+          "c": 45,
+          "g": 12
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "200 g de arroz, 150 g de feijão, 200 g de frango grelhado e salada",
+          "kcal": 755,
+          "p": 72,
+          "c": 90,
+          "g": 12
+        },
+        {
+          "id": "4",
+          "status": "eaten",
+          "text": "2 bananas, 40 g de aveia e 30 g de whey",
+          "kcal": 505,
+          "p": 30,
+          "c": 80,
+          "g": 7
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        },
+        {
+          "id": "6",
+          "status": "empty"
+        }
+      ]
+    },
+    "memory": "",
+    "digests": [],
+    "messages": [],
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "workout": true,
+    "actions": true
+  }
+}

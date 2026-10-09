@@ -1,0 +1,570 @@
+{
+  "id": "ana-deficit",
+  "summary": "Ana está em déficit calórico e quer perder gordura sem perder massa magra. Pesa tudo na balança de cozinha, faz cinco refeições e monta o prato pela proteína primeiro. Não treina com registro de gasto e não compensa treino. Tom seco: quer os números, sem julgamento. Escorrega no fim de semana (sushi no sábado). Uma boa resposta usa gramas, mantém a proteína alta no jantar e cabe no que sobrou do dia.",
+  "request": {
+    "local_time": "2026-10-15T19:00:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1500,
+      "p_target": 120,
+      "c_target": 140,
+      "g_target": 50,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "2",
+          "name": "Lanche da manhã",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "4",
+          "name": "Lanche da tarde",
+          "time": "16:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "19:30"
+        }
+      ],
+      "tone": "seco"
+    },
+    "facts": [
+      {
+        "id": "P1",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "balança",
+        "text": "Pesa tudo na balança de cozinha",
+        "slot": null,
+        "days_seen": 7,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "P2",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "proteína",
+        "text": "Monta o prato pela proteína primeiro",
+        "slot": null,
+        "days_seen": 6,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "D1",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "slot": "1",
+        "days_seen": 6,
+        "last_seen": "2026-10-14",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "id": "D2",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "slot": "4",
+        "days_seen": 6,
+        "last_seen": "2026-10-14",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "id": "D3",
+        "kind": "dynamic",
+        "category": "portion",
+        "key": "frango",
+        "text": "Frango: 120 g grelhado por refeição",
+        "slot": null,
+        "days_seen": 5,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "D4",
+        "kind": "dynamic",
+        "category": "liked",
+        "key": "omelete de claras",
+        "text": "Gostou da omelete de claras com espinafre",
+        "slot": "5",
+        "days_seen": 3,
+        "last_seen": "2026-10-14"
+      }
+    ],
+    "recent": [
+      {
+        "date": "2026-10-08",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "1 maçã e 15 g de castanha-do-pará",
+        "kcal": 180,
+        "p": 3,
+        "c": 22,
+        "g": 9
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "120 g de frango grelhado, 100 g de arroz integral, 80 g de feijão e salada",
+        "kcal": 460,
+        "p": 45,
+        "c": 50,
+        "g": 9
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "4",
+        "slot_name": "Lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos e 3 claras com espinafre, 1 fatia de pão integral",
+        "kcal": 290,
+        "p": 30,
+        "c": 15,
+        "g": 12
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "1 maçã e 15 g de castanha-do-pará",
+        "kcal": 180,
+        "p": 3,
+        "c": 22,
+        "g": 9
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "120 g de frango grelhado, 100 g de arroz integral, 80 g de feijão e salada",
+        "kcal": 460,
+        "p": 45,
+        "c": 50,
+        "g": 9
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "4",
+        "slot_name": "Lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos e 3 claras com espinafre, 1 fatia de pão integral",
+        "kcal": 290,
+        "p": 30,
+        "c": 15,
+        "g": 12
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "1 maçã e 15 g de castanha-do-pará",
+        "kcal": 180,
+        "p": 3,
+        "c": 22,
+        "g": 9
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "120 g de frango grelhado, 100 g de arroz integral, 80 g de feijão e salada",
+        "kcal": 460,
+        "p": 45,
+        "c": 50,
+        "g": 9
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "4",
+        "slot_name": "Lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "20 peças de sushi variado",
+        "kcal": 720,
+        "p": 30,
+        "c": 110,
+        "g": 18
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "1 maçã e 15 g de castanha-do-pará",
+        "kcal": 180,
+        "p": 3,
+        "c": 22,
+        "g": 9
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "120 g de tilápia, 150 g de batata-doce e legumes",
+        "kcal": 355,
+        "p": 32,
+        "c": 45,
+        "g": 5
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "4",
+        "slot_name": "Lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos e 3 claras com espinafre, 1 fatia de pão integral",
+        "kcal": 290,
+        "p": 30,
+        "c": 15,
+        "g": 12
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "120 g de frango grelhado, 100 g de arroz integral, 80 g de feijão e salada",
+        "kcal": 460,
+        "p": 45,
+        "c": 50,
+        "g": 9
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "4",
+        "slot_name": "Lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos e 3 claras com espinafre, 1 fatia de pão integral",
+        "kcal": 290,
+        "p": 30,
+        "c": 15,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+        "kcal": 250,
+        "p": 20,
+        "c": 18,
+        "g": 11
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "2",
+        "slot_name": "Lanche da manhã",
+        "text": "1 maçã e 15 g de castanha-do-pará",
+        "kcal": 180,
+        "p": 3,
+        "c": 22,
+        "g": 9
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "120 g de frango grelhado, 100 g de arroz integral, 80 g de feijão e salada",
+        "kcal": 460,
+        "p": 45,
+        "c": 50,
+        "g": 9
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "4",
+        "slot_name": "Lanche da tarde",
+        "text": "1 iogurte grego zero e 20 g de granola",
+        "kcal": 180,
+        "p": 14,
+        "c": 22,
+        "g": 4
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos e 3 claras com espinafre, 1 fatia de pão integral",
+        "kcal": 290,
+        "p": 30,
+        "c": 15,
+        "g": 12
+      }
+    ],
+    "recent_days": [
+      {
+        "date": "2026-10-14",
+        "recorded": true,
+        "kcal": 1360,
+        "p": 112,
+        "c": 127,
+        "g": 45,
+        "ceiling_kcal": 1500,
+        "over_slot": "3",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-13",
+        "recorded": true,
+        "kcal": 1180,
+        "p": 109,
+        "c": 105,
+        "g": 36,
+        "ceiling_kcal": 1500,
+        "over_slot": "3",
+        "missing_slots": [
+          "2"
+        ]
+      },
+      {
+        "date": "2026-10-12",
+        "recorded": true,
+        "kcal": 1255,
+        "p": 99,
+        "c": 122,
+        "g": 41,
+        "ceiling_kcal": 1500,
+        "over_slot": "3",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-11",
+        "recorded": false,
+        "kcal": 0,
+        "p": 0,
+        "c": 0,
+        "g": 0,
+        "ceiling_kcal": 1500,
+        "over_slot": null,
+        "missing_slots": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "date": "2026-10-10",
+        "recorded": true,
+        "kcal": 1790,
+        "p": 112,
+        "c": 222,
+        "g": 51,
+        "ceiling_kcal": 1500,
+        "over_slot": "5",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-09",
+        "recorded": true,
+        "kcal": 1360,
+        "p": 112,
+        "c": 127,
+        "g": 45,
+        "ceiling_kcal": 1500,
+        "over_slot": "3",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-08",
+        "recorded": true,
+        "kcal": 1360,
+        "p": 112,
+        "c": 127,
+        "g": 45,
+        "ceiling_kcal": 1500,
+        "over_slot": "3",
+        "missing_slots": []
+      }
+    ],
+    "recipes": [
+      {
+        "id": "R1",
+        "name": "Omelete de claras com espinafre",
+        "kcal": 245,
+        "p": 30,
+        "c": 6,
+        "g": 11,
+        "key_foods": [
+          "claras",
+          "ovo",
+          "espinafre"
+        ]
+      }
+    ],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1070,
+      "eaten_p": 82,
+      "eaten_c": 112,
+      "eaten_g": 33,
+      "workout_kcal": null,
+      "remaining_kcal": 430,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "2 ovos mexidos, 1 fatia de pão integral, café com 100 ml de leite desnatado",
+          "kcal": 250,
+          "p": 20,
+          "c": 18,
+          "g": 11
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "1 maçã e 15 g de castanha-do-pará",
+          "kcal": 180,
+          "p": 3,
+          "c": 22,
+          "g": 9
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "120 g de frango grelhado, 100 g de arroz integral, 80 g de feijão e salada",
+          "kcal": 460,
+          "p": 45,
+          "c": 50,
+          "g": 9
+        },
+        {
+          "id": "4",
+          "status": "eaten",
+          "text": "1 iogurte grego zero e 20 g de granola",
+          "kcal": 180,
+          "p": 14,
+          "c": 22,
+          "g": 4
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        }
+      ]
+    },
+    "memory": "",
+    "digests": [],
+    "messages": [],
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "workout": true,
+    "actions": true
+  }
+}

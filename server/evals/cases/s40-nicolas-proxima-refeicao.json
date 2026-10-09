@@ -1,0 +1,22 @@
+{
+  "id": "s40-nicolas-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "text": "o que eu janto hoje?"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "4",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

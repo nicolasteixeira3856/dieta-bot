@@ -1,0 +1,28 @@
+{
+  "id": "s40-pedro-vegetariano-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "pedro-vegetariano",
+  "request": {
+    "text": "me sugere um jantar"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "3",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none",
+    "reply_not": [
+      "frango",
+      "carne",
+      "peixe",
+      "atum"
+    ]
+  }
+}

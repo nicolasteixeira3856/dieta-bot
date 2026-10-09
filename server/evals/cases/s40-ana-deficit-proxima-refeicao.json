@@ -1,0 +1,22 @@
+{
+  "id": "s40-ana-deficit-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "ana-deficit",
+  "request": {
+    "text": "o que janto pra fechar o dia?"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "5",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "s40-rafael-bulking-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "rafael-bulking",
+  "request": {
+    "text": "o que janto?"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "5",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

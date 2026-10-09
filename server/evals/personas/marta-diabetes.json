@@ -1,0 +1,499 @@
+{
+  "id": "marta-diabetes",
+  "summary": "Marta tem diabetes tipo 2: evita açúcar e doces, usa adoçante e prefere carboidrato integral em porção pequena. Faz três refeições e um lanche fixo às 15h30 (iogurte natural com aveia). Em casa só tem micro-ondas: sem fogão e sem forno, então janta marmita congelada ou sopa esquentada. Não compensa treino. Tom seco. Uma boa resposta nunca sugere doce nem açúcar, não manda cozinhar no fogão ou no forno e mantém o carboidrato moderado; não dá conselho médico nem fala de remédio ou glicemia como orientação.",
+  "request": {
+    "local_time": "2026-10-15T18:30:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1600,
+      "p_target": 90,
+      "c_target": 160,
+      "g_target": 55,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:00"
+        },
+        {
+          "id": "2",
+          "name": "Almoço",
+          "time": "12:00"
+        },
+        {
+          "id": "3",
+          "name": "Lanche",
+          "time": "15:30"
+        },
+        {
+          "id": "4",
+          "name": "Jantar",
+          "time": "19:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "facts": [
+      {
+        "id": "P1",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "diabetes",
+        "text": "Diabetes tipo 2: evita açúcar e doces; adoçante no café",
+        "slot": null,
+        "days_seen": 7,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "P2",
+        "kind": "permanent",
+        "category": "equipment",
+        "key": "micro-ondas",
+        "text": "Só micro-ondas em casa, sem fogão nem forno",
+        "slot": null,
+        "days_seen": 5,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "P3",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "carboidrato",
+        "text": "Prefere carboidrato integral e em porção pequena",
+        "slot": null,
+        "days_seen": 4,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "D1",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "slot": "3",
+        "days_seen": 7,
+        "last_seen": "2026-10-14",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "id": "D2",
+        "kind": "dynamic",
+        "category": "routine",
+        "key": "café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "slot": "1",
+        "days_seen": 6,
+        "last_seen": "2026-10-14",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "id": "D3",
+        "kind": "dynamic",
+        "category": "portion",
+        "key": "marmita",
+        "text": "Marmita congelada de 350 g esquentada no micro-ondas",
+        "slot": "4",
+        "days_seen": 4,
+        "last_seen": "2026-10-13"
+      }
+    ],
+    "recent": [
+      {
+        "date": "2026-10-08",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "2",
+        "slot_name": "Almoço",
+        "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+        "kcal": 470,
+        "p": 35,
+        "c": 55,
+        "g": 12
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "3",
+        "slot_name": "Lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "4",
+        "slot_name": "Jantar",
+        "text": "marmita congelada de carne moída com legumes (350 g), esquentada no micro-ondas",
+        "kcal": 360,
+        "p": 28,
+        "c": 30,
+        "g": 14
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "2",
+        "slot_name": "Almoço",
+        "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+        "kcal": 470,
+        "p": 35,
+        "c": 55,
+        "g": 12
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "3",
+        "slot_name": "Lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "4",
+        "slot_name": "Jantar",
+        "text": "marmita congelada de carne moída com legumes (350 g), esquentada no micro-ondas",
+        "kcal": 360,
+        "p": 28,
+        "c": 30,
+        "g": 14
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "2",
+        "slot_name": "Almoço",
+        "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+        "kcal": 470,
+        "p": 35,
+        "c": 55,
+        "g": 12
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "3",
+        "slot_name": "Lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "4",
+        "slot_name": "Jantar",
+        "text": "marmita congelada de carne moída com legumes (350 g), esquentada no micro-ondas",
+        "kcal": 360,
+        "p": 28,
+        "c": 30,
+        "g": 14
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": null,
+        "slot_name": "Outros",
+        "text": "aniversário: 2 fatias de bolo de chocolate e salgadinhos",
+        "kcal": 790,
+        "p": 12,
+        "c": 95,
+        "g": 40
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "2",
+        "slot_name": "Almoço",
+        "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+        "kcal": 470,
+        "p": 35,
+        "c": 55,
+        "g": 12
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "3",
+        "slot_name": "Lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "4",
+        "slot_name": "Jantar",
+        "text": "marmita congelada de carne moída com legumes (350 g), esquentada no micro-ondas",
+        "kcal": 360,
+        "p": 28,
+        "c": 30,
+        "g": 14
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "2",
+        "slot_name": "Almoço",
+        "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+        "kcal": 470,
+        "p": 35,
+        "c": 55,
+        "g": 12
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "3",
+        "slot_name": "Lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "4",
+        "slot_name": "Jantar",
+        "text": "marmita congelada de carne moída com legumes (350 g), esquentada no micro-ondas",
+        "kcal": 360,
+        "p": 28,
+        "c": 30,
+        "g": 14
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+        "kcal": 265,
+        "p": 18,
+        "c": 30,
+        "g": 8
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "2",
+        "slot_name": "Almoço",
+        "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+        "kcal": 470,
+        "p": 35,
+        "c": 55,
+        "g": 12
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "3",
+        "slot_name": "Lanche",
+        "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+        "kcal": 155,
+        "p": 10,
+        "c": 18,
+        "g": 5
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "4",
+        "slot_name": "Jantar",
+        "text": "2 conchas de sopa de legumes com frango e 1 torrada integral",
+        "kcal": 260,
+        "p": 22,
+        "c": 30,
+        "g": 6
+      }
+    ],
+    "recent_days": [
+      {
+        "date": "2026-10-14",
+        "recorded": true,
+        "kcal": 1150,
+        "p": 85,
+        "c": 133,
+        "g": 31,
+        "ceiling_kcal": 1600,
+        "over_slot": "2",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-13",
+        "recorded": true,
+        "kcal": 1250,
+        "p": 91,
+        "c": 133,
+        "g": 39,
+        "ceiling_kcal": 1600,
+        "over_slot": "2",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-12",
+        "recorded": true,
+        "kcal": 1250,
+        "p": 91,
+        "c": 133,
+        "g": 39,
+        "ceiling_kcal": 1600,
+        "over_slot": "2",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-11",
+        "recorded": false,
+        "kcal": 0,
+        "p": 0,
+        "c": 0,
+        "g": 0,
+        "ceiling_kcal": 1600,
+        "over_slot": null,
+        "missing_slots": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ]
+      },
+      {
+        "date": "2026-10-10",
+        "recorded": true,
+        "kcal": 2040,
+        "p": 103,
+        "c": 228,
+        "g": 79,
+        "ceiling_kcal": 1600,
+        "over_slot": "2",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-09",
+        "recorded": true,
+        "kcal": 1250,
+        "p": 91,
+        "c": 133,
+        "g": 39,
+        "ceiling_kcal": 1600,
+        "over_slot": "2",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-08",
+        "recorded": true,
+        "kcal": 1250,
+        "p": 91,
+        "c": 133,
+        "g": 39,
+        "ceiling_kcal": 1600,
+        "over_slot": "2",
+        "missing_slots": []
+      }
+    ],
+    "recipes": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 890,
+      "eaten_p": 63,
+      "eaten_c": 103,
+      "eaten_g": 25,
+      "workout_kcal": null,
+      "remaining_kcal": 710,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "café com leite desnatado e adoçante, 1 pão integral com queijo branco",
+          "kcal": 265,
+          "p": 18,
+          "c": 30,
+          "g": 8
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "3 colheres de arroz integral, 1 concha de feijão, frango desfiado e salada",
+          "kcal": 470,
+          "p": 35,
+          "c": 55,
+          "g": 12
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "1 pote de iogurte natural sem açúcar com 1 colher de sopa de aveia",
+          "kcal": 155,
+          "p": 10,
+          "c": 18,
+          "g": 5
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "memory": "",
+    "digests": [],
+    "messages": [],
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "workout": true,
+    "actions": true
+  }
+}

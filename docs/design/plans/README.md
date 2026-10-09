@@ -179,7 +179,7 @@ Behavior: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [A
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Server | [S40](../../server/plans/s40-eval-personas.md) — eval personas | — |
+| Server | S40 — eval personas, delivered ([history](../../server/plans/completed/)) | — |
 | Design | [D27](d27-conversational-onboarding.md) — conversational onboarding (`ob0`–`ob6`; `o1`–`o5` retired) | D26, ADR-057 accepted |
 | Server | [S41](../../server/plans/s41-onboarding-profile.md) — `POST /v1/profile` | S40 |
 | Client | [A71](../../android/plans/a71-conversational-onboarding.md) — conversational onboarding in the app | D27, S41 on dev, A70 merged |

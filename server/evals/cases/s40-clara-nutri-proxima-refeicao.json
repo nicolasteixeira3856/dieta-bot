@@ -1,0 +1,22 @@
+{
+  "id": "s40-clara-nutri-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "clara-nutri",
+  "request": {
+    "text": "o que janto hoje dentro do plano?"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "5",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

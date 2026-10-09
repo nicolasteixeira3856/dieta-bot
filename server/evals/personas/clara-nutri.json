@@ -1,0 +1,564 @@
+{
+  "id": "clara-nutri",
+  "summary": "Clara segue à risca o plano da nutricionista: cinco refeições com cardápio fixo e as substituições que o plano permite. Não quer invenção nem receita nova; quer saber como encaixar o dia dentro do plano. Desvia de vez em quando (hambúrguer no sábado) e quer voltar ao plano no dia seguinte sem drama. Não compensa treino. Tom seco. Uma boa resposta repete o que o plano manda, usa as porções dele e só ajusta quantidade.",
+  "request": {
+    "local_time": "2026-10-15T19:40:00-03:00",
+    "profile": {
+      "ceiling_kcal": 1700,
+      "p_target": 110,
+      "c_target": 190,
+      "g_target": 55,
+      "eat_back": "zero",
+      "slots": [
+        {
+          "id": "1",
+          "name": "Café",
+          "time": "07:30"
+        },
+        {
+          "id": "2",
+          "name": "Colação",
+          "time": "10:00"
+        },
+        {
+          "id": "3",
+          "name": "Almoço",
+          "time": "12:30"
+        },
+        {
+          "id": "4",
+          "name": "Lanche",
+          "time": "16:00"
+        },
+        {
+          "id": "5",
+          "name": "Jantar",
+          "time": "20:00"
+        }
+      ],
+      "tone": "seco"
+    },
+    "facts": [
+      {
+        "id": "P1",
+        "kind": "permanent",
+        "category": "preference",
+        "key": "plano",
+        "text": "Segue o plano da nutricionista; substituições só do plano, sem invenção",
+        "slot": null,
+        "days_seen": 7,
+        "last_seen": "2026-10-14"
+      },
+      {
+        "id": "P2",
+        "kind": "permanent",
+        "category": "routine",
+        "key": "café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "slot": "1",
+        "days_seen": 7,
+        "last_seen": "2026-10-14",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "id": "P3",
+        "kind": "permanent",
+        "category": "routine",
+        "key": "colação",
+        "text": "1 fruta: maçã ou pera",
+        "slot": "2",
+        "days_seen": 6,
+        "last_seen": "2026-10-14",
+        "kcal": 85,
+        "p": 1,
+        "c": 20,
+        "g": 0
+      },
+      {
+        "id": "P4",
+        "kind": "permanent",
+        "category": "routine",
+        "key": "almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "slot": "3",
+        "days_seen": 7,
+        "last_seen": "2026-10-14",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "id": "P5",
+        "kind": "permanent",
+        "category": "routine",
+        "key": "lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "slot": "4",
+        "days_seen": 7,
+        "last_seen": "2026-10-14",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "id": "P6",
+        "kind": "permanent",
+        "category": "routine",
+        "key": "jantar",
+        "text": "Igual ao almoço ou omelete de 2 ovos com salada e 1 colher de azeite",
+        "slot": "5",
+        "days_seen": 7,
+        "last_seen": "2026-10-14"
+      }
+    ],
+    "recent": [
+      {
+        "date": "2026-10-08",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "2",
+        "slot_name": "Colação",
+        "text": "1 maçã",
+        "kcal": 85,
+        "p": 1,
+        "c": 20,
+        "g": 0
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "date": "2026-10-08",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "2",
+        "slot_name": "Colação",
+        "text": "1 maçã",
+        "kcal": 85,
+        "p": 1,
+        "c": 20,
+        "g": 0
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "date": "2026-10-09",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos com salada e 1 colher de azeite",
+        "kcal": 225,
+        "p": 15,
+        "c": 8,
+        "g": 15
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "2",
+        "slot_name": "Colação",
+        "text": "1 maçã",
+        "kcal": 85,
+        "p": 1,
+        "c": 20,
+        "g": 0
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "date": "2026-10-10",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "hambúrguer com batata frita e milkshake",
+        "kcal": 1260,
+        "p": 40,
+        "c": 140,
+        "g": 60
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "2",
+        "slot_name": "Colação",
+        "text": "1 maçã",
+        "kcal": 85,
+        "p": 1,
+        "c": 20,
+        "g": 0
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "date": "2026-10-12",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos com salada e 1 colher de azeite",
+        "kcal": 225,
+        "p": 15,
+        "c": 8,
+        "g": 15
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "2",
+        "slot_name": "Colação",
+        "text": "1 maçã",
+        "kcal": 85,
+        "p": 1,
+        "c": 20,
+        "g": 0
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "date": "2026-10-13",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "1",
+        "slot_name": "Café",
+        "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+        "kcal": 255,
+        "p": 16,
+        "c": 32,
+        "g": 7
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "3",
+        "slot_name": "Almoço",
+        "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+        "kcal": 475,
+        "p": 35,
+        "c": 50,
+        "g": 15
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "4",
+        "slot_name": "Lanche",
+        "text": "1 iogurte natural com 1 colher de chia",
+        "kcal": 165,
+        "p": 10,
+        "c": 15,
+        "g": 7
+      },
+      {
+        "date": "2026-10-14",
+        "slot_id": "5",
+        "slot_name": "Jantar",
+        "text": "omelete de 2 ovos com salada e 1 colher de azeite",
+        "kcal": 225,
+        "p": 15,
+        "c": 8,
+        "g": 15
+      }
+    ],
+    "recent_days": [
+      {
+        "date": "2026-10-14",
+        "recorded": true,
+        "kcal": 1120,
+        "p": 76,
+        "c": 105,
+        "g": 44,
+        "ceiling_kcal": 1700,
+        "over_slot": "3",
+        "missing_slots": [
+          "2"
+        ]
+      },
+      {
+        "date": "2026-10-13",
+        "recorded": true,
+        "kcal": 1455,
+        "p": 97,
+        "c": 167,
+        "g": 44,
+        "ceiling_kcal": 1700,
+        "over_slot": "5",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-12",
+        "recorded": true,
+        "kcal": 1205,
+        "p": 77,
+        "c": 125,
+        "g": 44,
+        "ceiling_kcal": 1700,
+        "over_slot": "3",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-11",
+        "recorded": false,
+        "kcal": 0,
+        "p": 0,
+        "c": 0,
+        "g": 0,
+        "ceiling_kcal": 1700,
+        "over_slot": null,
+        "missing_slots": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "date": "2026-10-10",
+        "recorded": true,
+        "kcal": 2240,
+        "p": 102,
+        "c": 257,
+        "g": 89,
+        "ceiling_kcal": 1700,
+        "over_slot": "5",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-09",
+        "recorded": true,
+        "kcal": 1205,
+        "p": 77,
+        "c": 125,
+        "g": 44,
+        "ceiling_kcal": 1700,
+        "over_slot": "3",
+        "missing_slots": []
+      },
+      {
+        "date": "2026-10-08",
+        "recorded": true,
+        "kcal": 1455,
+        "p": 97,
+        "c": 167,
+        "g": 44,
+        "ceiling_kcal": 1700,
+        "over_slot": "5",
+        "missing_slots": []
+      }
+    ],
+    "recipes": [],
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 980,
+      "eaten_p": 62,
+      "eaten_c": 117,
+      "eaten_g": 29,
+      "workout_kcal": null,
+      "remaining_kcal": 720,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "1 pão francês sem miolo com 1 fatia de queijo branco, café com 150 ml de leite desnatado",
+          "kcal": 255,
+          "p": 16,
+          "c": 32,
+          "g": 7
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "1 maçã",
+          "kcal": 85,
+          "p": 1,
+          "c": 20,
+          "g": 0
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "100 g de arroz, 1 concha de feijão, 100 g de carne magra, salada à vontade e 1 colher de azeite",
+          "kcal": 475,
+          "p": 35,
+          "c": 50,
+          "g": 15
+        },
+        {
+          "id": "4",
+          "status": "eaten",
+          "text": "1 iogurte natural com 1 colher de chia",
+          "kcal": 165,
+          "p": 10,
+          "c": 15,
+          "g": 7
+        },
+        {
+          "id": "5",
+          "status": "empty"
+        }
+      ]
+    },
+    "memory": "",
+    "digests": [],
+    "messages": [],
+    "image_b64": null,
+    "compact": false,
+    "clarify_rounds": 0,
+    "auto_record": true,
+    "temp_facts": true,
+    "meal_changes": true,
+    "skip_slots": true,
+    "plan_budget": true,
+    "workout": true,
+    "actions": true
+  }
+}
