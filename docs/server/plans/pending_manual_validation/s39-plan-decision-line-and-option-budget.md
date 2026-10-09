@@ -122,7 +122,7 @@ O jantar passou do teto no fim de semana: sábado e domingo. Ainda faltam 65 g d
 Ceia: iogurte natural com whey ~270 kcal · P 26
 ```
 
-- **Dev deploy and three-turn HTTP smoke:** after the merge to `develop`, recorded in the follow-up commit.
+- **Dev deploy and three-turn HTTP smoke:** `develop` at `b625970` ([#214](https://github.com/nicolasteixeira3856/dieta-bot/pull/214)) deployed with `tools/deploy-gcp.ps1`, `/health` 200. `smoke-s39-log-53dfc4` log of the Lanche 156 kcal, `auto` (a first log turn on the eaten café got the add-or-replace question, S31, as expected); `smoke-s39-plan-114402` open request with `actions: true` → plan with `o1` 507 / `o2` 750 kcal, both `over_kcal` 0 against 880, first line `Vai de Frango grelhado com arroz e feijão: ~507 kcal · P 57 g, cabe na janela do Jantar. Hambúrguer também cabe.`; `smoke-s39-question-4e4b0c` question (Tali); `smoke-s39-comparison-804723` the `s39-comparacao-hamburguer` request → plan on `o2` 665 kcal (`over_kcal` 0, `o1` 832 with 102) against 730 plus the skip of Lanche, first line `Vai de Hambúrguer único com batata rústica: ~665 kcal · P 55 g, cabe na janela do Jantar. Hambúrguer duplo caprichado passa ~102 kcal.` Five calls on the dev server's key, outside the plan's cap.
 - `node tools/check-docs.mjs` passes.
 
 ## Manual acceptance (after delivery)
