@@ -7,8 +7,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 val ALL_MIGRATIONS: Array<Migration> by lazy {
     arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
+        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
     )
+}
+
+/** v13 -> v14 (A66, ADR-050): the raw typed actions of an answer, on its first row. Old rows: null (a legacy answer). */
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `chat_message` ADD COLUMN `actions` TEXT")
+    }
 }
 
 /** v12 -> v13 (A64, ADR-053 § 2): the facts an answer saved from an explicit statement, `Anotado: {text}`. Old rows: null. */

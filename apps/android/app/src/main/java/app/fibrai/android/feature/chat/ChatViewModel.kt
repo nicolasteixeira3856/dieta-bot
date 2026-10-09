@@ -182,6 +182,9 @@ class ChatViewModel @Inject constructor(
     private val shownAsks = mutableSetOf<Long>()
     private val expiring = mutableSetOf<Long>()
 
+    /** A66: answer row id -> first row id of its typed-actions answer, while that answer's records are being written. */
+    private val batches = mutableMapOf<Long, Long>()
+
     /** A59: delete proposals (answer, slot) already being expired. */
     private val expiringSkips = mutableSetOf<Pair<Long, Long>>()
 
@@ -551,10 +554,13 @@ class ChatViewModel @Inject constructor(
             }
         }
         // The photo rides only on the turn, never on the compact request.
-        val out = runCatching { service.chat(turn.body.copy(imageB64 = image)) }.getOrNull()
+        val raw = runCatching { service.chat(turn.body.copy(imageB64 = image)) }.getOrNull()
+        // A66 (ADR-050): typed actions become one row per log or plan, the first with the reply; legacy answers stay one row.
+        val parts = raw?.let(ChatActions::parts)
+        val out = parts?.rows?.first()
         // A question-only turn (A30): no estimate yet, the question is the answer.
         val question = out?.question?.trim()?.takeIf { out.estimate == null && it.isNotEmpty() }
-        if (out == null || out.reply.isBlank() && out.estimate == null && question == null) {
+        if (parts == null || out == null || out.reply.isBlank() && out.estimate == null && question == null) {
             chatResult("error")
             local.update { it.copy(failed = true) }
             return
@@ -566,6 +572,54 @@ class ChatViewModel @Inject constructor(
         } else {
             chatResult("ok", hasEstimate = out.estimate != null, confidence = out.estimate?.confidence, intent = out.intent, questionOnly = question != null, record = out.record)
         }
+        repository.insertMessage(role = "user", text = text, photoPath = photo)
+        val context = TurnContext(snapshot, facts, states, date, wipeId)
+        val stored = parts.rows.mapIndexed { i, part -> storeAnswer(part, context, actions = parts.actions.takeIf { i == 0 }) }
+        local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null, pendingFit = null) }
+        // A66: every receipt this answer writes by itself carries its first row's id, so Desfazer reverts them together.
+        val batch = stored.first().answerId.takeIf { parts.actions != null }
+        for (row in stored) {
+            batch?.let { batches[row.answerId] = it }
+            row.proposal?.let { proposalShown(it, row.fresh) }
+            if (row.recordMode == RECORD_AUTO && row.recordState == ChatRecorder.NOT_RECORDED) {
+                recordGuard(row.proposal?.takeIf { !it.actionable }?.reason ?: GUARD_STALE)
+            }
+            // A65: a turn that only reports a workout is `auto` with nothing else to record.
+            val workoutOnly = parts.workouts.isNotEmpty() && row.out.estimate == null && row.out.intent != "skip"
+            if (row.recordMode == RECORD_AUTO && row.recordState == null && !workoutOnly) autoRecord(row.answerId, row.out, snapshot, turn.body.clarifyRounds)
+        }
+        // A59 (ADR-047): the logs first, then each listed skip.
+        stored.first().takeIf { it.skips != null }?.let { applySkips(it.answerId, turn.body.clarifyRounds) }
+        // A65 (ADR-049): each workout the user stated, with its own receipt, under the request's day and wipe.
+        parts.workouts.filter { it.kcal in 1..WORKOUT_MAX && it.mode in WORKOUT_MODES }
+            .forEach { applyWorkout(it.kcal, it.mode, RecordGuard(date, wipeId), batch) }
+        stored.forEach { batches.remove(it.answerId) }
+    }
+
+    /** What every row of one answer is checked against: the DAY the request carried and the memory it sent. */
+    private data class TurnContext(
+        val snapshot: DaySnapshot,
+        val facts: List<Fact>,
+        val states: Map<Long, SlotState>,
+        val date: String,
+        val wipeId: Long?,
+    )
+
+    /** One stored answer row and what its record step needs. */
+    private data class StoredAnswer(
+        val answerId: Long,
+        val out: ChatOut,
+        val recordMode: String,
+        val recordState: String?,
+        val proposal: MealProposal?,
+        val fresh: Boolean,
+        val skips: SkipOutcomes?,
+    )
+
+    /** One answer row (A66: one per log or plan action), with its memory, proposal, skips and budget, as a single answer. */
+    private suspend fun storeAnswer(out: ChatOut, context: TurnContext, actions: String?): StoredAnswer {
+        val (snapshot, facts, states, date, wipeId) = context
+        val question = out.question?.trim()?.takeIf { out.estimate == null && it.isNotEmpty() }
         val slots = snapshot.slotsOfDay.map { it.id }.toSet()
         val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
         // A38: the slot held with a question-only turn goes back in HISTORY as the suggested meal.
@@ -597,7 +651,6 @@ class ChatViewModel @Inject constructor(
             proposal.isAddition && proposal.destination?.records?.isNotEmpty() == true -> ChatRecorder.PENDING_ADD
             else -> null
         }
-        repository.insertMessage(role = "user", text = text, photoPath = photo)
         // Preference, portion and every replace/remove apply now; a routine waits for its record (A28). A47: a rejected
         // proposal brings no memory at all; one that arrived stale brings no routine.
         val (routine, immediate) = if (proposal?.actionable == false) {
@@ -630,19 +683,9 @@ class ChatViewModel @Inject constructor(
             // A60 part A: only a plan with its estimate carries the budget check; malformed or absent = no choice UI.
             planBudget = PlanBudget.parse(out.planBudget)?.takeIf { intent == "plan" && out.estimate != null }?.encode(),
             noted = applied?.let(::notedOf),
+            actions = actions,
         )
-        local.update { it.copy(pending = null, pendingPhoto = null, pendingForce = false, failed = false, pendingAddition = null, pendingFit = null) }
-        proposal?.let { proposalShown(it, fresh) }
-        if (recordMode == RECORD_AUTO && recordState == ChatRecorder.NOT_RECORDED) {
-            recordGuard(proposal?.takeIf { !it.actionable }?.reason ?: GUARD_STALE)
-        }
-        // A65: a turn that only reports a workout is `auto` with nothing else to record.
-        val workoutOnly = out.workout != null && out.estimate == null && out.intent != "skip"
-        if (recordMode == RECORD_AUTO && recordState == null && !workoutOnly) autoRecord(answerId, out, snapshot, turn.body.clarifyRounds)
-        // A59 (ADR-047): the log first, then each listed skip.
-        if (skips != null) applySkips(answerId, turn.body.clarifyRounds)
-        // A65 (ADR-049): the workout the user stated, with its own receipt, under the request's day and wipe.
-        out.workout?.takeIf { it.kcal in 1..WORKOUT_MAX && it.mode in WORKOUT_MODES }?.let { applyWorkout(it.kcal, it.mode, RecordGuard(date, wipeId)) }
+        return StoredAnswer(answerId, out, recordMode, recordState, proposal, fresh, skips)
     }
 
     /**
@@ -751,8 +794,8 @@ class ChatViewModel @Inject constructor(
     }
 
     /** A65: the day's workout number from the Chat; a day, wipe or number that moved writes nothing (record_guard stale). */
-    private suspend fun applyWorkout(kcal: Int, mode: String, guard: RecordGuard) {
-        val id = runCatching { recorder.workout(kcal, mode, guard) }.onFailure { if (it is CancellationException) throw it }
+    private suspend fun applyWorkout(kcal: Int, mode: String, guard: RecordGuard, batch: Long? = null) {
+        val id = runCatching { recorder.workout(kcal, mode, guard, batch) }.onFailure { if (it is CancellationException) throw it }
         when {
             id.isFailure -> recordGuard(GUARD_WRITE_FAILED)
             id.getOrNull() == null -> recordGuard(GUARD_STALE)
@@ -802,7 +845,7 @@ class ChatViewModel @Inject constructor(
                 state.records.isNotEmpty() -> repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.PENDING_DELETE, state))
                     .also { if (it) skipDeleteEvent("shown") }
                 state.skipped -> repository.moveSkip(SkipMove(answerId, slot.id, null, SkipOutcomes.ALREADY, state))
-                else -> recorder.skipListed(answerId, slot, state).also {
+                else -> recorder.skipListed(answerId, slot, state, batches[answerId]).also {
                     if (it) {
                         if (state.planned != null) planReserved("cleared_by_skip")
                         mealSkipped(with)
@@ -959,6 +1002,7 @@ class ChatViewModel @Inject constructor(
             source = if (estimate.isPlanEstimate) SOURCE_PLAN else source,
             routine = routineOf(estimate),
             estimateId = estimate.id,
+            batch = batches[estimate.id],
         )
     }
 
@@ -1206,6 +1250,15 @@ class ChatViewModel @Inject constructor(
             when (action) {
                 ReceiptAction.DELETE -> recorder.delete(receipt, ChatRecorder.DELETED) ?: return@launch
                 ReceiptAction.UNDO -> {
+                    // A66: a receipt of a typed-actions batch reverts every receipt of that batch that still has its actions.
+                    val batch = UndoData.decode(receipt.undoData)?.batch
+                    val members = batch?.let { b -> _uiState.value.items.filterIsInstance<ChatItem.Receipt>().filter { it.batch == b && it.actions.isNotEmpty() }.map { it.id } }
+                    if (members != null && members.size > 1) {
+                        val rows = members.mapNotNull { repository.message(it)?.takeIf { r -> r.receiptState == null } }
+                        if (!recorder.undoBatch(rows, ::slotName)) return@launch
+                        recorder.receiptEvent(action, receipt)
+                        return@launch
+                    }
                     if (!recorder.undo(receipt, ::slotName)) return@launch
                     // A59: Desfazer of an Excluir e pular brings the record back.
                     if (receipt.role == ReceiptRules.SKIPPED && UndoData.decode(receipt.undoData)?.slots?.any { it.before.records.isNotEmpty() } == true) {
@@ -1552,8 +1605,9 @@ class ChatViewModel @Inject constructor(
      * not recorded yet (an old plan row: no receipt after it, as before A34). An old log row has no actions.
      */
     private fun isOpen(m: ChatMessageEntity, todayRows: List<ChatMessageEntity>): Boolean = when {
-        m.isPlanEstimate -> m.recordState == null &&
-            todayRows.none { it.createdAtEpochMs >= m.createdAtEpochMs && it.id != m.id && it.role in CLOSERS }
+        m.isPlanEstimate -> m.recordState == null && batchOf(m, todayRows).let { batch ->
+            todayRows.none { it.createdAtEpochMs >= m.createdAtEpochMs && it.id != m.id && it.role in CLOSERS && !inBatch(it, batch) }
+        }
         else -> m.recordMode == RECORD_ASK && m.recordState == null
     }
 
@@ -1586,13 +1640,16 @@ class ChatViewModel @Inject constructor(
             ReceiptRules.Receipt(r.id, r.createdAtEpochMs, touched, active = r.receiptState == null && undo[r.id] != null)
         }
         val latest = ReceiptRules.latest(rule)
-        return receipts.filter { it.id in latest }.mapNotNull { r ->
+        val actions = receipts.filter { it.id in latest }.mapNotNull { r ->
             val data = undo[r.id] ?: return@mapNotNull null
             if (data.slots.any { stateOf(it.date, it.slotId) != it.after }) return@mapNotNull null
             // A65: Desfazer of a workout only while the day still holds the number it wrote (the Home dialog may change it).
             if (data.workout?.let { workoutOf(it.date) != it.after } == true) return@mapNotNull null
             r.id to ReceiptRules.actions(r.role, r.recordSource, data)
         }.toMap()
+        // A66 (ADR-050): two or more receipts of one typed-actions batch still with actions: each offers Desfazer of the batch.
+        val batched = actions.keys.groupBy { undo[it]?.batch }.filterKeys { it != null }.filterValues { it.size > 1 }.values.flatten().toSet()
+        return actions.mapValues { (id, list) -> if (id in batched && ReceiptAction.UNDO !in list) listOf(ReceiptAction.UNDO) + list else list }
     }
 
     /**
@@ -1719,6 +1776,7 @@ class ChatViewModel @Inject constructor(
             },
             actions = actions,
             moveConfirm = moveConfirm?.takeIf { ReceiptAction.MOVE in actions },
+            batch = undo?.batch,
             planLine = undo?.recordSlot?.takeIf { m.role in setOf(ReceiptRules.LOGGED, ReceiptRules.REPLACED) }?.let { change ->
                 change.before.planned?.let { plan ->
                     val diff = change.after.kcal - plan.kcal
@@ -1730,12 +1788,29 @@ class ChatViewModel @Inject constructor(
     }
 
     /** The plan's own receipt: recorded (A34), or the first receipt after it, before any other estimate, is a record. */
-    private fun recordedPlan(plan: ChatMessageEntity, sorted: List<ChatMessageEntity>): Boolean =
-        plan.recordState == ChatRecorder.RECORDED || sorted
+    private fun recordedPlan(plan: ChatMessageEntity, sorted: List<ChatMessageEntity>): Boolean {
+        if (plan.recordState == ChatRecorder.RECORDED) return true
+        val batch = batchOf(plan, sorted)
+        return sorted
             .dropWhile { it.id != plan.id }
             .drop(1)
-            .firstOrNull { it.role in CLOSERS || it.role == "assistant" && it.isRecordable }
+            .firstOrNull { it.role in CLOSERS && !inBatch(it, batch) || it.role == "assistant" && it.isRecordable && it.text.isNotBlank() }
             ?.role.let { it == ReceiptRules.LOGGED || it == ReceiptRules.REPLACED }
+    }
+
+    /**
+     * A66: the typed-actions answer [m] belongs to, as the id of its first row: the earliest assistant row with `actions`
+     * since the user message before [m]. Null for a legacy answer.
+     */
+    private fun batchOf(m: ChatMessageEntity, rows: List<ChatMessageEntity>): Long? {
+        val before = rows.filter { it.id <= m.id }.sortedBy { it.id }
+        val since = before.takeLastWhile { it.role != "user" }
+        return since.firstOrNull { it.role == "assistant" && it.actions != null }?.id
+    }
+
+    /** A66: a receipt written by itself for the batch [batch]. */
+    private fun inBatch(receipt: ChatMessageEntity, batch: Long?): Boolean =
+        batch != null && receipt.role in ReceiptRules.ROLES && UndoData.decode(receipt.undoData)?.batch == batch
 
     private fun Macros.minus(o: Macros) =
         Macros((kcal - o.kcal).coerceAtLeast(0), (p - o.p).coerceAtLeast(0), (c - o.c).coerceAtLeast(0), (g - o.g).coerceAtLeast(0))
@@ -1813,7 +1888,8 @@ class ChatViewModel @Inject constructor(
             plan = plan,
             memory = memoryOf(m),
             notRecorded = notRecorded,
-            prose = estimate == null || estimate.kind == EstimateKind.MEAL,
+            // A66: a later row of a typed-actions answer has no text of its own: the card only.
+            prose = (estimate == null || estimate.kind == EstimateKind.MEAL) && m.text.isNotBlank(),
             budget = budget,
             reservedFor = reservedFor,
             // A60 part C: a reply with the subset's markers is drawn as blocks (ADR-045); plain prose stays as it was.

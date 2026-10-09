@@ -79,6 +79,11 @@ data class ChatMessageEntity(
      * the memory, one per line; drawn as `Anotado: {text}` (ADR-053 § 2). Null = none.
      */
     val noted: String? = null,
+    /**
+     * Assistant rows (A66, v14): the server `actions` of the answer as JSON, on the answer's first row only; every other log
+     * or plan action of the answer is a row of its own after it, with blank text. Null = a legacy answer or a later row.
+     */
+    val actions: String? = null,
 ) {
     val itemNames: List<String>
         get() = estimateItems?.split(ITEM_SEPARATOR)?.filter { it.isNotBlank() }.orEmpty()

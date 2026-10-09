@@ -116,6 +116,7 @@ object PromptBuilder {
                 skipSlots = true,
                 planBudget = true,
                 workout = true,
+                actions = true,
                 fitKcal = fitKcal,
                 pendingAddition = pendingAddition,
             ),
@@ -288,7 +289,7 @@ object PromptBuilder {
 
     /** compact=true request: only [block], the raw messages to summarise (spec rule 9, A38). */
     fun compact(turn: Turn, block: CompactBlock): ChatIn =
-        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), pendingAddition = null, skipSlots = false, planBudget = false, workout = false, fitKcal = null)
+        turn.body.copy(compact = true, text = "", messages = block.messages, recentDays = emptyList(), pendingAddition = null, skipSlots = false, planBudget = false, workout = false, actions = false, fitKcal = null)
 
     /** A47: an addition proposal as the server's `pending_addition` (S18), the same shape it answered. */
     fun pendingAddition(proposal: MealProposal): ChatPendingAddition? {
@@ -319,6 +320,8 @@ object PromptBuilder {
         val cut = newest?.createdAtEpochMs ?: Long.MIN_VALUE
         return todayMessages
             .filter { it.role in ROLES && (wiped == null || it.id > wiped) }
+            // A66: the later rows of an actions answer carry no text; the first row's reply covers them.
+            .filter { it.role != "assistant" || it.text.isNotBlank() || it.estimateKcal == null }
             .filter { if (until != null) it.id > until else it.createdAtEpochMs > cut }
             .sortedWith(compareBy({ it.createdAtEpochMs }, { it.id }))
     }

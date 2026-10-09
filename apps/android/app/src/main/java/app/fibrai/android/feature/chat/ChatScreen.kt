@@ -577,7 +577,7 @@ private fun AssistantBubble(item: ChatItem.Assistant, selected: Boolean = false)
         BotBubble(Modifier.aeroSelectedBubble(selected, BotTailShape).testTag("chat-bot-${item.id}")) {
             val blocks = item.blocks
             if (item.plan != null) {
-                if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else PlanText(item.text)
+                if (blocks != null) AeroReplyBlocks(blocks, macroDecor()) else if (item.text.isNotBlank()) PlanText(item.text)
                 PlanPanel(item.plan)
             } else if (item.prose) {
                 // A formatted reply carries its own emphasis (D17): no accent highlight of the item names.

@@ -63,6 +63,11 @@ data class ChatIn(
      * like [planBudget]: the field must always go; a compact request sends false.
      */
     val workout: Boolean,
+    /**
+     * The client applies typed actions (A66, ADR-050): the server answers [ChatOut.actions] and the legacy fields are
+     * ignored. No default, like [workout]: always encoded; a compact request sends false.
+     */
+    val actions: Boolean,
     /** Ajustar para caber: the target of the adjusted plan, the `limit_kcal` the choice showed. Null = none. */
     @SerialName("fit_kcal") val fitKcal: Int? = null,
     /** The unrecorded addition the user is continuing (A47); null = none. Never on a compact request. */
@@ -247,6 +252,32 @@ data class ChatOut(
     @SerialName("plan_budget") val planBudget: JsonElement? = null,
     /** A65 (S35): the energy of a workout done today, as the user stated it; null = none. */
     val workout: ChatWorkout? = null,
+    /** A66 (S36): the ordered actions of the answer (1–6); null = a server without the capability (legacy fields). */
+    val actions: List<ChatAction>? = null,
+)
+
+/**
+ * One typed action of an answer (S36, ADR-050). [type]: log | plan | skip | workout | recipe_recall | question. Per action:
+ * [estimate] (log and plan; null when held), [question] (the held question of that action), [record] (v4 rules per action),
+ * [mealChange] (log only, kept raw like [ChatOut.mealChange]), [workout], [planBudget] (plan only), [slot]. [options]
+ * (S37) and [recipe] (S38) stay raw for A67 and A68.
+ */
+@Serializable
+data class ChatAction(
+    val id: String = "",
+    val type: String = "",
+    val slot: String? = null,
+    val estimate: ChatEstimate? = null,
+    val question: String? = null,
+    val record: String? = null,
+    @SerialName("record_intent") val recordIntent: String? = null,
+    @SerialName("meal_day") val mealDay: String? = null,
+    @SerialName("meal_change") val mealChange: JsonElement? = null,
+    val workout: ChatWorkout? = null,
+    @SerialName("recipe_id") val recipeId: String? = null,
+    val options: JsonElement? = null,
+    @SerialName("plan_budget") val planBudget: JsonElement? = null,
+    val recipe: JsonElement? = null,
 )
 
 /** `mode`: "replace" (the day's workout becomes [kcal]) or "add" (it sums to the day's number). */

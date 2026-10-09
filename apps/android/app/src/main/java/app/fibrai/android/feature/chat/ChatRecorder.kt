@@ -31,6 +31,8 @@ internal data class NewRecord(
     val routine: List<RoutineUpdate>,
     /** The assistant row recorded, or null (routine card). Its recordState becomes "recorded". */
     val estimateId: Long?,
+    /** A66: the typed-actions answer this automatic record belongs to; Desfazer reverts the whole batch. */
+    val batch: Long? = null,
 )
 
 /** Outcome of a record or a move into a slot. */
@@ -71,7 +73,7 @@ internal class ChatRecorder(
         if (expected != null && before != expected) return RecordOutcome.Stale
         val change = SlotChange(date, slot.id, before, SlotState.of(new.record))
         val role = if (before.records.isNotEmpty()) ReceiptRules.REPLACED else ReceiptRules.LOGGED
-        val receipt = receipt(role, slot.name, slot.id, new.record.kcal, new.source, UndoData(listOf(change), routine = new.routine))
+        val receipt = receipt(role, slot.name, slot.id, new.record.kcal, new.source, UndoData(listOf(change), routine = new.routine, batch = new.batch))
         val id = repository.commitRecord(
             listOf(change),
             receipts = listOf(receipt),
@@ -79,7 +81,7 @@ internal class ChatRecorder(
             guard = guard,
         )?.single() ?: return RecordOutcome.Stale
         val result = applyRoutine(emptyList(), new.routine, slot.id, new.record)
-        repository.setReceiptUndo(id, UndoData(listOf(change), result?.images.orEmpty(), new.routine).encode(), result?.changed == true)
+        repository.setReceiptUndo(id, UndoData(listOf(change), result?.images.orEmpty(), new.routine, batch = new.batch).encode(), result?.changed == true)
         return RecordOutcome.Recorded(before, id)
     }
 
@@ -98,10 +100,10 @@ internal class ChatRecorder(
      * A59 (ADR-047): a slot listed in `skip_slots` that is empty now is skipped with its own receipt, and the answer's
      * skip moves from pending to skipped in the same transaction. False when the slot or the skip moved meanwhile.
      */
-    suspend fun skipListed(answerId: Long, slot: SlotRef, before: SlotState = SlotState.EMPTY): Boolean {
+    suspend fun skipListed(answerId: Long, slot: SlotRef, before: SlotState = SlotState.EMPTY, batch: Long? = null): Boolean {
         val date = today().toString()
         val change = SlotChange(date, slot.id, before, SlotState.SKIPPED)
-        val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change)))
+        val receipt = receipt(ReceiptRules.SKIPPED, slot.name, slot.id, null, null, UndoData(listOf(change), batch = batch))
         return repository.commitRecord(
             listOf(change),
             receipts = listOf(receipt),
@@ -135,7 +137,7 @@ internal class ChatRecorder(
      * sets [kcal], `add` sums it to the day's number. One transaction under [guard] that rechecks the number it read; the
      * receipt keeps both numbers for Desfazer. Null when anything moved.
      */
-    suspend fun workout(kcal: Int, mode: String, guard: RecordGuard?): Long? {
+    suspend fun workout(kcal: Int, mode: String, guard: RecordGuard?, batch: Long? = null): Long? {
         val date = today().toString()
         val before = repository.dayRecord(date).workoutKcal
         val after = if (mode == WORKOUT_ADD) (before ?: 0) + kcal else kcal
@@ -144,7 +146,7 @@ internal class ChatRecorder(
             role = ReceiptRules.WORKOUT,
             text = mode,
             estimateKcal = kcal,
-            undoData = UndoData(emptyList(), workout = change).encode(),
+            undoData = UndoData(emptyList(), workout = change, batch = batch).encode(),
         )
         return repository.commitRecord(emptyList(), receipts = listOf(receipt), guard = guard, workout = change)?.single()
     }
@@ -174,6 +176,26 @@ internal class ChatRecorder(
         }
         repository.commitRecord(changes, receipts = restored, receiptMarks = mapOf(receipt.id to UNDONE), workout = undo.workout?.reversed()) ?: return false
         revert(undo.facts)
+        return true
+    }
+
+    /**
+     * A66 (ADR-050): Desfazer of a typed-actions batch. Every receipt of [receipts] goes back to its "before" (slots, skips
+     * and the workout number), newest first, in one transaction that checks every state; their memory changes are reverted.
+     * A slot that ends with a record gets its `restored` receipt. False when anything moved: nothing is written.
+     */
+    suspend fun undoBatch(receipts: List<ChatMessageEntity>, slotName: suspend (Long) -> String): Boolean {
+        val undos = receipts.sortedWith(compareBy({ it.createdAtEpochMs }, { it.id })).reversed().mapNotNull { r -> UndoData.decode(r.undoData)?.let { r to it } }
+        if (undos.isEmpty()) return false
+        val changes = undos.flatMap { (_, u) -> u.slots.reversed().map { SlotChange(it.date, it.slotId, it.after, it.before) } }
+        val restored = changes.filter { it.after.records.isNotEmpty() }.map {
+            receipt(ReceiptRules.RESTORED, slotName(it.slotId), it.slotId, it.after.kcal, it.after.records.first().source.asReceiptSource(), UndoData(listOf(it)))
+        }
+        val workouts = undos.mapNotNull { it.second.workout }
+        // Several workout receipts of one batch: the day goes back to the number before the first of them.
+        val workout = workouts.takeIf { it.isNotEmpty() }?.let { WorkoutChange(it.first().date, it.first().after, it.last().before) }
+        repository.commitRecord(changes, receipts = restored, receiptMarks = undos.associate { it.first.id to UNDONE }, workout = workout) ?: return false
+        revert(undos.flatMap { it.second.facts })
         return true
     }
 

@@ -359,7 +359,7 @@ With it, the response adds `actions` (1–6), next to the top-level fields below
 - A `question` action never sits next to another action: the server regenerates once and otherwise drops the question actions. A refusal or a fallback is one `question` action.
 - Top-level `reply`, `memory_updates` and `memory_used` belong to the whole answer.
 
-Without `actions: true` (the legacy view), the top-level fields are those of the first `log` or `plan` action (else the first non-skip action, else the first skip), `skip_slots` lists every skip action except the slot of that log, `workout` is the first workout action, and the reply covers every action. An installed app without the capability therefore records one action per turn.
+Without `actions: true` (the legacy view), the top-level fields are those of the first `log` or `plan` action (else the first non-skip action, else the first skip), `skip_slots` lists every skip action except the slot of that log, `workout` is the first workout action, and the reply covers every action. An installed app without the capability therefore records one action per turn. The Android app sends `actions: true` on every normal turn and applies the list (one row per log or plan, one receipt per action, Desfazer of the batch).
 
 ### Workout capability
 
@@ -433,3 +433,4 @@ OUT
 - [S30](server/plans/completed/s30-tone-formatting-planned-slot.md) — `profile.tone`, `POST /v1/close`, the `reply` formatting subset and `status: planned`
 - [A64](android/plans/pending_manual_validation/a64-chat-context-fields-day-balance.md) — the Android client sends routine macros and `recent_days`
 - [A65](android/plans/pending_manual_validation/a65-workout-via-chat.md) — the Android client records `workout`
+- [A66](android/plans/pending_manual_validation/a66-typed-actions-batch.md) — the Android client applies `actions`
