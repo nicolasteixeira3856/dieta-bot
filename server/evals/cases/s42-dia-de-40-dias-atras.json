@@ -1,0 +1,26 @@
+{
+  "id": "s42-dia-de-40-dias-atras",
+  "since": "v6",
+  "tags": [
+    "s42",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "no dia 5 de setembro jantei uma pizza inteira e esqueci de registrar"
+  },
+  "expect": {
+    "actions": [
+      {
+        "record": "none"
+      }
+    ],
+    "reply_has": [
+      "Só registro os últimos 30 dias"
+    ],
+    "refusal": "none"
+  }
+}

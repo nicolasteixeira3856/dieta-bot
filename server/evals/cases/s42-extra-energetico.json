@@ -1,0 +1,63 @@
+{
+  "id": "s42-extra-energetico",
+  "since": "v6",
+  "tags": [
+    "s42",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "local_time": "2026-10-15T15:00:00-03:00",
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1025,
+      "eaten_p": 70,
+      "eaten_c": 110,
+      "eaten_g": 34,
+      "workout_kcal": null,
+      "remaining_kcal": 1005,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "3 ovos mexidos, 1 pão francês, café preto",
+          "kcal": 365,
+          "p": 25,
+          "c": 30,
+          "g": 16
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "prato por quilo: arroz, feijão, frango grelhado e salada",
+          "kcal": 660,
+          "p": 45,
+          "c": 80,
+          "g": 18
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "text": "tomei uma lata de energético agora, entre o almoço e o lanche"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "log",
+        "slot": "extra",
+        "record": "auto"
+      }
+    ],
+    "refusal": "none"
+  }
+}
