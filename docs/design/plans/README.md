@@ -196,6 +196,15 @@ The landing phones are clones of app golds; D27 retired `o1` and D28 redrew `hom
 | Landing design | D29 — `ob3` and the new `home1` in the phones of `land` and `landM`, delivered ([history](completed/)) | D27, D28 |
 | Landing code | W3 — re-cut the phone screens in `web/`, delivered ([history](../../site/plans/completed/)) | D29 |
 
+## Chat gold drift follow-up
+
+The app shows two states that their golds do not draw: the `Extra` row of Trocar (ADR-058, A72) and the day balance on the extra receipt (A64). Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Design | [D30](d30-chat-extra-row-and-balance-line.md) — `chatT` with the Extra row, `chatGX` with the balance line | D28, D29 |
+| Client | [A73](../../android/plans/a73-chat-gold-gates.md) — `chatT` and `chatGX` gated again | D30, A72 merged |
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.
