@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Phone screens of the landing page, cut from the app golds (W1 § 6): the top 844 pt (1688 px at 2x) of
-// docs/qa/figma/{light,dark}/{o1,home1,chatE}.png, which is what the D11 phone frame shows, written as 600 px wide
+// docs/qa/figma/{light,dark}/{ob3,home1,chatE}.png, which is what the D11 phone frame shows, written as 600 px wide
 // WebP (2x of the 300 px screen) into public/img/screens/{light,dark}/<id>.webp. Rerun after a gold re-export.
 //
 // Usage: node tools/build-screens.mjs           writes the six images
@@ -13,7 +13,7 @@ import sharp from "sharp";
 const web = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const GOLDS = path.resolve(web, "..", "docs", "qa", "figma");
 const OUT = path.join(web, "public", "img", "screens");
-export const SCREENS = ["o1", "home1", "chatE"];
+export const SCREENS = ["ob3", "home1", "chatE"];
 const GOLD_WIDTH = 780;
 const SCREEN_HEIGHT = 1688; // 844 pt at 2x
 const WIDTH = 600;
