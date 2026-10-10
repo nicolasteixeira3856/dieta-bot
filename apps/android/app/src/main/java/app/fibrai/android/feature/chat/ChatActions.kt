@@ -124,6 +124,21 @@ object ChatActions {
         return raw.copy(name = raw.name.trim(), ingredients = ingredients, steps = raw.steps.filter { it.isNotBlank() })
     }
 
+    /** A72 (S42, ADR-058): where a log row records: an extra (with its `HH:mm`) or a named past day (ISO). */
+    data class Target(val extra: Boolean, val time: String?, val day: String?)
+
+    private val HHMM = Regex("^([01][0-9]|2[0-3]):[0-5][0-9]$")
+
+    /** A72: the target of the row's own log action; null for a plan, a legacy answer or a log of today in a meal. */
+    fun target(actions: String?): Target? {
+        val own = actions?.let { runCatching { json.decodeFromString(ListSerializer(ChatAction.serializer()), it) }.getOrNull() }
+            ?.firstOrNull { it.type == LOG || it.type == PLAN }?.takeIf { it.type == LOG } ?: return null
+        val extra = own.slot == app.fibrai.android.domain.Extras.NAME
+        val day = own.day?.takeIf { own.mealDay == "other" && runCatching { java.time.LocalDate.parse(it) }.isSuccess }
+        val time = own.time?.takeIf { extra && HHMM.matches(it) }
+        return Target(extra, time, day).takeIf { extra || day != null }
+    }
+
     /** A68 (S38): the saved recipe a log or plan row refers to (its own action's `recipe_id`), as the app's id. */
     fun recipeId(actions: String?): Long? {
         val own = actions?.let { runCatching { json.decodeFromString(ListSerializer(ChatAction.serializer()), it) }.getOrNull() }

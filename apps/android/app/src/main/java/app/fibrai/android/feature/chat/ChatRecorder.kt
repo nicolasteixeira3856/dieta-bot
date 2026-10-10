@@ -8,6 +8,7 @@ import app.fibrai.android.core.database.SkipMove
 import app.fibrai.android.core.memory.FactMemory
 import app.fibrai.android.core.telemetry.Telemetry
 import app.fibrai.android.core.telemetry.TelemetryEvents
+import app.fibrai.android.domain.Extras
 import app.fibrai.android.domain.FactImage
 import app.fibrai.android.domain.MemoryResult
 import app.fibrai.android.domain.ReceiptAction
@@ -61,13 +62,23 @@ internal class ChatRecorder(
 ) {
     private fun today() = SaoPaulo.date(clock.now())
 
+    /** A72: `HH:mm` of now, America/Sao_Paulo (an extra without a stated time). */
+    fun nowTime(): String = clock.now().atZone(SaoPaulo.zone).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+
     /**
      * [new] into [slot] of today. Empty or skipped slot: recorded (a skip has no numbers to lose). A slot with
      * a record: [RecordOutcome.Taken] unless [expected] says the user already confirmed that exact state.
      * [guard] (A47): the day, wipe, untouched source slots and the open answer a proposal also requires.
      */
-    suspend fun record(new: NewRecord, slot: SlotRef, expected: SlotState? = null, guard: RecordGuard? = null): RecordOutcome {
-        val date = today().toString()
+    suspend fun record(
+        new: NewRecord,
+        slot: SlotRef,
+        expected: SlotState? = null,
+        guard: RecordGuard? = null,
+        /** A72 (ADR-058 decision 5): a named past day; null = today. */
+        day: java.time.LocalDate? = null,
+    ): RecordOutcome {
+        val date = (day ?: today()).toString()
         val before = repository.slotState(date, slot.id)
         if (expected == null && before.records.isNotEmpty()) return RecordOutcome.Taken(before)
         if (expected != null && before != expected) return RecordOutcome.Stale
@@ -80,7 +91,8 @@ internal class ChatRecorder(
             recordStates = new.estimateId?.let { mapOf(it to RECORDED) }.orEmpty(),
             guard = guard,
         )?.single() ?: return RecordOutcome.Stale
-        val result = applyRoutine(emptyList(), new.routine, slot.id, new.record)
+        // A72: an extra never feeds a routine; a past day counts as a day seen on its own date.
+        val result = if (Extras.isExtra(slot.id)) null else applyRoutine(emptyList(), new.routine, slot.id, new.record, day)
         repository.setReceiptUndo(id, UndoData(listOf(change), result?.images.orEmpty(), new.routine, batch = new.batch).encode(), result?.changed == true)
         return RecordOutcome.Recorded(before, id)
     }
@@ -211,15 +223,18 @@ internal class ChatRecorder(
         val targetState = repository.slotState(from.date, target.id)
         if (expected == null && targetState.records.isNotEmpty()) return RecordOutcome.Taken(targetState)
         if (expected != null && targetState != expected) return RecordOutcome.Stale
+        // A72: a record moved into an extra takes the time of now; one moved out of an extra loses its time.
+        val movedRecords = from.after.records.map { it.copy(time = if (Extras.isExtra(target.id)) nowTime() else null) }
         val changes = listOf(
             SlotChange(from.date, from.slotId, from.after, SlotState.EMPTY),
-            SlotChange(from.date, target.id, targetState, from.after),
+            SlotChange(from.date, target.id, targetState, from.after.copy(records = movedRecords)),
         )
         val moved = receipt(ReceiptRules.MOVED, target.name, target.id, from.after.kcal, receipt.recordSource, UndoData(changes, routine = undo.routine))
         val id = repository.commitRecord(changes, receipts = listOf(moved), receiptMarks = mapOf(receipt.id to MOVED))?.single()
             ?: return RecordOutcome.Stale
         val record = from.after.records.reduce { a, b -> a.copy(kcal = a.kcal + b.kcal, p = a.p + b.p, c = a.c + b.c, g = a.g + b.g) }
-        val result = applyRoutine(undo.facts, undo.routine, target.id, record)
+        // A72: into an extra the routine is only reverted; out of one it applies to the meal.
+        val result = applyRoutine(undo.facts, if (Extras.isExtra(target.id)) emptyList() else undo.routine, target.id, record)
         repository.setReceiptUndo(id, UndoData(changes, result?.images.orEmpty(), undo.routine).encode(), result?.changed == true)
         return RecordOutcome.Recorded(targetState, id)
     }
@@ -240,10 +255,16 @@ internal class ChatRecorder(
     }
 
     /** Reverts [revert] and applies [routine] with the meal now in [slotId]; null when the memory could not be written. */
-    private suspend fun applyRoutine(revert: List<FactImage>, routine: List<RoutineUpdate>, slotId: Long, record: SlotRecord): MemoryResult? {
+    private suspend fun applyRoutine(
+        revert: List<FactImage>,
+        routine: List<RoutineUpdate>,
+        slotId: Long,
+        record: SlotRecord,
+        day: java.time.LocalDate? = null,
+    ): MemoryResult? {
         if (revert.isEmpty() && routine.isEmpty()) return null
         val meal = RecordedMeal(slotId.toString(), record.kcal, record.p, record.c, record.g)
-        val edit = runCatching { memory.revertAndApply(revert, routine.map { it.toDomain() }, today(), meal) }.getOrNull() ?: return null
+        val edit = runCatching { memory.revertAndApply(revert, routine.map { it.toDomain() }, day ?: today(), meal) }.getOrNull() ?: return null
         if (revert.isNotEmpty()) reverted(edit.reverted, edit.kept)
         onMemory(edit.result)
         return edit.result

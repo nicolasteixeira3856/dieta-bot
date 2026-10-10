@@ -47,6 +47,10 @@ interface ClosureDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(row: ClosureEntity): Long
 
+    /** A72: a record in a past day updates that day's numbers; the text stays. */
+    @Query("UPDATE closure SET numbers = :numbers WHERE `key` = :key")
+    suspend fun setNumbers(key: String, numbers: String)
+
     @Query("UPDATE closure SET text = :text, status = :status, retried = :retried WHERE `key` = :key")
     suspend fun setText(key: String, text: String?, status: String, retried: Boolean)
 }

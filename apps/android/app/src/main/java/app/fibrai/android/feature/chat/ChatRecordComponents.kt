@@ -75,7 +75,7 @@ internal fun ReceiptCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     AeroText(
                         buildAnnotatedString {
-                            append(receiptTitle(item.kind))
+                            append(if (item.extra) receiptTitleExtra(item.kind) else receiptTitle(item.kind))
                             withStyle(SpanStyle(fontWeight = type.captionStrong.fontWeight)) { append(item.slotName) }
                             item.slotTime?.let {
                                 withStyle(SpanStyle(color = c.textDim)) { append(" · ") }
@@ -119,6 +119,13 @@ private fun receiptIcon(kind: ReceiptKind): AeroIconName = when (kind) {
     ReceiptKind.WORKOUT, ReceiptKind.WORKOUT_ADDED -> AeroIconName.Barbell
     ReceiptKind.RECIPE_SAVED -> AeroIconName.BookmarkSimple
     else -> AeroIconName.Checks
+}
+
+/** A72 (chatGX): `Registrado como extra`, `Movido como extra`, `Restaurado como extra`. */
+private fun receiptTitleExtra(kind: ReceiptKind) = when (kind) {
+    ReceiptKind.MOVED -> "Movido como "
+    ReceiptKind.RESTORED -> "Restaurado como "
+    else -> "Registrado como "
 }
 
 private fun receiptTitle(kind: ReceiptKind) = when (kind) {

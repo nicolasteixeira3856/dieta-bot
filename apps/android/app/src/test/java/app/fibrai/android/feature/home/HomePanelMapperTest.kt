@@ -161,6 +161,48 @@ object HomeFixtures {
 
     /** A22 golds: "350 kcal · +175 na meta" and "200 kcal · +100 na meta" with the pill still at 2000. */
     val home1Workout = home1.copy(kcalSame = 1825, eat = "partial", pct = 50, workoutKcal = 350)
+
+    /** A72 (D28): 3 de outubro, day 15; breakfast, lunch, an extra at 15:40, the snack skipped, dinner next. */
+    val home1Extra = DaySnapshot(
+        date = "2026-10-03",
+        kcalSame = 2000,
+        eat = "partial",
+        pct = 50,
+        workoutKcal = 350,
+        onboardingDone = true,
+        firstDay = "2026-09-19",
+        slots = slots,
+        skippedSlotIds = setOf(3L),
+        logs = listOf(
+            MealLog("", "2 pães franceses, 2 ovos mexidos e café com leite", 520, 28, true, slotId = 1, carbs = 52, fat = 22),
+            MealLog("", "Prato feito: frango grelhado, arroz, feijão e salada", 620, 48, true, slotId = 2, carbs = 42, fat = 18, source = "photo"),
+            MealLog("", "Energético, 1 lata (350 ml)", 160, 0, true, carbs = 40, fat = 0, kind = "extra", time = "15:40"),
+        ),
+    )
+
+    /** A72 (D28 homeH): 1 de outubro, day 13, read from Room; the snack skipped. */
+    val homeH = DaySnapshot(
+        date = "2026-10-01",
+        kcalSame = 2000,
+        eat = "partial",
+        pct = 50,
+        workoutKcal = 350,
+        onboardingDone = true,
+        firstDay = "2026-09-19",
+        slots = slots,
+        skippedSlotIds = setOf(3L),
+        logs = listOf(
+            MealLog("", "2 pães franceses, 2 ovos mexidos e café com leite", 520, 28, true, slotId = 1, carbs = 52, fat = 22),
+            MealLog("", "Prato feito: frango grelhado, arroz, feijão e salada", 780, 48, true, slotId = 2, carbs = 82, fat = 18, source = "photo"),
+            MealLog("", "Arroz, feijão, bife acebolado e salada", 610, 42, true, slotId = 4, carbs = 60, fat = 20),
+        ),
+    )
+
+    /** The strip's kcal: every day from the first day to 3 de outubro except 28 de setembro. */
+    val stripKcal: Map<String, Int> = generateSequence(LocalDate.parse("2026-09-19")) { it.plusDays(1) }
+        .takeWhile { !it.isAfter(LocalDate.parse("2026-10-03")) }
+        .filter { it != LocalDate.parse("2026-09-28") }
+        .associate { it.toString() to 1800 }
     val homeXWorkout = homeX.copy(kcalSame = 1900, eat = "partial", pct = 50, workoutKcal = 200)
 
 }

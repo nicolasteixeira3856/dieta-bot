@@ -1,6 +1,6 @@
 # A35 — Retroactive record (a meal of another day)
 
-- Status: Fora de escopo; reactivated on 2026-10-09 by owner decision inside [ADR-058](../../../produto/adrs/ADR-058-extras-and-history.md), [S42](../../../server/plans/pending_manual_validation/s42-extras-and-other-day.md) and [A72](../a72-extras-and-history.md) (this file stays as the dated deferral history)
+- Status: Fora de escopo; reactivated on 2026-10-09 by owner decision inside [ADR-058](../../../produto/adrs/ADR-058-extras-and-history.md), [S42](../../../server/plans/pending_manual_validation/s42-extras-and-other-day.md) and [A72](../pending_manual_validation/a72-extras-and-history.md) (this file stays as the dated deferral history)
 - Date: 2026-10-01
 - Owner: `android` (product decision in `produto`; a paired server plan is expected)
 - Prospective delivery boundary: documentation first (product spec + ADR), then one `apps/android/` plan and one `server/` plan, never in the same `/goal`

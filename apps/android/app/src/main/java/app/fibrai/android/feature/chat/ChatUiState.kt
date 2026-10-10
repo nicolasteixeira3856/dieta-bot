@@ -168,6 +168,8 @@ sealed interface ChatItem {
         val balance: String? = null,
         /** A66: the typed-actions answer that wrote this receipt by itself; its Desfazer reverts the batch. */
         val batch: Long? = null,
+        /** A72 (chatGX): the record is an extra, `Registrado como extra · {hora}`. */
+        val extra: Boolean = false,
     ) : ChatItem {
         override val key = "r-$id"
         val skipped: Boolean get() = kind == ReceiptKind.SKIPPED

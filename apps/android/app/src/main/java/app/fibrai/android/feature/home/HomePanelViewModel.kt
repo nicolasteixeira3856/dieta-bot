@@ -10,11 +10,15 @@ import app.fibrai.android.core.telemetry.TelemetryEvents
 import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.feature.workout.WorkoutEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,11 +34,47 @@ class HomePanelViewModel @Inject constructor(
     /** A60 part B: collapsed closure cards the user tapped open (until the screen goes). */
     private val expanded = MutableStateFlow<Set<String>>(emptySet())
 
-    private val closures = repository.observeClosures(SaoPaulo.date(clock.now()).minusDays(CLOSURE_DAYS).toString())
+    /** A72 (ADR-058 decision 4): the past day shown, with the day it was picked on; null = today. */
+    private val selected = MutableStateFlow<Pair<LocalDate, LocalDate>?>(null)
 
-    val uiState: StateFlow<HomePanelUiState> = combine(repository.observeToday(), workoutDraft, closures, expanded) { day, draft, rows, open ->
-        HomePanelMapper.map(day, SaoPaulo.date(clock.now()), draft, rows, open)
+    private val closures = repository.observeClosures(SaoPaulo.date(clock.now()).minusDays(STRIP_DAYS).toString())
+
+    private val stripKcal = repository.observeDayKcal(
+        SaoPaulo.date(clock.now()).minusDays(STRIP_DAYS).toString(),
+        SaoPaulo.date(clock.now()).plusDays(1).toString(),
+    ).map { rows -> rows.associate { it.date to it.kcal } }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val shownDay = combine(repository.observeToday(), selected) { today, pick -> today to pick }
+        .flatMapLatest { (today, pick) ->
+            // The day rollover returns to today: a pick of another day no longer holds.
+            val day = pick?.takeIf { it.second.toString() == today.date }?.first
+            if (day == null) flowOf(today to null) else repository.observeDay(day.toString()).map { it to day }
+        }
+
+    val uiState: StateFlow<HomePanelUiState> = combine(shownDay, workoutDraft, closures, expanded, stripKcal) { (day, shown), draft, rows, open, kcal ->
+        HomePanelMapper.map(day, SaoPaulo.date(clock.now()), draft, rows, open, shown = shown, dayKcal = kcal)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomePanelUiState())
+
+    /** A72: a day of the strip; today's circle returns to today. */
+    fun selectDay(iso: String) {
+        val today = SaoPaulo.date(clock.now())
+        val day = runCatching { LocalDate.parse(iso) }.getOrNull() ?: return
+        if (day == today) {
+            selected.value = null
+            return
+        }
+        if (day.isAfter(today)) return
+        selected.value = day to today
+        val offset = java.time.temporal.ChronoUnit.DAYS.between(day, today)
+        telemetry.event(TelemetryEvents.HOME_DAY_SELECTED, mapOf("offset" to if (offset <= 1) "1" else if (offset <= 7) "2-7" else "8-30"))
+        telemetry.event(TelemetryEvents.SCREEN_VIEW, mapOf("screen" to "home_past"))
+    }
+
+    /** A72: leaving the Home (Chat, Config) comes back on today: the Chat is today's and a wipe changes today. */
+    fun backToToday() {
+        selected.value = null
+    }
 
     /** A collapsed closure card tapped open. */
     fun expandClosure(key: String) {
@@ -67,8 +107,8 @@ class HomePanelViewModel @Inject constructor(
     }
 
     private companion object {
-        /** Closures read for the cards: a week back and the day before it. */
-        const val CLOSURE_DAYS = 8L
+        /** Closures and the strip: the last 30 days (A72), which hold the week and the day before it. */
+        const val STRIP_DAYS = 31L
     }
 
     /** Same field as the Config workout editor. Empty = no workout = credit 0. */

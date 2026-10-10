@@ -16,7 +16,32 @@ data class SlotRecord(
     val stable: Boolean = true,
     /** A68: the recipe version a record by recipe used (meal_log.recipeVersionId); null otherwise. */
     val recipeVersionId: Long? = null,
+    /** A72 (ADR-058): the time of an extra, `HH:mm`; null on a meal record. */
+    val time: String? = null,
 )
+
+/**
+ * A72 (ADR-058 decision 1): an extra is a record of its own, outside the meals. The record paths of the Chat treat each one
+ * as a slot of its own: [slotId] = −key, the key stored in `meal_log.extraId`. A real slot id is positive and the workout
+ * receipt uses −1 ([ReceiptRules.WORKOUT_SLOT]), so an extra id is at most [FIRST].
+ */
+object Extras {
+    const val KIND = "extra"
+    const val SLOT_KIND = "slot"
+
+    /** The receipt's slot name of an extra and the server's action target. */
+    const val NAME = "extra"
+
+    /** Marks an answer whose log targets an extra (`chat_message.estimateSlotId`). */
+    const val TARGET = -2L
+    const val FIRST = -1000L
+
+    fun isExtra(slotId: Long?): Boolean = slotId != null && slotId <= FIRST
+
+    fun slotId(key: Long): Long = -key
+
+    fun key(slotId: Long): Long = -slotId
+}
 
 /** A plan reserved for a meal (A60 part D, ADR-046): its dish and numbers, nothing eaten. */
 @Serializable
