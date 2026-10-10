@@ -13,7 +13,7 @@
 - Related documentation: [site README](../README.md), [ADR-037](../adrs/ADR-037-landing-site.md), [W1](completed/w1-landing-site.md) (§ 6, the screen cut), [D11](../../design/plans/completed/d11-landing-page.md), [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [ADR-058](../../produto/adrs/ADR-058-extras-and-history.md), the [run report of D27 and D28](../../design/validation/2026-10-09-d27-d28.md) (follow-up 2), the [gold inventory](../../qa/README.md#golds), [production gate](../../content-policy/production-gate.md).
 - Prerequisites:
   - [D27](../../design/plans/completed/d27-conversational-onboarding.md) and [D28](../../design/plans/completed/d28-home-extras-and-history.md) `Concluído` (met);
-  - [D29](../../design/plans/d29-landing-phone-screens.md) `Concluído`: the golds `land` and `landM` show `ob3` and the D28 `home1` in their phones.
+  - [D29](../../design/plans/pending_manual_validation/d29-landing-phone-screens.md) `Concluído`: the golds `land` and `landM` show `ob3` and the D28 `home1` in their phones.
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/site/plans/w3-landing-screens-after-onboarding.md. Implemente o plano aprovado.`
 
@@ -31,7 +31,7 @@ So `npm --prefix web run check` fails, and the live page would show an onboardin
 
 ## Decision: `ob3` replaces `o1`
 
-The left phone shows `ob3`, the summary of the profile. The comparison of the candidates (`ob0`, `ob2`, `ob3`, the transitional states) is owned by [D29](../../design/plans/d29-landing-phone-screens.md#decision-which-onboarding-screen-replaces-o1); in short, `ob3` is the only onboarding screen whose top 844 pt carry the ceiling, the macros, the meals and the eat-back the landing text talks about, it does not repeat the Chat look of `chatE`, and it has no CTA that could read as a way to get the app. `home1` and `chatE` stay in their places.
+The left phone shows `ob3`, the summary of the profile. The comparison of the candidates (`ob0`, `ob2`, `ob3`, the transitional states) is owned by [D29](../../design/plans/pending_manual_validation/d29-landing-phone-screens.md#decision-which-onboarding-screen-replaces-o1); in short, `ob3` is the only onboarding screen whose top 844 pt carry the ceiling, the macros, the meals and the eat-back the landing text talks about, it does not repeat the Chat look of `chatE`, and it has no CTA that could read as a way to get the app. `home1` and `chatE` stay in their places.
 
 ## Copy and layout check
 
@@ -65,7 +65,7 @@ Checked against the landing text (`web/public/index.html`, verbatim from the D11
 ## Out of scope
 
 - Landing copy or layout, including a sentence about the guided onboarding (a D11 copy follow-up in Figma first).
-- The Figma clones and the `land`/`landM` export: [D29](../../design/plans/d29-landing-phone-screens.md).
+- The Figma clones and the `land`/`landM` export: [D29](../../design/plans/pending_manual_validation/d29-landing-phone-screens.md).
 - Hosting and deploy ([W2](w2-landing-hosting.md)).
 - Any way to get the app, analytics or data collection: a [production gate](../../content-policy/production-gate.md) trigger.
 
