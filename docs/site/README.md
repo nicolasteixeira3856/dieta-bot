@@ -58,6 +58,6 @@ Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 
 ### Planos
 
-- Ativos: [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md).
+- Ativos: [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md); [W3 — Landing phone screens after the conversational onboarding](plans/w3-landing-screens-after-onboarding.md).
 - Concluídos: [`plans/completed/`](plans/completed/).
 - Fora de escopo: nenhum.
