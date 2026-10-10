@@ -1,0 +1,57 @@
+{
+  "id": "s42-ontem-pizza-de-manha",
+  "since": "v6",
+  "tags": [
+    "s42",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "local_time": "2026-10-15T08:30:00-03:00",
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2030,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "text": "ontem jantei 3 fatias de pizza de calabresa"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "log",
+        "slot": "4",
+        "day": "2026-10-14",
+        "record": "auto"
+      }
+    ],
+    "refusal": "none",
+    "reply_not": [
+      "registra apenas"
+    ]
+  }
+}

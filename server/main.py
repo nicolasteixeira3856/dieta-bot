@@ -12,7 +12,7 @@ import time
 import uuid
 from collections.abc import Callable
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Literal
 
 import httpx2
@@ -63,6 +63,7 @@ from meal_changes import NUTRIENTS, PendingAdditionIn, prepare_change, explain_c
 import actions
 import closure
 import copy_source
+import day_ref
 import estimate_total
 import meal_window
 import protein_boost
@@ -88,6 +89,8 @@ from shaping import (
     RECORD_NONE_POLICY,
     RECORD_AUTO,
     RECORD_AUTO_WORKOUT,
+    RECORD_ASK,
+    RECORD_NONE_OTHER_DAY,
     REFUSAL_OUT_OF_SCOPE,
     chat_output_texts,
     clarify_gate,
@@ -153,6 +156,25 @@ class SlotIn(BaseModel):
 
 
 Tone = Literal["seco", "duro"]
+# ADR-058 (S42): the target of a log eaten outside the meals.
+EXTRA = "extra"
+# The literal other-day sentence of the RECORD rule, dropped from the reply of a recorded past-day log.
+OTHER_DAY_NOTICE = "O Chat registra apenas refeições de hoje."
+_HHMM = r"^([01]\d|2[0-3]):[0-5]\d$"
+
+
+class SlotsByDayIn(BaseModel):
+    """S42: the slots of a profile group (ADR-021) and the ISO weekdays (1 = Monday) it covers."""
+
+    weekdays: list[int] = Field(..., min_length=1, max_length=7)
+    slots: list[SlotIn] = Field(..., max_length=12)
+
+    @field_validator("weekdays")
+    @classmethod
+    def _iso_weekdays(cls, value: list[int]) -> list[int]:
+        if any(isinstance(d, bool) or not isinstance(d, int) or not 1 <= d <= 7 for d in value) or len(set(value)) != len(value):
+            raise ValueError("weekdays are distinct ISO weekdays 1-7")
+        return value
 
 
 class ProfileIn(BaseModel):
@@ -165,6 +187,8 @@ class ProfileIn(BaseModel):
     # ADR-044 (S30): the user's tone. Absent or null (a legacy client) is seco; any other value is 422.
     tone: Tone = "seco"
     goal: AcceptedGoalIn | None = None
+    # ADR-058 (S42): the slots of every profile group, for a record in a past day. Absent = today's slots.
+    slots_by_day: list[SlotsByDayIn] | None = Field(default=None, max_length=7)
 
     @field_validator("tone", mode="before")
     @classmethod
@@ -257,6 +281,8 @@ class RecentMealIn(BaseModel):
     p: float
     c: float
     g: float
+    # ADR-058 (S42): an extra (slot_id "extra") carries the time it was eaten.
+    time: str | None = Field(default=None, pattern=_HHMM)
 
 
 class RecentDayIn(BaseModel):
@@ -354,13 +380,19 @@ class ChatIn(BaseModel):
     recipes: list[RecipeIn] = Field(default_factory=list, max_length=RECIPES_MAX)
     recipe_full: RecipeFullIn | None = None
     fit_kcal: int | None = Field(default=None, strict=True, ge=1, le=budgets.FIT_KCAL_MAX)
+    # ADR-058 (S42): a log may target an extra; a named past day inside the last 30 days is recorded there.
+    extras: bool = Field(default=False, strict=True)
+    other_day: bool = Field(default=False, strict=True)
+    # S42: the app's first day; a named day before it is answered like one older than 30 days.
+    first_day: date | None = None
 
     @model_validator(mode="before")
     @classmethod
     def _meal_change_input(cls, data: Any) -> Any:
         if isinstance(data, dict) and data.get("compact") is True:
             return {**data, "meal_changes": False, "pending_addition": None,
-                    "plan_budget": False, "fit_kcal": None, "skip_slots": False, "workout": False, "actions": False, "discovery": False}
+                    "plan_budget": False, "fit_kcal": None, "skip_slots": False, "workout": False, "actions": False, "discovery": False,
+                    "extras": False, "other_day": False}
         if isinstance(data, dict) and data.get("meal_changes") is True:
             day = data.get("day")
             states = day.get("slots", []) if isinstance(day, dict) else []
@@ -382,6 +414,9 @@ class ChatIn(BaseModel):
             raise ValueError("skip_slots requires meal_changes")
         if self.actions and not self.meal_changes:
             raise ValueError("actions requires meal_changes")
+        if (self.extras or self.other_day) and not self.actions:
+            # S42: the extra target and the past day are fields of an action; only the actions view carries them.
+            raise ValueError("extras and other_day require actions")
         if self.meal_changes:
             slots = [s.id for s in self.profile.slots]
             day_ids = [s.id for s in self.day.slots]
@@ -431,6 +466,31 @@ class ChatIn(BaseModel):
     def records(self) -> bool:
         """v4 client: gets record and skip_slot (S14)."""
         return self.clarify_rounds is not None and self.auto_record
+
+    @property
+    def today(self) -> date | None:
+        """DAY.date, else the date of local_time."""
+        for raw, parse in ((self.day.date, date.fromisoformat), (self.local_time, lambda v: datetime.fromisoformat(v).date())):
+            try:
+                return parse(raw) if raw else None
+            except ValueError:
+                continue
+        return None
+
+    @property
+    def day_ref(self) -> "day_ref.DayRef | None":
+        """S42: the day the current message names, resolved in code; only with the other_day capability."""
+        today = self.today
+        if not self.other_day or today is None:
+            return None
+        return day_ref.resolve(self.text, today, self.first_day)
+
+    def slots_on(self, day: date) -> list[SlotIn]:
+        """The profile slots of that day's group (slots_by_day), else today's slots."""
+        for group in self.profile.slots_by_day or []:
+            if day.isoweekday() in group.weekdays:
+                return list(group.slots)
+        return list(self.profile.slots)
 
     @property
     def supports_temp(self) -> bool:
@@ -782,6 +842,7 @@ def create_app(
                     "meal_window": None,
                     "tone": body.profile.tone,
                     "goal": body.profile.goal is not None,
+                    "day_ref": None,
                     "format_stripped": None,
                     "plan_difference": None,
                     "chosen": None,
@@ -1000,7 +1061,7 @@ def chat_reply(
             record["workout"] = result["workout"]
         if body.actions and "actions" not in result:
             # A refusal or a fallback is one question action.
-            result["actions"] = [_action_out({"id": "a1", "type": "question"}, result, {})]
+            result["actions"] = [_action_out({"id": "a1", "type": "question"}, result, {}, body)]
         record["question_slot"] = result.get("question_slot")
         return result
 
@@ -1039,6 +1100,8 @@ def chat_reply(
                 timeout=timeout,
                 safety_identifier=safety_identifier,
                 recipe_ids=[r.id for r in body.recipes],
+                extras=body.extras,
+                other_slot_ids=_other_day_slot_ids(body),
             )
 
         if body.meal_changes:
@@ -1198,10 +1261,30 @@ def chat_reply(
         shaped: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any], str, str | None]] = []
         befores: list[ChatIn] = []
         differences = []
+        ref = body.day_ref
+        record["day_ref"] = ref.kind if ref is not None else None
+        too_old = False
         for k, action in enumerate(listed):
             befores.append(day_body)
+            if action["type"] == "plan" and action.get("slot") == EXTRA:
+                action["slot"] = None  # ADR-058: a plan is never an extra.
             view = actions.view(payload, action, reply=reply, first=k == 0)
-            result, clarify, record_log = shape_chat_turn(day_body, view, photo_only=photo_only)
+            extra = body.extras and action["type"] == "log" and action.get("slot") == EXTRA
+            if extra and isinstance(view.get("estimate"), dict):
+                view["estimate"] = {**view["estimate"], "suggested_slot": None}
+            other = body.other_day and action["type"] == "log" and view.get("meal_day") == "other"
+            too_old = too_old or (other and ref is not None and ref.kind == "too_old")
+            if other and ref is not None and ref.kind == "bound":
+                # ADR-058 decision 5: shaped like a log of today, against that day's slots, empty (the server
+                # never knows a past day's records); the view keeps meal_day other for today's DAY and closings.
+                result, clarify, record_log = shape_chat_turn(_past_body(body, ref.day), {**view, "meal_day": "today"},
+                                                              photo_only=photo_only)
+                result["day"] = ref.day.isoformat()
+            else:
+                result, clarify, record_log = shape_chat_turn(day_body, view, photo_only=photo_only)
+            if extra:
+                result, record_log = _extra_record(result, view, record_log)
+                view["extra"] = True
             if len(listed) > 1 and clarify == CLARIFY_ASKED:
                 # The held action keeps its question; the shared reply already asks it next to the others.
                 result["reply"] = reply
@@ -1226,6 +1309,13 @@ def chat_reply(
             shaped.append((action, view, result, clarify, record_log))
             if result.get("intent") == "log" and isinstance(result.get("estimate"), dict):
                 day_body = _after_log(day_body, view, result["estimate"], draft=False)
+        if too_old:
+            # ADR-058 decision 5: a named day older than 30 days (or before the first day) writes nothing.
+            return versioned({**fail_chat(), "reply": day_ref.TOO_OLD_LINE}, RECORD_NONE_OTHER_DAY)
+        if any(r.get("day") for _, _, r, *_ in shaped) and isinstance(reply, str):
+            # ADR-058: a log of a named past day is recorded; the old only-today notice no longer applies.
+            lines = (line.replace(OTHER_DAY_NOTICE, "").strip() for line in reply.split("\n"))
+            reply = "\n".join(line for line in lines if line) or reply
         reply = close_actions(shaped, befores, reply)
         record["decision_line"] = None
         for k, (action, view, result, *_ ) in enumerate(shaped):
@@ -1254,7 +1344,7 @@ def chat_reply(
                 legacy["record"] = RECORD_AUTO
                 record_log = RECORD_AUTO_WORKOUT
         if body.actions:
-            legacy["actions"] = [_action_out(a, r, record_fields(v)) for a, v, r, *_ in shaped]
+            legacy["actions"] = [_action_out(a, r, record_fields(v), body) for a, v, r, *_ in shaped]
         record["actions"] = [{"type": a["type"], "record": r.get("record"), "clarify": c} for a, _, r, c, _ in shaped]
         _format(legacy, record)
         return versioned(legacy, record_log)
@@ -1289,6 +1379,8 @@ def _after_log(body: ChatIn, view: dict[str, Any], estimate: Any, *, draft: bool
     if view.get("intent") != "log" or view.get("meal_day") == "other" or not isinstance(estimate, dict):
         return body
     slot = estimate.get("suggested_slot")
+    if view.get("extra"):
+        return _after_extra(body, estimate)
     if slot not in {s.id for s in body.profile.slots}:
         return body
     values = {k: float(estimate[k]) if isinstance(estimate.get(k), (int, float)) and not isinstance(
@@ -1319,6 +1411,54 @@ def _after_log(body: ChatIn, view: dict[str, Any], estimate: Any, *, draft: bool
     return copy
 
 
+def _after_extra(body: ChatIn, estimate: dict[str, Any]) -> ChatIn:
+    """ADR-058: an extra eaten earlier in the message counts in today's totals and remaining, in no slot."""
+    values = {k: float(estimate[k]) if isinstance(estimate.get(k), (int, float)) and not isinstance(
+        estimate.get(k), bool) else 0.0 for k in NUTRIENTS}
+    copy = body.model_copy(deep=True)
+    day = copy.day
+    day.eaten_kcal += values["kcal"]
+    day.eaten_p += values["p"]
+    day.eaten_c += values["c"]
+    day.eaten_g += values["g"]
+    if day.remaining_kcal is not None:
+        day.remaining_kcal -= meal_window.rounded(values["kcal"])
+    return copy
+
+
+def _past_body(body: ChatIn, day: date) -> ChatIn:
+    """S42: the request as a log of that past day sees it: that day's slots, all empty, no budget."""
+    copy = body.model_copy(deep=True)
+    copy.profile.slots = body.slots_on(day)
+    copy.day = DayIn(date=day.isoformat(), slots=[DaySlotIn(id=s.id, status="empty") for s in copy.profile.slots])
+    copy.pending_addition = None
+    return copy
+
+
+def _other_day_slot_ids(body: ChatIn) -> list[str]:
+    """S42: the slot ids of the named past day that today's profile lacks (schema enum of suggested_slot)."""
+    ref = body.day_ref
+    if ref is None or ref.kind != "bound":
+        return []
+    today = {s.id for s in body.profile.slots}
+    return [s.id for s in body.slots_on(ref.day) if s.id not in today]
+
+
+_EXTRA_TIME = re.compile(_HHMM)
+
+
+def _extra_record(result: dict[str, Any], view: dict[str, Any], record_log: str | None) -> tuple[dict[str, Any], str | None]:
+    """ADR-058 decision 1: a released extra (estimate, no question) is recorded like a clear log, in no slot."""
+    estimate = result.get("estimate")
+    if not isinstance(estimate, dict) or result.get("question") or result.get("record") is None:
+        return result, record_log
+    if view.get("meal_day") == "other" and result.get("day") is None:
+        return result, record_log
+    clear = view.get("record_intent") == "clear"
+    result["record"] = RECORD_AUTO if clear else RECORD_ASK
+    return result, "auto_extra" if clear else "ask_extra"
+
+
 def _without_meals(body: ChatIn, slot_ids: list[str]) -> ChatIn:
     """A copy where these empty slots count as skipped: no closing line and no reservation for them."""
     if not slot_ids:
@@ -1330,15 +1470,20 @@ def _without_meals(body: ChatIn, slot_ids: list[str]) -> ChatIn:
     return copy
 
 
-def _action_out(action: dict[str, Any], result: dict[str, Any], fields: dict[str, Any]) -> dict[str, Any]:
+def _action_out(
+    action: dict[str, Any], result: dict[str, Any], fields: dict[str, Any], body: "ChatIn | None" = None,
+) -> dict[str, Any]:
     """One action of the response (ADR-050): the shaped estimate, question and record mark of that action."""
     kind = action.get("type", "question")
     estimate = result.get("estimate") if kind in ("log", "plan") else None
+    extra = bool(body and body.extras and kind == "log" and action.get("slot") == EXTRA and isinstance(estimate, dict))
     if kind == "skip":
         slot = action.get("slot")
+    elif extra:
+        slot = EXTRA
     else:
         slot = estimate.get("suggested_slot") if isinstance(estimate, dict) else result.get("question_slot")
-    return {
+    out = {
         "id": action.get("id", "a1"),
         "type": kind,
         "slot": slot,
@@ -1354,6 +1499,14 @@ def _action_out(action: dict[str, Any], result: dict[str, Any], fields: dict[str
         "options": result.get("options") if kind == "plan" else None,
         "plan_budget": result.get("plan_budget") if kind == "plan" else None,
     }
+    if body is not None and body.extras:
+        # ADR-058: the time the user stated for an extra (HH:mm), else null (the app uses now).
+        time = action.get("time")
+        out["time"] = time if extra and isinstance(time, str) and _EXTRA_TIME.fullmatch(time) else None
+    if body is not None and body.other_day:
+        # ADR-058: the resolved past day of a log eaten on another day, else null.
+        out["day"] = result.get("day") if kind == "log" else None
+    return out
 
 
 def compact_reply(
@@ -1821,7 +1974,8 @@ def _close_day(body: ChatIn, payload: dict[str, Any], result: dict[str, Any]) ->
     )
     result["reply"] = meal_window.close_reply(
         reply, slots, _expected(body, slots), body.day.remaining_kcal, _remaining_macros(body)["p"],
-        _target(body, payload), float(estimate.get("kcal") or 0), float(estimate.get("p") or 0),
+        None if payload.get("extra") else _target(body, payload), float(estimate.get("kcal") or 0),
+        float(estimate.get("p") or 0),
         now=_now(body), usual=_usual_foods(body),
         complete=meal_window.windows_line(slots, _expected(body, slots), body.day.remaining_kcal, 0, _now(body)) is not None,
     )
@@ -2007,6 +2161,16 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
         # ADR-051: the first opening with an empty memory; the DISCOVERY rule asks the routines in one message.
         lines.append("DISCOVERY: first_open")
 
+    if body.extras:
+        # ADR-058 (S42): the EXTRAS rule applies only to a client that records extras.
+        lines.append("EXTRAS: on")
+
+    ref = body.day_ref
+    if ref is not None:
+        # ADR-058: the day the message names, resolved in code; the model never guesses it.
+        slots = ", ".join(f"{s.id} ({s.name} at {s.time})" for s in body.slots_on(ref.day)) if ref.day else None
+        lines.append(ref.line(slots if ref.kind == "bound" else None))
+
     # Client text cannot forge a section marker (CP2).
     lines = [neutralize_delimiters(line) for line in lines]
     lines.append("CURRENT_USER_MESSAGE:")
@@ -2106,6 +2270,13 @@ _WEEKDAYS = ("segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo
 
 
 def _recent_line(meal: RecentMealIn) -> str:
+    if meal.slot_id == EXTRA:
+        # ADR-058 (S42): an extra is its own line, with the time it was eaten.
+        return (
+            f"{meal.date.isoformat()} {_WEEKDAYS[meal.date.weekday()]} Extra {meal.time or '--:--'} · "
+            f"{json.dumps(meal.text, ensure_ascii=False)} · "
+            f"{_num(meal.kcal)}kcal {_num(meal.p)}P {_num(meal.c)}C {_num(meal.g)}G"
+        )
     slot = f"{meal.slot_id} {meal.slot_name or ''}".strip() if meal.slot_id is not None else "Outros"
     return (
         f"{meal.date.isoformat()} {_WEEKDAYS[meal.date.weekday()]} {slot}: "

@@ -234,10 +234,15 @@ def profile_format(slot_ids: list[str]) -> dict[str, Any]:
 
 def chat_format(
     slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_changes: bool = False,
-    recipe_ids: list[str] | None = None,
+    recipe_ids: list[str] | None = None, extras: bool = False, other_slot_ids: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Structured output for /v1/chat. Slot and fact ids are limited to the ones in the request."""
+    """Structured output for /v1/chat. Slot and fact ids are limited to the ones in the request.
+
+    S42 (ADR-058): with extras an action may target `extra` and carries `time`; a named past day adds its slot ids
+    to the estimate's suggested_slot (other_slot_ids).
+    """
     slots = [*dict.fromkeys(slot_ids), None]
+    target_slots = [*dict.fromkeys([*slot_ids, *(other_slot_ids or [])]), None]
     facts = list(dict.fromkeys(fact_ids or []))
     # A profile without slots can skip nothing: the only valid list is empty.
     skip_item = {"type": "string", "enum": slots[:-1]} if len(slots) > 1 else {"type": "null"}
@@ -252,7 +257,7 @@ def chat_format(
             "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
             "question": {"type": ["string", "null"]},
             "items": {"type": "array", "items": item},
-            "suggested_slot": {"type": ["string", "null"], "enum": slots},
+            "suggested_slot": {"type": ["string", "null"], "enum": target_slots},
             "meal_text": {"type": "string"},
         },
         "required": [
@@ -310,12 +315,14 @@ def chat_format(
         },
     }
     if meal_changes:
-        return _actions_format(result["schema"]["properties"], estimate, slots, list(dict.fromkeys(recipe_ids or [])))
+        return _actions_format(result["schema"]["properties"], estimate, slots, list(dict.fromkeys(recipe_ids or [])),
+                               extras=extras)
     return result
 
 
 def _actions_format(
-    legacy: dict[str, Any], estimate: dict[str, Any], slots: list[Any], recipe_ids: list[str],
+    legacy: dict[str, Any], estimate: dict[str, Any], slots: list[Any], recipe_ids: list[str], *,
+    extras: bool = False,
 ) -> dict[str, Any]:
     """ADR-050 (S36): the meal-change branch answers with an ordered list of typed actions."""
     addition_keys = ("meal_text", "kcal", "p", "c", "g", "items")
@@ -361,7 +368,7 @@ def _actions_format(
         "properties": {
             "id": {"type": "string"},
             "type": {"type": "string", "enum": list(ACTION_TYPES)},
-            "slot": {"type": ["string", "null"], "enum": slots},
+            "slot": {"type": ["string", "null"], "enum": [*slots[:-1], "extra", None] if extras else slots},
             "estimate": legacy["estimate"],
             "record_intent": legacy["record_intent"],
             "meal_day": legacy["meal_day"],
@@ -378,6 +385,10 @@ def _actions_format(
                      "recipe_id", "recipe", "options", "plan_budget"],
         "additionalProperties": False,
     }
+    if extras:
+        # S42: the time the user states for an extra, HH:mm, else null.
+        action["properties"]["time"] = {"type": ["string", "null"]}
+        action["required"].append("time")
     return {
         "type": "json_schema",
         "name": "chat_turn_actions",
@@ -537,6 +548,8 @@ class LlmClient:
         timeout: float = TIMEOUT_SECONDS,
         safety_identifier: str | None = None,
         recipe_ids: list[str] | None = None,
+        extras: bool = False,
+        other_slot_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         return self._complete(
             "chat",
@@ -544,7 +557,8 @@ class LlmClient:
             user_text,
             image_b64,
             trace,
-            chat_format(slot_ids, fact_ids, meal_changes=meal_changes, recipe_ids=recipe_ids),
+            chat_format(slot_ids, fact_ids, meal_changes=meal_changes, recipe_ids=recipe_ids, extras=extras,
+                        other_slot_ids=other_slot_ids),
             timeout,
             safety_identifier,
         )

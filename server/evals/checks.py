@@ -760,7 +760,7 @@ ACTION_KEYS = (
     "type", "estimate", "meal_progress", "confidence", "suggested_slot", "kcal_range", "meal_text_has",
     "meal_text_not", "question", "question_not", "top_question", "top_question_not", "record", "skip_slot",
     "meal_change", "meal_change_op", "estimate_values", "item_portions", "items_beyond", "plan_budget",
-    "estimate_min", "workout", "slot", "options", "recipe_id", "recipe",
+    "estimate_min", "workout", "slot", "options", "recipe_id", "recipe", "day", "time",
 )
 _ACTION_INTENT = {"log": "log", "plan": "plan", "skip": "skip"}
 
@@ -792,9 +792,11 @@ def _action_match(want: dict[str, Any], action: dict[str, Any], output: dict[str
     """None when the action meets every expectation, else the first failure."""
     if "type" in want and action.get("type") != want["type"]:
         return f"type {action.get('type')}"
-    if "slot" in want and action.get("slot") != want["slot"]:
-        return f"slot {action.get('slot')}"
-    rest = {k: v for k, v in want.items() if k not in ("type", "slot")}
+    # S42: the extra target, its time and the resolved past day are compared as they are.
+    for key in ("slot", "day", "time"):
+        if key in want and action.get(key) != want[key]:
+            return f"{key} {action.get(key)}"
+    rest = {k: v for k, v in want.items() if k not in ("type", "slot", "day", "time")}
     for name, check in evaluate(rest, action_view(action, output)).items():
         if check["status"] == FAIL:
             return f"{name}: {check['detail']}"

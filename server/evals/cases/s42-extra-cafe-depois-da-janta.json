@@ -1,0 +1,74 @@
+{
+  "id": "s42-extra-cafe-depois-da-janta",
+  "since": "v6",
+  "tags": [
+    "s42",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "local_time": "2026-10-15T22:45:00-03:00",
+    "day": {
+      "date": "2026-10-15",
+      "eaten_kcal": 1935,
+      "eaten_p": 160,
+      "eaten_c": 188,
+      "eaten_g": 53,
+      "workout_kcal": null,
+      "remaining_kcal": 95,
+      "slots": [
+        {
+          "id": "1",
+          "status": "eaten",
+          "text": "3 ovos mexidos, 1 pão francês, café preto",
+          "kcal": 365,
+          "p": 25,
+          "c": 30,
+          "g": 16
+        },
+        {
+          "id": "2",
+          "status": "eaten",
+          "text": "prato por quilo: arroz, feijão, frango grelhado e salada",
+          "kcal": 660,
+          "p": 45,
+          "c": 80,
+          "g": 18
+        },
+        {
+          "id": "3",
+          "status": "eaten",
+          "text": "iogurte natural 170 g, 30 g de whey e 1 banana",
+          "kcal": 350,
+          "p": 38,
+          "c": 38,
+          "g": 5
+        },
+        {
+          "id": "4",
+          "status": "eaten",
+          "text": "200 g de frango e 200 g de batata na air fryer",
+          "kcal": 560,
+          "p": 52,
+          "c": 40,
+          "g": 14
+        }
+      ]
+    },
+    "text": "tomei um café com leite às 22:30, depois da janta"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "log",
+        "slot": "extra",
+        "time": "22:30",
+        "record": "auto"
+      }
+    ],
+    "refusal": "none"
+  }
+}

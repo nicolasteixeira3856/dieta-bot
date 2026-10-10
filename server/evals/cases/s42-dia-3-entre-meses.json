@@ -1,0 +1,53 @@
+{
+  "id": "s42-dia-3-entre-meses",
+  "since": "v6",
+  "tags": [
+    "s42",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "local_time": "2026-11-02T12:00:00-03:00",
+    "recent": [],
+    "recent_days": [],
+    "day": {
+      "date": "2026-11-02",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2030,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "text": "dia 3 eu jantei um hambúrguer duplo com batata e esqueci de registrar"
+  },
+  "expect": {
+    "actions": [
+      {
+        "record": "none"
+      }
+    ],
+    "refusal": "none"
+  }
+}

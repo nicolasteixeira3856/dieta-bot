@@ -1,6 +1,6 @@
 # ADR-021 — Refeições por dia da semana
 
-- Estado: Aceito (ST4 concluído; A24 aprovado explicitamente pelo dono em 29/09/2026)
+- Estado: Aceito (ST4 concluído; A24 aprovado explicitamente pelo dono em 29/09/2026); parcialmente substituído pelo [ADR-058](ADR-058-extras-and-history.md) (regra 7: um registro feito como extra tem tipo próprio e não cai em "Outros")
 - Data: 2026-09-29
 - Contexto: `produto`
 - Substitui: parcialmente o [ADR-012](ADR-012-chat-home-perfil.md), regra 4 ("N refeições nomeadas com horário", uma lista para a semana toda), e a regra 3 da [perfil-onboarding](../specifications/perfil-onboarding.md).

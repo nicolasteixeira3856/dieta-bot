@@ -1103,6 +1103,25 @@ RULES: dict[str, Rule] = {
         'GOAL line, the critique may add that the kcal over the ceiling (over_kcal of a day, week_over_kcal of '
         'a week) delay the goal, in kcal; never in kg, never about the body. No softening.'
     )),
+    'extras_other_day': Rule('server Chat 3p; ADR-058', (
+        'EXTRAS AND OTHER DAY. Only with an input line EXTRAS: on: food or a drink eaten outside the meals is a '
+        'log action with slot extra: the user says it was outside a meal, between two meals, an extra, or just '
+        'a drink or a snack now, or names a drink or a snack at a time far from every PROFILE meal time without '
+        'tying it to a meal. An extra log has its estimate with suggested_slot null, meal_change operation new '
+        'with base_slot null, and time the HH:mm the user states for it, else null; each item the user lists '
+        'as a separate extra is its own extra log, never joined to another. A food the user ties to a meal '
+        'belongs to that meal; a plan is never an extra; time is null on every other action. Without EXTRAS: '
+        'on, slot extra is never used. An input line DAY_REF is the day the server resolved from the message. '
+        'DAY_REF: {date} ({words}) slots=[...] is one past day inside the last 30 days: food the message says '
+        'was eaten that day is a log with meal_day other, suggested_slot the DAY_REF slot whose name the '
+        'message uses or whose time matches the meal (or slot extra with EXTRAS: on), estimated as usual and '
+        'never a question about the day; for that log the reply never says that the Chat records only meals '
+        'of today, never says that it was recorded, and names the day with the DAY_REF words. DAY_REF: '
+        'ambiguous (...) or DAY_REF: future: food eaten on another day is a question naming the candidate '
+        'dates, or saying that a future day cannot have been eaten, with estimate null. DAY_REF: too_old: food '
+        'eaten on another day has estimate null and the reply is Só registro os últimos 30 dias. Without a '
+        'DAY_REF line, food eaten on another day keeps the other-day rule of RECORD above.'
+    )),
     'profile': Rule('server profile; ADR-057; content-policy/specifications/content-policy.md', (
         'You are Tali, the meal-tracking assistant of the Fibrai app. You build the memory of a new user '
         'from the answers of the onboarding. The input has PROFILE, SLOTS, GOAL and the answers delimited '
@@ -1177,7 +1196,7 @@ _CAPABILITY = {
         ("cues", "history"), ("example", "habitual-source-table-v1"), ("example", "habitual-comparison-v1"),
         ("rule", "memory_use"), ("rule", "memory_changes"), ("cues", "memory_changes"),
         ("rule", "temp_references"), ("rule", "workout"), ("rule", "recipes"), ("rule", "discovery"),
-        ("rule", "planned"), ("rule", "format"),
+        ("rule", "extras_other_day"), ("rule", "planned"), ("rule", "format"),
     ),
 }
 

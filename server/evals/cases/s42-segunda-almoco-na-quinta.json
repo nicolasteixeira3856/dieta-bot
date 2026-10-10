@@ -1,0 +1,26 @@
+{
+  "id": "s42-segunda-almoco-na-quinta",
+  "since": "v6",
+  "tags": [
+    "s42",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "na segunda almocei feijoada: 1 concha de feijoada e 4 colheres de arroz"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "log",
+        "slot": "2",
+        "day": "2026-10-12",
+        "record": "auto"
+      }
+    ],
+    "refusal": "none"
+  }
+}
