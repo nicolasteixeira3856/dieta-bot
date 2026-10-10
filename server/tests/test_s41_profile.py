@@ -211,8 +211,11 @@ def _per_input_moderation(flag_marker: str):
     def respond(request: httpx2.Request) -> httpx2.Response:
         inputs = json.loads(request.content)["input"]
         results = []
+        if any(not isinstance(part, str) for part in inputs):
+            # Typed parts are one multimodal input: the provider answers with a single result.
+            inputs = [" ".join(p.get("text", "") for p in inputs)]
         for part in inputs:
-            flagged = flag_marker in part.get("text", "")
+            flagged = flag_marker in part
             results.append(_moderation({"illicit": True} if flagged else None)["results"][0])
         return httpx2.Response(200, json={"id": "modr", "model": "omni-moderation-latest", "results": results})
 
