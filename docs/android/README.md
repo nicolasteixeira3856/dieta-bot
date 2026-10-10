@@ -115,7 +115,7 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 ### Planos e validação
 
-- [A73 — `chatT` and `chatGX` gated again on the D30 golds](plans/a73-chat-gold-gates.md): awaiting approval, after [D30](../design/plans/pending_manual_validation/d30-chat-extra-row-and-balance-line.md).
+- [A73 — `chatT` and `chatGX` gated again on the D30 golds](plans/a73-chat-gold-gates.md): awaiting approval, after D30 ([design plans](../design/plans/README.md)).
 - [A71 — Conversational onboarding in the app](plans/pending_manual_validation/a71-conversational-onboarding.md): delivered, awaiting the owner's device validation ([ADR-057](../produto/adrs/ADR-057-conversational-onboarding.md)).
 - [A72 — Extras, the 30-day strip and a record in a past day](plans/pending_manual_validation/a72-extras-and-history.md): delivered, awaiting the owner's device validation ([ADR-058](../produto/adrs/ADR-058-extras-and-history.md)).
 - [A70 — Decision line, fit and day projection per option in the plan bubble](plans/pending_manual_validation/a70-option-fit-and-projection.md): delivered, awaiting the owner's device smoke on a dev build.

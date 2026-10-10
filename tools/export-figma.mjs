@@ -55,7 +55,7 @@ export const DARK_FRAMES = {
   chatL: "63:2097",
   chatQ: "63:2118",
   chatE: "63:2136",
-  chatT: "63:2176",
+  chatT: "221:2506", // Release 2 (D30: Extra row)
   chatP: "63:2201",
   chatX: "63:2158",
   // Chat records, photo and memory (D6)
@@ -130,7 +130,7 @@ export const LIGHT_FRAMES = {
   chatL: "62:1796",
   chatQ: "62:1842",
   chatE: "62:1930",
-  chatT: "63:1911",
+  chatT: "221:2329", // Release 2 (D30: Extra row)
   chatP: "63:2023",
   chatX: "62:1998",
   // Chat records, photo and memory (D6)
