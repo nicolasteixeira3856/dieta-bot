@@ -1,0 +1,31 @@
+{
+  "id": "s42-ambiguo-dia-25-extra",
+  "since": "v6",
+  "tags": [
+    "s42-ambiguo",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "dia 25 tomei uma lata de energético fora das refeições"
+  },
+  "expect": {
+    "actions": [
+      {
+        "record": "none"
+      }
+    ],
+    "reply_not": [
+      "2026-",
+      "-10-",
+      "-09-"
+    ],
+    "refusal": "none",
+    "reply_any": [
+      "25 de setembro"
+    ]
+  }
+}
