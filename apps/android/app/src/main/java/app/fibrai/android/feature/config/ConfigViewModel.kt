@@ -11,9 +11,7 @@ import app.fibrai.android.domain.CreditPolicy
 import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.domain.SlotSuggestions
 import app.fibrai.android.domain.workoutCredit
-import app.fibrai.android.feature.onboarding.SlotScheduleDraft
 import app.fibrai.android.domain.SlotModes
-import app.fibrai.android.feature.onboarding.SlotDraft
 import app.fibrai.android.feature.workout.WorkoutEditorState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -48,6 +46,7 @@ class ConfigViewModel @Inject constructor(
         val resetConfirm: Boolean = false,
         val resetRunning: Boolean = false,
         val resetDone: Boolean = false,
+        val closurePicking: Boolean = false,
     )
 
     init {
@@ -62,6 +61,7 @@ class ConfigViewModel @Inject constructor(
                         resetConfirm = l.resetConfirm,
                         resetRunning = l.resetRunning,
                         resetDone = l.resetDone,
+                        closurePicking = l.closurePicking,
                     )
             }
         }
@@ -121,6 +121,27 @@ class ConfigViewModel @Inject constructor(
     // Workout
     fun setWorkout(v: String) = edit { it.copy(workoutField = WorkoutEditorState.clean(v)) }
 
+    /** A71 (ADR-057 decision 10): one row turns the meal reminders and the closure notifications on or off. */
+    fun toggleNotifications() {
+        val enabled = !day.notificationsEnabled
+        viewModelScope.launch { repository.saveNotifications(enabled) }
+        telemetry.event(TelemetryEvents.NOTIFICATIONS_SET, mapOf("enabled" to enabled, "from" to "config"))
+    }
+
+    fun openClosureTime() = local.update { Local(closurePicking = true) }
+
+    fun cancelClosureTime() = local.update { it.copy(closurePicking = false) }
+
+    /** The closure time from the wheel; the alarms follow through PushSync. */
+    fun setClosureTime(minutes: Int) {
+        local.update { it.copy(closurePicking = false) }
+        viewModelScope.launch { repository.saveClosureTime(SlotSuggestions.format(minutes.coerceIn(0, 1439))) }
+    }
+
+    // Goal (A71)
+    fun setGoalWeight(v: String) = edit { it.copy(goalWeightField = v.replace('.', ',').filter { c -> c.isDigit() || c == ',' }.take(5)) }
+    fun setGoalDate(v: String) = edit { it.copy(goalDateField = app.fibrai.android.domain.GoalRules.formatDateField(v)) }
+
     /** A60 part B (cfgT): the tone picked in the sheet; nothing is stored before Salvar. */
     fun setTone(tone: String) = edit { if (tone == "seco" || tone == "duro") it.copy(tone = tone) else it }
 
@@ -162,6 +183,11 @@ class ConfigViewModel @Inject constructor(
                 ConfigEditor.TONE -> if (draft.tone != day.tone) {
                     repository.saveTone(draft.tone)
                     telemetry.event(TelemetryEvents.TONE_SET, mapOf("tone" to draft.tone, "from" to "config"))
+                }
+                ConfigEditor.GOAL -> {
+                    val goal = draft.goal.takeIf { draft.goalWeightField.isNotBlank() }
+                    repository.saveGoal(goal?.weightKg, goal?.date)
+                    telemetry.event(TelemetryEvents.GOAL_SET, mapOf("goal" to if (goal == null) "none" else "set", "from" to "config"))
                 }
                 ConfigEditor.CEILING -> Unit
             }
@@ -244,6 +270,10 @@ object ConfigMapper {
             },
             macrosValue = "${day.proteinTargetG}g · ${day.carbTargetG}g · ${day.fatTargetG}g",
             toneValue = if (day.tone == "duro") "Duro" else "Seco",
+            notificationsValue = if (day.notificationsEnabled) "Ligadas" else "Desligadas",
+            closureValue = day.closureTime,
+            closureMinutes = app.fibrai.android.domain.Closures.time(day.closureTime).let { it.hour * 60 + it.minute },
+            goalValue = day.goalWeightKg?.let { app.fibrai.android.domain.OnboardingScript.goalText(app.fibrai.android.domain.OnboardingGoal(it, day.goalDate)) } ?: "Nenhuma",
             slotMode = day.slotMode,
             slotGroups = SlotModes.groups(day.slotMode).map { group ->
                 val rows = day.slots.filter { it.days == group.days }.sortedBy { it.minutesFromMidnight }
@@ -272,6 +302,11 @@ object ConfigMapper {
         slots = SlotScheduleDraft.stored(day.slotMode, day.slots).slots,
         workoutField = day.workoutKcal?.toString().orEmpty(),
         tone = day.tone,
+        goalWeightField = day.goalWeightKg?.let(app.fibrai.android.domain.OnboardingScript::decimal).orEmpty(),
+        goalDateField = day.goalDate?.let { java.time.LocalDate.parse(it).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) }.orEmpty(),
+        heightCm = day.heightCm,
+        weightKg = day.weightKg,
+        today = day.date,
     )
 
     fun policyOf(eat: String) = WorkoutEditorState.policyOf(eat)

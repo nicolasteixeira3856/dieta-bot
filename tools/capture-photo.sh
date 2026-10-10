@@ -26,7 +26,7 @@ ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
 FAIL=0
 
-bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+QUICK=1 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 # The prompt may already be on screen from the onboarding relaunch: restart so Home opens clean.

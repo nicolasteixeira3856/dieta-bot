@@ -56,5 +56,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun profile(api: FibraiApi): app.fibrai.android.feature.onboarding.ProfileService =
+        app.fibrai.android.feature.onboarding.ProfileService { api.profile(it) }
+
+    @Provides
+    @Singleton
     fun close(api: FibraiApi): app.fibrai.android.core.closure.CloseService = app.fibrai.android.core.closure.CloseService { api.close(it) }
 }

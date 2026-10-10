@@ -26,7 +26,7 @@ FAIL=0
 # No keyguard while driving the UI (it is turned on only for the lock-screen capture).
 "$ADB" shell locksettings set-disabled true >/dev/null
 "$ADB" shell input keyevent 224; sleep 1; "$ADB" shell wm dismiss-keyguard >/dev/null 2>&1; sleep 1
-bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+QUICK=1 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
 
 dump() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/ui.xml"; }
 center() {

@@ -20,9 +20,7 @@ import app.fibrai.android.feature.config.ConfigUiState
 import app.fibrai.android.feature.home.HomeFixtures
 import app.fibrai.android.feature.home.HomePanelMapper
 import app.fibrai.android.feature.home.HomePanelScreen
-import app.fibrai.android.feature.onboarding.CeilingScreen
-import app.fibrai.android.feature.onboarding.OnboardingUiState
-import app.fibrai.android.feature.onboarding.SlotDraft
+import app.fibrai.android.feature.config.SlotDraft
 import app.fibrai.android.feature.splash.SplashScreen
 import org.junit.Rule
 import org.junit.Test
@@ -41,22 +39,6 @@ class RoborazziSmokeTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
-
-    /** A31: O1 before the profile, mode and ceiling disabled (gold o1e). */
-    @Test @Config(qualifiers = "w390dp-h925dp-xhdpi") fun o1e_dark() = o1e(dark = true)
-    @Test @Config(qualifiers = "w390dp-h925dp-xhdpi") fun o1e_light() = o1e(dark = false)
-
-    private fun o1e(dark: Boolean) {
-        composeTestRule.setContent {
-            AeroTheme(darkTheme = dark) {
-                CeilingScreen(OnboardingUiState(sex = "male"), {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
-            }
-        }
-        composeTestRule.onRoot().captureRoboImage(
-            filePath = "src/test/snapshots/${if (dark) "dark" else "light"}/o1e.png",
-            roborazziOptions = RoborazziOptions(compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f)),
-        )
-    }
 
     @Test fun o3t_dark() = timeWheel(dark = true)
     @Test fun o3t_light() = timeWheel(dark = false)

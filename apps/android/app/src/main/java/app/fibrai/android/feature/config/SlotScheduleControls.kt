@@ -1,4 +1,4 @@
-package app.fibrai.android.feature.onboarding
+package app.fibrai.android.feature.config
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable

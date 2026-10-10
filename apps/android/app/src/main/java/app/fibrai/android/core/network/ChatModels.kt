@@ -209,6 +209,8 @@ data class ChatProfile(
     val slots: List<ChatSlot> = emptyList(),
     /** A60 part B (ADR-044): "seco" | "duro", on every normal and compact request. No default: always encoded. */
     val tone: String,
+    /** A71 (S41, ADR-057 decision 9): the accepted goal weight and date; null = none (not encoded). */
+    val goal: ChatGoal? = null,
 )
 
 @Serializable
@@ -346,6 +348,8 @@ data class CloseProfile(
     @SerialName("c_target") val cTarget: Int,
     @SerialName("g_target") val gTarget: Int,
     val slots: List<ChatSlot>,
+    /** A71 (S41): the accepted goal; null = none (not encoded). */
+    val goal: ChatGoal? = null,
 )
 
 /** The closure text (pt-BR, at most 3 lines); the server's neutral line on its own failures. */

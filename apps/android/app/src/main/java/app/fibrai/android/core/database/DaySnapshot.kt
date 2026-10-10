@@ -40,6 +40,13 @@ data class DaySnapshot(
     val fatTargetG: Int = 67,
     /** A60 part B: "seco" | "duro". */
     val tone: String = "seco",
+    /** A71 (ADR-057): the accepted goal; null = none. */
+    val goalWeightKg: Double? = null,
+    val goalDate: String? = null,
+    /** A71: the closure time `HH:mm` and the notification choice. */
+    val closureTime: String = "22:00",
+    val notificationsEnabled: Boolean = true,
+    val onboardingPhase: String = "chat",
     val workoutKcal: Int? = null,
     val removedWindows: List<String> = emptyList(),
     val askedWindows: List<String> = emptyList(),

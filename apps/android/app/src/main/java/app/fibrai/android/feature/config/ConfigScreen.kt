@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
@@ -58,15 +59,12 @@ import app.fibrai.android.core.designsystem.aero.AeroPage
 import app.fibrai.android.core.designsystem.aero.AeroPageBubbles
 import app.fibrai.android.core.designsystem.aero.AeroScrim
 import app.fibrai.android.core.designsystem.aero.AeroSheet
-import app.fibrai.android.feature.onboarding.ToneOptions
 import app.fibrai.android.core.designsystem.aero.AeroText
+import app.fibrai.android.core.designsystem.aero.AeroTimeWheelDialog
 import app.fibrai.android.core.designsystem.aero.AeroTextTokens
 import app.fibrai.android.core.designsystem.aero.aeroGlass
 import app.fibrai.android.core.designsystem.aero.cased
 import app.fibrai.android.domain.SlotModes
-import app.fibrai.android.feature.onboarding.AeroOnboardingBar
-import app.fibrai.android.feature.onboarding.OnboardingSlotsScreen
-import app.fibrai.android.feature.onboarding.OnboardingUiState
 import app.fibrai.android.feature.workout.WorkoutEditorState
 
 /*
@@ -88,10 +86,12 @@ private val Bubbles = listOf(
 @Composable
 fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable ColumnScope.() -> Unit = {}) {
     val scroll = rememberScrollState()
-    val overlay = ui.editor != null || ui.wipeConfirm
+    val overlay = ui.editor != null || ui.wipeConfirm || ui.closurePicking
     Box(Modifier.fillMaxSize().testTag("cfg")) {
         // wipe: the page behind a dialog or sheet is blurred (Figma layer blur 8) under overlay/scrim.
-        AeroPage(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier), scroll) {
+        // A71: the Avisos e meta block (24 dp gap + its height) sits under the gold's last block, on bg/page.
+        val trailing = remember { androidx.compose.runtime.mutableIntStateOf(0) }
+        AeroPage(Modifier.fillMaxSize().then(if (overlay) Modifier.blur(8.dp) else Modifier), scroll, trailingPx = { trailing.intValue }) {
             Column(
                 Modifier
                     .fillMaxSize()
@@ -152,6 +152,17 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
                         SettingRow("Resetar app", "", "cfg-reset", detail = "Apaga tudo e refaz o onboarding") { actions.onOpenReset() }
                     }
                 }
+                // A71 (ADR-057 decision 10): after Dados, so the cfg gold (Release 1) keeps its geometry; rows reuse Config/Row.
+                val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 24.dp.roundToPx() }
+                Block("Avisos e meta", modifier = Modifier.onSizeChanged { trailing.intValue = it.height + gapPx }) {
+                    Group {
+                        SettingRow("Notificações", ui.notificationsValue, "cfg-notifications", detail = "Lembretes das refeições e fechamentos") { actions.onToggleNotifications() }
+                        Divider()
+                        SettingRow("Fechamentos às", ui.closureValue, "cfg-closure-time") { actions.onOpenClosureTime() }
+                        Divider()
+                        SettingRow("Meta de peso", ui.goalValue, "cfg-goal") { actions.onOpen(ConfigEditor.GOAL) }
+                    }
+                }
                 extra()
             }
             AeroPageBubbles(Bubbles, scroll, Modifier.statusBarsPadding())
@@ -159,19 +170,27 @@ fun ConfigScreen(ui: ConfigUiState, actions: ConfigActions, extra: @Composable C
         if (ui.editor == ConfigEditor.SLOTS) {
             val d = ui.draft
             // The O3 editor with Header/Page and the final save; no new destination.
-            OnboardingSlotsScreen(
-                ui = OnboardingUiState(slots = d.slots, slotSchedule = d.slotSchedule),
+            MealScheduleEditor(
+                ui = MealScheduleState(slots = d.slots, slotSchedule = d.slotSchedule),
                 onCount = actions.onSlotCount, onName = actions.onSlotName, onTime = actions.onSlotTime,
                 onBack = actions.onPreviousSlots, onContinue = actions.onSave,
                 onMode = actions.onSlotMode, onCopy = actions.onCopySlots,
                 onConfirmMode = actions.onConfirmSlotMode, onCancelMode = actions.onCancelSlotMode,
-                bar = AeroOnboardingBar.Header { ConfigHeader(actions.onPreviousSlots) },
+                header = { ConfigHeader(actions.onPreviousSlots) },
                 cta = if (d.slotSchedule.last) "Salvar" else "Continuar",
                 ctaTag = "cfg-save",
                 tag = "cfg",
             )
         } else {
             ui.editor?.let { EditSheet(it, ui, actions) }
+        }
+        if (ui.closurePicking) {
+            AeroTimeWheelDialog(
+                title = "Fechamentos às",
+                minutes = ui.closureMinutes,
+                onDismiss = actions.onCancelClosureTime,
+                onConfirm = actions.onClosureTime,
+            )
         }
         if (ui.wipeConfirm) WipeDialog(actions.onConfirmWipe, actions.onCancelWipe)
         if (ui.resetConfirm) ResetDialog(actions.onConfirmReset, actions.onCancelReset)
@@ -191,10 +210,10 @@ private fun ConfigHeader(onBack: () -> Unit) {
 
 /** A block: Label/Section in text/muted (an optional Caption in text/dim on the right), then the group 12 dp below. */
 @Composable
-private fun Block(label: String, trailing: String? = null, content: @Composable ColumnScope.() -> Unit) {
+private fun Block(label: String, trailing: String? = null, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val c = Aero.colors
     val type = Aero.type
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // 16 dp for the label alone, 18 with the Caption (cfgS).
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             AeroText(AeroTextTokens.labelSection.cased(label), style = type.labelSection.copy(color = c.textMuted))
@@ -270,6 +289,7 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
         ConfigEditor.SLOTS -> "Horários das refeições" to "Mudar nome ou horário não apaga o que você já registrou hoje."
         ConfigEditor.WORKOUT -> "Treino de hoje" to null
         ConfigEditor.TONE -> "Tom da Tali" to null
+        ConfigEditor.GOAL -> "Meta de peso" to "Vazio tira a meta. A data é opcional."
     }
     AeroSheet(
         title = title,
@@ -299,8 +319,42 @@ private fun BoxScope.EditSheet(editor: ConfigEditor, ui: ConfigUiState, a: Confi
                 ConfigEditor.WORKOUT -> WorkoutEditor(ui.draft.workoutEditor, a.onWorkout)
                 // A60 part B (cfgT): the two options of O5; Salvar stores, the next turn uses it.
                 ConfigEditor.TONE -> ToneOptions(ui.draft.tone, a.onTone, "cfg-tone", onGlass = true)
+                ConfigEditor.GOAL -> GoalEditor(ui.draft, a)
             }
         }
+    }
+}
+
+/** A71: the goal weight (kg) and an optional date; outside the safety limits Salvar stays off and the note says so. */
+@Composable
+private fun GoalEditor(d: ConfigDraft, a: ConfigActions) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        CaptionedField("Peso", d.goalWeightField, a.onGoalWeight, "kg", "cfg-goal-weight", Modifier.weight(1f), decimal = true)
+        CaptionedField("Data", d.goalDateField, a.onGoalDate, "", "cfg-goal-date", Modifier.weight(1f), placeholder = "dd/mm/aaaa")
+    }
+    if (d.goalRefused) {
+        AeroText(
+            "Fora dos limites de segurança: IMC da meta abaixo de 18,5, data que já passou ou mais de 1 % do peso por semana.",
+            Modifier.testTag("cfg-goal-refused"),
+            style = Aero.type.caption.copy(color = Aero.colors.statusBad),
+        )
+    }
+}
+
+@Composable
+private fun CaptionedField(
+    caption: String,
+    value: String,
+    onChange: (String) -> Unit,
+    unit: String,
+    tag: String,
+    modifier: Modifier,
+    decimal: Boolean = false,
+    placeholder: String = "",
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        AeroText(caption, style = Aero.type.caption.copy(color = Aero.colors.textMuted))
+        AeroNumberField(value, onChange, unit, compact = true, decimal = decimal, placeholder = placeholder, onGlass = true, fieldModifier = Modifier.testTag(tag))
     }
 }
 

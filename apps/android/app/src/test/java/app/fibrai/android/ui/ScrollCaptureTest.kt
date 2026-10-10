@@ -22,10 +22,6 @@ import app.fibrai.android.feature.config.ConfigScreen
 import app.fibrai.android.feature.home.HomeFixtures
 import app.fibrai.android.feature.home.HomePanelMapper
 import app.fibrai.android.feature.home.HomePanelScreen
-import app.fibrai.android.feature.onboarding.CeilingScreen
-import app.fibrai.android.feature.onboarding.EatScreen
-import app.fibrai.android.feature.onboarding.MacrosScreen
-import app.fibrai.android.feature.onboarding.OnboardingSlotsScreen
 import com.google.common.truth.Truth.assertWithMessage
 import java.time.LocalDate
 import java.util.function.Consumer
@@ -54,13 +50,14 @@ class ScrollCaptureTest {
 
     @Test fun config() = check("cfg") { ConfigScreen(ConfigMapper.map(GoldTest.CFG_DAY, DAY), ConfigActions()) }
 
-    @Test fun onboardingCeiling() = check("o1") { CeilingScreen(GoldTest.GOLD_STATE, {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {}) }
-
-    @Test fun onboardingEat() = check("o2") { EatScreen(GoldTest.GOLD_STATE, {}, {}, {}, {}) }
-
-    @Test fun onboardingSlots() = check("o3") { OnboardingSlotsScreen(GoldTest.GOLD_STATE, {}, { _, _ -> }, { _, _ -> }, {}, {}) }
-
-    @Test fun onboardingMacros() = check("o4") { MacrosScreen(GoldTest.GOLD_STATE, {}, {}, {}, {}, {}) }
+    /** A71 (ob3): the onboarding summary is longer than the window. */
+    @Test fun onboardingSummary() = check("ob3") {
+        app.fibrai.android.feature.onboarding.OnboardingRoute(
+            app.fibrai.android.feature.onboarding.OnboardingFixtures.ob3,
+            app.fibrai.android.feature.onboarding.OnboardingActions(),
+            animate = false,
+        )
+    }
 
     @Composable
     private fun Chat(ui: app.fibrai.android.feature.chat.ChatUiState) =

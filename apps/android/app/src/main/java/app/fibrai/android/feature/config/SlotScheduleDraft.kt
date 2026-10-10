@@ -1,4 +1,4 @@
-package app.fibrai.android.feature.onboarding
+package app.fibrai.android.feature.config
 
 import app.fibrai.android.core.database.MealSlot
 import app.fibrai.android.domain.SlotModes
@@ -55,3 +55,10 @@ data class SlotScheduleDraft(
         )
     }
 }
+
+@androidx.compose.runtime.Immutable
+data class SlotDraft(
+    val id: Long = 0,
+    val name: String = "",
+    val minutes: Int,
+)

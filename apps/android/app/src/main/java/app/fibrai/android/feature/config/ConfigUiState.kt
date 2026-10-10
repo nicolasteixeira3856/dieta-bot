@@ -2,12 +2,10 @@ package app.fibrai.android.feature.config
 
 import androidx.compose.runtime.Immutable
 import app.fibrai.android.domain.SlotSuggestions
-import app.fibrai.android.feature.onboarding.SlotScheduleDraft
-import app.fibrai.android.feature.onboarding.SlotDraft
 import app.fibrai.android.feature.workout.WorkoutEditorState
 
 /** Edit sheet opened from a cfg row. Layers of the Config screen, not screens (ADR-012). */
-enum class ConfigEditor { CEILING, EAT_BACK, MACROS, SLOTS, WORKOUT, TONE }
+enum class ConfigEditor { CEILING, EAT_BACK, MACROS, SLOTS, WORKOUT, TONE, GOAL }
 
 @Immutable
 data class ConfigSlotRow(val id: Long, val name: String, val time: String)
@@ -30,7 +28,28 @@ data class ConfigDraft(
     val workoutField: String = "",
     /** A60 part B (cfgT): "seco" | "duro". */
     val tone: String = "seco",
+    /** A71: the goal sheet; an empty weight removes the goal. The body and today check the safety limits. */
+    val goalWeightField: String = "",
+    val goalDateField: String = "",
+    val heightCm: Int = 0,
+    val weightKg: Double = 0.0,
+    val today: String = "",
 ) {
+    /** A71: the goal of the sheet, null when it is empty or not a whole value. */
+    val goal: app.fibrai.android.domain.OnboardingGoal?
+        get() {
+            val kg = goalWeightField.replace(',', '.').toDoubleOrNull() ?: return null
+            val date = if (goalDateField.isBlank()) null else app.fibrai.android.domain.GoalRules.parseDate(goalDateField) ?: return null
+            return app.fibrai.android.domain.OnboardingGoal(kg, date)
+        }
+
+    /** The typed goal is outside the safety limits (or incomplete): Salvar stays off and the note shows. */
+    val goalRefused: Boolean
+        get() = goalWeightField.isNotBlank() && goal?.let { g ->
+            val today = runCatching { java.time.LocalDate.parse(this.today) }.getOrNull() ?: return@let false
+            app.fibrai.android.domain.GoalRules.accepted(g, heightCm, weightKg, today)
+        } != true
+
     /** Credit uses the stored eat-back (the draft copies it on open). */
     val workoutEditor: WorkoutEditorState
         get() = WorkoutEditorState(workoutField, WorkoutEditorState.policyOf(eat), pct.toIntOrNull() ?: 50)
@@ -48,6 +67,7 @@ data class ConfigDraft(
         ConfigEditor.SLOTS -> slotSchedule.pendingMode == null && slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
         ConfigEditor.WORKOUT -> true
         ConfigEditor.TONE -> tone == "seco" || tone == "duro"
+        ConfigEditor.GOAL -> !goalRefused
     }
 }
 
@@ -60,6 +80,13 @@ data class ConfigUiState(
     val macrosValue: String = "",
     /** A60 part B: "Seco" or "Duro", the Tom da Tali row. */
     val toneValue: String = "",
+    /** A71 (ADR-057 decision 10): "Ligadas" | "Desligadas", the closure time and the goal ("Nenhuma"). */
+    val notificationsValue: String = "",
+    val closureValue: String = "22:00",
+    val closureMinutes: Int = 22 * 60,
+    val goalValue: String = "",
+    /** The closure time wheel is up. */
+    val closurePicking: Boolean = false,
     val slots: List<ConfigSlotRow> = emptyList(),
     val slotMode: String = "same",
     val slotGroups: List<ConfigSlotRow> = emptyList(),
@@ -118,4 +145,11 @@ class ConfigActions(
     val onOpenRecipes: () -> Unit = {},
     /** A69 (cfg, D24): Da Tali → O que a Tali sabe. */
     val onOpenMemory: () -> Unit = {},
+    /** A71: Avisos e meta. */
+    val onToggleNotifications: () -> Unit = {},
+    val onOpenClosureTime: () -> Unit = {},
+    val onClosureTime: (Int) -> Unit = {},
+    val onCancelClosureTime: () -> Unit = {},
+    val onGoalWeight: (String) -> Unit = {},
+    val onGoalDate: (String) -> Unit = {},
 )

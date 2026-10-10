@@ -104,8 +104,9 @@ class DeviceResetSteps @Inject constructor(
 
     override suspend fun clearDatabase() = repository.clearAll()
 
-    override suspend fun leftover(): Boolean =
-        withContext(Dispatchers.IO) { files.any { it.exists() } || photos.list().orEmpty().isNotEmpty() } || repository.hasRows()
+    /** A71 (ADR-057 decision 7): saved onboarding answers are an onboarding in progress, never a reset cut short. */
+    override suspend fun leftover(): Boolean = !repository.hasOnboardingAnswers() &&
+        (withContext(Dispatchers.IO) { files.any { it.exists() } || photos.list().orEmpty().isNotEmpty() } || repository.hasRows())
 
     private companion object {
         const val MEMORY = "memory.bin"

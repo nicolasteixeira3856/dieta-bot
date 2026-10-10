@@ -37,6 +37,18 @@ object TelemetryEvents {
     /** `from` = home | push | chat; A59 adds `with` (log | plan | question | skip) on a Chat skip. */
     const val MEAL_SKIPPED = "meal_skipped"
     const val ONBOARDING_COMPLETE = "onboarding_complete"
+
+    /** A71 (ADR-057 decision 11): the onboarding funnel, enums only, never an answer. `step` = the step enum. */
+    const val ONBOARDING_STARTED = "onboarding_started"
+    const val ONBOARDING_STEP = "onboarding_step"
+    const val ONBOARDING_RESUMED = "onboarding_resumed"
+
+    /** `reason`: blocked | network | server | timeout. */
+    const val ONBOARDING_ERROR = "onboarding_error"
+
+    /** A71 Config: `enabled` (boolean) and `from`; `goal` (set | none) and `from`. */
+    const val NOTIFICATIONS_SET = "notifications_set"
+    const val GOAL_SET = "goal_set"
     const val PUSH_ACTION = "push_action"
 
     /** A28: count per applied memory operation + permanent/dynamic totals; A38 adds temp totals and temp_* ops. Numbers only. */

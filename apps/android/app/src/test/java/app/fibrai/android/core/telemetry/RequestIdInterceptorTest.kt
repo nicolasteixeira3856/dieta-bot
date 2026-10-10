@@ -80,11 +80,12 @@ class RequestIdInterceptorTest {
 
     @Test
     fun `screen names follow ADR-012 ids`() {
-        assertThat(screenName("app.fibrai.android.RouteCeiling")).isEqualTo("o1")
-        assertThat(screenName("app.fibrai.android.RouteMacros")).isEqualTo("o4")
+        assertThat(screenName("app.fibrai.android.RouteSplash")).isEqualTo("splash")
         assertThat(screenName("app.fibrai.android.RouteChat")).isEqualTo("chat")
         assertThat(screenName("app.fibrai.android.RouteConfig")).isEqualTo("cfg")
-        assertThat(screenName("app.fibrai.android.RouteOnboarding")).isNull()
+        // A71: the conversational onboarding is one destination.
+        assertThat(screenName("app.fibrai.android.RouteOnboarding")).isEqualTo("onboarding")
+        assertThat(screenName("app.fibrai.android.RouteUnknown")).isNull()
         assertThat(screenName(null)).isNull()
     }
 }

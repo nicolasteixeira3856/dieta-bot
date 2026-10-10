@@ -59,7 +59,7 @@ mkdir -p "$OUT"
 FAIL=0
 
 # SKIP_ONBOARDING=1: the app is already onboarded on this emulator (a scene rerun); only the theme and the slot name below.
-if [ "${SKIP_ONBOARDING:-0}" = 1 ]; then "$ADB" shell am force-stop $PKG; else bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1; fi
+if [ "${SKIP_ONBOARDING:-0}" = 1 ]; then "$ADB" shell am force-stop $PKG; else QUICK=1 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1; fi
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
