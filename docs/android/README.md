@@ -14,7 +14,7 @@ Client nativo. Compose, Room, navegacao, foto, push.
 
 - Kotlin + Jetpack Compose + the Aero design system ([ADR-030](../design/adrs/ADR-030-own-design-system-aero.md)); no Material 3.
 - Camada ui / domain / data. Hilt, Navigation Compose, Retrofit, Room.
-- Home, onboarding, sheets, foto. DataStore so como import legado.
+- Home, onboarding conversacional, sheets, foto. DataStore so como import legado.
 - Visual QA: `docs/qa/android/current/{dark,light}/` (captura do emulador: `tools/capture-*.sh` ou `android screen capture`; medidas com `android layout`) vs gold em `docs/qa/figma/{dark,light}/` (Figma `Design`). Gate: `tools/diff-gold.mjs` + `GoldTest` (ver [docs/qa](../qa/README.md)).
 
 ## Fora de escopo
@@ -66,7 +66,7 @@ Segue [docs/sdd/README.md](../sdd/README.md).
 - `core/telemetry/Telemetry` em `main`. dev → `FirebaseTelemetry` (Crashlytics + Analytics, sem Advertising ID); prod → `NoopTelemetry`, sem nenhuma classe Firebase no APK.
 - Toda chamada à API leva `X-Request-Id`, `X-App-Version` e `X-App-Env` (`RequestIdInterceptor`). O id liga o Crashlytics ao log de conversa do server de dev ([ADR-015](../server/adrs/ADR-015-log-conversa-dev.md), `tools/pull-conversations.ps1 -RequestId <id>`).
 - Non-fatals: `ApiFailure` (rede/HTTP) e `ChatFallback` (resposta "nao deu pra estimar" do server), com o `request_id`.
-- Eventos: `screen_view` (ids ADR-012), `api_call`, `chat_send`, `chat_result`, `meal_saved`, `meal_skipped`, `onboarding_complete`, `push_action`. Só enums e números; o texto do usuário nunca sai por aqui.
+- Eventos: `screen_view` (ids ADR-012; o onboarding é `onboarding`), `api_call`, `chat_send`, `chat_result`, `meal_saved`, `meal_skipped`, `onboarding_started`, `onboarding_step`, `onboarding_resumed`, `onboarding_complete`, `onboarding_error`, `notifications_set`, `goal_set`, `push_action`. Só enums e números; o texto do usuário nunca sai por aqui.
 - Crash de teste (só dev, só via adb): `adb shell am broadcast -a app.fibrai.android.dev.TEST_CRASH -n app.fibrai.android.dev/app.fibrai.android.core.telemetry.TestCrashReceiver`.
 - Analytics DebugView: `adb shell setprop debug.firebase.analytics.app app.fibrai.android.dev`.
 
@@ -115,8 +115,8 @@ Histórico em `docs/decisions/`: [002](../decisions/002-android-client.md), [004
 
 ### Planos e validação
 
-- [A71 — Conversational onboarding in the app](plans/a71-conversational-onboarding.md): awaiting approval; depends on D27 and S41 ([ADR-057](../produto/adrs/ADR-057-conversational-onboarding.md)).
-- [A72 — Extras, the 30-day strip and a record in a past day](plans/a72-extras-and-history.md): awaiting approval; depends on D28, S42 and A71 ([ADR-058](../produto/adrs/ADR-058-extras-and-history.md)).
+- [A71 — Conversational onboarding in the app](plans/pending_manual_validation/a71-conversational-onboarding.md): delivered, awaiting the owner's device validation ([ADR-057](../produto/adrs/ADR-057-conversational-onboarding.md)).
+- [A72 — Extras, the 30-day strip and a record in a past day](plans/a72-extras-and-history.md): approved; depends on D28, S42 and A71 ([ADR-058](../produto/adrs/ADR-058-extras-and-history.md)).
 - [A70 — Decision line, fit and day projection per option in the plan bubble](plans/pending_manual_validation/a70-option-fit-and-projection.md): delivered, awaiting the owner's device smoke on a dev build.
 - Cancelados (decisão do dono, 07/10/2026, um plano por contexto): A50, A55, A57, A58 em [`plans/cancelled/`](plans/cancelled/).
 - Fora de escopo: [A35 Registro retroativo](plans/out_of_scope/a35-registro-retroativo.md) (reactivated inside A72) and [A56 Goal weight and date in the profile](plans/out_of_scope/a56-goal-weight.md) (reactivated inside A71), owner decision of 09/10/2026.

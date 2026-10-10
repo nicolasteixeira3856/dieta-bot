@@ -81,7 +81,8 @@ const FIGMA = {
   // whose actions sit in the thread since D20; chips + composer for chat0, chips + the too-long box for chatX, the attached composer for chatA, the
   // meal sheet for chatT, the tone sheet for cfgT since D20 blurred its page) plus 48 dp, the status and navigation bars that the phone takes from the gap between the
   // thread and that stack.
-  footer: { chat0: 364, chatL: 268, chatQ: 268, chatE: 268, chatT: 1368, chatX: 578, chatA: 436, cfgT: 1042 },
+  // ob6 (A71): two stacked actions, 127 dp + 32 dp margin + nav.
+  footer: { chat0: 364, chatL: 268, chatQ: 268, chatE: 268, chatT: 1368, chatX: 578, chatA: 436, cfgT: 1042, ob6: 400 },
   bottom: { homeW: { dark: [0, 2122, 780, 2748], light: [0, 2122, 780, 2748] } },
 };
 

@@ -47,6 +47,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -497,6 +499,12 @@ fun AeroComposer(
     error: String? = null,
     attachment: ImageBitmap? = null,
     onRemoveAttachment: () -> Unit = {},
+    /** A71 (D27 `ob1`): the onboarding composer has no camera; the text starts 20 dp in. */
+    showCamera: Boolean = true,
+    /** A71 (D27 `ob2`): `{n}/2000` under the box, right aligned; [counterOver] draws it in status/bad. */
+    counter: String? = null,
+    counterOver: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
 ) {
     val c = Aero.colors
     val type = Aero.type
@@ -511,7 +519,7 @@ fun AeroComposer(
                 .aeroGlass(shape, border = if (muted) c.statusBad else c.borderGlass, borderWidth = if (muted) 1.5.dp else 1.dp)
                 .padding(
                     PaddingValues(
-                        start = if (muted) 13.5.dp else 9.dp,
+                        start = if (muted) 13.5.dp else if (showCamera) 9.dp else 21.dp,
                         end = if (muted) 13.5.dp else 9.dp,
                         top = if (attachment != null) 15.dp else if (muted) 13.5.dp else 9.dp,
                         bottom = if (muted) 13.5.dp else 9.dp,
@@ -551,12 +559,14 @@ fun AeroComposer(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = if (tall) Alignment.Bottom else Alignment.CenterVertically,
             ) {
-                AeroIconButton(
-                    AeroIconName.Camera,
-                    onCamera,
-                    contentDescription = "Foto",
-                    tint = if (muted) c.textDim else c.iconPrimary,
-                )
+                if (showCamera) {
+                    AeroIconButton(
+                        AeroIconName.Camera,
+                        onCamera,
+                        contentDescription = "Foto",
+                        tint = if (muted) c.textDim else c.iconPrimary,
+                    )
+                }
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
@@ -567,7 +577,7 @@ fun AeroComposer(
                         .testTag("composer-field"),
                     textStyle = type.body.copy(color = c.textPrimary),
                     cursorBrush = SolidColor(c.accentDefault),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, keyboardType = keyboardType),
                     onTextLayout = { lines = it.lineCount },
                     decorationBox = { inner ->
                         Box {
@@ -594,6 +604,13 @@ fun AeroComposer(
         }
         if (error != null) {
             Text(error, Modifier.padding(start = 66.dp), style = type.caption.copy(color = c.statusBad))
+        }
+        if (counter != null) {
+            Text(
+                counter,
+                Modifier.fillMaxWidth().padding(top = 2.dp).testTag("composer-counter"),
+                style = type.caption.copy(color = if (counterOver) c.statusBad else c.textMuted, textAlign = TextAlign.End),
+            )
         }
     }
 }

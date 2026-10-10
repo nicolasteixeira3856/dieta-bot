@@ -40,12 +40,9 @@ import app.fibrai.android.core.designsystem.aero.Aero
 import app.fibrai.android.core.designsystem.aero.AeroTheme
 import app.fibrai.android.feature.home.HomePanelScreen
 import app.fibrai.android.feature.home.HomePanelViewModel
-import app.fibrai.android.feature.onboarding.CeilingScreen
-import app.fibrai.android.feature.onboarding.EatScreen
-import app.fibrai.android.feature.onboarding.MacrosScreen
+import app.fibrai.android.feature.onboarding.OnboardingActions
+import app.fibrai.android.feature.onboarding.OnboardingRoute
 import app.fibrai.android.feature.onboarding.OnboardingViewModel
-import app.fibrai.android.feature.onboarding.OnboardingSlotsScreen
-import app.fibrai.android.feature.onboarding.ToneScreen
 import app.fibrai.android.feature.splash.SplashScreen
 import app.fibrai.android.feature.splash.SplashViewModel
 import app.fibrai.android.feature.chat.ChatScreen
@@ -72,11 +69,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object RouteSplash
 @Serializable data object RouteOnboarding
-@Serializable data object RouteCeiling
-@Serializable data object RouteEat
-@Serializable data object RouteSlots
-@Serializable data object RouteMacros
-@Serializable data object RouteTone
 @Serializable data object RouteHome
 @Serializable data object RouteChat
 @Serializable data object RouteConfig
@@ -132,15 +124,7 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
         onDispose { nav.removeOnDestinationChangedListener(listener) }
     }
     var chatPending by rememberSaveable { mutableStateOf(openChat) }
-    val onboardingStart: Any = when (captureScreen) {
-        "o2" -> RouteEat
-        "o3" -> RouteSlots
-        "o4" -> RouteMacros
-        "o5" -> RouteTone
-        else -> RouteCeiling
-    }
     val startDestination: Any = when (captureScreen) {
-        "o1", "o2", "o3", "o4", "o5" -> RouteOnboarding
         "home0", "home1", "homeX" -> RouteHome
         else -> RouteSplash
     }
@@ -172,91 +156,30 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                     )
                 }
             }
-            navigation<RouteOnboarding>(startDestination = onboardingStart) {
-                composable<RouteCeiling> { entry ->
-                    val vm = onboardingViewModel(nav, entry)
-                    val ui by vm.uiState.collectAsStateWithLifecycle()
-                    AeroTheme {
-                        CeilingScreen(
-                            ui = ui,
-                            onSex = vm::setSex,
-                            onAge = vm::setAge,
-                            onHeight = vm::setHeight,
-                            onWeight = vm::setWeight,
-                            onMode = vm::setCeilingMode,
-                            onSame = vm::setSameField,
-                            onWeekday = vm::setWeekdayField,
-                            onWeekend = vm::setWeekendField,
-                            onDay = vm::setDayField,
-                            onContinue = { nav.navigate(RouteEat) },
-                        )
-                    }
+            // A71 (ADR-057): the conversational onboarding, one destination for its six screens.
+            composable<RouteOnboarding> {
+                val vm: OnboardingViewModel = hiltViewModel()
+                val ui by vm.uiState.collectAsStateWithLifecycle()
+                val actions = remember(vm) {
+                    OnboardingActions(
+                        onStart = vm::start,
+                        onComposer = vm::setComposer,
+                        onSend = vm::send,
+                        onReply = vm::reply,
+                        onBack = vm::back,
+                        onEdit = vm::edit,
+                        onConfirm = vm::confirm,
+                        onRetry = vm::retry,
+                        onBackToSummary = vm::backToSummary,
+                        onHome = {
+                            nav.navigate(RouteHome) {
+                                popUpTo<RouteOnboarding> { inclusive = true }
+                            }
+                        },
+                        onNotificationsAsked = vm::notificationsAsked,
+                    )
                 }
-                composable<RouteEat> { entry ->
-                    val vm = onboardingViewModel(nav, entry)
-                    val ui by vm.uiState.collectAsStateWithLifecycle()
-                    AeroTheme {
-                        EatScreen(
-                            ui = ui,
-                            onEat = vm::setEat,
-                            onPct = vm::setPct,
-                            onBack = { nav.popBackStack() },
-                            onContinue = { nav.navigate(RouteSlots) },
-                        )
-                    }
-                }
-                composable<RouteSlots> { entry ->
-                    val vm = onboardingViewModel(nav, entry)
-                    val ui by vm.uiState.collectAsStateWithLifecycle()
-                    AeroTheme {
-                        OnboardingSlotsScreen(
-                            ui = ui,
-                            onCount = vm::setSlotCount,
-                            onName = vm::setSlotName,
-                            onTime = vm::setSlotTime,
-                            onMode = vm::setSlotMode,
-                            onCopy = vm::copyPreviousSlots,
-                            onConfirmMode = vm::confirmSlotMode,
-                            onCancelMode = vm::cancelSlotMode,
-                            onBack = { vm.previousSlotGroup { nav.popBackStack() } },
-                            onContinue = { vm.nextSlotGroup { nav.navigate(RouteMacros) } },
-                        )
-                    }
-                }
-                composable<RouteMacros> { entry ->
-                    val vm = onboardingViewModel(nav, entry)
-                    val ui by vm.uiState.collectAsStateWithLifecycle()
-                    LaunchedEffect(Unit) { vm.enterMacros() }
-                    AeroTheme {
-                        MacrosScreen(
-                            ui = ui,
-                            onProtein = vm::setProtein,
-                            onCarb = vm::setCarb,
-                            onFat = vm::setFat,
-                            onBack = { nav.popBackStack() },
-                            onFinish = { nav.navigate(RouteTone) },
-                        )
-                    }
-                }
-                composable<RouteTone> { entry ->
-                    val vm = onboardingViewModel(nav, entry)
-                    val ui by vm.uiState.collectAsStateWithLifecycle()
-                    LaunchedEffect(Unit) { vm.enterMacros() }
-                    AeroTheme {
-                        ToneScreen(
-                            ui = ui,
-                            onTone = vm::setTone,
-                            onBack = { nav.popBackStack() },
-                            onFinish = {
-                                vm.completeOnboarding {
-                                    nav.navigate(RouteHome) {
-                                        popUpTo<RouteOnboarding> { inclusive = true }
-                                    }
-                                }
-                            },
-                        )
-                    }
-                }
+                AeroTheme { OnboardingRoute(ui, actions) }
             }
             composable<RouteHome> {
                 val vm: HomePanelViewModel = hiltViewModel()
@@ -372,9 +295,15 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
                         onCancelReset = vm::cancelReset,
                         onOpenRecipes = { nav.navigate(RouteRecipes) },
                         onOpenMemory = { nav.navigate(RouteMemory) },
+                        onToggleNotifications = vm::toggleNotifications,
+                        onOpenClosureTime = vm::openClosureTime,
+                        onClosureTime = vm::setClosureTime,
+                        onCancelClosureTime = vm::cancelClosureTime,
+                        onGoalWeight = vm::setGoalWeight,
+                        onGoalDate = vm::setGoalDate,
                     )
                 }
-                // ADR-040: after the reset the app starts over at O1; back from O1 leaves the app.
+                // ADR-040: after the reset the app starts over at the onboarding; back from its welcome leaves the app.
                 LaunchedEffect(ui.resetDone) {
                     if (ui.resetDone) {
                         nav.navigate(RouteOnboarding) {
@@ -424,14 +353,10 @@ private fun App(captureScreen: String?, openChat: Boolean = false, telemetry: Te
     }
 }
 
-/** ADR-012 screen id of a typed route ("app.fibrai.android.RouteCeiling" -> "o1"); null for nav graphs. */
+/** ADR-012 screen id of a typed route ("app.fibrai.android.RouteHome" -> "home"); null for nav graphs. */
 internal fun screenName(route: String?): String? = when (route?.substringAfterLast('.')?.substringBefore('?')) {
     "RouteSplash" -> "splash"
-    "RouteCeiling" -> "o1"
-    "RouteEat" -> "o2"
-    "RouteSlots" -> "o3"
-    "RouteMacros" -> "o4"
-    "RouteTone" -> "o5"
+    "RouteOnboarding" -> "onboarding"
     "RouteHome" -> "home"
     "RouteChat" -> "chat"
     "RouteConfig" -> "cfg"
@@ -439,13 +364,6 @@ internal fun screenName(route: String?): String? = when (route?.substringAfterLa
     "RouteMemory" -> "memL"
     "RouteRecipe" -> "rcpD"
     else -> null
-}
-
-/** One OnboardingViewModel for O1..O4, scoped to the onboarding graph. */
-@Composable
-private fun onboardingViewModel(nav: NavHostController, entry: NavBackStackEntry): OnboardingViewModel {
-    val parent = remember(entry) { nav.getBackStackEntry<RouteOnboarding>() }
-    return hiltViewModel(parent)
 }
 
 /**

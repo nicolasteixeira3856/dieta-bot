@@ -141,7 +141,7 @@ Figma MCP budget: 12 of 110 calls (whoami, 3 skill reads, 5 reads, 3 writes with
 - `node tools/export-figma.mjs --only ob0,ob1,ob1e,ob2,ob3,ob4` and `--only ob5,ob6`: 16 new files, 780 × 1688 (`ob3` 780 × 2772).
 - The 16 retired PNGs moved with `git mv` to `docs/qa/_legacy/figma-d4-onboarding/{dark,light}/`; inventory of `docs/qa/README.md`: the first line is now `splash` and `ob0`–`ob6`; the `o3t` regression note marked retired. `tools/diff-gold.mjs` defaults to `splash` + `ob0`–`ob6`.
 - `node tools/check-figma.mjs`: 108 golds verified (54 dark + 54 light). `node tools/check-docs.mjs` passes.
-- **Hand-over to [A71](../../../android/plans/a71-conversational-onboarding.md)** (its scope 9): until A71 removes them, `GoldTest.o1*`–`o5*` and the `o1`–`o5` captures have no gold in `docs/qa/figma/` (the files are in `_legacy/`), so those JVM tests fail; the live spec [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) still describes O1–O5 until A71 rewrites it.
+- **Hand-over to [A71](../../../android/plans/pending_manual_validation/a71-conversational-onboarding.md)** (its scope 9): until A71 removes them, `GoldTest.o1*`–`o5*` and the `o1`–`o5` captures have no gold in `docs/qa/figma/` (the files are in `_legacy/`), so those JVM tests fail; the live spec [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) still describes O1–O5 until A71 rewrites it.
 - **Site:** `npm --prefix web run screens:check` reads `docs/qa/figma/{light,dark}/o1.png` for the landing phone (`web/tools/build-screens.mjs`, W1); it fails until a site plan picks the onboarding screen to show (the cut WebP files in `web/public/` are unchanged). Not touched here: `web/` is outside this plan.
 
 Figma MCP budget: 13 of 110 calls in total.

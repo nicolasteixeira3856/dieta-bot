@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
-# Drive splash + O1..O5 on a running emulator and capture docs/qa/android/current/<theme>/.
-# Reaches the state shown in the gold through the real UI (testTag = resource-id), then
-# finishes onboarding, kills the app and checks that a relaunch skips onboarding.
+# Drive splash + the conversational onboarding (A71, ADR-057) on a running emulator and capture
+# docs/qa/android/current/<theme>/: splash, ob0 (welcome), ob2 (targets prefilled), ob1 (tone question),
+# ob1e (an answer not understood), ob3 (summary), ob4 (building), ob6 (forced HTTP 500) and ob5 (retry).
+# Checks on the way: a kill of the process at step 9 resumes at step 9; Tentar de novo after the 500 reaches ob5;
+# a relaunch after the onboarding opens the Home.
 #
-# Prereqs: devDebug APK installed; python3; AVD at gold geometry:
+# Prereqs: the fake server (node tools/fake-chat-server.mjs) and a devDebug APK built against it
+#   (./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765); python3; AVD at gold geometry:
 #   adb shell wm size 780x1688 && adb shell wm density 320
+# QUICK=1 (the other capture scripts): no captures, the profile they expect (male 27/180/116, 2000 kcal with the
+# 30/40/30 split, the four default meals, 0 % eat-back, Seco, no facts).
 # Usage (multiple devices): ANDROID_SERIAL=emulator-5554 tools/capture-onboarding.sh dark|light
 # Then:  node tools/diff-gold.mjs
 set -u
 THEME="${1:?dark|light}"
+QUICK="${QUICK:-0}"
 ADB="${ADB:-adb}"
+FAKE="${FAKE:-http://127.0.0.1:8765}"
 export MSYS_NO_PATHCONV=1
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/docs/qa/android/current/$THEME"
@@ -19,10 +26,7 @@ PKG=app.fibrai.android.dev
 # The Kotlin package did not change with the dev flavor (A10): name the activity in full.
 ACTIVITY=app.fibrai.android.MainActivity
 mkdir -p "$OUT"
-PY="$(command -v python3 || command -v python)"
 FAIL=0
-# shellcheck source=tools/input-checks.sh
-. "$ROOT/tools/input-checks.sh"
 
 center() { # center <resource-id> -> "x y"
   "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
@@ -39,191 +43,122 @@ center() { # center <resource-id> -> "x y"
 tap() {
   local xy attempt
   # A cold start can still be on Splash when am start reports its first frame.
-  for attempt in 1 2 3 4 5 6; do
+  for attempt in 1 2 3 4 5 6 7 8; do
     if xy=$(center "$1" 2>/dev/null); then
-      "$ADB" shell input tap $xy; sleep 0.4; return
+      "$ADB" shell input tap $xy; sleep 0.5; return
     fi
     sleep 0.5
   done
   echo "  missing $1" >&2; exit 1
 }
+has() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml | grep -q "$1"; }
 hide_kb() { if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then "$ADB" shell input keyevent 4; sleep 0.6; fi; }
-type_into() { tap "$1"; for _ in 1 2 3 4 5 6; do "$ADB" shell input keyevent 67; done; "$ADB" shell input text "$2"; sleep 0.3; hide_kb; }
-to_top() { "$ADB" shell input swipe 390 500 390 1500 150; sleep 0.5; }
-scroll_down() { "$ADB" shell input swipe 390 1300 390 500 300; sleep 0.6; }
-shot() { sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
+# say <text>: types into the composer (spaces as %s; adb cannot type accents) and sends.
+say() {
+  tap composer-field
+  "$ADB" shell input keyevent KEYCODE_MOVE_END
+  for _ in $(seq 1 60); do "$ADB" shell input keyevent 67; done
+  "$ADB" shell input text "$(printf '%s' "$1" | sed 's/ /%s/g')"
+  sleep 0.3
+  tap composer-send
+  hide_kb
+}
+reply() { tap "ob-reply-$1"; sleep 0.3; }
+mode() { curl -s -X POST "$FAKE/__mode" -d "$1" >/dev/null; }
+shot() { [ "$QUICK" = 1 ] && return; sleep "${2:-0.8}"; "$ADB" exec-out screencap -p > "$OUT/$1.png"; echo "  captured $THEME/$1"; }
+check() { if has "$2"; then echo "  ✓ $1"; else echo "  ✗ $1"; FAIL=1; fi; }
 
+curl -s "$FAKE/__calls" >/dev/null || { echo "  fake server not running on $FAKE"; exit 1; }
+mode '{}'
 "$ADB" shell cmd uimode night "$([ "$THEME" = dark ] && echo yes || echo no)" >/dev/null
 "$ADB" shell pm clear $PKG >/dev/null
-# This journey tests onboarding/time editing; capture-push.sh owns the permission prompt.
+# The notification step asks POST_NOTIFICATIONS; granted here, capture-push.sh owns the prompt.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
-# Splash in capture mode (it stays up), then a normal cold start into O1.
-"$ADB" shell am start -W -n $PKG/$ACTIVITY -e fibrai_tela splash >/dev/null
-shot splash 2.5
-"$ADB" shell am force-stop $PKG
+if [ "$QUICK" != 1 ]; then
+  # Splash in capture mode (it stays up).
+  "$ADB" shell am start -W -n $PKG/$ACTIVITY -e fibrai_tela splash >/dev/null
+  shot splash 2.5
+  "$ADB" shell am force-stop $PKG
+fi
 "$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY >/dev/null
 sleep 2.5
 
-tap o1-sex-male
-# A31: before the profile, mode and ceiling are disabled (gold o1e).
-shot o1e
-# The IME walks the profile: age Next -> height Next -> weight Done closes the keyboard.
-tap o1-age
-"$ADB" shell input text 27; "$ADB" shell input keyevent 66; sleep 0.3
-"$ADB" shell input text 180; "$ADB" shell input keyevent 66; sleep 0.3
-"$ADB" shell input text 116; "$ADB" shell input keyevent 66; sleep 0.6
-if "$ADB" shell dumpsys input_method | grep -q "mInputShown=true"; then
-  echo "  ✗ keyboard still open after Done on weight"
-  exit 1
+shot ob0 1.5
+tap ob0-start
+if [ "$QUICK" = 1 ]; then
+  reply 1; say 27; say 180; say 116; say 2000
+  reply 2; reply 0; reply 0
+  reply 0; reply 0; reply 0; say "variado"; reply 0; reply 3; reply 0; reply 0
+  sleep 1
+  "$ADB" shell input swipe 390 1400 390 300 200; sleep 0.4
+  "$ADB" shell input swipe 390 1400 390 300 200; sleep 0.6
+  tap ob3-confirm
+  sleep 2.5
+  tap ob5-home
+  sleep 1.5
+  echo "  ✓ onboarded (quick)"
+  rm -rf "$TMP"
+  exit 0
 fi
-# A46: split and per-day ceilings. The focused field rises above the keyboard; typing lands after the prefill.
-tap o1-mode-weekdayWeekend
-# Scroll to the end: the fields then sit above the fixed CTA, which must not take the tap.
-scroll_down; scroll_down
-before=$(text_of o1-weekend | tr -d '\r')
-tap o1-weekend
-above_ime o1-weekend "O1 Fim de semana above the keyboard"
-"$ADB" shell input text 5; sleep 0.4
-ends_at_end o1-weekend "$before" 5 "O1 Fim de semana: typing goes to the end"
-hide_kb
-to_top
-tap o1-mode-seven
-scroll_down; scroll_down; scroll_down
-tap o1-day-6
-above_ime o1-day-6 "O1 Dom above the keyboard"
-hide_kb
-to_top
-tap o1-mode-same
-scroll_down
-type_into o1-ceiling 2000
-to_top
-shot o1
-tap o1-continue
 
-shot o2
-tap o2-continue
-
-# adb cannot type accents: names come from the suggestion chips.
-sleep 0.6
-tap o3-chip-0-0
-# A41: the fixed CTA covers the second card's chips at the top of the scroll (uiautomator skips covered nodes).
-scroll_down
-tap o3-chip-1-0
-tap o3-chip-2-0
-tap o3-chip-3-0
-# A46: the last meal name rises above the keyboard; typing lands after the chosen name.
-before=$(text_of o3-name-3 | tr -d '\r')
-tap o3-name-3
-above_ime o3-name-3 "O3 last meal name above the keyboard"
-"$ADB" shell input text x; sleep 0.4
-ends_at_end o3-name-3 "$before" x "O3 meal name: typing goes to the end"
-"$ADB" shell input keyevent 67; sleep 0.3
+# The D27 sample person: female, 32 years, 165 cm, 66 kg.
+reply 0
+say 32
+say 165
+say 66
+# Step 5: the TMB/IMC proposal with the targets prefilled in the composer (gold ob2).
+shot ob2
+tap composer-send
 hide_kb
-to_top
-shot o3
-tap o3-time-0
-tap time-wheel-cancel
-tap o3-continue
+reply 2            # 4 meals
+reply 0            # Usar o padrão
+reply 1            # 50 %
+# Step 9: the tone question, Seco preselected (gold ob1).
+shot ob1
+say "pode ser um meio termo"
+shot ob1e
+check "não entendi keeps step 9" '9 de 16'
 
-shot o4
-# A46: the adjust button of a computed macro focuses its grams with the cursor at the end.
-scroll_down; scroll_down
-before=$(text_of o4-carb-field | tr -d '\r')
-tap_desc "Ajustar Carboidrato"
-above_ime o4-carb-field "O4 Carboidrato above the keyboard"
-"$ADB" shell input text 5; sleep 0.4
-ends_at_end o4-carb-field "$before" 5 "O4 Carboidrato: adjust puts the cursor at the end"
-"$ADB" shell input keyevent 67; sleep 0.3
-hide_kb
-to_top
-tap o4-finish
-sleep 1.5
-# A60 part B (O5): the tone, Seco preselected; back returns to O4; Concluir e começar finishes the onboarding.
-shot o5
-tap onboarding-back
-sleep 1
-"$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
-"$ADB" exec-out cat /sdcard/ui.xml > "$TMP/o5back.xml"
-if grep -q 'resource-id="o4-finish"' "$TMP/o5back.xml"; then echo "  ✓ O5 back returns to O4"; else echo "  ✗ O5 back did not return to O4"; FAIL=1; fi
-tap o4-finish
-sleep 1.5
-tap o5-finish
-sleep 1.5
-
-# Kill + relaunch: must land on Home, not onboarding.
+# Kill at step 9: the relaunch resumes the chat at the same step.
 "$ADB" shell am force-stop $PKG
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
-"$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
-"$ADB" exec-out cat /sdcard/ui.xml > "$TMP/relaunch.xml"
-if grep -q 'resource-id="o1-' "$TMP/relaunch.xml"; then
-  echo "  ✗ relaunch opened onboarding"
-  exit 1
-fi
-# ST3 uses a typed meal name rather than the short suggestion "Café".
-# Seed that Unicode name in the persisted test profile, as in capture-config.sh,
-# then reopen O3 and tap the real time field. No capture-only app behavior.
-"$ADB" shell am force-stop $PKG
-for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/fibrai.db" <<'EOF'
-import sqlite3, sys
-c = sqlite3.connect(sys.argv[1])
-c.execute("update meal_slot set name='Café da manhã' where id=(select id from meal_slot order by minutesFromMidnight limit 1)")
-c.commit()
-c.execute("pragma wal_checkpoint(TRUNCATE)")
-c.execute("pragma journal_mode=DELETE")
-c.close()
-EOF
-"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
-"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e fibrai_tela o3 >/dev/null
-sleep 2
-shot o3
-tap o3-time-0
-shot o3t
-tap time-wheel-cancel
-# A24: use a real stored grouped profile; reach the second step through Continue.
-"$ADB" shell am force-stop $PKG
-for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/fibrai.db" <<'EOF'
-import sqlite3, sys
-c = sqlite3.connect(sys.argv[1])
-c.execute("update profile set slotMode='split'")
-c.execute("update meal_slot set days=31")
-c.executemany("insert into meal_slot(name,minutesFromMidnight,sortOrder,days) values(?,?,?,96)",
-              [("Café da manhã",570,4),("Almoço",810,5),("Jantar",1230,6)])
-c.commit()
-c.execute("pragma wal_checkpoint(TRUNCATE)")
-c.execute("pragma journal_mode=DELETE")
-c.close()
-EOF
-"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
-"$ADB" shell am start -W -f 0x10008000 -n $PKG/$ACTIVITY -e fibrai_tela o3 >/dev/null
-sleep 2
-tap o3-continue
-shot o3s
-# Restore the original same-every-day fixture for callers such as capture-config.sh.
-"$ADB" shell am force-stop $PKG
-for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/fibrai.db" <<'EOF'
-import sqlite3, sys
-c = sqlite3.connect(sys.argv[1])
-c.execute("delete from meal_slot where days=96")
-c.execute("update meal_slot set days=127")
-c.execute("update profile set slotMode='same'")
-c.commit()
-c.execute("pragma wal_checkpoint(TRUNCATE)")
-c.execute("pragma journal_mode=DELETE")
-c.close()
-EOF
-"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
+check "kill at step 9 resumes at step 9" '9 de 16'
+
+reply 0            # Seco
+reply 1            # Sem lactose
+reply 1            # Medidas caseiras
+say "Cafe: pao com ovo. Almoco: arroz, feijao e frango"
+say "figado"
+say "Air fryer e micro-ondas"
+say "60 kg ate 30/04/2027"
+reply 0            # Sim
+sleep 1
+shot ob3
+
+# A forced HTTP 500 after 3 s: building (ob4), then the error (ob6); Tentar de novo reaches ob5.
+mode '{"profile_fail": 500, "profile_delay": 3000}'
+"$ADB" shell input swipe 390 1400 390 300 200; sleep 0.4
+"$ADB" shell input swipe 390 1400 390 300 200; sleep 0.6
+tap ob3-confirm
+shot ob4 0.8
+sleep 3.5
+shot ob6
+check "HTTP 500 shows ob6" 'ob6-retry'
+mode '{"profile_delay": 1000}'
+tap ob6-retry
+sleep 2.5
+shot ob5
+check "Tentar de novo reaches ob5" 'ob5-home'
+mode '{}'
+tap ob5-home
+sleep 1.5
+
+# Kill + relaunch: must land on Home, not the onboarding.
 "$ADB" shell am force-stop $PKG
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
-sleep 2
-echo "  ✓ relaunch skipped onboarding; o3t captured from the real time field"
+sleep 3
+if has 'resource-id="ob0'; then echo "  ✗ relaunch opened the onboarding"; FAIL=1; else echo "  ✓ relaunch opened the Home"; fi
 rm -rf "$TMP"
 exit $FAIL

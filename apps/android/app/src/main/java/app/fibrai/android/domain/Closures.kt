@@ -70,8 +70,11 @@ object Closures {
     const val DAY = "day"
     const val WEEK = "week"
 
-    /** 22:00 America/Sao_Paulo, every day; the week closes on Sunday at the same time. */
+    /** 22:00 America/Sao_Paulo by default, every day; the week closes on Sunday at the same time. */
     val AT: LocalTime = LocalTime.of(22, 0)
+
+    /** A71 (ADR-057 decision 10): the profile's closure time `HH:mm`; anything else is [AT]. */
+    fun time(hhmm: String?): LocalTime = runCatching { LocalTime.parse(hhmm) }.getOrNull() ?: AT
 
     /** Text statuses of a stored closure. */
     const val TEXT = "text"
@@ -90,20 +93,20 @@ object Closures {
      * When the next closure alarm fires: 22:00 today, or now when it passed and the day's closure is still missing
      * ([dayDone] false), else 22:00 tomorrow.
      */
-    fun nextAlarm(now: Instant, dayDone: Boolean): Instant {
+    fun nextAlarm(now: Instant, dayDone: Boolean, closureAt: LocalTime = AT): Instant {
         val today = SaoPaulo.date(now)
-        val at = today.atTime(AT).atZone(SaoPaulo.zone).toInstant()
+        val at = today.atTime(closureAt).atZone(SaoPaulo.zone).toInstant()
         return when {
             now.isBefore(at) -> at
             !dayDone -> now
-            else -> today.plusDays(1).atTime(AT).atZone(SaoPaulo.zone).toInstant()
+            else -> today.plusDays(1).atTime(closureAt).atZone(SaoPaulo.zone).toInstant()
         }
     }
 
-    /** The periods an alarm at [now] closes: the day from 22:00 on, and the week on Sunday. */
-    fun duePeriods(now: Instant): List<String> {
+    /** The periods an alarm at [now] closes: the day from the closure time on, and the week on Sunday. */
+    fun duePeriods(now: Instant, closureAt: LocalTime = AT): List<String> {
         val local = now.atZone(SaoPaulo.zone)
-        if (local.toLocalTime().isBefore(AT)) return emptyList()
+        if (local.toLocalTime().isBefore(closureAt)) return emptyList()
         return if (local.dayOfWeek == DayOfWeek.SUNDAY) listOf(DAY, WEEK) else listOf(DAY)
     }
 

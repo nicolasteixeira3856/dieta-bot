@@ -26,7 +26,7 @@ FAIL=0
 "$ADB" shell setprop debug.fibrai.hide_dev_tools 1
 trap '"$ADB" shell setprop debug.fibrai.hide_dev_tools 0' EXIT
 
-bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1 || exit 1
+QUICK=1 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1 || exit 1
 # Fresh package (A10 .dev): answer the A7 notification prompt up front. capture-push.sh tests the prompt itself.
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 # The prompt may already be on screen from the onboarding relaunch: restart so Home opens clean.
@@ -197,9 +197,10 @@ tap 'resource-id="cfg-reset-cancel"'
 expect "cancel stays on Config" 'resource-id="cfg-reset"'
 check "cancel kept the profile" "select onboardingDone from profile" 1
 tap 'resource-id="cfg-reset"' && tap 'resource-id="cfg-reset-confirm"' 2
-expect "reset opens O1" 'resource-id="o1-sex-male"'
+expect "reset opens the onboarding" 'resource-id="ob0'
 for t in profile day meal_log meal_slot slot_skip chat_message day_digest; do check "reset emptied $t" "select count(*) from $t" 0; done
-files=$("$ADB" shell run-as $PKG sh -c "'ls files/memory.bin files/photos 2>/dev/null | wc -l'" | tr -d ' ')
+files=$("$ADB" shell run-as $PKG sh -c "'ls files/memory.bin files/photos 2>/dev/null | wc -l'" | tr -d '
+ ')
 if [ "$files" = "0" ]; then echo "  ✓ memory and photos deleted"; else echo "  ✗ memory or photos left ($files)"; FAIL=1; fi
 id_after=$("$ADB" exec-out run-as $PKG cat no_backup/installation_id 2>/dev/null)
 if [ -n "$id_before" ] && [ "$id_before" = "$id_after" ]; then echo "  ✓ installation id kept"; else echo "  ✗ installation id changed or missing"; FAIL=1; fi
@@ -207,6 +208,6 @@ left=$(alarms); if [ "$left" -le 1 ]; then echo "  ✓ no slot reminder left ($l
 "$ADB" shell input keyevent 4; sleep 1
 if "$ADB" shell dumpsys activity activities | grep -m1 "topResumedActivity" | grep -q "$PKG"; then echo "  ✗ back from O1 stayed in the app"; FAIL=1; else echo "  ✓ back from O1 leaves the app"; fi
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null; sleep 3
-expect "relaunch after reset opens O1" 'resource-id="o1-sex-male"'
+expect "relaunch after reset opens the onboarding" 'resource-id="ob0'
 rm -rf "$TMP"
 exit $FAIL

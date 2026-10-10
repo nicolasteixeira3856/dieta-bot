@@ -48,7 +48,7 @@ class PushHandler @Inject constructor(
         val day = repository.observeToday().first()
         val slot = day.slotsOfDay.firstOrNull { it.id == slotId } ?: return false
         val logged = day.logs.mapNotNull { it.slotId }.toSet()
-        if (!day.onboardingDone || !PushPlan.shouldNotify(slotId, logged, day.skippedSlotIds)) return false
+        if (!day.onboardingDone || !day.notificationsEnabled || !PushPlan.shouldNotify(slotId, logged, day.skippedSlotIds)) return false
         val shown = notify(slotId, slot.name)
         if (shown) telemetry.event(TelemetryEvents.PUSH_ACTION, mapOf("action" to "shown"))
         return shown

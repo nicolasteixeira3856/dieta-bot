@@ -463,6 +463,79 @@ class DayRepository @Inject constructor(
             .use { it.moveToFirst() }
     }
 
+    // ------------------------------------------------------------- A71 onboarding (ADR-057)
+
+    fun observeOnboardingAnswers(): Flow<List<OnboardingAnswerEntity>> = db.onboardingAnswerDao().observeAll()
+
+    suspend fun onboardingAnswers(): List<OnboardingAnswerEntity> = withContext(Dispatchers.IO) { db.onboardingAnswerDao().getAll() }
+
+    /** An onboarding in progress: its answers are kept, so a cold start never takes them for a reset cut short. */
+    suspend fun hasOnboardingAnswers(): Boolean = onboardingAnswers().isNotEmpty()
+
+    /** One answer as it is given, with the phase it leads to, in one transaction (ADR-057 decision 7). */
+    suspend fun saveOnboardingAnswer(row: OnboardingAnswerEntity, phase: String) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            db.onboardingAnswerDao().upsert(row)
+            updateProfile { it.copy(onboardingPhase = phase) }
+        }
+    }
+
+    /** Back: the last answer is taken back; the chat asks that step again. */
+    suspend fun deleteOnboardingAnswer(step: String) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            db.onboardingAnswerDao().delete(step)
+            updateProfile { it.copy(onboardingPhase = PHASE_CHAT) }
+        }
+    }
+
+    suspend fun setOnboardingPhase(phase: String) = withContext(Dispatchers.IO) {
+        db.withTransaction { updateProfile { it.copy(onboardingPhase = phase) } }
+    }
+
+    /**
+     * The profile build succeeded, first step: today's meals replace any stored ones and the profile takes every number,
+     * the tone, the goal and the notification choice; the onboarding is not done yet (the facts come next). Returns the
+     * new slot ids in [meals] order.
+     */
+    suspend fun storeOnboardingProfile(
+        meals: List<MealSlot>,
+        transform: (ProfileEntity) -> ProfileEntity,
+    ): List<Long> = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            db.mealSlotDao().deleteAllExcept(emptyList())
+            val ids = meals.mapIndexed { index, slot ->
+                db.mealSlotDao().upsert(
+                    MealSlotEntity(name = slot.name, minutesFromMidnight = slot.minutesFromMidnight, sortOrder = index, days = slot.days),
+                )
+            }
+            updateProfile { transform(it).copy(onboardingDone = 0, onboardingPhase = PHASE_BUILDING) }
+            ids
+        }
+    }
+
+    /** Last step: the onboarding is done and the raw answers go (ADR-057 decision 5). */
+    suspend fun finishOnboarding() = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            db.onboardingAnswerDao().clear()
+            updateProfile { it.copy(onboardingDone = 1, onboardingPhase = PHASE_CHAT) }
+        }
+    }
+
+    /** A71 Config: the notification choice (reminders and closure notifications). */
+    suspend fun saveNotifications(enabled: Boolean) = withContext(Dispatchers.IO) {
+        db.withTransaction { updateProfile { it.copy(notificationsEnabled = if (enabled) 1 else 0) } }
+    }
+
+    /** A71 Config: the closure time `HH:mm`. */
+    suspend fun saveClosureTime(time: String) = withContext(Dispatchers.IO) {
+        db.withTransaction { updateProfile { it.copy(closureTime = time) } }
+    }
+
+    /** A71 Config: the goal weight and date; null = no goal. */
+    suspend fun saveGoal(weightKg: Double?, date: String?) = withContext(Dispatchers.IO) {
+        db.withTransaction { updateProfile { it.copy(goalWeightKg = weightKg, goalDate = date.takeIf { weightKg != null }) } }
+    }
+
     /** Config: a new ceiling restarts today (spec memoria-push, Config rule 5). One transaction. */
     suspend fun changeCeiling(
         ceilingMode: String,
@@ -831,6 +904,11 @@ class DayRepository @Inject constructor(
             carbTargetG = profile?.carbTargetG ?: 200,
             fatTargetG = profile?.fatTargetG ?: 67,
             tone = profile?.tone ?: "seco",
+            goalWeightKg = profile?.goalWeightKg,
+            goalDate = profile?.goalDate,
+            closureTime = profile?.closureTime ?: "22:00",
+            notificationsEnabled = (profile?.notificationsEnabled ?: 1) != 0,
+            onboardingPhase = profile?.onboardingPhase ?: "chat",
             workoutKcal = day?.workoutKcal,
             removedWindows = day?.removedWindows ?: emptyList(),
             askedWindows = day?.askedWindows ?: emptyList(),
@@ -855,6 +933,12 @@ class DayRepository @Inject constructor(
     companion object {
         private const val MESSAGE_DAYS = 60
         const val RECENT_DAYS = 7L
+
+        /** A71: where an unfinished onboarding resumes (`profile.onboardingPhase`). */
+        const val PHASE_CHAT = "chat"
+        const val PHASE_SUMMARY = "summary"
+        const val PHASE_BUILDING = "building"
+        const val PHASE_ERROR = "error"
 
         /** chat_message role written by [wipeToday]. Never rendered, never sent. */
         const val ROLE_WIPED = "wiped"

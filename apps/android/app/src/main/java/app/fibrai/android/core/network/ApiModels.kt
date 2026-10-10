@@ -21,4 +21,8 @@ interface FibraiApi {
     /** A60 part B (ADR-044): the day or week closure text. */
     @POST("v1/close")
     suspend fun close(@Body body: CloseIn): CloseOut
+
+    /** A71 (S41, ADR-057): the profile build of the conversational onboarding, once, on the summary's confirm. */
+    @POST("v1/profile")
+    suspend fun profile(@Body body: ProfileIn): ProfileOut
 }

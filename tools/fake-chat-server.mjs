@@ -55,6 +55,11 @@
 // A69: /__calls reports `factTexts`, the text of each fact of the last turn (the correction reaches the prompt).
 // A70: POST /__mode {"fixture": "<path>"} answers every chat turn with the `response` of a saved evaluator fixture
 // (server `--save-fixture`: {request, response}), its slot ids mapped by name from the fixture's profile to the client's.
+// A71: POST /v1/profile (S41) echoes the profile, accepts the goal and answers declared facts built from the `nicolas` persona
+// of S40 (air fryer and micro-ondas, the scale at home, no fish, routines for the first and third meal) when the answers
+// mention food (`foods` with "ovo"), none otherwise. POST /__mode {"profile_fail": 500, "profile_delay": 3000} answers that
+// HTTP status (or 0: drops the connection) after the delay; {"profile_goal_refused": true} refuses the goal. /__calls
+// reports `profile`, the last profile request.
 // Build the app against it: ./gradlew :app:assembleDevDebug -PAPI_PUBLIC_URL=http://10.0.2.2:8765
 // Usage: node tools/fake-chat-server.mjs [port]
 import fs from "fs";
@@ -90,6 +95,10 @@ let actionsMode = null;
 let discoveryMode = false;
 let recipeMode = null;
 let fixturePath = null;
+let profileFail = null;
+let profileDelay = 0;
+let profileGoalRefused = false;
+let lastProfile = null;
 let lastRecipes = [];
 let lastRecipeFull = null;
 let lastDiscovery = null;
@@ -154,11 +163,47 @@ http.createServer(async (req, res) => {
     discoveryMode = Boolean(mode.discovery);
     recipeMode = mode.recipe ?? null;
     fixturePath = mode.fixture ?? null;
+    profileFail = mode.profile_fail ?? null;
+    profileDelay = Number(mode.profile_delay ?? 0);
+    profileGoalRefused = Boolean(mode.profile_goal_refused);
     res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ hang, fallback, slot: slotPrefix, kcal: kcalOverride, plan, routine, clarify, record, skip: skipPrefix, calls }));
     return;
   }
   if (req.method === "GET" && req.url === "/__calls") {
-    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery, recipes: lastRecipes, recipeFull: lastRecipeFull, factTexts: lastFacts.map((f) => f.text) }));
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ calls, compacts, memory: lastMemory, image, requestId: lastRequestId, textLen, facts: lastFacts, clarify: lastClarify, autoRecord: lastAutoRecord, day: lastDay, skipSlots: lastSkipSlots, planBudget: lastPlanBudget, fit: lastFit, tone: lastTone, close: lastClose, messages: lastMessages, recentDays: lastRecentDays, workout: lastWorkout, actions: lastActions, discovery: lastDiscovery, recipes: lastRecipes, recipeFull: lastRecipeFull, factTexts: lastFacts.map((f) => f.text), profile: lastProfile }));
+    return;
+  }
+  if (req.method === "POST" && req.url === "/v1/profile") {
+    calls++;
+    lastRequestId = req.headers["x-request-id"] ?? "";
+    const input = JSON.parse(body || "{}");
+    lastProfile = input;
+    if (profileDelay > 0) await new Promise((r) => setTimeout(r, profileDelay));
+    if (profileFail === 0) {
+      req.socket.destroy();
+      return;
+    }
+    if (profileFail) {
+      res.writeHead(profileFail, { "content-type": "application/json" }).end(JSON.stringify({ detail: profileFail === 400 ? "content_policy_blocked" : "profile_unavailable" }));
+      return;
+    }
+    const slots = input.slots ?? [];
+    const foods = String(input.answers?.foods ?? "");
+    const facts = !foods.includes("ovo") ? [] : [
+      { kind: "permanent", category: "equipment", key: "air fryer", text: "Tem air fryer e micro-ondas", slot: null, declared: true },
+      { kind: "dynamic", category: "routine", key: "café", text: "pão com ovo", slot: slots[0]?.id ?? null, declared: true, kcal: 380, p: 22, c: 34, g: 16 },
+      { kind: "dynamic", category: "routine", key: "lanche", text: "iogurte natural com whey e banana", slot: slots[2]?.id ?? null, declared: true, kcal: 330, p: 32, c: 38, g: 5 },
+      { kind: "permanent", category: "portion", key: "balança", text: "Em casa pesa na balança; fora estima pelo prato", slot: null, declared: true },
+      { kind: "permanent", category: "preference", key: "peixe", text: "Não come peixe", slot: null, declared: true },
+    ].filter((f) => f.category !== "routine" || f.slot);
+    const notifications = input.notifications ?? { enabled: true, closure_time: null };
+    const profile = { ...input, notifications: { enabled: notifications.enabled, closure_time: notifications.enabled ? (notifications.closure_time ?? "22:00") : null } };
+    delete profile.goal; delete profile.answers; delete profile.local_time;
+    const goal = profileGoalRefused ? null : (input.goal?.weight_kg ? input.goal : null);
+    const summary = `Teto ${input.ceiling_kcal} kcal · P ${input.p_target} · C ${input.c_target} · G ${input.g_target}. Refeições: ${slots.map((s) => `${s.name} ${s.time}`).join(", ")}.`;
+    res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({
+      profile, goal, goal_refused: profileGoalRefused && Boolean(input.goal?.weight_kg), facts, summary, request_id: lastRequestId, model: "gpt-6-luna",
+    }));
     return;
   }
   if (req.method === "POST" && req.url === "/v1/close") {

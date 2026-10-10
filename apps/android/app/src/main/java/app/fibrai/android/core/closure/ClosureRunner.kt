@@ -53,10 +53,11 @@ class ClosureRunner @Inject constructor(
 ) {
     private val mutex = Mutex()
 
-    /** What the alarm at [now] closes; nothing before 22:00. Returns the closures produced. */
+    /** What the alarm at [now] closes; nothing before the profile's closure time (A71, default 22:00). */
     suspend fun runDue(): List<ClosureEntity> {
         val now = clock.now()
-        return Closures.duePeriods(now).mapNotNull { run(it) }
+        val at = Closures.time(repository.observeToday().first().closureTime)
+        return Closures.duePeriods(now, at).mapNotNull { run(it) }
     }
 
     /**
@@ -86,7 +87,8 @@ class ClosureRunner @Inject constructor(
         if (!repository.insertClosure(row)) return@withLock null
         val done = if (recorded) fetchText(row, snapshot, retried = false) else row
         telemetry.event(TelemetryEvents.CLOSURE, mapOf("period" to period, "outcome" to done.status))
-        notifier.notify(period, notificationText(done))
+        // A71 (ADR-057 decision 10): notifications off keep the closure card and post nothing.
+        if (snapshot.notificationsEnabled) notifier.notify(period, notificationText(done))
         done
     }
 
@@ -128,6 +130,8 @@ class ClosureRunner @Inject constructor(
         gTarget = snapshot.fatTargetG.coerceIn(0, GRAMS_MAX),
         slots = snapshot.slotsOn(date).sortedBy { it.minutesFromMidnight }.take(SLOTS_MAX)
             .map { ChatSlot(it.id.toString(), it.name.take(NAME_MAX), SlotSuggestions.format(it.minutesFromMidnight)) },
+        // A71 (S41): the accepted goal; the closure may cite the kcal over the ceiling against it.
+        goal = snapshot.goalWeightKg?.let { app.fibrai.android.core.network.ChatGoal(it, snapshot.goalDate) },
     )
 
     /** The numbers of [date] from Room: its meals in slot order, every record (Outros included) and its ceiling. */

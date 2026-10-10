@@ -89,6 +89,18 @@ class FactMemory @Inject constructor(private val file: MemoryFile) {
         return apply(listOf(update), today, meal)
     }
 
+    /**
+     * A71 (ADR-057 decisions 5, 8): the facts of the profile build, stored as declared ([MemoryRules.declare]). A fact whose
+     * key is already kept takes the new text, so a repeated build never duplicates. Returns how many were stored.
+     */
+    suspend fun declare(facts: List<MemoryUpdate>, today: LocalDate): Int = mutex.withLock {
+        val stored = load()
+        val base = MemoryRules.expire(stored, today).memory
+        val next = MemoryRules.declare(base, facts, today)
+        if (next != stored) store(next)
+        next.facts.count { it.source == MemoryRules.DECLARED && it.created == today.toString() }
+    }
+
     /** The whole memory as given (tests seed it). */
     suspend fun replaceAll(memory: Memory) = mutex.withLock { store(memory) }
 

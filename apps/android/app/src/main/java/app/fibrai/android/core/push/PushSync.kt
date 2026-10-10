@@ -30,7 +30,7 @@ class PushSync @Inject constructor(
             repository.observeToday()
                 .map { day ->
                     Triple(
-                        (day.onboardingDone to day.date) to day.slotsOfDay,
+                        Triple(day.onboardingDone to day.date, day.slotsOfDay, day.notificationsEnabled to day.closureTime),
                         day.logs.mapNotNull { it.slotId }.toSet(),
                         day.skippedSlotIds,
                     )

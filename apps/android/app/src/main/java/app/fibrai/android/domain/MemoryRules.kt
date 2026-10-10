@@ -85,7 +85,7 @@ data class MemoryResult(val memory: Memory, val counts: Map<String, Int>, val im
  * proposes, the app decides. An update that cannot apply (no room, unknown id) is ignored.
  */
 object MemoryRules {
-    const val PERMANENT_MAX = 30
+    const val PERMANENT_MAX = 50
     const val DYNAMIC_MAX = 40
     const val DYNAMIC_TTL_DAYS = 21L
     const val PROMOTE_DAYS = 5
@@ -233,6 +233,54 @@ object MemoryRules {
     }
 
     /** A69: a compaction was stored: the tombstones end (ADR-053 § 1, "until the next compaction"). */
+    /** At most this many facts come from the onboarding (ADR-057 decision 8). */
+    const val ONBOARDING_MAX = 30
+
+    /**
+     * A71 (ADR-057): the facts of the profile build, in the server's priority order, at most [ONBOARDING_MAX]. A routine is
+     * dynamic, declared, with its slot and numbers and no recorded day; every other fact is permanent, `declared`, no day.
+     * A key already kept (not temp) takes the new text in place; no room drops the rest; a tombstoned key is skipped.
+     */
+    fun declare(memory: Memory, facts: List<MemoryUpdate>, today: LocalDate): Memory {
+        var next = memory.next
+        val out = memory.facts.toMutableList()
+        val day = today.toString()
+        for (update in facts.take(ONBOARDING_MAX)) {
+            val key = clean(update.key, KEY_MAX)
+            val text = clean(update.text, TEXT_MAX)
+            if (key.isEmpty() || text.isEmpty()) continue
+            if (memory.tombstones.any { sameKey(it.key, key) }) continue
+            val routine = update.category == ROUTINE
+            if (routine && update.slot == null) continue
+            val same = out.indexOfFirst { !it.temp && sameKey(it.key, key) }
+            if (same >= 0) {
+                out[same] = out[same].copy(text = text)
+                continue
+            }
+            val kind = if (routine) DYNAMIC else PERMANENT
+            if (kind == PERMANENT && out.count { it.permanent } >= PERMANENT_MAX) continue
+            if (kind == DYNAMIC && out.count { it.dynamic } >= DYNAMIC_MAX) continue
+            val id = if (kind == PERMANENT) "P${next.p}".also { next = next.copy(p = next.p + 1) } else "D${next.d}".also { next = next.copy(d = next.d + 1) }
+            out += Fact(
+                id = id,
+                kind = kind,
+                category = update.category,
+                key = key,
+                text = text,
+                slot = update.slot.takeIf { routine },
+                source = DECLARED,
+                days = emptyList(),
+                created = day,
+                kcal = update.kcal.takeIf { routine },
+                p = update.p.takeIf { routine },
+                c = update.c.takeIf { routine },
+                g = update.g.takeIf { routine },
+                declared = routine,
+            )
+        }
+        return memory.copy(next = next, facts = out)
+    }
+
     fun clearTombstones(memory: Memory): Memory = if (memory.tombstones.isEmpty()) memory else memory.copy(tombstones = emptyList())
 
     private class State(memory: Memory, val today: String) {

@@ -182,7 +182,7 @@ Behavior: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [A
 | Server | S40 — eval personas, delivered ([history](../../server/plans/completed/)) | — |
 | Design | D27 — conversational onboarding (`ob0`–`ob6`; `o1`–`o5` retired), delivered ([history](completed/)) | D26, ADR-057 accepted |
 | Server | [S41](../../server/plans/pending_manual_validation/s41-onboarding-profile.md) — `POST /v1/profile` | S40 |
-| Client | [A71](../../android/plans/a71-conversational-onboarding.md) — conversational onboarding in the app | D27, S41 on dev, A70 merged |
+| Client | [A71](../../android/plans/pending_manual_validation/a71-conversational-onboarding.md) — conversational onboarding in the app | D27, S41 on dev, A70 merged |
 | Design | D28 — Home day strip, past day and extras (`home1` redrawn, `homeH`, `homeE`, `chatGX`), delivered ([history](completed/)) | D27, ADR-058 accepted |
 | Server | [S42](../../server/plans/pending_manual_validation/s42-extras-and-other-day.md) — extras and a record in a named past day | S40 |
 | Client | [A72](../../android/plans/a72-extras-and-history.md) — extras, the strip and the past-day record | D28, S42 on dev, A71 |

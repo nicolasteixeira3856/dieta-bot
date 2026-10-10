@@ -64,9 +64,9 @@ class MemoryRulesTest {
 
     @Test
     fun addPermanent_full_isIgnored() {
-        val full = memory(*Array(30) { fact("P$it", "k$it") })
+        val full = memory(*Array(MemoryRules.PERMANENT_MAX) { fact("P$it", "k$it") })
         val r = MemoryRules.apply(full, listOf(add("permanent", "queijo", "Queijo minas")), today)
-        assertThat(r.memory.facts).hasSize(30)
+        assertThat(r.memory.facts).hasSize(MemoryRules.PERMANENT_MAX)
         assertThat(r.memory.facts.none { it.key == "queijo" }).isTrue()
         assertThat(r.changed).isFalse()
     }
@@ -144,7 +144,7 @@ class MemoryRulesTest {
 
     @Test
     fun replace_permanentKindWithoutRoom_keepsDynamicButChangesText() {
-        val m = memory(*(Array(30) { fact("P$it", "k$it") } + fact("D1", "cafe")))
+        val m = memory(*(Array(MemoryRules.PERMANENT_MAX) { fact("P$it", "k$it") } + fact("D1", "cafe")))
         val r = MemoryRules.apply(m, listOf(op("replace", "D1", "Café sem açúcar", kind = "permanent")), today)
         val cafe = r.memory.facts.last()
         assertThat(cafe.id).isEqualTo("D1")
@@ -174,7 +174,7 @@ class MemoryRulesTest {
 
     @Test
     fun promotion_withoutRoom_waits_thenHappensWhenRoomOpens() {
-        val full = Array(30) { fact("P$it", "k$it") }
+        val full = Array(MemoryRules.PERMANENT_MAX) { fact("P$it", "k$it") }
         val m = memory(*(full + fact("D3", "cafe", days = daysBack(1, 3, 6, 10))), nextP = 100)
         val r = MemoryRules.apply(m, listOf(op("reinforce", "D3")), today)
         assertThat(r.memory.facts.last().id).isEqualTo("D3")

@@ -7,30 +7,48 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.google.common.truth.Truth.assertThat
 import app.fibrai.android.core.database.DayRepository
-import app.fibrai.android.core.database.InstantClock
 import app.fibrai.android.core.database.FibraiDatabase
+import app.fibrai.android.core.database.InstantClock
+import app.fibrai.android.core.memory.FactMemory
+import app.fibrai.android.core.memory.FakeMemoryFile
+import app.fibrai.android.core.network.ChatGoal
+import app.fibrai.android.core.network.ProfileFact
+import app.fibrai.android.core.network.ProfileIn
+import app.fibrai.android.core.network.ProfileOut
+import app.fibrai.android.core.telemetry.FakeTelemetry
+import app.fibrai.android.core.telemetry.TelemetryEvents
+import app.fibrai.android.domain.MemoryRules
+import app.fibrai.android.domain.OnboardingScript
+import app.fibrai.android.domain.OnboardingStep
+import com.google.common.truth.Truth.assertThat
 import java.io.File
+import java.io.IOException
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import retrofit2.HttpException
+import retrofit2.Response
 
+/** A71 (ADR-057): the scripted chat, the resume per phase, the profile build and its failures. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [34])
@@ -39,22 +57,26 @@ class OnboardingViewModelTest {
     private lateinit var db: FibraiDatabase
     private lateinit var storeScope: CoroutineScope
     private lateinit var store: DataStore<Preferences>
-    private val clock = InstantClock { Instant.parse("2026-03-16T12:00:00-03:00") }
-    private val mainDispatcher = UnconfinedTestDispatcher()
+    private lateinit var repo: DayRepository
+    private val memoryFile = FakeMemoryFile()
+    private val memory = FactMemory(memoryFile)
+    private val telemetry = FakeTelemetry()
+    private val clock = InstantClock { Instant.parse("2026-10-09T20:10:00-03:00") }
+    private val today = LocalDate.parse("2026-10-09")
+
+    private var calls = mutableListOf<ProfileIn>()
+    private var reply: (ProfileIn) -> ProfileOut = { ok(it) }
+    private val service = ProfileService { body -> calls += body; reply(body) }
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(mainDispatcher)
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         context = ApplicationProvider.getApplicationContext()
-        db = Room.inMemoryDatabaseBuilder(context, FibraiDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
+        db = Room.inMemoryDatabaseBuilder(context, FibraiDatabase::class.java).allowMainThreadQueries().build()
         storeScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val file = File(context.cacheDir, "test_onboarding_${System.nanoTime()}.preferences_pb")
-        store = PreferenceDataStoreFactory.create(
-            scope = storeScope,
-            produceFile = { file },
-        )
+        store = PreferenceDataStoreFactory.create(scope = storeScope, produceFile = { file })
+        repo = DayRepository(db, clock, store)
     }
 
     @After
@@ -64,236 +86,195 @@ class OnboardingViewModelTest {
         Dispatchers.resetMain()
     }
 
-    @Test
-    fun o1_tmbPrefillsCeilingUntilEdited() = runBlocking<Unit> {
-        val vm = loadedVm()
-        assertThat(vm.uiState.value.suggestedCeiling).isNull()
-        assertThat(vm.uiState.value.o1Valid).isFalse()
+    private fun vm() = OnboardingViewModel(repo, memory, service, clock, telemetry)
 
-        vm.setSex("male")
-        vm.setAge("27")
-        vm.setHeight("180")
-        vm.setWeight("116")
-        assertThat(vm.uiState.value.suggestedCeiling).isEqualTo(2160)
-        assertThat(vm.uiState.value.sameField).isEqualTo("2160")
-        assertThat(vm.uiState.value.o1Valid).isTrue()
+    private suspend fun until(message: String = "condition", check: suspend () -> Boolean) {
+        withTimeout(5_000) { while (!check()) delay(20) }
+    }
 
-        vm.setSameField("2000")
-        vm.setWeight("100")
-        assertThat(vm.uiState.value.suggestedCeiling).isEqualTo(2000) // 10*100+1125-135+5 = 1995 -> 2000
-        assertThat(vm.uiState.value.sameField).isEqualTo("2000")
+    private fun ok(body: ProfileIn) = ProfileOut(
+        goal = body.goal,
+        facts = listOf(
+            ProfileFact("permanent", "preference", "lactose", "Evita lactose"),
+            ProfileFact("dynamic", "routine", "café", "pão com ovo", slot = "s1", kcal = 320, p = 15, c = 32, g = 14),
+            ProfileFact("permanent", "equipment", "air fryer", "Tem air fryer"),
+        ),
+        summary = "Teto 1370 kcal.",
+    )
 
-        vm.setAge("")
-        assertThat(vm.uiState.value.suggestedCeiling).isNull()
-        vm.setSameField("0")
-        assertThat(vm.uiState.value.o1Valid).isFalse()
+    /** Answers every step with the D27 sample (the fixtures), through the composer or the quick replies. */
+    private suspend fun answerAll(vm: OnboardingViewModel, until: OnboardingStep? = null) {
+        until("welcome") { vm.uiState.value.screen != OnboardingScreen.LOADING }
+        if (vm.uiState.value.screen == OnboardingScreen.WELCOME) vm.start()
+        for ((step, answer) in OnboardingFixtures.answers) {
+            if (step == until) return
+            assertThat(vm.uiState.value.step).isEqualTo(step)
+            val text = if (step == OnboardingStep.MEALS) OnboardingScript.DEFAULT_MEALS else answer.text
+            vm.setComposer(text)
+            vm.send()
+        }
     }
 
     @Test
-    fun o1_requiresFullProfile_prefillsEveryCeilingField() = runBlocking<Unit> {
-        val vm = loadedVm()
-        assertThat(vm.uiState.value.sameField).isEmpty()
-        assertThat(vm.uiState.value.dayFields.all { it.isEmpty() }).isTrue()
-
-        vm.setSex("male")
-        vm.setAge("27")
-        assertThat(vm.uiState.value.profileValid).isFalse()
-        assertThat(vm.uiState.value.o1Valid).isFalse()
-        vm.setHeight("180")
-        assertThat(vm.uiState.value.o1Valid).isFalse()
-        vm.setWeight("116")
-        assertThat(vm.uiState.value.profileValid).isTrue()
-        assertThat(vm.uiState.value.o1Valid).isTrue()
-        val s = vm.uiState.value
-        assertThat(listOf(s.sameField, s.weekdayField, s.weekendField) + s.dayFields).containsExactlyElementsIn(List(10) { "2160" })
+    fun freshInstall_welcomeThenFirstQuestion() = runBlocking<Unit> {
+        val vm = vm()
+        until { vm.uiState.value.screen == OnboardingScreen.WELCOME }
+        vm.start()
+        val ui = vm.uiState.value
+        assertThat(ui.screen).isEqualTo(OnboardingScreen.CHAT)
+        assertThat(ui.step).isEqualTo(OnboardingStep.SEX)
+        assertThat(ui.quickReplies).containsExactly("Feminino", "Masculino").inOrder()
+        assertThat(telemetry.params(TelemetryEvents.ONBOARDING_STARTED)).hasSize(1)
     }
 
     @Test
-    fun o1_clearingBodyFieldAfterEditKeepsCeilingAndBlocks() = runBlocking<Unit> {
-        val vm = loadedVm()
-        vm.setSex("female")
-        vm.setAge("30")
-        vm.setHeight("165")
-        vm.setWeight("60")
-        vm.setSameField("1800")
-        assertThat(vm.uiState.value.o1Valid).isTrue()
-
-        vm.setWeight("")
-        assertThat(vm.uiState.value.profileValid).isFalse()
-        assertThat(vm.uiState.value.sameField).isEqualTo("1800")
-        assertThat(vm.uiState.value.o1Valid).isFalse()
+    fun invalidAnswer_notUnderstoodAndSameStep() = runBlocking<Unit> {
+        val vm = vm()
+        answerAll(vm, until = OnboardingStep.TONE)
+        vm.setComposer("pode ser um meio termo")
+        vm.send()
+        val ui = vm.uiState.value
+        assertThat(ui.step).isEqualTo(OnboardingStep.TONE)
+        assertThat(ui.messages.takeLast(2).map { it.text }).containsExactly("pode ser um meio termo", OnboardingScript.NOT_UNDERSTOOD).inOrder()
+        assertThat(ui.messages[ui.anchor].key).isEqualTo("q-TONE")
+        assertThat(ui.selectedReply).isEqualTo("Seco")
     }
 
     @Test
-    fun o1_storedProfileIsValidOnLoad() = runBlocking<Unit> {
-        val repo = DayRepository(db, clock, store)
-        val vm = loadedVm(repo)
-        vm.setSex("male")
-        vm.setAge("27")
-        vm.setHeight("180")
-        vm.setWeight("116")
-        vm.setSlotCount(2)
-        vm.setSlotName(0, "Café")
-        vm.setSlotName(1, "Janta")
-        vm.enterMacros()
-        vm.completeOnboarding {}
-        repo.observeToday().first { it.onboardingDone }
-
-        val again = loadedVm(DayRepository(db, clock, store))
-        assertThat(again.uiState.value.profileValid).isTrue()
-        assertThat(again.uiState.value.o1Valid).isTrue()
-        assertThat(again.uiState.value.sameField).isEqualTo("2160")
+    fun targetsStep_prefillsComposer_andShowsCounter() = runBlocking<Unit> {
+        val vm = vm()
+        answerAll(vm, until = OnboardingStep.TARGETS)
+        val ui = vm.uiState.value
+        assertThat(ui.composer).isEqualTo("1.370 kcal · P 103 · C 137 · G 46")
+        assertThat(ui.counter).isEqualTo("33/2000")
+        assertThat(ui.messages[ui.anchor].key).isEqualTo("q-WEIGHT")
     }
 
     @Test
-    fun o3_countKeepsNamesAndRequiresAllNames()= runBlocking<Unit> {
-        val vm = loadedVm()
-        assertThat(vm.uiState.value.slots.map { it.minutes }).containsExactly(450, 750, 960, 1200).inOrder()
-        assertThat(vm.uiState.value.slots.all { it.name.isEmpty() }).isTrue()
-        assertThat(vm.uiState.value.o3Valid).isFalse()
-
-        vm.setSlotName(0, "Café da manhã")
-        vm.setSlotCount(6)
-        assertThat(vm.uiState.value.slots).hasSize(6)
-        assertThat(vm.uiState.value.slots[0].name).isEqualTo("Café da manhã")
-        assertThat(vm.uiState.value.slots[5].minutes).isEqualTo(22 * 60 + 30)
-
-        vm.setSlotCount(9)
-        assertThat(vm.uiState.value.slots).hasSize(6)
-        vm.setSlotCount(2)
-        assertThat(vm.uiState.value.slots).hasSize(2)
-        // Row 0 was named (kept); row 1 was untouched and takes the 2-meal default (20:00).
-        assertThat(vm.uiState.value.slots.map { it.minutes }).containsExactly(450, 1200).inOrder()
-        vm.setSlotName(1, "  ")
-        assertThat(vm.uiState.value.o3Valid).isFalse()
-        vm.setSlotName(1, "Janta")
-        vm.setSlotTime(1, 20 * 60 + 15)
-        assertThat(vm.uiState.value.o3Valid).isTrue()
-        assertThat(vm.uiState.value.slots[1].minutes).isEqualTo(1215)
+    fun allAnswered_summary_andEveryAnswerStored() = runBlocking<Unit> {
+        val vm = vm()
+        answerAll(vm)
+        assertThat(vm.uiState.value.screen).isEqualTo(OnboardingScreen.SUMMARY)
+        until { repo.onboardingAnswers().size == OnboardingStep.TOTAL }
+        until { repo.observeTodayFirst().onboardingPhase == DayRepository.PHASE_SUMMARY }
+        assertThat(telemetry.params(TelemetryEvents.ONBOARDING_STEP)).hasSize(OnboardingStep.TOTAL)
+        assertThat(telemetry.events.flatMap { it.second.values }.filterIsInstance<String>()).doesNotContain("fígado")
     }
 
     @Test
-    fun o4_prefillsSplitOfDay1CeilingUnlessEdited() = runBlocking<Unit> {
-        val vm = loadedVm()
-        vm.setCeilingMode("weekdayWeekend")
-        vm.setWeekdayField("1800")
-        vm.setWeekendField("2400")
-        vm.enterMacros() // 2026-03-16 is a Monday -> weekday
-        assertThat(vm.uiState.value.day1Ceiling).isEqualTo(1800)
-        assertThat(listOf(vm.uiState.value.proteinField, vm.uiState.value.carbField, vm.uiState.value.fatField))
-            .containsExactly("135", "180", "60").inOrder()
-
-        vm.setProtein("170")
-        vm.setWeekdayField("2000")
-        vm.enterMacros()
-        assertThat(vm.uiState.value.day1Ceiling).isEqualTo(2000)
-        assertThat(vm.uiState.value.proteinField).isEqualTo("170")
-        assertThat(vm.uiState.value.carbField).isEqualTo("180")
+    fun killAtStep9_resumesAtStep9() = runBlocking<Unit> {
+        val first = vm()
+        answerAll(first, until = OnboardingStep.TONE)
+        until { repo.onboardingAnswers().size == 8 }
+        val resumed = vm()
+        until { resumed.uiState.value.screen == OnboardingScreen.CHAT }
+        assertThat(resumed.uiState.value.step).isEqualTo(OnboardingStep.TONE)
+        assertThat(resumed.uiState.value.messages.count { it.fromUser }).isEqualTo(8)
+        assertThat(telemetry.params(TelemetryEvents.ONBOARDING_RESUMED)).isNotEmpty()
     }
 
     @Test
-    fun complete_persistsProfileAndSlots_andSurvivesRestart() = runBlocking<Unit> {
-        val repo = DayRepository(db, clock, store)
-        val vm = loadedVm(repo)
-        vm.setSex("male")
-        vm.setAge("27")
-        vm.setHeight("180")
-        vm.setWeight("116")
-        vm.setEat("partial")
-        vm.setPct("40")
-        vm.setSlotCount(3)
-        vm.setSlotName(0, "Café")
-        vm.setSlotName(1, "Almoço")
-        vm.setSlotName(2, "Janta")
-        vm.setSlotTime(0, 21 * 60) // stored sorted by time
-        vm.enterMacros()
-
-        var completed = false
-        vm.completeOnboarding { completed = true }
-        val snap = repo.observeToday().first { it.onboardingDone }
-        assertThat(snap.sex).isEqualTo("male")
-        assertThat(snap.ageYears).isEqualTo(27)
-        assertThat(snap.heightCm).isEqualTo(180)
-        assertThat(snap.weightKg).isEqualTo(116.0)
-        assertThat(snap.kcalSame).isEqualTo(2160)
-        assertThat(snap.eat).isEqualTo("partial")
-        assertThat(snap.pct).isEqualTo(40)
-        assertThat(listOf(snap.proteinTargetG, snap.carbTargetG, snap.fatTargetG)).containsExactly(162, 216, 72).inOrder()
-        assertThat(snap.firstDay).isEqualTo("2026-03-16")
-        assertThat(snap.slots.map { it.name to it.minutesFromMidnight })
-            .containsExactly("Almoço" to 750, "Janta" to 1200, "Café" to 1260).inOrder()
-        vm.uiState.first { it.isComplete }
-        assertThat(completed).isTrue()
-
-        // Kill + relaunch: a fresh repository and ViewModel read the same rows back.
-        val again = loadedVm(DayRepository(db, clock, store))
-        assertThat(again.uiState.value.sex).isEqualTo("male")
-        assertThat(again.uiState.value.weightField).isEqualTo("116")
-        assertThat(again.uiState.value.slots.map { it.name }).containsExactly("Almoço", "Janta", "Café").inOrder()
-        assertThat(again.uiState.value.proteinField).isEqualTo("162")
-        assertThat(again.uiState.value.tone).isEqualTo("seco")
-    }
-
-    /** A60 part B (O5): seco is preselected; the tone picked on O5 is stored with the onboarding, onboardingDone last. */
-    @Test
-    fun o5_toneDefaultsToSeco_andDuroIsStoredOnComplete() = runBlocking<Unit> {
-        val repo = DayRepository(db, clock, store)
-        val vm = loadedVm(repo)
-        assertThat(vm.uiState.value.tone).isEqualTo("seco")
-        vm.setTone("bravo")
-        assertThat(vm.uiState.value.tone).isEqualTo("seco")
-        vm.setTone("duro")
-        vm.setSex("female")
-        vm.setAge("30")
-        vm.setHeight("165")
-        vm.setWeight("60")
-        vm.setSlotCount(3)
-        listOf("Café", "Almoço", "Jantar").forEachIndexed { i, n -> vm.setSlotName(i, n) }
-        vm.enterMacros()
-        assertThat(repo.observeToday().first().onboardingDone).isFalse()
-        vm.completeOnboarding {}
-        val snap = repo.observeToday().first { it.onboardingDone }
-        assertThat(snap.tone).isEqualTo("duro")
+    fun back_takesTheLastAnswerBackIntoTheComposer() = runBlocking<Unit> {
+        val vm = vm()
+        answerAll(vm, until = OnboardingStep.HEIGHT)
+        assertThat(vm.back()).isTrue()
+        assertThat(vm.uiState.value.step).isEqualTo(OnboardingStep.AGE)
+        assertThat(vm.uiState.value.composer).isEqualTo("32 anos")
+        until { repo.onboardingAnswers().none { it.step == "AGE" } }
     }
 
     @Test
-    fun complete_isBlockedWhileInvalid_andWritesNoEmptySlots() = runBlocking<Unit> {
-        val repo = DayRepository(db, clock, store)
-        val vm = loadedVm(repo)
-        vm.setSex("female")
-        vm.completeOnboarding { error("must not complete") }
-        val snap = repo.observeToday().first()
-        assertThat(snap.onboardingDone).isFalse()
-        assertThat(snap.slots).isEmpty()
-        assertThat(vm.uiState.value.isComplete).isFalse()
+    fun confirm_buildsProfile_writesFactsAndFinishes() = runBlocking<Unit> {
+        val vm = vm()
+        answerAll(vm)
+        vm.confirm()
+        until { vm.uiState.value.screen == OnboardingScreen.SUCCESS }
+        val body = calls.single()
+        assertThat(body.ceilingKcal).isEqualTo(1370)
+        assertThat(body.eatBack.mode).isEqualTo("partial")
+        assertThat(body.eatBack.pct).isEqualTo(50)
+        assertThat(body.slots.map { it.id }).containsExactly("s1", "s2", "s3", "s4").inOrder()
+        assertThat(body.goal).isEqualTo(ChatGoal(60.0, "2027-04-30"))
+        assertThat(body.answers.dislikes).isEqualTo("fígado")
+
+        val day = repo.observeTodayFirst()
+        assertThat(day.onboardingDone).isTrue()
+        assertThat(day.kcalSame).isEqualTo(1370)
+        assertThat(day.proteinTargetG).isEqualTo(103)
+        assertThat(day.slots.map { it.name }).containsExactly("Café da manhã", "Almoço", "Lanche", "Jantar").inOrder()
+        assertThat(day.goalWeightKg).isEqualTo(60.0)
+        assertThat(day.closureTime).isEqualTo("22:00")
+        assertThat(day.firstDay).isEqualTo("2026-10-09")
+        assertThat(repo.onboardingAnswers()).isEmpty()
+
+        val facts = memory.read(today).facts
+        assertThat(facts.map { it.source }.toSet()).containsExactly(MemoryRules.DECLARED)
+        val routine = facts.single { it.category == MemoryRules.ROUTINE }
+        assertThat(routine.slot).isEqualTo(day.slots.minBy { it.minutesFromMidnight }.id.toString())
+        assertThat(routine.declared).isTrue()
+        assertThat(telemetry.params(TelemetryEvents.ONBOARDING_COMPLETE).single()["facts"]).isEqualTo(3)
     }
 
-    private suspend fun loadedVm(repo: DayRepository = DayRepository(db, clock, store)): OnboardingViewModel {
-        val vm = OnboardingViewModel(repo, clock)
-        withTimeout(5_000) { vm.uiState.first { it.loaded } }
-        return vm
+    @Test
+    fun goalRefused_successWithTheLine() = runBlocking<Unit> {
+        reply = { ok(it).copy(goal = null, goalRefused = true) }
+        val vm = vm()
+        answerAll(vm)
+        vm.confirm()
+        until { vm.uiState.value.screen == OnboardingScreen.SUCCESS }
+        assertThat(vm.uiState.value.goalRefused).isTrue()
+        assertThat(repo.observeTodayFirst().goalWeightKg).isNull()
     }
 
-    @Test fun splitGroupsAdvanceBackCopyAndFinishWithoutDuplicatedIds() = runBlocking<Unit> {
-        val vm = loadedVm()
-        vm.setSlotMode("split")
-        vm.setSlotCount(2)
-        vm.setSlotName(0, "Café")
-        vm.setSlotName(1, "Jantar")
-        var next = false
-        vm.nextSlotGroup { next = true }
-        assertThat(next).isFalse()
-        assertThat(vm.uiState.value.slotSchedule.index).isEqualTo(1)
-        vm.copyPreviousSlots()
-        assertThat(vm.uiState.value.slots.map { it.name }).containsExactly("Café", "Jantar").inOrder()
-        vm.setSlotTime(0, 570)
-        vm.previousSlotGroup {}
-        assertThat(vm.uiState.value.slots[0].minutes).isNotEqualTo(570)
-        vm.nextSlotGroup {}
-        assertThat(vm.uiState.value.slots[0].minutes).isEqualTo(570)
-        vm.nextSlotGroup { next = true }
-        assertThat(next).isTrue()
-        assertThat(vm.uiState.value.slotSchedule.valid).isTrue()
+    @Test
+    fun serverError_errorScreen_resumesThere_retryReachesSuccess() = runBlocking<Unit> {
+        reply = { throw HttpException(Response.error<ProfileOut>(500, "{}".toResponseBody())) }
+        val vm = vm()
+        answerAll(vm)
+        vm.confirm()
+        until { vm.uiState.value.screen == OnboardingScreen.ERROR }
+        assertThat(telemetry.params(TelemetryEvents.ONBOARDING_ERROR).single()["reason"]).isEqualTo("server")
+        until { repo.observeTodayFirst().onboardingPhase == DayRepository.PHASE_ERROR }
+        assertThat(repo.onboardingAnswers()).hasSize(OnboardingStep.TOTAL)
+
+        val resumed = vm()
+        until { resumed.uiState.value.screen == OnboardingScreen.ERROR }
+        reply = { ok(it) }
+        resumed.retry()
+        until { resumed.uiState.value.screen == OnboardingScreen.SUCCESS }
+        assertThat(repo.observeTodayFirst().onboardingDone).isTrue()
     }
 
+    @Test
+    fun errorReasons_blockedAndNetwork() = runBlocking<Unit> {
+        reply = { throw HttpException(Response.error<ProfileOut>(400, "{\"detail\":\"content_policy_blocked\"}".toResponseBody())) }
+        val vm = vm()
+        answerAll(vm)
+        vm.confirm()
+        until { vm.uiState.value.screen == OnboardingScreen.ERROR }
+        reply = { throw IOException("offline") }
+        vm.retry()
+        until { telemetry.params(TelemetryEvents.ONBOARDING_ERROR).size == 2 }
+        assertThat(telemetry.params(TelemetryEvents.ONBOARDING_ERROR).map { it["reason"] }).containsExactly("blocked", "network").inOrder()
+        vm.backToSummary()
+        assertThat(vm.uiState.value.screen).isEqualTo(OnboardingScreen.SUMMARY)
+    }
+
+    @Test
+    fun editMeals_newCountReopensTheMealLines_thenSummary() = runBlocking<Unit> {
+        val vm = vm()
+        answerAll(vm)
+        vm.edit("meals")
+        assertThat(vm.uiState.value.step).isEqualTo(OnboardingStep.MEAL_COUNT)
+        assertThat(vm.uiState.value.selectedReply).isEqualTo("4")
+        vm.reply("3")
+        assertThat(vm.uiState.value.step).isEqualTo(OnboardingStep.MEALS)
+        vm.setComposer("Café 07:00\nAlmoço 12:00\nJantar 19:30")
+        vm.send()
+        assertThat(vm.uiState.value.screen).isEqualTo(OnboardingScreen.SUMMARY)
+        val meals = vm.uiState.value.summary.single { it.id == "meals" }.lines
+        assertThat(meals).containsExactly("Café 07:00 · Almoço 12:00", "Jantar 19:30").inOrder()
+    }
+
+    private suspend fun DayRepository.observeTodayFirst() = withTimeout(5_000) { observeToday().first() }
 }

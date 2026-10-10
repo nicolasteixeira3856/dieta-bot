@@ -1,4 +1,4 @@
-package app.fibrai.android.feature.onboarding
+package app.fibrai.android.feature.config
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test

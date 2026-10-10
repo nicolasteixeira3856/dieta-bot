@@ -420,6 +420,8 @@ object PromptBuilder {
         slots = day.slotsOn(today).sortedBy { it.minutesFromMidnight }
             .map { ChatSlot(it.id.toString(), it.name, SlotSuggestions.format(it.minutesFromMidnight)) },
         tone = day.tone.takeIf { it in TONES } ?: TONE_SECO,
+        // A71 (ADR-057 decision 9): the goal the profile build accepted.
+        goal = day.goalWeightKg?.let { app.fibrai.android.core.network.ChatGoal(it, day.goalDate) },
     )
 
     private fun snapshot(day: DaySnapshot, today: LocalDate) = ChatDay(

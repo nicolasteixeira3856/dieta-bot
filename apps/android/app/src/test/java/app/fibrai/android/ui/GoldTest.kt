@@ -30,12 +30,10 @@ import app.fibrai.android.feature.chat.PhotoPreviews
 import app.fibrai.android.feature.home.HomeFixtures
 import app.fibrai.android.feature.home.HomePanelMapper
 import app.fibrai.android.feature.home.HomePanelScreen
-import app.fibrai.android.feature.onboarding.CeilingScreen
-import app.fibrai.android.feature.onboarding.EatScreen
-import app.fibrai.android.feature.onboarding.MacrosScreen
+import app.fibrai.android.feature.onboarding.OnboardingActions
+import app.fibrai.android.feature.onboarding.OnboardingFixtures
+import app.fibrai.android.feature.onboarding.OnboardingRoute
 import app.fibrai.android.feature.onboarding.OnboardingUiState
-import app.fibrai.android.feature.onboarding.SlotDraft
-import app.fibrai.android.feature.onboarding.OnboardingSlotsScreen
 import app.fibrai.android.feature.splash.SplashScreen
 import java.io.File
 import java.io.FileOutputStream
@@ -70,54 +68,69 @@ class GoldTest {
     @get:Rule
     val compose = createComposeRule()
 
+    /** A71 (D27): the conversational onboarding, ob0–ob6. The logo animation is frozen (the gold is its static frame). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob0_dark() = check("ob0", dark = true) { Ob(OnboardingFixtures.ob0) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob0_light() = check("ob0", dark = false) { Ob(OnboardingFixtures.ob0) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob1_dark() = check("ob1", dark = true) { Ob(OnboardingFixtures.ob1) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob1_light() = check("ob1", dark = false) { Ob(OnboardingFixtures.ob1) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob1e_dark() = check("ob1e", dark = true) { Ob(OnboardingFixtures.ob1e) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob1e_light() = check("ob1e", dark = false) { Ob(OnboardingFixtures.ob1e) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob2_dark() = check("ob2", dark = true) { Ob(OnboardingFixtures.ob2) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob2_light() = check("ob2", dark = false) { Ob(OnboardingFixtures.ob2) }
+
+    /** ob3 is the full summary page (1386 dp). */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1386dp-xhdpi")
+    fun ob3_dark() = check("ob3", dark = true) { Ob(OnboardingFixtures.ob3) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1386dp-xhdpi")
+    fun ob3_light() = check("ob3", dark = false) { Ob(OnboardingFixtures.ob3) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob4_dark() = check("ob4", dark = true) { Ob(OnboardingFixtures.ob4) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob4_light() = check("ob4", dark = false) { Ob(OnboardingFixtures.ob4) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob5_dark() = check("ob5", dark = true) { Ob(OnboardingFixtures.ob5) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob5_light() = check("ob5", dark = false) { Ob(OnboardingFixtures.ob5) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob6_dark() = check("ob6", dark = true) { Ob(OnboardingFixtures.ob6) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
+    fun ob6_light() = check("ob6", dark = false) { Ob(OnboardingFixtures.ob6) }
+
+    @Composable private fun Ob(ui: OnboardingUiState) = OnboardingRoute(ui, OnboardingActions(), animate = false)
+
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun splash_dark() = check("splash", dark = true) { SplashScreen(capture = true, onDone = {}) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun splash_light() = check("splash", dark = false) { SplashScreen(capture = true, onDone = {}) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h979dp-xhdpi")
-    fun o1_dark() = check("o1", dark = true) { O1() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h979dp-xhdpi")
-    fun o1_light() = check("o1", dark = false) { O1() }
-
-    /** A31: before the profile (A41: Figma frame, 937 dp). */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h937dp-xhdpi")
-    fun o1e_dark() = check("o1e", dark = true) { O1E() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h937dp-xhdpi")
-    fun o1e_light() = check("o1e", dark = false) { O1E() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun o2_dark() = check("o2", dark = true) { O2() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun o2_light() = check("o2", dark = false) { O2() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1268dp-xhdpi")
-    fun o3_dark() = check("o3", dark = true) { O3() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1268dp-xhdpi")
-    fun o3_light() = check("o3", dark = false) { O3() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
-    fun o3s_dark() = check("o3s", dark = true) { O3S() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1270dp-xhdpi")
-    fun o3s_light() = check("o3s", dark = false) { O3S() }
-
     @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
     fun cfgS_dark() = check("cfgS", dark = true, region = CFG_S_BOX, reportOnly = true) { CfgS() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
     fun cfgS_light() = check("cfgS", dark = false, region = CFG_S_BOX, reportOnly = true) { CfgS() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
-    fun o4_dark() = check("o4", dark = true) { O4() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h865dp-xhdpi")
-    fun o4_light() = check("o4", dark = false) { O4() }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1258dp-xhdpi")
     fun home0_dark() = check("home0", dark = true) { Home(HomeFixtures.home0) }
@@ -363,13 +376,6 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1002dp-xhdpi")
     fun chatRB_light() = check("chatRB", dark = false) { Chat(ChatFixtures.chatRB) }
 
-    /** o5 (D16, A60 part B): the tone, Seco preselected. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun o5_dark() = check("o5", dark = true) { O5() }
-
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun o5_light() = check("o5", dark = false) { O5() }
-
     /** cfgT (D16): the Tom da Tali sheet over the blurred Config. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun cfgT_dark() = check("cfgT", dark = true) { CfgT() }
@@ -390,8 +396,6 @@ class GoldTest {
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1834dp-xhdpi")
     fun homeK_light() = check("homeK", dark = false, reportOnly = true, regions = HOME_K_BOXES) { HomeClosure(LocalDate.parse("2026-10-04"), WEEK_CLOSURES) }
-
-    @Composable private fun O5() = app.fibrai.android.feature.onboarding.ToneScreen(GOLD_STATE, {}, {}, {})
 
     @Composable private fun CfgT() = ConfigScreen(
         ConfigMapper.map(CFG_DAY, LocalDate.parse("2026-09-25")).copy(
@@ -418,28 +422,11 @@ class GoldTest {
         {}, {}, {},
     )
 
-    @Composable private fun O1() = CeilingScreen(GOLD_STATE, {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
-
-    @Composable private fun O1E() = CeilingScreen(OnboardingUiState(sex = "male"), {}, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
-
-    @Composable private fun O2() = EatScreen(GOLD_STATE, {}, {}, {}, {})
-
-    @Composable private fun O3() = OnboardingSlotsScreen(GOLD_STATE, {}, { _, _ -> }, { _, _ -> }, {}, {})
-
-    @Composable private fun O3S() = OnboardingSlotsScreen(
-        GOLD_STATE.copy(
-            slots = listOf(SlotDraft(name = "Café da manhã", minutes = 570), SlotDraft(name = "Almoço", minutes = 810), SlotDraft(name = "Jantar", minutes = 1230)),
-            slotSchedule = app.fibrai.android.feature.onboarding.SlotScheduleDraft(mode = "split", index = 1),
-        ), {}, { _, _ -> }, { _, _ -> }, {}, {},
-    )
-
     @Composable private fun CfgS() = ConfigScreen(ConfigMapper.map(
         CFG_DAY.copy(slotMode = "split", slots = CFG_DAY.slots.map { it.copy(days = 31) } +
             listOf(MealSlot(5, "Café da manhã", 570, 96), MealSlot(6, "Almoço", 810, 96), MealSlot(7, "Jantar", 1230, 96))),
         LocalDate.parse("2026-09-25"),
     ), ConfigActions())
-
-    @Composable private fun O4() = MacrosScreen(GOLD_STATE, {}, {}, {}, {}, {})
 
     /** [navDp] = 0 for bottom sheets: they draw under the nav bar and pad themselves. */
     @org.junit.Before
@@ -709,26 +696,5 @@ class GoldTest {
             DAY_CLOSURE.copy(key = "day:2026-10-04", date = "2026-10-04"),
         )
 
-        val GOLD_STATE = OnboardingUiState(
-            sex = "male",
-            ageField = "27",
-            heightField = "180",
-            weightField = "116",
-            ceilingMode = "same",
-            sameField = "2000",
-            ceilingEdited = true,
-            suggestedCeiling = 2160,
-            eat = "zero",
-            slots = listOf(
-                SlotDraft(name = "Café da manhã", minutes = 7 * 60 + 30),
-                SlotDraft(name = "Almoço", minutes = 12 * 60 + 30),
-                SlotDraft(name = "Lanche", minutes = 16 * 60),
-                SlotDraft(name = "Jantar", minutes = 20 * 60),
-            ),
-            proteinField = "150",
-            carbField = "200",
-            fatField = "67",
-            day1Ceiling = 2000,
-        )
     }
 }

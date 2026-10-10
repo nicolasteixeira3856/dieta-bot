@@ -46,14 +46,15 @@ private fun List<AeroStop>.verticalBrush(): Brush = Brush.verticalGradient(*map 
  * and moves with it, as the fill of a Figma page frame does.
  */
 @Composable
-fun Modifier.aeroPage(scroll: ScrollState? = null): Modifier {
+fun Modifier.aeroPage(scroll: ScrollState? = null, trailingPx: () -> Int = { 0 }): Modifier {
     val c = Aero.colors
     val haze = LocalAeroHaze.current
     val stops = remember(c) { AeroPaints.backgroundPageStops(c).map { it.position to it.color }.toTypedArray() }
     return (if (haze != null) hazeSource(haze) else this).drawBehind {
         val top = -(scroll?.value ?: 0).toFloat()
-        val bottom = top + size.height + (scroll?.maxValue?.takeIf { it != Int.MAX_VALUE } ?: 0)
-        drawRect(Brush.verticalGradient(*stops, startY = top, endY = bottom))
+        // [trailingPx]: content added under a frame's last block sits on the gradient's end colour (A71, cfg).
+        val bottom = top + size.height + (scroll?.maxValue?.takeIf { it != Int.MAX_VALUE } ?: 0) - trailingPx()
+        drawRect(Brush.verticalGradient(*stops, startY = top, endY = bottom.coerceAtLeast(top + 1f)))
     }
 }
 
@@ -62,10 +63,11 @@ fun Modifier.aeroPage(scroll: ScrollState? = null): Modifier {
 fun AeroPage(
     modifier: Modifier = Modifier,
     scroll: ScrollState? = null,
+    trailingPx: () -> Int = { 0 },
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(modifier) {
-        Box(Modifier.matchParentSize().aeroPage(scroll))
+        Box(Modifier.matchParentSize().aeroPage(scroll, trailingPx))
         content()
     }
 }

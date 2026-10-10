@@ -1,68 +1,40 @@
 package app.fibrai.android.feature.onboarding
 
 import androidx.compose.runtime.Immutable
-import app.fibrai.android.domain.SlotSuggestions
+import app.fibrai.android.core.network.ProfileIn
+import app.fibrai.android.core.network.ProfileOut
+import app.fibrai.android.domain.OnboardingStep
+import app.fibrai.android.domain.SummaryBlock
+
+/** A71 (S41): `POST /v1/profile`, once, on the summary's confirm. */
+fun interface ProfileService {
+    suspend fun build(body: ProfileIn): ProfileOut
+}
+
+/** The onboarding's screens (D27): welcome `ob0`, chat `ob1`/`ob1e`/`ob2`, summary `ob3`, building `ob4`, success `ob5`, error `ob6`. */
+enum class OnboardingScreen { LOADING, WELCOME, CHAT, SUMMARY, BUILDING, SUCCESS, ERROR }
+
+/** One bubble of the onboarding chat. [anchor]: the thread scrolls so this bubble opens the viewport (the gold's layout). */
+@Immutable
+data class OnboardingMessage(val key: String, val text: String, val fromUser: Boolean, val time: String)
 
 @Immutable
-data class SlotDraft(
-    val id: Long = 0,
-    val name: String = "",
-    val minutes: Int,
-)
-
 data class OnboardingUiState(
-    // O1
-    val sex: String = "",
-    val ageField: String = "",
-    val heightField: String = "",
-    val weightField: String = "",
-    val ceilingMode: String = "same",
-    /** Ceiling fields start blank; the TMB prefill fills them once the profile is valid (A31). */
-    val sameField: String = "",
-    val weekdayField: String = "",
-    val weekendField: String = "",
-    val dayFields: List<String> = List(7) { "" },
-    val ceilingEdited: Boolean = false,
-    /** Mifflin-St Jeor rounded to 10. Null while a body field is missing. */
-    val suggestedCeiling: Int? = null,
-    // O2
-    val eat: String = "zero",
-    val pct: String = "50",
-    // O3
-    val slots: List<SlotDraft> = SlotSuggestions.defaultTimes(4).map { SlotDraft(minutes = it) },
-    val slotSchedule: SlotScheduleDraft = SlotScheduleDraft(),
-    // O4
-    val proteinField: String = "150",
-    val carbField: String = "200",
-    val fatField: String = "67",
-    val macrosEdited: Boolean = false,
-    // O5 (A60 part B)
-    val tone: String = "seco",
-    /** Ceiling of day 1, drives the O4 prefill and "KCAL TOTAL ESTIMADA". */
-    val day1Ceiling: Int = 2000,
-    val isComplete: Boolean = false,
-    /** True once the stored profile has been read into the fields. */
-    val loaded: Boolean = false,
+    val screen: OnboardingScreen = OnboardingScreen.LOADING,
+    val messages: List<OnboardingMessage> = emptyList(),
+    /** Index in [messages] of the bubble that opens the viewport: the Tali message before the latest user message. */
+    val anchor: Int = 0,
+    val step: OnboardingStep? = null,
+    val quickReplies: List<String> = emptyList(),
+    val selectedReply: String? = null,
+    val composer: String = "",
+    val summary: List<SummaryBlock> = emptyList(),
+    val goalRefused: Boolean = false,
+    /** A `sim` to the notifications: the screen asks POST_NOTIFICATIONS once (Android 13+). */
+    val askNotifications: Boolean = false,
 ) {
-    /** Sex, age, height and weight filled (> 0). Gates the ceiling controls and Continuar (A31). */
-    val profileValid: Boolean
-        get() = sex.isNotEmpty() &&
-            (ageField.toIntOrNull() ?: 0) > 0 &&
-            (heightField.toIntOrNull() ?: 0) > 0 &&
-            (weightField.toDoubleOrNull() ?: 0.0) > 0.0
-
-    val o1Valid: Boolean
-        get() = profileValid && ceilingFields().all { (it.toIntOrNull() ?: 0) > 0 }
-
-    val o3Valid: Boolean
-        get() = slotSchedule.pendingMode == null && slots.size in SlotSuggestions.MIN_SLOTS..SlotSuggestions.MAX_SLOTS && slots.all { it.name.isNotBlank() }
-
-    val o4Valid: Boolean
-        get() = listOf(proteinField, carbField, fatField).all { it.toIntOrNull() != null }
-
-    fun ceilingFields(): List<String> = when (ceilingMode) {
-        "weekdayWeekend" -> listOf(weekdayField, weekendField)
-        "seven" -> dayFields
-        else -> listOf(sameField)
-    }
+    val composerLength: Int get() = composer.trim().let { it.codePointCount(0, it.length) }
+    val tooLong: Boolean get() = composerLength > app.fibrai.android.domain.OnboardingScript.TEXT_MAX
+    val canSend: Boolean get() = composer.isNotBlank() && !tooLong
+    val counter: String? get() = step?.takeIf { it.counted }?.let { "$composerLength/${app.fibrai.android.domain.OnboardingScript.TEXT_MAX}" }
 }

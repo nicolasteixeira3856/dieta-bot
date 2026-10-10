@@ -49,17 +49,20 @@ class SlotAlarmScheduler @Inject constructor(
             now = now,
         )
         scheduledIds().forEach { cancel(it) }
-        if (day.onboardingDone) due.forEach { set(it.at, slotIntent(it.slotId)) }
+        // A71 (ADR-057 decision 10): notifications off schedule no meal reminder.
+        if (day.onboardingDone && day.notificationsEnabled) due.forEach { set(it.at, slotIntent(it.slotId)) }
         set(PushPlan.nextResync(now), resyncIntent())
-        // A60 part B (ADR-044): the closure alarm, 22:00 SP, or now when today's closure was missed.
+        // A60 part B (ADR-044): the closure alarm at the profile's time (A71, default 22:00 SP), or now when today's
+        // closure was missed. With notifications off it still runs: the Home card has no notification.
         if (day.onboardingDone) {
             val dayDone = repository.closure(Closures.dayKey(SaoPaulo.date(now))) != null
-            set(Closures.nextAlarm(now, dayDone), closureIntent())
+            set(Closures.nextAlarm(now, dayDone, Closures.time(day.closureTime)), closureIntent())
         } else {
             alarms.cancel(closureIntent())
         }
-        prefs.edit().putStringSet(KEY_IDS, due.map { it.slotId.toString() }.toSet()).apply()
-        due
+        val scheduled = if (day.onboardingDone && day.notificationsEnabled) due else emptyList()
+        prefs.edit().putStringSet(KEY_IDS, scheduled.map { it.slotId.toString() }.toSet()).apply()
+        scheduled
     }
 
     /** App reset (ADR-040): every scheduled reminder and the resync go, and the push preferences with them. */

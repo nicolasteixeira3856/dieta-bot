@@ -8,7 +8,27 @@ val ALL_MIGRATIONS: Array<Migration> by lazy {
     arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15,
+        MIGRATION_15_16,
     )
+}
+
+/**
+ * v15 -> v16 (A71, ADR-057): the saved answers of the conversational onboarding and the profile's goal, closure time,
+ * notification choice and onboarding phase. Old profiles: no goal, 22:00, notifications on, phase `chat` (never read once
+ * the onboarding is done).
+ */
+val MIGRATION_15_16 = object : Migration(15, 16) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `onboarding_answer` (`step` TEXT NOT NULL, `value` TEXT NOT NULL, " +
+                "`createdAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`step`))",
+        )
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `goalWeightKg` REAL")
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `goalDate` TEXT")
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `closureTime` TEXT NOT NULL DEFAULT '22:00'")
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `notificationsEnabled` INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE `profile` ADD COLUMN `onboardingPhase` TEXT NOT NULL DEFAULT 'chat'")
+    }
 }
 
 /** v14 -> v15 (A68, ADR-052): saved recipes and their versions; a record keeps the version it used. Nothing to backfill. */

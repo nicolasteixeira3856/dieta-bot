@@ -24,7 +24,7 @@ FAIL=0
 sdk=$("$ADB" shell getprop ro.build.version.sdk | tr -d '\r')
 [ "$sdk" -ge 31 ] || { echo "✗ API $sdk: the scrolling screenshot needs Android 12 (API 31) or later"; exit 1; }
 
-bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
+QUICK=1 bash "$ROOT/tools/capture-onboarding.sh" "$THEME" | tail -1
 "$ADB" shell pm grant $PKG android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
 
 dump() { "$ADB" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; "$ADB" exec-out cat /sdcard/ui.xml > "$TMP/ui.xml"; }
