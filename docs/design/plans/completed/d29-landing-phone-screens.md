@@ -1,6 +1,6 @@
 # Plan — D29 Landing page: phone screens after D27 and D28
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 09/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/`, `server/` or `web/`. Figma `Design` → page `Landing page` → section `Landing · D11`: the phone-screen clones of `land` (Light `106:530`, Dark `107:853`) and `landM` (Light `106:716`, Dark `107:1003`). Repository: `docs/qa/figma/{dark,light}/{land,landM}.png`. Node ids in `tools/export-figma.mjs` only if a frame id changes.
@@ -97,7 +97,13 @@ Copy check: the landing text was compared with `ob3` and the D28 `home1` (table 
 
 ### Review
 
-Review PNGs (phone crops of `land` and `landM`, both themes, from the dry run) sent to the owner on 09/10/2026. Waiting for the owner's OK in Figma (page `Landing page`, section `Landing · D11`), then step 5 (export).
+Review PNGs (phone crops of `land` and `landM`, both themes, from the dry run) sent to the owner on 09/10/2026. Owner OK on 09/10/2026, first round, no fixes (given in chat with the approval of W3: "Yes, OK D29").
+
+### Export
+
+- `node tools/export-figma.mjs --only land,landM`: `land` 3.839 % px changed Light, 1.156 % Dark; `landM` 5.951 % Light, 1.911 % Dark; all kept by the noise filter. Only these four PNGs have a byte diff.
+- `node tools/check-figma.mjs`: all 114 gold PNGs verified (57 dark + 57 light). Inventory unchanged.
+- Next: [W3](../../../site/plans/w3-landing-screens-after-onboarding.md) cuts the same screens for `web/` and compares against these golds.
 
 ### Figma MCP calls
 
