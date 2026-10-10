@@ -1,6 +1,6 @@
 # ADR-058 — Extras outside the meals; the last 30 days on the Home; recording another day
 
-- Status: Proposto (owner direction of 09/10/2026 in the brainstorm session; accepted with the approval of [D28](../../design/plans/d28-home-extras-and-history.md), [S42](../../server/plans/s42-extras-and-other-day.md) and [A72](../../android/plans/a72-extras-and-history.md))
+- Status: Accepted (2026-10-09, owner approval of [D28](../../design/plans/pending_manual_validation/d28-home-extras-and-history.md) in the batch message; owner direction of 09/10/2026 in the brainstorm session)
 - Date: 2026-10-09
 - Context: `produto`
 - Supersedes: partially [ADR-028](ADR-028-registro-autonomo.md) (decision 7: the Chat records only today's meals; from this ADR a named past day inside the last 30 days is recorded too); partially [ADR-017](ADR-017-registro-consolidado.md) (one record per meal stays for the slots; an extra is one record per item and is never consolidated); partially [ADR-021](ADR-021-refeicoes-por-dia.md) (rule 7: logs without a slot of the day are "Outros" only when they belong to a removed or foreign slot; a log recorded as an extra has its own kind). Reactivates [A35](../../android/plans/out_of_scope/a35-registro-retroativo.md) inside this decision.
