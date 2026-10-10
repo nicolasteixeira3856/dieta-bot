@@ -803,7 +803,8 @@ class ChatViewModelTest {
             )
         }
         sendAndAwaitAuto(vm, "comi pão com ovo")
-        val receipt = vm.await { it.receipts().singleOrNull()?.actions?.isNotEmpty() == true }.receipts().single()
+        // The receipt gets its actions in the record's transaction and memoryUpdated right after the memory write: wait for both.
+        val receipt = vm.await { it.receipts().singleOrNull()?.let { r -> r.actions.isNotEmpty() && r.memoryUpdated } == true }.receipts().single()
         assertThat(receipt.memoryUpdated).isTrue()
         assertThat(memory.read(today).facts.single().id).isEqualTo("D1")
 
