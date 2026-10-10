@@ -40,7 +40,7 @@ Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 - `web/public/` é o site servido, sem etapa de build: `index.html` (golds `land` e `landM`, breakpoint 768 px) e `privacidade/index.html` (gold `priv`, `noindex`). Tema claro por padrão, troca escuro/claro guardada no `localStorage`.
 - Gerados, nunca editados à mão:
   - `css/tokens.css`, a partir de `docs/design/tokens.json`;
-  - `img/screens/`, recorte das telas dos golds `o1`, `home1` e `chatE`; refaça depois de reexportar esses golds;
+  - `img/screens/`, recorte das telas dos golds `ob3`, `home1` e `chatE`; refaça depois de reexportar esses golds;
   - `img/favicon.svg` e `img/favicon-{32,180,512}.png`, o logo (semente de aveia) de `design/brand/icon.svg`; refaça depois de trocar o logo ([android README § Marca](../android/README.md#marca));
   - `fonts/`, copiadas do pacote Nunito Sans (OFL).
 - Comandos (rode `npm --prefix web ci` uma vez antes):
@@ -58,6 +58,6 @@ Este contexto segue [docs/sdd/README.md](../sdd/README.md).
 
 ### Planos
 
-- Ativos: [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md); [W3 — Landing phone screens after the conversational onboarding](plans/w3-landing-screens-after-onboarding.md).
+- Ativos: [W2 — Landing hosting on fibrai.app](plans/w2-landing-hosting.md).
 - Concluídos: [`plans/completed/`](plans/completed/).
 - Fora de escopo: nenhum.

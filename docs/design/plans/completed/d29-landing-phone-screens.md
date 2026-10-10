@@ -11,7 +11,7 @@ Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Appro
 
 ## Objective
 
-The phones of the landing golds hold static clones of app golds ([D11](../completed/d11-landing-page.md), refreshed by [D10](../completed/d10-fibrai-tali-rename.md) scope 7). Two of them are now out of date: the left phone of `land` shows the retired `o1`, and the middle phone of `land` and the only phone of `landM` show the `home1` from before D28. Replace those clones with the current golds so that [W3](../../../site/plans/w3-landing-screens-after-onboarding.md) can cut the same screens for `web/` and compare against `land` and `landM`.
+The phones of the landing golds hold static clones of app golds ([D11](../completed/d11-landing-page.md), refreshed by [D10](../completed/d10-fibrai-tali-rename.md) scope 7). Two of them are now out of date: the left phone of `land` shows the retired `o1`, and the middle phone of `land` and the only phone of `landM` show the `home1` from before D28. Replace those clones with the current golds so that [W3](../../../site/plans/completed/w3-landing-screens-after-onboarding.md) can cut the same screens for `web/` and compare against `land` and `landM`.
 
 ## Decision: which onboarding screen replaces `o1`
 
@@ -36,7 +36,7 @@ The `chatE` phone stays: its gold did not change (its cut WebP in `web/` is stil
 
 ## Scope
 
-1. **Discovery (read only):** read the four landing frames and list each phone clone (node, size, position, Color mode). Copy check of the landing text against the new screens; result recorded in Results. Expected: no text change (see the copy table in [W3](../../../site/plans/w3-landing-screens-after-onboarding.md#copy-and-layout-check)). A text change found here stops the plan and goes back to Planning as a D11 copy follow-up.
+1. **Discovery (read only):** read the four landing frames and list each phone clone (node, size, position, Color mode). Copy check of the landing text against the new screens; result recorded in Results. Expected: no text change (see the copy table in [W3](../../../site/plans/completed/w3-landing-screens-after-onboarding.md#copy-and-layout-check)). A text change found here stops the plan and goes back to Planning as a D11 copy follow-up.
 2. **Clones** (as in D10 scope 7):
    - replace the left-phone clone of `land` (both rows) by a fresh clone of the `ob3` Light frame, renamed `Phone · ob3`;
    - replace the `home1` clones of `land` and `landM` (both rows) by fresh clones of the `home1` Light frame;
@@ -50,7 +50,7 @@ The `chatE` phone stays: its gold did not change (its cut WebP in `web/` is stil
 
 - Landing copy, layout, phone order or count (D11). A copy change is its own plan.
 - `priv` (no phone).
-- `web/`: [W3](../../../site/plans/w3-landing-screens-after-onboarding.md) cuts the screens and compares.
+- `web/`: [W3](../../../site/plans/completed/w3-landing-screens-after-onboarding.md) cuts the screens and compares.
 - App golds: `ob3` and `home1` are read, not changed.
 
 ## Validation
@@ -79,7 +79,7 @@ Each phone is `Phone · <id>` (316 × 665, clipped) holding a `Screen` frame (30
 | `landM` Dark `107:1003` | `Phone · home1` `107:1016` | `107:1017` | `114:5188` | replace by D28 `home1` |
 | `land` both | `Phone · chatE` `106:644`, `107:953` | — | — | unchanged |
 
-Copy check: the landing text was compared with `ob3` and the D28 `home1` (table in [W3](../../../site/plans/w3-landing-screens-after-onboarding.md#copy-and-layout-check)). No text change; the plan continued.
+Copy check: the landing text was compared with `ob3` and the D28 `home1` (table in [W3](../../../site/plans/completed/w3-landing-screens-after-onboarding.md#copy-and-layout-check)). No text change; the plan continued.
 
 ### Write (one `use_figma` call)
 
@@ -103,7 +103,7 @@ Review PNGs (phone crops of `land` and `landM`, both themes, from the dry run) s
 
 - `node tools/export-figma.mjs --only land,landM`: `land` 3.839 % px changed Light, 1.156 % Dark; `landM` 5.951 % Light, 1.911 % Dark; all kept by the noise filter. Only these four PNGs have a byte diff.
 - `node tools/check-figma.mjs`: all 114 gold PNGs verified (57 dark + 57 light). Inventory unchanged.
-- Next: [W3](../../../site/plans/w3-landing-screens-after-onboarding.md) cuts the same screens for `web/` and compares against these golds.
+- Next: [W3](../../../site/plans/completed/w3-landing-screens-after-onboarding.md) cuts the same screens for `web/` and compares against these golds.
 
 ### Figma MCP calls
 
