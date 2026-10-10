@@ -29,13 +29,16 @@ export const FIGMA_FILE_KEY = "qNiqNN3vk9GpmPL3bcV9W1";
 export const DARK_FRAMES = {
   // Home (D3)
   home0: "40:430",
-  home1: "40:472",
+  home1: "215:1814", // Release 2 (D28: day strip, extra)
   homeX: "40:514",
   homeW: "40:557",
   // Tone and closures (D16), planned meal (D18)
   homeC: "141:4902",
   homeK: "141:4945",
   homeP: "151:5539",
+  // Home history (D28, Release 2)
+  homeH: "215:1979",
+  homeE: "215:2142",
   // Splash (D4)
   splash: "54:1233",
   // Conversational onboarding (D27, Release 2; replaces o1–o5)
@@ -59,6 +62,7 @@ export const DARK_FRAMES = {
   chatF: "72:3213",
   chatA: "72:3234",
   chatG: "72:3248",
+  chatGX: "215:2262", // Release 2 (D28: extra receipt)
   chatU: "72:3269",
   chatD: "72:3290",
   chatR: "72:3312",
@@ -100,13 +104,16 @@ export const DARK_FRAMES = {
 export const LIGHT_FRAMES = {
   // Home (D3)
   home0: "39:302",
-  home1: "38:229",
+  home1: "214:1384", // Release 2 (D28: day strip, extra)
   homeX: "39:451",
   homeW: "39:606",
   // Tone and closures (D16), planned meal (D18)
   homeC: "141:4742",
   homeK: "141:4802",
   homeP: "151:5424",
+  // Home history (D28, Release 2)
+  homeH: "214:1567",
+  homeE: "214:1747",
   // Splash (D4)
   splash: "51:732",
   // Conversational onboarding (D27, Release 2; replaces o1–o5)
@@ -130,6 +137,7 @@ export const LIGHT_FRAMES = {
   chatF: "72:2465",
   chatA: "72:2586",
   chatG: "72:2635",
+  chatGX: "214:1832", // Release 2 (D28: extra receipt)
   chatU: "72:2727",
   chatD: "72:2849",
   chatR: "72:2959",

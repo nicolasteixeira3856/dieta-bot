@@ -1,10 +1,10 @@
 # Plan — D28 Release 2: Home day strip, past day and extras
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 09/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Home history", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{home1,homeH,homeE,chatGX}.png` (`home1` redrawn, `homeH`, `homeE` and `chatGX` new), the "Home history" node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D27](../completed/d27-conversational-onboarding.md) `Concluído` (one design plan at a time); [ADR-058](../../../produto/adrs/ADR-058-extras-and-history.md) accepted by this approval.
+- Prerequisites: [D27](d27-conversational-onboarding.md) `Concluído` (one design plan at a time); [ADR-058](../../../produto/adrs/ADR-058-extras-and-history.md) accepted by this approval.
 - Figma MCP budget: ≤ 90 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d28-home-extras-and-history.md. Implemente o plano aprovado.`
@@ -129,4 +129,19 @@ Fixes during the build (before the review): `homeH` macro values restored to the
    State cue of `today` (the `accent/default` ring on glass, WCAG 1.4.11): 4.47:1 Light, 7.29:1 Dark.
 4. Visual: one review PNG per frame (8) plus the components section, from the dry-run export, sent to the owner on 09/10/2026.
 
-Figma MCP budget: 7 of 90 calls (1 read, 6 writes, one of them a script that failed on a syntax error and was rolled back whole). Day total with D27: 19 of 120. Owner review pending.
+Figma MCP budget: 7 of 90 calls (1 read, 6 writes, one of them a script that failed on a syntax error and was rolled back whole). Day total with D27: 19 of 120.
+
+### Owner review
+
+**OK (09/10/2026)** on the first round, with no fixes ("Tudo aprovado, pode completar todos os planos e commitar"), covering the open points of the discovery: `chatGX` is the receipt (no gold of the open Trocar sheet), the fifth `today` state, the month abbreviation, `home1` on `Release 2`.
+
+### Export (09/10/2026)
+
+- `tools/export-figma.mjs`: `home1` moved to the Release 2 ids (`214:1384` Light, `215:1814` Dark); `homeH`, `homeE` and `chatGX` added (ids of the Build table). The Release 1 `home1` frames (`38:229`, `40:472`) stay in the file as history.
+- `node tools/export-figma.mjs --only home1,homeH,homeE,chatGX`: `home1` 780 × 2864 → 780 × 3280, `homeH` 780 × 3584, `homeE` 780 × 2812, `chatGX` 780 × 1804 (both themes).
+- Inventory of `docs/qa/README.md`: `homeH` and `homeE` after `homeP`, `chatGX` after `chatG`.
+- `node tools/check-figma.mjs`: 114 golds verified (57 dark + 57 light). `node tools/check-docs.mjs` passes.
+- **Hand-over to [A72](../../../android/plans/a72-extras-and-history.md):** the strip and the extra node above, the past day, `homeE`, the extra receipt and the `Show extra` row of the Trocar sheet (no gold of its own: A72 checks it on the emulator); the fifth `DayCircle` state `today` (today while a past day is selected) next to the four of A72 scope 4. Until A72, `GoldTest.home1_*` fails by design (the app has no strip and no extra) and `homeH`, `homeE`, `chatGX` have no `GoldTest` yet.
+- **Site:** `web/tools/build-screens.mjs` cuts the landing phone from the `home1` gold; `npm --prefix web run screens:check` reports it stale until a site plan re-cuts it (it already fails on the retired `o1`, see D27). `web/` untouched.
+
+Figma MCP budget: 7 of 90 calls in total (no call after the review: the export uses the REST API).

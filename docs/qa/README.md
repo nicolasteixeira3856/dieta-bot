@@ -20,9 +20,9 @@ Inventário oficial: dono único da lista de golds, igual nos dois temas. O gold
 
 ```text
 splash.png · ob0.png · ob1.png · ob1e.png · ob2.png · ob3.png · ob4.png · ob5.png · ob6.png
-home0.png · home1.png · homeX.png · homeW.png · homeC.png · homeK.png · homeP.png
+home0.png · home1.png · homeX.png · homeW.png · homeC.png · homeK.png · homeP.png · homeH.png · homeE.png
 chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png · chatCP.png · chatCC.png
-chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
+chatF.png · chatG.png · chatGX.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
 chatRK.png · chatRB.png · chatRL.png · chatSK.png · chatSD.png
 chatI.png · chatIC.png · chatTI.png
 cfg.png · cfgS.png · wipe.png · cfgR.png · cfgT.png · push.png
