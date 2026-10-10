@@ -1,0 +1,32 @@
+{
+  "id": "s42-dois-dias-pizza-e-feijoada",
+  "since": "v6",
+  "tags": [
+    "s42-dois-dias",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "ontem jantei 2 fatias de pizza de calabresa e na segunda almocei 1 concha de feijoada com 4 colheres de arroz"
+  },
+  "expect": {
+    "refusal": "none",
+    "actions": [
+      {
+        "type": "log",
+        "slot": "4",
+        "day": "2026-10-14",
+        "record": "auto"
+      },
+      {
+        "type": "log",
+        "slot": "2",
+        "day": "2026-10-12",
+        "record": "auto"
+      }
+    ]
+  }
+}

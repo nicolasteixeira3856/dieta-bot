@@ -1,0 +1,32 @@
+{
+  "id": "s42-dois-dias-extra-e-jantar",
+  "since": "v6",
+  "tags": [
+    "s42-dois-dias",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "ontem tomei uma lata de 350 ml de energético tradicional fora das refeições e anteontem jantei um hambúrguer duplo e uma porção média de batata frita"
+  },
+  "expect": {
+    "refusal": "none",
+    "actions": [
+      {
+        "type": "log",
+        "slot": "extra",
+        "day": "2026-10-14",
+        "record": "auto"
+      },
+      {
+        "type": "log",
+        "slot": "4",
+        "day": "2026-10-13",
+        "record": "auto"
+      }
+    ]
+  }
+}

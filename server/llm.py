@@ -235,11 +235,12 @@ def profile_format(slot_ids: list[str]) -> dict[str, Any]:
 def chat_format(
     slot_ids: list[str], fact_ids: list[str] | None = None, *, meal_changes: bool = False,
     recipe_ids: list[str] | None = None, extras: bool = False, other_slot_ids: list[str] | None = None,
+    day_dates: list[str] | None = None,
 ) -> dict[str, Any]:
     """Structured output for /v1/chat. Slot and fact ids are limited to the ones in the request.
 
     S42 (ADR-058): with extras an action may target `extra` and carries `time`; a named past day adds its slot ids
-    to the estimate's suggested_slot (other_slot_ids).
+    to the estimate's suggested_slot (other_slot_ids), and the named days are the enum of an action's `day`.
     """
     slots = [*dict.fromkeys(slot_ids), None]
     target_slots = [*dict.fromkeys([*slot_ids, *(other_slot_ids or [])]), None]
@@ -316,13 +317,13 @@ def chat_format(
     }
     if meal_changes:
         return _actions_format(result["schema"]["properties"], estimate, slots, list(dict.fromkeys(recipe_ids or [])),
-                               extras=extras)
+                               extras=extras, day_dates=list(dict.fromkeys(day_dates or [])))
     return result
 
 
 def _actions_format(
     legacy: dict[str, Any], estimate: dict[str, Any], slots: list[Any], recipe_ids: list[str], *,
-    extras: bool = False,
+    extras: bool = False, day_dates: list[str] | None = None,
 ) -> dict[str, Any]:
     """ADR-050 (S36): the meal-change branch answers with an ordered list of typed actions."""
     addition_keys = ("meal_text", "kcal", "p", "c", "g", "items")
@@ -389,6 +390,10 @@ def _actions_format(
         # S42: the time the user states for an extra, HH:mm, else null.
         action["properties"]["time"] = {"type": ["string", "null"]}
         action["required"].append("time")
+    if day_dates:
+        # S42: the day of an other-day log among the days the message names (DAY_REF), else null.
+        action["properties"]["day"] = {"type": ["string", "null"], "enum": [*day_dates, None]}
+        action["required"].append("day")
     return {
         "type": "json_schema",
         "name": "chat_turn_actions",
@@ -550,6 +555,7 @@ class LlmClient:
         recipe_ids: list[str] | None = None,
         extras: bool = False,
         other_slot_ids: list[str] | None = None,
+        day_dates: list[str] | None = None,
     ) -> dict[str, Any]:
         return self._complete(
             "chat",
@@ -558,7 +564,7 @@ class LlmClient:
             image_b64,
             trace,
             chat_format(slot_ids, fact_ids, meal_changes=meal_changes, recipe_ids=recipe_ids, extras=extras,
-                        other_slot_ids=other_slot_ids),
+                        other_slot_ids=other_slot_ids, day_dates=day_dates),
             timeout,
             safety_identifier,
         )

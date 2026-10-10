@@ -1,8 +1,8 @@
 {
-  "id": "s42-ambiguo-ontem-e-segunda",
+  "id": "s42-confirma-dia-25-extra",
   "since": "v6",
   "tags": [
-    "s42-ambiguo",
+    "s42-confirma",
     "persona"
   ],
   "persona": "nicolas",
@@ -10,25 +10,23 @@
     "extras": true,
     "other_day": true,
     "first_day": "2026-08-01",
-    "text": "ontem e na segunda jantei pizza"
+    "text": "dia 25 tomei uma lata de energético fora das refeições"
   },
   "expect": {
+    "refusal": "none",
     "actions": [
       {
         "record": "none"
       }
     ],
+    "reply_any": [
+      "25 de setembro"
+    ],
     "reply_not": [
+      "25 de outubro",
       "2026-",
       "-10-",
       "-09-"
-    ],
-    "refusal": "none",
-    "reply_any": [
-      "12 de outubro",
-      "14 de outubro",
-      "segunda",
-      "ontem"
     ]
   }
 }

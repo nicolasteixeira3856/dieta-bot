@@ -1,0 +1,36 @@
+{
+  "id": "s42-confirma-resposta-sim",
+  "since": "v6",
+  "tags": [
+    "s42-confirma",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "messages": [
+      {
+        "role": "user",
+        "text": "no dia 20 almocei feijoada: 1 concha de feijoada e 4 colheres de arroz"
+      },
+      {
+        "role": "assistant",
+        "text": "Foi em 20 de setembro?"
+      }
+    ],
+    "text": "sim"
+  },
+  "expect": {
+    "refusal": "none",
+    "actions": [
+      {
+        "type": "log",
+        "slot": "2",
+        "day": "2026-09-20",
+        "record": "auto"
+      }
+    ]
+  }
+}

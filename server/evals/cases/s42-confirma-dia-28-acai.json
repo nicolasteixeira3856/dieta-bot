@@ -1,8 +1,8 @@
 {
-  "id": "s42-ambiguo-dia-28-acai",
+  "id": "s42-confirma-dia-28-acai",
   "since": "v6",
   "tags": [
-    "s42-ambiguo",
+    "s42-confirma",
     "persona"
   ],
   "persona": "nicolas",
@@ -43,19 +43,20 @@
     "text": "dia 28 tomei um açaí de 500 ml com granola"
   },
   "expect": {
+    "refusal": "none",
     "actions": [
       {
         "record": "none"
       }
     ],
+    "reply_any": [
+      "28 de setembro"
+    ],
     "reply_not": [
+      "28 de outubro",
       "2026-",
       "-10-",
       "-09-"
-    ],
-    "refusal": "none",
-    "reply_any": [
-      "28 de setembro"
     ]
   }
 }
