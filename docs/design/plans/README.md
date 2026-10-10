@@ -193,7 +193,7 @@ The landing phones are clones of app golds; D27 retired `o1` and D28 redrew `hom
 
 | Step | Plan | Depends on |
 |---|---|---|
-| Landing design | [D29](d29-landing-phone-screens.md) — `ob3` and the new `home1` in the phones of `land` and `landM` | D27, D28 |
+| Landing design | [D29](pending_manual_validation/d29-landing-phone-screens.md) — `ob3` and the new `home1` in the phones of `land` and `landM` | D27, D28 |
 | Landing code | [W3](../../site/plans/w3-landing-screens-after-onboarding.md) — re-cut the phone screens in `web/` | D29 |
 
 ## History
