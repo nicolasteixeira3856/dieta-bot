@@ -1,6 +1,6 @@
 # ADR-057 — Conversational onboarding: Tali builds the profile on day 0
 
-- Status: Proposto (owner direction of 09/10/2026 in the brainstorm session; accepted with the approval of [D27](../../design/plans/d27-conversational-onboarding.md), [S41](../../server/plans/s41-onboarding-profile.md) and [A71](../../android/plans/a71-conversational-onboarding.md))
+- Status: Accepted (2026-10-09, owner approval of [D27](../../design/plans/pending_manual_validation/d27-conversational-onboarding.md) in the batch message; owner direction of 09/10/2026 in the brainstorm session)
 - Date: 2026-10-09
 - Context: `produto`
 - Supersedes: partially [ADR-012](ADR-012-chat-home-perfil.md) (the onboarding of O1–O4 and its rule 4: the five numeric screens are replaced by the guided chat; Chat as a screen, Home as the panel and the named profile survive); partially [ADR-044](ADR-044-assistant-tone-and-closures.md) (O5 becomes a step of the guided chat; the closure alarms become a profile time with 22:00 as default; the tones, their rules and the closure cards survive); partially [ADR-053](ADR-053-visible-memory-screen.md) (decision 4: the O6 condition is waived by owner decision, the routine entry is the onboarding itself; the memory screen survives); partially [ADR-023](ADR-023-chat-v2-memoria-v2.md) and [ADR-029](ADR-029-fatos-temporarios-compactacao.md) (the permanent cap goes from 30 to 50; every other memory rule survives). Reactivates [A56](../../android/plans/out_of_scope/a56-goal-weight.md) (goal weight and date) inside this decision.
