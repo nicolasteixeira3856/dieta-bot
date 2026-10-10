@@ -187,6 +187,15 @@ Behavior: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [A
 | Server | [S42](../../server/plans/s42-extras-and-other-day.md) — extras and a record in a named past day | S40 |
 | Client | [A72](../../android/plans/a72-extras-and-history.md) — extras, the strip and the past-day record | D28, S42 on dev, A71 |
 
+## Landing screens follow-up
+
+The landing phones are clones of app golds; D27 retired `o1` and D28 redrew `home1`. Order (prerequisites live in each plan):
+
+| Step | Plan | Depends on |
+|---|---|---|
+| Landing design | [D29](d29-landing-phone-screens.md) — `ob3` and the new `home1` in the phones of `land` and `landM` | D27, D28 |
+| Landing code | [W3](../../site/plans/w3-landing-screens-after-onboarding.md) — re-cut the phone screens in `web/` | D29 |
+
 ## History
 
 Completed plans move to `completed/`, created with the first completed plan.
