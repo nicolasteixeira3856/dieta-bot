@@ -1,6 +1,6 @@
 # ADR-029 — Short-lived temp facts, a compaction that keeps the open tail, the meal day is the day it was eaten
 
-- Status: Accepted (2026-10-03, owner approval of S16)
+- Status: Accepted (2026-10-03, owner approval of S16); partially superseded by [ADR-057](ADR-057-conversational-onboarding.md) (the permanent cap goes from 30 to 50)
 - Date: 2026-10-03
 - Context: `produto`
 - Supersedes: partially [ADR-023](ADR-023-chat-v2-memoria-v2.md) decision 4 (memory had two kinds, permanent and dynamic; a third kind, `temp`, is added; the permanent/dynamic rules survive unchanged). In the [Chat spec](../specifications/chat.md): rule 9 (the summary replaced the whole raw block). Refines [ADR-028](ADR-028-registro-autonomo.md) decision 1 ("the meal is of today") without changing its trigger. In [v1-chat](../../server/specifications/v1-chat.md): the `meal_day` sentence of rule 3g, rule 3d ("de sempre") and rule 7 (digest content). Extends `POST /v1/chat` of the [contract](../../api-contract.md) additively. No gold changes.

@@ -40,9 +40,20 @@ These codes are internal. They are not new public Chat `intent` values. Eating-d
 6. The text-only fallback (`TextOnlyOutput`) never returns raw model text. It returns the fixed scope refusal.
 7. No automatic retry of blocked content. No raw provider error or refused text reaches the client.
 
-Same controls on `/v1/estimate`, `/v1/fit`, `/v1/chat` and `compact=true`. Estimate/fit add the same `scope` field to their schema.
+Same controls on `/v1/estimate`, `/v1/fit`, `/v1/chat`, `compact=true` and `/v1/profile` (below). Estimate/fit add the same `scope` field to their schema.
 
 `/v1/close` (the day and week closure text of [ADR-044](../../produto/adrs/ADR-044-assistant-tone-and-closures.md), [server Chat](../../server/specifications/v1-chat.md) rule 17) sits under the same scope and logging rules. Its input is app-computed integers, enums and meal names, delimited as data: profile names, like Chat's, are not moderated (step 2 does not apply). The generated text is output-moderated (step 5); a flag, a failure or moderation unavailable returns a fixed neutral line built from the numbers, never generated text and never an unmoderated fallthrough. The `duro` tone of ADR-044 never comments on body, weight or appearance and never pushes eating below the ceiling, skipping meals or fasting; Chat scope, refusals and `safety_support` are decided before the tone and do not change with it.
+
+### Onboarding profile
+
+`/v1/profile` (the profile build of the conversational onboarding, [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [server Chat](../../server/specifications/v1-chat.md) rule 18) sits under the Chat scope and moderation, with these differences:
+
+- The five free-text answers (`restrictions`, `measuring`, `foods`, `dislikes`, `equipment`, each up to 2000 code points) are the user text of step 2: moderated in one batched call before generation; a flag stops the call with HTTP 400 `content_policy_blocked` and the name of the first flagged answer (`field`), never a generation. The structured answers (numbers, enums, meal names and times) are app data, not moderated, like Chat's profile.
+- The answers reach the model as JSON strings between `### ONBOARDING_ANSWERS_START` and `### ONBOARDING_ANSWERS_END`, delimiters neutralized; the body measures never reach the model. The model classifies `scope` and names the answer that caused a non-`in_scope` value (`scope_field`): `out_of_scope` only when an answer is nothing but an unrelated task or an instruction to the model (an unrelated remark next to food data is ignored); `policy_blocked` and `safety_support` as in Chat. Any of them is HTTP 400 with that field and discards the generated facts and summary. An HTTP 400 is the onboarding's error screen; there is no refusal copy on this route.
+- A dietary restriction or health condition (lactose, gluten, vegetarian, vegan, diabetes, hypertension, an allergy) is health data used only to avoid or prefer foods: it becomes a permanent preference fact in the user's words, never medical advice; the disclaimer and the Chat rules apply unchanged.
+- Goal safety limits, applied in code before the model: a goal weight whose BMI (goal weight over the squared height) is under 18.5, a goal date that is not after the local date, or a pace above 1 % of the current weight per week (loss or gain) is refused with `goal_refused: true`; the profile is built without the goal and the goal never reaches the model. A goal is never a fact.
+- Generated facts and the summary are output-moderated (step 5); a flag is HTTP 400 with `field: null`. Moderation unavailable is HTTP 503 `content_policy_unavailable`, never an unmoderated profile.
+- Logging as Chat under ADR-015 (the dev capture keeps the answers); a flagged severe or `policy_blocked` call keeps metadata only. The route's metadata (`goal`, `goal_refused`, fact counts per category) carries no answer text.
 
 ### Context that is not re-moderated
 
@@ -93,6 +104,7 @@ Use the [matrix](../validation/README.md). Passing schema tests is not semantic 
 
 - [S19](../../server/plans/completed/s19-generalizable-chat-instructions.md) — Generalizable Chat instructions and example provenance
 - [S30](../../server/plans/completed/s30-tone-formatting-planned-slot.md) — Tone limits and the closure route under the same controls
+- [S41](../../server/plans/pending_manual_validation/s41-onboarding-profile.md) — The onboarding profile route under the Chat scope and moderation; goal safety limits
 - [CP1](../plans/completed/cp1-closed-test-notice.md) — Closed-test notice and incident note
 - [CP2](../plans/completed/cp2-server-content-controls.md) — Server scope and content controls
 - [CP10](../plans/completed/cp10-workout-in-scope-and-skip-boundary.md) — Workout reports in scope; the boundary of skipping a meal

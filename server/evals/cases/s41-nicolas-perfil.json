@@ -1,0 +1,91 @@
+{
+  "id": "s41-nicolas-perfil",
+  "since": "v6",
+  "tags": [
+    "s41",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "route": "profile",
+  "request": {
+    "local_time": "2026-10-15T09:00:00-03:00",
+    "body": {
+      "sex": "male",
+      "age": 36,
+      "height_cm": 180,
+      "weight_kg": 88
+    },
+    "ceiling_kcal": 2030,
+    "p_target": 165,
+    "c_target": 195,
+    "g_target": 68,
+    "eat_back": {
+      "mode": "partial",
+      "pct": 50
+    },
+    "slots": [
+      {
+        "id": "1",
+        "name": "Café",
+        "time": "07:30"
+      },
+      {
+        "id": "2",
+        "name": "Almoço",
+        "time": "12:30"
+      },
+      {
+        "id": "3",
+        "name": "Lanche",
+        "time": "16:30"
+      },
+      {
+        "id": "4",
+        "name": "Jantar",
+        "time": "20:30"
+      }
+    ],
+    "tone": "duro",
+    "notifications": {
+      "enabled": true,
+      "closure_time": "22:30"
+    },
+    "goal": {
+      "weight_kg": 82,
+      "date": "2027-04-01"
+    },
+    "answers": {
+      "restrictions": null,
+      "measuring": "em casa peso tudo na balança; no almoço como em restaurante por quilo e não tenho balança",
+      "foods": "café da manhã: 3 ovos mexidos, 1 pão francês e café preto. Almoço no quilo: arroz, feijão e um filé de frango. Lanche às 16h30: iogurte natural com 30 g de whey e uma banana. Jantar: frango com batata na air fryer, e na sexta quase sempre pizza",
+      "dislikes": "não gosto de peixe",
+      "equipment": "air fryer e micro-ondas"
+    }
+  },
+  "expect": {
+    "facts_count": {
+      "min": 5
+    },
+    "fact_categories": [
+      "routine",
+      "equipment",
+      "portion",
+      "preference"
+    ],
+    "routine_slots": [
+      "1",
+      "3"
+    ],
+    "facts_have": [
+      "air fryer",
+      "peixe"
+    ],
+    "summary_has": [
+      "2030"
+    ],
+    "summary_not": [
+      "imc",
+      "barriga"
+    ]
+  }
+}

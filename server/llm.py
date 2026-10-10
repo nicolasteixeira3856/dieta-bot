@@ -8,10 +8,11 @@ from typing import Any
 import httpx2
 from openai import OpenAI
 
-from chat_instructions import assemble, chat_branch, close_branch, validate_assembled
+from chat_instructions import assemble, chat_branch, close_branch, profile_branch, validate_assembled
 import plan_budget
+import profile_build
 from config import (
-    CHAT_EFFORT, MEAL_DAYS, MODEL, REASONING_EFFORT, RECIPE_INGREDIENTS_MAX, RECORD_INTENTS, TIMEOUT_SECONDS,
+    CHAT_EFFORT, MEAL_DAYS, MODEL, PROFILE_EFFORT, REASONING_EFFORT, RECIPE_INGREDIENTS_MAX, RECORD_INTENTS, TIMEOUT_SECONDS,
 )
 
 SCOPE_VALUES = ["in_scope", "out_of_scope", "policy_blocked", "safety_support"]
@@ -191,6 +192,44 @@ _CLOSE_FORMAT: dict[str, Any] = {
         "additionalProperties": False,
     },
 }
+
+
+def profile_instructions(tone: str) -> str:
+    return assemble(profile_branch(tone))
+
+
+def profile_format(slot_ids: list[str]) -> dict[str, Any]:
+    """Structured output for /v1/profile (ADR-057): routine slots limited to the request's slot ids."""
+    number = {"type": ["number", "null"]}
+    fact = {
+        "type": "object",
+        "properties": {
+            "source": {"type": "string", "enum": list(profile_build.ANSWER_FIELDS)},
+            "category": {"type": "string", "enum": list(profile_build.CATEGORIES)},
+            "key": {"type": "string"},
+            "text": {"type": "string"},
+            "slot": {"type": ["string", "null"], "enum": [*slot_ids, None]},
+            "kcal": number, "p": number, "c": number, "g": number,
+        },
+        "required": ["source", "category", "key", "text", "slot", "kcal", "p", "c", "g"],
+        "additionalProperties": False,
+    }
+    return {
+        "type": "json_schema",
+        "name": "profile",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "facts": {"type": "array", "items": fact},
+                "summary": {"type": "string"},
+                "scope": _SCOPE_SCHEMA,
+                "scope_field": {"type": ["string", "null"], "enum": [*profile_build.ANSWER_FIELDS, None]},
+            },
+            "required": ["facts", "summary", "scope", "scope_field"],
+            "additionalProperties": False,
+        },
+    }
 
 
 def chat_format(
@@ -551,6 +590,28 @@ class LlmClient:
             safety_identifier,
         )
 
+    def profile_json(
+        self,
+        *,
+        user_text: str,
+        slot_ids: list[str],
+        tone: str,
+        trace: dict[str, Any] | None = None,
+        timeout: float = TIMEOUT_SECONDS,
+        safety_identifier: str | None = None,
+    ) -> dict[str, Any]:
+        """/v1/profile (ADR-057): the onboarding answers, delimited; one fixed prefix per tone."""
+        return self._complete(
+            "profile",
+            profile_instructions(tone),
+            user_text,
+            None,
+            trace,
+            profile_format(slot_ids),
+            timeout,
+            safety_identifier,
+        )
+
     def _complete(
         self,
         prompt: str,
@@ -562,7 +623,7 @@ class LlmClient:
         timeout: float = TIMEOUT_SECONDS,
         safety_identifier: str | None = None,
     ) -> dict[str, Any]:
-        if prompt in ("chat", "digest", "close"):
+        if prompt in ("chat", "digest", "close", "profile"):
             validate_assembled(prompt, instructions)
         if trace is not None:
             trace["prompt"] = prompt
@@ -581,7 +642,7 @@ class LlmClient:
         extra: dict[str, Any] = {"text": {"format": text_format}} if text_format else {}
         if safety_identifier:
             extra["safety_identifier"] = safety_identifier
-        effort = self._effort if prompt == "chat" else REASONING_EFFORT
+        effort = self._effort if prompt == "chat" else PROFILE_EFFORT if prompt == "profile" else REASONING_EFFORT
         if trace is not None:
             trace["effort"] = effort
         try:

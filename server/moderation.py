@@ -158,6 +158,27 @@ class Moderator:
         image_b64 = None
         if not parts:
             return CLEAN
+        return verdict_from_results(self._results(parts, deadline))
+
+    def check_fields(
+        self, *, fields: list[tuple[str, str]], deadline: Deadline
+    ) -> tuple[Verdict, str | None]:
+        """S41: one batched call over named texts; (verdict, the first flagged field or None). Blank texts are
+        skipped. When the provider returns one result per text the field is exact, otherwise the first one."""
+        named = [(name, text) for name, text in fields if text and text.strip()]
+        if not named:
+            return CLEAN, None
+        results = self._results([{"type": "text", "text": text} for _, text in named], deadline)
+        verdict = verdict_from_results(results)
+        if not verdict.flagged:
+            return verdict, None
+        if len(results) == len(named):
+            for (name, _), result in zip(named, results):
+                if verdict_from_results([result]).flagged:
+                    return verdict, name
+        return verdict, named[0][0]
+
+    def _results(self, parts: list[dict[str, Any]], deadline: Deadline) -> list[dict[str, Any]]:
         try:
             if self._openai is None:
                 raise ModerationUnavailable("no_key")
@@ -175,7 +196,7 @@ class Moderator:
                 raise ModerationUnavailable(type(exc).__name__) from None
             if not results:
                 raise ModerationUnavailable("no_results")
-            return verdict_from_results(results)
+            return results
         finally:
             for part in parts:
                 part.clear()

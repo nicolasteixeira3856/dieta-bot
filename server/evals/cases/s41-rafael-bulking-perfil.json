@@ -1,0 +1,99 @@
+{
+  "id": "s41-rafael-bulking-perfil",
+  "since": "v6",
+  "tags": [
+    "s41",
+    "persona"
+  ],
+  "persona": "rafael-bulking",
+  "route": "profile",
+  "request": {
+    "local_time": "2026-10-15T09:00:00-03:00",
+    "body": {
+      "sex": "male",
+      "age": 25,
+      "height_cm": 182,
+      "weight_kg": 85
+    },
+    "ceiling_kcal": 3600,
+    "p_target": 210,
+    "c_target": 430,
+    "g_target": 100,
+    "eat_back": {
+      "mode": "zero"
+    },
+    "slots": [
+      {
+        "id": "1",
+        "name": "Café",
+        "time": "07:00"
+      },
+      {
+        "id": "2",
+        "name": "Lanche da manhã",
+        "time": "10:00"
+      },
+      {
+        "id": "3",
+        "name": "Almoço",
+        "time": "13:00"
+      },
+      {
+        "id": "4",
+        "name": "Pré-treino",
+        "time": "16:30"
+      },
+      {
+        "id": "5",
+        "name": "Jantar",
+        "time": "20:00"
+      },
+      {
+        "id": "6",
+        "name": "Ceia",
+        "time": "22:30"
+      }
+    ],
+    "tone": "duro",
+    "notifications": {
+      "enabled": true,
+      "closure_time": null
+    },
+    "goal": {
+      "weight_kg": 90,
+      "date": "2027-06-30"
+    },
+    "answers": {
+      "restrictions": null,
+      "measuring": "peso tudo cru na balança",
+      "foods": "café: 4 ovos mexidos, 2 pães franceses e 300 ml de leite integral. Pré-treino: 2 bananas, 40 g de aveia e 30 g de whey. Ceia: 300 g de iogurte natural com 30 g de pasta de amendoim. Arroz sempre 200 g cozido por refeição",
+      "dislikes": null,
+      "equipment": "air fryer, panela de pressão e liquidificador"
+    }
+  },
+  "expect": {
+    "facts_count": {
+      "min": 5
+    },
+    "fact_categories": [
+      "routine",
+      "equipment",
+      "portion"
+    ],
+    "routine_slots": [
+      "1",
+      "4",
+      "6"
+    ],
+    "facts_have": [
+      "balança"
+    ],
+    "summary_has": [
+      "3600",
+      "210"
+    ],
+    "summary_not": [
+      "imc"
+    ]
+  }
+}

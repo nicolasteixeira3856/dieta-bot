@@ -952,7 +952,7 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
         payload["day"]["remaining_kcal"] = 640
         _, captured = await self._post_raw(payload)
         prompt = self._prompt(captured)
-        self.assertIn("MEMORY: permanent 1/30, dynamic 1/40", prompt)
+        self.assertIn("MEMORY: permanent 1/50, dynamic 1/40", prompt)
         self.assertIn("P1 preference leite: Leite semidesnatado (seen 5 days, last 2026-09-29)", prompt)
         self.assertIn("D2 routine slot=1 cafe: 2 ovos mexidos, 1 pao frances (seen 3 days)", prompt)
         self.assertNotIn("texto antigo", prompt)
@@ -965,7 +965,7 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
 
     async def test_prompt_empty_facts_still_shows_counts(self) -> None:
         _, captured = await self._post_raw(_v2_payload(facts=[]))
-        self.assertIn("MEMORY: permanent 0/30, dynamic 0/40\nDAY:", self._prompt(captured))
+        self.assertIn("MEMORY: permanent 0/50, dynamic 0/40\nDAY:", self._prompt(captured))
 
     async def test_legacy_prompt_is_unchanged(self) -> None:
         _, captured = await self._post_raw(_base_chat_payload())
@@ -1106,7 +1106,7 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
             return payload
 
         bad = {
-            "76 facts": _v2_payload(facts=[_fact(f"D{i}", kind="dynamic") for i in range(76)]),
+            "96 facts": _v2_payload(facts=[_fact(f"D{i}", kind="dynamic") for i in range(96)]),
             "T dynamic": _v2_payload(facts=[_fact("T1", kind="dynamic")]),
             "P temp": _v2_payload(facts=[_fact("P1", kind="temp")]),
             "D temp": _v2_payload(facts=[_fact("D1", kind="temp")]),
@@ -1148,7 +1148,7 @@ class ChatV2Tests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.status_code, 200)
             prompt = self._prompt(captured)
             header = prompt.split("MEMORY: ")[1].splitlines()[0]
-            self.assertEqual(header, "permanent 1/30, dynamic 1/40" + (", temp 1/5" if enabled else ""))
+            self.assertEqual(header, "permanent 1/50, dynamic 1/40" + (", temp 1/5" if enabled else ""))
             self.assertIn("T1 portion leite: Leite semidesnatado (temp since 2026-09-29)", prompt)
             calls.append(json.loads(captured[0].content))
         self.assertEqual(calls[0]["instructions"], calls[1]["instructions"])

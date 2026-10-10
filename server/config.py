@@ -24,13 +24,16 @@ RATE_LIMIT_CHAT = "30/minute"
 REASONING_EFFORT = "none"
 # reasoning.effort of the Chat generation (ADR-054, S33). Measured p95 16 s; the 60 s deadline covers it.
 CHAT_EFFORT = "low"
+# reasoning.effort of the onboarding profile build (ADR-057, S41): one call per user, like the Chat.
+PROFILE_EFFORT = "low"
 FALLBACK_QUESTION = "descreve em 1 linha"
 CHAT_FALLBACK_QUESTION = "Alguma porção foi diferente do que considerei?"
 # Digest <= 400 tokens (spec v1-chat rule 7). ~4 chars per token.
 DIGEST_MAX_CHARS = 1600
 # Chat v2 (ADR-023). Memory facts and recent meals come from the app; the server is stateless.
-FACTS_MAX = 75
-MEMORY_PERMANENT_MAX = 30
+# ADR-057 (S41): the permanent cap is 50 (was 30); the request carries every kind at its cap.
+FACTS_MAX = 95
+MEMORY_PERMANENT_MAX = 50
 MEMORY_DYNAMIC_MAX = 40
 MEMORY_TEMP_MAX = 5
 FACT_KEY_MAX = 40

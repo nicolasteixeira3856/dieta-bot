@@ -1,0 +1,87 @@
+{
+  "id": "s41-marta-diabetes-perfil",
+  "since": "v6",
+  "tags": [
+    "s41",
+    "persona"
+  ],
+  "persona": "marta-diabetes",
+  "route": "profile",
+  "request": {
+    "local_time": "2026-10-15T09:00:00-03:00",
+    "body": {
+      "sex": "female",
+      "age": 58,
+      "height_cm": 160,
+      "weight_kg": 74
+    },
+    "ceiling_kcal": 1600,
+    "p_target": 90,
+    "c_target": 160,
+    "g_target": 55,
+    "eat_back": {
+      "mode": "zero"
+    },
+    "slots": [
+      {
+        "id": "1",
+        "name": "Café",
+        "time": "07:00"
+      },
+      {
+        "id": "2",
+        "name": "Almoço",
+        "time": "12:00"
+      },
+      {
+        "id": "3",
+        "name": "Lanche",
+        "time": "15:30"
+      },
+      {
+        "id": "4",
+        "name": "Jantar",
+        "time": "19:00"
+      }
+    ],
+    "tone": "seco",
+    "notifications": {
+      "enabled": true,
+      "closure_time": "21:30"
+    },
+    "goal": null,
+    "answers": {
+      "restrictions": "diabetes tipo 2, evito açúcar e doces e uso adoçante; prefiro carboidrato integral",
+      "measuring": "medidas caseiras",
+      "foods": "café com leite desnatado e adoçante e 1 pão integral com queijo branco. Às 15h30 sempre um iogurte natural sem açúcar com 1 colher de aveia. Janto marmita congelada de 350 g",
+      "dislikes": "jiló",
+      "equipment": "só tenho micro-ondas, não tenho fogão nem forno"
+    }
+  },
+  "expect": {
+    "facts_count": {
+      "min": 5
+    },
+    "fact_categories": [
+      "preference",
+      "routine",
+      "equipment"
+    ],
+    "routine_slots": [
+      "1",
+      "3"
+    ],
+    "facts_have": [
+      "açúcar",
+      "micro-ondas"
+    ],
+    "summary_has": [
+      "1600"
+    ],
+    "summary_not": [
+      "imc",
+      "glicemia",
+      "remédio"
+    ]
+  }
+}

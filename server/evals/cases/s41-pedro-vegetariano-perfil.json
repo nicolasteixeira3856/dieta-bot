@@ -1,0 +1,80 @@
+{
+  "id": "s41-pedro-vegetariano-perfil",
+  "since": "v6",
+  "tags": [
+    "s41",
+    "persona"
+  ],
+  "persona": "pedro-vegetariano",
+  "route": "profile",
+  "request": {
+    "local_time": "2026-10-15T09:00:00-03:00",
+    "body": {
+      "sex": "male",
+      "age": 27,
+      "height_cm": 175,
+      "weight_kg": 72
+    },
+    "ceiling_kcal": 2200,
+    "p_target": 110,
+    "c_target": 280,
+    "g_target": 70,
+    "eat_back": {
+      "mode": "zero"
+    },
+    "slots": [
+      {
+        "id": "1",
+        "name": "Café",
+        "time": "08:00"
+      },
+      {
+        "id": "2",
+        "name": "Almoço",
+        "time": "12:30"
+      },
+      {
+        "id": "3",
+        "name": "Jantar",
+        "time": "20:00"
+      }
+    ],
+    "tone": "seco",
+    "notifications": {
+      "enabled": false,
+      "closure_time": null
+    },
+    "goal": null,
+    "answers": {
+      "restrictions": "sou vegetariano, como ovo mas não como carne, frango nem peixe. Tenho intolerância à lactose",
+      "measuring": "não tenho balança, meço em colheres, conchas e xícaras",
+      "foods": "café: 2 fatias de pão integral com pasta de amendoim, uma banana e café com leite sem lactose. No almoço 4 colheres de arroz e 1 concha de feijão com legumes",
+      "dislikes": null,
+      "equipment": null
+    }
+  },
+  "expect": {
+    "facts_count": {
+      "min": 4
+    },
+    "fact_categories": [
+      "preference",
+      "routine",
+      "portion"
+    ],
+    "routine_slots": [
+      "1"
+    ],
+    "facts_have": [
+      "lactose",
+      "carne"
+    ],
+    "summary_has": [
+      "2200"
+    ],
+    "summary_not": [
+      "imc",
+      "kg"
+    ]
+  }
+}

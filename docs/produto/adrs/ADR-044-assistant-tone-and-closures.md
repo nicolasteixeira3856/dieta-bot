@@ -1,6 +1,6 @@
 # ADR-044 — Assistant tone chosen by the user; day and week closure
 
-- Status: Accepted (2026-10-06, with the owner's approval of D16 and S25)
+- Status: Accepted (2026-10-06, with the owner's approval of D16 and S25); partially superseded by [ADR-057](ADR-057-conversational-onboarding.md) (O5 becomes a step of the guided onboarding chat; the closure time becomes a profile field, default 22:00)
 - Date: 2026-10-06
 - Context: `produto`
 - Supersedes: partially `AGENTS.md` ("Dry tone. No coach." becomes a tone the user chooses); partially [ADR-012](ADR-012-chat-home-perfil.md) (onboarding gains O5; the Home gains the closure cards); partially [ADR-020](ADR-020-estados-novos-chat-home-horario.md) (closed screen list extended with `o5`, `cfgT`, `homeC`, `homeK`). The reminders of [ADR-012](ADR-012-chat-home-perfil.md) rule 8 stay as they are.

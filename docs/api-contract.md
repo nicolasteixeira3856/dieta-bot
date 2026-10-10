@@ -1,4 +1,4 @@
-# HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat, /v1/close
+# HTTP contract — /health, /v1/estimate, /v1/fit, /v1/chat, /v1/close, /v1/profile
 
 Content controls (CP2, 2026-09-30, [ADR-024](content-policy/adrs/ADR-024-content-safety-boundaries.md)): see [content handling](content-policy/specifications/content-policy.md). Every model route moderates the current user text and photo before generation and the generated text after it (OpenAI moderation, fail closed), and the model must classify `scope`. Errors added: HTTP 400 `{"detail": "content_policy_blocked"}` on `/v1/estimate` and `/v1/fit`; HTTP 503 `{"detail": "content_policy_unavailable"}` on every model route when moderation fails or times out. One 60-second deadline covers moderation and generation.
 
@@ -7,12 +7,12 @@ Safety identifier (CP3, 2026-10-01, [ADR-025](content-policy/adrs/ADR-025-safety
 Auth: header `X-Invite: $INVITE_CODE` (constant-time validation, HTTP 401 `{"detail": "unauthorized"}` if missing or mismatch).
 Content-Type: application/json
 
-Rate limits: 30 req/minute per IP + invite on `/v1/estimate`, `/v1/fit`, and `/v1/chat`. Returns HTTP 429 `{"detail": "rate_limit_exceeded"}` when limit is exceeded.
+Rate limits: 30 req/minute per IP + invite on `/v1/estimate`, `/v1/fit`, `/v1/chat`, `/v1/close` and `/v1/profile`. Returns HTTP 429 `{"detail": "rate_limit_exceeded"}` when limit is exceeded.
 Body size limit: HTTP 413 `{"detail": "payload_too_large"}` when `Content-Length` > 24 MB (25,165,824 bytes) enforced at the ASGI layer. It covers the photo cap plus JSON; a photo over the cap is still `photo_too_large` (S8).
 Field lengths: `text` in `/v1/estimate` and `/v1/fit` has a maximum length of 1,000 characters; `/v1/chat` limits are listed in its section. Returns HTTP 422 when exceeded.
 Prompt injection defense: User inputs are encapsulated in strict markers (`### USER_MEAL_INPUT_START` / `### USER_MEAL_INPUT_END` for estimate/fit, and `### USER_MESSAGE_START` / `### USER_MESSAGE_END` for chat) and treated strictly as untrusted data. `###` inside client text is rewritten to `# # #`, so it cannot open or close a section.
 
-Installation header: optional request header `X-Client-Instance-Id` on `/v1/estimate`, `/v1/fit` and `/v1/chat` (compact included), a canonical lowercase UUID v4 (36 characters, `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`). Checked after `X-Invite`. Present but not in that shape: HTTP 400 `{"detail": "invalid_client_instance_id"}`, no model call; the value is never echoed or logged. Missing: accepted (older APKs), no identifier. The server derives `safety_identifier = "v1_" + HMAC-SHA256(SAFETY_ID_SECRET, SERVER_ENV + ":installation:" + uuid)` and sends it on every Responses call (never in the prompt, never on the moderation call); the raw UUID and the IP never reach the provider. Without `SAFETY_ID_SECRET` the server starts and sends no identifier. It is a correlation hint, not authentication, and never changes the JSON body.
+Installation header: optional request header `X-Client-Instance-Id` on `/v1/estimate`, `/v1/fit`, `/v1/chat` (compact included), `/v1/close` and `/v1/profile`, a canonical lowercase UUID v4 (36 characters, `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`). Checked after `X-Invite`. Present but not in that shape: HTTP 400 `{"detail": "invalid_client_instance_id"}`, no model call; the value is never echoed or logged. Missing: accepted (older APKs), no identifier. The server derives `safety_identifier = "v1_" + HMAC-SHA256(SAFETY_ID_SECRET, SERVER_ENV + ":installation:" + uuid)` and sends it on every Responses call (never in the prompt, never on the moderation call); the raw UUID and the IP never reach the provider. Without `SAFETY_ID_SECRET` the server starts and sends no identifier. It is a correlation hint, not authentication, and never changes the JSON body.
 
 Request id: optional request header `X-Request-Id` (`[A-Za-z0-9-]{1,64}`). The server reuses it, or generates a UUID when it is missing or invalid, and always returns it in the `X-Request-Id` response header, on every route and status. Optional request headers `X-App-Version` and `X-App-Env` are only recorded. None of them changes the JSON body.
 Dev conversation log (ADR-015): when `CONVERSATION_LOG_PATH` is set, each call to the model writes one JSON line (input text, raw model output, error type and HTTP status, plus `reason` when a plain `ValueError` carries one of the server's fixed lowercase check messages, final response, `fallback`: `false` | `"error"` | `"text_only"`, `policy`, `safety_identifier` (derived, or null; never the raw UUID), latency). Never the photo, the invite, the API key or the provider's error text. A `policy_blocked` or severe turn keeps metadata only (CP2). Off by default.
@@ -122,7 +122,7 @@ Optional fields (S11, ADR-023). Every one is optional; out of limits → HTTP 42
   "day": {"remaining_kcal": 640}
 }
 ```
-- `facts`: ≤ 75 items. `id` matches `[PDT][0-9]{1,4}`. `kind` `permanent` | `dynamic` | `temp`. A `T` id requires `kind: temp` and vice versa, otherwise HTTP 422. `category` `preference` | `portion` | `routine` | `equipment` (an appliance the user declared) | `liked` (a dish the user approved, S37). `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`. Optional `kcal` (0–5000), `p`, `c`, `g` (0–1000): the numbers of a routine (S33); the server prints them after the text only when all four are present. The Android app sends them for a routine with all four stored, and none of them otherwise.
+- `facts`: ≤ 95 items (50 permanent, 40 dynamic, 5 temporary; [ADR-057](produto/adrs/ADR-057-conversational-onboarding.md) raised the permanent cap from 30, S41). `id` matches `[PDT][0-9]{1,4}`. `kind` `permanent` | `dynamic` | `temp`. A `T` id requires `kind: temp` and vice versa, otherwise HTTP 422. `category` `preference` | `portion` | `routine` | `equipment` (an appliance the user declared) | `liked` (a dish the user approved, S37). `key` ≤ 40, `text` ≤ 160 characters. `slot`: a `profile.slots` id or `null`. `days_seen` ≥ 0. `last_seen`: ISO date or `null`. Optional `kcal` (0–5000), `p`, `c`, `g` (0–1000): the numbers of a routine (S33); the server prints them after the text only when all four are present. The Android app sends them for a routine with all four stored, and none of them otherwise.
 - **v2 client** = `facts` present (even `[]`): the facts replace `memory` in the prompt. **Legacy client** = no `facts`: `memory` (text) goes to the prompt as before.
 - `recent`: meals recorded in the last 7 days, ≤ 42 items, `text` ≤ 240, `date` ISO, `slot_id` `null` = "Outros". Any client may send it.
 - `discovery` (S37, [ADR-051](produto/adrs/ADR-051-plan-option-identity-and-chat-discovery.md)): JSON boolean, default `false`; the app sends `true` on the first Chat opening with an empty memory and on the turn that answers the questions. The server adds `DISCOVERY: first_open` to the input: the reply asks up to four skippable questions (usual breakfast, lunch, dinner, fixed preferences or equipment) as `- ` lines, and the answers come back as `memory_updates` (declared routines with numbers, permanent preferences, `equipment` facts), nothing logged. Compact ignores it. The Android app sends it while its memory is empty, on its first answer ever and the next one.
@@ -164,6 +164,7 @@ Optional fields (S30, [ADR-044](produto/adrs/ADR-044-assistant-tone-and-closures
 }
 ```
 - `profile.tone`: `seco` | `duro`. Absent or `null` = `seco` (every client before S30). Any other value → HTTP 422. It picks the fixed instructions of the turn (one prefix per capability branch and tone); it never changes scope, refusals or the response shape. Compact ignores it.
+- `profile.goal` (S41, [ADR-057](produto/adrs/ADR-057-conversational-onboarding.md)): optional `{"weight_kg": 72.5, "date": "2027-03-01"}`, the goal that `POST /v1/profile` accepted. `weight_kg` a JSON number 20–400 (required), `date` ISO or `null`; unknown keys or other values → HTTP 422. The `PROFILE` line ends with `, meta {kg} kg até {date}` (`, meta {kg} kg` without a date); under `duro` the critique of a log or plan that breaks the ceiling may say that the kcal over the ceiling delay the goal, in kcal, never in kg or about the body. It never changes the response shape. Dev log `goal`: `true` | `false`, never the numbers.
 - `day.slots[].status: planned`: the user reserved a plan for that meal (ADR-046). It requires `text` (1–2000 code points) and `kcal`, `p`, `c`, `g` (finite, ≥ 0); otherwise HTTP 422. Nothing of it was eaten: the client keeps it out of `eaten_*` and `remaining_kcal`. The server reserves the slot by its own kcal in the meal window (see [Plan-budget capability](#plan-budget-capability)), lists it in `WINDOWS` as `{slot}: planejado {kcal} kcal` and never closes it with a suggestion line. A planned slot is not occupied for the [meal-change capability](#meal-change-capability): a log into it is `operation: new`, `base_slot: null`.
 
 OUT
@@ -413,7 +414,8 @@ IN (day)
 ```
 IN (week): `"period": "week"` and `"numbers": {"days": [{"date", "kcal", "p", "c", "g", "ceiling_kcal", "workout_kcal", "recorded"}], "over_slot": {"name": "Jantar", "days": 4}}`.
 
-- Every number is a JSON integer (`strict`: no floats, no strings): kcal 0–20000, grams 0–5000, `profile.ceiling_kcal` and each `ceiling_kcal` (the effective ceiling of that day) 1–20000, `workout_kcal` integer or `null`, `over_slot.days` 0–7. `tone`: `seco` | `duro`, default `seco`. `numbers.slots[].status`: `empty` | `eaten` | `skipped` | `planned`, with `kcal` integer or null; at most 12 slots. `week.days`: 1–7 items, each with `recorded` (JSON boolean). `over_slot`: optional. Meal names (`profile.slots[].name`, `numbers.slots[].name`, `over_slot.name`) are the only text, 1–40 characters. Unknown keys, a `numbers` shape that does not match `period` or any value outside these bounds → HTTP 422.
+- `profile.goal` (S41): optional, the same shape as in `/v1/chat`; NUMBERS gains `GOAL: weight_kg={kg}[, date={date}]` and, for a week, `week_over_kcal` (the kcal over the ceiling summed over the recorded days); `duro` may say that those kcal delay the goal, in kcal, never in kg or about the body. Dev log `goal`: `true` | `false`.
+- Every other number is a JSON integer (`strict`: no floats, no strings): kcal 0–20000, grams 0–5000, `profile.ceiling_kcal` and each `ceiling_kcal` (the effective ceiling of that day) 1–20000, `workout_kcal` integer or `null`, `over_slot.days` 0–7. `tone`: `seco` | `duro`, default `seco`. `numbers.slots[].status`: `empty` | `eaten` | `skipped` | `planned`, with `kcal` integer or null; at most 12 slots. `week.days`: 1–7 items, each with `recorded` (JSON boolean). `over_slot`: optional. Meal names (`profile.slots[].name`, `numbers.slots[].name`, `over_slot.name`) are the only text, 1–40 characters. Unknown keys, a `numbers` shape that does not match `period` or any value outside these bounds → HTTP 422.
 
 OUT
 ```json
@@ -422,6 +424,62 @@ OUT
 - `text`: pt-BR plain text (no markers), at most 3 lines and 400 characters. The model writes prose over the numbers; the server derives only the differences it serializes next to them (kcal over or left, macros missing or over; week total, means over the recorded days, days over the ceiling) and drops any sentence that carries a number not present in the serialized request (counts up to 10 excepted).
 - A refusal of the output moderation, a generation failure, empty text after shaping or moderation unavailable return HTTP 200 with the fixed neutral line built from the numbers: `Dia fechado. {kcal} de {ceiling_kcal} kcal.` for a day; `Semana fechada. {total} kcal em {n} dias com registro.` (or `Semana fechada. Nenhum dia com registro.`) for a week. The closure itself never returns an HTTP error; 401, 413, 422 and 429 keep their meaning.
 - Stateless: the server stores nothing. Dev log route `close` with `tone`, `period`, `fallback` (`false`, `error`, `policy` or `moderation`) and `close_dropped` (sentences dropped, or null); no photo fields.
+
+## POST /v1/profile
+
+The profile build of the conversational onboarding (S41, [ADR-057](produto/adrs/ADR-057-conversational-onboarding.md)). The app scripts the questions on the device and calls this route once, when the user confirms the summary. Headers as `/v1/chat` (`X-Invite`, optional `X-Request-Id`, `X-Client-Instance-Id`, `X-App-Version`, `X-App-Env`). Same rate limit as `/v1/chat`. Body limit 64 KB (`Content-Length` above it → HTTP 413 `payload_too_large`). One deadline of 25 s covers moderation, generation and output moderation; the generation runs at `reasoning.effort=low`.
+
+IN
+```json
+{
+  "local_time": "2026-10-09T20:10:00-03:00",
+  "body": {"sex": "female", "age": 34, "height_cm": 165, "weight_kg": 70.5},
+  "ceiling_kcal": 1450, "p_target": 109, "c_target": 145, "g_target": 48,
+  "eat_back": {"mode": "partial", "pct": 50},
+  "slots": [{"id": "s1", "name": "Café", "time": "07:30"}, {"id": "s2", "name": "Almoço", "time": "12:30"}],
+  "tone": "seco",
+  "notifications": {"enabled": true, "closure_time": null},
+  "goal": {"weight_kg": 66, "date": "2027-03-01"},
+  "answers": {"restrictions": "sem lactose", "measuring": "medidas caseiras",
+              "foods": "café com pão e ovo de manhã", "dislikes": null, "equipment": "air fryer"}
+}
+```
+- Unknown keys anywhere → HTTP 422. `body.sex`: `female` | `male`; `body.age` integer 13–120; `body.height_cm` integer 50–272; `body.weight_kg` number 20–400. `ceiling_kcal` integer 1–20000; `p_target`, `c_target`, `g_target` integers 0–5000 (the text the user edited, parsed by the app; no floats, no strings). `eat_back.mode`: `zero` | `partial` | `full`; `pct` integer 1–99, required for `partial` and only for it. `slots`: 1–12, `id` `[A-Za-z0-9_-]{1,16}` and unique, `name` 1–40 characters, `time` `HH:mm`. `tone`: `seco` | `duro`, default `seco`. `notifications.enabled` JSON boolean; `closure_time` `HH:mm` or `null`. `goal`: optional, `weight_kg` number 20–400 or `null`, `date` ISO or `null`. `answers`: `restrictions`, `measuring`, `foods`, `dislikes`, `equipment`, each a string of at most 2000 characters (code points) or `null` when skipped.
+- The body measures are validated and echoed; they are never sent to the model.
+
+OUT (HTTP 200)
+```json
+{
+  "profile": {"body": {"sex": "female", "age": 34, "height_cm": 165, "weight_kg": 70.5},
+              "ceiling_kcal": 1450, "p_target": 109, "c_target": 145, "g_target": 48,
+              "eat_back": {"mode": "partial", "pct": 50},
+              "slots": [{"id": "s1", "name": "Café", "time": "07:30"}, {"id": "s2", "name": "Almoço", "time": "12:30"}],
+              "tone": "seco", "notifications": {"enabled": true, "closure_time": "22:00"}},
+  "goal": {"weight_kg": 66, "date": "2027-03-01"},
+  "goal_refused": false,
+  "facts": [
+    {"kind": "permanent", "category": "preference", "key": "lactose", "text": "Evita lactose: leite e queijo só sem lactose",
+     "slot": null, "declared": true},
+    {"kind": "dynamic", "category": "routine", "key": "café", "text": "café com pão e ovo",
+     "slot": "s1", "declared": true, "kcal": 320, "p": 15, "c": 32, "g": 14},
+    {"kind": "permanent", "category": "equipment", "key": "air fryer", "text": "Tem air fryer", "slot": null, "declared": true}
+  ],
+  "summary": "Teto 1450 kcal · P 109 · C 145 · G 48. Café 07:30, Almoço 12:30; compensação de 50%. Lembro: sem lactose, café com pão e ovo, air fryer.",
+  "request_id": "6f0c…",
+  "model": "gpt-6-luna"
+}
+```
+- `profile`: the request as validated. `notifications.closure_time` is `22:00` when the notifications are on and no time was sent, `null` when they are off.
+- `goal`: the request goal when accepted, `null` otherwise. A goal needs `weight_kg`; a date alone is no goal (`goal: null`, `goal_refused: false`). `goal_refused: true` when the goal is below the safety limits of the [content policy](content-policy/specifications/content-policy.md#onboarding-profile) (goal BMI under 18.5, a date that is not after the local date, or a pace above 1 % of the current weight per week, loss or gain); the profile is built without it and the app shows its fixed safety handling.
+- `facts`: at most 30, in the memory schema of [ADR-023](produto/adrs/ADR-023-chat-v2-memoria-v2.md), ordered by priority: restrictions (preference facts), routines, equipment, the measuring style (`portion`), dislikes and other likes (`preference`). `kind` is `dynamic` for a routine and `permanent` otherwise; `declared` is always `true` (the app stores them as `source: declared`). `key` ≤ 40 characters, unique (case and accents ignored); `text` ≤ 160. A routine carries `slot` (a request slot id) and `kcal` (1–5000), `p`, `c`, `g` (0–1000) as integers; every other fact has `slot: null` and no numbers. Out of schema, a routine without its slot or its four numbers, and a repeated key are dropped by the server; the server cuts at 30 by the priority order. The app assigns the ids.
+- `summary`: pt-BR plain text (no markers), at most 600 characters, whole sentences: the profile in the chosen tone, numbers first, no judgment of the body. When the model's summary is empty the server writes `Teto {ceiling} kcal · P {p} · C {c} · G {g}. Refeições: {name} {time}, ….`
+- `request_id`: the request id of the call (the `X-Request-Id` header), for the client's error report.
+
+Failures:
+- HTTP 400 `{"detail": "content_policy_blocked", "field": "<answer>"}`: a free-text answer flagged by the input moderation (no model call), or the model's `scope` not `in_scope` (`field` is the answer the model names, or `null`), or the generated text flagged by the output moderation (`field: null`). The app shows its error screen; the answers stay on the device.
+- HTTP 502 `{"detail": "profile_unavailable"}`: generation failure, timeout or output that is not the JSON object. The client retries the same call.
+- HTTP 503 `content_policy_unavailable` (moderation down), 401, 413, 422 and 429 keep their meaning.
+- Stateless: the server stores nothing. Dev log route `profile` with `goal` (`true` | `false`), `goal_refused`, `facts` (counts per category), `facts_dropped` (counts per reason, or `null`), `summary_fallback` and the latency; the ADR-015 dev capture keeps the answers like Chat text, a blocked severe turn keeps metadata only.
 
 ## Provenance
 
@@ -437,3 +495,4 @@ OUT
 - [A67](android/plans/completed/a67-plan-options-and-discovery.md) — the Android client shows plan `options` and sends `discovery`
 - [A68](android/plans/completed/a68-saved-recipes.md) — the Android client sends `recipes` and `recipe_full`
 - [S39](server/plans/pending_manual_validation/s39-plan-decision-line-and-option-budget.md) — `options[].over_kcal`; the action's estimate is the chosen option
+- [S41](server/plans/pending_manual_validation/s41-onboarding-profile.md) — `POST /v1/profile`, `profile.goal` in `/v1/chat` and `/v1/close`, `facts` up to 95

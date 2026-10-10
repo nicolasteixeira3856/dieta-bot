@@ -1,0 +1,80 @@
+{
+  "id": "s41-lucas-noturno-perfil",
+  "since": "v6",
+  "tags": [
+    "s41",
+    "persona"
+  ],
+  "persona": "lucas-noturno",
+  "route": "profile",
+  "request": {
+    "local_time": "2026-10-15T09:00:00-03:00",
+    "body": {
+      "sex": "male",
+      "age": 29,
+      "height_cm": 178,
+      "weight_kg": 76
+    },
+    "ceiling_kcal": 2300,
+    "p_target": 150,
+    "c_target": 260,
+    "g_target": 70,
+    "eat_back": {
+      "mode": "full"
+    },
+    "slots": [
+      {
+        "id": "1",
+        "name": "Café",
+        "time": "10:00"
+      },
+      {
+        "id": "2",
+        "name": "Almoço",
+        "time": "14:00"
+      },
+      {
+        "id": "3",
+        "name": "Jantar",
+        "time": "19:00"
+      },
+      {
+        "id": "4",
+        "name": "Ceia",
+        "time": "23:00"
+      }
+    ],
+    "tone": "seco",
+    "notifications": {
+      "enabled": true,
+      "closure_time": "23:30"
+    },
+    "goal": null,
+    "answers": {
+      "restrictions": null,
+      "measuring": "uso a balança às vezes, no resto é de olho",
+      "foods": "acordo às 9h; café às 10h com pão na chapa, ovo e café com leite. Janto leve antes do treino da noite. Depois do treino, às 23h, como omelete de 2 ovos, 150 g de batata cozida e um copo de leite integral",
+      "dislikes": null,
+      "equipment": "air fryer"
+    }
+  },
+  "expect": {
+    "facts_count": {
+      "min": 3
+    },
+    "fact_categories": [
+      "routine",
+      "equipment"
+    ],
+    "routine_slots": [
+      "1",
+      "4"
+    ],
+    "summary_has": [
+      "2300"
+    ],
+    "summary_not": [
+      "imc"
+    ]
+  }
+}

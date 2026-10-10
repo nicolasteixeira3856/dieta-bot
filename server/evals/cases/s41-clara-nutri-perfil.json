@@ -1,0 +1,91 @@
+{
+  "id": "s41-clara-nutri-perfil",
+  "since": "v6",
+  "tags": [
+    "s41",
+    "persona"
+  ],
+  "persona": "clara-nutri",
+  "route": "profile",
+  "request": {
+    "local_time": "2026-10-15T09:00:00-03:00",
+    "body": {
+      "sex": "female",
+      "age": 40,
+      "height_cm": 168,
+      "weight_kg": 66
+    },
+    "ceiling_kcal": 1700,
+    "p_target": 110,
+    "c_target": 190,
+    "g_target": 55,
+    "eat_back": {
+      "mode": "zero"
+    },
+    "slots": [
+      {
+        "id": "1",
+        "name": "Café",
+        "time": "07:30"
+      },
+      {
+        "id": "2",
+        "name": "Colação",
+        "time": "10:00"
+      },
+      {
+        "id": "3",
+        "name": "Almoço",
+        "time": "12:30"
+      },
+      {
+        "id": "4",
+        "name": "Lanche",
+        "time": "16:00"
+      },
+      {
+        "id": "5",
+        "name": "Jantar",
+        "time": "20:00"
+      }
+    ],
+    "tone": "seco",
+    "notifications": {
+      "enabled": true,
+      "closure_time": null
+    },
+    "goal": null,
+    "answers": {
+      "restrictions": "sigo o plano da nutricionista, só as substituições que ele permite",
+      "measuring": "medidas do plano: colheres e conchas",
+      "foods": "café: 1 pão francês sem miolo com queijo branco e café com 150 ml de leite desnatado. Colação: uma maçã ou pera. Almoço: 100 g de arroz, 1 concha de feijão, 100 g de carne magra e salada. Lanche: iogurte natural com 1 colher de chia. Jantar igual ao almoço",
+      "dislikes": null,
+      "equipment": null
+    }
+  },
+  "expect": {
+    "facts_count": {
+      "min": 5
+    },
+    "fact_categories": [
+      "routine",
+      "preference"
+    ],
+    "routine_slots": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ],
+    "facts_have": [
+      "plano"
+    ],
+    "summary_has": [
+      "1700"
+    ],
+    "summary_not": [
+      "imc",
+      "kg"
+    ]
+  }
+}
