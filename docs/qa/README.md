@@ -19,7 +19,7 @@ Padrão oficial de Qualidade Visual e Validação do Fibrai.
 Inventário oficial: dono único da lista de golds, igual nos dois temas. O gold de um id está em `docs/qa/figma/{dark,light}/<id>.png`. Quem cria ou remove um gold atualiza esta lista e o mapa de `tools/export-figma.mjs` na mesma entrega; `node tools/check-docs.mjs` (C7) confere que a lista e o mapa dos dois temas são iguais.
 
 ```text
-splash.png · o1.png · o1e.png · o2.png · o3.png · o3t.png · o3s.png · o4.png · o5.png
+splash.png · ob0.png · ob1.png · ob1e.png · ob2.png · ob3.png · ob4.png · ob5.png · ob6.png
 home0.png · home1.png · homeX.png · homeW.png · homeC.png · homeK.png · homeP.png
 chat0.png · chatL.png · chatQ.png · chatE.png · chatT.png · chatP.png · chatX.png · chatCP.png · chatCC.png
 chatF.png · chatG.png · chatA.png · chatR.png · chatM.png · chatS.png · chatU.png · chatD.png
@@ -90,7 +90,7 @@ A implementação de qualquer tela no client Android deve seguir este ciclo:
 
 ### Regressão
 
-`o3t`: the Figma frame is 780×2536 with `Dialog/TimeWheel` 300 dp from its top, while the app centres the dialog
+`o3t` (retired by D27; its gold is in `_legacy/figma-d4-onboarding/` until A71 removes the capture): the Figma frame is 780×2536 with `Dialog/TimeWheel` 300 dp from its top, while the app centres the dialog
 on the 780×1688 capture. `diff-gold.mjs` aligns the dialog box (gold px 48, 600 – 732, 1388) on the capture centre,
 then gates its border, title, five wheel rows and both actions at the same 2% limit and 0.8–1.25 content-presence
 ratio. The O3 behind it is checked by `o3`. Gold inputs remain read-only.

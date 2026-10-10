@@ -1,10 +1,10 @@
 # Plan — D27 Release 2: Conversational onboarding
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 09/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Onboarding v2", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{ob0,ob1,ob1e,ob2,ob3,ob4,ob5,ob6}.png`, retirement of `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `o5` from the inventory and from `tools/export-figma.mjs` (the Config meal editor keeps `cfgS` and its own frames), the "Onboarding v2" node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D26](../completed/) `Concluído`; [ADR-057](../../../produto/adrs/ADR-057-conversational-onboarding.md) accepted by this approval.
+- Prerequisites: [D26](./) `Concluído`; [ADR-057](../../../produto/adrs/ADR-057-conversational-onboarding.md) accepted by this approval.
 - Figma MCP budget: ≤ 110 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d27-conversational-onboarding.md. Implemente o plano aprovado.`
@@ -128,4 +128,20 @@ The Release 1 section `Splash e onboarding · D4` is renamed `… · o1–o5 Ret
 3. Contrast of the status screens (WCAG, `accent/on` on the surface): Light white on `#1e7733` 5.61:1, on `#b93b2c` 5.64:1; Dark `#03203a` on `#7ed99a` 9.66:1, on `#ff7a6b` 6.49:1. The inverse button labels are the same pairs reversed. No new variable.
 4. Visual: one review PNG per frame (16) from the dry-run export, sent to the owner on 09/10/2026.
 
-Figma MCP budget: 12 of 110 calls (whoami, 3 skill reads, 5 reads, 3 writes with read-back). Owner review pending.
+Figma MCP budget: 12 of 110 calls (whoami, 3 skill reads, 5 reads, 3 writes with read-back).
+
+### Owner review
+
+**OK (09/10/2026)** on the first round, with no fixes ("Tudo aprovado, pode completar todos os planos e commitar"), covering the open choices of the discovery (`accent/on` on the status screens, 16 questions).
+
+### Export (09/10/2026)
+
+- Figma: the Release 1 section `Splash e onboarding · D4` renamed `Splash e onboarding · D4 · o1–o5 Retired by D27` (`25:232`); its frames stay as history (1 MCP call).
+- `tools/export-figma.mjs`: `ob0`–`ob6` mapped to the ids of the Build table (Light and Dark); `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `o5` removed; `splash` unchanged.
+- `node tools/export-figma.mjs --only ob0,ob1,ob1e,ob2,ob3,ob4` and `--only ob5,ob6`: 16 new files, 780 × 1688 (`ob3` 780 × 2772).
+- The 16 retired PNGs moved with `git mv` to `docs/qa/_legacy/figma-d4-onboarding/{dark,light}/`; inventory of `docs/qa/README.md`: the first line is now `splash` and `ob0`–`ob6`; the `o3t` regression note marked retired. `tools/diff-gold.mjs` defaults to `splash` + `ob0`–`ob6`.
+- `node tools/check-figma.mjs`: 108 golds verified (54 dark + 54 light). `node tools/check-docs.mjs` passes.
+- **Hand-over to [A71](../../../android/plans/a71-conversational-onboarding.md)** (its scope 9): until A71 removes them, `GoldTest.o1*`–`o5*` and the `o1`–`o5` captures have no gold in `docs/qa/figma/` (the files are in `_legacy/`), so those JVM tests fail; the live spec [perfil-onboarding](../../../produto/specifications/perfil-onboarding.md) still describes O1–O5 until A71 rewrites it.
+- **Site:** `npm --prefix web run screens:check` reads `docs/qa/figma/{light,dark}/o1.png` for the landing phone (`web/tools/build-screens.mjs`, W1); it fails until a site plan picks the onboarding screen to show (the cut WebP files in `web/public/` are unchanged). Not touched here: `web/` is outside this plan.
+
+Figma MCP budget: 13 of 110 calls in total.
