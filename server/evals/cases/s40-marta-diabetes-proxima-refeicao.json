@@ -1,0 +1,22 @@
+{
+  "id": "s40-marta-diabetes-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "marta-diabetes",
+  "request": {
+    "text": "o que posso jantar hoje?"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "4",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

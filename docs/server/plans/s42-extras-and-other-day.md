@@ -4,7 +4,7 @@
 - Date: 09/10/2026
 - Owning context: `server`
 - Affected code: `server/` only: the `log` action target `slot: "extra"`, the day resolver for `meal_day: other` with an ISO `day`, the 30-day bound, the prompt rules and examples under [ADR-033](../../content-policy/adrs/ADR-033-global-chat-example-provenance.md), `recent` and `recent_days` accepting extras, tests, eval cases. Documentation at Completion: [HTTP contract](../../api-contract.md), [v1-chat](../specifications/v1-chat.md).
-- Prerequisites: [ADR-058](../../produto/adrs/ADR-058-extras-and-history.md) accepted by this approval; [S40](s40-eval-personas.md) delivered.
+- Prerequisites: [ADR-058](../../produto/adrs/ADR-058-extras-and-history.md) accepted by this approval; [S40](completed/s40-eval-personas.md) delivered.
 - Related documentation: [chat](../../produto/specifications/chat.md), [ADR-050](../../produto/adrs/ADR-050-typed-actions-per-message.md) (typed actions), S14 (`meal_day`, [history](completed/)).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s42-extras-and-other-day.md. Implemente o plano aprovado.`

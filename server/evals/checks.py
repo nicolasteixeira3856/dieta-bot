@@ -89,6 +89,26 @@ REFUSALS = {
 
 INTENTS = ("log", "plan", "question", "skip")
 
+# S40: a case of version v6 or later (its since or a tag) runs as a named persona of evals/personas/.
+PERSONA_SINCE = 6
+_VERSION = re.compile(r"^v(\d+)$")
+
+
+def needs_persona(case: dict[str, Any]) -> bool:
+    labels = [case.get("since"), *case.get("tags", [])]
+    return any((m := _VERSION.match(str(label or ""))) and int(m.group(1)) >= PERSONA_SINCE for label in labels)
+
+
+def case_file_errors(case: dict[str, Any], personas: set[str]) -> list[str]:
+    """Problems of one case file that stop the run before any call: a missing or unknown persona."""
+    name = case.get("_file") or case.get("id")
+    persona = case.get("persona")
+    if persona is None:
+        return [f"{name}: a v{PERSONA_SINCE}+ case must name a persona"] if needs_persona(case) else []
+    if persona not in personas:
+        return [f"{name}: unknown persona {persona!r}"]
+    return []
+
 
 def normalize(text: str) -> str:
     """Case- and accent-insensitive, so "Pão" matches "pao"."""

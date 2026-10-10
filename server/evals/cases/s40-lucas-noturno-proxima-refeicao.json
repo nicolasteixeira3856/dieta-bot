@@ -1,0 +1,22 @@
+{
+  "id": "s40-lucas-noturno-proxima-refeicao",
+  "since": "v6",
+  "tags": [
+    "s40",
+    "persona"
+  ],
+  "persona": "lucas-noturno",
+  "request": {
+    "text": "o que como na ceia depois do treino?"
+  },
+  "expect": {
+    "actions": [
+      {
+        "type": "plan",
+        "slot": "4",
+        "estimate": "present"
+      }
+    ],
+    "refusal": "none"
+  }
+}

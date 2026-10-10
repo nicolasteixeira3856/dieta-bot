@@ -323,7 +323,7 @@ class CaseFileTests(unittest.TestCase):
         for case in cases:
             with self.subTest(case=case["_file"]):
                 self.assertEqual(case["_file"], case["id"] + ".json")
-                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "meal_changes", "skip_slots", "cp2", "close"))
+                self.assertIn(case["since"], ("v1", "v2", "v3", "v4", "v5", "v6", "meal_changes", "skip_slots", "cp2", "close"))
                 self.assertTrue(set(case.get("required", [])) <= set(case["expect"]))
                 if case.get("route") == run.CLOSE_ROUTE:
                     self.assertEqual(case["since"], "close")

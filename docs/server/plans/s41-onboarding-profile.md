@@ -4,7 +4,7 @@
 - Date: 09/10/2026
 - Owning context: `server`
 - Affected code: `server/` only: new route `POST /v1/profile`, its instruction block, the output schema and validation, `profile.goal` in the Chat and close prompts, the content-policy pipeline applied to the route, tests, eval cases. Documentation at Completion: [HTTP contract](../../api-contract.md), [v1-chat](../specifications/v1-chat.md), [content policy](../../content-policy/specifications/content-policy.md) (the route under the Chat scope and moderation; [ADR-024](../../content-policy/adrs/ADR-024-content-safety-boundaries.md) status line records the complement).
-- Prerequisites: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md) accepted by this approval; [S40](s40-eval-personas.md) delivered (the cases run as personas).
+- Prerequisites: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md) accepted by this approval; [S40](completed/s40-eval-personas.md) delivered (the cases run as personas).
 - Related documentation: [perfil-onboarding](../../produto/specifications/perfil-onboarding.md), [memoria-push](../../produto/specifications/memoria-push.md) (fact schema and rules), [ADR-054](../adrs/ADR-054-chat-reasoning-effort-low.md).
 
 Authorization and delivery follow [SDD](../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s41-onboarding-profile.md. Implemente o plano aprovado.`
