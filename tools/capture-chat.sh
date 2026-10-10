@@ -41,7 +41,8 @@
 # SCENES=a69 only onboarding + A69: facts from the Chat listed in O que a Tali sabe (memL), a correction that reaches the next
 #   prompt, a deleted preference the model cannot add back (tombstone).
 # SKIP_ONBOARDING=1 skips tools/capture-onboarding.sh when the app is already onboarded (a rerun of one scene).
-# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68|a69|a70] tools/capture-chat.sh dark|light
+# SCENES=a73 only onboarding + chatT (D30: the Trocar sheet with the Extra row).
+# Usage: [SCENES=v2|a30|a32|a34|a54|a59|a50|a55|a57|a58|a60|a61|a64|a65|a66|a67|a68|a69|a70|a73] tools/capture-chat.sh dark|light
 set -u
 THEME="${1:?dark|light}"
 ADB="${ADB:-adb}"
@@ -106,6 +107,59 @@ EOF
 "$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
 sleep 3
 
+# The gold conversation of chatE / chatT, seeded (adb cannot type its accents).
+seed_gold() { # seed_gold <question or empty> [noslot]: an `ask` estimate (A34); noslot = Registrar opens Trocar
+"$ADB" shell am force-stop $PKG
+rm -f "$TMP"/fibrai.db*
+for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
+"$PY" - "$TMP/fibrai.db" "$1" "${2:-}" <<'EOF'
+import sqlite3, sys, time
+c = sqlite3.connect(sys.argv[1])
+question = sys.argv[2] or None
+today = c.execute("select firstDay from profile").fetchone()[0]
+first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
+if sys.argv[3] == "noslot":
+    first = None
+for table in ("chat_message", "meal_log", "slot_skip"):
+    c.execute(f"delete from {table}")
+now = int(time.time() * 1000)
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)",
+          (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
+c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
+          "estimateConfidence,estimateSlotId,estimateItems,estimateQuestion,intent,recordMode) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000,
+           380, 22, 36, 16, "medium" if question else "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", question, "log", "ask"))
+c.commit()
+c.execute("pragma wal_checkpoint(TRUNCATE)")
+c.execute("pragma journal_mode=DELETE")
+c.close()
+EOF
+"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
+"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
+"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
+"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
+sleep 3
+tap 'resource-id="home-fab"' 1.5
+}
+
+# SCENES=a73 only onboarding + chatT at 20:15: the D30 Trocar sheet of an estimate without a slot, ending with the Extra row.
+if [ "${SCENES:-all}" = a73 ]; then
+# The gold marks Jantar `(atual)`: the clock goes to 20:15 in São Paulo today (auto time comes back at the end).
+"$ADB" shell settings put global auto_time 0
+"$ADB" shell cmd alarm set-time "$("$PY" -c "
+import datetime, zoneinfo
+sp = zoneinfo.ZoneInfo('America/Sao_Paulo'); d = datetime.datetime.now(sp).date()
+print(int(datetime.datetime(d.year, d.month, d.day, 20, 15, tzinfo=sp).timestamp() * 1000))")" >/dev/null
+seed_gold "" noslot
+tap 'resource-id="chat-register"' 1
+expect "Registrar without a slot opens Trocar" 'resource-id="chat-sheet"'
+expect "Trocar ends with the Extra row" 'resource-id="chat-sheet-slot-extra"'
+dump; last=$(grep -o 'resource-id="chat-sheet-slot-[0-9]*"' "$TMP/ui.xml" | tail -1)
+tap "$last" 0.6
+shot chatT
+tap 'resource-id="chat-sheet-cancel"'
+fi
+
 if [ "${SCENES:-all}" = all ]; then
 mode false
 tap 'resource-id="home-fab"' 1.5 && expect "FAB opens Chat" 'resource-id="chat"'
@@ -160,39 +214,6 @@ if files_has memory.txt; then echo "  ✗ A8 memory.txt still there"; FAIL=1; el
 # Gold captures: the flow above is the functional check. The gold message has accents adb cannot
 # type, so the exact gold conversation is seeded and chatE / chatT are captured again (A34: no chatP in the Chat).
 # Since ST7/A30 chatE has no question bubble either: the questions come before the estimate (chatQ).
-seed_gold() { # seed_gold <question or empty> [noslot]: an `ask` estimate (A34); noslot = Registrar opens Trocar
-"$ADB" shell am force-stop $PKG
-rm -f "$TMP"/fibrai.db*
-for f in fibrai.db fibrai.db-wal fibrai.db-shm; do "$ADB" exec-out run-as $PKG cat databases/$f > "$TMP/$f" 2>/dev/null; done
-"$PY" - "$TMP/fibrai.db" "$1" "${2:-}" <<'EOF'
-import sqlite3, sys, time
-c = sqlite3.connect(sys.argv[1])
-question = sys.argv[2] or None
-today = c.execute("select firstDay from profile").fetchone()[0]
-first = c.execute("select id from meal_slot order by minutesFromMidnight").fetchone()[0]
-if sys.argv[3] == "noslot":
-    first = None
-for table in ("chat_message", "meal_log", "slot_skip"):
-    c.execute(f"delete from {table}")
-now = int(time.time() * 1000)
-c.execute("insert into chat_message(date,role,text,createdAtEpochMs) values(?,?,?,?)",
-          (today, "user", "2 pães franceses com 2 ovos mexidos no café da manhã", now - 2000))
-c.execute("insert into chat_message(date,role,text,createdAtEpochMs,estimateKcal,estimateP,estimateC,estimateG,"
-          "estimateConfidence,estimateSlotId,estimateItems,estimateQuestion,intent,recordMode) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-          (today, "assistant", "Identifiquei 2 pães franceses e 2 ovos mexidos. A estimativa total é de:", now - 1000,
-           380, 22, 36, 16, "medium" if question else "high", first, "2 pães franceses" + chr(10) + "2 ovos mexidos", question, "log", "ask"))
-c.commit()
-c.execute("pragma wal_checkpoint(TRUNCATE)")
-c.execute("pragma journal_mode=DELETE")
-c.close()
-EOF
-"$ADB" push "$TMP/fibrai.db" /data/local/tmp/fibrai.db >/dev/null
-"$ADB" shell chmod 644 /data/local/tmp/fibrai.db
-"$ADB" shell run-as $PKG sh -c "'rm -f databases/fibrai.db-wal databases/fibrai.db-shm; cp /data/local/tmp/fibrai.db databases/fibrai.db'"
-"$ADB" shell am start -W -n $PKG/$ACTIVITY >/dev/null
-sleep 3
-tap 'resource-id="home-fab"' 1.5
-}
 seed_gold ""
 dump; if grep -q 'resource-id="chat-question"' "$TMP/ui.xml"; then echo "  ✗ question bubble under the estimate"; FAIL=1; else echo "  ✓ estimate without a question bubble"; fi
 expect "gold: Registrar" 'resource-id="chat-register"'

@@ -203,7 +203,7 @@ The app shows two states that their golds do not draw: the `Extra` row of Trocar
 | Step | Plan | Depends on |
 |---|---|---|
 | Design | D30 — `chatT` with the Extra row, `chatGX` with the balance line, delivered ([history](completed/)) | D28, D29 |
-| Client | [A73](../../android/plans/a73-chat-gold-gates.md) — `chatT` and `chatGX` gated again | D30, A72 merged |
+| Client | A73 — `chatT` and `chatGX` gated again, delivered ([history](../../android/plans/completed/)) | D30, A72 merged |
 
 ## History
 

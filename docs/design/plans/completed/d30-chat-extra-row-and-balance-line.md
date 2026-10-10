@@ -48,7 +48,7 @@ Code: `apps/android/app/src/main/java/app/fibrai/android/feature/chat/` (`ChatSc
    - `node tools/export-figma.mjs --only chatT,chatGX`;
    - the inventory of `docs/qa/README.md` keeps the same ids (no new gold);
    - `node tools/check-figma.mjs`.
-6. **Hand-over** to [A73](../../../android/plans/a73-chat-gold-gates.md): the new frame heights and the balance copy of the sample.
+6. **Hand-over** to [A73](../../../android/plans/completed/a73-chat-gold-gates.md): the new frame heights and the balance copy of the sample.
 
 ## Out of scope
 
@@ -108,6 +108,6 @@ Figma MCP budget: 8 of 40 calls (whoami, 2 skill reads, 2 reads (the first one o
 - `node tools/export-figma.mjs --only chatT,chatGX`: `chatT` 780 × 1688 (16.49 % of the pixels changed in Light, 4.95 % in Dark), `chatGX` 780 × 1804 → 780 × 1886 (both themes).
 - Inventory of `docs/qa/README.md`: unchanged (same ids).
 - `node tools/check-figma.mjs`: 114 golds verified (57 dark + 57 light). `node tools/check-docs.mjs` passes.
-- **Hand-over to [A73](../../../android/plans/a73-chat-gold-gates.md):** `chatGX` is 943 px tall, its receipt 272 px with the balance in two lines under the chip; `chatT` stays 390 × 844 with the sheet at y 128 (716 px), the Extra row 70 px after Jantar. `web/` does not use either gold.
+- **Hand-over to [A73](../../../android/plans/completed/a73-chat-gold-gates.md):** `chatGX` is 943 px tall, its receipt 272 px with the balance in two lines under the chip; `chatT` stays 390 × 844 with the sheet at y 128 (716 px), the Extra row 70 px after Jantar. `web/` does not use either gold.
 
 Figma MCP budget: 8 of 40 calls in total (no call after the review: the export uses the REST API).
