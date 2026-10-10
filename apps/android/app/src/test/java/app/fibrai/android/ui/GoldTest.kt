@@ -159,11 +159,11 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1406dp-xhdpi")
     fun homeE_light() = check("homeE", dark = false) { HomeHistory(HomeFixtures.home0, LocalDate.parse("2026-09-25"), kcal = emptyMap()) }
 
-    /** chatGX (D28, A72): an extra recorded by itself, its receipt and actions. */
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    /** chatGX (D28, A72; D30, A73): an extra recorded by itself, its receipt with the day balance and its actions. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h943dp-xhdpi")
     fun chatGX_dark() = check("chatGX", dark = true) { Chat(ChatFixtures.chatGX) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h943dp-xhdpi")
     fun chatGX_light() = check("chatGX", dark = false) { Chat(ChatFixtures.chatGX) }
 
     @Composable private fun HomeHistory(
@@ -212,15 +212,12 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatQ_light() = check("chatQ", dark = false) { Chat(ChatFixtures.chatQ) }
 
-    /**
-     * chatT: A72 (ADR-058) adds the `Extra · fora das refeições` row at the end of the sheet; D28 kept the chatT gold without it
-     * (`Show extra` off). The spec wins (ADR-027): reported, not gated, until a design plan redraws chatT.
-     */
+    /** chatT (D30, A73): the Trocar sheet of a record, ending with the `Extra · fora das refeições` row (ADR-058). */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatT_dark() = check("chatT", dark = true, reportOnly = true) { Chat(ChatFixtures.chatT) }
+    fun chatT_dark() = check("chatT", dark = true) { Chat(ChatFixtures.chatT) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatT_light() = check("chatT", dark = false, reportOnly = true) { Chat(ChatFixtures.chatT) }
+    fun chatT_light() = check("chatT", dark = false) { Chat(ChatFixtures.chatT) }
 
     /** A34: Substituir inside the conversation. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")

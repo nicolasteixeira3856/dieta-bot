@@ -135,6 +135,8 @@ tap 'text="Trocar refeição"' && expect "Trocar lists the Extra entry" 'resourc
 "$ADB" exec-out screencap -p > "$EVIDENCE/$THEME-chatGX-trocar.png"
 "$ADB" shell input keyevent 4; sleep 0.6
 "$ADB" shell input keyevent 4; sleep 1
+# The timeline is ordered by time: later in the day the extra sits below the fold.
+"$ADB" shell input swipe 390 1500 390 300 300; sleep 0.8
 expect "the extra shows on today's timeline" 'Extra · '
 # home1, homeH and the four Release 1 states once each with the strip above them.
 PAST=$(seed home1 | tail -1); push_db; shot home1

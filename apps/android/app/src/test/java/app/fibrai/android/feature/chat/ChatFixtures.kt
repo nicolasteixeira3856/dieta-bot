@@ -75,7 +75,7 @@ object ChatFixtures {
         slots = slots,
     )
 
-    /** chatGX (D28, A72): an energy drink recorded by itself as an extra at 15:40, with the receipt actions. */
+    /** chatGX (D28, A72; D30, A73): an energy drink recorded by itself as an extra at 15:40, the day balance and the receipt actions. */
     val chatGX = ChatUiState(
         items = listOf(
             ChatItem.DateSeparator("Hoje, 3 de outubro"),
@@ -87,7 +87,7 @@ object ChatFixtures {
                 highlights = listOf("1 energético (350 ml)"),
                 estimate = EstimateView(160, 0, 40, 0, null, null),
             ),
-            ChatItem.Receipt(72, ReceiptKind.LOGGED, "extra", "15:40", 160, actions = recordActions, extra = true),
+            ChatItem.Receipt(72, ReceiptKind.LOGGED, "extra", "15:40", 160, actions = recordActions, extra = true, balance = "1.300 de 2.175 kcal · faltam 74 g de proteína"),
         ),
         emptyDay = false,
         slots = slots,
