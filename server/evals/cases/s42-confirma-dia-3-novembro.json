@@ -1,8 +1,8 @@
 {
-  "id": "s42-ambiguo-dia-3-novembro",
+  "id": "s42-confirma-dia-3-novembro",
   "since": "v6",
   "tags": [
-    "s42-ambiguo",
+    "s42-confirma",
     "persona"
   ],
   "persona": "nicolas",
@@ -43,19 +43,20 @@
     "text": "dia 3 eu jantei um hambúrguer duplo com batata e esqueci de registrar"
   },
   "expect": {
+    "refusal": "none",
     "actions": [
       {
         "record": "none"
       }
     ],
+    "reply_any": [
+      "3 de outubro"
+    ],
     "reply_not": [
+      "3 de novembro",
       "2026-",
       "-10-",
       "-09-"
-    ],
-    "refusal": "none",
-    "reply_any": [
-      "3 de outubro"
     ]
   }
 }

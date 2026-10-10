@@ -36,59 +36,83 @@ def _body(**extra: Any) -> ChatIn:
 
 def _resolve(text: str, today: date = THURSDAY, first_day: date | None = None) -> str | None:
     found = day_ref.resolve(text, today, first_day)
-    return found.line() if found else None
+    return " | ".join(found.lines()) if found else None
 
 
 class ResolverTests(unittest.TestCase):
     def test_every_cue(self) -> None:
         table = {
-            "ontem jantei pizza": "DAY_REF: 2026-10-14 (ontem, quarta)",
-            "anteontem almocei": "DAY_REF: 2026-10-13 (anteontem, terca)",
-            "na segunda almocei arroz": "DAY_REF: 2026-10-12 (segunda)",
-            "sábado passado comi sushi": "DAY_REF: 2026-10-10 (sabado)",
-            "na sexta-feira jantei": "DAY_REF: 2026-10-09 (sexta)",
-            "dia 3 jantei fora": "DAY_REF: 2026-10-03 (dia 3, sabado)",
-            "dia 20 de setembro": "DAY_REF: 2026-09-20 (dia 20 de setembro, domingo)",
-            "dia 20 do mês passado": "DAY_REF: 2026-09-20 (dia 20 do mes passado, domingo)",
-            "3 dias atrás comi": "DAY_REF: 2026-10-12 (3 dias atras, segunda)",
-            "dois dias atrás": "DAY_REF: 2026-10-13 (dois dias atras, terca)",
+            "ontem jantei pizza": "DAY_REF: 2026-10-14 (ontem, 14 de outubro, quarta)",
+            "anteontem almocei": "DAY_REF: 2026-10-13 (anteontem, 13 de outubro, terca)",
+            "na segunda almocei arroz": "DAY_REF: 2026-10-12 (segunda, 12 de outubro)",
+            "sábado passado comi sushi": "DAY_REF: 2026-10-10 (sabado, 10 de outubro)",
+            "na sexta-feira jantei": "DAY_REF: 2026-10-09 (sexta, 9 de outubro)",
+            "dia 3 jantei fora": "DAY_REF: 2026-10-03 (dia 3, 3 de outubro, sabado)",
+            "dia 3 de manhã comi": "DAY_REF: 2026-10-03 (dia 3, 3 de outubro, sabado)",
+            "dia 20 de setembro": "DAY_REF: 2026-09-20 (dia 20 de setembro, 20 de setembro, domingo)",
+            "em 20 de setembro jantei": "DAY_REF: 2026-09-20 (20 de setembro, domingo)",
+            "dia 20 do mês passado": "DAY_REF: 2026-09-20 (dia 20 do mes passado, 20 de setembro, domingo)",
+            "3 dias atrás comi": "DAY_REF: 2026-10-12 (3 dias atras, 12 de outubro, segunda)",
+            "dois dias atrás": "DAY_REF: 2026-10-13 (dois dias atras, 13 de outubro, terca)",
         }
         for text, line in table.items():
             with self.subTest(text):
                 self.assertEqual(_resolve(text), line)
 
     def test_today_weekday_is_last_week_and_today_is_no_ref(self) -> None:
-        self.assertEqual(_resolve("na quinta jantei pizza"), "DAY_REF: 2026-10-08 (quinta)")
+        self.assertEqual(_resolve("na quinta jantei pizza"), "DAY_REF: 2026-10-08 (quinta, 8 de outubro)")
         self.assertIsNone(_resolve("dia 15 comi"))
         self.assertIsNone(_resolve("jantei pizza"))
 
     def test_month_boundary(self) -> None:
         first = date(2026, 11, 1)
-        self.assertEqual(_resolve("ontem jantei", first), "DAY_REF: 2026-10-31 (ontem, sabado)")
-        # November has no 31st: the only candidate is October's.
-        self.assertEqual(_resolve("dia 31 jantei", first), "DAY_REF: 2026-10-31 (dia 31, sabado)")
-        self.assertEqual(_resolve("na segunda", date(2026, 3, 1)), "DAY_REF: 2026-02-23 (segunda)")
+        self.assertEqual(_resolve("ontem jantei", first), "DAY_REF: 2026-10-31 (ontem, 31 de outubro, sabado)")
+        self.assertEqual(_resolve("na segunda", date(2026, 3, 1)), "DAY_REF: 2026-02-23 (segunda, 23 de fevereiro)")
+        self.assertEqual(_resolve("dia 3 de março", date(2026, 3, 10)), "DAY_REF: 2026-03-03 (dia 3 de marco, 3 de março, terca)")
 
-    def test_two_candidates_and_future_are_not_bound(self) -> None:
-        self.assertEqual(_resolve("dia 3 jantei pizza", date(2026, 10, 2)),
-                         "DAY_REF: ambiguous (2026-09-03 = 3 de setembro ou 2026-10-03 = 3 de outubro)")
-        self.assertEqual(_resolve("ontem e na segunda"),
-                         "DAY_REF: ambiguous (2026-10-12 = 12 de outubro ou 2026-10-14 = 14 de outubro)")
+    def test_a_later_day_number_asks_to_confirm_the_past_date(self) -> None:
+        # Owner decision of 09/10/2026: only the past date is offered, never the future one.
+        self.assertEqual(_resolve("dia 20 jantei"), "DAY_REF: confirm 2026-09-20 (20 de setembro, domingo)")
+        self.assertEqual(_resolve("dia 3 jantei pizza", date(2026, 11, 2)),
+                         "DAY_REF: confirm 2026-10-03 (3 de outubro, sabado)")
+        # November has no 31st: on 1 November the 31st is last month's, still to confirm.
+        self.assertEqual(_resolve("dia 31 jantei", date(2026, 11, 1)), "DAY_REF: confirm 2026-10-31 (31 de outubro, sabado)")
+        # Next to a certain day, the only past date of a later day number is certain too.
+        self.assertEqual(_resolve("ontem e dia 20 comi"),
+                         "DAY_REF: 2026-09-20 (dia 20, 20 de setembro, domingo) | DAY_REF: 2026-10-14 (ontem, 14 de outubro, quarta)")
+
+    def test_two_days_are_two_bound_days(self) -> None:
+        # Owner decision of 09/10/2026: two meals on two days are two records, one in each day.
+        self.assertEqual(_resolve("ontem jantei pizza e na segunda almocei feijoada"),
+                         "DAY_REF: 2026-10-12 (segunda, 12 de outubro) | DAY_REF: 2026-10-14 (ontem, 14 de outubro, quarta)")
+
+    def test_future(self) -> None:
         self.assertEqual(_resolve("dia 20 de outubro jantei"), "DAY_REF: future")
         # September has no 31st: on 30 October the only 31st is still ahead.
         self.assertEqual(_resolve("dia 31 jantei sushi", date(2026, 10, 30)), "DAY_REF: future")
 
     def test_bound_and_too_old(self) -> None:
-        self.assertEqual(_resolve("30 dias atrás"), "DAY_REF: 2026-09-15 (30 dias atras, terca)")
+        self.assertEqual(_resolve("30 dias atrás"), "DAY_REF: 2026-09-15 (30 dias atras, 15 de setembro, terca)")
         self.assertEqual(_resolve("40 dias atrás jantei"), "DAY_REF: too_old")
+        self.assertEqual(_resolve("ontem e 40 dias atrás"), "DAY_REF: too_old")
         self.assertEqual(_resolve("ontem", first_day=THURSDAY), "DAY_REF: too_old")
-        self.assertEqual(_resolve("ontem", first_day=date(2026, 10, 14)), "DAY_REF: 2026-10-14 (ontem, quarta)")
+        self.assertEqual(_resolve("ontem", first_day=date(2026, 10, 14)), "DAY_REF: 2026-10-14 (ontem, 14 de outubro, quarta)")
+        self.assertEqual(_resolve("dia 20 jantei", first_day=date(2026, 10, 1)), "DAY_REF: too_old")
 
     def test_copy_source_and_ordinals_name_no_day(self) -> None:
         for text in ("almocei o mesmo de ontem", "igual ao jantar de segunda", "fiz a segunda opção",
                      "na segunda vez", "no quintal"):
             with self.subTest(text):
                 self.assertIsNone(_resolve(text))
+
+    def test_answer_to_a_confirmation(self) -> None:
+        self.assertEqual(day_ref.resolve_answer("Foi em 20 de setembro?", THURSDAY).lines(),
+                         ["DAY_REF: 2026-09-20 (confirmado, 20 de setembro, domingo)"])
+        for question in ("Jantar de 14 de outubro: 800 kcal.", "Foi em 20 de setembro ou 20 de outubro?",
+                         "Quantas fatias?"):
+            with self.subTest(question):
+                self.assertIsNone(day_ref.resolve_answer(question, THURSDAY))
+        self.assertEqual(day_ref.resolve_answer("Foi em 20 de agosto?", THURSDAY).kind, "too_old")
 
 
 class RequestTests(unittest.TestCase):
@@ -115,7 +139,7 @@ class RequestTests(unittest.TestCase):
         text = _chat_text(body)
         self.assertIn('2026-10-14 quarta Extra 15:40 · "energético" · 110kcal 0P 27C 0G', text)
         self.assertIn("EXTRAS: on", text)
-        self.assertIn("DAY_REF: 2026-10-10 (sabado) slots=[b (Brunch at 10:30), j (Jantar at 20:00)]", text)
+        self.assertIn("DAY_REF: 2026-10-10 (sabado, 10 de outubro) slots=[b (Brunch at 10:30), j (Jantar at 20:00)]", text)
         for bad in ({"weekdays": [0], "slots": weekend}, {"weekdays": [6, 6], "slots": weekend}):
             with self.subTest(bad), self.assertRaises(ValidationError):
                 _body(profile={"ceiling_kcal": 2000, "p_target": 140, "c_target": 220, "g_target": 65,
@@ -157,6 +181,13 @@ class ExtraTests(unittest.TestCase):
         self.assertIn("Lanche: iogurte ~", out["reply"])
         self.assertIn("Jantar: ", out["reply"])
         self.assertEqual(out["_record"]["record"], "auto_extra")
+
+    def test_held_extra_keeps_its_target(self) -> None:
+        held = _extra_log()
+        held["estimate"] = {**held["estimate"], "confidence": "medium", "question": "Era zero ou tinha açúcar?"}
+        out = _turn(SequenceLlm(_payload(held)), _body())
+        self.assertEqual((out["actions"][0]["slot"], out["actions"][0]["estimate"], out["actions"][0]["record"]),
+                         ("extra", None, "none"))
 
     def test_bad_time_is_null_and_unsure_extra_asks(self) -> None:
         out = _turn(SequenceLlm(_payload(_extra_log(time="tarde", record_intent="unsure"))), _body())
@@ -217,10 +248,34 @@ class OtherDayTests(unittest.TestCase):
         self.assertIsNone(out["estimate"])
 
     def test_ambiguous_or_unbound_is_never_a_record(self) -> None:
-        for text in ("dia 20 jantei pizza", "jantei pizza semana passada"):
+        for text in ("dia 20 de outubro jantei pizza", "jantei pizza semana passada"):
             with self.subTest(text):
                 out = _turn(SequenceLlm(_payload(_past_log())), _body(text=text))
                 self.assertEqual((out["actions"][0]["record"], out["actions"][0]["day"]), ("none", None))
+
+    def test_two_days_are_two_records(self) -> None:
+        payload = _payload(_past_log("j", 800, day="2026-10-14"), _past_log("a", 650, day="2026-10-12"),
+                           _past_log("l", 200, day="2026-10-20"))
+        body = _body(text="ontem jantei 2 fatias de pizza e na segunda almocei feijoada")
+        out = _turn(SequenceLlm(payload), body)
+        self.assertEqual([(a["slot"], a["day"], a["record"]) for a in out["actions"]],
+                         [("j", "2026-10-14", "auto"), ("a", "2026-10-12", "auto"), ("l", None, "none")])
+        fmt = llm.chat_format(["c", "a", "l", "j"], [], meal_changes=True, day_dates=["2026-10-12", "2026-10-14"])
+        day = fmt["schema"]["properties"]["actions"]["items"]["properties"]["day"]
+        self.assertEqual(day["enum"], ["2026-10-12", "2026-10-14", None])
+
+    def test_answer_to_the_confirmation_records_on_the_confirmed_day(self) -> None:
+        body = _body(text="sim", messages=[{"role": "user", "text": "no dia 20 almocei feijoada"},
+                                           {"role": "assistant", "text": "Foi em 20 de setembro?"}])
+        self.assertIn("DAY_REF: 2026-09-20 (confirmado, 20 de setembro, domingo)", _chat_text(body))
+        out = _turn(SequenceLlm(_payload(_past_log("a", 650))), body)
+        self.assertEqual((out["actions"][0]["day"], out["actions"][0]["record"]), ("2026-09-20", "auto"))
+
+    def test_the_confirmation_turn_records_nothing(self) -> None:
+        body = _body(text="dia 20 almocei feijoada")
+        self.assertIn("DAY_REF: confirm 2026-09-20 (20 de setembro, domingo)", _chat_text(body))
+        out = _turn(SequenceLlm(_payload(_past_log("a", 650))), body)
+        self.assertEqual((out["actions"][0]["day"], out["actions"][0]["record"]), (None, "none"))
 
     def test_without_capability_other_day_is_unchanged(self) -> None:
         out = _turn(SequenceLlm(_payload(_past_log())), _body(other_day=False, text="ontem jantei pizza"))

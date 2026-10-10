@@ -1,8 +1,8 @@
 {
-  "id": "s42-ambiguo-dia-25-extra",
+  "id": "s42-confirma-dia-20",
   "since": "v6",
   "tags": [
-    "s42-ambiguo",
+    "s42-confirma",
     "persona"
   ],
   "persona": "nicolas",
@@ -10,22 +10,23 @@
     "extras": true,
     "other_day": true,
     "first_day": "2026-08-01",
-    "text": "dia 25 tomei uma lata de energético fora das refeições"
+    "text": "no dia 20 almocei feijoada e não registrei"
   },
   "expect": {
+    "refusal": "none",
     "actions": [
       {
         "record": "none"
       }
     ],
+    "reply_any": [
+      "20 de setembro"
+    ],
     "reply_not": [
+      "20 de outubro",
       "2026-",
       "-10-",
       "-09-"
-    ],
-    "refusal": "none",
-    "reply_any": [
-      "25 de setembro"
     ]
   }
 }

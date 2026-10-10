@@ -1,0 +1,32 @@
+{
+  "id": "s42-dois-dias-mesma-comida",
+  "since": "v6",
+  "tags": [
+    "s42-dois-dias",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "ontem e na segunda jantei pizza, 2 fatias médias de calabresa em cada dia"
+  },
+  "expect": {
+    "refusal": "none",
+    "actions": [
+      {
+        "type": "log",
+        "slot": "4",
+        "day": "2026-10-14",
+        "record": "auto"
+      },
+      {
+        "type": "log",
+        "slot": "4",
+        "day": "2026-10-12",
+        "record": "auto"
+      }
+    ]
+  }
+}

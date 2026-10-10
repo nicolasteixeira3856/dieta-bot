@@ -483,7 +483,11 @@ class ChatIn(BaseModel):
         today = self.today
         if not self.other_day or today is None:
             return None
-        return day_ref.resolve(self.text, today, self.first_day)
+        found = day_ref.resolve(self.text, today, self.first_day)
+        if found is None and self.messages and self.messages[-1].role == "assistant":
+            # The answer to a confirmation (`Foi em 20 de setembro?`): the date that question names.
+            found = day_ref.resolve_answer(self.messages[-1].text, today, self.first_day)
+        return found
 
     def slots_on(self, day: date) -> list[SlotIn]:
         """The profile slots of that day's group (slots_by_day), else today's slots."""
@@ -1102,6 +1106,7 @@ def chat_reply(
                 recipe_ids=[r.id for r in body.recipes],
                 extras=body.extras,
                 other_slot_ids=_other_day_slot_ids(body),
+                day_dates=_bound_dates(body),
             )
 
         if body.meal_changes:
@@ -1274,12 +1279,13 @@ def chat_reply(
                 view["estimate"] = {**view["estimate"], "suggested_slot": None}
             other = body.other_day and action["type"] == "log" and view.get("meal_day") == "other"
             too_old = too_old or (other and ref is not None and ref.kind == "too_old")
-            if other and ref is not None and ref.kind == "bound":
+            past = _action_day(ref, action) if other else None
+            if past is not None:
                 # ADR-058 decision 5: shaped like a log of today, against that day's slots, empty (the server
                 # never knows a past day's records); the view keeps meal_day other for today's DAY and closings.
-                result, clarify, record_log = shape_chat_turn(_past_body(body, ref.day), {**view, "meal_day": "today"},
+                result, clarify, record_log = shape_chat_turn(_past_body(body, past), {**view, "meal_day": "today"},
                                                               photo_only=photo_only)
-                result["day"] = ref.day.isoformat()
+                result["day"] = past.isoformat()
             else:
                 result, clarify, record_log = shape_chat_turn(day_body, view, photo_only=photo_only)
             if extra:
@@ -1435,13 +1441,29 @@ def _past_body(body: ChatIn, day: date) -> ChatIn:
     return copy
 
 
+def _bound_dates(body: ChatIn) -> list[str]:
+    """S42: the ISO dates of the past days the message names (schema enum of an action's day)."""
+    ref = body.day_ref
+    return [d.isoformat() for d in ref.dates] if ref is not None and ref.kind == "bound" else []
+
+
+def _action_day(ref: "day_ref.DayRef | None", action: dict[str, Any]) -> date | None:
+    """The past day of an other-day log: the only named day, else the action's day among the named ones
+    (two meals on two days are two records, owner decision 09/10/2026); None when unbound."""
+    if ref is None or ref.kind != "bound":
+        return None
+    if len(ref.dates) == 1:
+        return ref.dates[0]
+    return next((d for d in ref.dates if d.isoformat() == action.get("day")), None)
+
+
 def _other_day_slot_ids(body: ChatIn) -> list[str]:
-    """S42: the slot ids of the named past day that today's profile lacks (schema enum of suggested_slot)."""
+    """S42: the slot ids of the named past days that today's profile lacks (schema enum of suggested_slot)."""
     ref = body.day_ref
     if ref is None or ref.kind != "bound":
         return []
     today = {s.id for s in body.profile.slots}
-    return [s.id for s in body.slots_on(ref.day) if s.id not in today]
+    return list(dict.fromkeys(s.id for d in ref.dates for s in body.slots_on(d) if s.id not in today))
 
 
 _EXTRA_TIME = re.compile(_HHMM)
@@ -1476,7 +1498,8 @@ def _action_out(
     """One action of the response (ADR-050): the shaped estimate, question and record mark of that action."""
     kind = action.get("type", "question")
     estimate = result.get("estimate") if kind in ("log", "plan") else None
-    extra = bool(body and body.extras and kind == "log" and action.get("slot") == EXTRA and isinstance(estimate, dict))
+    # An extra keeps its target while held by a question too, so the app knows what the answer completes.
+    extra = bool(body and body.extras and kind == "log" and action.get("slot") == EXTRA)
     if kind == "skip":
         slot = action.get("slot")
     elif extra:
@@ -2168,8 +2191,8 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
     ref = body.day_ref
     if ref is not None:
         # ADR-058: the day the message names, resolved in code; the model never guesses it.
-        slots = ", ".join(f"{s.id} ({s.name} at {s.time})" for s in body.slots_on(ref.day)) if ref.day else None
-        lines.append(ref.line(slots if ref.kind == "bound" else None))
+        slots = {d: ", ".join(f"{s.id} ({s.name} at {s.time})" for s in body.slots_on(d)) for d in ref.dates}
+        lines.extend(ref.lines(slots))
 
     # Client text cannot forge a section marker (CP2).
     lines = [neutralize_delimiters(line) for line in lines]
