@@ -2,6 +2,24 @@
 
 Notas das versões distribuídas pelo Firebase App Tester, da mais nova para a mais antiga. Cada seção é gravada por `tools/distribute-dev.ps1 -Notes` no commit `chore(release)`. Não editar à mão.
 
+## 0.0.24 — 10/10/2026
+
+### Novidades
+- Primeiro uso novo: a Tali faz umas perguntas rápidas numa conversa (corpo, refeições, treino, tom, restrições, o que você come, equipamentos, meta de peso e avisos) e monta o seu perfil.
+- O teto e os macros vêm propostos a partir do seu gasto em repouso; dá para editar antes de enviar.
+- Resumo do perfil antes de montar, com um lápis para corrigir cada parte.
+- Se fechar o app no meio, ele volta na mesma pergunta; se a montagem falhar, as respostas ficam salvas para tentar de novo.
+- A Tali já começa sabendo suas restrições, rotinas e equipamentos (aparecem em "O que a Tali sabe").
+- Extras: o que você come fora das refeições (um café, um energético) entra no horário certo na linha do tempo.
+- Trocar refeição tem a opção "Extra · fora das refeições".
+- Faixa com os últimos 30 dias acima do anel: toque num dia para ver como ele foi.
+- Dá para registrar uma refeição esquecida de um dia anterior pelo Chat ("ontem jantei pizza").
+- Configurações: ligar ou desligar os avisos, mudar o horário do fechamento e a meta de peso.
+
+### Ajustes
+- A memória da Tali guarda até 50 fatos fixos.
+- Quem já usa o app continua com o perfil atual; o primeiro uso novo aparece numa instalação nova ou depois de "Resetar app".
+
 ## 0.0.23 — 09/10/2026
 
 ### Novidades
