@@ -90,6 +90,9 @@ def _dia(match: re.Match[str], today: date) -> tuple[str, list[date], bool]:
         return label, [today], False
     this_month = _month_day(today.year, today.month, n)
     last_month = _previous_month(today, n)
+    if last_month is None:
+        # Only this month has that day, and it is still ahead (dia 31 on 30 October): a future day.
+        return label, [], this_month is not None
     candidates = [d for d in (last_month, this_month) if d is not None]
     return label, candidates, False
 

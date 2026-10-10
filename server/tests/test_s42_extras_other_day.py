@@ -75,6 +75,8 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual(_resolve("ontem e na segunda"),
                          "DAY_REF: ambiguous (2026-10-12 = 12 de outubro ou 2026-10-14 = 14 de outubro)")
         self.assertEqual(_resolve("dia 20 de outubro jantei"), "DAY_REF: future")
+        # September has no 31st: on 30 October the only 31st is still ahead.
+        self.assertEqual(_resolve("dia 31 jantei sushi", date(2026, 10, 30)), "DAY_REF: future")
 
     def test_bound_and_too_old(self) -> None:
         self.assertEqual(_resolve("30 dias atrás"), "DAY_REF: 2026-09-15 (30 dias atras, terca)")

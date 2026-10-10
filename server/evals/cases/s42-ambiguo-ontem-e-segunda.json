@@ -1,0 +1,34 @@
+{
+  "id": "s42-ambiguo-ontem-e-segunda",
+  "since": "v6",
+  "tags": [
+    "s42-ambiguo",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "text": "ontem e na segunda jantei pizza"
+  },
+  "expect": {
+    "actions": [
+      {
+        "record": "none"
+      }
+    ],
+    "reply_not": [
+      "2026-",
+      "-10-",
+      "-09-"
+    ],
+    "refusal": "none",
+    "reply_any": [
+      "12 de outubro",
+      "14 de outubro",
+      "segunda",
+      "ontem"
+    ]
+  }
+}

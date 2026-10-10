@@ -1,0 +1,61 @@
+{
+  "id": "s42-ambiguo-dia-28-acai",
+  "since": "v6",
+  "tags": [
+    "s42-ambiguo",
+    "persona"
+  ],
+  "persona": "nicolas",
+  "request": {
+    "extras": true,
+    "other_day": true,
+    "first_day": "2026-08-01",
+    "local_time": "2026-10-10T11:00:00-03:00",
+    "recent": [],
+    "recent_days": [],
+    "day": {
+      "date": "2026-10-10",
+      "eaten_kcal": 0,
+      "eaten_p": 0,
+      "eaten_c": 0,
+      "eaten_g": 0,
+      "workout_kcal": null,
+      "remaining_kcal": 2030,
+      "slots": [
+        {
+          "id": "1",
+          "status": "empty"
+        },
+        {
+          "id": "2",
+          "status": "empty"
+        },
+        {
+          "id": "3",
+          "status": "empty"
+        },
+        {
+          "id": "4",
+          "status": "empty"
+        }
+      ]
+    },
+    "text": "dia 28 tomei um açaí de 500 ml com granola"
+  },
+  "expect": {
+    "actions": [
+      {
+        "record": "none"
+      }
+    ],
+    "reply_not": [
+      "2026-",
+      "-10-",
+      "-09-"
+    ],
+    "refusal": "none",
+    "reply_any": [
+      "28 de setembro"
+    ]
+  }
+}
