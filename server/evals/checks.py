@@ -851,3 +851,46 @@ def migrate_expect(expect: dict[str, Any]) -> dict[str, Any]:
     if planned:
         out["actions"] = planned
     return out
+
+
+# S41 (ADR-057): expectations of a /v1/profile case, judged on the response (or {"blocked": field} on a 400).
+_THOUSANDS = re.compile(r"(?<=\d)\.(?=\d{3}(?!\d))")
+PROFILE_KNOWN = (
+    "blocked", "facts_count", "fact_categories", "facts_have", "facts_not", "routine_slots", "summary_has",
+    "summary_not", "goal_refused",
+)
+
+
+def evaluate_profile(expect: dict[str, Any], output: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """{check name: result} for every expectation of a profile case."""
+    results: dict[str, dict[str, Any]] = {}
+    blocked = "blocked" in output
+    facts = output.get("facts") if isinstance(output.get("facts"), list) else []
+    text = " | ".join(f"{f.get('key')}: {f.get('text')}" for f in facts if isinstance(f, dict))
+    for key, want in expect.items():
+        if key not in PROFILE_KNOWN:
+            raise ValueError(f"unknown profile expectation: {key}")
+        if key == "blocked":
+            got = output.get("blocked") if blocked else "none"
+            results[key] = _result(got == want, f"blocked {got!r}, expected {want!r}")
+        elif blocked:
+            results[key] = _result(False, f"blocked on {output.get('blocked')!r}")
+        elif key == "facts_count":
+            results[key] = _result(want["min"] <= len(facts) <= want.get("max", 30), f"{len(facts)} facts")
+        elif key == "fact_categories":
+            have = {f.get("category") for f in facts if isinstance(f, dict)}
+            missing = [c for c in want if c not in have]
+            results[key] = _result(not missing, f"missing categories {missing}" if missing else "ok")
+        elif key in ("facts_have", "facts_not"):
+            results[key] = _terms(key == "facts_have", want, text)
+        elif key == "routine_slots":
+            slots = {f.get("slot") for f in facts if isinstance(f, dict) and f.get("category") == "routine"}
+            missing = [s for s in want if s not in slots]
+            results[key] = _result(not missing, f"no routine in slots {missing}" if missing else "ok")
+        elif key in ("summary_has", "summary_not"):
+            # pt-BR writes 1.700 for 1700: the thousands separator does not change the number.
+            summary = _THOUSANDS.sub("", str(output.get("summary") or ""))
+            results[key] = _terms(key == "summary_has", want, summary)
+        elif key == "goal_refused":
+            results[key] = _result(output.get("goal_refused") is want, f"goal_refused {output.get('goal_refused')}")
+    return results

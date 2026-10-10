@@ -36,12 +36,14 @@ import httpx2
 
 from config import MODEL, load_settings
 from evals.checks import (
-    FAIL, NA, PASS, case_file_errors, case_status, evaluate, migrate_expect, repetition_status, spread_check,
+    FAIL, NA, PASS, case_file_errors, case_status, evaluate, evaluate_profile, migrate_expect, repetition_status,
+    spread_check,
 )
 from evals.preview import bubble
 from llm import LlmClient
-from main import ChatIn, CloseIn, chat_reply, close_reply, compact_reply
+from main import ChatIn, CloseIn, ProfileError, chat_reply, close_reply, compact_reply, profile_reply
 from moderation import CLEAN, Deadline, ModerationUnavailable, Moderator
+from profile_build import PROFILE_TIMEOUT_SECONDS, ProfileRequestIn
 from shaping import fail_chat, fail_digest
 
 SERVER = Path(__file__).resolve().parent.parent
@@ -114,6 +116,9 @@ def load_personas(directory: Path = PERSONAS_DIR) -> dict[str, dict[str, Any]]:
 def with_persona(case: dict[str, Any], persona: dict[str, Any]) -> dict[str, Any]:
     """S40: the persona's request under the case's own fields. Every case field replaces the persona's,
     except facts: the case's facts are added, and one with a persona fact's id replaces it."""
+    if case.get("route") == PROFILE_ROUTE:
+        # S41: an onboarding request is its own shape; the persona lends only its summary for the judge.
+        return {**case, "persona_summary": persona["summary"]}
     base = persona["request"]
     own = case.get("request", {})
     request = {**base, **own}
@@ -163,6 +168,9 @@ class CleanModerator:
     def check(self, **_: Any):
         return CLEAN
 
+    def check_fields(self, **_: Any):
+        return CLEAN, None
+
     def close(self) -> None:
         return None
 
@@ -202,6 +210,8 @@ def run_once(
     """One repetition, handled like the /v1/chat route. Moderation down = an error repetition."""
     if case.get("route") == CLOSE_ROUTE:
         return _close_once(llm, usage, case, moderator)
+    if case.get("route") == PROFILE_ROUTE:
+        return _profile_once(llm, usage, case, moderator)
     body = ChatIn.model_validate(case_request(case))
     image = None if body.compact else _case_image(case)
     trace: dict[str, Any] = {}
@@ -246,6 +256,36 @@ def run_once(
 
 
 CLOSE_ROUTE = "close"
+PROFILE_ROUTE = "profile"
+
+
+def _profile_once(
+    llm: LlmClient, usage: UsageTransport, case: dict[str, Any], moderator: "Moderator | CleanModerator | None",
+) -> dict[str, Any]:
+    """S41: a /v1/profile case. A 400 is judged as {"blocked": field}; a 502 or moderation down is an error."""
+    body = ProfileRequestIn.model_validate(case["request"])
+    trace: dict[str, Any] = {"route": PROFILE_ROUTE}
+    started = time.monotonic()
+    usage.take_usage()
+    error = None
+    try:
+        output = profile_reply(llm, moderator, body, trace, Deadline(PROFILE_TIMEOUT_SECONDS))
+    except ProfileError as exc:
+        output = {"blocked": exc.body.get("field")} if exc.status == 400 else dict(exc.body)
+        error = None if exc.status == 400 else f"profile {exc.status}: {_error_text(trace.get('error') or {})}"
+    except ModerationUnavailable as exc:
+        output, error = {}, f"ModerationUnavailable: {exc.reason}"
+    checks = evaluate_profile(case["expect"], output)
+    return {
+        "status": FAIL if error else repetition_status(checks),
+        "checks": checks,
+        "output": output,
+        "raw_output": trace.get("raw_output"),
+        "policy": trace.get("policy"),
+        "error": error,
+        "latency_ms": round((time.monotonic() - started) * 1000),
+        "usage": usage.take_usage(),
+    }
 
 
 def _close_once(
@@ -449,6 +489,12 @@ def show(report: dict[str, Any], cases: list[dict[str, Any]]) -> None:
     requests = {case["id"]: case_request(case) for case in cases}
     for case in report["cases"]:
         output = case["outputs"][0] if case["outputs"] else {}
+        if "facts" in output or "blocked" in output:
+            # S41: a profile case prints its summary and facts; there is no Chat bubble.
+            print(f"\n== {case['id']} ==\n-- summary --\n{output.get('summary')}\n-- facts --")
+            for fact in output.get("facts") or []:
+                print(f"{fact['kind']} {fact['category']} {fact.get('slot') or '-'} {fact['key']}: {fact['text']}")
+            continue
         print(f"\n== {case['id']} ==\n-- reply --\n{output.get('reply')}\n-- app --")
         print(bubble(requests[case["id"]], output))
 
@@ -482,7 +528,7 @@ def dry_run(cases: list[dict[str, Any]]) -> None:
     """S40 --dry-run: the request each case sends, validated by the route's model, without any call."""
     for case in cases:
         request = case_request(case)
-        model = CloseIn if case.get("route") == CLOSE_ROUTE else ChatIn
+        model = {CLOSE_ROUTE: CloseIn, PROFILE_ROUTE: ProfileRequestIn}.get(case.get("route"), ChatIn)
         model.model_validate(request)
         print(f"== {case['id']} (persona {case.get('persona') or '-'}) ==")
         print(json.dumps(request, ensure_ascii=False, indent=2))

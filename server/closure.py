@@ -38,8 +38,22 @@ def numbers_text(body: Any) -> str:
     profile = body.profile
     targets = f"p={profile.p_target}, c={profile.c_target}, g={profile.g_target}"
     if body.period == "day":
-        return "\n".join(_day_lines(body.numbers, profile, targets))
-    return "\n".join(_week_lines(body.numbers, profile, targets))
+        lines = _day_lines(body.numbers, profile, targets)
+    else:
+        lines = _week_lines(body.numbers, profile, targets)
+    if profile.goal is not None:
+        lines.append(_goal_line(body))
+    return "\n".join(lines)
+
+
+def _goal_line(body: Any) -> str:
+    """ADR-057 (S41): the accepted goal; a week adds the kcal over the ceiling summed over the recorded days."""
+    goal = body.profile.goal
+    line = f"GOAL: weight_kg={goal.weight_kg:g}" + (f", date={goal.date.isoformat()}" if goal.date else "")
+    if body.period == "week":
+        over = sum(max(0, d.kcal - d.ceiling_kcal) for d in body.numbers.days if d.recorded)
+        line += f", week_over_kcal={over}"
+    return line
 
 
 def _day_lines(day: Any, profile: Any, targets: str) -> list[str]:

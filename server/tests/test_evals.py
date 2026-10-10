@@ -13,8 +13,9 @@ os.environ["INVITE_CODE"] = "convite-teste"
 import httpx2
 
 from evals import run
-from evals.checks import CASE_LEVEL, FAIL, KNOWN, NA, PASS, case_status, evaluate, repetition_status
+from evals.checks import CASE_LEVEL, FAIL, KNOWN, NA, PASS, PROFILE_KNOWN, case_status, evaluate, repetition_status
 from main import ChatIn, CloseIn
+from profile_build import ProfileRequestIn
 from tests.test_api import FAKE_KEY, _envelope, _is_moderation, _moderation
 
 V1_LOG = {
@@ -329,6 +330,11 @@ class CaseFileTests(unittest.TestCase):
                     self.assertEqual(case["since"], "close")
                     CloseIn.model_validate(case["request"])
                     self.assertTrue(set(case["expect"]) <= {"reply_has", "reply_not", "reply_any"})
+                    continue
+                if case.get("route") == run.PROFILE_ROUTE:
+                    # S41: an onboarding request, judged by the profile expectations.
+                    ProfileRequestIn.model_validate(case["request"])
+                    self.assertTrue(case["expect"] and set(case["expect"]) <= set(PROFILE_KNOWN))
                     continue
                 if case["since"] == "v5":
                     self.assertTrue(case["request"]["temp_facts"])

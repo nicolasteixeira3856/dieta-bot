@@ -22,7 +22,7 @@ cd server
 .venv/Scripts/python -m evals.run --dry-run --tag s40            # merged requests, no key, no network
 ```
 
-Each persona has one smoke case, `s40-<id>-proxima-refeicao` (tags `s40`, `persona`): an open request for the next meal. The Android fake server of the capture scripts will read the same files in a later client plan; this folder stays their single source.
+Each persona has one smoke case, `s40-<id>-proxima-refeicao` (tags `s40`, `persona`): an open request for the next meal, and one onboarding case, `s41-<id>-perfil` (tags `s41`, `persona`, `"route": "profile"`): the answers that person would give in the onboarding, sent to `POST /v1/profile`; a profile case keeps its own request and takes only the persona's `summary`. The Android fake server of the capture scripts will read the same files in a later client plan; this folder stays their single source.
 
 ## Personas
 

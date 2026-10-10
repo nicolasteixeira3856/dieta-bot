@@ -119,7 +119,11 @@ class PersonaCasesTest(unittest.TestCase):
         self.assertEqual({c["persona"] for c in persona_cases}, set(PERSONAS))
         for case in persona_cases:
             with self.subTest(case["id"]):
-                ChatIn.model_validate(run.case_request(case))
+                if case.get("route") == run.PROFILE_ROUTE:
+                    # S41: an onboarding request is its own shape; the persona lends only its summary.
+                    self.assertNotIn("facts", case["request"])
+                else:
+                    ChatIn.model_validate(run.case_request(case))
                 self.assertEqual(case["persona_summary"], PERSONAS[case["persona"]]["summary"])
 
     def test_invalid_case_file_stops_the_load(self) -> None:

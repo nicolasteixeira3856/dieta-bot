@@ -67,6 +67,8 @@ import estimate_total
 import meal_window
 import protein_boost
 import plan_budget as budgets
+import profile_build
+from profile_build import PROFILE_MAX_BODY_BYTES, PROFILE_TIMEOUT_SECONDS, AcceptedGoalIn, ProfileRequestIn
 import reply_format
 from moderation import (
     IN_SCOPE,
@@ -162,6 +164,7 @@ class ProfileIn(BaseModel):
     slots: list[SlotIn] = Field(default_factory=list)
     # ADR-044 (S30): the user's tone. Absent or null (a legacy client) is seco; any other value is 422.
     tone: Tone = "seco"
+    goal: AcceptedGoalIn | None = None
 
     @field_validator("tone", mode="before")
     @classmethod
@@ -462,6 +465,8 @@ class CloseProfileIn(_Closed):
     c_target: int = _int(0, _GRAMS_MAX)
     g_target: int = _int(0, _GRAMS_MAX)
     slots: list[CloseProfileSlotIn] = Field(default_factory=list, max_length=12)
+    # ADR-057 (S41): the accepted goal; the GOAL line of NUMBERS.
+    goal: AcceptedGoalIn | None = None
 
 
 class CloseSlotIn(_Closed):
@@ -579,7 +584,8 @@ def create_app(
     @app.middleware("http")
     async def limit_upload_size(request: Request, call_next):
         content_length = request.headers.get("content-length")
-        limit = CLOSE_MAX_BODY_BYTES if request.url.path == "/v1/close" else MAX_BODY_BYTES
+        limit = {"/v1/close": CLOSE_MAX_BODY_BYTES, "/v1/profile": PROFILE_MAX_BODY_BYTES}.get(
+            request.url.path, MAX_BODY_BYTES)
         if content_length:
             try:
                 if int(content_length) > limit:
@@ -608,6 +614,7 @@ def create_app(
         image: str | None,
         run: Callable[[dict[str, Any], Deadline], dict[str, Any]],
         record_fields: dict[str, Any] | None = None,
+        seconds: float | None = None,
     ) -> dict[str, Any]:
         """One conversation-log line per turn (ADR-015). Moderation down → 503, never unchecked."""
         record = _new_record(request, route, image)
@@ -615,7 +622,7 @@ def create_app(
             record.update(record_fields)
         started = time.monotonic()
         try:
-            return run(record, Deadline())
+            return run(record, Deadline() if seconds is None else Deadline(seconds))
         except ModerationUnavailable as exc:
             _LOG.warning("%s moderation unavailable: %s", route, exc.reason)
             record["error"] = {"type": "ModerationUnavailable", "reason": exc.reason}
@@ -774,6 +781,7 @@ def create_app(
                     "adjust_retry": False,
                     "meal_window": None,
                     "tone": body.profile.tone,
+                    "goal": body.profile.goal is not None,
                     "format_stripped": None,
                     "plan_difference": None,
                     "chosen": None,
@@ -801,8 +809,35 @@ def create_app(
             lambda record, deadline: close_reply(
                 llm, moderator, body, record, deadline, safety_identifier=safety_id
             ),
-            {"tone": body.tone, "period": body.period, "close_dropped": None},
+            {"tone": body.tone, "period": body.period, "close_dropped": None,
+             "goal": body.profile.goal is not None},
         )
+
+    @app.post("/v1/profile")
+    @limiter.limit(RATE_LIMIT_CHAT)
+    def profile(
+        request: Request,
+        body: ProfileRequestIn,
+        x_invite: str | None = Header(default=None, alias="X-Invite"),
+        x_client_instance_id: str | None = Header(default=None, alias=INSTANCE_ID_HEADER),
+    ) -> Any:
+        _require_invite(x_invite, app.state.invite_code)
+        safety_id = _safety_id(request, x_client_instance_id)
+        x_client_instance_id = None
+        try:
+            return _logged(
+                request,
+                "profile",
+                None,
+                lambda record, deadline: profile_reply(
+                    llm, moderator, body, record, deadline, safety_identifier=safety_id
+                ),
+                {"goal": body.goal is not None and body.goal.weight_kg is not None, "goal_refused": False,
+                 "facts": None, "facts_dropped": None, "summary_fallback": None},
+                seconds=PROFILE_TIMEOUT_SECONDS,
+            )
+        except ProfileError as exc:
+            return JSONResponse(status_code=exc.status, content=exc.body)
 
     def _compact(request: Request, body: ChatIn, safety_id: str | None) -> dict[str, Any]:
         # Photo is ignored in compact: it never reaches the summary call.
@@ -1412,6 +1447,87 @@ def close_reply(
         return result
 
 
+class ProfileError(Exception):
+    """/v1/profile ends without a profile: a blocked answer (400) or no usable generation (502)."""
+
+    def __init__(self, status: int, body: dict[str, Any]) -> None:
+        super().__init__(body["detail"])
+        self.status = status
+        self.body = body
+
+
+def _profile_blocked(record: dict[str, Any], policy: dict[str, Any], field: str | None, metadata_only: bool) -> None:
+    record["policy"] = policy
+    if metadata_only:
+        for name in _CONTENT_FIELDS:
+            record[name] = None
+    body = {"detail": "content_policy_blocked", "field": field}
+    record["response"] = body
+    raise ProfileError(400, body)
+
+
+def profile_reply(
+    llm: LlmClient,
+    moderator: Moderator,
+    body: ProfileRequestIn,
+    record: dict[str, Any],
+    deadline: Deadline,
+    *,
+    safety_identifier: str | None = None,
+) -> dict[str, Any]:
+    """The /v1/profile call (ADR-057), shared by HTTP and evals: the goal check in code, the free-text answers
+    moderated by field, one generation, scope, shaping and output moderation. Stores nothing."""
+    for name in ("has_photo", "photo_b64_chars"):
+        record.pop(name, None)
+    goal, refused = profile_build.goal_verdict(body)
+    record["goal_refused"] = refused
+    fields = profile_build.answer_fields(body)
+    verdict, field = moderator.check_fields(fields=fields, deadline=deadline)
+    if verdict.flagged:
+        metadata_only = verdict.code == POLICY_BLOCKED or verdict.severe
+        if not metadata_only:
+            record["input_text"] = "\n".join(f"{name}: {text}" for name, text in fields)
+        _profile_blocked(record, verdict.log("input"), field, metadata_only)
+    slot_ids = [s.id for s in body.slots]
+    try:
+        payload = llm.profile_json(
+            user_text=profile_build.model_text(body, goal), slot_ids=slot_ids, tone=body.tone, trace=record,
+            timeout=deadline.remaining(), safety_identifier=safety_identifier,
+        )
+    except (ModerationUnavailable, HTTPException):
+        raise
+    except Exception as exc:
+        record["error"] = _error_record(exc)
+        _LOG.warning("profile failed: %s %s", type(exc).__name__, record["error"].get("reason", ""))
+        record["fallback"] = "error"
+        record["response"] = {"detail": "profile_unavailable"}
+        raise ProfileError(502, {"detail": "profile_unavailable"}) from None
+    scope = payload_scope(payload)
+    if scope != IN_SCOPE:
+        named = payload.get("scope_field")
+        _profile_blocked(record, {"stage": "scope", "code": scope, "table": POLICY_TABLE_VERSION},
+                         named if named in profile_build.ANSWER_FIELDS else None, scope == POLICY_BLOCKED)
+    facts, dropped = profile_build.shape_facts(payload.get("facts"), slot_ids)
+    summary = profile_build.shape_summary(payload.get("summary"))
+    record["summary_fallback"] = summary is None
+    result = {
+        "profile": profile_build.echo_profile(body),
+        "goal": goal,
+        "goal_refused": refused,
+        "facts": facts,
+        "summary": summary or profile_build.fallback_summary(body),
+        "request_id": record.get("request_id"),
+        "model": MODEL,
+    }
+    record["facts"] = profile_build.fact_counts(facts)
+    record["facts_dropped"] = {k: v for k, v in dropped.items() if v} or None
+    verdict = moderator.check(texts=profile_build.output_texts(result), deadline=deadline)
+    if verdict.flagged:
+        _profile_blocked(record, verdict.log("output"), None, verdict.code == POLICY_BLOCKED or verdict.severe)
+    record["response"] = result
+    return result
+
+
 def _block(reply: str) -> dict[str, Any]:
     """Estimate/fit refusal: 400, no fabricated zero-calorie dish (content-policy spec)."""
     raise HTTPException(status_code=400, detail="content_policy_blocked")
@@ -1823,6 +1939,7 @@ def _chat_text(body: ChatIn, *, budget_target: int | None = None) -> str:
         f"PROFILE: ceiling_kcal={body.profile.ceiling_kcal}, p_target={body.profile.p_target}, "
         f"c_target={body.profile.c_target}, g_target={body.profile.g_target}, "
         f"eat_back={body.profile.eat_back}, slots=[{slots_desc}]"
+        + (f", {profile_build.goal_text(body.profile.goal.model_dump(mode='json'))}" if body.profile.goal else "")
     )
 
     if body.facts is not None:

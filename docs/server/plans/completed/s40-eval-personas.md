@@ -4,7 +4,7 @@
 - Date: 09/10/2026
 - Owning context: `server`
 - Affected code: `server/evals/` only (`personas/`, `run.py`, `cases/*.json`, `checks.py`); documentation: `AGENTS.md` § Delivery pace (rule already recorded by owner decision), [server README](../../README.md) § Chat evaluation. No change in `server/app` or in the model instructions.
-- Prerequisites: none. [S41](../s41-onboarding-profile.md), [S42](../s42-extras-and-other-day.md) and every later server plan write their cases against these personas.
+- Prerequisites: none. [S41](../pending_manual_validation/s41-onboarding-profile.md), [S42](../s42-extras-and-other-day.md) and every later server plan write their cases against these personas.
 - Related documentation: [ADR-057](../../../produto/adrs/ADR-057-conversational-onboarding.md) (the onboarding output is the persona schema), [HTTP contract](../../../api-contract.md) (`profile`, `facts`, `recent`, `recent_days`), [chat benchmark decisions](../../../../benchmark/RESULTADOS_08_10_2026.md).
 
 Authorization and delivery follow [SDD](../../../sdd/README.md). Approval: `Aprovo o plano docs/server/plans/s40-eval-personas.md. Implemente o plano aprovado.`
