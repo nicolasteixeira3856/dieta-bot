@@ -4,7 +4,7 @@
 - Date: 10/10/2026
 - Owning context: `android`
 - Affected code: `apps/android/` tests only (`ui/GoldTest.kt`, `feature/chat/ChatFixtures.kt`), the capture tooling (`tools/capture-history.sh`, `tools/diff-gold.mjs`), `docs/qa/android/current/{dark,light}/{chatT,chatGX}.png`. No production code.
-- Prerequisites: [D30](../../design/plans/pending_manual_validation/d30-chat-extra-row-and-balance-line.md) `Concluído` (the new `chatT` and `chatGX` golds exported); [A72](pending_manual_validation/a72-extras-and-history.md) merged.
+- Prerequisites: [D30](../../design/plans/completed/d30-chat-extra-row-and-balance-line.md) `Concluído` (the new `chatT` and `chatGX` golds exported); [A72](pending_manual_validation/a72-extras-and-history.md) merged.
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/android/plans/a73-chat-gold-gates.md. Implemente o plano aprovado.`
 

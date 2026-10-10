@@ -1,10 +1,10 @@
 # Plan — D30 Release 2: Trocar with the Extra row and the day balance on the extra receipt
 
-- Status: Pendente aprovação manual
+- Status: Concluído
 - Date: 10/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Home history · D28" (the `chatGX` frames) and a new `chatT` pair next to them; `Chat/Receipt` in `Componentes` if the caption line needs a property. Repository: `docs/qa/figma/{dark,light}/{chatT,chatGX}.png` and the `chatT` node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D28](../completed/d28-home-extras-and-history.md) and [D29](../completed/d29-landing-phone-screens.md) `Concluído` (one design plan at a time).
+- Prerequisites: [D28](d28-home-extras-and-history.md) and [D29](d29-landing-phone-screens.md) `Concluído` (one design plan at a time).
 - Figma MCP budget: ≤ 40 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d30-chat-extra-row-and-balance-line.md. Implemente o plano aprovado.`
@@ -98,4 +98,16 @@ Fix during the build (before the review): the first write put `Balance` between 
 
 Figma MCP budget: 8 of 40 calls (whoami, 2 skill reads, 2 reads (the first one over the 20 KB return limit, nothing written), 2 writes, 1 read-back).
 
-<Owner review and export filled after the owner's OK.>
+### Owner review
+
+**OK (10/10/2026)** on the first round, with no fixes ("Aprovado no Figma, pode exportar"), covering the open point of the discovery: `chatT` keeps the 844 px screen and the sheet grows upward.
+
+### Export (10/10/2026)
+
+- `tools/export-figma.mjs`: `chatT` moved to the Release 2 ids (`221:2329` Light, `221:2506` Dark); `chatGX` keeps its ids. The Release 1 `chatT` frames (`63:1911`, `63:2176`) stay in the file as history.
+- `node tools/export-figma.mjs --only chatT,chatGX`: `chatT` 780 × 1688 (16.49 % of the pixels changed in Light, 4.95 % in Dark), `chatGX` 780 × 1804 → 780 × 1886 (both themes).
+- Inventory of `docs/qa/README.md`: unchanged (same ids).
+- `node tools/check-figma.mjs`: 114 golds verified (57 dark + 57 light). `node tools/check-docs.mjs` passes.
+- **Hand-over to [A73](../../../android/plans/a73-chat-gold-gates.md):** `chatGX` is 943 px tall, its receipt 272 px with the balance in two lines under the chip; `chatT` stays 390 × 844 with the sheet at y 128 (716 px), the Extra row 70 px after Jantar. `web/` does not use either gold.
+
+Figma MCP budget: 8 of 40 calls in total (no call after the review: the export uses the REST API).
