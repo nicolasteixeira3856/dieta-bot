@@ -8,8 +8,17 @@ val ALL_MIGRATIONS: Array<Migration> by lazy {
     arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15,
-        MIGRATION_15_16,
+        MIGRATION_15_16, MIGRATION_16_17,
     )
+}
+
+/** v16 -> v17 (A72, ADR-058): extras, a record outside the meals with its own time and key. Old rows are meal records. */
+val MIGRATION_16_17 = object : Migration(16, 17) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `meal_log` ADD COLUMN `kind` TEXT NOT NULL DEFAULT 'slot'")
+        db.execSQL("ALTER TABLE `meal_log` ADD COLUMN `time` TEXT")
+        db.execSQL("ALTER TABLE `meal_log` ADD COLUMN `extraId` INTEGER")
+    }
 }
 
 /**

@@ -132,6 +132,10 @@ object PromptBuilder {
                 actions = true,
                 fitKcal = fitKcal,
                 pendingAddition = pendingAddition,
+                // A72 (S42, ADR-058): extras and a record in a named past day.
+                extras = true,
+                otherDay = true,
+                firstDay = day.firstDay.takeIf { it.isNotBlank() },
             ),
             blocks = blocks.map { block -> CompactBlock(block.map { chatTurn(it, slotNames, eaten) }, block.last().id) },
             kept = raw.size - blocks.sumOf { it.size },
@@ -389,10 +393,13 @@ object PromptBuilder {
             .takeLast(MAX_RECENT)
             .map { log ->
                 val slot = log.slotId?.let(slotById::get)
+                val extra = log.kind == app.fibrai.android.domain.Extras.KIND
                 ChatRecentMeal(
                     date = log.date,
-                    slotId = slot?.id?.toString(),
-                    slotName = slot?.name ?: OTHERS,
+                    // A72 (S42): an extra goes as slot_id "extra" with its time.
+                    slotId = if (extra) app.fibrai.android.domain.Extras.NAME else slot?.id?.toString(),
+                    slotName = if (extra) "Extra" else slot?.name ?: OTHERS,
+                    time = log.time.takeIf { extra },
                     text = clip(log.text, MAX_RECENT_TEXT),
                     kcal = log.kcal,
                     p = log.p,
@@ -422,7 +429,20 @@ object PromptBuilder {
         tone = day.tone.takeIf { it in TONES } ?: TONE_SECO,
         // A71 (ADR-057 decision 9): the goal the profile build accepted.
         goal = day.goalWeightKg?.let { app.fibrai.android.core.network.ChatGoal(it, day.goalDate) },
+        slotsByDay = slotsByDay(day),
     )
+
+    /** A72 (S42): each profile group with its ISO weekdays; nothing when every day has the same meals. */
+    fun slotsByDay(day: DaySnapshot): List<app.fibrai.android.core.network.ChatSlotsByDay> {
+        val groups = day.slots.groupBy { it.days }
+        if (groups.size <= 1) return emptyList()
+        return groups.entries.sortedBy { it.key.countTrailingZeroBits() }.map { (mask, slots) ->
+            app.fibrai.android.core.network.ChatSlotsByDay(
+                weekdays = (1..7).filter { mask and (1 shl (it - 1)) != 0 },
+                slots = slots.sortedBy { it.minutesFromMidnight }.map { ChatSlot(it.id.toString(), it.name, SlotSuggestions.format(it.minutesFromMidnight)) },
+            )
+        }
+    }
 
     private fun snapshot(day: DaySnapshot, today: LocalDate) = ChatDay(
         date = today.toString(),

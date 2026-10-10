@@ -55,6 +55,8 @@
 // A69: /__calls reports `factTexts`, the text of each fact of the last turn (the correction reaches the prompt).
 // A70: POST /__mode {"fixture": "<path>"} answers every chat turn with the `response` of a saved evaluator fixture
 // (server `--save-fixture`: {request, response}), its slot ids mapped by name from the fixture's profile to the client's.
+// A72: POST /__mode {"actions": "extra" | "otherday"} answers an extra log (`slot: "extra"`, 160 kcal, `time` null) or a log of
+// yesterday's dinner (`meal_day: "other"`, `day` = yesterday in São Paulo) to a client that sent actions: true.
 // A71: POST /v1/profile (S41) echoes the profile, accepts the goal and answers declared facts built from the `nicolas` persona
 // of S40 (air fryer and micro-ondas, the scale at home, no fish, routines for the first and third meal) when the answers
 // mention food (`foods` with "ovo"), none otherwise. POST /__mode {"profile_fail": 500, "profile_delay": 3000} answers that
@@ -355,6 +357,14 @@ http.createServer(async (req, res) => {
           { ...base, id: "a3", type: "skip", slot: lanche.id, record: "auto" }] },
         plan: { reply: "Jantar: 610 kcal. Para o lanche: iogurte natural com banana, 180 kcal.", actions: [
           log("a1", 610, jantar, "frango e arroz"), { ...base, id: "a2", type: "plan", slot: lanche.id, estimate: est(180, lanche, "iogurte natural com banana") }] },
+        // A72 (S42, the nicolas persona of S40): an energy drink between lunch and snack is an extra; "ontem jantei 2 fatias
+        // de pizza" records in yesterday's dinner with its ISO day.
+        extra: { reply: "Identifiquei 1 energético (350 ml). A estimativa total é de:", actions: [{
+          ...log("a1", 160, cafe, "Energético, 1 lata (350 ml)"), slot: "extra", time: null,
+          estimate: { ...est(160, cafe, "Energético, 1 lata (350 ml)"), p: 0, c: 40, g: 0, suggested_slot: null } }] },
+        otherday: { reply: "Jantar de ontem: 2 fatias de pizza, ~560 kcal.", actions: [{
+          ...log("a1", 560, jantar, "2 fatias de pizza"), meal_day: "other", meal_change: null,
+          day: new Date(Date.now() - 27 * 3600 * 1000).toISOString().slice(0, 10) }] },
         held: { reply: "Café anotado. E no almoço, quanto de arroz?", actions: [
           log("a1", 380, cafe, "2 pães e 2 ovos"), { ...base, id: "a2", type: "log", slot: almoco.id, question: "Quanto de arroz no almoço?" }] },
       };

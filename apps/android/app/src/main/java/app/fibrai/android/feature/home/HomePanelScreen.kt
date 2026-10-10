@@ -1,5 +1,10 @@
 package app.fibrai.android.feature.home
 
+import app.fibrai.android.core.designsystem.aero.AeroDayState
+import app.fibrai.android.core.designsystem.aero.AeroDayStrip
+import app.fibrai.android.core.designsystem.aero.AeroExtraCard
+import app.fibrai.android.core.designsystem.aero.AeroStripDay
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -85,6 +90,8 @@ fun HomePanelScreen(
     onClosureExpand: (String) -> Unit = {},
     /** Opens the skip confirmation of this slot (QA renders of chatP). */
     initialSkip: Long? = null,
+    /** A72: a day of the strip tapped (ISO date). */
+    onSelectDay: (String) -> Unit = {},
 ) {
     var confirmSkip by remember { mutableStateOf(initialSkip?.let { id -> ui.timeline.firstOrNull { it.slotId == id } }) }
     val workout = ui.workoutEditor
@@ -105,11 +112,15 @@ fun HomePanelScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 AeroHeaderDay(ui.dayLabel, ui.dateLabel, onConfig, dateTag = "home-date", configTag = "home-config")
+                // A72 (ADR-058 decision 3): the last 30 days, today at the right end.
+                if (ui.strip.isNotEmpty()) {
+                    AeroDayStrip(ui.strip.map { it.toAero() }, onSelectDay)
+                }
                 Hero(ui)
                 MacroCard(ui)
-                WorkoutRow(ui, onWorkoutOpen)
+                WorkoutRow(ui, if (ui.past) null else onWorkoutOpen)
                 ui.closures.forEach { ClosureCardView(it) { onClosureExpand(it.key) } }
-                Timeline(ui, onRecord = onChat, onSkipAsk = { confirmSkip = it })
+                Timeline(ui, onRecord = onChat, onSkipAsk = { confirmSkip = it }, readOnly = ui.past)
                 AeroText(
                     SplashBoot.COPY,
                     style = Aero.type.caption.copy(color = Aero.colors.textDim, textAlign = TextAlign.Center),
@@ -207,16 +218,19 @@ private fun Macro(macro: AeroMacro, label: String, line: MacroLine) {
     AeroMacroRow(macro, label, line.consumed.toString(), "${line.target} g", line.fraction, line.over)
 }
 
-/** A22 "Treino de hoje": "Informar" in the accent, or "350 kcal · +175 na meta". Tap opens homeW. */
+/**
+ * A22 "Treino de hoje": "Informar" in the accent, or "350 kcal · +175 na meta". Tap opens homeW. A72 (homeH): a past day reads
+ * "Treino do dia", without the chevron or the tap ([onClick] null).
+ */
 @Composable
-private fun WorkoutRow(ui: HomePanelUiState, onClick: () -> Unit) {
+private fun WorkoutRow(ui: HomePanelUiState, onClick: (() -> Unit)?) {
     val c = Aero.colors
     val type = Aero.type
     Row(
         Modifier
             .fillMaxWidth()
             .aeroGlass(Aero.shapes.card)
-            .dietaClick(Haptic.Light, onClick = onClick)
+            .then(if (onClick != null) Modifier.dietaClick(Haptic.Light, onClick = onClick) else Modifier)
             .padding(horizontal = 17.dp, vertical = 15.dp)
             .testTag("home-workout"),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -226,10 +240,12 @@ private fun WorkoutRow(ui: HomePanelUiState, onClick: () -> Unit) {
             AeroIcon(AeroIconName.Barbell, c.iconPrimary)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            AeroText("Treino de hoje", style = type.bodyStrong.copy(color = c.textPrimary), maxLines = 1)
+            AeroText(if (ui.past) "Treino do dia" else "Treino de hoje", style = type.bodyStrong.copy(color = c.textPrimary), maxLines = 1)
             val kcal = ui.workoutKcal
             AeroText(
-                if (kcal == null) {
+                if (kcal == null && ui.past) {
+                    buildAnnotatedString { withStyle(SpanStyle(color = c.textMuted)) { append("Sem treino") } }
+                } else if (kcal == null) {
                     buildAnnotatedString { withStyle(SpanStyle(color = c.accentDefault)) { append("Informar") } }
                 } else {
                     buildAnnotatedString {
@@ -242,12 +258,12 @@ private fun WorkoutRow(ui: HomePanelUiState, onClick: () -> Unit) {
                 modifier = Modifier.testTag("home-workout-value"),
             )
         }
-        AeroIcon(AeroIconName.CaretRight, c.iconPrimary, size = 20.dp)
+        if (onClick != null) AeroIcon(AeroIconName.CaretRight, c.iconPrimary, size = 20.dp)
     }
 }
 
 @Composable
-private fun Timeline(ui: HomePanelUiState, onRecord: () -> Unit, onSkipAsk: (TimelineSlot) -> Unit) {
+private fun Timeline(ui: HomePanelUiState, onRecord: () -> Unit, onSkipAsk: (TimelineSlot) -> Unit, readOnly: Boolean = false) {
     val c = Aero.colors
     val type = Aero.type
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -262,7 +278,7 @@ private fun Timeline(ui: HomePanelUiState, onRecord: () -> Unit, onSkipAsk: (Tim
         }
         Column(verticalArrangement = Arrangement.spacedBy(SlotGap)) {
             ui.timeline.forEachIndexed { i, slot ->
-                TimelineRow(slot, last = i == ui.timeline.lastIndex, onRecord, onSkipAsk)
+                TimelineRow(slot, last = i == ui.timeline.lastIndex, onRecord, onSkipAsk, readOnly)
             }
         }
     }
@@ -277,9 +293,9 @@ private val NodeSize = 24.dp
  * An empty card opens the Chat on tap and asks to skip on long press (ADR-040).
  */
 @Composable
-private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit, onSkipAsk: (TimelineSlot) -> Unit) {
+private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit, onSkipAsk: (TimelineSlot) -> Unit, readOnly: Boolean = false) {
     val c = Aero.colors
-    val tag = "home-slot-${slot.slotId ?: "outros"}"
+    val tag = if (slot.state == SlotState.EXTRA) "home-extra-${slot.time}" else "home-slot-${slot.slotId ?: "outros"}"
     Row(
         Modifier
             .fillMaxWidth()
@@ -305,11 +321,18 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit,
                 SlotState.NEXT -> AeroNodeState.Active
                 SlotState.EMPTY -> AeroNodeState.Empty
                 SlotState.PLANNED -> AeroNodeState.Planned
+                SlotState.EXTRA -> AeroNodeState.Extra
             },
             Modifier.padding(top = NodeTop),
         )
+        // A72 (D28 Card/Extra): an extra at its time, no gesture.
+        if (slot.state == SlotState.EXTRA) {
+            AeroExtraCard(slot.name, slot.extraText.orEmpty(), slot.kcal, slot.p, slot.c, slot.g, Modifier.weight(1f))
+            return@Row
+        }
         // A planned meal opens the Chat like an empty one; a long press skips it (and clears the reservation).
-        val tappable = (slot.state == SlotState.NEXT || slot.state == SlotState.EMPTY || slot.state == SlotState.PLANNED) && slot.slotId != null
+        // A72: a past day's cards take no tap and no long press.
+        val tappable = !readOnly && (slot.state == SlotState.NEXT || slot.state == SlotState.EMPTY || slot.state == SlotState.PLANNED) && slot.slotId != null
         AeroMealCard(
             state = when (slot.state) {
                 SlotState.LOGGED -> AeroMealState.Logged
@@ -318,12 +341,13 @@ private fun TimelineRow(slot: TimelineSlot, last: Boolean, onRecord: () -> Unit,
                 SlotState.NEXT -> AeroMealState.Pending
                 SlotState.EMPTY -> AeroMealState.Empty
                 SlotState.PLANNED -> AeroMealState.Planned
+                SlotState.EXTRA -> AeroMealState.Logged
             },
             meal = slot.name,
             time = slot.time.orEmpty(),
             description = when (slot.state) {
                 SlotState.SKIPPED -> "Refeição pulada"
-                SlotState.NEXT, SlotState.EMPTY -> "Nenhum registro · Toque para registrar, segura para pular"
+                SlotState.NEXT, SlotState.EMPTY -> if (readOnly) "Nenhum registro" else "Nenhum registro · Toque para registrar, segura para pular"
                 else -> ""
             },
             lines = slot.lines.map { AeroMealLine(it.text, if (slot.state == SlotState.PLANNED) "planejado · ${it.kcal} kcal" else "${it.kcal} kcal") },
@@ -390,3 +414,18 @@ private fun ClosureCardView(card: ClosureCard, onExpand: () -> Unit) {
         AeroText(card.text, style = type.body.copy(color = c.textPrimary), modifier = Modifier.testTag("$tag-text"))
     }
 }
+
+/** A72: a strip day as the Aero component draws it. */
+private fun StripDay.toAero() = AeroStripDay(
+    key = date.toString(),
+    day = day,
+    month = month,
+    state = when (state) {
+        DayCircleState.TODAY_SELECTED -> AeroDayState.TodaySelected
+        DayCircleState.TODAY -> AeroDayState.Today
+        DayCircleState.PAST_SELECTED -> AeroDayState.PastSelected
+        DayCircleState.PAST -> AeroDayState.Past
+        DayCircleState.NO_RECORD -> AeroDayState.NoRecord
+    },
+    label = label,
+)

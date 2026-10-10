@@ -41,7 +41,17 @@ enum class SlotState {
 
     /** A60 part D (homeP): a plan reserved for the meal; nothing eaten, not in the ring. */
     PLANNED,
+
+    /** A72 (ADR-058 decision 2): something eaten outside the meals, a node of its own at its time. */
+    EXTRA,
 }
+
+/** A72 (D28 `Home/DayCircle`): the five states of a day of the strip. */
+enum class DayCircleState { TODAY_SELECTED, TODAY, PAST_SELECTED, PAST, NO_RECORD }
+
+/** One day of the strip: its number, the month above it where it changes, its state and the accessibility label. */
+@Immutable
+data class StripDay(val date: LocalDate, val day: String, val month: String?, val state: DayCircleState, val label: String)
 
 @Immutable
 data class TimelineSlot(
@@ -56,6 +66,8 @@ data class TimelineSlot(
     val c: Int = 0,
     val g: Int = 0,
     val fromPhoto: Boolean = false,
+    /** A72: an extra's text (Card/Extra), its [time] in the title. */
+    val extraText: String? = null,
 ) {
     /** Consolidated meal line, e.g. "520 kcal · 28P · 52C · 22G". */
     val summary: String get() = "$kcal kcal · ${p}P · ${c}C · ${g}G"
@@ -103,6 +115,10 @@ data class HomePanelUiState(
     val workoutEditor: WorkoutEditorState? = null,
     /** A60 part B: the week card above the day card, between the workout row and the timeline. */
     val closures: List<ClosureCard> = emptyList(),
+    /** A72 (ADR-058 decision 3): the last 30 days (or since the first day), oldest first, today last. */
+    val strip: List<StripDay> = emptyList(),
+    /** A72 (homeH): a past day is shown: read only, no gestures, `Treino do dia`. */
+    val past: Boolean = false,
 ) {
     val over: Int get() = (consumed - meta).coerceAtLeast(0)
     val ringFraction: Float get() = if (meta <= 0) 1f else (consumed.toFloat() / meta).coerceIn(0f, 1f)
@@ -121,6 +137,21 @@ object HomePanelMapper {
         workoutDraft: String? = null,
         closures: List<ClosureEntity> = emptyList(),
         expanded: Set<String> = emptySet(),
+        /** A72: the day shown (a past day of the strip); null = today. */
+        shown: LocalDate? = null,
+        /** A72: kcal of each day with records, for the strip; null = no strip (older renders). */
+        dayKcal: Map<String, Int>? = null,
+    ): HomePanelUiState {
+        if (shown != null && shown != today) return mapPast(day, today, shown, closures, dayKcal.orEmpty())
+        return mapToday(day, today, workoutDraft, closures, expanded).copy(strip = dayKcal?.let { strip(day, today, today, it) }.orEmpty())
+    }
+
+    private fun mapToday(
+        day: DaySnapshot,
+        today: LocalDate,
+        workoutDraft: String?,
+        closures: List<ClosureEntity>,
+        expanded: Set<String>,
     ): HomePanelUiState {
         val first = day.firstDay.takeIf { it.isNotBlank() }?.let(LocalDate::parse) ?: today
         val appDay = (ChronoUnit.DAYS.between(first, today) + 1).coerceAtLeast(1)
@@ -144,6 +175,51 @@ object HomePanelMapper {
             workoutEditor = workoutDraft?.let { stored.copy(input = it) },
             closures = closureCards(day, today, closures, expanded),
         )
+    }
+
+    /**
+     * A72 (homeH): a past day from Room with that day's ceiling and credit, its closure card (expanded, when it exists) and
+     * its timeline in that day's group, read only.
+     */
+    private fun mapPast(day: DaySnapshot, today: LocalDate, shown: LocalDate, closures: List<ClosureEntity>, dayKcal: Map<String, Int>): HomePanelUiState {
+        val base = mapToday(day, shown, null, emptyList(), emptySet())
+        val card = closures.firstOrNull { it.period == Closures.DAY && it.date == shown.toString() }?.let { row ->
+            decodeDay(row.numbers)?.let { n ->
+                dayCard(row, n, shown, today, Closures.CardState.EXPANDED, emptySet(), Triple(day.proteinTargetG, day.carbTargetG, day.fatTargetG))
+            }
+        }
+        return base.copy(
+            timeline = base.timeline.map { if (it.state == SlotState.NEXT) it.copy(state = SlotState.EMPTY) else it },
+            closures = listOfNotNull(card),
+            strip = strip(day, today, shown, dayKcal),
+            past = true,
+        )
+    }
+
+    private val monthFormat = DateTimeFormatter.ofPattern("MMM", Locale.forLanguageTag("pt-BR"))
+    private val fullFormat = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))
+
+    /** A72 (ADR-058 decision 3): the last 30 days, never before the first day of the app; the month where it changes. */
+    fun strip(day: DaySnapshot, today: LocalDate, selected: LocalDate, dayKcal: Map<String, Int>): List<StripDay> {
+        val first = day.firstDay.takeIf { it.isNotBlank() }?.let(LocalDate::parse) ?: today
+        val from = maxOf(today.minusDays(STRIP_DAYS - 1), minOf(first, today))
+        return generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(today) }.mapIndexed { i, date ->
+            val kcal = dayKcal[date.toString()]
+            val state = when {
+                date == today && selected == today -> DayCircleState.TODAY_SELECTED
+                date == today -> DayCircleState.TODAY
+                date == selected -> DayCircleState.PAST_SELECTED
+                kcal == null -> DayCircleState.NO_RECORD
+                else -> DayCircleState.PAST
+            }
+            StripDay(
+                date = date,
+                day = date.dayOfMonth.toString(),
+                month = if (i == 0 || date.dayOfMonth == 1) date.format(monthFormat).trimEnd('.').replaceFirstChar { it.uppercase() } else null,
+                state = state,
+                label = "${date.format(fullFormat)}, ${kcal ?: 0} kcal",
+            )
+        }.toList()
     }
 
     // ------------------------------------------------------------------ closures (A60 part B, ADR-044)
@@ -228,12 +304,35 @@ object HomePanelMapper {
         return Closures.day(today, meals, totals, day.metaOn(today), day.workoutKcal)
     }
 
+    /**
+     * A72 (ADR-058 decision 2): the day's slots and extras merged by time (a slot by its profile time, an extra by its own;
+     * on a tie the meal first); the over-the-meta rule walks the merged list. `Outros` keeps the logs of removed or foreign slots.
+     */
     private fun timeline(day: DaySnapshot, meta: Int, today: LocalDate): List<TimelineSlot> {
         val known = day.slotsOn(today).map { it.id }.toSet()
         val slots = day.slotsOn(today).sortedBy { it.minutesFromMidnight }
         val lastFilled = slots.indexOfLast { s -> s.id in day.skippedSlotIds || day.logs.any { it.slotId == s.id } }
+        val extras = day.logs.filter { it.extra }
+        val entries = slots.mapIndexed { i, slot -> Triple(slot.minutesFromMidnight, 0, i) } +
+            extras.mapIndexed { i, log -> Triple(minutesOf(log.time), 1, i) }
         var running = 0
-        val out = slots.mapIndexed { i, slot ->
+        val out = entries.sortedWith(compareBy({ it.first }, { it.second })).map { (_, kind, i) ->
+            if (kind == 1) {
+                val log = extras[i]
+                running += log.kcal
+                return@map TimelineSlot(
+                    slotId = null,
+                    name = "Extra · ${log.time.orEmpty()}".removeSuffix(" · "),
+                    time = log.time,
+                    state = SlotState.EXTRA,
+                    kcal = log.kcal,
+                    p = log.p,
+                    c = log.carbs,
+                    g = log.fat,
+                    extraText = log.text,
+                )
+            }
+            val slot = slots[i]
             val logs = day.logs.filter { it.slotId == slot.id }
             val time = SlotSuggestions.format(slot.minutesFromMidnight)
             when {
@@ -248,11 +347,18 @@ object HomePanelMapper {
                 else -> TimelineSlot(slot.id, slot.name, time, if (lastFilled >= 0 && i == lastFilled + 1) SlotState.NEXT else SlotState.EMPTY)
             }
         }
-        val orphans = day.logs.filter { it.slotId == null || it.slotId !in known }
+        val orphans = day.logs.filter { !it.extra && (it.slotId == null || it.slotId !in known) }
         if (orphans.isEmpty()) return out
         running += orphans.sumOf { it.kcal }
         return out + filled(null, "Outros", null, orphans.map { LogLine(it.text, it.kcal) }, orphans, running > meta)
     }
+
+    /** `HH:mm` to minutes; an extra without a time goes last. */
+    private fun minutesOf(time: String?): Int =
+        time?.split(':')?.takeIf { it.size == 2 }?.let { (h, m) -> (h.toIntOrNull() ?: return@let null)?.times(60)?.plus(m.toIntOrNull() ?: 0) } ?: Int.MAX_VALUE
+
+    /** A72: the strip shows 30 days. */
+    const val STRIP_DAYS = 30L
 
     private fun filled(
         id: Long?,

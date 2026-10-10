@@ -37,6 +37,8 @@ import app.fibrai.android.domain.SlotCheck
 import app.fibrai.android.domain.Fact
 import app.fibrai.android.domain.Macros
 import app.fibrai.android.domain.MemoryResult
+import app.fibrai.android.core.database.slotsOn
+import app.fibrai.android.domain.Extras
 import app.fibrai.android.domain.MemoryRules
 import app.fibrai.android.domain.MemoryUpdate
 import app.fibrai.android.domain.PlanBudget
@@ -712,12 +714,16 @@ class ChatViewModel @Inject constructor(
     private suspend fun storeAnswer(out: ChatOut, context: TurnContext, actions: String?): StoredAnswer {
         val (snapshot, facts, states, date, wipeId) = context
         val question = out.question?.trim()?.takeIf { out.estimate == null && it.isNotEmpty() }
-        val slots = snapshot.slotsOfDay.map { it.id }.toSet()
-        val suggested = out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
+        // A72 (S42, ADR-058): a log aimed at an extra, or at a named past day inside the bound, records there.
+        val target = ChatActions.target(actions)
+        val pastDay = target?.day?.let(LocalDate::parse)?.takeIf { pastDayOk(it, snapshot) }
+        val slots = (pastDay?.let { snapshot.slotsOn(it) } ?: snapshot.slotsOfDay).map { it.id }.toSet()
+        val suggested = if (target?.extra == true) Extras.TARGET else out.estimate?.suggestedSlot?.toLongOrNull()?.takeIf { it in slots }
+        val elsewhere = target?.extra == true || pastDay != null
         // A38: the slot held with a question-only turn goes back in HISTORY as the suggested meal.
         val held = out.questionSlot?.toLongOrNull()?.takeIf { question != null && it in slots }
         val intent = if (question != null) "log" else out.intent?.takeIf { it in INTENTS }
-        val recordMode = recordModeOf(out, intent, question, suggested)
+        val recordMode = recordModeOf(out, intent, question, suggested, targetOk = elsewhere && suggested != null)
         // A59: the listed skips of today, stored with the answer before any write; the log's own slot is never one.
         val skips = out.skipSlots?.let { ids ->
             val listed = ids.mapNotNull { raw -> raw.toLongOrNull()?.takeIf { it in slots } ?: null.also { recordGuard(GUARD_SLOT_NOT_TODAY) } }
@@ -726,7 +732,8 @@ class ChatViewModel @Inject constructor(
             listed.takeIf { it.isNotEmpty() }?.let { SkipOutcomes(date = date, wipeId = wipeId, with = intent ?: "log", slots = it.map(::SkipEntry)) }
         }
         // A47: the structured proposal, checked against the states the request carried; never read from the prose.
-        val proposal = MealChanges.proposal(
+        // A72: an extra or a past day is a new record of its own: never an addition or a revision of today.
+        val proposal = if (elsewhere) null else MealChanges.proposal(
             MealChanges.parse(out.mealChange),
             out.estimate?.let { EstimateNumbers(it.kcal, it.p, it.c, it.g, it.mealText?.trim(), it.suggestedSlot) },
             recordable = question == null && intent == "log" && out.record in setOf(RECORD_AUTO, RECORD_ASK),
@@ -749,6 +756,10 @@ class ChatViewModel @Inject constructor(
             emptyList<ChatMemoryUpdate>() to emptyList()
         } else {
             out.memoryUpdates.partition { it.waitsForRecord }.let { (r, i) -> (if (fresh) r else emptyList()) to i }
+        }.let { (r, i) ->
+            // A72 (ADR-058 decision 6): an extra feeds no routine; a past day brings no temporary or liked fact.
+            (if (target?.extra == true) emptyList() else r) to
+                (if (pastDay != null) i.filter { it.kind != MemoryRules.TEMP && it.category != MemoryRules.LIKED } else i)
         }
         val applied = applyMemory(immediate.map { it.toDomain() })
         val answerId = repository.insertMessage(
@@ -819,13 +830,14 @@ class ChatViewModel @Inject constructor(
      * The record mark of an answer (A34): the server's, with the client guards (ADR-028 decision 8). A
      * server without `record` and a recordable log estimate gives `ask`: nothing is recorded without a tap.
      */
-    private fun recordModeOf(out: ChatOut, intent: String?, question: String?, suggested: Long?): String {
+    private fun recordModeOf(out: ChatOut, intent: String?, question: String?, suggested: Long?, targetOk: Boolean = false): String {
         val log = out.estimate != null && question == null && (intent == null || intent == "log")
         val mode = out.record?.takeIf { it in RECORD_MODES } ?: return if (log) RECORD_ASK else RECORD_NONE
         if (mode != RECORD_AUTO || intent != "log") return mode
         val reason = when {
             question != null || !out.estimate?.question.isNullOrBlank() -> "question_pending"
             out.estimate == null || out.estimate.kcal <= 0.0 -> "not_recordable"
+            targetOk -> return mode
             out.estimate.suggestedSlot == null -> "no_slot"
             suggested == null -> "slot_not_today"
             else -> return mode
@@ -859,7 +871,8 @@ class ChatViewModel @Inject constructor(
             autoEvent("skip", "empty", "user", rounds)
             return
         }
-        val slot = answer.estimateSlotId?.let { id -> slots.firstOrNull { it.id == id } }
+        val resolved = resolveTarget(answer, answer.estimateSlotId?.let { id -> slots.firstOrNull { it.id == id } })
+        val slot = resolved?.first
         // A47: an addition into an empty or skipped meal records only the added food.
         val proposal = MealProposal.decode(answer.mealChange)?.takeIf { it.isAddition }
         val target = proposal?.target
@@ -868,7 +881,7 @@ class ChatViewModel @Inject constructor(
             return
         }
         val day = repository.messagesOf(answer.date)
-        val outcome = runCatching { if (proposal != null && target != null) addInto(answer, proposal, slot, target) else recordInto(answer, day, slot) }
+        val outcome = runCatching { if (proposal != null && target != null) addInto(answer, proposal, slot, target) else recordInto(answer, day, slot, resolved?.second) }
             .onFailure { if (it is CancellationException) throw it }
             .getOrElse {
                 notRecorded(answerId, GUARD_WRITE_FAILED)
@@ -1106,14 +1119,24 @@ class ChatViewModel @Inject constructor(
      * Empty or skipped slot → recorded with a receipt. Slot with a record → pending replace below the answer
      * (chatU); nothing changes until Substituir. No second POST.
      */
-    private suspend fun recordInto(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, slot: SlotRef): RecordOutcome {
-        val outcome = recorder.record(newRecord(estimate, day), slot)
+    private suspend fun recordInto(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, slot: SlotRef, pastDay: LocalDate? = null): RecordOutcome {
+        // A72: an extra is a new slot of its own, with the stated time or now.
+        val extra = slot.id == Extras.TARGET || Extras.isExtra(slot.id)
+        val into = if (slot.id == Extras.TARGET) SlotRef(Extras.slotId(repository.newExtraKey()), Extras.NAME, "", 0) else slot
+        val new = newRecord(estimate, day).let { n ->
+            if (!extra) n else n.copy(record = n.record.copy(time = ChatActions.target(estimate.actions)?.time ?: recorder.nowTime()), routine = emptyList())
+        }
+        val outcome = recorder.record(new, into, day = pastDay)
         when (outcome) {
             is RecordOutcome.Recorded -> {
                 if (outcome.before.planned != null) planReserved("cleared_by_record")
-                mealSaved(estimate, day, hadPlan = outcome.before.planned != null)
+                mealSaved(estimate, day, hadPlan = outcome.before.planned != null, kind = if (extra) Extras.KIND else Extras.SLOT_KIND, past = pastDay != null)
+                pastDay?.let { refreshClosure(it) }
             }
-            is RecordOutcome.Taken -> {
+            // A72: a past day's meal with a record is not replaced from the Chat: nothing is written.
+            is RecordOutcome.Taken -> if (pastDay != null) {
+                notRecorded(estimate.id, GUARD_OCCUPIED_OTHER_DAY)
+            } else {
                 val pending = SlotChange(estimate.date, slot.id, outcome.state, outcome.state)
                 repository.setRecordState(estimate.id, ChatRecorder.PENDING_REPLACE, UndoData.encodeChange(pending))
                 replaceEvent("shown", "answer")
@@ -1121,6 +1144,41 @@ class ChatViewModel @Inject constructor(
             RecordOutcome.Stale -> Unit
         }
         return outcome
+    }
+
+    /**
+     * A72 (ADR-058): where [estimate] records: an extra (a new extra slot), the slot of a named past day (that day's group)
+     * with its date, or [fallback] today. Null when the past day's slot does not exist.
+     */
+    private suspend fun resolveTarget(estimate: ChatMessageEntity, fallback: SlotRef?): Pair<SlotRef, LocalDate?>? {
+        val target = ChatActions.target(estimate.actions)
+        val snapshot = repository.observeToday().first()
+        val pastDay = target?.day?.let(LocalDate::parse)?.takeIf { pastDayOk(it, snapshot) }
+        if (target?.extra == true || estimate.estimateSlotId == Extras.TARGET) {
+            return SlotRef(Extras.TARGET, Extras.NAME, "", 0) to pastDay
+        }
+        if (pastDay != null) {
+            val slot = snapshot.slotsOn(pastDay).refs().firstOrNull { it.id == estimate.estimateSlotId } ?: return null
+            return slot to pastDay
+        }
+        return fallback?.let { it to null }
+    }
+
+    /** A72: a named day the app may record in: before today, inside the last 30 days, not before the first day. */
+    private fun pastDayOk(day: LocalDate, snapshot: DaySnapshot): Boolean {
+        val today = SaoPaulo.date(clock.now())
+        val first = snapshot.firstDay.takeIf { it.isNotBlank() }?.let(LocalDate::parse)
+        return day.isBefore(today) && !day.isBefore(today.minusDays(PAST_DAYS)) && (first == null || !day.isBefore(first))
+    }
+
+    /** A72: a closure of [day] already stored takes the new numbers from Room; its text stays. */
+    private suspend fun refreshClosure(day: LocalDate) {
+        runCatching {
+            val row = repository.closure(app.fibrai.android.domain.Closures.dayKey(day)) ?: return
+            val totals = repository.dayTotals(repository.observeToday().first(), day)
+            val numbers = app.fibrai.android.domain.Closures.day(day, totals.meals, totals.totals, totals.ceilingKcal, totals.workoutKcal)
+            repository.setClosureNumbers(row.key, app.fibrai.android.domain.Closures.json.encodeToString(app.fibrai.android.domain.ClosureDay.serializer(), numbers))
+        }.onFailure { if (it is CancellationException) throw it }
     }
 
     /** An estimate of today that can still be recorded: no record decided, or a pending replace. */
@@ -1145,7 +1203,8 @@ class ChatViewModel @Inject constructor(
             if (proposal != null) {
                 addInto(estimate, proposal, slot, proposal.target ?: return@once)
             } else {
-                recordInto(estimate, repository.messagesOf(estimate.date), slot)
+                val resolved = resolveTarget(estimate, slot) ?: return@once
+                recordInto(estimate, repository.messagesOf(estimate.date), resolved.first, resolved.second)
             }
         }
     }
@@ -1328,10 +1387,21 @@ class ChatViewModel @Inject constructor(
     private fun sourceOf(estimate: ChatMessageEntity, day: List<ChatMessageEntity>) =
         if (userBefore(estimate, day)?.photoPath != null) "photo" else "user"
 
-    private fun mealSaved(estimate: ChatMessageEntity, day: List<ChatMessageEntity>, kcal: Int = estimate.estimateKcal ?: 0, hadPlan: Boolean = false) =
+    private fun mealSaved(
+        estimate: ChatMessageEntity,
+        day: List<ChatMessageEntity>,
+        kcal: Int = estimate.estimateKcal ?: 0,
+        hadPlan: Boolean = false,
+        kind: String = Extras.SLOT_KIND,
+        past: Boolean = false,
+    ) =
         telemetry.event(
             TelemetryEvents.MEAL_SAVED,
-            mapOf("from" to "chat", "has_photo" to (userBefore(estimate, day)?.photoPath != null), "kcal" to kcal, "had_plan" to hadPlan),
+            mapOf(
+                "from" to "chat", "has_photo" to (userBefore(estimate, day)?.photoPath != null), "kcal" to kcal, "had_plan" to hadPlan,
+                // A72: `kind` slot | extra, `day` today | other.
+                "kind" to kind, "day" to if (past) "other" else "today",
+            ),
         )
 
     // ------------------------------------------------------------------ receipt actions (A34)
@@ -1456,7 +1526,8 @@ class ChatViewModel @Inject constructor(
         val slotId = l.sheetSelection ?: return
         local.update { it.copy(sheet = null, sheetSelection = null) }
         viewModelScope.launch {
-            val slot = todaySlot(slotId) ?: return@launch
+            // A72: the Extra entry of the sheet (fora das refeições) is a new extra slot.
+            val slot = if (slotId == Extras.TARGET) SlotRef(Extras.TARGET, Extras.NAME, "", 0) else todaySlot(slotId) ?: return@launch
             when (sheet) {
                 is Sheet.Estimate -> {
                     val estimate = openEstimate(sheet.id) ?: return@launch
@@ -1475,7 +1546,8 @@ class ChatViewModel @Inject constructor(
                 }
                 is Sheet.Receipt -> {
                     val receipt = repository.message(sheet.id)?.takeIf { it.receiptState == null } ?: return@launch
-                    val outcome = recorder.move(receipt, slot)
+                    val into = if (slot.id == Extras.TARGET) SlotRef(Extras.slotId(repository.newExtraKey()), Extras.NAME, "", 0) else slot
+                    val outcome = recorder.move(receipt, into)
                     if (outcome is RecordOutcome.Taken) {
                         val kcal = UndoData.decode(receipt.undoData)?.recordSlot?.after?.kcal ?: 0
                         val confirm = ReplaceConfirm(slot, oldKcal = outcome.state.kcal, newKcal = kcal)
@@ -1532,7 +1604,11 @@ class ChatViewModel @Inject constructor(
         val wipeToday = todayRows.filter { it.role == DayRepository.ROLE_WIPED }.maxOfOrNull { it.id }
         // A64: the day balance rides on today's newest active record receipt; an estimate waiting for Registrar projects it.
         val meta = d.metaOn(today)
-        val balanceReceipt = todayRows.lastOrNull { it.role in BALANCE_RECEIPTS && it.receiptState == null && (wipeToday == null || it.id > wipeToday) }?.id
+        // A72: a record in a past day is not today's: its receipt never carries today's balance.
+        val balanceReceipt = todayRows.lastOrNull {
+            it.role in BALANCE_RECEIPTS && it.receiptState == null && (wipeToday == null || it.id > wipeToday) &&
+                UndoData.decode(it.undoData)?.recordSlot?.date.let { date -> date == null || date == todayIso }
+        }?.id
         val balance = DayBalance.line(eaten, meta, d.proteinTargetG)
         wipeMark = wipeToday ?: 0L
 
@@ -1651,7 +1727,7 @@ class ChatViewModel @Inject constructor(
         val actions = open?.let {
             EstimateActions(
                 it.id,
-                record = it.estimateSlotId?.let { id -> slotById[id] },
+                record = it.estimateSlotId?.let { id -> if (id == Extras.TARGET) SlotRef(Extras.TARGET, Extras.NAME, "", 0) else slotById[id] },
                 plan = it.isPlanEstimate,
                 choice = choice?.let { b -> BudgetChoice(b.limitKcal, b.overKcal) },
                 // A60 part D: a plan of today for a meal of today with nothing eaten, not already its reservation.
@@ -1730,13 +1806,18 @@ class ChatViewModel @Inject constructor(
     /** Today's slots as the receipts compare them: logs in id order, the skip and the reservation (A60 part D). */
     private fun todayStates(d: DaySnapshot): Map<Long, SlotState> {
         val logs = d.logs.filter { it.slotId != null }.groupBy { it.slotId!! }
-        return (logs.keys + d.skippedSlotIds + d.planned.keys).associateWith { id ->
+        val meals = (logs.keys + d.skippedSlotIds + d.planned.keys).associateWith { id ->
             SlotState(
                 logs[id].orEmpty().map { SlotRecord(it.text, it.kcal, it.p, it.carbs, it.fat, it.source, it.window, it.stable) },
                 id in d.skippedSlotIds,
                 d.planned[id],
             )
         }
+        // A72: each extra is a slot of its own, keyed −extraId, with its time.
+        val extras = d.logs.filter { it.extraId != null }.groupBy { Extras.slotId(it.extraId!!) }.mapValues { (_, rows) ->
+            SlotState(rows.map { SlotRecord(it.text, it.kcal, it.p, it.carbs, it.fat, it.source, it.window, it.stable, time = it.time) })
+        }
+        return meals + extras
     }
 
     /**
@@ -1879,7 +1960,11 @@ class ChatViewModel @Inject constructor(
             },
             // A65: a workout receipt keeps its mode in the text, not a meal name.
             slotName = if (m.role == ReceiptRules.WORKOUT) "" else m.text,
-            slotTime = m.estimateSlotId?.let { slotTimes[it] },
+            // A72: an extra shows its own time; a record in a past day shows that day (`3 de outubro`).
+            slotTime = undo?.recordSlot?.takeIf { it.date != m.date }?.let { pastDayLabel(it.date) }
+                ?: undo?.recordSlot?.takeIf { Extras.isExtra(it.slotId) }?.after?.records?.firstOrNull()?.time
+                ?: m.estimateSlotId?.let { slotTimes[it] },
+            extra = Extras.isExtra(m.estimateSlotId),
             kcal = m.estimateKcal,
             fromKcal = undo?.takeIf { m.role == ReceiptRules.REPLACED }?.recordSlot?.before?.kcal,
             memoryUpdated = m.memoryUpdated,
@@ -1902,6 +1987,9 @@ class ChatViewModel @Inject constructor(
             },
         )
     }
+
+    private fun pastDayLabel(date: String): String =
+        runCatching { LocalDate.parse(date).format(DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("pt-BR"))) }.getOrDefault(date)
 
     /** The plan's own receipt: recorded (A34), or the first receipt after it, before any other estimate, is a record. */
     private fun recordedPlan(plan: ChatMessageEntity, sorted: List<ChatMessageEntity>): Boolean {
@@ -2146,6 +2234,12 @@ class ChatViewModel @Inject constructor(
         /** A54 `record_guard` reasons of an `auto` answer left without a record; with [MealProposal.MALFORMED], [MealProposal.CONTRADICTS] and [MealProposal.OVERFLOW]. */
         private const val GUARD_NO_TARGET = "no_target"
         private const val GUARD_STALE = "stale"
+
+        /** A72: a past day's meal with a record is not replaced from the Chat. */
+        private const val GUARD_OCCUPIED_OTHER_DAY = "occupied_other_day"
+
+        /** A72 (ADR-058): the bound of a past-day record. */
+        private const val PAST_DAYS = 30L
         private const val GUARD_OVERFLOW = MealProposal.OVERFLOW
         private const val GUARD_WRITE_FAILED = "write_failed"
 

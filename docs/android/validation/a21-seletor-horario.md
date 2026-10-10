@@ -52,8 +52,8 @@ setting. No clock picker, keyboard toggle or typing mode remains.
 ## Visual comparison
 
 Device: `emulator-5554` (Medium_Phone), 780×1688 px, density 320. Fresh captures:
-[dark](../../qa/android/current/dark/o3t.png) and
-[light](../../qa/android/current/light/o3t.png). Golds were not modified.
+dark (capture retired by A71) and
+light (capture retired by A71). Golds were not modified.
 
 ST3 exports are 780×2206 px. The complete dialog is centered in both viewports,
 so its expected vertical shift is (1688 − 2206) / 2 = −259 px. The comparison tool

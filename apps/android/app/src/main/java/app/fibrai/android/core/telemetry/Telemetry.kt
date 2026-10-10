@@ -48,6 +48,9 @@ object TelemetryEvents {
 
     /** A71 Config: `enabled` (boolean) and `from`; `goal` (set | none) and `from`. */
     const val NOTIFICATIONS_SET = "notifications_set"
+
+    /** A72 (ADR-058): a past day of the strip, `offset` 1 | 2-7 | 8-30. */
+    const val HOME_DAY_SELECTED = "home_day_selected"
     const val GOAL_SET = "goal_set"
     const val PUSH_ACTION = "push_action"
 

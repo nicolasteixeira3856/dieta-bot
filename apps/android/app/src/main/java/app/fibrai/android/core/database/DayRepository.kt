@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.withTransaction
 import app.fibrai.android.domain.PlannedSlot
 import app.fibrai.android.domain.ReceiptRules
+import app.fibrai.android.domain.Extras
 import app.fibrai.android.domain.SaoPaulo
 import app.fibrai.android.domain.SlotCheck
 import app.fibrai.android.domain.SlotChange
@@ -71,6 +72,36 @@ class DayRepository @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true }
     private val importMutex = Mutex()
     private var imported = false
+
+    /** A72 (ADR-058 decision 4): one past day as the Home shows it, the profile of now and that day's rows. */
+    fun observeDay(date: String): Flow<DaySnapshot> = flow {
+        importOnce()
+        emitAll(
+            combine(
+                combine(
+                    db.profileDao().observe(),
+                    db.dayDao().observe(date),
+                    db.mealLogDao().observeByDate(date),
+                    db.mealSlotDao().observeAll(),
+                    db.slotSkipDao().observeByDate(date),
+                ) { profile, day, logs, slots, skips -> snapshotOf(date, profile, day, logs, slots, skips) },
+                db.plannedMealDao().observeByDate(date),
+            ) { snapshot, planned -> snapshot.copy(planned = planned.associate { it.slotId to it.toPlanned() }) },
+        )
+    }
+
+    /** A72: kcal per day with records, for the strip. */
+    fun observeDayKcal(from: String, to: String): Flow<List<DayKcal>> = db.mealLogDao().observeDayKcal(from, to)
+
+    private var lastExtraKey = 0L
+
+    /** A72: a new extra key, increasing (two extras of one answer never share it). */
+    @Synchronized
+    fun newExtraKey(): Long {
+        val now = clock.now().toEpochMilli()
+        lastExtraKey = maxOf(now, lastExtraKey + 1)
+        return lastExtraKey
+    }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     fun observeToday(): Flow<DaySnapshot> = flow {
@@ -252,7 +283,11 @@ class DayRepository @Inject constructor(
         val logs = db.mealLogDao().getByDate(date).filter { it.slotId != null }.groupBy { it.slotId!! }
         val skips = db.slotSkipDao().getByDate(date).map { it.slotId }.toSet()
         val planned = db.plannedMealDao().getByDate(date).associate { it.slotId to it.toPlanned() }
-        (logs.keys + skips + planned.keys).associateWith { id -> SlotState(logs[id].orEmpty().map { it.toRecord() }, id in skips, planned[id]) }
+        val meals = (logs.keys + skips + planned.keys).associateWith { id -> SlotState(logs[id].orEmpty().map { it.toRecord() }, id in skips, planned[id]) }
+        // A72: each extra is a slot of its own, keyed −extraId.
+        val extras = db.mealLogDao().getByDate(date).filter { it.extraId != null }.groupBy { Extras.slotId(it.extraId!!) }
+            .mapValues { (_, rows) -> SlotState(rows.map { it.toRecord() }) }
+        meals + extras
     }
 
     /**
@@ -287,6 +322,9 @@ class DayRepository @Inject constructor(
 
     /** False when a closure with that key already exists: a closure is produced once. */
     suspend fun insertClosure(row: ClosureEntity): Boolean = withContext(Dispatchers.IO) { db.closureDao().insert(row) != -1L }
+
+    /** A72 (ADR-058 decision 5): the numbers of a closure after a record in its day; the text is not regenerated. */
+    suspend fun setClosureNumbers(key: String, numbers: String) = withContext(Dispatchers.IO) { db.closureDao().setNumbers(key, numbers) }
 
     suspend fun setClosureText(key: String, text: String?, status: String, retried: Boolean) =
         withContext(Dispatchers.IO) { db.closureDao().setText(key, text, status, retried) }
@@ -397,13 +435,33 @@ class DayRepository @Inject constructor(
     suspend fun receipts(): List<ChatMessageEntity> =
         withContext(Dispatchers.IO) { db.chatMessageDao().getReceiptsSince(messagesFrom(), ReceiptRules.ROLES.toList()) }
 
-    private suspend fun readSlot(date: String, slotId: Long) = SlotState(
+    private suspend fun readSlot(date: String, slotId: Long): SlotState {
+        // A72: an extra is a slot of its own, its row found by the key.
+        if (Extras.isExtra(slotId)) return SlotState(db.mealLogDao().getByExtra(date, Extras.key(slotId)).map { it.toRecord() })
+        return readMealSlot(date, slotId)
+    }
+
+    private suspend fun readMealSlot(date: String, slotId: Long) = SlotState(
         db.mealLogDao().getBySlot(date, slotId).map { it.toRecord() },
         db.slotSkipDao().getByDate(date).any { it.slotId == slotId },
         db.plannedMealDao().get(date, slotId)?.toPlanned(),
     )
 
     private suspend fun writeSlot(date: String, slotId: Long, state: SlotState) {
+        if (Extras.isExtra(slotId)) {
+            val key = Extras.key(slotId)
+            db.mealLogDao().deleteByExtra(date, key)
+            state.records.forEach { r ->
+                db.mealLogDao().insert(
+                    MealLogEntity(
+                        date = date, window = r.window, text = r.text, kcal = r.kcal, p = r.p, stable = if (r.stable) 1 else 0,
+                        slotId = null, carbs = r.c, fat = r.g, source = r.source, recipeVersionId = r.recipeVersionId,
+                        kind = Extras.KIND, time = r.time, extraId = key,
+                    ),
+                )
+            }
+            return
+        }
         db.mealLogDao().deleteBySlot(date, slotId)
         db.slotSkipDao().delete(date, slotId)
         db.plannedMealDao().delete(date, slotId)
@@ -428,7 +486,7 @@ class DayRepository @Inject constructor(
         if (state.skipped) db.slotSkipDao().insert(SlotSkipEntity(date = date, slotId = slotId))
     }
 
-    private fun MealLogEntity.toRecord() = SlotRecord(text, kcal, p, carbs, fat, source, window, stable != 0, recipeVersionId)
+    private fun MealLogEntity.toRecord() = SlotRecord(text, kcal, p, carbs, fat, source, window, stable != 0, recipeVersionId, time.takeIf { kind == Extras.KIND })
 
     private fun PlannedMealEntity.toPlanned() = PlannedSlot(text, kcal, p, c, g, sourceMessageId)
 
@@ -923,6 +981,9 @@ class DayRepository @Inject constructor(
                     carbs = row.carbs,
                     fat = row.fat,
                     source = row.source,
+                    kind = row.kind,
+                    time = row.time,
+                    extraId = row.extraId,
                 )
             },
             slots = slots.map { MealSlot(id = it.id, name = it.name, minutesFromMidnight = it.minutesFromMidnight, days = it.days) },

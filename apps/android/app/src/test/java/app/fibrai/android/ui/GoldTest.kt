@@ -138,11 +138,41 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1258dp-xhdpi")
     fun home0_light() = check("home0", dark = false) { Home(HomeFixtures.home0) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1414dp-xhdpi")
-    fun home1_dark() = check("home1", dark = true) { Home(HomeFixtures.home1Workout) }
+    /** home1 (D28, A72): the Release 2 frame, 1640 dp, with the strip and an extra at 15:40. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1640dp-xhdpi")
+    fun home1_dark() = check("home1", dark = true) { HomeHistory(HomeFixtures.home1Extra, LocalDate.parse("2026-10-03")) }
 
-    @Test @Config(sdk = [34], qualifiers = "w390dp-h1414dp-xhdpi")
-    fun home1_light() = check("home1", dark = false) { Home(HomeFixtures.home1Workout) }
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1640dp-xhdpi")
+    fun home1_light() = check("home1", dark = false) { HomeHistory(HomeFixtures.home1Extra, LocalDate.parse("2026-10-03")) }
+
+    /** homeH (D28, A72): 1 de outubro picked on the strip, read only, its closure card. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1792dp-xhdpi")
+    fun homeH_dark() = check("homeH", dark = true) { HomeHistory(HomeFixtures.homeH, LocalDate.parse("2026-10-03"), LocalDate.parse("2026-10-01"), listOf(HOME_H_CLOSURE)) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1792dp-xhdpi")
+    fun homeH_light() = check("homeH", dark = false) { HomeHistory(HomeFixtures.homeH, LocalDate.parse("2026-10-03"), LocalDate.parse("2026-10-01"), listOf(HOME_H_CLOSURE)) }
+
+    /** homeE (D28, A72): day 1, the strip with today alone. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1406dp-xhdpi")
+    fun homeE_dark() = check("homeE", dark = true) { HomeHistory(HomeFixtures.home0, LocalDate.parse("2026-09-25"), kcal = emptyMap()) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h1406dp-xhdpi")
+    fun homeE_light() = check("homeE", dark = false) { HomeHistory(HomeFixtures.home0, LocalDate.parse("2026-09-25"), kcal = emptyMap()) }
+
+    /** chatGX (D28, A72): an extra recorded by itself, its receipt and actions. */
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun chatGX_dark() = check("chatGX", dark = true) { Chat(ChatFixtures.chatGX) }
+
+    @Test @Config(sdk = [34], qualifiers = "w390dp-h902dp-xhdpi")
+    fun chatGX_light() = check("chatGX", dark = false) { Chat(ChatFixtures.chatGX) }
+
+    @Composable private fun HomeHistory(
+        day: DaySnapshot,
+        today: LocalDate,
+        shown: LocalDate? = null,
+        closures: List<app.fibrai.android.core.database.ClosureEntity> = emptyList(),
+        kcal: Map<String, Int> = HomeFixtures.stripKcal,
+    ) = HomePanelScreen(HomePanelMapper.map(day, today, closures = closures, shown = shown, dayKcal = kcal), {}, {}, {})
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h1516dp-xhdpi")
     fun homeX_dark() = check("homeX", dark = true) { Home(HomeFixtures.homeXWorkout) }
@@ -182,11 +212,15 @@ class GoldTest {
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
     fun chatQ_light() = check("chatQ", dark = false) { Chat(ChatFixtures.chatQ) }
 
+    /**
+     * chatT: A72 (ADR-058) adds the `Extra · fora das refeições` row at the end of the sheet; D28 kept the chatT gold without it
+     * (`Show extra` off). The spec wins (ADR-027): reported, not gated, until a design plan redraws chatT.
+     */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatT_dark() = check("chatT", dark = true) { Chat(ChatFixtures.chatT) }
+    fun chatT_dark() = check("chatT", dark = true, reportOnly = true) { Chat(ChatFixtures.chatT) }
 
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
-    fun chatT_light() = check("chatT", dark = false) { Chat(ChatFixtures.chatT) }
+    fun chatT_light() = check("chatT", dark = false, reportOnly = true) { Chat(ChatFixtures.chatT) }
 
     /** A34: Substituir inside the conversation. */
     @Test @Config(sdk = [34], qualifiers = "w390dp-h844dp-xhdpi")
@@ -671,6 +705,27 @@ class GoldTest {
         /** homeP: the homeC day with the dinner reserved (D18). */
         val HOME_P_DAY = HOME_C_DAY.copy(
             planned = mapOf(4L to app.fibrai.android.domain.PlannedSlot("Omelete de forno: 3 ovos, 50 g de ricota e 1 fatia de pão integral", 360, 30, 20, 18)),
+        )
+
+        /** homeH: the closure of 1 de outubro, its numbers as the app stored them. */
+        val HOME_H_CLOSURE = app.fibrai.android.core.database.ClosureEntity(
+            key = "day:2026-10-01", period = "day", date = "2026-10-01",
+            numbers = app.fibrai.android.domain.Closures.json.encodeToString(
+                app.fibrai.android.domain.ClosureDay.serializer(),
+                app.fibrai.android.domain.Closures.day(
+                    LocalDate.parse("2026-10-01"),
+                    listOf(
+                        app.fibrai.android.domain.ClosureMeal(1, "Café da manhã", 520, false, null, true),
+                        app.fibrai.android.domain.ClosureMeal(2, "Almoço", 780, false, null, true),
+                        app.fibrai.android.domain.ClosureMeal(3, "Lanche", 0, true, null, false),
+                        app.fibrai.android.domain.ClosureMeal(4, "Jantar", 610, false, null, true),
+                    ),
+                    app.fibrai.android.domain.Macros(1910, 118, 194, 60),
+                    2175,
+                    350,
+                ),
+            ),
+            text = "1910 de 2175 kcal. Proteína: 118 de 150 g. Lanche pulado; jantar com 610 kcal.", status = "text", createdAtEpochMs = 0,
         )
 
         val DAY_CLOSURE = app.fibrai.android.core.database.ClosureEntity(

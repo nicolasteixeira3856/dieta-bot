@@ -1172,6 +1172,17 @@ private fun BoxScope.SlotSheet(ui: ChatUiState, onSelect: (Long) -> Unit, onConf
                     modifier = Modifier.testTag("chat-sheet-slot-${slot.id}"),
                 )
             }
+            // A72 (D28 `Sheet/SlotList` Show extra): a record outside the meals; never for an addition.
+            if (ui.sheetAddition == null) {
+                AeroSlotPickRow(
+                    name = "Extra",
+                    time = "fora das refeições",
+                    icon = AeroIconName.Clock,
+                    selected = ui.sheetSelection == app.fibrai.android.domain.Extras.TARGET,
+                    onClick = { onSelect(app.fibrai.android.domain.Extras.TARGET) },
+                    modifier = Modifier.testTag("chat-sheet-slot-extra"),
+                )
+            }
         }
     }
 }

@@ -81,6 +81,12 @@ data class ChatIn(
     @SerialName("fit_kcal") val fitKcal: Int? = null,
     /** The unrecorded addition the user is continuing (A47); null = none. Never on a compact request. */
     @SerialName("pending_addition") val pendingAddition: ChatPendingAddition? = null,
+    /** A72 (S42, ADR-058): a log may target an extra (`slot: "extra"`, `time`). False is not encoded (compact). */
+    val extras: Boolean = false,
+    /** A72 (S42): a log of a named past day inside 30 days comes back with `day`. False is not encoded (compact). */
+    @SerialName("other_day") val otherDay: Boolean = false,
+    /** A72 (S42): the app's first day; a named day before it is too old. Null = not sent. */
+    @SerialName("first_day") val firstDay: String? = null,
 )
 
 /** An unrecorded addition sent back as context (S18 `pending_addition`): base_slot is the eaten source slot or null. */
@@ -197,6 +203,8 @@ data class ChatRecentMeal(
     val p: Int,
     val c: Int,
     val g: Int,
+    /** A72 (S42): the time of an extra (`slot_id: "extra"`); null otherwise (not encoded). */
+    val time: String? = null,
 )
 
 @Serializable
@@ -211,7 +219,13 @@ data class ChatProfile(
     val tone: String,
     /** A71 (S41, ADR-057 decision 9): the accepted goal weight and date; null = none (not encoded). */
     val goal: ChatGoal? = null,
+    /** A72 (S42): the slots of each profile group by ISO weekday, for a past day's log; empty = not sent. */
+    @SerialName("slots_by_day") val slotsByDay: List<ChatSlotsByDay> = emptyList(),
 )
+
+/** A72 (S42): one profile group: its ISO weekdays (1 = Monday) and its slots. */
+@Serializable
+data class ChatSlotsByDay(val weekdays: List<Int>, val slots: List<ChatSlot>)
 
 @Serializable
 data class ChatSlot(val id: String, val name: String, val time: String)
@@ -323,6 +337,10 @@ data class ChatAction(
     val options: JsonElement? = null,
     @SerialName("plan_budget") val planBudget: JsonElement? = null,
     val recipe: JsonElement? = null,
+    /** A72 (S42): the `HH:mm` of an extra log (null: now). */
+    val time: String? = null,
+    /** A72 (S42): the ISO date of a past-day log (`meal_day: other`); null otherwise. */
+    val day: String? = null,
 )
 
 /** `mode`: "replace" (the day's workout becomes [kcal]) or "add" (it sums to the day's number). */

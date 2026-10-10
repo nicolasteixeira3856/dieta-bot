@@ -20,6 +20,17 @@ interface MealLogDao {
     @Query("SELECT * FROM meal_log WHERE date = :date AND slotId = :slotId ORDER BY id ASC")
     suspend fun getBySlot(date: String, slotId: Long): List<MealLogEntity>
 
+    /** A72: the extra whose key is [extraId] on [date]. */
+    @Query("SELECT * FROM meal_log WHERE date = :date AND extraId = :extraId ORDER BY id ASC")
+    suspend fun getByExtra(date: String, extraId: Long): List<MealLogEntity>
+
+    @Query("DELETE FROM meal_log WHERE date = :date AND extraId = :extraId")
+    suspend fun deleteByExtra(date: String, extraId: Long)
+
+    /** A72 (the Home strip): kcal per day between two inclusive ISO dates; a day without records is absent. */
+    @Query("SELECT date AS date, SUM(kcal) AS kcal FROM meal_log WHERE date >= :from AND date <= :to GROUP BY date")
+    fun observeDayKcal(from: String, to: String): Flow<List<DayKcal>>
+
     @Insert
     suspend fun insert(row: MealLogEntity)
 

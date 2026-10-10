@@ -75,6 +75,24 @@ object ChatFixtures {
         slots = slots,
     )
 
+    /** chatGX (D28, A72): an energy drink recorded by itself as an extra at 15:40, with the receipt actions. */
+    val chatGX = ChatUiState(
+        items = listOf(
+            ChatItem.DateSeparator("Hoje, 3 de outubro"),
+            ChatItem.User(70, "Tomei um energético agora, uma lata de 350 ml", "15:40"),
+            ChatItem.Assistant(
+                id = 71,
+                text = "Identifiquei 1 energético (350 ml). A estimativa total é de:",
+                time = "15:40",
+                highlights = listOf("1 energético (350 ml)"),
+                estimate = EstimateView(160, 0, 40, 0, null, null),
+            ),
+            ChatItem.Receipt(72, ReceiptKind.LOGGED, "extra", "15:40", 160, actions = recordActions, extra = true),
+        ),
+        emptyDay = false,
+        slots = slots,
+    )
+
     /** chatCP (D20, A61 part B): the chatG thread with the user message and the Tali reply selected; the receipt is not. */
     val chatCP = chatG.copy(selected = setOf(user.key, "a-${bot.id}"))
 

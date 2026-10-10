@@ -232,14 +232,14 @@ fun AeroMacroRow(
 }
 
 /** Planned (D18, homeP): a reserved plan, dashed like a skip, with the calendar mark. */
-enum class AeroNodeState { Done, Photo, Skipped, Active, Over, Empty, Planned }
+enum class AeroNodeState { Done, Photo, Skipped, Active, Over, Empty, Planned, Extra }
 
 /** Timeline/Node: 24 dp marker on the continuous timeline guide. */
 @Composable
 fun AeroTimelineNode(state: AeroNodeState, modifier: Modifier = Modifier) {
     val c = Aero.colors
     val ring = when (state) {
-        AeroNodeState.Done -> c.statusGood
+        AeroNodeState.Done, AeroNodeState.Extra -> c.statusGood
         AeroNodeState.Photo, AeroNodeState.Active -> c.accentDefault
         AeroNodeState.Skipped, AeroNodeState.Empty, AeroNodeState.Planned -> c.textDim
         AeroNodeState.Over -> c.statusBad
@@ -270,6 +270,8 @@ fun AeroTimelineNode(state: AeroNodeState, modifier: Modifier = Modifier) {
             AeroNodeState.Skipped -> AeroIcon(AeroIconName.Minus, ring, size = 14.dp)
             AeroNodeState.Over -> AeroIcon(AeroIconName.ExclamationMark, ring, size = 14.dp)
             AeroNodeState.Planned -> AeroIcon(AeroIconName.CalendarCheck, ring, size = 14.dp)
+            // A72 (D28 `Timeline/Node` State=Extra): the Done ring with the clock.
+            AeroNodeState.Extra -> AeroIcon(AeroIconName.Clock, ring, size = 14.dp)
             AeroNodeState.Active, AeroNodeState.Empty -> Box(Modifier.size(10.dp).background(ring, CircleShape))
         }
     }

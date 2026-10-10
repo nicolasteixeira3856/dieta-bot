@@ -10,7 +10,14 @@ data class MealLog(
     val carbs: Int = 0,
     val fat: Int = 0,
     val source: String = "user",
-)
+    /** A72 (ADR-058): `slot` | `extra`; an extra has no slot and its own [time] (`HH:mm`). */
+    val kind: String = "slot",
+    val time: String? = null,
+    /** A72: the key of an extra (its receipt's slot is −extraId). */
+    val extraId: Long? = null,
+) {
+    val extra: Boolean get() = kind == app.fibrai.android.domain.Extras.KIND
+}
 
 data class MealSlot(
     val id: Long = 0,
