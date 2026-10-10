@@ -12,7 +12,7 @@
 // is searched before scoring. Content presence is checked too: the ink (pixels off the page
 // background) of the capture must be 0.8-1.25x the gold's, so a blank capture fails.
 //
-// Usage: node tools/diff-gold.mjs [--max 2] dark/o1 light/o1 ...   (no ids = splash + o1, o1e, o2..o4)
+// Usage: node tools/diff-gold.mjs [--max 2] dark/o1 light/o1 ...   (no ids = splash + ob0..ob6)
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -29,7 +29,7 @@ if (maxAt >= 0) {
 }
 const ids = args.length
   ? args
-  : ["dark", "light"].flatMap((t) => ["splash", "o1", "o1e", "o2", "o3", "o4"].map((id) => `${t}/${id}`));
+  : ["dark", "light"].flatMap((t) => ["splash", "ob0", "ob1", "ob1e", "ob2", "ob3", "ob4", "ob5", "ob6"].map((id) => `${t}/${id}`));
 
 const WIDTH = 780;
 const IGNORE_TOP = 80;

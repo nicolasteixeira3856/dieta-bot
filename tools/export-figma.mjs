@@ -36,17 +36,17 @@ export const DARK_FRAMES = {
   homeC: "141:4902",
   homeK: "141:4945",
   homeP: "151:5539",
-  // Splash and onboarding (D4)
+  // Splash (D4)
   splash: "54:1233",
-  o1: "54:1244",
-  o1e: "54:1276",
-  o2: "54:1308",
-  o3: "54:1332",
-  o3t: "54:1362",
-  o3s: "54:1395",
-  o4: "54:1434",
-  // Tone (D16)
-  o5: "140:4556",
+  // Conversational onboarding (D27, Release 2; replaces o1–o5)
+  ob0: "210:1190",
+  ob1: "210:1210",
+  ob1e: "210:1259",
+  ob2: "210:1308",
+  ob3: "210:1351",
+  ob4: "210:1429",
+  ob5: "210:1449",
+  ob6: "210:1462",
   // Chat core (D5)
   chat0: "63:2079",
   chatL: "63:2097",
@@ -107,17 +107,17 @@ export const LIGHT_FRAMES = {
   homeC: "141:4742",
   homeK: "141:4802",
   homeP: "151:5424",
-  // Splash and onboarding (D4)
+  // Splash (D4)
   splash: "51:732",
-  o1: "51:743",
-  o1e: "51:890",
-  o2: "53:801",
-  o3: "53:911",
-  o3t: "53:1049",
-  o3s: "53:1220",
-  o4: "53:1345",
-  // Tone (D16)
-  o5: "140:4452",
+  // Conversational onboarding (D27, Release 2; replaces o1–o5)
+  ob0: "209:995",
+  ob1: "209:1016",
+  ob1e: "209:1068",
+  ob2: "209:1119",
+  ob3: "209:1164",
+  ob4: "209:1244",
+  ob5: "209:1272",
+  ob6: "209:1286",
   // Chat core (D5)
   chat0: "62:1745",
   chatL: "62:1796",

@@ -22,7 +22,7 @@ Golds per flow (ids unchanged, inventory in [docs/qa/README.md](../../qa/README.
 | Flow | Golds |
 |---|---|
 | Home | `home0`, `home1`, `homeX`, `homeW`, `homeC`, `homeK`, `homeP` |
-| Splash and onboarding | `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `o5` |
+| Splash and onboarding | `splash`, `o1`, `o1e`, `o2`, `o3`, `o3t`, `o3s`, `o4`, `o5` (`o1`–`o5` retired by D27: `ob0`–`ob6`) |
 | Chat core | `chat0`, `chatL`, `chatQ`, `chatE`, `chatT`, `chatP`, `chatX`, `chatCP`, `chatCC` |
 | Chat records and memory | `chatF`, `chatA`, `chatG`, `chatU`, `chatD`, `chatR`, `chatM`, `chatS`, `chatRK`, `chatRB`, `chatRL` |
 | Config and push | `cfg`, `cfgS`, `wipe`, `cfgR`, `cfgT`, `push` |
@@ -180,7 +180,7 @@ Behavior: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [A
 | Step | Plan | Depends on |
 |---|---|---|
 | Server | S40 — eval personas, delivered ([history](../../server/plans/completed/)) | — |
-| Design | [D27](pending_manual_validation/d27-conversational-onboarding.md) — conversational onboarding (`ob0`–`ob6`; `o1`–`o5` retired), frames drawn, owner review pending | D26, ADR-057 accepted |
+| Design | D27 — conversational onboarding (`ob0`–`ob6`; `o1`–`o5` retired), delivered ([history](completed/)) | D26, ADR-057 accepted |
 | Server | [S41](../../server/plans/s41-onboarding-profile.md) — `POST /v1/profile` | S40 |
 | Client | [A71](../../android/plans/a71-conversational-onboarding.md) — conversational onboarding in the app | D27, S41 on dev, A70 merged |
 | Design | [D28](pending_manual_validation/d28-home-extras-and-history.md) — Home day strip, past day and extras (`home1` redrawn, `homeH`, `homeE`, `chatGX`), frames drawn, owner review pending | D27, ADR-058 accepted |

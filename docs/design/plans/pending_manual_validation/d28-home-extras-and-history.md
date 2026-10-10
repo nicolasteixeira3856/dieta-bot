@@ -4,7 +4,7 @@
 - Date: 09/10/2026
 - Owning context: `design`
 - Affected code: none in `apps/` or `server/`. Figma `Design` → `Release 2` → section "Home history", new components in `Componentes`. Repository: `docs/qa/figma/{dark,light}/{home1,homeH,homeE,chatGX}.png` (`home1` redrawn, `homeH`, `homeE` and `chatGX` new), the "Home history" node ids in `tools/export-figma.mjs`.
-- Prerequisites: [D27](d27-conversational-onboarding.md) `Concluído` (one design plan at a time); [ADR-058](../../../produto/adrs/ADR-058-extras-and-history.md) accepted by this approval.
+- Prerequisites: [D27](../completed/d27-conversational-onboarding.md) `Concluído` (one design plan at a time); [ADR-058](../../../produto/adrs/ADR-058-extras-and-history.md) accepted by this approval.
 - Figma MCP budget: ≤ 90 calls (at most 120 a day, ADR-031 § 6).
 
 Authorization, lifecycle, cancellation and deferral: `docs/sdd/README.md`. Approval: `Aprovo o plano docs/design/plans/d28-home-extras-and-history.md. Implemente o plano aprovado.`
