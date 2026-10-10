@@ -183,7 +183,7 @@ Behavior: [ADR-057](../../produto/adrs/ADR-057-conversational-onboarding.md), [A
 | Design | [D27](pending_manual_validation/d27-conversational-onboarding.md) — conversational onboarding (`ob0`–`ob6`; `o1`–`o5` retired), frames drawn, owner review pending | D26, ADR-057 accepted |
 | Server | [S41](../../server/plans/s41-onboarding-profile.md) — `POST /v1/profile` | S40 |
 | Client | [A71](../../android/plans/a71-conversational-onboarding.md) — conversational onboarding in the app | D27, S41 on dev, A70 merged |
-| Design | [D28](d28-home-extras-and-history.md) — Home day strip, past day and extras (`home1` redrawn, `homeH`, `homeE`, `chatGX`) | D27, ADR-058 accepted |
+| Design | [D28](pending_manual_validation/d28-home-extras-and-history.md) — Home day strip, past day and extras (`home1` redrawn, `homeH`, `homeE`, `chatGX`), frames drawn, owner review pending | D27, ADR-058 accepted |
 | Server | [S42](../../server/plans/s42-extras-and-other-day.md) — extras and a record in a named past day | S40 |
 | Client | [A72](../../android/plans/a72-extras-and-history.md) — extras, the strip and the past-day record | D28, S42 on dev, A71 |
 
